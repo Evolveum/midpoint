@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,19 +10,16 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
@@ -36,14 +33,21 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
         addObject(USER_JACK, initTask, initResult);
     }
 
-    List<String> basicCheckOutputFile(PrismObject<ReportType> report, int expectedRow, int expectedColumns, CharSequence lastLine) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ParseException {
-        List<String> lines = getLinesOfOutputFile(report);
+    List<String> basicCheckOutputFile(PrismObject<ReportType> report, int expectedRows, int expectedColumns, String lastLine)
+            throws IOException, ParseException {
 
-        if (expectedRow != -1 && lines.size() != expectedRow) {
-            fail("Unexpected count of rows of csv report. Expected: " + expectedRow + ", Actual: " + lines.size());
+        if (expectedRows != DONT_COUNT_ROWS) {
+            // +1 for the final line with the subscription appeal
+            expectedRows += 1;
         }
 
-        if (expectedRow == -1 && lines.size() < 2) {
+        List<String> lines = getLinesOfOutputFile(report);
+
+        if (expectedRows != DONT_COUNT_ROWS && lines.size() != expectedRows) {
+            fail("Unexpected count of rows of csv report. Expected: " + expectedRows + ", Actual: " + lines.size());
+        }
+
+        if (expectedRows == DONT_COUNT_ROWS && lines.size() < 2) {
             fail("Unexpected count of rows of csv report. Expected: more as one, Actual: " + lines.size());
         }
 
@@ -52,7 +56,8 @@ public class TestCsvReport extends EmptyReportIntegrationTest {
             fail("Unexpected count of columns of csv report. Expected: " + expectedColumns + ", Actual: " + actualColumns);
         }
 
-        String lastRealLine = lines.get(lines.size() - 1);
+        // Last content line before the subscription appeal, hence -2, not -1.
+        String lastRealLine = lines.get(lines.size() - 2);
         if (StringUtils.isNoneEmpty(lastLine) && !lastRealLine.equals(lastLine)) {
             fail("Unexpected last line of csv report. Expected: '" + lastLine + "', Actual: '" + lastRealLine + "'");
         }

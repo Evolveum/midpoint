@@ -44,6 +44,11 @@ public class ItemPanelSettingsBuilder {
         return this;
     }
 
+    public ItemPanelSettingsBuilder displayedInColumn(boolean displayedInColumn) {
+        settings.setDisplayedInColumn(displayedInColumn);
+        return this;
+    }
+
     public ItemPanelSettings build() {
         return settings;
     }

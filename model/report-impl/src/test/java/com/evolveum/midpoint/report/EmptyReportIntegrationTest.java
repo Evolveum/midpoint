@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,22 +19,22 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.prism.path.ItemName;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -46,12 +46,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class EmptyReportIntegrationTest extends AbstractModelIntegrationTest {
 
+    public static final int DONT_COUNT_ROWS = -1;
+
     static final File TEST_DIR_REPORTS = new File("src/test/resources/reports");
     static final File TEST_DIR_COMMON = new File("src/test/resources/common");
     private static final File EXPORT_DIR = new File("target/midpoint-home/export");
 
-    //    private static final TestResource<ReportType> REPORT_OBJECT_COLLECTION_USERS = new TestResource<>(TEST_DIR_REPORTS,
-//            "report-object-collection-users.xml", "64e13165-21e5-419a-8d8b-732895109f84");
     static final TestResource<ReportType> REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN = new TestResource<>(TEST_DIR_REPORTS,
             "report-audit-collection-with-default-column.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a85bc");
     static final TestResource<ReportType> REPORT_AUDIT_COLLECTION_WITH_VIEW = new TestResource<>(TEST_DIR_REPORTS,
@@ -186,13 +186,14 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         System.out.printf("%d users created", users);
     }
 
-    List<String> getLinesOfOutputFile(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, ParseException {
+    List<String> getLinesOfOutputFile(PrismObject<ReportType> report) throws IOException, ParseException {
         File outputFile = findOutputFile(report);
         displayValue("Found report file", outputFile);
         assertNotNull("No output file for " + report, outputFile);
         List<String> lines = Files.readAllLines(Paths.get(outputFile.getPath()));
         displayValue("Report content (" + lines.size() + " lines)", String.join("\n", lines));
-        outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
+        assertThat(outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName())))
+                .isTrue();
         return lines;
     }
 

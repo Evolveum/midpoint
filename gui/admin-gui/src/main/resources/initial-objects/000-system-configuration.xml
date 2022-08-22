@@ -943,6 +943,23 @@
             <identifier>admin-dashboard</identifier>
             <configurableDashboardRef oid="00000000-0000-0000-0001-000000000001" relation="org:default" type="c:DashboardType"/>
         </configurableUserDashboard>
+        <accessRequest>
+            <roleCatalog>
+                <collection>
+                    <identifier>allRoles</identifier>
+                    <default>true</default>
+                    <collectionIdentifier>allRoles</collectionIdentifier>
+                </collection>
+                <collection>
+                    <identifier>allOrgs</identifier>
+                    <collectionIdentifier>allOrgs</collectionIdentifier>
+                </collection>
+                <collection>
+                    <identifier>allServices</identifier>
+                    <collectionIdentifier>allServices</collectionIdentifier>
+                </collection>
+            </roleCatalog>
+        </accessRequest>
     </adminGuiConfiguration>
 
     <expressions>

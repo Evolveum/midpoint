@@ -67,4 +67,8 @@ public class VerticalFormPrismReferencePanel<R extends Referencable>
             }
         };
     }
+
+    protected String getCssClassForValueContainer() {
+        return "";
+    }
 }

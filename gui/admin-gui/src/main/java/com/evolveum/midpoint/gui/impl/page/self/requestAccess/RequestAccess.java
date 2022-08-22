@@ -705,7 +705,12 @@ public class RequestAccess implements Serializable {
 
     private RelationSelectionType getRelationConfiguration(Page page) {
         AccessRequestType config = getAccessRequestConfiguration(page);
-        return config != null ? config.getRelationSelection() : new RelationSelectionType();
+        RelationSelectionType relation = null;
+        if (config != null) {
+            relation = config.getRelationSelection();
+        }
+
+        return relation != null ? relation : new RelationSelectionType();
     }
 
     public AccessRequestType getAccessRequestConfiguration(Page page) {

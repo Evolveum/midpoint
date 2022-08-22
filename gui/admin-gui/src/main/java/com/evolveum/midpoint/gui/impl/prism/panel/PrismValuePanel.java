@@ -14,6 +14,7 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -83,6 +84,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     protected WebMarkupContainer createHeaderPanel() {
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_HEADER_CONTAINER);
+        buttonContainer.add(new VisibleBehaviour(() -> !getSettings().isDisplayedInColumn()));
 
         AjaxLink<Void> removeButton = new AjaxLink<>(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -134,6 +136,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
         WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
         valueContainer.setOutputMarkupId(true);
+        valueContainer.add(AttributeAppender.append("class", getCssClassForValueContainer()));
         form.add(valueContainer);
 
         // feedback
@@ -173,6 +176,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             getSession().error("Cannot create panel");
             throw new RuntimeException(e);
         }
+    }
+
+    protected String getCssClassForValueContainer() {
+        return "";
     }
 
     protected FeedbackAlerts createFeedbackPanel(String idFeedback) {

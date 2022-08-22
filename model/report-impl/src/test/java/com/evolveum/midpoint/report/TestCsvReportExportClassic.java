@@ -1,33 +1,32 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report;
 
+import static org.testng.AssertJUnit.assertTrue;
+
 import java.io.File;
-
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.report.api.ReportConstants;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
-
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.assertTrue;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -92,17 +91,17 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
     @Test
     public void test100AuditCollectionReportWithDefaultColumn() throws Exception {
-        runTest(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, -1, 8, null);
+        runTest(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN, DONT_COUNT_ROWS, 8, null);
     }
 
     @Test
     public void test101AuditCollectionReportWithView() throws Exception {
-        runTest(REPORT_AUDIT_COLLECTION_WITH_VIEW, -1, 2, null);
+        runTest(REPORT_AUDIT_COLLECTION_WITH_VIEW, DONT_COUNT_ROWS, 2, null);
     }
 
     @Test
     public void test102AuditCollectionReportWithDoubleView() throws Exception {
-        runTest(REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW, -1, 3, null);
+        runTest(REPORT_AUDIT_COLLECTION_WITH_DOUBLE_VIEW, DONT_COUNT_ROWS, 3, null);
     }
 
     @Test
@@ -182,8 +181,8 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         assertTrue("Target file is not there", targetFile.exists());
     }
 
-    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns, CharSequence lastline,
-            ReportParameterType parameters) throws Exception {
+    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns,
+            String lastLine, ReportParameterType parameters) throws Exception {
         given();
 
         Task task = getTestTask();
@@ -195,12 +194,10 @@ public class TestCsvReportExportClassic extends TestCsvReport {
                     ItemPath.create(TaskType.F_ACTIVITY,
                             ActivityDefinitionType.F_WORK,
                             WorkDefinitionsType.F_REPORT_EXPORT,
-                            ClassicReportImportWorkDefinitionType.F_REPORT_PARAM
-                    ),
+                            ClassicReportImportWorkDefinitionType.F_REPORT_PARAM),
                     task,
                     result,
-                    parameters
-            );
+                    parameters);
         }
 
         dummyTransport.clearMessages();
@@ -218,24 +215,19 @@ public class TestCsvReportExportClassic extends TestCsvReport {
                 .display();
 
         PrismObject<ReportType> report = getObject(ReportType.class, reportResource.oid);
-        basicCheckOutputFile(report, expectedRows, expectedColumns, lastline);
+        basicCheckOutputFile(report, expectedRows, expectedColumns, lastLine);
 
         assertNotificationMessage(reportResource);
     }
 
-    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns, CharSequence lastline)
+    private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns, String lastLine)
             throws Exception {
-        runTest(reportResource, expectedRows, expectedColumns, lastline, null);
+        runTest(reportResource, expectedRows, expectedColumns, lastLine, null);
     }
 
     private ReportParameterType getParameters(String name, Class<String> type, Object realValue) throws SchemaException {
-//        PrismContainerDefinition<ReportParameterType> paramContainerDef = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
-//        PrismContainer<ReportParameterType> paramContainer;
-//        paramContainer = paramContainerDef.instantiate();
         ReportParameterType reportParam = new ReportParameterType();
         PrismContainerValue<ReportParameterType> reportParamValue = reportParam.asPrismContainerValue();
-//        reportParamValue.revive(prismContext);
-//        paramContainer.add(reportParamValue);
 
         QName typeName = prismContext.getSchemaRegistry().determineTypeForClass(type);
         MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
@@ -244,7 +236,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         def.setRuntimeSchema(true);
         def.toMutable().setMaxOccurs(1);
 
-        PrismProperty prop = def.instantiate();
+        PrismProperty<Object> prop = def.instantiate();
         prop.addRealValue(realValue);
         reportParamValue.add(prop);
 

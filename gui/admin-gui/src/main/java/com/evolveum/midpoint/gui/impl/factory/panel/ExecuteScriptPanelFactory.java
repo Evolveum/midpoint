@@ -17,7 +17,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 
 @Component
-public class ExecuteScriptWrapperFactory extends AbstractInputGuiComponentFactory<ExecuteScriptType> {
+public class ExecuteScriptPanelFactory extends AbstractInputGuiComponentFactory<ExecuteScriptType> {
 
     @PostConstruct
     public void register() {

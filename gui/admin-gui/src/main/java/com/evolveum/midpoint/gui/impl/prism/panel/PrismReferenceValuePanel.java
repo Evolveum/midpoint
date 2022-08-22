@@ -123,4 +123,8 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
     protected void remove(PrismReferenceValueWrapperImpl<R> valueToRemove, AjaxRequestTarget target) throws SchemaException {
         throw new UnsupportedOperationException("Must be implemented in calling panel");
     }
+
+    protected String getCssClassForValueContainer() {
+        return getSettings() != null && getSettings().isDisplayedInColumn() ? "w-100" : "col-10";
+    }
 }

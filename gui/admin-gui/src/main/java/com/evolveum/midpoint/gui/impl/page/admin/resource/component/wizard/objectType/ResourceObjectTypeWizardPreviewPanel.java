@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
 public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizardChoicePanel<ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType> {
@@ -64,7 +65,12 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
 
     @Override
     protected IModel<String> getBreadcrumbLabel() {
-        return Model.of(GuiDisplayNameUtil.getDisplayName(valueModel.getObject().getRealValue()));
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected String load() {
+                return GuiDisplayNameUtil.getDisplayName(valueModel.getObject().getRealValue());
+            }
+        };
     }
 
     @Override
