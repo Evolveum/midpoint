@@ -28,9 +28,9 @@ public enum StaticObjectCollection {
 
     ROLE_CATALOG_VIEW(SchemaConstants.OBJECT_COLLECTION_ROLE_CATALOG_QNAME, AbstractRoleType.class);
 
-    private QName uri;
+    private final QName uri;
 
-    private Class<? extends ObjectType> type;
+    private final Class<? extends ObjectType> type;
 
     StaticObjectCollection(QName uri, Class<? extends ObjectType> type) {
         this.uri = uri;

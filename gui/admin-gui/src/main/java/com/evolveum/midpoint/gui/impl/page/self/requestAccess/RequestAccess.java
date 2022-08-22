@@ -16,13 +16,12 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.LocalizationService;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -191,7 +190,7 @@ public class RequestAccess implements Serializable {
             }
 
             requestItems.remove(ref);
-            existingOids.remove(ref);
+            existingOids.remove(ref.getOid());
 
             changed = true;
         }
@@ -236,7 +235,7 @@ public class RequestAccess implements Serializable {
     public List<AssignmentType> getShoppingCartAssignments() {
         Set<AssignmentType> assignments = new HashSet<>();
 
-        requestItems.values().stream().forEach(list -> assignments.addAll(list));
+        requestItems.values().forEach(list -> assignments.addAll(list));
 
         return List.copyOf(assignments);
     }
@@ -256,13 +255,6 @@ public class RequestAccess implements Serializable {
 
         List<AssignmentType> assignments = map.get(personOfInterestRef);
         return assignments != null ? assignments : new ArrayList<>();
-    }
-
-    public List<RequestAccessItem> getRequestAccessItems() {
-        return requestItems.entrySet().stream()
-                .map(e -> new RequestAccessItem(e.getKey(), e.getValue()))
-                .sorted()
-                .collect(Collectors.toUnmodifiableList());
     }
 
     public List<ShoppingCartItem> getShoppingCartItems() {
@@ -570,7 +562,7 @@ public class RequestAccess implements Serializable {
     }
 
     public boolean isAllConflictsSolved() {
-        return getConflicts().stream().filter(c -> c.getState() == ConflictState.UNRESOLVED).count() == 0;
+        return getConflicts().stream().noneMatch(c -> c.getState() == ConflictState.UNRESOLVED);
     }
 
     public OperationResult submitRequest(PageBase page) {
@@ -743,7 +735,7 @@ public class RequestAccess implements Serializable {
         }
 
         for (List<ObjectReferenceType> memberships : existingPoiRoleMemberships.values()) {
-            boolean found = memberships.stream().filter(m -> oid.equals(m.getOid())).count() > 0;
+            boolean found = memberships.stream().anyMatch(m -> oid.equals(m.getOid()));
             if (!found) {
                 return false;
             }

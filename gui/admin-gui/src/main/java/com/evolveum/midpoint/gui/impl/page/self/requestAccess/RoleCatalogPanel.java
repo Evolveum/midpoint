@@ -100,7 +100,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private PageBase page;
 
-    private IModel<Search> searchModel;
+    private IModel<Search<? extends ObjectType>> searchModel;
 
     private IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel;
 
@@ -166,7 +166,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private boolean isRequestingForMyself() {
         String principalOid = SecurityUtil.getPrincipalOidIfAuthenticated();
         RequestAccess request = getModelObject();
-        return request.getPersonOfInterest().stream().filter(o -> Objects.equals(principalOid, o.getOid())).count() > 0;
+        return request.getPersonOfInterest().stream().anyMatch(o -> Objects.equals(principalOid, o.getOid()));
     }
 
     @Override
@@ -234,13 +234,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 return;
             }
 
-            List<String> oids = user.asObjectable().getAssignment().stream()
+            String[] oids = user.asObjectable().getAssignment().stream()
                     .filter(a -> a.getTargetRef() != null)
                     .map(a -> a.getTargetRef().getOid())
-                    .collect(Collectors.toList());
+                    .toArray((count) -> new String[count]);
 
             ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
-                    .id(oids.toArray(new String[oids.size()]))
+                    .id(oids)
                     .and().not().type(ArchetypeType.class)
                     .build();
             query.setQuery(oq);
@@ -314,7 +314,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         searchModel = new LoadableModel<>(false) {
 
             @Override
-            public Search getObject() {
+            public Search<? extends ObjectType> getObject() {
                 Search search = super.getObject();
 
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
@@ -329,7 +329,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
 
             @Override
-            protected Search load() {
+            protected Search<? extends ObjectType> load() {
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
                 return SearchFactory.createSearch(type, page);
             }
@@ -391,7 +391,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         ObjectType obj = object.getValue();
                         String icon = WebComponentUtil.createDefaultColoredIcon(obj.asPrismContainerValue().getTypeName());
 
-                        CatalogTile t = new CatalogTile(icon, WebComponentUtil.getName(object.getValue()));
+                        CatalogTile<SelectableBean<ObjectType>> t = new CatalogTile<>(icon, WebComponentUtil.getName(object.getValue()));
                         t.setDescription(object.getValue().getDescription());
                         t.setValue(object);
 
@@ -434,8 +434,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                                     RequestAccess access = RoleCatalogPanel.this.getModelObject();
                                     return access.getSelectedAssignments().stream()
-                                            .filter(a -> Objects.equals(object.getOid(), a.getTargetRef().getOid()))
-                                            .count() == 0;
+                                            .noneMatch(a -> Objects.equals(object.getOid(), a.getTargetRef().getOid()));
                                 }));
                                 return details;
                             }
@@ -463,7 +462,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     }
 
                     @Override
-                    protected IModel<Search> createSearchModel() {
+                    protected IModel<Search<? extends ObjectType>> createSearchModel() {
                         return searchModel;
                     }
                 };
@@ -480,14 +479,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 List<Toggle<ViewToggle>> list = new ArrayList<>();
 
                 if (allowedViews.isEmpty() || allowedViews.contains(RoleCatalogViewType.TABLE)) {
-                    Toggle asList = new Toggle("fa-solid fa-table-list", null);
+                    Toggle<ViewToggle> asList = new Toggle<>("fa-solid fa-table-list", null);
                     asList.setActive(ViewToggle.TABLE == toggle);
                     asList.setValue(ViewToggle.TABLE);
                     list.add(asList);
                 }
 
                 if (allowedViews.isEmpty() || allowedViews.contains(RoleCatalogViewType.TILE)) {
-                    Toggle asTile = new Toggle("fa-solid fa-table-cells", null);
+                    Toggle<ViewToggle> asTile = new Toggle<>("fa-solid fa-table-cells", null);
                     asTile.setActive(ViewToggle.TILE == toggle);
                     asTile.setValue(ViewToggle.TILE);
                     list.add(asTile);
@@ -909,7 +908,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void addAllItemsPerformed(AjaxRequestTarget target) {
-
+        // todo implement
     }
 
     private AssignmentType createNewAssignment(ObjectType object, QName relation) {

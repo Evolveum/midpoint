@@ -7,13 +7,13 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.io.Serializable;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -71,10 +71,6 @@ public class ShoppingCartItem implements Serializable, Comparable<ShoppingCartIt
 
     @Override
     public int compareTo(@NotNull ShoppingCartItem o) {
-        if (o == null) {
-            return 1;
-        }
-
         return String.CASE_INSENSITIVE_ORDER.compare(this.getName(), o.getName());
     }
 }

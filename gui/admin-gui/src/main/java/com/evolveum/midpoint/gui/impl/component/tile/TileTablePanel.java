@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -47,7 +49,7 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
 
     private IModel<ViewToggle> viewToggleModel;
 
-    private IModel<Search> searchModel;
+    private IModel<Search<? extends ObjectType>> searchModel;
 
     public TileTablePanel(String id, ISortableDataProvider provider) {
         this(id, provider, List.of(), null);
@@ -152,7 +154,7 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         }
     }
 
-    protected IModel<Search> createSearchModel() {
+    protected IModel<Search<? extends ObjectType>> createSearchModel() {
         return null;
     }
 

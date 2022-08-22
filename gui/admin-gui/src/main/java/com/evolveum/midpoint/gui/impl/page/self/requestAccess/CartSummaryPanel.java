@@ -206,7 +206,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         });
         validity.setNullValid(true);
         validity.setLabel(createStringResource("ShoppingCartPanel.validity"));
-        validity.add(new VisibleBehaviour(() -> isValidityVisible()));
+        validity.add(new VisibleBehaviour(this::isValidityVisible));
         validity.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -221,7 +221,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
         TextArea comment = new TextArea(ID_COMMENT, new PropertyModel(getModel(), "comment"));
         comment.setLabel(createStringResource("ShoppingCartPanel.comment"));
-        comment.add(new VisibleBehaviour(() -> isCommentVisible()));
+        comment.add(new VisibleBehaviour(this::isCommentVisible));
         form.add(comment);
 
         AjaxLink openConflict = new AjaxLink<>(ID_OPEN_CONFLICT) {

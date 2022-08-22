@@ -31,7 +31,7 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
 
     public void onItemClickPerformed(ListGroupMenuItem item) {
         if (item.isEmpty()) {
-            getItems().forEach(i -> deactivateItem(i));
+            getItems().forEach(this::deactivateItem);
             item.setActive(true);
 
             return;
@@ -70,7 +70,7 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
     private void deactivateItem(ListGroupMenuItem<T> item) {
         item.setActive(false);
 
-        item.getItems().forEach(i -> deactivateItem(i));
+        item.getItems().forEach(this::deactivateItem);
     }
 
     public ListGroupMenuItem<T> getActiveMenu() {
