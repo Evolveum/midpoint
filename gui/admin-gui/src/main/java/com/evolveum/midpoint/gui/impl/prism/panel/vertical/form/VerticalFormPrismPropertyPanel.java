@@ -68,4 +68,8 @@ public class VerticalFormPrismPropertyPanel<T> extends PrismPropertyPanel<T> {
         item.add(panel);
         return panel;
     }
+
+    protected String getCssClassForValueContainer() {
+        return "";
+    }
 }

@@ -589,11 +589,18 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
 
     @Override
     public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
+        return createItemWrapper(item, null, status, ctx);
+    }
 
-        ItemWrapperFactory<IW, ?, ?> factory = registry.findWrapperFactory(item.getDefinition(), null);
+    public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(
+            I item, PrismContainerValueWrapper<?> parent, ItemStatus status, WrapperContext ctx) throws SchemaException {
+
+        ItemWrapperFactory<IW, ?, ?> factory = registry.findWrapperFactory(
+                item.getDefinition(),
+                parent == null ? null : parent.getNewValue());
 
         ctx.setCreateIfEmpty(true);
-        return factory.createWrapper(null, item, status, ctx);
+        return factory.createWrapper(parent, item, status, ctx);
     }
 
     @Override

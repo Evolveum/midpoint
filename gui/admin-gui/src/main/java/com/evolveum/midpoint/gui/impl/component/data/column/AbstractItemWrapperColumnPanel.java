@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.component.data.column;
 
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -107,5 +109,9 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
     protected boolean existenceOfValue(VW object) {
         Object realValue = object.getRealValue();
         return realValue != null;
+    }
+
+    protected ItemPanelSettings createPanelSettings(){
+        return new ItemPanelSettingsBuilder().displayedInColumn(true).build();
     }
 }

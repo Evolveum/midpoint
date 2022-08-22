@@ -18,6 +18,8 @@ public class ItemPanelSettings implements Serializable {
     private ItemVisibilityHandler visibilityHandler;
     private ItemEditabilityHandler editabilityHandler = wrapper -> true;
     private boolean headerVisible = true;
+
+    private boolean displayedInColumn = false;
     private ItemMandatoryHandler mandatoryHandler;
     private ContainerPanelConfigurationType config;
 
@@ -63,6 +65,14 @@ public class ItemPanelSettings implements Serializable {
 
     public void setConfig(ContainerPanelConfigurationType config) {
         this.config = config;
+    }
+
+    public boolean isDisplayedInColumn() {
+        return displayedInColumn;
+    }
+
+    public void setDisplayedInColumn(boolean displayedInColumn) {
+        this.displayedInColumn = displayedInColumn;
     }
 
     public ItemPanelSettings copy() {

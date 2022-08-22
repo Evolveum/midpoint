@@ -31,9 +31,6 @@ public class PrismPropertyWrapperColumn<C extends Containerable, T> extends Abst
 
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_HEADER = "header";
-    private static final String ID_INPUT = "input";
-
     private PageBase pageBase;
 
     public PrismPropertyWrapperColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, ItemPath itemName, ColumnType columnType, PageBase pageBase) {

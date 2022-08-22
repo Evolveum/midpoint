@@ -54,4 +54,8 @@ public class PrismPropertyValuePanel<T> extends PrismValuePanel<T, PrismProperty
     protected void remove(PrismPropertyValueWrapper<T> valueToRemove, AjaxRequestTarget target) throws SchemaException {
         throw new UnsupportedOperationException("Must be implemented in calling panel");
     }
+
+    protected String getCssClassForValueContainer() {
+        return getSettings() != null && getSettings().isDisplayedInColumn() ? "w-100" : "col-10";
+    }
 }

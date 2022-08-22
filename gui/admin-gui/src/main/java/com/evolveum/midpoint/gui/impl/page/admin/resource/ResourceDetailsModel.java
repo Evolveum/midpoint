@@ -8,7 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
@@ -64,16 +65,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
             protected List<ObjectClassWrapper> load() {
                 List<ObjectClassWrapper> list = new ArrayList<>();
 
-                ResourceSchema schema = null;
-                OperationResult result = new OperationResult(OPERATION_FETCH_SCHEMA);
-                try {
-                    schema = getPageBase().getModelService().fetchSchema(getObjectWrapper().getObjectApplyDelta(), result);
-                } catch (SchemaException | RuntimeException e) {
-                    result.recordFatalError("Cannot load schema object classes, " + e.getMessage());
-                    result.computeStatus();
-                    getPageBase().showResult(result);
-                }
-
+                ResourceSchema schema = getResourceSchema(getObjectWrapper(), getPageBase());
 
                 if (schema == null) {
                     return list;
@@ -88,6 +80,19 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
                 return list;
             }
         };
+    }
+
+    public static ResourceSchema getResourceSchema(PrismObjectWrapper<ResourceType> objectWrapper, PageAdminLTE pageBase) {
+        ResourceSchema schema = null;
+        OperationResult result = new OperationResult(OPERATION_FETCH_SCHEMA);
+        try {
+            schema = pageBase.getModelService().fetchSchema(objectWrapper.getObjectApplyDelta(), result);
+        } catch (SchemaException | RuntimeException e) {
+            result.recordFatalError("Cannot load schema object classes, " + e.getMessage());
+            result.computeStatus();
+            pageBase.showResult(result);
+        }
+        return schema;
     }
 
 //    private PrismContainerWrapper<ConnectorConfigurationType> createConfigContainerWrappers(OperationResult result) throws SchemaException {
