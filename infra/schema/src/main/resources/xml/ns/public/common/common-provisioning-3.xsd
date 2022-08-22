@@ -3787,6 +3787,16 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element minOccurs="0" name="available" type="xsd:boolean">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Connector availability status
+
+                                True if local connector is active and loaded in MidPoint. False if connector
+                                is not present.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
