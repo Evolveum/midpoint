@@ -373,7 +373,7 @@
             <xsd:element name="defaultSelection" type="xsd:string" minOccurs="0">
 
             </xsd:element>
-            <xsd:element name="allowRequestForMyself" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="allowRequestForMyself" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
                         This is simple override if currently authenticated user has authorization to request for him/herself assign other relations,
@@ -381,7 +381,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="allowRequestForOthers" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="allowRequestForOthers" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
                         This is simple override if currently authenticated user has authorization to assign other relations,
@@ -409,7 +409,7 @@
             <xsd:element name="defaultRelation" type="xsd:QName" minOccurs="0">
 
             </xsd:element>
-            <xsd:element name="allowOtherRelations" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="allowOtherRelations" type="xsd:boolean" minOccurs="0" default="true">
 
             </xsd:element>
         </xsd:sequence>
@@ -452,7 +452,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="identifier" type="xsd:string"/>
-            <xsd:element name="default" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="default" type="xsd:boolean" minOccurs="0" default="false"/>
             <xsd:element name="collectionIdentifier" type="xsd:string" minOccurs="0"/>
             <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0"/>
             <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0"/>
@@ -490,7 +490,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false"/>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -522,9 +522,9 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false"/>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0"/>
-            <xsd:element name="allowOnlyGlobalSettings" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="allowOnlyGlobalSettings" type="xsd:boolean" minOccurs="0" default="false"/>
             <xsd:element name="predefinedValue" type="tns:ValidityPredefinedValueType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
