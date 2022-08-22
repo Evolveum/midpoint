@@ -1350,7 +1350,8 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
                 .connectorHostRef(connectorHostOid.toString(),
                         ConnectorHostType.COMPLEX_TYPE, connectorHostRelation)
                 .targetSystemType("type1")
-                .targetSystemType("type2");
+                .targetSystemType("type2")
+                .available(true);
 
         when("adding it to the repository");
         repositoryService.addObject(connector.asPrismObject(), null, result);
@@ -1368,6 +1369,7 @@ public class SqaleRepoAddDeleteObjectTest extends SqaleRepoBaseTest {
         assertCachedUri(row.connectorHostRefRelationId, connectorHostRelation);
         assertThat(resolveCachedUriIds(row.targetSystemTypes))
                 .containsExactlyInAnyOrder("type1", "type2");
+        assertThat(row.available).isTrue();
     }
 
     @Test

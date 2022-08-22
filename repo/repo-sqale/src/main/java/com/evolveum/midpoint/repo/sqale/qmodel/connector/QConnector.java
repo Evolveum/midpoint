@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,10 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.connector;
 
 import java.sql.Types;
 
-import com.querydsl.core.types.dsl.ArrayPath;
-import com.querydsl.core.types.dsl.EnumPath;
-import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.StringPath;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObjectType;
@@ -44,6 +41,8 @@ public class QConnector extends QAssignmentHolder<MConnector> {
             ColumnMetadata.named("connectorHostRefRelationId").ofType(Types.INTEGER);
     public static final ColumnMetadata TARGET_SYSTEM_TYPES =
             ColumnMetadata.named("targetSystemTypes").ofType(Types.ARRAY);
+    public static final ColumnMetadata AVAILABLE =
+            ColumnMetadata.named("available").ofType(Types.BOOLEAN);
 
     public final StringPath connectorBundle = createString("connectorBundle", CONNECTOR_BUNDLE);
     public final StringPath connectorType = createString("connectorType", CONNECTOR_TYPE);
@@ -58,6 +57,7 @@ public class QConnector extends QAssignmentHolder<MConnector> {
             createInteger("connectorHostRefRelationId", CONNECTOR_HOST_REF_RELATION_ID);
     public final ArrayPath<Integer[], Integer> targetSystemTypes =
             createArray("targetSystemTypes", Integer[].class, TARGET_SYSTEM_TYPES);
+    public final BooleanPath available = createBoolean("available", AVAILABLE);
 
     public QConnector(String variable) {
         this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
