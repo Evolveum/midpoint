@@ -11,10 +11,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
-
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -27,7 +23,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -50,10 +45,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.tile.CatalogTile;
-import com.evolveum.midpoint.gui.impl.component.tile.CatalogTilePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
+import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -77,6 +70,7 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -414,7 +408,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         t.setValue(object);
 
                         RequestAccess ra = RoleCatalogPanel.this.getModelObject();
-                        t.setCheckState(ra.isAssignedToAll(obj.getOid()) ? CatalogTile.CheckState.FULL : CatalogTile.CheckState.PARTIAL);
+                        t.setCheckState(ra.isAssignedToAll(obj.getOid()) ? RoundedIconPanel.State.FULL : RoundedIconPanel.State.PARTIAL);
 
                         return t;
                     }
@@ -853,7 +847,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> item, String id, IModel<SelectableBean<ObjectType>> row) {
                 item.add(AttributeAppender.append("class", "align-middle"));
-                item.add(new LabelWithCheck(id, () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject())));
+                item.add(new LabelWithCheck(id,
+                        () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject()),
+                        () -> {
+                            RequestAccess ra = getModelObject();
+                            return ra.isAssignedToAll(row.getObject().getValue().getOid()) ? RoundedIconPanel.State.FULL : RoundedIconPanel.State.PARTIAL;
+                        }
+                ));
             }
         });
         columns.add(new PropertyColumn(createStringResource("ObjectType.description"), "value.description"));

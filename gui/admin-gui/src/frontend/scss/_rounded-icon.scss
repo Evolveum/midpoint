@@ -6,6 +6,10 @@
  */
 
 .rounded-icon {
+  display: flex;
+  border-radius: 50% !important;
+  align-items: center !important;
+  justify-content: center !important;
   width: 24px;
   height: 24px;
   min-width: 24px;
@@ -13,31 +17,40 @@
   border: 2px solid;
 
   &.rounded-icon-sm {
-    width: 16px;
-    height: 16px;
-    min-width: 16px;
-    min-height: 16px;
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+
+    & > i.fa {
+      font-size: 0.75em;
+      line-height: 0.08333em;
+    }
   }
 
   &.rounded-icon-none {
     display: none !important;
   }
 
-  &.rounded-icon-partial {
-    background-color: $white !important;
-    border-color: $success !important;
+  @each $name, $color in $theme-colors {
+    &.rounded-icon-#{$name} {
+      &.rounded-icon-partial {
+        background-color: $white !important;
+        border-color: $color !important;
 
-    & > i {
-      color: $success !important;
-    }
-  }
+        & > i {
+          color: $color !important;
+        }
+      }
 
-  &.rounded-icon-full {
-    background-color: $success !important;
-    border-color: $success !important;
+      &.rounded-icon-full {
+        background-color: $color !important;
+        border-color: $color !important;
 
-    & > i {
-      color: $white !important;
+        & > i {
+          color: $white !important;
+        }
+      }
     }
   }
 }
