@@ -196,7 +196,7 @@ For some examples please see individual scenarios for linked objects.
 
 [NOTE]
 ====
-`midpoint.findLinkedTargets`  method has _relativistic behavior_: it returns data derived from the new state of focal object if evaluating new state and the data derived from _old _`roleMembershipRef` values if evaluating the old state.
+`midpoint.findLinkedTargets`  method has _relativistic behavior_: it returns data derived from the new state of focal object if evaluating new state and the data derived from _old _ `roleMembershipRef` values if evaluating the old state.
 
 On the other hand, `midpoint.findLinkedSources` returns the same data in both old and new state, because the links from sources to the focal object are not changed in the course of focal object processing.
 ====
@@ -570,7 +570,7 @@ The latter option is suitable for roles with lots of members.)
 === Enabling/disabling the change propagation
 
 The original recompute affected option has an advantage that it can be turned on or off directly when submitting the operation e.g. via GUI.
-In order to implement a similar mechanism we devised a concept of `ModelExecuteOptions`_extension items_. You can define these using standard extension mechanism, e.g.
+In order to implement a similar mechanism we devised a concept of `ModelExecuteOptions` _extension items_. You can define these using standard extension mechanism, e.g.
 
 [source,xml]
 ----
