@@ -5,11 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens.identities;
+package com.evolveum.midpoint.model.impl.lens.indexing;
 
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.util.exception.ConfigurationException;

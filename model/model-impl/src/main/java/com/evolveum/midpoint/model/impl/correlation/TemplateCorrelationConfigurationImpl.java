@@ -12,7 +12,7 @@ import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguratio
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 
 import com.evolveum.midpoint.model.impl.lens.identities.IdentityManagementConfigurationImpl;
-import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
+import com.evolveum.midpoint.model.impl.lens.indexing.IndexingConfigurationImpl;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
 import com.evolveum.midpoint.util.MiscUtil;

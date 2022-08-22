@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens.identities;
+package com.evolveum.midpoint.model.impl.lens.indexing;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -34,7 +34,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class NormalizationStep<B extends AbstractNormalizationStepType> {
+/**
+ * A single step in the value normalization provided by {@link IndexedItemValueNormalizerImpl}.
+ */
+abstract class NormalizationStep<B extends AbstractNormalizationStepType> {
 
     static final String NAME_ORIGINAL = "original";
     static final String NAME_POLY_STRING_NORM = "polyStringNorm";
@@ -47,7 +50,7 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
         this.bean = bean;
     }
 
-    public static List<NormalizationStep<?>> parse(NormalizationStepsType steps) {
+    static List<NormalizationStep<?>> parse(NormalizationStepsType steps) {
         List<AbstractNormalizationStepType> beans = new ArrayList<>();
         if (steps == null) {
             beans.add(new PolyStringNormalizationStepType());
@@ -66,7 +69,7 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
                 .collect(Collectors.toList());
     }
 
-    public static @NotNull NormalizationStep<?> parse(
+    private static @NotNull NormalizationStep<?> parse(
             @NotNull AbstractNormalizationStepType bean) {
         if (bean instanceof NoOpNormalizationStepType) {
             return new NoOp((NoOpNormalizationStepType) bean);
@@ -87,7 +90,7 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;
 
-    public static class NoOp extends NormalizationStep<NoOpNormalizationStepType> {
+    static class NoOp extends NormalizationStep<NoOpNormalizationStepType> {
 
         NoOp(@NotNull NoOpNormalizationStepType bean) {
             super(bean);
@@ -105,11 +108,11 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
         }
     }
 
-    public static class PolyString extends NormalizationStep<PolyStringNormalizationStepType> {
+    static class PolyString extends NormalizationStep<PolyStringNormalizationStepType> {
 
         @NotNull private final PolyStringNormalizer normalizer;
 
-        public PolyString(@NotNull PolyStringNormalizationStepType bean) {
+        PolyString(@NotNull PolyStringNormalizationStepType bean) {
             super(bean);
 
             PolyStringNormalizerConfigurationType configuration = bean.getConfiguration();
@@ -136,7 +139,7 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
         }
     }
 
-    public static class Prefix extends NormalizationStep<PrefixNormalizationStepType> {
+    static class Prefix extends NormalizationStep<PrefixNormalizationStepType> {
 
         private final int length;
 
@@ -159,11 +162,11 @@ public abstract class NormalizationStep<B extends AbstractNormalizationStepType>
         }
     }
 
-    public static class Custom extends NormalizationStep<CustomNormalizationStepType> {
+    static class Custom extends NormalizationStep<CustomNormalizationStepType> {
 
         @NotNull private final ExpressionFactory expressionFactory;
 
-        public Custom(
+        Custom(
                 @NotNull CustomNormalizationStepType bean,
                 @NotNull ExpressionFactory expressionFactory) {
             super(bean);

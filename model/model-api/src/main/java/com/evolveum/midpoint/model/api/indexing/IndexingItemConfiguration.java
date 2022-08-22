@@ -24,9 +24,9 @@ public interface IndexingItemConfiguration {
 
     @NotNull ItemPath getPath();
 
-    @NotNull Collection<Normalization> getNormalizations();
+    @NotNull Collection<IndexedItemValueNormalizer> getNormalizers();
 
-    Normalization findNormalization(@Nullable String index) throws ConfigurationException;
+    IndexedItemValueNormalizer findNormalizer(@Nullable String index) throws ConfigurationException;
 
-    Normalization getDefaultNormalization() throws ConfigurationException;
+    IndexedItemValueNormalizer getDefaultNormalizer() throws ConfigurationException;
 }
