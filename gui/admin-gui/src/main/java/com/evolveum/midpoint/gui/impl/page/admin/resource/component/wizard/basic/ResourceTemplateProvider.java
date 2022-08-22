@@ -13,7 +13,9 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -83,7 +85,8 @@ public class ResourceTemplateProvider
     // Here we apply the distinct option. It is easier and more reliable to apply it here than to do at all the places
     // where options for this provider are defined.
     private Collection<SelectorOptions<GetOperationOptions>> getOptionsToUse() {
-        return GetOperationOptions.merge(getPrismContext(), options, getDistinctRelatedOptions());
+        @NotNull Collection<SelectorOptions<GetOperationOptions>> rawOption = getOperationOptionsBuilder().raw().build();
+        return GetOperationOptions.merge(getPrismContext(), options, getDistinctRelatedOptions(), rawOption);
     }
 
     @Override
@@ -113,9 +116,7 @@ public class ResourceTemplateProvider
 
             List<TemplateTile<ResourceTemplate>> tiles = new ArrayList<>();
             for (PrismObject<AssignmentHolderType> object : list) {
-                if (isAvailableData(object.asObjectable())) {
-                    tiles.add(createDataObjectWrapper(object, result));
-                }
+                tiles.add(createDataObjectWrapper(object, result));
             }
             Collections.sort(tiles);
             internalSize = tiles.size();
@@ -139,30 +140,23 @@ public class ResourceTemplateProvider
         return getAvailableData().iterator();
     }
 
-    private boolean isAvailableData(AssignmentHolderType template) {
-        if (template.getClass().isAssignableFrom(ConnectorType.class)) {
-            return true;
-        }
-        if (template.getClass().isAssignableFrom(ResourceType.class)) {
-            return Boolean.TRUE.equals(((ResourceType)template).isTemplate());
-        }
-        return false;
-    }
-
     @Override
     protected ObjectQuery getCustomizeContentQuery() {
         S_FilterEntryOrEmpty query = PrismContext.get().queryFor(AssignmentHolderType.class);
         if (TemplateType.ALL.equals(type.getObject())
                 || TemplateType.TEMPLATE.equals(type.getObject())) {
-            query.type(ResourceType.class).all();
-//            .item(ResourceType.F_TEMPLATE).eq(true); //TODO uncomment after adding to repo
+            ObjectFilter filter = PrismContext.get().queryFor(ResourceType.class)
+                    .item(ResourceType.F_TEMPLATE)
+                    .eq(true)
+                    .buildFilter();
+            query = (S_FilterEntryOrEmpty) query.type(ResourceType.class).filter(filter);
         }
         if (TemplateType.ALL.equals(type.getObject())) {
-            ((S_FilterExit)query).or();
+            query = (S_FilterEntryOrEmpty) ((S_FilterExit) query).or();
         }
         if (TemplateType.ALL.equals(type.getObject())
                 || TemplateType.CONNECTOR.equals(type.getObject())) {
-            query.type(ConnectorType.class).all();
+            query = query.type(ConnectorType.class); //TODO use active connector after implementation
         }
         return query.build();
     }
