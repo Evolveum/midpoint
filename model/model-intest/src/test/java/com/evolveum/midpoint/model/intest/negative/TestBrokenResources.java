@@ -19,6 +19,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -542,6 +544,42 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         displayCollection("resources", resources);
         assertThat(resources).as("resources").hasSize(1);
         PrismObject<ResourceType> resource = resources.get(0);
+
+        and("status is partial error");
+        result.computeStatus();
+        display("searchObjects result", result);
+        assertEquals("Expected partial error in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+
+        and("fetchResult contains an error");
+        OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+        display("resource.fetchResult", fetchResult);
+        assertEquals("Expected partial error in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+    }
+
+    @Test(enabled = false)
+    public void test358SearchResourceWrongConnectorOidUseTypeFilter() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("searching for broken resource");
+        ObjectFilter filter = queryFor(ResourceType.class)
+                .id(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID)
+                .buildFilter();
+        List<PrismObject<AssignmentHolderType>> resources =
+                modelService.searchObjects(
+                        AssignmentHolderType.class,
+                        queryFor(AssignmentHolderType.class)
+                                .type(ResourceType.class)
+                                .filter(filter)
+                                .build(),
+                        null,
+                        task,
+                        result);
+
+        then("single resource is found");
+        displayCollection("resources", resources);
+        assertThat(resources).as("resources").hasSize(1);
+        PrismObject<AssignmentHolderType> resource = resources.get(0);
 
         and("status is partial error");
         result.computeStatus();
