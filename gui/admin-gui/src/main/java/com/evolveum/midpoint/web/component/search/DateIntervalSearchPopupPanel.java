@@ -11,8 +11,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.util.DateValidator;
 
 import org.apache.wicket.behavior.AttributeAppender;
@@ -73,5 +73,13 @@ public class DateIntervalSearchPopupPanel extends PopoverSearchPopupPanel {
 
     protected boolean isInterval() {
         return true;
+    }
+
+    public DatePanel getFromDatePanel() {
+        return (DatePanel) getPopoverForm().get(ID_DATE_FROM_VALUE_CONTAINER).get(ID_DATE_FROM_VALUE);
+    }
+
+    public DatePanel getToDatePanel() {
+        return (DatePanel) getPopoverForm().get(ID_DATE_TO_CONTAINER).get(ID_DATE_TO_VALUE);
     }
 }

@@ -79,4 +79,7 @@ public class PopoverSearchPopupPanel<T> extends BasePanel<T> {
         return true;
     }
 
+    public MidpointForm getPopoverForm() {
+        return (MidpointForm) get(ID_POPOVER_FORM);
+    }
 }

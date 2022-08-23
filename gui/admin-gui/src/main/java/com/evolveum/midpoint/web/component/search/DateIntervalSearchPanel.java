@@ -8,6 +8,10 @@ package com.evolveum.midpoint.web.component.search;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.component.input.DatePanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -38,6 +42,10 @@ public class DateIntervalSearchPanel extends PopoverSearchPanel {
 
             @Override
             protected void confirmPerformed(AjaxRequestTarget target) {
+                DatePanel fromDatePanel = getFromDatePanel();
+                if (fromDatePanel != null) {
+                    fromDateModel.setObject(MiscUtil.asXMLGregorianCalendar(((DateInput)fromDatePanel.getBaseFormComponent()).computeDateTime()));
+                }
                 target.add(DateIntervalSearchPanel.this);
             }
 

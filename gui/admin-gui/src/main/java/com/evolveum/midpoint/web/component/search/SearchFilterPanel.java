@@ -32,7 +32,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -105,7 +107,27 @@ public class SearchFilterPanel extends AbstractSearchItemPanel<FilterSearchItem>
                     }
                 case DATE:
                     inputPanel = new DateSearchPanel(ID_SEARCH_ITEM_FIELD,
-                            new PropertyModel(getModel(), FilterSearchItem.F_INPUT_VALUE));
+                            new IModel<XMLGregorianCalendar>() {
+                                @Override
+                                public XMLGregorianCalendar getObject() {
+                                    FilterSearchItem filterSearchItem = getModelObject();
+                                    if (filterSearchItem == null || filterSearchItem.getInput() == null) {
+                                        return null;
+                                    }
+                                    return (XMLGregorianCalendar) filterSearchItem.getInput().getValue();
+                                }
+
+                                @Override
+                                public void setObject(XMLGregorianCalendar val) {
+                                    FilterSearchItem filterSearchItem = getModelObject();
+                                    if (filterSearchItem == null) {
+                                        return;
+                                    }
+                                    if (val instanceof Serializable) {
+                                        filterSearchItem.setInput(new SearchValue<>((Serializable) val));
+                                    }
+                                }
+                            });
                     break;
                 case ITEM_PATH:
                     inputPanel = new ItemPathSearchPanel(ID_SEARCH_ITEM_FIELD,
