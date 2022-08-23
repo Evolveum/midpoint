@@ -465,4 +465,4 @@ The order of "authoritativeness" (so to say) is: SIS, HR, external, as can be se
 <1> Marks a property to be "multi-source" one.
 <2> A mapping that selects the most authoritative data source for a given user.
 
-Please see xref:/midpoint/reference/correlation/fuzzy-logic.adoc[the page on multiple identities] for more information.
+Please see xref:/midpoint/reference/correlation/multiple-identities/[the page on multiple identities] for more information.
