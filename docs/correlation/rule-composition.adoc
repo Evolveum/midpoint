@@ -1,3 +1,195 @@
-= Configuration Details
+= Rule Composition
+:page-toc: top
+:page-since: "4.6"
+
+== Correlators (Correlation Rules)
+
+The basic element of the configuration is the _correlation rule_ (or _correlator_) configuration.
+
+NOTE: The _correlation rule_ is more user-oriented term, while _correlator_ is more implementation-oriented one.
+See also the xref:index.adoc[overview document].
+Risking a bit of confusion, let us use the term _correlator_ in this document, at least for now.
+
+Correlators are hierarchical, with a specified default algorithm for combining their results.
+
+In midPoint 4.6 we support only the flat hierarchy: the composite correlator defined at the top, with component correlators right beneath it.
+Please see <<Limitations>> section at the end of this document.
+
+== Composition Algorithm Outline
+
+Individual correlators are evaluated in a defined order (see <<Tiers and Rule Ordering>>).
+Each correlator produces a set of _candidates_ having zero, one, or more objects.
+Each candidate has a (local) _confidence_ value from the interval of (0, 1].
+Each correlator has its own _weight_.
+After the evaluation, a union of all candidate sets is created, and the overall confidence for each candidate is computed:
+
+image::confidence-formula.png[Confidence formula]
+
+Where
+
+- total confidence~cand~ is the total confidence for candidate _cand_ (being computed),
+- confidence~cand,cor~ is the confidence of candidate _cand_ provided by child correlator _cor_,
+- weight~cor~ is the weight of child correlator _cor_ in the composition (a parameter of the composition; default is 1),
+- _scale_ is the scale of the given composite correlator (a parameter of the composition; default is 1).
+
+== A Naive Example
+
+Let us have rules like these:
+
+.Sample set of correlation rules
+[%header]
+[%autowidth]
+|===
+| Rule name | Rule content | Weight
+| name-date-id
+| Family name, date of birth, and national ID exactly match.
+| 1.0
+| names-date
+| Given name, family name, and date of birth exactly match.
+| 0.4
+| id
+| The national ID exactly matches.
+| 0.4
+|===
+
+.Graphic representation of the sample set of correlation rules
+image::naive-example.png[A naive example]
+
+.Listing 1. Configuration related to the sample set of correlation rules
+[source,xml]
+----
+<correlators>
+    <items>
+        <name>name-date-id</name>
+        <item>
+            <ref>familyName</ref>
+        </item>
+        <item>
+            <ref>extension/dateOfBirth</ref>
+        </item>
+        <item>
+            <ref>extension/nationalId</ref>
+        </item>
+        <!-- Weight of 1.0 is the default -->
+    </items>
+    <items>
+        <name>names-date</name>
+        <item>
+            <ref>givenName</ref>
+        </item>
+        <item>
+            <ref>familyName</ref>
+        </item>
+        <item>
+            <ref>extension/dateOfBirth</ref>
+        </item>
+        <composition>
+            <weight>0.4</weight>
+        </composition>
+    </items>
+    <items>
+        <name>id</name>
+        <item>
+            <ref>extension/nationalId</ref>
+        </item>
+        <composition>
+            <weight>0.4</weight>
+        </composition>
+    </items>
+</correlators>
+----
+
+Let us assume we are correlating `Ian Smith, 2004-02-06, 040206/1328` and the candidate is `John Smith, 2004-02-06, 040206/1328`.
+
+- The `name-date-id` correlator matches with a local confidence of `1.0`. Having weight of `1.0`, the overall confidence increment is `1.0`.
+- The `names-date` correlator does not match.
+- The `id` correlator matches with a local confidence of `1.0`. Having weight of `0.4`, the overall confidence increment is `0.4`.
+
+The total confidence is `1.4`, cropped down to `1.0`.
+
+== "Ignore if Matched by" Flag
+
+We see that the match of the rule `name-date-id` implies the match of the rule `id`.
+Hence, each candidate matching `name-date-id` gets a confidence increment `1.4`.
+This is, most probably, not the behavior that we expect.
+(While not necessarily incorrect, it is quite counter-intuitive.)
+
+Therefore, we have introduced a mechanism to mark rule `id` as being ignored for those candidates that are matched by rule `name-date-id` before.
+It is done by setting `ignoreIfMatchedBy` like this:
+
+.Listing 2. Ignoring `id` rule for candidates matching `name-date-id`
+[source,xml]
+----
+<correlators>
+    ...
+    <items>
+        <name>id</name>
+        <item>
+            <ref>extension/nationalId</ref>
+        </item>
+        <composition>
+            <weight>0.4</weight>
+            <ignoreIfMatchedBy>name-date-id</ignoreIfMatchedBy>
+        </composition>
+    </items>
+</correlators>
+----
+
+Now, when correlating `Ian Smith, 2004-02-06, 040206/1328` with the candidate being `John Smith, 2004-02-06, 040206/1328`,
+
+- The `name-date-id` correlator matches with a local confidence of `1.0`. Having weight of `1.0`, the overall confidence increment is `1.0`.
+- The `names-date` correlator does not match.
+- The `id` correlator matches with a local confidence of `1.0`. However, it is ignored, because of the match of `name-date-id`.
+
+The total confidence is thus `1.0`.
+
+== Tiers and Rule Ordering
+
+image::tiers.png[Tiers]
 
 #TODO#
+
+== Using the Resulting Confidence Values
+
+In midPoint 4.6, the resulting aggregated confidence values for individual candidates are compared with two _threshold values_:
+
+. _Automatic match threshold_ (`AM`):
+if a confidence value is equal or greater than this one, the candidate is considered to automatically match the identity data.
+(If, for some reason, multiple candidates do this, then the situation is reported as a potential problem, and human decision is requested.)
+
+. _No-match threshold_ (`NM`):
+if a confidence value is below this one, the candidate is not considered to be matching at all - not even for human decision.
+
+Said in other words:
+
+. If there is a single candidate with confidence value &ge; `AM` then it is automatically matched.
+. Otherwise, all candidates with confidence value &ge; `NM` are taken for human resolution.
+(If there are multiple candidates with confidence value &ge; `AM` among them, then the situation is reported as suspicious.)
+. If there are none, "no match" situation is assumed.
+
+Configuration:
+
+#TODO#
+
+Default values:
+
+.Default values for the threshold
+[%header]
+[%autowidth]
+|===
+| Threshold | Default value
+| Automatic match (`AM`) | 1.0
+| No=match (`NM`) | 0.0
+|===
+
+== Limitations
+
+Although it is possible to configure arbitrary combination of the correlators, and such a combination will most probably work, for practical reasons there are the following limitations of what is "officially" supported. Everything beyond this is considered to be xref:/midpoint/versioning/experimental/[experimental] functionality:
+
+. ID Match correlator cannot be combined with other correlators.
+. Filter-based correlators cannot be combined with the other ones.
+. Expression-based correlators are experimental altogether.
+. Composite correlator can be provided at the top level only.
+
+Said in other words, only the `items` correlators can be combined.
+The use of other ones in the composition is considered experimental.
