@@ -132,8 +132,6 @@ public class HtmlReportDataWriter<ED extends ExportedReportDataRow, EH extends E
         String table = createTableBox(aggregatedData, support, parseData);
         body.append(table).append("</div>");
 
-        // This is used by exported HTML report only. We probably don't want to add this to
-        // the Dashboard reports, because there is a footer in the GUI already.
         String subscriptionFooter = reportService.missingSubscriptionFooter();
         if (subscriptionFooter != null) {
             body.append("<div>")

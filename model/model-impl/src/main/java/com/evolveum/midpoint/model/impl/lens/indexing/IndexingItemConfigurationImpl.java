@@ -5,11 +5,10 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens.identities;
+package com.evolveum.midpoint.model.impl.lens.indexing;
 
+import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
-import com.evolveum.midpoint.model.api.indexing.Normalization;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -36,16 +35,16 @@ public class IndexingItemConfigurationImpl implements Serializable, IndexingItem
     @NotNull private final ItemPath path;
 
     // contain at least one element
-    @NotNull private final Collection<Normalization> normalizations;
+    @NotNull private final Collection<IndexedItemValueNormalizer> normalizers;
 
     private IndexingItemConfigurationImpl(
             @NotNull String name,
             @NotNull ItemPath path,
-            @NotNull Collection<Normalization> normalizations) {
+            @NotNull Collection<IndexedItemValueNormalizer> normalizers) {
         this.name = name;
         this.path = path;
-        this.normalizations = normalizations;
-        assert !normalizations.isEmpty();
+        this.normalizers = normalizers;
+        assert !normalizers.isEmpty();
     }
 
     @NotNull public static IndexingItemConfiguration of(
@@ -58,21 +57,23 @@ public class IndexingItemConfigurationImpl implements Serializable, IndexingItem
                 .getItemPath();
         String explicitName = indexingDefBean.getIndexedItemName();
         String indexedItemName = explicitName != null ? explicitName : deriveName(path, itemDefBean);
-        Collection<Normalization> normalizations = createNormalizations(indexedItemName, indexingDefBean);
-        return new IndexingItemConfigurationImpl(indexedItemName, path, normalizations);
+        return new IndexingItemConfigurationImpl(
+                indexedItemName,
+                path,
+                createNormalizers(indexedItemName, indexingDefBean));
     }
 
-    private static Collection<Normalization> createNormalizations(
+    private static Collection<IndexedItemValueNormalizer> createNormalizers(
             @NotNull String indexedItemName,
             @NotNull ItemIndexingDefinitionType indexingDefBean) {
-        List<Normalization> normalizations = new ArrayList<>();
+        List<IndexedItemValueNormalizer> normalizations = new ArrayList<>();
         for (IndexedItemNormalizationDefinitionType normalizationBean : indexingDefBean.getNormalization()) {
             normalizations.add(
-                    NormalizationImpl.create(indexedItemName, normalizationBean));
+                    IndexedItemValueNormalizerImpl.create(indexedItemName, normalizationBean));
         }
         if (normalizations.isEmpty()) {
             normalizations.add(
-                    NormalizationImpl.create(
+                    IndexedItemValueNormalizerImpl.create(
                             indexedItemName, new IndexedItemNormalizationDefinitionType()._default(true)));
         }
         return normalizations;
@@ -101,16 +102,16 @@ public class IndexingItemConfigurationImpl implements Serializable, IndexingItem
     }
 
     @Override
-    public @NotNull Collection<Normalization> getNormalizations() {
-        return normalizations;
+    public @NotNull Collection<IndexedItemValueNormalizer> getNormalizers() {
+        return normalizers;
     }
 
     @Override
-    public Normalization findNormalization(@Nullable String index) throws ConfigurationException {
+    public IndexedItemValueNormalizer findNormalizer(@Nullable String index) throws ConfigurationException {
         if (index == null) {
-            return getDefaultNormalization();
+            return getDefaultNormalizer();
         } else {
-            List<Normalization> matching = normalizations.stream()
+            List<IndexedItemValueNormalizer> matching = normalizers.stream()
                     .filter(n -> n.getName().equals(index))
                     .collect(Collectors.toList());
             return MiscUtil.extractSingleton(
@@ -121,12 +122,12 @@ public class IndexingItemConfigurationImpl implements Serializable, IndexingItem
     }
 
     @Override
-    public Normalization getDefaultNormalization() throws ConfigurationException {
-        if (normalizations.size() == 1) {
-            return normalizations.iterator().next();
+    public IndexedItemValueNormalizer getDefaultNormalizer() throws ConfigurationException {
+        if (normalizers.size() == 1) {
+            return normalizers.iterator().next();
         } else {
-            List<Normalization> matching = normalizations.stream()
-                    .filter(Normalization::isDefault)
+            List<IndexedItemValueNormalizer> matching = normalizers.stream()
+                    .filter(IndexedItemValueNormalizer::isDefault)
                     .collect(Collectors.toList());
             return MiscUtil.extractSingleton(
                     matching,

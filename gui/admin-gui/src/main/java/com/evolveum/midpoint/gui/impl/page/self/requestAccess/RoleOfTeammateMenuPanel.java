@@ -89,7 +89,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
         };
         add(link);
 
-        Select2Choice select = new Select2Choice(ID_INPUT, selectionModel, new ObjectReferenceProvider(this));
+        Select2Choice<ObjectReferenceType> select = new Select2Choice<>(ID_INPUT, selectionModel, new ObjectReferenceProvider(this));
         select.getSettings()
                 .setMinimumInputLength(2);
         select.add(new AjaxFormComponentUpdatingBehavior("change") {

@@ -7,9 +7,7 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -23,15 +21,18 @@ import java.io.Serializable;
 public abstract class CorrelationExplanation implements Serializable, DebugDumpable {
 
     /** The configuration used by the correlator (at this level). */
-    @NotNull private final CorrelatorConfiguration correlatorConfiguration;
+    @NotNull final CorrelatorConfiguration correlatorConfiguration;
 
     /** The resulting confidence computed by the correlator. */
-    private final double confidence;
+    protected final double confidence;
 
     CorrelationExplanation(@NotNull CorrelatorConfiguration correlatorConfiguration, double confidence) {
         this.correlatorConfiguration = correlatorConfiguration;
         this.confidence = confidence;
     }
+
+    /** Returns the explanation formatted as a text. */
+    public abstract @NotNull LocalizableMessage toLocalizableMessage();
 
     public String debugDump(int indent) {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
@@ -39,6 +40,19 @@ public abstract class CorrelationExplanation implements Serializable, DebugDumpa
         DebugUtil.debugDumpWithLabel(sb, "confidence", confidence, indent + 1);
         doSpecificDebugDump(sb, indent);
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return toLocalizableMessage().toString();
+    }
+
+    String getDisplayableName() {
+        return correlatorConfiguration.getDisplayableName();
+    }
+
+    int getConfidenceScaledTo100() {
+        return (int) Math.round(confidence * 100);
     }
 
     abstract void doSpecificDebugDump(StringBuilder sb, int indent);
@@ -58,6 +72,13 @@ public abstract class CorrelationExplanation implements Serializable, DebugDumpa
         }
 
         @Override
+        public @NotNull LocalizableMessage toLocalizableMessage() {
+            return new LocalizableMessageBuilder()
+                    .fallbackMessage(getDisplayableName() + ": " + getConfidenceScaledTo100())
+                    .build();
+        }
+
+        @Override
         void doSpecificDebugDump(StringBuilder sb, int indent) {
         }
     }
@@ -70,6 +91,13 @@ public abstract class CorrelationExplanation implements Serializable, DebugDumpa
 
         public UnsupportedCorrelationExplanation(@NotNull CorrelatorConfiguration correlatorConfiguration) {
             super(correlatorConfiguration, 0);
+        }
+
+        @Override
+        public @NotNull LocalizableMessage toLocalizableMessage() {
+            return new LocalizableMessageBuilder()
+                    .fallbackMessage(getDisplayableName())
+                    .build();
         }
 
         @Override

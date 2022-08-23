@@ -13,6 +13,9 @@ import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Normalizes a (string) value for the purpose of custom property indexing.
+ */
 public interface ValueNormalizer {
 
     @NotNull String normalize(@NotNull String input, Task task, OperationResult result)

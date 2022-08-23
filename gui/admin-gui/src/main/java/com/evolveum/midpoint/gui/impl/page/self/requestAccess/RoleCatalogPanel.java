@@ -17,6 +17,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -44,10 +45,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.tile.CatalogTile;
-import com.evolveum.midpoint.gui.impl.component.tile.CatalogTilePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
+import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -71,6 +70,7 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -100,7 +100,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
     private PageBase page;
 
-    private IModel<Search> searchModel;
+    private IModel<Search<? extends ObjectType>> searchModel;
 
     private IModel<ListGroupMenu<RoleCatalogQueryItem>> menuModel;
 
@@ -166,7 +166,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private boolean isRequestingForMyself() {
         String principalOid = SecurityUtil.getPrincipalOidIfAuthenticated();
         RequestAccess request = getModelObject();
-        return request.getPersonOfInterest().stream().filter(o -> Objects.equals(principalOid, o.getOid())).count() > 0;
+        return request.getPersonOfInterest().stream().anyMatch(o -> Objects.equals(principalOid, o.getOid()));
     }
 
     @Override
@@ -234,13 +234,13 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 return;
             }
 
-            List<String> oids = user.asObjectable().getAssignment().stream()
+            String[] oids = user.asObjectable().getAssignment().stream()
                     .filter(a -> a.getTargetRef() != null)
                     .map(a -> a.getTargetRef().getOid())
-                    .collect(Collectors.toList());
+                    .toArray((count) -> new String[count]);
 
             ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
-                    .id(oids.toArray(new String[oids.size()]))
+                    .id(oids)
                     .and().not().type(ArchetypeType.class)
                     .build();
             query.setQuery(oq);
@@ -283,9 +283,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         } catch (Exception ex) {
             LOGGER.debug("Couldn't create search filter", ex);
             page.error("Couldn't create search filter, reason: " + ex.getMessage());
-        }
 
-        updateFalseQuery(query);
+            updateFalseQuery(query);
+        }
     }
 
     private void updateQueryFromCollectionIdentifier(RoleCatalogQuery query, String collectionIdentifier) {
@@ -314,7 +314,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         searchModel = new LoadableModel<>(false) {
 
             @Override
-            public Search getObject() {
+            public Search<? extends ObjectType> getObject() {
                 Search search = super.getObject();
 
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
@@ -329,7 +329,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             }
 
             @Override
-            protected Search load() {
+            protected Search<? extends ObjectType> load() {
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
                 return SearchFactory.createSearch(type, page);
             }
@@ -361,7 +361,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         List<IColumn<SelectableBean<ObjectType>, String>> columns = createColumns();
         TileTablePanel<CatalogTile<SelectableBean<ObjectType>>, SelectableBean<ObjectType>> tilesTable =
-                new TileTablePanel<>(ID_TILES, provider, columns, createViewToggleModel()) {
+                new TileTablePanel<>(ID_TILES, provider, columns, createViewToggleModel(), UserProfileStorage.TableId.PAGE_REQUEST_ACCESS_ROLE_CATALOG) {
+
+                    @Override
+                    protected Component createHeader(String id) {
+                        Component header = super.createHeader(id);
+                        if (header instanceof SearchPanel) {
+                            // mt-2 added because search panel now uses *-sm classes and it doesn't match rest of the layout
+                            header.add(AttributeAppender.append("class", "mt-2"));
+                        }
+
+                        return header;
+                    }
 
                     @Override
                     protected WebMarkupContainer createTableButtonToolbar(String id) {
@@ -389,14 +400,15 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     @Override
                     protected CatalogTile createTileObject(SelectableBean<ObjectType> object) {
                         ObjectType obj = object.getValue();
-                        String icon = WebComponentUtil.createDefaultColoredIcon(obj.asPrismContainerValue().getTypeName());
+                        PrismObject prism = obj != null ? obj.asPrismObject() : null;
+                        String icon = WebComponentUtil.createDefaultColoredIcon(prism.getValue().getTypeName());
 
-                        CatalogTile t = new CatalogTile(icon, WebComponentUtil.getName(object.getValue()));
+                        CatalogTile<SelectableBean<ObjectType>> t = new CatalogTile<>(icon, WebComponentUtil.getDisplayNameOrName(prism));
                         t.setDescription(object.getValue().getDescription());
                         t.setValue(object);
 
                         RequestAccess ra = RoleCatalogPanel.this.getModelObject();
-                        t.setCheckState(ra.isAssignedToAll(obj.getOid()) ? CatalogTile.CheckState.FULL : CatalogTile.CheckState.PARTIAL);
+                        t.setCheckState(ra.isAssignedToAll(obj.getOid()) ? RoundedIconPanel.State.FULL : RoundedIconPanel.State.PARTIAL);
 
                         return t;
                     }
@@ -434,8 +446,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
                                     RequestAccess access = RoleCatalogPanel.this.getModelObject();
                                     return access.getSelectedAssignments().stream()
-                                            .filter(a -> Objects.equals(object.getOid(), a.getTargetRef().getOid()))
-                                            .count() == 0;
+                                            .noneMatch(a -> Objects.equals(object.getOid(), a.getTargetRef().getOid()));
                                 }));
                                 return details;
                             }
@@ -463,7 +474,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                     }
 
                     @Override
-                    protected IModel<Search> createSearchModel() {
+                    protected IModel<Search<? extends ObjectType>> createSearchModel() {
                         return searchModel;
                     }
                 };
@@ -480,14 +491,14 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 List<Toggle<ViewToggle>> list = new ArrayList<>();
 
                 if (allowedViews.isEmpty() || allowedViews.contains(RoleCatalogViewType.TABLE)) {
-                    Toggle asList = new Toggle("fa-solid fa-table-list", null);
+                    Toggle<ViewToggle> asList = new Toggle<>("fa-solid fa-table-list", null);
                     asList.setActive(ViewToggle.TABLE == toggle);
                     asList.setValue(ViewToggle.TABLE);
                     list.add(asList);
                 }
 
                 if (allowedViews.isEmpty() || allowedViews.contains(RoleCatalogViewType.TILE)) {
-                    Toggle asTile = new Toggle("fa-solid fa-table-cells", null);
+                    Toggle<ViewToggle> asTile = new Toggle<>("fa-solid fa-table-cells", null);
                     asTile.setActive(ViewToggle.TILE == toggle);
                     asTile.setValue(ViewToggle.TILE);
                     list.add(asTile);
@@ -642,8 +653,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         List<RoleCollectionViewType> collections = roleCatalog.getCollection();
         menuItems.addAll(createMenuFromRoleCollections(collections));
-
-        // todo add default menu item (requestable abstract roles query) or hide menu if orles of teammate is disabled?
 
         if (BooleanUtils.isNotFalse(roleCatalog.isShowRolesOfTeammate())) {
             CustomListGroupMenuItem<RoleCatalogQueryItem> rolesOfTeamMate = new CustomListGroupMenuItem<>("RoleCatalogPanel.rolesOfTeammate") {
@@ -834,7 +843,19 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 return RoleCatalogPanel.this.createImage(() -> model.getObject().getValue());
             }
         });
-        columns.add(new PropertyColumn(createStringResource("ObjectType.name"), "value.name"));
+        columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<ObjectType>>> item, String id, IModel<SelectableBean<ObjectType>> row) {
+                item.add(AttributeAppender.append("class", "align-middle"));
+                item.add(new LabelWithCheck(id,
+                        () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject()),
+                        () -> {
+                            RequestAccess ra = getModelObject();
+                            return ra.isAssignedToAll(row.getObject().getValue().getOid()) ? RoundedIconPanel.State.FULL : RoundedIconPanel.State.PARTIAL;
+                        }
+                ));
+            }
+        });
         columns.add(new PropertyColumn(createStringResource("ObjectType.description"), "value.description"));
 
         columns.add(new AbstractColumn<>(null) {
@@ -909,7 +930,19 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void addAllItemsPerformed(AjaxRequestTarget target) {
+        TileTablePanel tiles = (TileTablePanel) get(ID_TILES);
+        ObjectDataProvider provider = (ObjectDataProvider) tiles.getProvider();
+        List<SelectableBean<ObjectType>> objects = provider.getAvailableData();
 
+        if (objects == null) {
+            page.warn(getString("RoleCatalogPanel.noItemsAvailable"));
+            target.add(page.getFeedbackPanel());
+            return;
+        }
+
+        List<ObjectType> items = objects.stream().map(s -> s.getValue()).collect(Collectors.toList());
+
+        addItemsPerformed(target, items);
     }
 
     private AssignmentType createNewAssignment(ObjectType object, QName relation) {
