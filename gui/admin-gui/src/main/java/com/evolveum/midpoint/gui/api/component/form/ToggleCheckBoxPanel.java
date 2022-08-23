@@ -45,8 +45,6 @@ public class ToggleCheckBoxPanel extends InputPanel {
     protected void onInitialize() {
         super.onInitialize();
 
-//        add(AttributeAppender.append("class", "form-check"));
-
         CheckBox check = new CheckBox(ID_CHECK, getCheckboxModel());
         check.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         check.setOutputMarkupId(true);
@@ -55,7 +53,6 @@ public class ToggleCheckBoxPanel extends InputPanel {
 
         Label label = new Label(ID_LABEL, getLabelModel());
         label.add(AttributeModifier.replace("for", (IModel<String>) check::getMarkupId));
-        label.add(new VisibleBehaviour(() -> notNullModel(getLabelModel())));
         add(label);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
