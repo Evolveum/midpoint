@@ -783,6 +783,8 @@ In the Generic repo, `not` with `exists` is interpreted as "any of the entries d
 See https://jira.evolveum.com/browse/MID-7203[MID-7203].
 ====
 
+// TODO example with nesting exists, show the need for .block() in fluent API (see sqale search test)
+
 === Ref filter with target filter
 
 ++++

@@ -42,9 +42,9 @@ And vice versa, when we are processing owned device, we want to set correct `des
 So if we are changing a user, we need to recompute affected owned devices, if there are any.
 And if we are changing an owned device, we need to recompute affected owner, if there is any.
 
-_Data transfer _is done using mappings: either induced from archetypes or present in object templates.
+_Data transfer_ is done using mappings: either induced from archetypes or present in object templates.
 
-For _triggering the recomputation _of linked objects we currently have only one convenient way: policy rules.
+For _triggering the recomputation_ of linked objects we currently have only one convenient way: policy rules.
 (A direct alternative is using scripting hooks but it's a lot more work.
 Also some global recomputation of changed objects could be devised but would be quite awkward as well.)
 
@@ -131,7 +131,7 @@ What is important here is that if you used this mapping not in assignments but i
 
 [NOTE]
 ====
-`midpoint.findLinkedTargets`  method has _relativistic behavior_: it returns data derived from the new state of focal object if evaluating "new" state and the data derived from _old _`roleMembershipRef` values if evaluating the "old" state.
+`midpoint.findLinkedTargets`  method has _relativistic behavior_: it returns data derived from the new state of focal object if evaluating "new" state and the data derived from _old_ `roleMembershipRef` values if evaluating the "old" state.
 
 ====
 
