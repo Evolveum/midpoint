@@ -235,7 +235,7 @@ These rules can be configured like this:
 
 There are a lot of configuration options here.
 For example, we can specify the order of rules evaluation and their "A implies B" relations that ensure the correct computation of confidence in case of rule `A` implying rule `B`.
-Please see xref:/midpoint/reference/correlation/configuration.adoc[rule composition] page for more information.
+Please see xref:/midpoint/reference/correlation/rule-composition/[rule composition] page for more information.
 
 === Custom Indexing
 

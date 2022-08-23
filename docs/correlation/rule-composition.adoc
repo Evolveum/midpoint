@@ -23,7 +23,7 @@ Each candidate has a (local) _confidence_ value from the interval of (0, 1].
 Each correlator has its own _weight_.
 After the evaluation, a union of all candidate sets is created, and the overall confidence for each candidate is computed:
 
-image::confidence-formula.png[Confidence formula]
+image::confidence-formula.png[Confidence formula,role=half-width,pdfwidth=50%,scaledwidth=50%]
 
 Where
 
