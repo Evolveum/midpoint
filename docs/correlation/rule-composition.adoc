@@ -53,7 +53,7 @@ Let us have rules like these:
 |===
 
 .Graphic representation of the sample set of correlation rules
-image::naive-example.png[A naive example]
+image::naive-example.png[A naive example,width=1000,pdfwidth=50%,scaledwidth=50%]
 
 .Listing 1. Configuration related to the sample set of correlation rules
 [source,xml]
@@ -145,7 +145,7 @@ The total confidence is thus `1.0`.
 
 == Tiers and Rule Ordering
 
-image::tiers.png[Tiers]
+image::tiers.png[Tiers,width=1000,pdfwidth=50%,scaledwidth=50%]
 
 #TODO#
 
@@ -179,7 +179,7 @@ Default values:
 |===
 | Threshold | Default value
 | Automatic match (`AM`) | 1.0
-| No=match (`NM`) | 0.0
+| No-match (`NM`) | 0.0
 |===
 
 == Limitations
