@@ -453,7 +453,7 @@ The order of "authoritativeness" (so to say) is: SIS, HR, external, as can be se
                         } else if (external != null) {
                             external.clone()
                         } else {
-                            null // takes all values (should be "none"
+                            null // takes all values (there are most probably none)
                         }
                     </code>
                 </script>
