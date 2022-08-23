@@ -542,6 +542,7 @@ CREATE TABLE m_connector (
   framework                     NVARCHAR(255) COLLATE database_default,
   name_norm                     NVARCHAR(255) COLLATE database_default,
   name_orig                     NVARCHAR(255) COLLATE database_default,
+  available                     BIT,
   oid                           NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
