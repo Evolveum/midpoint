@@ -118,6 +118,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     // Constants for OperationResult
     private static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
     private static final String RESOLVE_REFERENCE = CLASS_NAME_WITH_DOT + "resolveReference";
+    private static final String OP_APPLY_PROVISIONING_DEFINITION = CLASS_NAME_WITH_DOT + "applyProvisioningDefinition";
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
@@ -940,13 +941,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 executeResolveOptions(object.asObjectable(), options, task, result);
             }
 
-            // postprocessing objects that weren't handled by their correct provider (e.g. searching for ObjectType, and retrieving tasks, resources, shadows)
-            // currently only resources and shadows are handled in this way
+            // Post-processing objects that weren't handled by their correct provider (e.g. searching for ObjectType,
+            // and retrieving tasks, resources, shadows). Currently, only resources and shadows are handled in this way.
+            //
             // TODO generalize this approach somehow (something like "postprocess" in task/provisioning interface)
+            // TODO ... or consider abandoning this functionality altogether (it is more a hack than a serious design!)
             if (searchProvider == ObjectTypes.ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
                 for (PrismObject<T> object : list) {
                     if (object.asObjectable() instanceof ResourceType || object.asObjectable() instanceof ShadowType) {
-                        provisioning.applyDefinition(object, task, result);
+                        applyProvisioningDefinition(object, task, result);
                     }
                 }
             }
@@ -983,6 +986,26 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
 
         return list;
+    }
+
+    private <T extends ObjectType> void applyProvisioningDefinition(
+            PrismObject<T> object, Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.subresult(OP_APPLY_PROVISIONING_DEFINITION)
+                .setMinor()
+                .addParam(OperationResult.PARAM_OBJECT, object)
+                .build();
+        try {
+            provisioning.applyDefinition(object, task, result);
+        } catch (Throwable t) {
+            LoggingUtils.logExceptionAsWarning(
+                    LOGGER, "Couldn't apply definition to {} (returning with fetchResult set)", t, object);
+            result.recordPartialError(t); // This is not a fatal error: something is retrieved, but not the whole object
+            object.asObjectable().setFetchResult(
+                    result.createBeanReduced());
+            // Intentionally not re-throwing the exception
+        } finally {
+            result.close();
+        }
     }
 
     private class ContainerOperationContext<T extends Containerable> {

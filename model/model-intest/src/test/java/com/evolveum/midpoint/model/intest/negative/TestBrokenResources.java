@@ -556,7 +556,11 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
         assertEquals("Expected partial error in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
     }
 
-    @Test(enabled = false)
+    /**
+     * It is a bit questionable if we want to support this mode of operation (asking for resources by specifying type
+     * of {@link AssignmentHolderType}).
+     */
+    @Test
     public void test358SearchResourceWrongConnectorOidUseTypeFilter() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
