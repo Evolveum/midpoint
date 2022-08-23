@@ -509,16 +509,16 @@ public class SearchFactory {
 
     public static <C extends Containerable> List<SearchItemDefinition> createExtensionDefinitionList(
             PrismContainerDefinition<C> objectDef) {
+        return createExtensionDefinitionList(objectDef,ObjectType.F_EXTENSION);
+    }
+    public static <C extends Containerable> List<SearchItemDefinition> createExtensionDefinitionList(
+                PrismContainerDefinition<C> objectDef, ItemPath extensionPath) {
 
         List<SearchItemDefinition> searchItemDefinitions = new ArrayList<>();
-
-        ItemPath extensionPath = ObjectType.F_EXTENSION;
-
-        PrismContainerDefinition ext = objectDef.findContainerDefinition(ObjectType.F_EXTENSION);
+        PrismContainerDefinition ext = objectDef.findContainerDefinition(extensionPath);
         if (ext == null) {
             return searchItemDefinitions;
         }
-
         //noinspection unchecked
         for (ItemDefinition<?> def : (List<ItemDefinition<?>>) ext.getDefinitions()) {
             ItemPath itemPath = ItemPath.create(extensionPath, def.getItemName());

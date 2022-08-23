@@ -9,8 +9,10 @@ package com.evolveum.midpoint.schema;
 
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.prism.PrismConstants.T_OBJECT_REFERENCE;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType.F_OWNER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType.F_ROLE_MEMBERSHIP_REF;
 
 import java.io.File;
 import java.io.IOException;
@@ -803,5 +805,14 @@ public class TestQueryConverter extends AbstractUnitTest {
             logger.error("Error while converting query: {}", ex.getMessage(), ex);
             throw ex;
         }
+    }
+
+    /** MID-7905 reported for 4.4.1, where it fails, so did in 4.4.2, but works in 4.4.3 and on. */
+    @Test
+    public void test950() {
+        getPrismContext().queryFor(UserType.class)
+                .exists(F_ROLE_MEMBERSHIP_REF, T_OBJECT_REFERENCE)
+                .item(ObjectType.F_NAME).eq("role-name")
+                .build();
     }
 }

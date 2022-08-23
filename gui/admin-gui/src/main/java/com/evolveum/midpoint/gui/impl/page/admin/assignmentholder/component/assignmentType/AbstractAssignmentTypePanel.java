@@ -22,6 +22,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.checkerframework.common.returnsreceiver.qual.This;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
@@ -42,6 +43,8 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableReferenceDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -88,11 +91,15 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
     protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
 
+    public static final ItemPath TARGET_REF_OBJ = ItemPath.create(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE);
+    private static final ItemPath TARGET_REF_EXTENSION = ItemPath.create(AssignmentType.F_TARGET_REF, PrismConstants.T_OBJECT_REFERENCE, ObjectType.F_EXTENSION);
+
     private IModel<PrismContainerWrapper<AssignmentType>> model;
     protected int assignmentsRequestsLimit = -1;
 
     private Class<? extends Objectable> objectType;
     private String objectOid;
+    private PrismContainerDefinition<AssignmentType> searchDefinition;
 
     public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends Objectable> type, String oid) {
         super(id, AssignmentType.class, config);
@@ -629,9 +636,39 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return createSearchableItems(containerDef);
     }
 
+
+    @Override
+    protected PrismContainerDefinition<AssignmentType> getTypeDefinitionForSearch() {
+        if (searchDefinition != null) {
+            return searchDefinition;
+        }
+        PrismContainerDefinition<AssignmentType> orig = super.getTypeDefinitionForSearch();
+        if (getAssignmentType() == null) {
+            searchDefinition = orig;
+        } else {
+            // We have more concrete assignment type, we should replace targetRef definition
+            // with one with concrete assignment type.
+            var transformed = TransformableContainerDefinition.of(orig);
+            var targetRef = TransformableReferenceDefinition.of(orig.getComplexTypeDefinition().findReferenceDefinition(AssignmentType.F_TARGET_REF));
+            targetRef.setTargetTypeName(getAssignmentType());
+            transformed.getComplexTypeDefinition().replaceDefinition(AssignmentType.F_TARGET_REF, targetRef);
+            searchDefinition = transformed;
+        }
+
+        return searchDefinition;
+    }
+
+
+    @Override
+    protected PrismContainerDefinition<AssignmentType> getContainerDefinitionForColumns() {
+        // In columns model we can benefit for same targetType expansion as in container model.
+        return getTypeDefinitionForSearch();
+    }
+
     @Override
     protected Search createSearch(Class<AssignmentType> type) {
         Search search = super.createSearch(type);
+        search.getType().setContainerDefinition(getTypeDefinitionForSearch());
         search.setFullTextSearchEnabled(isRepositorySearchEnabled());
         return search;
     }
@@ -645,6 +682,12 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
         defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
 
+        // We can determine indexed extensions if getAssignmentType() != null
+        if (getAssignmentType() != null) {
+            var objectExt =  SearchFactory.createExtensionDefinitionList(containerDef, TARGET_REF_EXTENSION);
+            LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
+            defs.addAll(objectExt);
+        }
         return defs;
 
     }

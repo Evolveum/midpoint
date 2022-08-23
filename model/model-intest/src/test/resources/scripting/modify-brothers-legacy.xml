@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <s:search>
+        <s:type>UserType</s:type>
+        <s:searchFilter>
+            <substring xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+                <path>name</path>
+                <value>brother-</value>
+                <anchorStart>true</anchorStart>
+            </substring>
+        </s:searchFilter>
+    </s:search>
+    <s:action>
+        <s:type>modify</s:type>
+        <s:parameter>
+            <s:name>delta</s:name>
+            <c:value xsi:type="t:ObjectDeltaType">
+                <t:itemDelta> <!-- object type and oid will be filled-in from the input; change type is 'modify' by default -->
+                    <t:modificationType>replace</t:modificationType>
+                    <t:path>locality</t:path>
+                    <t:value>here</t:value>
+                </t:itemDelta>
+            </c:value>
+        </s:parameter>
+    </s:action>
+</s:pipeline>

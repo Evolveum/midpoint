@@ -21,18 +21,23 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
 
 public abstract class AbstractRoleAssignmentPanel<AH extends AssignmentHolderType> extends AbstractAssignmentPanel<AH> {
 
     public AbstractRoleAssignmentPanel(String id, IModel<PrismObjectWrapper<AH>> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
     }
-
+    @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 
@@ -72,5 +77,15 @@ public abstract class AbstractRoleAssignmentPanel<AH extends AssignmentHolderTyp
             }
         }
         return Model.of("");
+    }
+
+    @Override
+    protected void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef,
+            List<SearchItemDefinition> defs) {
+        super.addSpecificSearchableItems(containerDef, defs);
+        if (isRepositorySearchEnabled()) {
+            SearchFactory.addSearchPropertyDef(containerDef, TARGET_REF_OBJ.append(AbstractRoleType.F_NAME), defs);
+            SearchFactory.addSearchPropertyDef(containerDef, TARGET_REF_OBJ.append(AbstractRoleType.F_DISPLAY_NAME), defs);
+        }
     }
 }
