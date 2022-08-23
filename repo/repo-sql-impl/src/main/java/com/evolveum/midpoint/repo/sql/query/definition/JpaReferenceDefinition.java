@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.resolution.DataSearchResult;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sqlbase.QueryException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
@@ -47,20 +48,26 @@ public class JpaReferenceDefinition<T extends JpaReferenceDefinition<T>>
     }
 
     @Override
-    public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) {
+    public DataSearchResult<?> nextLinkDefinition(ItemPath path, ItemDefinition itemDefinition, PrismContext prismContext) throws QueryException {
         var first = path.first();
+        var rest = path.rest();
         if (ItemPath.isObjectReference(first)) {
             // returning artificially created transition definition, used to allow dereferencing target object in a generic way
             // Here we could use type hint?
             JpaEntityDefinition resolvedEntityDef = referencedEntityDefinition.getResolvedEntityDefinition();
             if (first instanceof ObjectReferencePathSegment) {
                 Optional<QName> typeHint = ((ObjectReferencePathSegment) first).typeHint();
+
                 if (typeHint.isPresent()) {
                     // Now we need to find RObject class for type hint
-                    //Class<? extends RObject> hqlClazz = ClassMapper.getHQLTypeForQName(typeHint.get()).getClazz();
                     // And now, we somehow need resolvedEntityDefinition
 
-                    resolvedEntityDef = QueryDefinitionRegistry.getInstance().findEntityDefinition(typeHint.get());
+                    // We have type hint, first lets try resolve in original definition
+                    DataSearchResult<?> nextDef = resolvedEntityDef.nextLinkDefinition(rest, itemDefinition, prismContext);
+                    // If we did not found item using original entity definition, we try to use type hint
+                    if (nextDef == null) {
+                        resolvedEntityDef = QueryDefinitionRegistry.getInstance().findEntityDefinition(typeHint.get());
+                    }
                 }
 
             }
