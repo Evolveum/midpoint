@@ -88,8 +88,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN.oid);
         List<String> rows = basicCheckOutputFile(report, DONT_COUNT_ROWS, 8, null);
-        assertTrue(rows.size() > 1000 && rows.size() <= 1010,
-                "Unexpected number of rows in report. Expected:1000-1010, Actual:" + rows.size());
+        assertTrue(rows.size() > 1000 && rows.size() <= 1012,
+                "Unexpected number of rows in report. Expected:1000-1012, Actual:" + rows.size());
     }
 
     @Test

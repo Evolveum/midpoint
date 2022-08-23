@@ -146,6 +146,13 @@ public class HtmlDashboardReportDataWriter
 
         body.append("</div>");
 
+        String subscriptionFooter = reportService.missingSubscriptionFooter();
+        if (subscriptionFooter != null) {
+            body.append("<div>")
+                    .append(subscriptionFooter)
+                    .append("</div>");
+        }
+
         return body.toString();
     }
 
