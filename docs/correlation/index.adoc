@@ -13,7 +13,7 @@ Another typical use will be the correlation during manual or automated registrat
 
 In midPoint 4.4 and before, the only way of correlation was the use of correlation filters, with strictly binary output: either a matching object was found, or there was no match.
 
-In midPoint 4.5, we introduced manual correlation for situations where there is a candidate match(or more candidate matches) that need to be resolved by the human operator.
+In midPoint 4.5, we introduced manual correlation for situations where there is a candidate match (or more candidate matches) that need to be resolved by the human operator.
 Moreover, multiple correlation mechanisms have been created: a custom script, call to an external ID Match API service, or simplified, item-based correlation.
 
 The goal for midPoint 4.6 and beyond is to provide a configurable correlation mechanism that can work with approximate matching.
@@ -41,7 +41,7 @@ There are the following types of correlation rules:
 | `items` | Smart item-based correlation rule. The suggested one. | 4.6
 | `filter` | Legacy filter-based correlation rule. | 1.7
 | `expression` | Experimental rule, based on an evaluation of a custom expression. | 4.5
-| `idmatch` | Rule that uses an external link:https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API[ID Match] service. | 4.5
+| `idmatch` | Rule that uses an external link:https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API[ID Match] service. Please see xref:/midpoint/projects/idmatch/implementation/implementation/[this document] for more information. | 4.5
 |===
 
 NOTE: Technically speaking, there is also a `composite` rule that provides an aggregation of the results of its children.
@@ -65,7 +65,7 @@ When present, the configuration attached to the resource object type takes prece
 
 The following is the most basic example: an attribute mapped to a focus property that serves as a correlation item.
 
-.Listing 1. ICFS name serving as a correlation attribute
+.Listing 1. `icfs:name` serving as a correlation attribute
 [source,xml]
 ----
 <schemaHandling>
@@ -73,8 +73,8 @@ The following is the most basic example: an attribute mapped to a focus property
         ...
         <attribute>
             <ref>icfs:name</ref>
-            <correlator/>
-            <inbound>
+            <correlator/> <!--2-->
+            <inbound> <!--1-->
                 <target>
                     <path>name</path>
                 </target>
@@ -84,25 +84,24 @@ The following is the most basic example: an attribute mapped to a focus property
     </objectType>
 </schemaHandling>
 ----
+<1> Means that the `icfs:name` attribute is mapped to the `name` focus property.
+<2> Means that the account is correlated to the focus objects by searching for the corresponding value of `name` property.
 
-Here we declare that:
+Notes:
 
-. The `icfs:name` attribute is mapped to the `name` focus property.
-. The account is correlated to the focus objects by searching for the corresponding value of `name` property.
-
-NOTE: The correlation takes place _before_ the regular inbound mappings are evaluated.
+. The correlation takes place _before_ the regular inbound mappings are evaluated.
 That is why - starting with 4.5 - there is a special inbound mapping evaluation mode: correlation-time evaluation.
 (See xref:/midpoint/projects/idmatch/implementation/correlation-time-mappings/[this page] for more information.)
-Even though the correlation-time evaluation is turned off by default, the attribute-level `correlator` element automatically turns it on - unless not turned off explicitly for the mapping.
+Even though the correlation-time evaluation is turned off by default, the attribute-level `correlator` element automatically turns it on for the selected inbound mapping.
 
-NOTE: If multiple attributes are marked as `correlator`, they are evaluated separately.
+. If multiple attributes are marked as `correlator`, they are evaluated separately.
 If there is a need of evaluation two attributes together (meaning that they have to match both), it is necessary to use the explicit `items` correlator.
 
 ==== Sample 2: Resource Object Type Bound Definition
 
 Here we show the same logic defined at the level of the resource object type:
 
-.Listing 2. ICFS name serving as a correlation attribute (defined at the level of resource object type)
+.Listing 2. `icfs:name` serving as a correlation attribute (defined at the level of resource object type)
 [source,xml]
 ----
 <schemaHandling>
@@ -163,7 +162,7 @@ Here we show a rule requiring that _both_ given name and family name match.
 
 == Advanced Concepts
 
-=== More Correlation Rules
+=== Multiple Correlation Rules
 
 In more complex deployments, there may be multiple correlation rules.
 Let us imagine, for example, that we want to correlate using given name, family name, date of birth, and national ID using the following rules:
@@ -234,24 +233,23 @@ These rules can be configured like this:
 </objectTemplate>
 ----
 
-There is a lot of configuration options here.
+There are a lot of configuration options here.
 For example, we can specify the order of rules evaluation and their "A implies B" relations that ensure the correct computation of confidence in case of rule `A` implying rule `B`.
-Please see xref:/midpoint/reference/correlation/configuration.adoc[configuration details page] for more information.
-
-=== Using ID Match API
-
-Please see xref:/midpoint/projects/idmatch/implementation/implementation/[this document] for more information.
+Please see xref:/midpoint/reference/correlation/configuration.adoc[rule composition] page for more information.
 
 === Custom Indexing
 
 Sometimes, we need to base the search on specially-indexed data.
-For example, we could need to match only first five characters of a surname.
+For example, we could need to match only first five characters of the surname.
 Or, we could want to take only digits into account when searching for the national ID.
+
+The latter requirement can be configured like this:
 
 .Listing 5. Setting up custom indexing of extension/nationalId property
 [source,xml]
 ----
 <objectTemplate>
+    ...
     <item>
         <ref>extension/nationalId</ref>
         <indexing>
@@ -262,8 +260,7 @@ Or, we could want to take only digits into account when searching for the nation
                         <expression>
                             <script>
                                 <code>
-                                    // Removes everything except for digits
-                                    basic.stringify(input).replaceAll("[^\\d]", "")
+                                    basic.stringify(input).replaceAll("[^\\d]", "") <!--1-->
                                 </code>
                             </script>
                         </expression>
@@ -272,8 +269,10 @@ Or, we could want to take only digits into account when searching for the nation
             </normalization>
         </indexing>
     </item>
+    ...
 </objectTemplate>
 ----
+<1> Removes everything except for digits.
 
 This indexing is then used automatically when correlating according to `extension/nationalId`.
 
@@ -304,11 +303,11 @@ Please see xref:/midpoint/reference/correlation/custom-indexing.adoc[custom inde
 
 === Fuzzy Logic
 
-By default, the searching is done using "exact match" criteria, potentially on values that underwent the standard or custom normalization.
-Sometimes, however, we want to search for all users that have a property value somewhat similar to the value we have at hand.
-For example, we get an account for Jack Sparrow, but we may want to consider users with surnames Sparow, Sparrou, and so on, into consideration as well (although with a lower confidence value).
+By default, the searching is done using "exact match" criteria, either on original values or on the ones that underwent the standard or custom normalization.
+Sometimes, however, we want to search for objects that have a property value somewhat similar to the value we have at hand.
+For example, we get an account for _Jack Sparrow_, but besides matching users with surname _Sparrow_ we may want to consider also users _Sparow_, _Sparrou_, and so on (although potentially with a lower confidence value).
 
-To do this, a fuzzy search logic has been implemented. There are two methods to available:
+To do this, a fuzzy search logic has been implemented. There are two methods available:
 
 .Fuzzy string matching methods
 [%header]
@@ -316,14 +315,19 @@ To do this, a fuzzy search logic has been implemented. There are two methods to 
 |===
 | Method | Description
 | Levenshtein edit distance
-| The minimum number of single-character edits (insertions, deletions or substitutions) required to change one string into the other.
+| Matches according to the minimum number of single-character edits (insertions, deletions or substitutions) required to change one string into the other.
 (From link:https://en.wikipedia.org/wiki/Levenshtein_distance[wikipedia].)
 | Trigram similarity
-| The ratio of common trigrams to all trigrams in compared strings.
+| Matches using the ratio of common trigrams to all trigrams in compared strings.
 (See link:https://www.postgresql.org/docs/current/pgtrgm.html[PostgreSQL documentation on `pg_trgm` module].)
 |===
 
 NOTE: The fuzzy search is implemented for the native PostgreSQL-based repository only.
+
+An example that searches for users having given name and family name close to the provided ones.
+The given name has to have Levenshtein edit distance (to the provided one) at most 3.
+The family name has to have trigram similarity (to the provided one) at least 0.8.
+Moreover, the confidence value of the match depends on the Levenshtein edit distance, as specified in the code.
 
 .Listing 7. Correlation using fuzzy string matching
 [source,xml]
@@ -377,14 +381,16 @@ Please see xref:/midpoint/reference/correlation/fuzzy-logic.adoc[fuzzy searching
 === Multiple Identity Data Sources
 
 The advanced correlation needs often go hand in hand with the situations when there are multiple sources of the identity data.
-For example, a university may have its Student Information System (SIS) providing data on students and faculty, and Human Resources (HR) System keeping records of all staff - faculty and others.
+For example, a university may have its Student Information System (SIS) providing data on students and faculty, Human Resources (HR) System keeping records of all staff - faculty and others, and "External persons" system for maintaining data about visitors, and other persons related to the university in a way other than being a student or employee.
+
 While the data about a person are usually consistent, there may be situations when they differ.
 For example, the given name may be recorded differently in SIS and HR systems.
 Or the title may be forgotten to be updated in HR.
+An old record in the "external persons" system may be out-of-date altogether.
 
 This situation leads to two kinds of requirements:
 
-. When processing data from these systems, midPoint has to somehow decide which ones are "authoritative", that is, which ones to propagate to the user data stored in the repository.
+. When processing data from these systems, midPoint has to somehow decide which ones are "authoritative", that is, which ones to propagate to the "official" user data stored in the repository.
 . When correlating, we might want to match data from all systems for the candidate owners.
 
 MidPoint supports both of them.
