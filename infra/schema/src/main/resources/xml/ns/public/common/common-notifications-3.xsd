@@ -930,8 +930,7 @@
             <xsd:documentation>
                 An event handler type - extends common handler with filter/info
                 and additionally can contain one or more notifiers of various kinds.
-
-                Forked/chained elements are deprecated, implicit behavior of multiple notifiers is "forked".
+                Each notifier is considered and multiple of them can be used, if not filtered out.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -940,36 +939,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:BaseEventHandlerType">
                 <xsd:sequence>
-                    <xsd:element name="chained" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                A chain of handlers (usually filters and notifiers) to be evaluated, one after another.
-
-                                DEPRECATED: Configuration can be rewritten without it, probably more clearly.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="forked" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                A set of handlers to be evaluated without any relation among them (like a fork prongs).
-
-                                DEPRECATED: Just use multiple notifiers in a handler directly to the same effect.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>4.5</a:deprecatedSince>
-                                <a:plannedRemoval>4.6</a:plannedRemoval>
-                                <a:elaborate>true</a:elaborate>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1501,7 +1470,7 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="transport" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                    <!-- TODO Hopefully in 4.6, implementation support wasn't finished in 4.5
+                    <!-- TODO Later, implementation support wasn't finished in 4.5
                     <xsd:element name="transportConfig" type="tns:NotifierTransportConfigType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1509,7 +1478,7 @@
                                 template per transport.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:since>4.6</a:since>
+                                <a:since>TODO</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

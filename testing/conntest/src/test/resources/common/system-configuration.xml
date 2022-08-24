@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+
     <name>SystemConfiguration</name>
     <logging>
         <rootLoggerAppender>File Appender</rootLoggerAppender>
@@ -17,67 +18,67 @@
         <classLogger>
             <level>OFF</level>
             <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>INFO</level>
             <package>com.evolveum.midpoint.util.ClassPathUtil</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>WARN</level>
             <package>org.springframework</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>INFO</level>
             <package>com.evolveum.midpoint</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>DEBUG</level>
             <package>com.evolveum.midpoint.model</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.midpoint.model.impl.sync.SynchronizationServiceImpl</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>INFO</level>
             <package>org.identityconnectors</package>
-          </classLogger>
-          <classLogger>
+        </classLogger>
+        <classLogger>
             <level>TRACE</level>
             <package>org.identityconnectors.framework</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>DEBUG</level>
             <package>com.evolveum.polygon</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.polygon.connector.ldap</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.polygon.connector.ldap.schema</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>DEBUG</level>
             <package>com.evolveum.polygon.connector.ldap.ConnectionManager</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>DEBUG</level>
             <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
-          </classLogger>
-          <classLogger>
+        </classLogger>
+        <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.midpoint.model.impl.lens.ChangeExecutor</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.midpoint.provisioning</package>
-          </classLogger>
-          <classLogger>
+        </classLogger>
+        <classLogger>
             <level>WARN</level>
             <package>com.evolveum.midpoint.provisioning.impl.resources.ResourceManager</package>
-          </classLogger>
+        </classLogger>
         <classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.test</c:package>
@@ -97,8 +98,8 @@
             <append>true</append>
         </appender>
         <appender xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                  name="IDM-PROFILE_LOG"
-                  xsi:type="c:FileAppenderConfigurationType">
+                name="IDM-PROFILE_LOG"
+                xsi:type="c:FileAppenderConfigurationType">
             <pattern>%date %level: %msg%n</pattern>
             <fileName>target/test-profile.log</fileName>
             <append>true</append>
@@ -168,30 +169,22 @@
             </simpleUserNotifier>
         </handler>
         <handler>
-            <chained>
-                <operation>add</operation>
-            </chained>
-            <chained>
-                <simpleUserNotifier>
-                    <recipientExpression>
-                        <value>recipient@evolveum.com</value>
-                    </recipientExpression>
-                    <transport>dummy:simpleUserNotifier-ADD</transport>
-                </simpleUserNotifier>
-            </chained>
+            <operation>add</operation>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleUserNotifier-ADD</transport>
+            </simpleUserNotifier>
         </handler>
         <handler>
-            <chained>
-                <operation>delete</operation>
-            </chained>
-            <chained>
-                <simpleUserNotifier>
-                    <recipientExpression>
-                        <value>recipient@evolveum.com</value>
-                    </recipientExpression>
-                    <transport>dummy:simpleUserNotifier-DELETE</transport>
-                </simpleUserNotifier>
-            </chained>
+            <operation>delete</operation>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleUserNotifier-DELETE</transport>
+            </simpleUserNotifier>
         </handler>
         <mail>
             <redirectToFile>target/mail-notifications.log</redirectToFile>
