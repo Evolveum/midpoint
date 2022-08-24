@@ -40,9 +40,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.PasswordTextField;
@@ -172,13 +174,15 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
             @Override
             public void onError(AjaxRequestTarget target) {
-                FeedbackMessages messages = getPageBase().getFeedbackMessages();
-                if (messages != null && !messages.isEmpty()) {
+                List<FeedbackMessage> feedbackMessages = passwordPanel.collectPasswordFieldsFeedbackMessages();
+                if (CollectionUtils.isNotEmpty(feedbackMessages)) {
+                    StringBuilder sb = new StringBuilder();
+                    feedbackMessages.forEach(m -> sb.append(m.getMessage()).append("\n"));
                     new Toast()
                             .error()
                             .autohide(false)
                             .title(getString("ChangePasswordPanel.savePassword"))
-                            .body(messages.first().getMessage().toString())
+                            .body(sb.toString())
                             .show(target);
                 }
             }
