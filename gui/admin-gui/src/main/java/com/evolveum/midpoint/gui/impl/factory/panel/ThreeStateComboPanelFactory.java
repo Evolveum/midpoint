@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
-import com.evolveum.midpoint.gui.api.component.form.ToggleCheckBoxPanel;
+
+import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
+
 import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -17,7 +19,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
  * @author katka
  */
 @Component
-public class ToggleCheckBoxPanelFactory extends AbstractInputGuiComponentFactory<Boolean> {
+public class ThreeStateComboPanelFactory extends AbstractInputGuiComponentFactory<Boolean> {
 
     @PostConstruct
     public void register() {
@@ -31,6 +33,6 @@ public class ToggleCheckBoxPanelFactory extends AbstractInputGuiComponentFactory
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<Boolean> panelCtx) {
-        return new ToggleCheckBoxPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
+        return new TriStateComboPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
     }
 }
