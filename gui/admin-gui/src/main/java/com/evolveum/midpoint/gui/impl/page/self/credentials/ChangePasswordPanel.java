@@ -136,6 +136,11 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
 
             @Override
+            protected boolean isPasswordLimitationPanelVisible() {
+                return false;
+            }
+
+            @Override
             protected boolean canEditPassword() {
                 return !savedPassword;
             }
@@ -167,7 +172,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
 
             @Override
             public void onError(AjaxRequestTarget target) {
-//                target.add(getPageBase().getFeedbackPanel());
                 FeedbackMessages messages = getPageBase().getFeedbackMessages();
                 if (messages != null && !messages.isEmpty()) {
                     new Toast()
@@ -262,8 +266,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         if (isCheckOldPassword()) {
             LOGGER.debug("Check old password");
             if (currentPasswordValue == null || currentPasswordValue.trim().equals("")) {
-//                warn(getString("PageSelfCredentials.specifyOldPasswordMessage"));
-//                target.add(getPageBase().getFeedbackPanel());
                 new Toast()
                         .warning()
                         .autohide(false)
@@ -280,8 +282,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                     boolean isCorrectPassword = getPageBase().getModelInteractionService().checkPassword(getModelObject().getOid(), currentPassword,
                             checkPasswordTask, checkPasswordResult);
                     if (!isCorrectPassword) {
-//                        error(getString("PageSelfCredentials.incorrectOldPassword"));
-//                        target.add(getPageBase().getFeedbackPanel());
                         new Toast()
                                 .error()
                                 .autohide(false)
@@ -294,7 +294,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check password", ex);
                     checkPasswordResult.recordFatalError(
                             getString("PageAbstractSelfCredentials.message.onSavePerformed.fatalError", ex.getMessage()), ex);
-//                    target.add(getPageBase().getFeedbackPanel());
                     new Toast()
                             .error()
                             .autohide(false)
@@ -309,8 +308,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         }
 
         if (newPasswordValue == null || (!newPasswordValue.isEncrypted() && StringUtils.isEmpty(newPasswordValue.getClearValue()))) {
-//            warn(getString("PageSelfCredentials.emptyPasswordFiled"));
-//            target.add(getPageBase().getFeedbackPanel());
             new Toast()
                     .warning()
                     .autohide(false)
@@ -380,8 +377,6 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             setNullEncryptedPasswordData();
             if (showFeedback) {
-//                getPageBase().showResult(result);
-//                target.add(getPageBase().getFeedbackPanel());
                 new Toast()
                         .warning()
                         .autohide(false)
@@ -391,12 +386,11 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
             }
         } else {
             new Toast()
-                    .info()
+                    .success()
                     .autohide(false)
                     .title(getString("ChangePasswordPanel.savePassword"))
-                    .body(getString(result.getMessage()))
+                    .body(getString(result.getStatus()))
                     .show(target);
-//            target.add(getPageBase().getFeedbackPanel());
         }
     }
 

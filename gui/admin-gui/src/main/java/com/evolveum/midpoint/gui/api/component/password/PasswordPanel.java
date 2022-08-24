@@ -129,6 +129,7 @@ public class PasswordPanel extends InputPanel {
         };
 
         final PasswordLimitationsPanel validationPanel = new PasswordLimitationsPanel(ID_VALIDATION_PANEL, limitationsModel);
+        validationPanel.add(new VisibleBehaviour(this::isPasswordLimitationPanelVisible));
         validationPanel.setOutputMarkupId(true);
         inputContainer.add(validationPanel);
 
@@ -478,5 +479,9 @@ public class PasswordPanel extends InputPanel {
     }
 
     protected void updatePasswordValidation(AjaxRequestTarget target) {
+    }
+
+    protected boolean isPasswordLimitationPanelVisible() {
+        return true;
     }
 }
