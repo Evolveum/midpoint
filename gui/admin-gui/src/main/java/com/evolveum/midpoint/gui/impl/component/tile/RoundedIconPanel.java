@@ -28,10 +28,17 @@ public class RoundedIconPanel extends BasePanel<String> {
 
     private IModel<State> state;
 
+    private IModel<String> title;
+
     public RoundedIconPanel(String id, IModel<String> icon, IModel<State> state) {
+        this(id, icon, state, null);
+    }
+
+    public RoundedIconPanel(String id, IModel<String> icon, IModel<State> state, IModel<String> title) {
         super(id, icon);
 
         this.state = state;
+        this.title = title;
 
         initLayout();
     }
@@ -39,6 +46,10 @@ public class RoundedIconPanel extends BasePanel<String> {
     private void initLayout() {
         add(AttributeAppender.prepend("class", "rounded-icon"));
         add(AttributeAppender.append("class", this::getCssStateClass));
+
+        if (title != null) {
+            add(AttributeAppender.append("title", title));
+        }
 
         Label icon = new Label(ID_ICON);
         icon.add(AttributeAppender.append("class", getModel()));

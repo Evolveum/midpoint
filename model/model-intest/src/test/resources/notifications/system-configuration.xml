@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
     <name>SystemConfiguration</name>
     <logging>
         <rootLoggerAppender>File Appender</rootLoggerAppender>
@@ -17,7 +18,7 @@
         <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-          </classLogger>
+        </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
@@ -88,6 +89,7 @@
                 <bodyExpression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <!-- @formatter:off -->
                         <code>Notification about account-related operation
 
 #if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end
@@ -97,6 +99,7 @@ Resource: $!event.resourceName (oid $event.resourceOid)
 An account has been successfully created on the resource with attributes:
 $event.contentAsFormattedList
 Channel: $!event.channel</code>
+                        <!-- @formatter:on -->
                     </script>
                 </bodyExpression>
                 <transport>dummy:simpleAccountNotifier-ADD-SUCCESS</transport>
@@ -112,6 +115,7 @@ Channel: $!event.channel</code>
                 <bodyExpression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <!-- @formatter:off -->
                         <code>Notification about account-related operation
 
 #if ($event.requesteeObject)Owner: $!event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)#end
@@ -122,6 +126,7 @@ Account: $!event.shadowName
 The account has been successfully removed from the resource.
 
 Channel: $!event.channel</code>
+                        <!-- @formatter:on -->
                     </script>
                 </bodyExpression>
 
@@ -136,6 +141,7 @@ Channel: $!event.channel</code>
                 <bodyExpression>
                     <script>
                         <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#velocity</language>
+                        <!-- @formatter:off -->
                         <code>Notification about ${event.focusTypeName.toLowerCase()}-related operation (status: $event.statusAsText)
 
 $event.focusTypeName: $event.requesteeDisplayName ($event.requesteeName, oid $event.requesteeOid)
@@ -168,30 +174,22 @@ Channel: $!event.channel</code>
             </simpleFocalObjectNotifier>
         </handler>
         <handler>
-            <chained>
-                <operation>add</operation>
-            </chained>
-            <chained>
-                <simpleUserNotifier>
-                    <recipientExpression>
-                        <value>recipient@evolveum.com</value>
-                    </recipientExpression>
-                    <transport>dummy:simpleUserNotifier-ADD</transport>
-                </simpleUserNotifier>
-            </chained>
+            <operation>add</operation>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleUserNotifier-ADD</transport>
+            </simpleUserNotifier>
         </handler>
         <handler>
-            <chained>
-                <operation>delete</operation>
-            </chained>
-            <chained>
-                <simpleUserNotifier>
-                    <recipientExpression>
-                        <value>recipient@evolveum.com</value>
-                    </recipientExpression>
-                    <transport>dummy:simpleUserNotifier-DELETE</transport>
-                </simpleUserNotifier>
-            </chained>
+            <operation>delete</operation>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleUserNotifier-DELETE</transport>
+            </simpleUserNotifier>
         </handler>
         <handler>
             <status>failure</status>
@@ -216,6 +214,7 @@ Channel: $!event.channel</code>
                     <script>
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
                             m = new NotificationMessageType()
                             m.setFrom("+421999000999")
                             m.getTo().add("+421905123456")
@@ -243,6 +242,7 @@ Channel: $!event.channel</code>
                     <script>
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
                             m = new NotificationMessageType()
                             m.setFrom("+421999000999")
                             m.getTo().add("+421905123456")
@@ -268,6 +268,7 @@ Channel: $!event.channel</code>
                     <script>
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
                             m = new NotificationMessageType()
                             m.setFrom("+421999000999")
                             m.getTo().add("+421905123456")
@@ -317,9 +318,10 @@ Channel: $!event.channel</code>
                     <script>
                         <code>
                             import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+
                             if (notificationFunctions != null &amp;&amp;
-                                textFormatter != null &amp;&amp;
-                                configuration != null) {
+                                    textFormatter != null &amp;&amp;
+                                    configuration != null) {
                                 body = "variables ok"
                             } else {
                                 body = "variables NOT ok"       // very probably we got an exception instead of getting here
@@ -408,14 +410,14 @@ Channel: $!event.channel</code>
                 <attachmentExpression>
                     <script>
                         <code>
-                           import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
 
-                           NotificationMessageAttachmentType attachment = new NotificationMessageAttachmentType();
-                           attachment.setContentType("text/html");
-                           attachment.setContent("&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;");
-                           attachment.setFileName("hello_world.html");
-                           return attachment;
-                      </code>
+                            NotificationMessageAttachmentType attachment = new NotificationMessageAttachmentType();
+                            attachment.setContentType("text/html");
+                            attachment.setContent("&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;");
+                            attachment.setFileName("hello_world.html");
+                            return attachment;
+                        </code>
                     </script>
                 </attachmentExpression>
                 <transport>dummy:expression-attachment</transport>
@@ -429,7 +431,9 @@ Channel: $!event.channel</code>
                 <urlExpression>
                     <script>
                         <!-- $$port$$ is replaced by actual port on test class initialization -->
+                        <!-- @formatter:off -->
                         <code>"http://127.0.0.1:$$port$$/send?number=" + encodedTo + "&amp;text=" + encodedMessageText</code>
+                        <!-- @formatter:on -->
                     </script>
                 </urlExpression>
                 <logToFile>target/sms.log</logToFile>
@@ -440,7 +444,9 @@ Channel: $!event.channel</code>
                 <urlExpression>
                     <script>
                         <!-- $$port$$ is replaced by actual port on test class initialization -->
+                        <!-- @formatter:off -->
                         <code>"http://127.0.0.1:$$port$$/send?number=" + encodedTo + "&amp;text=" + encodedMessageText</code>
+                        <!-- @formatter:on -->
                     </script>
                 </urlExpression>
                 <proxyHost>127.0.0.1</proxyHost>

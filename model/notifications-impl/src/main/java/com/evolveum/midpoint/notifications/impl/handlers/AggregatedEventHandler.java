@@ -11,7 +11,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.impl.EventHandlerRegistry;
 import com.evolveum.midpoint.notifications.impl.helpers.*;
@@ -41,9 +40,6 @@ public class AggregatedEventHandler extends BaseHandler<Event, BaseEventHandlerT
     @Autowired private KindIntentFilterHelper kindIntentFilter;
     @Autowired private FocusTypeFilterHelper focusTypeFilterHelper;
     @Autowired private ExpressionFilterHelper expressionFilter;
-    @Autowired private ChainHelper chainHelper;
-    @Autowired private ForkHelper forkHelper;
-    @Autowired private NotificationManager notificationManager;
     @Autowired private EventHandlerRegistry eventHandlerRegistry;
 
     @Override
@@ -67,9 +63,7 @@ public class AggregatedEventHandler extends BaseHandler<Event, BaseEventHandlerT
                 && statusFilter.processEvent(event, eventHandlerConfig)
                 && kindIntentFilter.processEvent(event, eventHandlerConfig)
                 && focusTypeFilterHelper.processEvent(event, eventHandlerConfig)
-                && expressionFilter.processEvent(event, eventHandlerConfig, task, result)
-                && chainHelper.processEvent(event, eventHandlerConfig, notificationManager, task, result)
-                && forkHelper.processEvent(event, eventHandlerConfig, notificationManager, task, result);
+                && expressionFilter.processEvent(event, eventHandlerConfig, task, result);
 
         if (eventHandlerConfig instanceof EventHandlerType) {
             EventHandlerType handlerConfig = (EventHandlerType) eventHandlerConfig;

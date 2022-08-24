@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+
     <name>SystemConfiguration</name>
     <globalSecurityPolicyRef oid="28bf845a-b107-11e3-85bc-001e8c717e5b"/>
     <logging>
@@ -18,7 +19,7 @@
         <classLogger>
             <level>TRACE</level>
             <package>com.evolveum.midpoint.common.LoggingConfigurationManager</package>
-          </classLogger>
+        </classLogger>
         <c:classLogger>
             <c:level>TRACE</c:level>
             <c:package>com.evolveum.midpoint.notifications</c:package>
@@ -33,11 +34,11 @@
     <defaultObjectPolicyConfiguration>
         <type>UserType</type>
         <subtype>employee</subtype>
-           <lifecycleStateModel>
-               <state>
-                   <name>proposed</name>
-                   <!-- no forcedActivationStatus, changing the default to undefined -->
-                   <forcedAssignment>
+        <lifecycleStateModel>
+            <state>
+                <name>proposed</name>
+                <!-- no forcedActivationStatus, changing the default to undefined -->
+                <forcedAssignment>
                     <targetType>RoleType</targetType>
                     <filter>
                         <q:equal>
@@ -46,20 +47,20 @@
                             <q:value>pit boss</q:value>
                         </q:equal>
                     </filter>
-                   </forcedAssignment>
-               </state>
-               <state>
-                   <name>active</name>
-                   <transition>
-                       <name>archival</name>
-                       <targetState>archived</targetState>
-                       <condition>
-                           <script>
-                               <code>!midpoint.hasActiveAssignmentTargetSubtype('dataProcessingBasis')</code>
-                           </script>
-                       </condition>
-                   </transition>
-                   <forcedAssignment>
+                </forcedAssignment>
+            </state>
+            <state>
+                <name>active</name>
+                <transition>
+                    <name>archival</name>
+                    <targetState>archived</targetState>
+                    <condition>
+                        <script>
+                            <code>!midpoint.hasActiveAssignmentTargetSubtype('dataProcessingBasis')</code>
+                        </script>
+                    </condition>
+                </transition>
+                <forcedAssignment>
                     <targetType>RoleType</targetType>
                     <filter>
                         <q:equal>
@@ -68,19 +69,19 @@
                             <q:value>Pirate Green</q:value>
                         </q:equal>
                     </filter>
-                   </forcedAssignment>
-               </state>
-               <state>
-                   <name>archived</name>
-                   <forcedActivationStatus>archived</forcedActivationStatus>
-                   <entryAction>
-                       <name>archival-data-reduction</name>
-                       <dataReduction>
-                           <purgeItem>telephoneNumber</purgeItem>
-                       </dataReduction>
-                   </entryAction>
-               </state>
-           </lifecycleStateModel>
+                </forcedAssignment>
+            </state>
+            <state>
+                <name>archived</name>
+                <forcedActivationStatus>archived</forcedActivationStatus>
+                <entryAction>
+                    <name>archival-data-reduction</name>
+                    <dataReduction>
+                        <purgeItem>telephoneNumber</purgeItem>
+                    </dataReduction>
+                </entryAction>
+            </state>
+        </lifecycleStateModel>
     </defaultObjectPolicyConfiguration>
 
     <notificationConfiguration>
@@ -166,30 +167,22 @@
             </simpleUserNotifier>
         </handler>
         <handler>
-            <chained>
-                <operation>add</operation>
-            </chained>
-            <chained>
-                <simpleUserNotifier>
-                    <recipientExpression>
-                        <value>recipient@evolveum.com</value>
-                    </recipientExpression>
-                    <transport>dummy:simpleUserNotifier-ADD</transport>
-                </simpleUserNotifier>
-            </chained>
+            <operation>add</operation>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleUserNotifier-ADD</transport>
+            </simpleUserNotifier>
         </handler>
         <handler>
-            <chained>
-                <operation>delete</operation>
-            </chained>
-            <chained>
-                <simpleUserNotifier>
-                    <recipientExpression>
-                        <value>recipient@evolveum.com</value>
-                    </recipientExpression>
-                    <transport>dummy:simpleUserNotifier-DELETE</transport>
-                </simpleUserNotifier>
-            </chained>
+            <operation>delete</operation>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleUserNotifier-DELETE</transport>
+            </simpleUserNotifier>
         </handler>
         <handler>
             <status>failure</status>
