@@ -542,6 +542,7 @@ CREATE TABLE m_connector (
   framework                     VARCHAR2(255 CHAR),
   name_norm                     VARCHAR2(255 CHAR),
   name_orig                     VARCHAR2(255 CHAR),
+  available                     NUMBER(1, 0),
   oid                           VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;

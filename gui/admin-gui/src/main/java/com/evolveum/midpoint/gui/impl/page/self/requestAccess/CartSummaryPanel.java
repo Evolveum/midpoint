@@ -84,9 +84,9 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     private static final String ID_FORM = "form";
     private static final String ID_MESSAGES = "messages";
 
-    private PageBase page;
+    private final PageBase page;
 
-    private WizardModel wizard;
+    private final WizardModel wizard;
 
     public CartSummaryPanel(String id, WizardModel wizard, IModel<RequestAccess> model, PageBase page) {
         super(id, model);
@@ -188,7 +188,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         form.add(validityInfo);
 
         DropDownChoice validity = new DropDownChoice(ID_VALIDITY, validityModel, createValidityOptions(), (IChoiceRenderer) object -> {
-            if (RequestAccess.VALIDITY_CUSTOM_LENGTH.equals(object) || RequestAccess.VALIDITY_CUSTOM_FOR_EACH.equals(object)) {
+            if (RequestAccess.VALIDITY_CUSTOM_LENGTH.equals(object)) {
                 return getString("RequestAccess." + object);
             }
 
@@ -206,7 +206,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         });
         validity.setNullValid(true);
         validity.setLabel(createStringResource("ShoppingCartPanel.validity"));
-        validity.add(new VisibleBehaviour(() -> isValidityVisible()));
+        validity.add(new VisibleBehaviour(this::isValidityVisible));
         validity.add(new AjaxFormComponentUpdatingBehavior("change") {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -221,7 +221,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
         TextArea comment = new TextArea(ID_COMMENT, new PropertyModel(getModel(), "comment"));
         comment.setLabel(createStringResource("ShoppingCartPanel.comment"));
-        comment.add(new VisibleBehaviour(() -> isCommentVisible()));
+        comment.add(new VisibleBehaviour(this::isCommentVisible));
         form.add(comment);
 
         AjaxLink openConflict = new AjaxLink<>(ID_OPEN_CONFLICT) {
@@ -287,10 +287,8 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
                 items.addAll(getValidityPeriods());
 
-                if (!isAllowOnlyGlobalSettings()) {
+                if (!isAllowOnlyGlobalValiditySettings()) {
                     items.add(RequestAccess.VALIDITY_CUSTOM_LENGTH);
-                    // todo custom value for each - UI not implemented yet
-                    // items.add(RequestAccess.VALIDITY_CUSTOM_FOR_EACH);
                 }
 
                 return items;
@@ -298,7 +296,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         };
     }
 
-    private boolean isAllowOnlyGlobalSettings() {
+    private boolean isAllowOnlyGlobalValiditySettings() {
         CheckoutType config = getCheckoutConfiguration();
         if (config == null || config.getValidityConfiguration() == null) {
             return false;
@@ -440,17 +438,15 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
     private void editItemPerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
         PageBase page = getPageBase();
 
-        ShoppingCartEditPanel panel = new ShoppingCartEditPanel(model, getModel()) {
+        ShoppingCartEditPanel panel = new ShoppingCartEditPanel(model, getModel(), !isAllowOnlyGlobalValiditySettings()) {
 
             @Override
             protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
-                // todo implement
                 getPageBase().hideMainPopup(target);
             }
 
             @Override
             protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
-                // todo implement
                 getPageBase().hideMainPopup(target);
             }
         };

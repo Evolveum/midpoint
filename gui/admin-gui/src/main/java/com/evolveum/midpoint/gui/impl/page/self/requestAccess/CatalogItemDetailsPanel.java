@@ -9,12 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,6 +34,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by Viliam Repan (lazyman).

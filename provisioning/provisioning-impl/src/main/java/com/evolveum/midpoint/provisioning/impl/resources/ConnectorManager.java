@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCo
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,11 +45,13 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.Cache;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -438,8 +442,20 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         return connectorWithSchema;
     }
 
+    public Set<ConnectorType> initialDiscoverLocalConnectors(OperationResult parentResult) {
+        // TODO: Here we should mark all local connectors inactive?
+        inactivateLocalConnectors(parentResult);
+
+        return discoverLocalConnectors(parentResult);
+    }
+
+
+
     public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {
         try {
+            // Postpone discovery
+            inactivateLocalConnectors(parentResult);
+            //
             return discoverConnectors(null, parentResult);
         } catch (CommunicationException e) {
             // This should never happen as no remote operation is executed
@@ -497,9 +513,11 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
             for (ConnectorType foundConnector : foundConnectors) {
                 LOGGER.trace("Examining connector {}", foundConnector);
-                boolean inRepo = isInRepo(foundConnector, hostType, result);
-                if (inRepo) {
-                    LOGGER.trace("Connector {} is in the repository, skipping", foundConnector);
+                String oid = findRepoOid(foundConnector, hostType, result);
+                if (oid != null) {
+                    LOGGER.trace("Connector {} is in the repository, marking active", foundConnector);
+                    // mark active
+                    updateConnectorStatus(oid, true, parentResult);
                 } else {
                     if (notInRepoConsumer != null) {
                         notInRepoConsumer.accept(foundConnector);
@@ -514,6 +532,52 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         result.recordSuccess();
         return discoveredConnectors;
+    }
+
+    private void inactivateLocalConnectors(OperationResult parentResult) {
+        // Walk all connectors, mark them inactive
+
+        ObjectQuery query = null;
+        SearchResultList<PrismObject<ConnectorType>> allConnectors;
+        try {
+            allConnectors = repositoryService.searchObjects(ConnectorType.class, query, null, parentResult);
+
+        } catch (SchemaException e) {
+            // FIXME: Fail properly
+            throw new SystemException(e);
+        }
+        for (PrismObject<ConnectorType> connector : allConnectors) {
+            if (connector.asObjectable().getConnectorHostRef() == null) {
+                // Inactivate only if connector is local
+                updateConnectorStatus(connector.getOid(), false, parentResult);
+            }
+        }
+    }
+
+    private void updateConnectorStatus(String oid, boolean status, OperationResult parentResult) {
+
+        OperationResult result = parentResult.createSubresult("updateConnectorStatus");
+        try {
+            LOGGER.debug("Updating connector {} availability to {}", oid, status);
+            repositoryService.modifyObject(ConnectorType.class, oid, activeStatusDelta(status), result);
+
+        } catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+            // Is this skipable error?
+            result.muteError();
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    private Collection<? extends ItemDelta<?, ?>> activeStatusDelta(boolean status) {
+        try {
+
+            return prismContext.deltaFor(ConnectorType.class).item(ConnectorType.F_AVAILABLE)
+                .replaceRealValues(Collections.singletonList(status))
+                .asItemDeltas();
+        } catch (SchemaException e) {
+            throw new SystemException(e);
+        }
     }
 
     /**
@@ -537,6 +601,11 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
         String oid;
         try {
             prismContext.adopt(foundConnector);
+            if (hostType == null) {
+                // Its local connector, set availability to true
+                foundConnector.setAvailable(true);
+            }
+
             oid = repositoryService.addObject(foundConnector.asPrismObject(), null, result);
         } catch (ObjectAlreadyExistsException e) {
             if (isInRepo(foundConnector, hostType, result)) {
@@ -562,6 +631,10 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
     }
 
     private boolean isInRepo(ConnectorType connectorType, ConnectorHostType hostType, OperationResult result) {
+        return findRepoOid(connectorType, hostType, result) != null;
+    }
+
+    private String findRepoOid(ConnectorType connectorType, ConnectorHostType hostType, OperationResult result) {
         ObjectQuery query;
         if (hostType == null) {
             query = prismContext.queryFor(ConnectorType.class)
@@ -597,7 +670,7 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
 
         if (foundConnectors.size() == 0) {
             // Nothing found, the connector is not in the repo
-            return false;
+            return null;
         }
 
         String foundOid = null;
@@ -612,13 +685,13 @@ public class ConnectorManager implements Cache, ConnectorDiscoveryListener {
                             + connectorType.getConnectorType() + " : " + connectorType.getVersion() + ". OIDs "
                             + foundConnector.getOid() + " and " + foundOid + ". Inconsistent database state.");
                     // But continue working otherwise. This is probably not critical.
-                    return true;
+                    return foundOid;
                 }
                 foundOid = foundConnector.getOid();
             }
         }
 
-        return (foundOid != null);
+        return foundOid;
     }
 
     private boolean compareConnectors(PrismObject<ConnectorType> prismA, PrismObject<ConnectorType> prismB) {

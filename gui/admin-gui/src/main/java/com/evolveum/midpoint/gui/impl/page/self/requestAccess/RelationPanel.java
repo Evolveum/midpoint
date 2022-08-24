@@ -226,7 +226,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
     }
 
     private Tile<QName> createTile(String icon, String label, QName value) {
-        Tile tile = new Tile(icon, label);
+        Tile<QName> tile = new Tile<>(icon, label);
         tile.setValue(value);
 
         return tile;
@@ -234,7 +234,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
 
     @Override
     public VisibleEnableBehaviour getNextBehaviour() {
-        return new EnableBehaviour(() -> relations.getObject().stream().filter(t -> t.isSelected()).count() > 0);
+        return new EnableBehaviour(() -> relations.getObject().stream().anyMatch(t -> t.isSelected()));
     }
 
     @Override
@@ -249,6 +249,9 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
 
     private void submitData() {
         Tile<QName> selected = relations.getObject().stream().filter(t -> t.isSelected()).findFirst().orElse(null);
+        if (selected == null) {
+            return;
+        }
 
         getModelObject().setRelation(selected.getValue());
     }

@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
-import com.evolveum.midpoint.model.api.indexing.Normalization;
+import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.identities.IndexingManager;
+import com.evolveum.midpoint.model.impl.lens.indexing.IndexingManager;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter;
@@ -68,12 +68,12 @@ public class CorrelationItem implements DebugDumpable {
     @NotNull private final ItemPath itemPath;
 
     /** Null iff {@link #indexingItemConfiguration} is null. */
-    @Nullable private final Normalization normalization;
+    @Nullable private final IndexedItemValueNormalizer valueNormalizer;
 
     // TODO
     @Nullable private final IndexingItemConfiguration indexingItemConfiguration;
 
-    /** Note we ignore "index" from this configuration. It is already processed into {@link #normalization} field. */
+    /** Note we ignore "index" from this configuration. It is already processed into {@link #valueNormalizer} field. */
     @NotNull private final ItemSearchDefinitionType searchDefinitionBean;
 
     // TODO
@@ -82,13 +82,13 @@ public class CorrelationItem implements DebugDumpable {
     private CorrelationItem(
             @NotNull String name,
             @NotNull ItemPath itemPath,
-            @Nullable Normalization normalization,
+            @Nullable IndexedItemValueNormalizer valueNormalizer,
             @Nullable ItemSearchDefinitionType searchDefinitionBean,
             @Nullable IndexingItemConfiguration indexingItemConfiguration,
             @NotNull List<? extends PrismValue> prismValues) {
         this.name = name;
         this.itemPath = itemPath;
-        this.normalization = normalization;
+        this.valueNormalizer = valueNormalizer;
         this.searchDefinitionBean = searchDefinitionBean != null ? searchDefinitionBean : new ItemSearchDefinitionType();
         this.indexingItemConfiguration = indexingItemConfiguration;
         this.prismValues = prismValues;
@@ -106,7 +106,7 @@ public class CorrelationItem implements DebugDumpable {
         return new CorrelationItem(
                 getName(itemBean),
                 path,
-                getNormalization(indexingConfig, explicitIndexName, path),
+                getValueNormalizer(indexingConfig, explicitIndexName, path),
                 searchDef,
                 indexingConfig,
                 getPrismValues(preFocus, path));
@@ -145,7 +145,8 @@ public class CorrelationItem implements DebugDumpable {
         return inTemplateDef != null ? inTemplateDef.getSearch() : null;
     }
 
-    private static Normalization getNormalization(IndexingItemConfiguration indexingConfig, String index, ItemPath path)
+    private static IndexedItemValueNormalizer getValueNormalizer(
+            IndexingItemConfiguration indexingConfig, String index, ItemPath path)
             throws ConfigurationException {
         if (indexingConfig == null) {
             if (index != null) {
@@ -156,7 +157,7 @@ public class CorrelationItem implements DebugDumpable {
             return null;
         } else {
             return MiscUtil.requireNonNull(
-                    indexingConfig.findNormalization(index),
+                    indexingConfig.findNormalizer(index),
                     () -> new ConfigurationException(
                             String.format("Index '%s' was not found in indexing configuration for '%s'", index, path)));
         }
@@ -216,7 +217,7 @@ public class CorrelationItem implements DebugDumpable {
         if (fuzzyMatchingMethod != null) {
             return builder
                     .item(searchSpec.itemPath, searchSpec.itemDef)
-                    .fuzzyString(asString(searchSpec.value), fuzzyMatchingMethod);
+                    .fuzzyString(convertToString(searchSpec.value), fuzzyMatchingMethod);
         } else {
             return builder
                     .item(searchSpec.itemPath, searchSpec.itemDef)
@@ -229,11 +230,11 @@ public class CorrelationItem implements DebugDumpable {
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
         if (indexingItemConfiguration != null) {
-            assert normalization != null;
+            assert valueNormalizer != null;
             return new SearchSpec(
-                    normalization.getIndexItemPath(),
-                    normalization.getIndexItemDefinition(),
-                    IndexingManager.normalizeValue(getValueToFind(), normalization, task, result));
+                    valueNormalizer.getIndexItemPath(),
+                    valueNormalizer.getIndexItemDefinition(),
+                    IndexingManager.normalizeValue(getValueToFind(), valueNormalizer, task, result));
         } else {
             return new SearchSpec(
                     itemPath,
@@ -292,7 +293,6 @@ public class CorrelationItem implements DebugDumpable {
         return name;
     }
 
-    // TODO make this method more readable by splitting it into pieces
     double computeConfidence(ObjectType candidate, Task task, OperationResult result)
             throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ObjectNotFoundException {
@@ -300,6 +300,36 @@ public class CorrelationItem implements DebugDumpable {
         if (expression == null) {
             return 1;
         }
+        LOGGER.trace("Computing confidence of {} in relation to {}", candidate, this);
+        List<Double> matchMetricValues = computeMatchMetricValues(candidate, task, result);
+        List<Double> confidenceValues = convertMetricToConfidence(matchMetricValues, expression, task, result);
+        // This is the default aggregator - could be made configurable in the future.
+        double resultingConfidence = confidenceValues.stream()
+                .max(Comparator.naturalOrder())
+                .orElse(1.0);
+        LOGGER.trace("Confidence values {} yielding {}", confidenceValues, resultingConfidence);
+        return resultingConfidence;
+    }
+
+    /** Returns the values of given metric (e.g. Levenshtein distance) for given candidate for this item. */
+    private @NotNull List<Double> computeMatchMetricValues(ObjectType candidate, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        SearchSpec searchSpec = createSearchSpec(task, result);
+        String sourceValue = convertToString(searchSpec.value);
+        Collection<PrismValue> allValues = candidate.asPrismContainerValue().getAllValues(searchSpec.itemPath);
+        MatchMetricValueComputer matchMetricValueComputer = getMatchMetricValueComputer();
+        List<Double> matchValues = allValues.stream()
+                .map(PrismValue::getRealValue)
+                .filter(Objects::nonNull)
+                .map(CorrelationItem::convertToString)
+                .map(targetValue -> matchMetricValueComputer.computeMatchMetricValue(sourceValue, targetValue))
+                .collect(Collectors.toList());
+        LOGGER.trace("Matching strings: {} leading to values: {} (search spec: {})", allValues, matchValues, searchSpec);
+        return matchValues;
+    }
+
+    private MatchMetricValueComputer getMatchMetricValueComputer() throws ConfigurationException {
         ThresholdMatchingMethod<?> thresholdMatchingMethod;
         FuzzyMatchingMethod fuzzyMatchingMethod = getFuzzyMatchingMethod();
         if (!(fuzzyMatchingMethod instanceof ThresholdMatchingMethod<?>)) {
@@ -307,17 +337,21 @@ public class CorrelationItem implements DebugDumpable {
         } else {
             thresholdMatchingMethod = (ThresholdMatchingMethod<?>) fuzzyMatchingMethod;
         }
-        SearchSpec searchSpec = createSearchSpec(task, result);
-        String sourceValue = asString(searchSpec.value);
-        Collection<PrismValue> allValues = candidate.asPrismContainerValue().getAllValues(searchSpec.itemPath);
-        LOGGER.trace("Computing confidence of {} for {}: {}", candidate, searchSpec, allValues);
-        List<Double> matchValues = allValues.stream()
-                .map(PrismValue::getRealValue)
-                .filter(Objects::nonNull)
-                .map(CorrelationItem::asString)
-                .map(targetValue -> getMatchMetricValue(thresholdMatchingMethod, sourceValue, targetValue))
-                .collect(Collectors.toList());
-        LOGGER.trace("Matching strings: {} leading to values: {}", allValues, matchValues);
+        return (source, target) -> {
+            if (thresholdMatchingMethod == null) {
+                return 1;
+            } else {
+                return thresholdMatchingMethod
+                        .computeMatchMetricValue(source, target)
+                        .doubleValue();
+            }
+        };
+    }
+
+    private @NotNull List<Double> convertMetricToConfidence(
+            List<Double> matchMetricValues, ExpressionType expression, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         QName inputTypeName = DOMUtil.XSD_DOUBLE;
         PrismPropertyDefinition<Double> inputPropertyDef =
                 PrismContext.get().definitionFactory().createPropertyDefinition(
@@ -326,7 +360,7 @@ public class CorrelationItem implements DebugDumpable {
                 PrismContext.get().definitionFactory().createPropertyDefinition(
                         ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_DOUBLE);
         PrismProperty<Double> inputProperty = inputPropertyDef.instantiate();
-        matchValues.forEach(inputProperty::addRealValue);
+        matchMetricValues.forEach(inputProperty::addRealValue);
         Source<PrismPropertyValue<Double>, PrismPropertyDefinition<Double>> inputSource =
                 new Source<>(
                         inputProperty, null, inputProperty, inputProperty.getElementName(), inputPropertyDef);
@@ -340,28 +374,14 @@ public class CorrelationItem implements DebugDumpable {
                 "confidence expression for " + this,
                 task,
                 result);
-        double resultingConfidence = confidenceValues.stream()
+        return confidenceValues.stream()
                 .filter(Objects::nonNull) // maybe not necessary
                 .map(pv -> pv.getRealValue())
                 .filter(Objects::nonNull) // maybe not necessary
-                .max(Comparator.naturalOrder())
-                .orElse(1.0);
-        LOGGER.trace("Confidence values {} yielding {}", confidenceValues, resultingConfidence);
-        return resultingConfidence;
+                .collect(Collectors.toList());
     }
 
-    private double getMatchMetricValue(
-            ThresholdMatchingMethod<?> thresholdMatchingMethod, String sourceValue, String targetValue) {
-        if (thresholdMatchingMethod == null) {
-            return 1;
-        } else {
-            return thresholdMatchingMethod
-                    .computeMatchMetricValue(sourceValue, targetValue)
-                    .doubleValue();
-        }
-    }
-
-    private static String asString(@NotNull Object o) {
+    private static String convertToString(@NotNull Object o) {
         if (o instanceof String) {
             return (String) o;
         } else if (o instanceof PolyString) {
@@ -379,7 +399,7 @@ public class CorrelationItem implements DebugDumpable {
         return "CorrelationItem{" +
                 "name=" + name +
                 ", itemPath=" + itemPath +
-                ", normalization=" + normalization +
+                ", valueNormalizer=" + valueNormalizer +
                 ", indexing=" + indexingItemConfiguration +
                 '}';
     }
@@ -389,13 +409,14 @@ public class CorrelationItem implements DebugDumpable {
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "name", name, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "itemPath", String.valueOf(itemPath), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "normalization", String.valueOf(normalization), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "valueNormalizer", String.valueOf(valueNormalizer), indent + 1);
         DebugUtil.debugDumpWithLabelLn(
                 sb, "indexingItemConfiguration", String.valueOf(indexingItemConfiguration), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "values", prismValues, indent + 1);
         return sb.toString();
     }
 
+    /** What we are looking for, when correlating according to this item? */
     private static class SearchSpec {
         @NotNull private final ItemPath itemPath;
         @Nullable private final ItemDefinition<?> itemDef;
@@ -414,5 +435,9 @@ public class CorrelationItem implements DebugDumpable {
                     ", def='" + itemDef + "'" +
                     ", value='" + value + "'";
         }
+    }
+
+    private interface MatchMetricValueComputer {
+        double computeMatchMetricValue(String source, String target);
     }
 }

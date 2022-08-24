@@ -83,6 +83,11 @@ public abstract class CorrelatorConfiguration implements Serializable {
 
     abstract @NotNull String getDefaultDebugName();
 
+    /** Returns the name to be provided to medium or even little skilled user; i.e. not very technical one. */
+    String getDisplayableName() {
+        return getDebugName(); // At least for now; TODO localization?
+    }
+
     @Override
     public String toString() {
         return String.format("%s (tier %d, order %d, layer %d, weight %.1f%s%s)",

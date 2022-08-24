@@ -41,6 +41,7 @@ public class RConnector extends RObject {
     private String connectorVersion;
     private String connectorBundle;
     private Set<String> targetSystemType;
+    private Boolean available;
 
     @Embedded
     public REmbeddedReference getConnectorHostRef() {
@@ -57,6 +58,11 @@ public class RConnector extends RObject {
 
     public String getConnectorVersion() {
         return connectorVersion;
+    }
+
+    @Column
+    public Boolean getAvailable() {
+        return available;
     }
 
     @ElementCollection
@@ -112,6 +118,10 @@ public class RConnector extends RObject {
         this.targetSystemType = targetSystemType;
     }
 
+    public void setAvailable(Boolean available) {
+        this.available = available;
+    }
+
     // dynamically called
     public static void copyFromJAXB(ConnectorType jaxb, RConnector repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
@@ -123,6 +133,7 @@ public class RConnector extends RObject {
         repo.setConnectorVersion(jaxb.getConnectorVersion());
         repo.setFramework(jaxb.getFramework());
         repo.setConnectorHostRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorHostRef(), repositoryContext.relationRegistry));
+        repo.setAvailable(jaxb.isAvailable());
 
         try {
             repo.setTargetSystemType(RUtil.listToSet(jaxb.getTargetSystemType()));

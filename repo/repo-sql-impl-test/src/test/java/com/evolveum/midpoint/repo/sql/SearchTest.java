@@ -1761,4 +1761,22 @@ public class SearchTest extends BaseSQLRepoTest {
         assertEquals("Should find one user", 1, users.size());
         assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
     }
+
+    @Test
+    public void test999MultipleOrdersAreSupportedByFluentApiAndRepository() throws SchemaException {
+        given("search users query ordered by family and given name");
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .asc(UserType.F_GIVEN_NAME).desc(UserType.F_FAMILY_NAME)
+                .build();
+
+        when("the query is executed");
+        OperationResult opResult = createOperationResult();
+        List<PrismObject<UserType>> result = repositoryService.searchObjects(UserType.class, query, null, opResult);
+
+        then("sorted users are returned");
+        assertThatOperationResult(opResult).isSuccess();
+        assertThat(result).hasSize(4);
+        // Various DB can use various order (default NULL ordering for H2 vs PG) so we just check it works
+        // without actually checking the order (we do this properly in the Native repo test).
+    }
 }

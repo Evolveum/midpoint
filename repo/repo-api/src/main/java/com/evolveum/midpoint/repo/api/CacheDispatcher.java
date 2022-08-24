@@ -22,7 +22,7 @@ public interface CacheDispatcher {
     }
 
     default void unregisterCacheListener(CacheListener cacheListener) {
-        unregisterCacheListener(cacheListener);
+        unregisterCacheInvalidationListener(cacheListener);
     }
 
     void registerCacheInvalidationListener(CacheInvalidationListener cacheListener);

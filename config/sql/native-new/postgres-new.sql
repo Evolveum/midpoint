@@ -1187,7 +1187,8 @@ CREATE TABLE m_connector (
     connectorHostRefTargetOid UUID,
     connectorHostRefTargetType ObjectType,
     connectorHostRefRelationId INTEGER REFERENCES m_uri(id),
-    targetSystemTypes INTEGER[]
+    targetSystemTypes INTEGER[],
+    available BOOLEAN
 )
     INHERITS (m_assignment_holder);
 
@@ -1938,4 +1939,4 @@ END $$;
 
 -- Initializing the last change number used in postgres-new-upgrade.sql.
 -- This is important to avoid applying any change more than once.
-call apply_change(9, $$ SELECT 1 $$, true);
+call apply_change(11, $$ SELECT 1 $$, true);

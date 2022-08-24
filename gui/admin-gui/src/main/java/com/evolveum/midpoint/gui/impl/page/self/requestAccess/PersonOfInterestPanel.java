@@ -74,7 +74,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
         GROUP_OTHERS(DEFAULT_TILE_ICON);
 
-        private String icon;
+        private final String icon;
 
         TileType(String icon) {
             this.icon = icon;
@@ -163,8 +163,6 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             protected List<Tile<PersonOfInterest>> load() {
                 List<Tile<PersonOfInterest>> list = new ArrayList<>();
 
-                // todo check assignment authorizations
-
                 TargetSelectionType selection = getTargetSelectionConfiguration();
                 if (BooleanUtils.isNotFalse(selection.isAllowRequestForMyself())) {
                     list.add(createDefaultTile(TileType.MYSELF));
@@ -183,13 +181,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
                 if (list.size() == 1) {
                     Tile<PersonOfInterest> tile = list.get(0);
-                    switch (tile.getValue().type) {
-                        case MYSELF:
-                            tile.setSelected(true);
-                            break;
-                        case GROUP_OTHERS:
-                            tile.setSelected(true);
-                    }
+                    tile.setSelected(true);
                 }
 
                 return list;
@@ -275,7 +267,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
             @Override
             protected void populateItem(ListItem<Tile<PersonOfInterest>> item) {
-                TilePanel tp = new TilePanel(ID_TILE, item.getModel()) {
+                TilePanel<PersonOfInterest> tp = new TilePanel<>(ID_TILE, item.getModel()) {
 
                     @Override
                     protected void onClick(AjaxRequestTarget target) {
@@ -441,9 +433,6 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
         }
 
         TargetSelectionType targetSelection = getTargetSelectionConfiguration();
-        if (targetSelection == null) {
-            return null;
-        }
 
         List<GroupSelectionType> selections = getTargetSelectionConfiguration().getGroup();
         GroupSelectionType selection = selections.stream().filter(gs -> identifier.equals(gs.getIdentifier())).findFirst().orElse(null);
@@ -571,8 +560,8 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     @Override
     public boolean onNextPerformed(AjaxRequestTarget target) {
-        boolean submited = submitData();
-        if (!submited) {
+        boolean submitted = submitData();
+        if (!submitted) {
             return false;
         }
 

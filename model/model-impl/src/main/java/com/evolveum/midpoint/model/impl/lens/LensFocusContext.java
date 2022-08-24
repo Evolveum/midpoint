@@ -16,7 +16,7 @@ import com.evolveum.midpoint.model.api.identities.IdentityManagementConfiguratio
 import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 import com.evolveum.midpoint.model.common.LinkManager;
 import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
-import com.evolveum.midpoint.model.impl.lens.identities.IndexingConfigurationImpl;
+import com.evolveum.midpoint.model.impl.lens.indexing.IndexingConfigurationImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;

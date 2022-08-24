@@ -33,7 +33,7 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
     public static final String STEP_ID = "cart";
 
     private enum State {
-        SUMMARY, CONFLICTS;
+        SUMMARY, CONFLICTS
     }
 
     private static final String ID_CONFLICT_SOLVER = "conflictSolver";

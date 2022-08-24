@@ -33,6 +33,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * @author semancik
  */
 public class BasePanel<T> extends Panel {
+
     private static final long serialVersionUID = 1L;
 
     private IModel<T> model;

@@ -546,6 +546,7 @@ CREATE TABLE m_connector (
   framework                     VARCHAR(255),
   name_norm                     VARCHAR(255),
   name_orig                     VARCHAR(255),
+  available                     BOOLEAN,
   oid                           VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );

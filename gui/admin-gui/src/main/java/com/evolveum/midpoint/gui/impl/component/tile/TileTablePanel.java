@@ -10,6 +10,9 @@ package com.evolveum.midpoint.gui.impl.component.tile;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -36,6 +39,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
  */
 public class TileTablePanel<T extends Tile, O extends Serializable> extends BasePanel<O> {
 
+    private static final long serialVersionUID = 1L;
+
     private static final String ID_TILES_CONTAINER = "tilesContainer";
     private static final String ID_TILES = "tiles";
 
@@ -47,19 +52,22 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
 
     private IModel<ViewToggle> viewToggleModel;
 
-    private IModel<Search> searchModel;
+    private IModel<Search<? extends ObjectType>> searchModel;
+
+    private UserProfileStorage.TableId tableId;
 
     public TileTablePanel(String id, ISortableDataProvider provider) {
-        this(id, provider, List.of(), null);
+        this(id, provider, List.of(), null, null);
     }
 
-    public TileTablePanel(String id, ISortableDataProvider provider, List<IColumn<O, String>> columns, IModel<ViewToggle> viewToggle) {
+    public TileTablePanel(String id, ISortableDataProvider provider, List<IColumn<O, String>> columns, IModel<ViewToggle> viewToggle, UserProfileStorage.TableId tableId) {
         super(id);
 
         if (viewToggle == null) {
             viewToggle = Model.of(ViewToggle.TILE);
         }
         this.viewToggleModel = viewToggle;
+        this.tableId = tableId;
 
         initModels();
         initLayout(provider, columns);
@@ -82,7 +90,7 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
         add(tilesContainer);
 
-        PageableListView<T, O> tiles = new PageableListView<>(ID_TILES, provider) {
+        PageableListView<T, O> tiles = new PageableListView<>(ID_TILES, provider, tableId) {
 
             @Override
             protected void populateItem(ListItem<T> item) {
@@ -109,7 +117,7 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         };
         add(tilesPaging);
 
-        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns) {
+        BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns, tableId) {
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
@@ -128,6 +136,11 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         };
         table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
         add(table);
+    }
+
+    public ISortableDataProvider<O, String> getProvider() {
+        PageableListView view = (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
+        return view.getProvider();
     }
 
     protected String getTileCssClasses() {
@@ -152,7 +165,7 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         }
     }
 
-    protected IModel<Search> createSearchModel() {
+    protected IModel<Search<? extends ObjectType>> createSearchModel() {
         return null;
     }
 

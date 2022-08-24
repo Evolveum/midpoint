@@ -17,6 +17,9 @@ import static com.evolveum.midpoint.test.asserter.predicates.TimeAssertionPredic
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
+
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -393,6 +396,38 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     }
 
     @Test
+    public void test325SearchResourceNoJars() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("searching for broken resource");
+        List<PrismObject<ResourceType>> resources =
+                modelService.searchObjects(
+                        ResourceType.class,
+                        queryFor(ResourceType.class)
+                                .id(RESOURCE_DUMMY_NOJARS_OID)
+                                .build(),
+                        null,
+                        task,
+                        result);
+
+        then("single resource is found");
+        displayCollection("resources", resources);
+        assertThat(resources).as("resources").hasSize(1);
+        PrismObject<ResourceType> resource = resources.get(0);
+
+        and("status is partial error");
+        result.computeStatus();
+        display("searchObjects result", result);
+        assertEquals("Expected partial error in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+
+        and("fetchResult contains an error");
+        OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+        display("resource.fetchResult", fetchResult);
+        assertEquals("Expected partial error in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+    }
+
+    @Test
     public void test350AddResourceWrongConnectorOid() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -467,7 +502,7 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     }
 
     @Test
-    public void test358GetResourceWrongConnectorOid() throws Exception {
+    public void test356GetResourceWrongConnectorOid() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -490,14 +525,85 @@ public class TestBrokenResources extends AbstractConfiguredModelIntegrationTest 
     }
 
     @Test
+    public void test357SearchResourceWrongConnectorOid() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("searching for broken resource");
+        List<PrismObject<ResourceType>> resources =
+                modelService.searchObjects(
+                        ResourceType.class,
+                        queryFor(ResourceType.class)
+                                .id(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID)
+                                .build(),
+                        null,
+                        task,
+                        result);
+
+        then("single resource is found");
+        displayCollection("resources", resources);
+        assertThat(resources).as("resources").hasSize(1);
+        PrismObject<ResourceType> resource = resources.get(0);
+
+        and("status is partial error");
+        result.computeStatus();
+        display("searchObjects result", result);
+        assertEquals("Expected partial error in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+
+        and("fetchResult contains an error");
+        OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+        display("resource.fetchResult", fetchResult);
+        assertEquals("Expected partial error in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+    }
+
+    /**
+     * It is a bit questionable if we want to support this mode of operation (asking for resources by specifying type
+     * of {@link AssignmentHolderType}).
+     */
+    @Test
+    public void test358SearchResourceWrongConnectorOidUseTypeFilter() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("searching for broken resource");
+        ObjectFilter filter = queryFor(ResourceType.class)
+                .id(RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID)
+                .buildFilter();
+        List<PrismObject<AssignmentHolderType>> resources =
+                modelService.searchObjects(
+                        AssignmentHolderType.class,
+                        queryFor(AssignmentHolderType.class)
+                                .type(ResourceType.class)
+                                .filter(filter)
+                                .build(),
+                        null,
+                        task,
+                        result);
+
+        then("single resource is found");
+        displayCollection("resources", resources);
+        assertThat(resources).as("resources").hasSize(1);
+        PrismObject<AssignmentHolderType> resource = resources.get(0);
+
+        and("status is partial error");
+        result.computeStatus();
+        display("searchObjects result", result);
+        assertEquals("Expected partial error in result", OperationResultStatus.PARTIAL_ERROR, result.getStatus());
+
+        and("fetchResult contains an error");
+        OperationResultType fetchResult = resource.asObjectable().getFetchResult();
+        display("resource.fetchResult", fetchResult);
+        assertEquals("Expected partial error in fetchResult", OperationResultStatusType.PARTIAL_ERROR, fetchResult.getStatus());
+    }
+
+    @Test
     public void test359DeleteResourceWrongConnectorOid() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ObjectDelta<ResourceType> delta = prismContext.deltaFactory().object()
-                .createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID
-                );
+                .createDeleteDelta(ResourceType.class, RESOURCE_DUMMY_WRONG_CONNECTOR_OID_OID);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
         // WHEN

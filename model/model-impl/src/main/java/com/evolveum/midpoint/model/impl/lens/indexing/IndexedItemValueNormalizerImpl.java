@@ -5,10 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.impl.lens.identities;
+package com.evolveum.midpoint.model.impl.lens.indexing;
 
-import com.evolveum.midpoint.model.api.indexing.Normalization;
-import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -26,14 +25,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public class NormalizationImpl implements Normalization {
+public class IndexedItemValueNormalizerImpl implements IndexedItemValueNormalizer {
 
     @NotNull private final String name;
     @NotNull private final String normalizedItemLocalName;
     @NotNull private final IndexedItemNormalizationDefinitionType bean;
     @NotNull private final Collection<NormalizationStep<?>> steps;
 
-    private NormalizationImpl(
+    private IndexedItemValueNormalizerImpl(
             @NotNull String name,
             @NotNull String normalizedItemLocalName,
             @NotNull IndexedItemNormalizationDefinitionType bean,
@@ -44,14 +43,14 @@ public class NormalizationImpl implements Normalization {
         this.steps = steps;
     }
 
-    public static Normalization create(
+    public static IndexedItemValueNormalizer create(
             @NotNull String indexedItemName,
             @NotNull IndexedItemNormalizationDefinitionType normalizationBean) {
         Collection<NormalizationStep<?>> parsedSteps = NormalizationStep.parse(normalizationBean.getSteps());
         String normalizationName = getNormalizationName(normalizationBean, parsedSteps);
         String normalizedItemLocalName =
                 getNormalizedItemLocalName(indexedItemName, normalizationName, normalizationBean);
-        return new NormalizationImpl(normalizationName, normalizedItemLocalName, normalizationBean, parsedSteps);
+        return new IndexedItemValueNormalizerImpl(normalizationName, normalizedItemLocalName, normalizationBean, parsedSteps);
     }
 
     private static @NotNull String getNormalizationName(
@@ -102,8 +101,7 @@ public class NormalizationImpl implements Normalization {
     }
 
     @Override
-    public @NotNull PrismPropertyDefinition<String> getIndexItemDefinition() {
-        // FIXME (not always String)
+    public @NotNull PrismPropertyDefinition<?> getIndexItemDefinition() {
         MutablePrismPropertyDefinition<String> definition = PrismContext.get().definitionFactory()
                 .createPropertyDefinition(getIndexItemName(), DOMUtil.XSD_STRING);
         definition.setMinOccurs(0);

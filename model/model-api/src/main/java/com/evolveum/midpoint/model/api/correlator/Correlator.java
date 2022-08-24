@@ -48,7 +48,7 @@ public interface Correlator {
      */
     @NotNull CorrelationExplanation explain(
             @NotNull CorrelationContext correlationContext,
-            @NotNull FocusType candidateOwner,
+            @NotNull FocusType candidate,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException;

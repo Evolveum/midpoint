@@ -7,14 +7,13 @@
 
 package com.evolveum.midpoint.model.api.correlator;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.*;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class CompositeCorrelationExplanation extends CorrelationExplanation {
@@ -27,6 +26,45 @@ public class CompositeCorrelationExplanation extends CorrelationExplanation {
             @NotNull List<ChildCorrelationExplanationRecord> childRecords) {
         super(correlatorConfiguration, confidence);
         this.childRecords = childRecords;
+    }
+
+    // Temporary implementation
+    @Override
+    public @NotNull LocalizableMessage toLocalizableMessage() {
+        if (childRecords.isEmpty()) {
+            return new LocalizableMessageBuilder()
+                    .key("CorrelationExplanation.Composite.noChildren")
+                    .args(getDisplayableName(), getConfidenceScaledTo100())
+                    .build();
+        }
+
+        LocalizableMessageListBuilder componentsBuilder = new LocalizableMessageListBuilder()
+                .prefix(LocalizableMessageBuilder.buildFallbackMessage("["))
+                .postfix(LocalizableMessageBuilder.buildFallbackMessage("]"))
+                .separator(LocalizableMessageList.SEMICOLON);
+
+        for (ChildCorrelationExplanationRecord childRecord : childRecords) {
+            if (!childRecord.ignoredBecause.isEmpty()) {
+                continue;
+            }
+            if (childRecord.explanation.confidence == 0) {
+                continue;
+            }
+            componentsBuilder.addMessage(
+                    new LocalizableMessageBuilder()
+                            .key("CorrelationExplanation.Composite.child")
+                            .arg(childRecord.explanation.toLocalizableMessage())
+                            .arg(String.format(Locale.US, "%.2f", childRecord.weight)) // TODO i18n
+                            .arg(Math.round(childRecord.confidenceIncrement * 100))
+                            .build());
+        }
+
+        LocalizableMessageListBuilder topBuilder = new LocalizableMessageListBuilder();
+        topBuilder.addMessage(
+                componentsBuilder.build());
+        topBuilder.addMessage(
+                LocalizableMessageBuilder.buildFallbackMessage(" => " + getConfidenceScaledTo100()));
+        return topBuilder.build();
     }
 
     @Override

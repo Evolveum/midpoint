@@ -34,7 +34,7 @@ import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.ValueNormalizer;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlator.items.CorrelationItem;
-import com.evolveum.midpoint.model.impl.lens.identities.IndexingManager;
+import com.evolveum.midpoint.model.impl.lens.indexing.IndexingManager;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -267,7 +267,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
                 return NOT_APPLICABLE;
             }
             ValueNormalizer defaultValueNormalizer = indexing != null ?
-                    indexing.getDefaultNormalization() : IndexingManager.getDefaultNormalizer();
+                    indexing.getDefaultNormalizer() : IndexingManager.getDefaultNormalizer();
             String preFocusNormalized = IndexingManager.normalizeValue(preFocusRealValue, defaultValueNormalizer, task, result);
 
             for (PrismValue primaryValue : primaryValues) {
@@ -312,7 +312,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
             }
 
             Collection<? extends ValueNormalizer> normalizers = indexing != null ?
-                    indexing.getNormalizations() : Set.of(IndexingManager.getDefaultNormalizer());
+                    indexing.getNormalizers() : Set.of(IndexingManager.getDefaultNormalizer());
             LOGGER.trace("Trying to find a match using applicable normalizers (count: {})", normalizers.size());
 
             for (PrismValue anyValue : allValues) {

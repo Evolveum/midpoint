@@ -158,6 +158,11 @@ call apply_change(10, $aa$
 ALTER TABLE m_resource ADD template BOOLEAN;
 $aa$);
 
+-- MID-8053: "Active" connectors detection
+call apply_change(11, $aa$
+ALTER TABLE m_connector ADD available BOOLEAN;
+$aa$);
+
 -- SCHEMA-COMMIT 4.6: commit TODO
 
 -- WRITE CHANGES ABOVE ^^
