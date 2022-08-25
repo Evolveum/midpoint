@@ -245,6 +245,10 @@ ninja.sh import --input admin.xml --overwrite
 Now you should enjoy easy administrator login.
 Of course, this works for any user object, but using the GUI with working administrator is the way to go.
 
+[IMPORTANT]
+If you changed the password in this way, don't forget to change it immediately to something more solid.
+This will also properly encrypt it in the object representation, as expected.
+
 == Full help
 
 .Full help
