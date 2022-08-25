@@ -31,7 +31,7 @@ public enum Command {
 
     KEYS("keys", ListKeysOptions.class, ListKeysRepositoryAction.class, null),
 
-    INFO("info", Object.class, InfoRepositoryAction.class, null),
+    INFO("info", InfoOptions.class, InfoRepositoryAction.class, null),
 
     IMPORT_AUDIT("importAudit", ImportAuditOptions.class, ImportAuditRepositoryAction.class, null),
 
