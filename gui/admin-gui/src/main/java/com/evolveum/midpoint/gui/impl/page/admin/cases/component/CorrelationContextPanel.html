@@ -29,7 +29,16 @@
             <tr>
                 <th>Name</th>
                 <wicket:container wicket:id="names">
-                    <td wicket:id="name"></td>
+                    <td><label wicket:id="name"></label></td>
+                </wicket:container>
+            </tr>
+            <tr>
+                <th  wicket:id="matchName">Match confidence</th>
+                <wicket:container wicket:id="confidences">
+                    <td>
+                        <label wicket:id="confidence"></label>
+                        <i wicket:id="explanation" wicket:message="title:CorrelationExplanation.Composite.child"/>
+                    </td>
                 </wicket:container>
             </tr>
             <wicket:container wicket:id="rows">
