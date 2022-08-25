@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -85,10 +86,9 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         PrismObjectWrapper<ResourceType> objectWrapper = panelCtx.unwrapWrapperModel().findObjectWrapper();
         if (objectWrapper != null) {
 
-            ResourceSchema schema = ResourceDetailsModel.getResourceSchema(objectWrapper, panelCtx.getPageBase());
-            if (schema != null) {
+                IModel<List<DisplayableValue<ItemPathType>>> values = getChoices(panelCtx.getValueWrapperModel(), panelCtx.getPageBase());
 
-                IModel<List<DisplayableValue<ItemPathType>>> values = getChoices(panelCtx.getValueWrapperModel(), schema);
+                if(!values.getObject().isEmpty()) {
 
                 if (CollectionUtils.isNotEmpty(values.getObject())) {
 
@@ -107,16 +107,16 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
                         }
                     };
 
-                    Iterator<ItemPathType> choices = values.getObject().stream()
+                    List<ItemPathType> choices = values.getObject().stream()
                             .map(disValue -> disValue.getValue())
-                            .collect(Collectors.toList()).iterator();
+                            .collect(Collectors.toList());
 
                     AutoCompleteTextPanel panel = new AutoCompleteTextPanel<>(
                             panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(), renderer) {
                         @Override
                         public Iterator<ItemPathType> getIterator(String input) {
                             if (StringUtils.isBlank(input)) {
-                                return choices;
+                                return choices.iterator();
                             }
                             return values.getObject().stream()
                                     .filter(v -> v.getLabel().contains(input))
@@ -127,7 +127,7 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
                         @Override
                         protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
-                            return (IConverter<C>) new AutoCompleteDisplayableValueConverter<ItemPathType>(values);
+                            return (IConverter<C>) new AutoCompleteDisplayableValueConverter<>(values);
                         }
                     };
                     panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -140,21 +140,30 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
     }
 
-    private IModel<List<DisplayableValue<ItemPathType>>> getChoices(IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapper, ResourceSchema schema) {
+    private IModel<List<DisplayableValue<ItemPathType>>> getChoices(
+            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapper, PageBase pageBase) {
         return new LoadableDetachableModel<>() {
             @Override
             protected List<DisplayableValue<ItemPathType>> load() {
-                return getAllAttributes(propertyWrapper, schema);
+                return getAllAttributes(propertyWrapper, pageBase);
             }
         };
     }
 
     private List<DisplayableValue<ItemPathType>> getAllAttributes(
-            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapperModel, ResourceSchema schema) {
+            IModel<? extends PrismValueWrapper<ItemPathType>> propertyWrapperModel, PageBase pageBase) {
 
         List<DisplayableValue<ItemPathType>> allAttributes = new ArrayList<>();
 
         PrismValueWrapper<ItemPathType> propertyWrapper = propertyWrapperModel.getObject();
+
+        ResourceSchema schema = ResourceDetailsModel.getResourceSchema(
+                propertyWrapper.getParent().findObjectWrapper(), pageBase);
+
+        if (schema == null) {
+            return allAttributes;
+        }
+
         ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper);
         if (objectType != null) {
             @Nullable ResourceObjectTypeDefinition objectTypeDef = null;

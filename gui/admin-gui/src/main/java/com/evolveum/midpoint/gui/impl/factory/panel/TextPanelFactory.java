@@ -81,13 +81,13 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
 
         Collection<? extends DisplayableValue<T>> suggestedValues = panelCtx.getSuggestedValues();
         if (CollectionUtils.isNotEmpty(suggestedValues)) {
-            Iterator<T> choices = suggestedValues.stream()
+            ArrayList<T> choices = suggestedValues.stream()
                     .map(disValue -> disValue.getValue())
-                    .collect(Collectors.toCollection(ArrayList::new)).iterator();
+                    .collect(Collectors.toCollection(ArrayList::new));
             return new AutoCompleteTextPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false) {
                 @Override
                 public Iterator<T> getIterator(String input) {
-                    return choices;
+                    return choices.iterator();
                 }
             };
         }

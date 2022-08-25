@@ -33,11 +33,12 @@ import org.apache.wicket.util.convert.IConverter;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
-public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefinitionTypePanelFactory {
+public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefinitionTypePanelFactory implements Serializable {
 
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {

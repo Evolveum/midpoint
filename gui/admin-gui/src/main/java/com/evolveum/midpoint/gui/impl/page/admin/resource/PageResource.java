@@ -64,7 +64,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
     private static final String ID_WIZARD = "wizard";
-    private IModel<List<Breadcrumb>> wizardBreadcrumbs = Model.ofList(new ArrayList<>());
+    private List<Breadcrumb> wizardBreadcrumbs = new ArrayList<>();
 
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
@@ -211,7 +211,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         target.add(fragment);
     }
 
-    public IModel<List<Breadcrumb>> getWizardBreadcrumbs() {
+    public List<Breadcrumb> getWizardBreadcrumbs() {
         return wizardBreadcrumbs;
     }
 }

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.*;
@@ -19,14 +20,18 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objec
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.DefaultSettingStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.ReactionStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationConfigWizardPanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +100,9 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             protected void onFinishPerformed(AjaxRequestTarget target) {
                 OperationResult result = onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
-                    showObjectTypePreviewFragment(getObjectTypeValueModel(), target);
+                    ItemPath path = getObjectTypeValueModel().getObject().getPath();
+                    getObjectTypeValueModel().detach();
+                    showObjectTypePreviewFragment(getValueWrapperWitLastId(path), target);
                 }
             }
 
@@ -105,15 +112,46 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             }
         });
 
-
         return steps;
+    }
+
+    private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueWrapperWitLastId(ItemPath itemPath) {
+        return new LoadableDetachableModel<>() {
+
+            private ItemPath pathWithId;
+
+            @Override
+            protected PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> load() {
+                try {
+                    if (pathWithId != null) {
+                        return getResourceModel().getObjectWrapper().findContainerValue(pathWithId);
+                    }
+                    PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = getResourceModel().getObjectWrapper().findContainer(itemPath);
+                    PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> ret = null;
+                    for (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> value : container.getValues()) {
+                        if (ret == null || ret.getNewValue().getId() == null
+                                || (value.getNewValue().getId() != null && ret.getNewValue().getId() < value.getNewValue().getId())) {
+                            ret = value;
+                        }
+                    }
+                    if (ret != null && ret.getNewValue().getId() != null) {
+                        pathWithId = ret.getPath();
+                    }
+                    return ret;
+                } catch (SchemaException e) {
+//                        LOGGER.error("Cannot find container value wrapper, \nparent: {}, \npath: {}", parent.getObject(), path);
+                }
+                return null;
+            }
+        };
     }
 
     private void showTableFragment(AjaxRequestTarget target) {
         showChoiceFragment(target, createTablePanel());
     }
 
-    private void showObjectTypePreviewFragment(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model, AjaxRequestTarget target) {
+    private void showObjectTypePreviewFragment(
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model, AjaxRequestTarget target) {
         showChoiceFragment(target, new ResourceObjectTypeWizardPreviewPanel(getIdOfChoicePanel(), getResourceModel(), model) {
             @Override
             protected void onResourceTileClick(ResourceObjectTypePreviewTileType value, AjaxRequestTarget target) {
@@ -194,8 +232,6 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             }
         });
 
-
-
         return steps;
     }
 
@@ -207,6 +243,11 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showObjectTypePreviewFragment(getValueModel(), target);
+            }
+
+            @Override
+            protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
+                return ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
             }
         });
     }

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import java.io.Serializable;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -679,7 +680,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
         return items.size();
     }
 
-    private class VirtualContainers {
+    private class VirtualContainers implements Serializable {
 
         private List<PrismContainerWrapper<? extends Containerable>> virtualContainers = new ArrayList<>();
 
