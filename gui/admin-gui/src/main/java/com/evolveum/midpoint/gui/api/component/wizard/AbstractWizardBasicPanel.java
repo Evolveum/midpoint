@@ -18,6 +18,7 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -36,6 +37,7 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
     private static final String ID_BUTTONS = "buttons";
+    private static final String ID_BUTTONS_CONTAINER = "buttonsContainer";
 
     private final ResourceDetailsModel resourceModel;
     public AbstractWizardBasicPanel(String id, ResourceDetailsModel resourceModel) {
@@ -110,6 +112,10 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
         secondaryText.add(new VisibleBehaviour(() -> getSubTextModel().getObject() != null));
         add(secondaryText);
 
+        WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
+        buttonsContainer.setOutputMarkupId(true);
+        add(buttonsContainer);
+
         RepeatingView buttons = new RepeatingView(ID_BUTTONS);
 
         AjaxIconButton exit = new AjaxIconButton(
@@ -127,7 +133,11 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
         buttons.add(exit);
 
         addCustomButtons(buttons);
-        add(buttons);
+        buttonsContainer.add(buttons);
+    }
+
+    protected WebMarkupContainer getButtonsContainer() {
+        return (WebMarkupContainer) get(ID_BUTTONS_CONTAINER);
     }
 
     private List<Breadcrumb> getBreadcrumb() {

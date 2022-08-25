@@ -32,7 +32,9 @@ public class ResourceAttributeMappingValueWrapper extends PrismContainerValueWra
     }
 
     public void addAttributeMappingType(AttributeMappingType valueType) {
-        attributeMappingTypes.add(valueType);
+        if (!attributeMappingTypes.contains(valueType)) {
+            attributeMappingTypes.add(valueType);
+        }
     }
 
     public List<AttributeMappingType> getAttributeMappingTypes() {

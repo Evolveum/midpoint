@@ -111,44 +111,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
 
             @Override
             protected void populateItem(final LoopItem item) {
-                final int index = item.getIndex();
-                final T tab = TabbedPanel.this.tabs.getObject().get(index);
-
-                final WebMarkupContainer titleLink = newLink(ID_LINK, index);
-                titleLink.add(AttributeAppender.append("class", () -> getSelectedTab() == index ? getSelectedTabCssClass() : ""));
-
-                titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
-                titleLink.setOutputMarkupPlaceholderTag(true);
-                titleLink.setOutputMarkupId(true);
-                item.add(titleLink);
-
-                final IModel<String> countModel;
-                if (tab instanceof CountModelProvider) {
-                    countModel = ((CountModelProvider)tab).getCountModel();
-                } else {
-                    countModel = null;
-                }
-                Label countLabel = new Label(ID_COUNT, countModel);
-                countLabel.setVisible(countModel != null);
-                countLabel.setOutputMarkupId(true);
-                countLabel.setOutputMarkupPlaceholderTag(true);
-                countLabel.add(AttributeModifier.append("class", new IModel<String>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getObject() {
-                        if (countModel == null) {
-                            return GuiStyleConstants.CLASS_BADGE_PASSIVE;
-                        }
-                        String count = countModel.getObject();
-                        if ("0".equals(count)) {
-                            return GuiStyleConstants.CLASS_BADGE_PASSIVE;
-                        } else {
-                            return GuiStyleConstants.CLASS_BADGE_ACTIVE;
-                        }
-                    }
-                }));
-                titleLink.add(countLabel);
+                populateLoopItem(item);
             }
 
             @Override
@@ -173,6 +136,47 @@ public class TabbedPanel<T extends ITab> extends Panel {
         tabsContainer.add(rightSideTabItem);
 
         add(newPanel());
+    }
+
+    protected void populateLoopItem(LoopItem item) {
+        final int index = item.getIndex();
+        final T tab = TabbedPanel.this.tabs.getObject().get(index);
+
+        final WebMarkupContainer titleLink = newLink(ID_LINK, index);
+        titleLink.add(AttributeAppender.append("class", () -> getSelectedTab() == index ? getSelectedTabCssClass() : ""));
+
+        titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
+        titleLink.setOutputMarkupPlaceholderTag(true);
+        titleLink.setOutputMarkupId(true);
+        item.add(titleLink);
+
+        final IModel<String> countModel;
+        if (tab instanceof CountModelProvider) {
+            countModel = ((CountModelProvider)tab).getCountModel();
+        } else {
+            countModel = null;
+        }
+        Label countLabel = new Label(ID_COUNT, countModel);
+        countLabel.setVisible(countModel != null);
+        countLabel.setOutputMarkupId(true);
+        countLabel.setOutputMarkupPlaceholderTag(true);
+        countLabel.add(AttributeModifier.append("class", new IModel<String>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getObject() {
+                if (countModel == null) {
+                    return GuiStyleConstants.CLASS_BADGE_PASSIVE;
+                }
+                String count = countModel.getObject();
+                if ("0".equals(count)) {
+                    return GuiStyleConstants.CLASS_BADGE_PASSIVE;
+                } else {
+                    return GuiStyleConstants.CLASS_BADGE_ACTIVE;
+                }
+            }
+        }));
+        titleLink.add(countLabel);
     }
 
     /**

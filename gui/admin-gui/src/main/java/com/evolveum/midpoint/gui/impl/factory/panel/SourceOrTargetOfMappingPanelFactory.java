@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -42,7 +43,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
 
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
-        return super.match(wrapper)
+        return QNameUtil.match(VariableBindingDefinitionType.COMPLEX_TYPE, wrapper.getTypeName())
                 && (wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_OBJECT_TYPE,
@@ -53,7 +54,7 @@ public class SourceOrTargetOfMappingPanelFactory extends VariableBindingDefiniti
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_OBJECT_TYPE,
                 ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
-                ResourceAttributeDefinitionType.F_INBOUND,
+                ResourceAttributeDefinitionType.F_OUTBOUND,
                 MappingType.F_SOURCE)));
     }
 

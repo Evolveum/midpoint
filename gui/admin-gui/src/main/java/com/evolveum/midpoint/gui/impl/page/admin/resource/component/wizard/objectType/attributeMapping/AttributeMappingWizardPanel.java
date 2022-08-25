@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -49,10 +50,6 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
     protected AttributeMappingsTableWizardPanel createTablePanel() {
         AttributeMappingsTableWizardPanel table
                 = new AttributeMappingsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
-            @Override
-            protected void onAddNewObject(AjaxRequestTarget target) {
-                showNewAttributeMappingWizardFragment(target, null);
-            }
 
             @Override
             protected void onSaveResourcePerformed(AjaxRequestTarget target) {
@@ -70,9 +67,19 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
             }
 
             @Override
-            protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel, AjaxRequestTarget target) {
-                showNewAttributeMappingWizardFragment(target, valueModel);
+            protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
+                showOutboundAttributeMappingWizardFragment(target, value);
             }
+
+            @Override
+            protected void inEditInboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
+                showInboundAttributeMappingWizardFragment(target, value);
+            }
+
+//            @Override
+//            protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel, AjaxRequestTarget target) {
+//                showNewAttributeMappingWizardFragment(target, valueModel);
+//            }
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
@@ -93,26 +100,48 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
                 new WizardPanel(getIdOfWizardPanel(), new WizardModel(createNewAttributeMappingSteps(valueModel))));
     }
 
-    private List<WizardStep> createNewAttributeMappingSteps(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel) {
-        List<WizardStep> steps = new ArrayList<>();
-        if (valueModel == null) {
-            valueModel = createModelOfNewValue(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
-        }
-        steps.add(new BasicSettingStepPanel(getResourceModel(), valueModel) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showTableFragment(target);
-            }
-        });
+    private void showInboundAttributeMappingWizardFragment(
+            AjaxRequestTarget target,
+            IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
+        showWizardFragment(
+                target,
+                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createInboundAttributeMappingSteps(valueModel))));
+    }
 
+    private List<WizardStep> createInboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
+        List<WizardStep> steps = new ArrayList<>();
         steps.add(new AttributeInboundStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target);
             }
         });
+        return steps;
+    }
 
+    private void showOutboundAttributeMappingWizardFragment(
+            AjaxRequestTarget target,
+            IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
+        showWizardFragment(
+                target,
+                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createOutboundAttributeMappingSteps(valueModel))));
+    }
+
+    private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
+        List<WizardStep> steps = new ArrayList<>();
         steps.add(new AttributeOutboundStepPanel(getResourceModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showTableFragment(target);
+            }
+        });
+        return steps;
+    }
+
+    private List<WizardStep> createNewAttributeMappingSteps(
+            IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel) {
+        List<WizardStep> steps = new ArrayList<>();
+        steps.add(new BasicSettingStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target);
@@ -123,11 +152,6 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target);
-            }
-
-            @Override
-            protected void onFinishPerformed(AjaxRequestTarget target) {
-                createNewMapping(target, true);
             }
         });
         return steps;

@@ -377,12 +377,12 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
     protected abstract IW createWrapperInternal(PrismContainerValueWrapper<?> parent, I childContainer, ItemStatus status, WrapperContext wrapperContext);
 
     protected boolean shouldCreateEmptyValue(I item, WrapperContext context) {
-        if (item.getDefinition().isEmphasized()) {
-            return true;
-        }
+//        if (!item.getDefinition().isEmphasized()) {
+//            return false;
+//        }
 
-        if (context.isCreateIfEmpty()) {
-            return true;
+        if (!context.isCreateIfEmpty()) {
+            return false;
         }
 
         return true;

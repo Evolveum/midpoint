@@ -188,6 +188,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     }
 
     protected void onFinishPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
     }
 
     public boolean onBackPerformed(AjaxRequestTarget target) {

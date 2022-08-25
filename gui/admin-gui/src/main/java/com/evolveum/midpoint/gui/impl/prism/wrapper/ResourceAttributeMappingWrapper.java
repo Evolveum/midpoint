@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -126,7 +127,26 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
         for (ResourceAttributeMappingValueWrapper v : valuesNotChanged) {
             if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)
                     || v.getAttributeMappingTypes().contains(AttributeMappingType.OUTBOUND)) {
-                List<ItemPath> pathsForDelete = processAlreadyExistValue(v, deltas, deltaWrappers, true);
+                List<ItemPath> pathsForDelete = new ArrayList<>();
+
+                if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)) {
+                    pathsForDelete.addAll(
+                            processAlreadyExistValue(
+                                    v,
+                                    deltas,
+                                    deltaWrappers,
+                                    ResourceAttributeDefinitionType.F_INBOUND,
+                                    true));
+                }
+                if (v.getAttributeMappingTypes().contains(AttributeMappingType.OUTBOUND)) {
+                    pathsForDelete.addAll(
+                            processAlreadyExistValue(
+                                    v,
+                                    deltas,
+                                    deltaWrappers,
+                                    ResourceAttributeDefinitionType.F_OUTBOUND,
+                                    true));
+                }
 
                 for (ItemWrapper iw : v.getItems()) {
                     LOGGER.trace("Start computing modifications for {}", iw);
@@ -153,7 +173,12 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
         for (ResourceAttributeMappingValueWrapper v : valuesToDelete) {
             if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)
                     || v.getAttributeMappingTypes().contains(AttributeMappingType.OUTBOUND)) {
-                processAlreadyExistValue(v, deltas, deltaWrappers, false);
+                if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)) {
+                    processAlreadyExistValue(v, deltas, deltaWrappers, ResourceAttributeDefinitionType.F_INBOUND, false);
+                }
+                if (v.getAttributeMappingTypes().contains(AttributeMappingType.OUTBOUND)) {
+                    processAlreadyExistValue(v, deltas, deltaWrappers, ResourceAttributeDefinitionType.F_OUTBOUND, false);
+                }
 
                 ContainerDelta delta = createEmptyDelta(getPath());
 
@@ -165,54 +190,11 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
 
         for (ResourceAttributeMappingValueWrapper v : valuesToAdd) {
             if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)) {
+                processAddValues(v, deltas, deltaWrappers, ResourceAttributeDefinitionType.F_INBOUND);
+            }
 
-                PrismContainerWrapper<InboundMappingType> inboundContainer =
-                        v.findContainer(ResourceAttributeDefinitionType.F_INBOUND);
-
-                if (inboundContainer != null) {
-
-                    for (PrismContainerValueWrapper<InboundMappingType> inboundValue : inboundContainer.getValues()) {
-
-                        PrismContainerValue<InboundMappingType> prismInboundValue =
-                                WebPrismUtil.cleanupEmptyContainerValue(inboundValue.getNewValue().clone());
-                        if (prismInboundValue == null || prismInboundValue.isEmpty() || prismInboundValue.isIdOnly()) {
-                            LOGGER.trace("Value is empty, skipping delta processing.");
-                            continue;
-                        }
-
-                        PrismPropertyWrapper<ItemPathType> virtualRef =
-                                inboundValue.findProperty(ResourceAttributeDefinitionType.F_REF);
-
-                        if (virtualRef == null) {
-                            LOGGER.debug("Skip processing inbound container because, couldn't find virtual attribute property");
-                            continue;
-                        }
-
-                        if (virtualRef.getItem().getRealValue() == null) {
-
-                            createAttributeMappingWithoutRef(
-                                    inboundValue,
-                                    inboundContainer,
-                                    null,
-                                    ResourceAttributeDefinitionType.F_INBOUND,
-                                    deltas,
-                                    null,
-                                    false);
-
-                            continue;
-                        }
-
-                        searchInDeltaWrappers(
-                                inboundContainer,
-                                inboundValue,
-                                virtualRef,
-                                ResourceAttributeDefinitionType.F_INBOUND,
-                                deltas,
-                                deltaWrappers,
-                                null,
-                                false);
-                    }
-                }
+            if (v.getAttributeMappingTypes().contains(AttributeMappingType.OUTBOUND)) {
+                processAddValues(v, deltas, deltaWrappers, ResourceAttributeDefinitionType.F_OUTBOUND);
             }
         }
 
@@ -236,6 +218,61 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
         }
 
         return deltas;
+    }
+
+    private <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> void processAddValues(
+            ResourceAttributeMappingValueWrapper v,
+            Collection<D> deltas,
+            List<DeltaWrapper> deltaWrappers,
+            ItemName containerPath) throws SchemaException {
+
+        PrismContainerWrapper<InboundMappingType> inboundContainer =
+                v.findContainer(containerPath);
+
+        if (inboundContainer != null) {
+
+            for (PrismContainerValueWrapper<InboundMappingType> inboundValue : inboundContainer.getValues()) {
+
+                PrismContainerValue<InboundMappingType> prismInboundValue =
+                        WebPrismUtil.cleanupEmptyContainerValue(inboundValue.getNewValue().clone());
+                if (prismInboundValue == null || prismInboundValue.isEmpty() || prismInboundValue.isIdOnly()) {
+                    LOGGER.trace("Value is empty, skipping delta processing.");
+                    continue;
+                }
+
+                PrismPropertyWrapper<ItemPathType> virtualRef =
+                        inboundValue.findProperty(ResourceAttributeDefinitionType.F_REF);
+
+                if (virtualRef == null) {
+                    LOGGER.debug("Skip processing inbound container because, couldn't find virtual attribute property");
+                    continue;
+                }
+
+                if (virtualRef.getItem().getRealValue() == null) {
+
+                    createAttributeMappingWithoutRef(
+                            inboundValue,
+                            inboundContainer,
+                            null,
+                            containerPath,
+                            deltas,
+                            null,
+                            false);
+
+                    continue;
+                }
+
+                searchInDeltaWrappers(
+                        inboundContainer,
+                        inboundValue,
+                        virtualRef,
+                        containerPath,
+                        deltas,
+                        deltaWrappers,
+                        null,
+                        false);
+            }
+        }
     }
 
     private <D extends ItemDelta<? extends PrismValue, ? extends ItemDefinition>> void processAddDeltaWrapper(
@@ -300,7 +337,11 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
             if (foundDeltaWrapper.value == null
                     || foundDeltaWrapper.value.getStatus().equals(ValueStatus.ADDED)) {
 
-                foundDeltaWrapper.addInbound(inboundValue.getNewValue().clone());
+                if (path.equivalent(ResourceAttributeDefinitionType.F_INBOUND)) {
+                    foundDeltaWrapper.addInbound(inboundValue.getNewValue().clone());
+                } else {
+                    foundDeltaWrapper.addOutbound(inboundValue.getNewValue().clone());
+                }
 
             } else if (foundDeltaWrapper.value.getStatus().equals(ValueStatus.NOT_CHANGED)) {
 
@@ -311,7 +352,13 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
             }
 
         } else {
-            deltaWrappers.add(new DeltaWrapper(virtualRef.getValue().getRealValue()).addInbound(inboundValue.getNewValue()));
+            DeltaWrapper deltaWrapper = new DeltaWrapper(virtualRef.getValue().getRealValue());
+            if (path.equivalent(ResourceAttributeDefinitionType.F_INBOUND)) {
+                deltaWrapper.addInbound(inboundValue.getNewValue().clone());
+            } else {
+                deltaWrapper.addOutbound(inboundValue.getNewValue().clone());
+            }
+            deltaWrappers.add(deltaWrapper);
         }
         if (isNotChangedState) {
             createDeleteDelta(inboundContainer, inboundValue, deltas, pathsForDelete);
@@ -322,66 +369,65 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
             ResourceAttributeMappingValueWrapper v,
             Collection<D> deltas,
             List<DeltaWrapper> deltaWrappers,
+            ItemName containerPath,
             boolean isNotChangedState) throws SchemaException {
 
         List<ItemPath> pathsForDelete = new ArrayList<>();
 
-        if (v.getAttributeMappingTypes().contains(AttributeMappingType.INBOUND)) {
-            PrismContainerWrapper<InboundMappingType> inboundContainer =
-                    v.findContainer(ResourceAttributeDefinitionType.F_INBOUND);
+        PrismContainerWrapper<InboundMappingType> inboundContainer =
+                v.findContainer(containerPath);
 
-            if (inboundContainer != null) {
+        if (inboundContainer != null) {
 
-                for (PrismContainerValueWrapper<InboundMappingType> inboundValue : inboundContainer.getValues()) {
+            for (PrismContainerValueWrapper<InboundMappingType> inboundValue : inboundContainer.getValues()) {
 
-                    PrismContainerValue<InboundMappingType> prismInboundValue =
-                            WebPrismUtil.cleanupEmptyContainerValue(inboundValue.getNewValue().clone());
-                    if (prismInboundValue == null || prismInboundValue.isEmpty() || prismInboundValue.isIdOnly()) {
-                        LOGGER.trace("Value is empty, skipping delta processing.");
+                PrismContainerValue<InboundMappingType> prismInboundValue =
+                        WebPrismUtil.cleanupEmptyContainerValue(inboundValue.getNewValue().clone());
+                if (prismInboundValue == null || prismInboundValue.isEmpty() || prismInboundValue.isIdOnly()) {
+                    LOGGER.trace("Value is empty, skipping delta processing.");
+                    continue;
+                }
+
+                if (inboundValue.getStatus().equals(ValueStatus.NOT_CHANGED)) {
+                    PrismPropertyWrapper<ItemPathType> virtualRef =
+                            inboundValue.findProperty(ResourceAttributeDefinitionType.F_REF);
+
+                    if (virtualRef == null) {
+                        LOGGER.debug("Skip processing inbound container because, couldn't find virtual attribute property");
                         continue;
                     }
 
-                    if (inboundValue.getStatus().equals(ValueStatus.NOT_CHANGED)) {
-                        PrismPropertyWrapper<ItemPathType> virtualRef =
-                                inboundValue.findProperty(ResourceAttributeDefinitionType.F_REF);
+                    PrismPropertyWrapper<ItemPathType> ref = v.findProperty(ResourceAttributeDefinitionType.F_REF);
+                    if (virtualRef.getItem().getRealValue() == null) {
 
-                        if (virtualRef == null) {
-                            LOGGER.debug("Skip processing inbound container because, couldn't find virtual attribute property");
+                        if (ref.getItem().getRealValue() == null) {
                             continue;
                         }
 
-                        PrismPropertyWrapper<ItemPathType> ref = v.findProperty(ResourceAttributeDefinitionType.F_REF);
-                        if (virtualRef.getItem().getRealValue() == null) {
-
-                            if (ref.getItem().getRealValue() == null) {
-                                continue;
-                            }
-
-                            createAttributeMappingWithoutRef(
-                                    inboundValue,
-                                    inboundContainer,
-                                    null,
-                                    ResourceAttributeDefinitionType.F_INBOUND,
-                                    deltas,
-                                    pathsForDelete,
-                                    isNotChangedState);
-
-                            continue;
-                        }
-
-                        if (ref.getValue().getRealValue().equivalent(virtualRef.getItem().getRealValue())) {
-                            continue;
-                        }
-                        searchInDeltaWrappers(
-                                inboundContainer,
+                        createAttributeMappingWithoutRef(
                                 inboundValue,
-                                virtualRef,
-                                ResourceAttributeDefinitionType.F_INBOUND,
+                                inboundContainer,
+                                null,
+                                containerPath,
                                 deltas,
-                                deltaWrappers,
                                 pathsForDelete,
                                 isNotChangedState);
+
+                        continue;
                     }
+
+                    if (ref.getValue().getRealValue().equivalent(virtualRef.getItem().getRealValue())) {
+                        continue;
+                    }
+                    searchInDeltaWrappers(
+                            inboundContainer,
+                            inboundValue,
+                            virtualRef,
+                            containerPath,
+                            deltas,
+                            deltaWrappers,
+                            pathsForDelete,
+                            isNotChangedState);
                 }
             }
         }
@@ -392,7 +438,7 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
             PrismContainerValueWrapper value,
             PrismContainerWrapper container,
             ItemPathType attributeRef,
-            QName path,
+            ItemName path,
             Collection<D> deltas,
             List<ItemPath> pathsForDelete, boolean isNotChangedState) throws SchemaException {
 
@@ -420,8 +466,6 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
             PrismContainerValue newValue,
             PrismContainerWrapper containerWrapper,
             Collection<D> deltas) {
-//        newValue.clearParent();
-//        newValue.setParent(containerWrapper.getItem());
 
         ContainerDelta delta = containerWrapper.createEmptyDelta(containerWrapper.getPath());
 

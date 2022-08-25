@@ -165,9 +165,9 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                     case SYNCHRONIZATION_CONFIG:
                         showSynchronizationConfigWizard(target, getValueModel());
                         break;
-                    case CREDENTIALS:
-                        showCredentialsWizard(target, getValueModel());
-                        break;
+//                    case CREDENTIALS:
+//                        showCredentialsWizard(target, getValueModel());
+//                        break;
                 }
             }
 

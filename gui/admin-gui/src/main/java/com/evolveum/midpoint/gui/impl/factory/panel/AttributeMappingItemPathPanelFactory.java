@@ -62,7 +62,7 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
-        return super.match(wrapper)
+        return ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName())
                 && (wrapper.getPath().namedSegmentsOnly().equivalent(ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_OBJECT_TYPE,
@@ -73,11 +73,16 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
     private <IW extends ItemWrapper<?, ?>> boolean isVirtualPropertyOfMapping(IW wrapper) {
         return QNameUtil.match(wrapper.getItemName(), ResourceAttributeDefinitionType.F_REF)
-                && wrapper.getParent().getPath().namedSegmentsOnly().equivalent(ItemPath.create(
+                && (wrapper.getParent().getPath().namedSegmentsOnly().equivalent(ItemPath.create(
                 ResourceType.F_SCHEMA_HANDLING,
                 SchemaHandlingType.F_OBJECT_TYPE,
                 ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
-                ResourceAttributeDefinitionType.F_INBOUND));
+                ResourceAttributeDefinitionType.F_INBOUND))
+                || wrapper.getParent().getPath().namedSegmentsOnly().equivalent(ItemPath.create(
+                ResourceType.F_SCHEMA_HANDLING,
+                SchemaHandlingType.F_OBJECT_TYPE,
+                ResourceObjectTypeDefinitionType.F_ATTRIBUTE,
+                ResourceAttributeDefinitionType.F_OUTBOUND)));
     }
 
     @Override
@@ -145,7 +150,30 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         return new LoadableDetachableModel<>() {
             @Override
             protected List<DisplayableValue<ItemPathType>> load() {
-                return getAllAttributes(propertyWrapper, pageBase);
+                List<DisplayableValue<ItemPathType>> choices = getAllAttributes(propertyWrapper, pageBase);
+                if (!choices.isEmpty()) {
+                    PrismValueWrapper<ItemPathType> wrapper = propertyWrapper.getObject();
+                    if (wrapper.getParent().isSingleValue()) {
+                        ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper.getObject());
+                        if (objectType != null) {
+                            List<ItemPathType> existingPaths = new ArrayList<>();
+                            objectType.getAttribute().forEach(attributeMapping -> {
+                                if (attributeMapping.getRef() != null) {
+                                    existingPaths.add(attributeMapping.getRef());
+                                }
+                            });
+                            choices.removeIf(value -> {
+                                for (ItemPathType existingPath : existingPaths) {
+                                    if (existingPath.equivalent(value.getValue())) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            });
+                        }
+                    }
+                }
+                return choices;
             }
         };
     }
