@@ -4,13 +4,10 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.schema.util;
+package com.evolveum.midpoint.repo.common.util;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -20,10 +17,20 @@ import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 public class SubscriptionUtil {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SubscriptionUtil.class);
 
     @NotNull
     public static SubscriptionType getSubscriptionType(@Nullable SystemConfigurationType systemConfigurationType) {
@@ -88,6 +95,29 @@ public class SubscriptionUtil {
         }
 
         return type;
+    }
+
+    /**
+     * If null is returned, subscription is valid and no action is needed.
+     * If non-null message is returned, it can be added where necessary.
+     */
+    @Nullable
+    public static String missingSubscriptionAppeal(
+            SystemObjectCache systemObjectCache, LocalizationService localizationService, Locale locale) {
+        try {
+            PrismObject<SystemConfigurationType> config =
+                    systemObjectCache.getSystemConfiguration(new OperationResult("dummy"));
+            if (SubscriptionUtil.getSubscriptionType(config != null ? config.asObjectable() : null)
+                    .isCorrect()) {
+                return null;
+            }
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve system configuration", e);
+        }
+
+        // Everything else uses Locale.getDefault()
+        return localizationService.translate("PageBase.nonActiveSubscriptionMessage", null, locale,
+                "No active subscription. Please support midPoint by purchasing a subscription.");
     }
 
     /**

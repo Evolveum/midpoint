@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -96,15 +95,15 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
         }
         logEnd(getLogger(), event, applies);
         result.computeStatusIfUnknown();
-        return true;            // not-applicable notifiers do not stop processing of other notifiers
+        return true; // not-applicable notifiers do not stop processing of other notifiers
     }
 
     protected Trace getLogger() {
-        return DEFAULT_LOGGER;              // in case a subclass does not provide its own logger
+        return DEFAULT_LOGGER; // in case a subclass does not provide its own logger
     }
 
-    private Message getMessageFromExpression(CustomNotifierType config, VariablesMap variables,
-            Task task, OperationResult result) {
+    private Message getMessageFromExpression(
+            CustomNotifierType config, VariablesMap variables, Task task, OperationResult result) {
         if (config.getExpression() == null) {
             return null;
         }
@@ -112,7 +111,8 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
         try {
             messages = evaluateExpression(config.getExpression(), variables,
                     "message expression", task, result);
-        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
+                ConfigurationException | SecurityViolationException e) {
             throw new SystemException("Couldn't evaluate custom notifier expression: " + e.getMessage(), e);
         }
         if (messages == null || messages.isEmpty()) {
@@ -137,6 +137,8 @@ public class CustomNotifier extends BaseHandler<Event, CustomNotifierType> {
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
         PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageType>> exprResult =
                 ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
-        return exprResult.getZeroSet().stream().map(PrismPropertyValue::getValue).collect(Collectors.toList());
+        return exprResult.getZeroSet().stream()
+                .map(PrismPropertyValue::getValue)
+                .collect(Collectors.toList());
     }
 }

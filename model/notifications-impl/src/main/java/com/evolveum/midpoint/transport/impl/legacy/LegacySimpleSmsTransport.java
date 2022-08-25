@@ -21,8 +21,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.expression.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -52,6 +50,10 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -85,7 +87,7 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired protected Protector protector;
+    @Autowired private Protector protector;
 
     @Override
     public void send(Message message, String transportName, Event event, Task task, OperationResult parentResult) {
@@ -318,7 +320,8 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
             String shortDesc, Task task, OperationResult result) {
         try {
             return evaluateExpression(expressionType, VariablesMap, false, shortDesc, task, result).get(0);
-        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
+                ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
@@ -330,7 +333,8 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
             @SuppressWarnings("SameParameterValue") String shortDesc, Task task, OperationResult result) {
         try {
             return evaluateExpression(expressionType, VariablesMap, true, shortDesc, task, result);
-        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
+                ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);

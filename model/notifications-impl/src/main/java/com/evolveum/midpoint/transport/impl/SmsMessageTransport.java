@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -48,6 +47,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -217,10 +217,12 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
                     if (body != null) {
                         request.getBody().write(body.getBytes(encoding));
                     }
-                    ClientHttpResponse response = request.execute();
-                    LOGGER.debug("Result: " + response.getStatusCode() + "/" + response.getStatusText());
-                    if (response.getStatusCode().series() != HttpStatus.Series.SUCCESSFUL) {
-                        throw new SystemException("SMS gateway communication failed: " + response.getStatusCode() + ": " + response.getStatusText());
+                    try (ClientHttpResponse response = request.execute()) {
+                        LOGGER.debug("Result: " + response.getStatusCode() + "/" + response.getStatusText());
+                        if (response.getStatusCode().series() != HttpStatus.Series.SUCCESSFUL) {
+                            throw new SystemException("SMS gateway communication failed: "
+                                    + response.getStatusCode() + ": " + response.getStatusText());
+                        }
                     }
                     LOGGER.debug("Message sent successfully to {} via gateway {}.", message.getTo(), smsGatewayConfigurationType.getName());
                     resultForGateway.recordSuccess();
@@ -279,18 +281,19 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
         }
     }
 
-    private String formatToFile(Message mailMessage, String url, List<String> headers, String body) {
+    private String formatToFile(Message smsMessage, String url, List<String> headers, String body) {
         return "================ " + new Date() + " ======= " + (url != null ? url : "")
                 + "\nHeaders:\n" + headers
                 + "\n\nBody:\n" + body
-                + "\n\nFor message:\n" + mailMessage.toString() + "\n\n";
+                + "\n\nFor message:\n" + smsMessage.toString() + "\n\n";
     }
 
     private String evaluateExpressionChecked(ExpressionType expressionType, VariablesMap VariablesMap,
             String shortDesc, Task task, OperationResult result) {
         try {
             return evaluateExpression(expressionType, VariablesMap, false, shortDesc, task, result).get(0);
-        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
+                ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
@@ -302,7 +305,8 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
             @SuppressWarnings("SameParameterValue") String shortDesc, Task task, OperationResult result) {
         try {
             return evaluateExpression(expressionType, VariablesMap, true, shortDesc, task, result);
-        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (ObjectNotFoundException | SchemaException | ExpressionEvaluationException | CommunicationException |
+                ConfigurationException | SecurityViolationException e) {
             LoggingUtils.logException(LOGGER, "Couldn't evaluate {} {}", e, shortDesc, expressionType);
             result.recordFatalError("Couldn't evaluate " + shortDesc, e);
             throw new SystemException(e);
