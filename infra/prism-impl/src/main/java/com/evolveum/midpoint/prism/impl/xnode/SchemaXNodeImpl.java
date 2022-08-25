@@ -27,6 +27,7 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
 
     public void setSchemaElement(Element schemaElement) {
         this.schemaElement = schemaElement;
+        DOMUtil.preserveFormattingIfPresent(schemaElement);
     }
 
     @Override

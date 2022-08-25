@@ -186,10 +186,10 @@ public class DOMUtil {
     }
 
     public static TransformerFactory setupTransformerFactory() {
-        //setTransformerFactoryIfPresent("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");            // too many whitespaces in Java11
-        //setTransformerFactoryIfPresent("org.apache.xalan.xsltc.trax.TransformerFactoryImpl");                             // too few whitespaces
-        setTransformerFactoryIfPresent("org.apache.xalan.processor.TransformerFactoryImpl");                                                                           // a bit slower
-
+        // MID-7959: Use java native transformer, Xalan has problem with surrogates
+        // whitespace issue for schema elements is solved by adding xml:space=preserve attribute
+        // xnodes does not have problem with additional spaces.                                                                      // a bit slower
+        setTransformerFactoryIfPresent("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
         return TransformerFactory.newInstance();
     }
 
@@ -471,6 +471,21 @@ public class DOMUtil {
             qname = new QName(namespace, qnameArray[1], namespacePrefix);
         }
         return qname;
+    }
+
+    public static void preserveFormattingIfPresent(Element xsdSchema) {
+        Node maybeChild = xsdSchema.getFirstChild();
+        while (maybeChild != null) {
+            if (maybeChild.getNodeType() == Node.TEXT_NODE) {
+                Text textNode = (Text) maybeChild;
+                if (StringUtils.isBlank(textNode.getTextContent())) {
+                    xsdSchema.setAttributeNS(DOMUtil.W3C_XML_XML_URI, "xml:space", "preserve");
+                    return;
+                }
+            }
+            maybeChild = maybeChild.getNextSibling();
+        }
+
     }
 
 
@@ -1370,11 +1385,13 @@ public class DOMUtil {
             return;
         }
         int codepointCount = stringValue.codePointCount(0, stringValue.length());
-
-        for (int i = 0; i < codepointCount; i++) {
-            if (!XMLChar.isValid(stringValue.codePointAt(i))) {
+        int i = 0;
+        while (i < codepointCount) {
+            int codePoint = stringValue.codePointAt(i);
+            if (!XMLChar.isValid(codePoint)) {
                 throw new IllegalStateException("Invalid character with regards to XML (code " + ((int) stringValue.charAt(i)) + ") in '" + makeSafelyPrintable(stringValue, 200) + "'");
             }
+            i += Character.charCount(codePoint);
         }
     }
 

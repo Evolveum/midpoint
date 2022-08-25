@@ -38,6 +38,7 @@ public class DOMUtilTest {
     private static final String WHITESPACES_FILENAME = "src/test/resources/domutil/whitespaces.xml";
     private static final String QNAMES_FILENAME = "src/test/resources/domutil/qnames.xml";
     private static final String FIX_NAMESPACE_FILENAME = "src/test/resources/domutil/fix-namespace.xml";
+    private static final String SURROGATES_FILENAME = "src/test/resources/domutil/surrogates.xml";
 
     public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
     public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
@@ -347,6 +348,20 @@ public class DOMUtilTest {
             support=false;
         }
         assertTrue("Not support string with surrogates in xml",support);
+    }
+
+    @Test
+    public void testSerializationDeserializationWithSurrogates() {
+        String surrogateText = "𠀋 are composed of surrogate pairs. Emoji like 😁";
+        DOMUtil.checkValidXmlChars(surrogateText);
+        Document original = DOMUtil.parseFile(SURROGATES_FILENAME);
+        String kanjiText = DOMUtil.findElementRecursive(original.getDocumentElement(), new QName("kanji")).getTextContent();
+        System.out.println("kanji: " + kanjiText);
+        String asString = DOMUtil.serializeDOMToString(original);
+        System.out.println(asString);
+        Document fromString = DOMUtil.parseDocument(asString);
+        String asString2 = DOMUtil.serializeDOMToString(fromString);
+        System.out.println(asString2);
     }
 
 }
