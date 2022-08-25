@@ -5139,16 +5139,8 @@ public final class WebComponentUtil {
             if (focus == null) {
                 return MidPointApplication.getDefaultLocale();
             }
-            String prefLang = focus.getPreferredLanguage();
-            if (StringUtils.isBlank(prefLang)) {
-                prefLang = focus.getLocale();
-            }
 
-            try {
-                locale = LocaleUtils.toLocale(prefLang);
-            } catch (Exception ex) {
-                LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
-            }
+            locale = LocalizationUtil.toLocale(FocusTypeUtil.languageOrLocale(focus));
         }
 
         if (locale == null) {
