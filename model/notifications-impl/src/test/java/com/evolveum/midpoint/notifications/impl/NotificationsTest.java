@@ -392,7 +392,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         then("transport sends the message with template content for 'sk' language");
         message = getSingleMessage(testTransport);
         assertThat(message.getTo()).containsExactlyInAnyOrder("user2@example.com");
-        assertThat(message.getBody()).isEqualTo("template-body-sk");
+        assertThat(message.getBody()).startsWith("template-body-sk"); // there can be subscription footer
 
         // now when-then for other language
         when("event is sent to notification manager, recipient has other language set");
@@ -405,7 +405,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         then("transport sends the message with default template content, because no localized content for specified language is found");
         message = getSingleMessage(testTransport);
         assertThat(message.getTo()).containsExactlyInAnyOrder("user3@example.com");
-        assertThat(message.getBody()).isEqualTo("template-body-default");
+        assertThat(message.getBody()).startsWith("template-body-default");
     }
 
     @Test
@@ -608,7 +608,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(message).isNotNull();
         and("address is based on notifier/recipientExpression -> transport/recipientAddressExpression chain");
         assertThat(message.getTo()).containsExactlyInAnyOrder("xxxuser@example.com");
-        assertThat(message.getBody()).isEqualTo(messageBody); // there can be subscription footer
+        assertThat(message.getBody()).startsWith(messageBody); // there can be subscription footer
     }
 
     @Test
