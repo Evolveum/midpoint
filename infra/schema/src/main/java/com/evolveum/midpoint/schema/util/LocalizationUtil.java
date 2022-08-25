@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,19 +7,26 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.function.Function;
+
+import org.apache.commons.lang3.LocaleUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
 
 public class LocalizationUtil {
+
+    public static final Trace LOGGER = TraceManager.getTrace(LocalizationUtil.class);
 
     public static LocalizableMessageType createLocalizableMessageType(LocalizableMessage message) {
         return createLocalizableMessageType(message, null);
@@ -40,7 +47,9 @@ public class LocalizationUtil {
     @NotNull
     private static LocalizableMessageListType createLocalizableMessageType(@NotNull LocalizableMessageList messageList, Function<LocalizableMessage, String> resolveKeys) {
         LocalizableMessageListType rv = new LocalizableMessageListType();
-        messageList.getMessages().forEach(message -> {if (rv.getMessage() != null) rv.getMessage().add(createLocalizableMessageType(message, resolveKeys));});
+        messageList.getMessages().forEach(message -> {
+            if (rv.getMessage() != null) {rv.getMessage().add(createLocalizableMessageType(message, resolveKeys));}
+        });
         rv.setSeparator(createLocalizableMessageType(messageList.getSeparator(), resolveKeys));
         rv.setPrefix(createLocalizableMessageType(messageList.getPrefix(), resolveKeys));
         rv.setPostfix(createLocalizableMessageType(messageList.getPostfix(), resolveKeys));
@@ -56,7 +65,7 @@ public class LocalizationUtil {
                 LocalizableMessageArgumentType messageArgument;
                 if (argument instanceof LocalizableMessage) {
                     messageArgument = new LocalizableMessageArgumentType()
-                                .localizable(createLocalizableMessageType(((LocalizableMessage) argument), resolveKeys));
+                            .localizable(createLocalizableMessageType(((LocalizableMessage) argument), resolveKeys));
                 } else {
                     messageArgument = new LocalizableMessageArgumentType().value(argument != null ? argument.toString() : null);
                 }
@@ -148,5 +157,32 @@ public class LocalizationUtil {
     // migration-related method: if localizable message is present, defaultValue is ignored (i.e. it is not the same as fallbackMessage in LocalizableMessageType)
     public static LocalizableMessageType getLocalizableMessageOrDefault(LocalizableMessageType localizableMessage, String defaultValue) {
         return localizableMessage != null ? localizableMessage : new SingleLocalizableMessageType().fallbackMessage(defaultValue);
+    }
+
+    /**
+     * Returns locale object for provided string using {@link LocaleUtils#toLocale(String)}.
+     * If the input string is null, or the conversion fails, null is returned.
+     */
+    public static Locale toLocale(String str) {
+        return toLocale(str, null);
+    }
+
+    /**
+     * Returns locale object for provided string using {@link LocaleUtils#toLocale(String)}.
+     * If the input string is null, or the conversion fails, provided defaultLocale is returned.
+     */
+    public static Locale toLocale(String str, Locale defaultLocale) {
+        if (str == null) {
+            return defaultLocale;
+        }
+
+        try {
+            return LocaleUtils.toLocale(str);
+        } catch (Exception ex) {
+            LOGGER.debug("Error occurred while creating locale object for input '"
+                    + str + "': " + ex.getMessage());
+        }
+
+        return defaultLocale;
     }
 }

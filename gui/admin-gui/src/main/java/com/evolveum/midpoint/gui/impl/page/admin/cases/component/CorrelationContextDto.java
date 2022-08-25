@@ -10,12 +10,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CandidateDescription;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.cases.CorrelationCaseUtil;
@@ -72,7 +74,9 @@ class CorrelationContextDto implements Serializable {
         if (ownerOptions != null) {
             resolvePotentialOwners(ownerOptions, pageBase, task, result);
         }
-        createCorrelationOptions(aCase);
+        CorrelationCaseDescription<?> correlationCaseDescription =
+                pageBase.getCorrelationService().describeCorrelationCase(aCase, null, task, result);
+        createCorrelationOptions(aCase, correlationCaseDescription);
         createCorrelationPropertiesDefinitions(aCase, pageBase, task, result);
     }
 
@@ -107,7 +111,12 @@ class CorrelationContextDto implements Serializable {
         }
     }
 
-    private void createCorrelationOptions(CaseType aCase) throws SchemaException {
+    private void createCorrelationOptions(CaseType aCase, CorrelationCaseDescription<?> caseDescription)
+            throws SchemaException {
+        Map<String, ? extends CandidateDescription<?>> candidates =
+                caseDescription.getCandidates().stream()
+                        .collect(Collectors.toMap(CandidateDescription::getOid, c -> c));
+
         CaseCorrelationContextType context = aCase.getCorrelationContext();
         int suggestionNumber = 1;
         for (ResourceObjectOwnerOptionType potentialOwner : CorrelationCaseUtil.getOwnerOptionsList(aCase)) {
@@ -118,8 +127,9 @@ class CorrelationContextDto implements Serializable {
                         new CorrelationOptionDto(potentialOwner, context.getPreFocusRef()));
             } else {
                 optionHeaders.add(String.format(TEXT_CANDIDATE, suggestionNumber));
+                CandidateDescription<?> candidate = candidates.get(identifier.getExistingOwnerId());
                 correlationOptions.add(
-                        new CorrelationOptionDto(potentialOwner));
+                        new CorrelationOptionDto(potentialOwner, candidate));
                 suggestionNumber++;
             }
         }

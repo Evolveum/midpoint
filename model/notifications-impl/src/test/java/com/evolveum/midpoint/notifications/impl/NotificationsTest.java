@@ -46,7 +46,6 @@ public class NotificationsTest extends AbstractIntegrationTest {
 
     @Autowired private TransportService transportService;
     @Autowired private NotificationManager notificationManager;
-    @Autowired private NotificationFunctions notificationFunctions;
 
     private final AtomicInteger idSeq = new AtomicInteger();
     private final LightweightIdentifierGenerator lightweightIdentifierGenerator =
@@ -229,7 +228,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         Message message = getSingleMessage(testTransport);
         assertThat(message).isNotNull();
         assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
-        assertThat(message.getBody()).isEqualTo(messageBody);
+        assertThat(message.getBody()).startsWith(messageBody); // there can be subscription footer
     }
 
     @Test
@@ -276,7 +275,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         Message message = getSingleMessage(testTransport);
         assertThat(message).isNotNull();
         assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
-        assertThat(message.getBody()).isEqualTo("Hi John, channel: test-channel");
+        assertThat(message.getBody()).startsWith("Hi John, channel: test-channel"); // there can be subscription footer
         assertThat(message.getSubject()).isEqualTo("template-subject");
     }
 
@@ -330,7 +329,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         Message message = getSingleMessage(((TestMessageTransport) transportService.getTransport("test")));
         assertThat(message).isNotNull();
         assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
-        assertThat(message.getBody()).isEqualTo("notifier-body");
+        assertThat(message.getBody()).startsWith("notifier-body"); // there can be subscription footer
         assertThat(message.getSubject()).isEqualTo("notifier-subject");
         assertThat(message.getAttachments()).hasSize(2)
                 .anyMatch(a -> getRawValue(a.getContent()).equals("attachment1"))
@@ -380,7 +379,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         then("transport sends the message with default template content");
         Message message = getSingleMessage(testTransport);
         assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
-        assertThat(message.getBody()).isEqualTo("template-body-default");
+        assertThat(message.getBody()).startsWith("template-body-default"); // there can be subscription footer
 
         // now when-then for sk language
         when("event is sent to notification manager, recipient has 'sk' language set");
@@ -393,7 +392,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         then("transport sends the message with template content for 'sk' language");
         message = getSingleMessage(testTransport);
         assertThat(message.getTo()).containsExactlyInAnyOrder("user2@example.com");
-        assertThat(message.getBody()).isEqualTo("template-body-sk");
+        assertThat(message.getBody()).startsWith("template-body-sk"); // there can be subscription footer
 
         // now when-then for other language
         when("event is sent to notification manager, recipient has other language set");
@@ -406,7 +405,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         then("transport sends the message with default template content, because no localized content for specified language is found");
         message = getSingleMessage(testTransport);
         assertThat(message.getTo()).containsExactlyInAnyOrder("user3@example.com");
-        assertThat(message.getBody()).isEqualTo("template-body-default");
+        assertThat(message.getBody()).startsWith("template-body-default");
     }
 
     @Test
@@ -536,7 +535,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         Message message = getSingleMessage(testTransport);
         assertThat(message).isNotNull();
         assertThat(message.getTo()).containsExactlyInAnyOrder("user@example.com");
-        assertThat(message.getBody()).isEqualTo(messageBody);
+        assertThat(message.getBody()).startsWith(messageBody); // there can be subscription footer
     }
 
     @Test
@@ -567,7 +566,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         Message message = getSingleMessage(testTransport);
         assertThat(message).isNotNull();
         assertThat(message.getTo()).containsExactlyInAnyOrder("literal@example.com");
-        assertThat(message.getBody()).isEqualTo(messageBody);
+        assertThat(message.getBody()).startsWith(messageBody); // there can be subscription footer
     }
 
     @Test
@@ -609,7 +608,7 @@ public class NotificationsTest extends AbstractIntegrationTest {
         assertThat(message).isNotNull();
         and("address is based on notifier/recipientExpression -> transport/recipientAddressExpression chain");
         assertThat(message.getTo()).containsExactlyInAnyOrder("xxxuser@example.com");
-        assertThat(message.getBody()).isEqualTo(messageBody);
+        assertThat(message.getBody()).startsWith(messageBody); // there can be subscription footer
     }
 
     @Test

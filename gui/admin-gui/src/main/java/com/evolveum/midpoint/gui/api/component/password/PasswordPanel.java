@@ -22,6 +22,7 @@ import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -129,6 +130,7 @@ public class PasswordPanel extends InputPanel {
         };
 
         final PasswordLimitationsPanel validationPanel = new PasswordLimitationsPanel(ID_VALIDATION_PANEL, limitationsModel);
+        validationPanel.add(new VisibleBehaviour(this::isPasswordLimitationPanelVisible));
         validationPanel.setOutputMarkupId(true);
         inputContainer.add(validationPanel);
 
@@ -359,6 +361,16 @@ public class PasswordPanel extends InputPanel {
         return list;
     }
 
+    public List<FeedbackMessage> collectPasswordFieldsFeedbackMessages() {
+        List<FeedbackMessage> feedbackMessages = new ArrayList<>();
+        getFormComponents().forEach(c -> {
+            if (c.getFeedbackMessages() != null && c.getFeedbackMessages().hasMessage(0)) {
+                feedbackMessages.addAll(c.getFeedbackMessages().messages(null));
+            }
+        });
+        return feedbackMessages;
+    }
+
     @Override
     public FormComponent getBaseFormComponent() {
         return (FormComponent) get(ID_INPUT_CONTAINER + ":" + ID_PASSWORD_ONE);
@@ -478,5 +490,9 @@ public class PasswordPanel extends InputPanel {
     }
 
     protected void updatePasswordValidation(AjaxRequestTarget target) {
+    }
+
+    protected boolean isPasswordLimitationPanelVisible() {
+        return true;
     }
 }

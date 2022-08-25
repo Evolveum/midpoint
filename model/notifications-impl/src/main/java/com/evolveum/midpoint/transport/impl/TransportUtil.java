@@ -179,7 +179,7 @@ public class TransportUtil {
                 return allowedRecipient.getValue();
             } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
                     | ConfigurationException | SecurityViolationException e) {
-                LoggingUtils.logUnexpectedException(logger, "Couldn't execute filter for recipient", e);
+                LoggingUtils.logUnexpectedException(logger, "transportConfigurationType Couldn't execute filter for recipient", e);
             }
         }
         List<String> whiteList = transportConfigurationType.getWhiteList();

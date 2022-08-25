@@ -11,10 +11,9 @@ import java.io.Serializable;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
-
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -35,6 +34,8 @@ public class CorrelationOptionDto implements Serializable {
      */
     @NotNull private final PrismObject<?> object;
 
+    private final CorrelationCaseDescription.CandidateDescription<?> candidate;
+
     /**
      * True if the {@link #object} represents the new owner.
      */
@@ -48,10 +49,11 @@ public class CorrelationOptionDto implements Serializable {
     /**
      * Creates a DTO in the case of existing owner.
      */
-    CorrelationOptionDto(@NotNull ResourceObjectOwnerOptionType potentialOwner) {
+    CorrelationOptionDto(@NotNull ResourceObjectOwnerOptionType potentialOwner, CorrelationCaseDescription.CandidateDescription<?> candidate) {
         this.object = MiscUtil.requireNonNull(
                 ObjectTypeUtil.getPrismObjectFromReference(potentialOwner.getCandidateOwnerRef()),
                 () -> new IllegalStateException("No focus object"));
+        this.candidate = candidate;
         this.newOwner = false;
         this.identifier = potentialOwner.getIdentifier();
     }
@@ -65,6 +67,7 @@ public class CorrelationOptionDto implements Serializable {
                 () -> new IllegalStateException("No focus object"));
         this.newOwner = true;
         this.identifier = potentialOwner.getIdentifier();
+        this.candidate = null;
     }
 
     /**
@@ -112,5 +115,13 @@ public class CorrelationOptionDto implements Serializable {
     /** Returns true if the option matches given case/work item outcome URI. */
     public boolean matches(@NotNull String outcome) {
         return identifier.equals(outcome);
+    }
+
+    public String getConfidence() {
+        return candidate != null ? ((int) (candidate.getConfidence() * 100)) + "%" : null;
+    }
+
+    public String getExplanation() {
+        return candidate != null ? String.valueOf((candidate.getExplanation())) : null;
     }
 }

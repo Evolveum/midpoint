@@ -86,7 +86,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.SubscriptionUtil.SubscriptionType;
+import com.evolveum.midpoint.repo.common.util.SubscriptionUtil.SubscriptionType;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;

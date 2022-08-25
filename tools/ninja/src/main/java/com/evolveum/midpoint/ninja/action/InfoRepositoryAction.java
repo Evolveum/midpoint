@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.ninja.action;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.ninja.impl.InfoOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -15,7 +16,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 /**
  * Short information about the currently used environment, including repository diagnostics.
  */
-public class InfoRepositoryAction extends RepositoryAction<Object> {
+public class InfoRepositoryAction extends RepositoryAction<InfoOptions> {
 
     @Override
     public void execute() {
