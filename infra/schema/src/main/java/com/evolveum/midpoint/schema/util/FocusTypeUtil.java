@@ -1,15 +1,19 @@
 /*
- * Copyright (c) 2016-2019 Evolveum and contributors
+ * Copyright (C) 2016-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.util;
 
+import static java.util.Collections.emptyList;
+
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -17,14 +21,9 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static java.util.Collections.emptyList;
 
 /**
  * @author semancik
- *
  */
 public class FocusTypeUtil {
 
@@ -92,7 +91,7 @@ public class FocusTypeUtil {
             return "1";
         }
         StringBuilder sb = new StringBuilder();
-        for (OrderConstraintsType orderConstraint: assignmentType.getOrderConstraint()) {
+        for (OrderConstraintsType orderConstraint : assignmentType.getOrderConstraint()) {
             if (orderConstraint.getRelation() != null) {
                 sb.append(orderConstraint.getRelation().getLocalPart());
             } else {
@@ -117,7 +116,7 @@ public class FocusTypeUtil {
         if (assignmentType.getTargetRef() == null) {
             return false;
         }
-        for (ObjectReferenceType selectorTargetRef: assignmentSelector.getTargetRef()) {
+        for (ObjectReferenceType selectorTargetRef : assignmentSelector.getTargetRef()) {
             if (MiscSchemaUtil.referenceMatches(selectorTargetRef, assignmentType.getTargetRef(), prismContext)) {
                 return true;
             }
@@ -153,7 +152,7 @@ public class FocusTypeUtil {
                 .contains(subtype);
     }
 
-    public static <O extends ObjectType>  void setSubtype(PrismObject<O> object, List<String> subtypes) {
+    public static <O extends ObjectType> void setSubtype(PrismObject<O> object, List<String> subtypes) {
 
         List<String> objSubtypes = object.asObjectable().getSubtype();
         if (!objSubtypes.isEmpty()) {
@@ -198,5 +197,22 @@ public class FocusTypeUtil {
             identities.getIdentity().removeIf(
                     i -> FocusIdentityTypeUtil.matches(i, identity));
         }
+    }
+
+    /**
+     * Returns language or locale string from focus - in that order of precedence.
+     * Focus may be null - returns null if focus is null or both language and locale is null.
+     */
+    @Nullable
+    public static String languageOrLocale(@Nullable FocusType focus) {
+        if (focus == null) {
+            return null;
+        }
+        // Language first, then locale - this is how it was originally in GUI.
+        String recipientLocale = focus.getPreferredLanguage();
+        if (recipientLocale == null) {
+            recipientLocale = focus.getLocale();
+        }
+        return recipientLocale;
     }
 }

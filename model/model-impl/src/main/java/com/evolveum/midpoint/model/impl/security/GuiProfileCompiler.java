@@ -10,32 +10,28 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
-import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.*;
-
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.AdminGuiConfigurationMergeManager;
+import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.impl.controller.CollectionProcessor;
 import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
@@ -206,16 +202,8 @@ public class GuiProfileCompiler {
 
     private void setupLocale(GuiProfiledPrincipal principal, @NotNull CompiledGuiProfile compiledGuiProfile) {
         FocusType focus = principal.getFocus();
-        String prefLang = focus.getPreferredLanguage();
-        if (StringUtils.isBlank(prefLang)) {
-            prefLang = focus.getLocale();
-        }
-        Locale locale = null;
-        try {
-            locale = LocaleUtils.toLocale(prefLang);
-        } catch (Exception ex) {
-            LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
-        }
+        String prefLang = FocusTypeUtil.languageOrLocale(focus);
+        Locale locale = LocalizationUtil.toLocale(prefLang);
         compiledGuiProfile.setLocale(locale);
     }
 
@@ -269,7 +257,6 @@ public class GuiProfileCompiler {
             for (GuiShadowDetailsPageType shadowDetails : adminGuiConfiguration.getObjectDetails().getShadowDetailsPage()) {
                 joinShadowDetails(composite.getObjectDetails(), shadowDetails);
             }
-
 
             Optional<GuiResourceDetailsPageType> detailForAllResources
                     = adminGuiConfiguration.getObjectDetails().getResourceDetailsPage().stream()
@@ -383,7 +370,7 @@ public class GuiProfileCompiler {
         return null;
     }
 
-    private HomePageType  mergeHomePage(HomePageType compositeHomePage, HomePageType homePage) {
+    private HomePageType mergeHomePage(HomePageType compositeHomePage, HomePageType homePage) {
         if (homePage == null) {
             return compositeHomePage;
         }

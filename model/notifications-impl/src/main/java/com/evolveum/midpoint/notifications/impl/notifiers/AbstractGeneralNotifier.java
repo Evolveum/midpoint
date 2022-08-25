@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.events.SimpleObjectRef;
@@ -30,10 +31,14 @@ import com.evolveum.midpoint.notifications.impl.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.impl.handlers.BaseHandler;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -60,6 +65,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     @Autowired protected ValueFormatter valueFormatter;
     @Autowired protected AggregatedEventHandler aggregatedEventHandler;
     @Autowired protected TransportService transportService;
+
+    @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private LocalizationService localizationService;
 
     @Override
     public boolean processEvent(E event, N notifierConfiguration, Task task, OperationResult parentResult)
@@ -92,7 +100,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
                             VariablesMap variables = getDefaultVariables(event, result);
                             // TODO unify with transportConfig
                             for (String transportName : notifierConfiguration.getTransport()) {
-                                messagesSent += prepareAndSendMessages(event, notifierConfiguration, variables, transportName, task, result);
+                                messagesSent += prepareAndSendMessages(
+                                        event, notifierConfiguration, variables, transportName, task, result);
                             }
                         } finally {
                             reportNotificationEnd(event, result);
@@ -167,7 +176,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
         String address = getRecipientAddress(event, transport, recipient, task, result);
         if (address == null) {
-            getLogger().debug("Skipping notification as no recipient address was provided for transport={}", transportName);
+            getLogger().debug("Skipping notification as no recipient address was provided for transport '{}'.", transportName);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipient address provided be notifier or transport");
             return 0;
         }
@@ -176,9 +185,16 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
         String body = getBody(event, notifierConfig, messageTemplateContent, variables, transportName, task, result);
         if (body == null) {
-            getLogger().debug("Skipping notification as null body was provided for transport={}", transportName);
+            getLogger().debug("Skipping notification as null body was provided for transport '{}'.", transportName);
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No message body");
             return 0;
+        }
+
+        String subscriptionFooter =
+                SubscriptionUtil.missingSubscriptionAppeal(systemObjectCache, localizationService,
+                        LocalizationUtil.toLocale(focusLanguageOrLocale(recipient)));
+        if (subscriptionFooter != null) {
+            body += '\n' + subscriptionFooter;
         }
 
         String contentType = notifierConfig.getContentType();
@@ -257,6 +273,9 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
         if (address == null) {
             ObjectReferenceType recipientRef = recipient.getRecipientRef();
             if (recipientRef != null) {
+                // TODO the recipient object from ref may lack telephoneNumber, email, of has old data.
+                //  This happens when actor is logged in (e.g. administrator) and changed some of this info
+                //  and did not re-login.
                 Objectable object = recipientRef.asReferenceValue().getOriginObject();
                 if (object instanceof FocusType) {
                     return getRecipientAddressFromFocus(event, transport, (FocusType) object, task, result);
@@ -283,8 +302,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     @Nullable
-    private String getBody(E event, N notifierConfig, MessageTemplateContentType messageContent, VariablesMap variables, String transportName,
-            Task task, OperationResult result) throws SchemaException {
+    private String getBody(E event, N notifierConfig, MessageTemplateContentType messageContent,
+            VariablesMap variables, String transportName, Task task, OperationResult result) throws SchemaException {
         ExpressionType bodyExpression = notifierConfig.getBodyExpression();
         if (bodyExpression == null && messageContent != null) {
             bodyExpression = messageContent.getBodyExpression();
@@ -339,25 +358,23 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     private MessageTemplateContentType findLocalizedContent(
             @NotNull MessageTemplateType messageTemplate, @NotNull ObjectReferenceType recipientRef) {
         FocusType recipientFocus = (FocusType) recipientRef.asReferenceValue().getOriginObject();
-        if (recipientFocus == null) {
-            // TODO can focus be possibly null here? shouldn't it be resolved already if ref is not null?
-            return null;
-        }
-//        Locale recipientLocale = LocaleUtils.toLocale(
-        // TODO: This order or locale first? This is how it's used in GUI.
-        //  Also, utility method to get Locale from focus should probably be extracted, but where to?
-        String recipientLocale = recipientFocus.getPreferredLanguage();
-        if (recipientLocale == null) {
-            recipientLocale = recipientFocus.getLocale();
-        }
-        if (recipientLocale == null) {
-            return null;
-        }
-        // TODO: Currently supports only equal strings - add matching of en-US to en if en-US is not available, etc.
-        for (LocalizedMessageTemplateContentType localizedContent : messageTemplate.getLocalizedContent()) {
-            if (recipientLocale.equals(localizedContent.getLanguage())) {
-                return localizedContent;
+        String recipientLocale = FocusTypeUtil.languageOrLocale(recipientFocus);
+        if (recipientLocale != null) {
+            // TODO: Currently supports only equal strings - add matching of en-US to en if en-US is not available, etc.
+            for (LocalizedMessageTemplateContentType localizedContent : messageTemplate.getLocalizedContent()) {
+                if (recipientLocale.equals(localizedContent.getLanguage())) {
+                    return localizedContent;
+                }
             }
+        }
+        return null;
+    }
+
+    private String focusLanguageOrLocale(RecipientExpressionResultType recipient) {
+        ObjectReferenceType recipientRef = recipient.getRecipientRef();
+        if (recipientRef != null) {
+            return FocusTypeUtil.languageOrLocale(
+                    (FocusType) recipientRef.asReferenceValue().getOriginObject());
         }
         return null;
     }
@@ -390,7 +407,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
     }
 
     /** Returns default body if no body expression is used. */
-    protected String getBody(E event, N generalNotifierType, String transport, Task task, OperationResult result) throws SchemaException {
+    protected String getBody(E event, N generalNotifierType, String transport, Task task, OperationResult result)
+            throws SchemaException {
         return null;
     }
 

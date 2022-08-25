@@ -30,7 +30,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -144,6 +143,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.util.SubscriptionUtil.SubscriptionType;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -153,7 +153,6 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.schema.util.SubscriptionUtil.SubscriptionType;
 import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
@@ -5139,16 +5138,8 @@ public final class WebComponentUtil {
             if (focus == null) {
                 return MidPointApplication.getDefaultLocale();
             }
-            String prefLang = focus.getPreferredLanguage();
-            if (StringUtils.isBlank(prefLang)) {
-                prefLang = focus.getLocale();
-            }
 
-            try {
-                locale = LocaleUtils.toLocale(prefLang);
-            } catch (Exception ex) {
-                LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
-            }
+            locale = LocalizationUtil.toLocale(FocusTypeUtil.languageOrLocale(focus));
         }
 
         if (locale == null) {

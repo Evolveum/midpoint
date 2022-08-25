@@ -44,6 +44,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.util.SubscriptionUtil;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
@@ -51,7 +52,6 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SubscriptionUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -59,7 +59,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -424,25 +423,9 @@ public class ReportServiceImpl implements ReportService {
         return emptyIfNull(reportOutputCreatedListeners);
     }
 
-    /**
-     * If null is returned, the report should not be changed.
-     * If non-null message is returned, report writer knows how to integrate it to the report.
-     */
     @Nullable
     public String missingSubscriptionFooter() {
-        try {
-            PrismObject<SystemConfigurationType> config =
-                    systemObjectCache.getSystemConfiguration(new OperationResult("dummy"));
-            if (SubscriptionUtil.getSubscriptionType(config != null ? config.asObjectable() : null)
-                    .isCorrect()) {
-                return null;
-            }
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve system configuration", e);
-        }
-
-        // Everything else uses Locale.getDefault(),
-        return localizationService.translate("PageBase.nonActiveSubscriptionMessage", null, Locale.getDefault(),
-                "No active subscription. Please support midPoint by purchasing a subscription.");
+        return SubscriptionUtil.missingSubscriptionAppeal(
+                systemObjectCache, localizationService, Locale.getDefault());
     }
 }

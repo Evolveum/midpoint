@@ -7,9 +7,23 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
+import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextDto.F_OPTION_HEADERS;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
+
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.CaseDetailsModels;
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.CorrelationProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -20,32 +34,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-
-import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.cases.CaseDetailsModels;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.StringResourceModel;
-
-import static com.evolveum.midpoint.gui.impl.page.admin.cases.component.CorrelationContextDto.F_OPTION_HEADERS;
 
 @PanelType(name = "correlationContext")
 @PanelInstance(identifier = "correlationContext",
@@ -67,6 +62,10 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     private static final String ID_ROWS = "rows";
     private static final String ID_ATTR_NAME = "attrName";
     private static final String ID_COLUMN = "column";
+    private static final String ID_MATCH_NAME = "matchName";
+    private static final String ID_CONFIDENCES = "confidences";
+    private static final String ID_CONFIDENCE = "confidence";
+    private static final String ID_INFO = "explanation";
 
     private static final String OP_LOAD = CorrelationContextPanel.class.getName() + ".load";
     private static final String OP_DECIDE_CORRELATION = CorrelationContextPanel.class.getName() + ".decideCorrelation";
@@ -75,7 +74,11 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     private static final String TEXT_CREATE_NEW = "Create new";
     private static final String TEXT_CORRELATE = "Correlate";
 
-    private IModel<CaseWorkItemType> workItemModel;
+    private static final String TEXT_MATCH_CONFIDENCE = "Match confidence";
+
+    private final IModel<CaseWorkItemType> workItemModel;
+
+    boolean caseWithConfidences = false;
 
     @SuppressWarnings("unused") // called by the framework
     public CorrelationContextPanel(String id, CaseDetailsModels model, ContainerPanelConfigurationType config) {
@@ -179,6 +182,32 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
             }
         };
         add(referenceIds);
+
+        Label matchLabel = new Label(ID_MATCH_NAME, TEXT_MATCH_CONFIDENCE);
+        add(matchLabel.setVisible(caseWithConfidences));
+
+        ListView<CorrelationOptionDto> matchConfidences = new ListView<>(ID_CONFIDENCES,
+                new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_OPTIONS)) {
+
+            @Override
+            protected void populateItem(ListItem<CorrelationOptionDto> item) {
+
+                if (item.getModelObject().getConfidence() != null) {
+                    caseWithConfidences = true;
+                }
+
+                item.add(new Label(ID_CONFIDENCE, item.getModel().getObject().getConfidence())
+                        .setVisible(item.getModelObject().getConfidence() != null));
+
+                item.add(WebComponentUtil.createHelp(ID_INFO)
+                        .setVisible(item.getModelObject().getConfidence() != null));
+
+                matchLabel.setVisible(caseWithConfidences);
+                this.setVisible(caseWithConfidences);
+            }
+        };
+
+        add(matchConfidences);
 
         ListView<CorrelationProperty> rows = new ListView<>(ID_ROWS,
                 new PropertyModel<>(correlationCtxModel, CorrelationContextDto.F_CORRELATION_PROPERTIES)) {
