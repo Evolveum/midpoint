@@ -6,66 +6,34 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.TableTabbedPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceSchemaHandlingPanel;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.wizard.resource.component.SchemaListPanel;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.evolveum.midpoint.gui.api.component.TableTabbedPanel;
+import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 /**
  * @author lskublik
  */
 public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBasicPanel {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTableWizardPanel.class);
 
     private static final String ID_TAB_TABLE = "tabTable";
 
@@ -91,7 +59,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
         tabs.add(createInboundTableTab());
         tabs.add(createOutboundTableTab());
 
-        TableTabbedPanel<ITab> tabPanel = new TableTabbedPanel(ID_TAB_TABLE, tabs) {
+        TableTabbedPanel<ITab> tabPanel = new TableTabbedPanel<>(ID_TAB_TABLE, tabs) {
             @Override
             protected void onAjaxUpdate(Optional optional) {
                 if (optional.isPresent()) {
@@ -143,6 +111,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
     }
 
     public TabbedPanel<ITab> getTabPanel() {
+        //noinspection unchecked
         return ((TabbedPanel<ITab>) get(ID_TAB_TABLE));
     }
 
@@ -165,16 +134,14 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
                 () -> {
                     String ret = null;
                     switch (getSelectedMappingType()) {
-                        case INBOUND: {
+                        case INBOUND:
                             ret = getPageBase().createStringResource(
                                     "AttributeMappingsTableWizardPanel.addNewAttributeMapping.inbound").getString();
                             break;
-                        }
-                        case OUTBOUND: {
+                        case OUTBOUND:
                             ret = getPageBase().createStringResource(
                                     "AttributeMappingsTableWizardPanel.addNewAttributeMapping.outbound").getString();
                             break;
-                        }
                     }
                     return ret;
                 }) {
@@ -212,14 +179,12 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
 
     private void onEditValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
         switch (getSelectedMappingType()) {
-            case INBOUND: {
+            case INBOUND:
                 inEditInboundValue(value, target);
                 break;
-            }
-            case OUTBOUND: {
+            case OUTBOUND:
                 inEditOutboundValue(value, target);
                 break;
-            }
         }
     }
 
