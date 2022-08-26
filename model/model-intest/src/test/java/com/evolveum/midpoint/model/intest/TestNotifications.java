@@ -153,8 +153,8 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         when();
         ObjectDelta<UserType> userDelta = createAddAccountDelta(USER_JACK_OID, ACCOUNT_JACK_DUMMY_FILE);
-        // This is to test for MID-5849. The applicability checking was not correct, so it passed even if there we no items
-        // to show in the notification.
+        // This is to test for MID-5849. The applicability checking was not correct, so it passed
+        // even if there are no items to show in the notification.
         userDelta.addModification(
                 deltaFor(UserType.class)
                         .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
@@ -207,31 +207,33 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         List<Message> pwdMessages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
-        Message pwdMessage = pwdMessages.get(0);          // number of messages was already checked
+        Message pwdMessage = pwdMessages.get(0); // number of messages was already checked
         assertEquals("Invalid list of recipients", singletonList("recipient@evolveum.com"), pwdMessage.getTo());
-        assertEquals("Wrong message body", "Password for account jack on Dummy Resource is: deadmentellnotales", pwdMessage.getBody());
+        assertThat(pwdMessage.getBody()) // there can be subscription footer
+                .startsWith("Password for account jack on Dummy Resource is: deadmentellnotales");
 
         List<Message> addMessages = dummyTransport.getMessages("dummy:simpleAccountNotifier-ADD-SUCCESS");
-        Message addMessage = addMessages.get(0);          // number of messages was already checked
+        Message addMessage = addMessages.get(0); // number of messages was already checked
         assertEquals("Invalid list of recipients", singletonList("recipient@evolveum.com"), addMessage.getTo());
-        assertEquals("Wrong message body", "Notification about account-related operation\n"
-                + "\n"
-                + "Owner: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
-                + "Resource: Dummy Resource (oid 10000000-0000-0000-0000-000000000004)\n"
-                + "\n"
-                + "An account has been successfully created on the resource with attributes:\n"
-                + " - UID: jack\n"
-                + " - Username: jack\n"
-                + " - Location: Caribbean\n"
-                + " - Quote: Arr!\n"
-                + " - Drink: rum\n"
-                + " - Weapon: rum\n"
-                + " - Full Name: Jack Sparrow\n"
-                + " - Password:\n"
-                + "    - Value: (protected string)\n"
-                + " - Administrative status: ENABLED\n"
-                + "\n"
-                + "Channel: http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user", addMessage.getBody());
+        assertThat(addMessage.getBody()) // there can be subscription footer
+                .startsWith("Notification about account-related operation\n"
+                        + "\n"
+                        + "Owner: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
+                        + "Resource: Dummy Resource (oid 10000000-0000-0000-0000-000000000004)\n"
+                        + "\n"
+                        + "An account has been successfully created on the resource with attributes:\n"
+                        + " - UID: jack\n"
+                        + " - Username: jack\n"
+                        + " - Location: Caribbean\n"
+                        + " - Quote: Arr!\n"
+                        + " - Drink: rum\n"
+                        + " - Weapon: rum\n"
+                        + " - Full Name: Jack Sparrow\n"
+                        + " - Password:\n"
+                        + "    - Value: (protected string)\n"
+                        + " - Administrative status: ENABLED\n"
+                        + "\n"
+                        + "Channel: http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user");
 
         assertSteadyResources();
     }
@@ -292,16 +294,17 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
-        String expected = "Notification about account-related operation\n"
-                + "\n"
-                + "Owner: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
-                + "Resource: Dummy Resource (oid 10000000-0000-0000-0000-000000000004)\n"
-                + "Account: jack\n"
-                + "\n"
-                + "The account has been successfully removed from the resource.\n"
-                + "\n"
-                + "Channel: ";
-        assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleAccountNotifier-DELETE-SUCCESS").get(0).getBody());
+        // there can be subscription footer
+        assertThat(dummyTransport.getMessages("dummy:simpleAccountNotifier-DELETE-SUCCESS").get(0).getBody())
+                .startsWith("Notification about account-related operation\n"
+                        + "\n"
+                        + "Owner: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
+                        + "Resource: Dummy Resource (oid 10000000-0000-0000-0000-000000000004)\n"
+                        + "Account: jack\n"
+                        + "\n"
+                        + "The account has been successfully removed from the resource.\n"
+                        + "\n"
+                        + "Channel: ");
 
         assertSteadyResources();
     }
@@ -360,19 +363,20 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         assertSteadyResources();
 
-        String expected = "Notification about user-related operation (status: SUCCESS)\n"
-                + "\n"
-                + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
-                + "\n"
-                + "The user record was modified. Modified attributes are:\n"
-                + " - Assignment:\n"
-                + "   - ADD: \n"
-                + "      - Construction:\n"
-                + "         - Kind: ACCOUNT\n"
-                + "         - resourceRef: Dummy Resource (resource)\n"
-                + "\n"
-                + "Channel: ";
-        assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
+        // there can be subscription footer
+        assertThat(dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody())
+                .startsWith("Notification about user-related operation (status: SUCCESS)\n"
+                        + "\n"
+                        + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
+                        + "\n"
+                        + "The user record was modified. Modified attributes are:\n"
+                        + " - Assignment:\n"
+                        + "   - ADD: \n"
+                        + "      - Construction:\n"
+                        + "         - Kind: ACCOUNT\n"
+                        + "         - resourceRef: Dummy Resource (resource)\n"
+                        + "\n"
+                        + "Channel: ");
     }
 
     @Test
@@ -410,17 +414,18 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         assertSteadyResources();
 
-        String expected = "Notification about user-related operation (status: SUCCESS)\n"
-                + "\n"
-                + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
-                + "\n"
-                + "The user record was modified. Modified attributes are:\n"
-                + " - Assignment:\n"
-                + "   - ADD: \n"
-                + "      - Target: Superuser (role)\n"
-                + "\n"
-                + "Channel: ";
-        assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
+        // there can be subscription footer
+        assertThat(dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody())
+                .startsWith("Notification about user-related operation (status: SUCCESS)\n"
+                        + "\n"
+                        + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
+                        + "\n"
+                        + "The user record was modified. Modified attributes are:\n"
+                        + " - Assignment:\n"
+                        + "   - ADD: \n"
+                        + "      - Target: Superuser (role)\n"
+                        + "\n"
+                        + "Channel: ");
     }
 
     @Test
@@ -463,21 +468,22 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         assertSteadyResources();
 
-        String expected = "Notification about user-related operation (status: SUCCESS)\n"
-                + "\n"
-                + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
-                + "\n"
-                + "The user record was modified. Modified attributes are:\n"
-                + " - Assignment[" + id + "]/Description:\n"
-                + "   - REPLACE: hi\n"
-                + "\n"
-                + "Notes:\n"
-                + " - Assignment[" + id + "]:\n"
-                + "    - Description: hi\n"
-                + "    - Target: Superuser (role) [default]\n"
-                + "\n"
-                + "Channel: ";
-        assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
+        // there can be subscription footer
+        assertThat(dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody())
+                .startsWith("Notification about user-related operation (status: SUCCESS)\n"
+                        + "\n"
+                        + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
+                        + "\n"
+                        + "The user record was modified. Modified attributes are:\n"
+                        + " - Assignment[" + id + "]/Description:\n"
+                        + "   - REPLACE: hi\n"
+                        + "\n"
+                        + "Notes:\n"
+                        + " - Assignment[" + id + "]:\n"
+                        + "    - Description: hi\n"
+                        + "    - Target: Superuser (role) [default]\n"
+                        + "\n"
+                        + "Channel: ");
     }
 
     @Test
@@ -494,7 +500,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         executeChanges(
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
-                        .delete(new AssignmentType(prismContext).id(id))
+                        .delete(new AssignmentType().id(id))
                         .asObjectDeltaCast(jack.getOid()), null, task, result);
 
         then();
@@ -520,18 +526,19 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         assertSteadyResources();
 
-        String expected = "Notification about user-related operation (status: SUCCESS)\n"
-                + "\n"
-                + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
-                + "\n"
-                + "The user record was modified. Modified attributes are:\n"
-                + " - Assignment:\n"
-                + "   - DELETE: \n"
-                + "      - Description: hi\n"
-                + "      - Target: Superuser (role) [default]\n"
-                + "\n"
-                + "Channel: ";
-        assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
+        // there can be subscription footer
+        assertThat(dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody())
+                .startsWith("Notification about user-related operation (status: SUCCESS)\n"
+                        + "\n"
+                        + "User: Jack Sparrow (jack, oid c0c010c0-d34d-b33f-f00d-111111111111)\n"
+                        + "\n"
+                        + "The user record was modified. Modified attributes are:\n"
+                        + " - Assignment:\n"
+                        + "   - DELETE: \n"
+                        + "      - Description: hi\n"
+                        + "      - Target: Superuser (role) [default]\n"
+                        + "\n"
+                        + "Channel: ");
     }
 
     /**
@@ -647,8 +654,9 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         String password = "5ecr3t";
         String expectedAuthorization = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.ISO_8859_1));
         assertEquals("Wrong Authorization header", singletonList(expectedAuthorization), httpHandler.lastRequest.headers.get("authorization"));
-        // only the last recipient here
-        assertEquals("Wrong 1st line of body", "Body=\"body\"&To=[%2B789]&From=from", httpHandler.lastRequest.body.get(0));
+        // only the last recipient here + there can be subscription footer in the body
+        assertThat(httpHandler.lastRequest.body.get(0))
+                .matches("Body=\"body[^\"]*\"&To=\\[%2B789]&From=from");
     }
 
     @Test
@@ -701,7 +709,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        PrismObject<UserType> user = new UserType(prismContext)
+        PrismObject<UserType> user = new UserType()
                 .name("testStringAttachmentUser")
                 .asPrismObject();
         addObject(user);
@@ -733,7 +741,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        PrismObject<UserType> user = new UserType(prismContext)
+        PrismObject<UserType> user = new UserType()
                 .name("testByteAttachmentUser")
                 .asPrismObject();
         addObject(user);
@@ -779,7 +787,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        PrismObject<UserType> user = new UserType(prismContext)
+        PrismObject<UserType> user = new UserType()
                 .name("testAttachmentFromFileUser")
                 .asPrismObject();
         addObject(user);
@@ -810,7 +818,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         when();
-        PrismObject<UserType> user = new UserType(prismContext)
+        PrismObject<UserType> user = new UserType()
                 .name("testExpressionAttachmentUser")
                 .asPrismObject();
         addObject(user);
@@ -883,7 +891,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test510")
                 .beginAssignment()
                 .beginConstruction()
