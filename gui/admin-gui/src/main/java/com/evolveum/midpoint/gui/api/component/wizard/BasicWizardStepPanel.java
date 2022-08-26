@@ -136,7 +136,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         return new VisibleEnableBehaviour(() -> !isSubmitVisible());
     }
 
-    private boolean isSubmitVisible() {
+    protected boolean isSubmitVisible() {
       return getWizard().getNextPanel() == null;
     }
 

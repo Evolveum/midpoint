@@ -26,13 +26,13 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPan
         return resourceModel;
     }
 
-    @Override
-    protected IModel<String> getNextLabelModel() {
-        if (getWizard().getNextPanel() == null) {
-            return getPageBase().createStringResource("SelectObjectClassesStepPanel.nextLabel");
-        }
-        return super.getNextLabelModel();
-    }
+//    @Override
+//    protected IModel<String> getNextLabelModel() {
+//        if (getWizard().getNextPanel() == null) {
+//            return getPageBase().createStringResource("SelectObjectClassesStepPanel.nextLabel");
+//        }
+//        return super.getNextLabelModel();
+//    }
 
     protected void onFinishPerformed(AjaxRequestTarget target) {
     }

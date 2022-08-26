@@ -16,12 +16,15 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -59,5 +62,26 @@ public class AttributeOutboundStepPanel extends AbstractValueFormResourceWizardS
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageResource.wizard.attributes.outbound.subText");
+    }
+
+    @Override
+    protected boolean isSubmitVisible() {
+        return false;
+    }
+
+    @Override
+    protected boolean isExitButtonVisible() {
+        return false;
+    }
+
+    @Override
+    public boolean onBackPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
+        return false;
+    }
+
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return new VisibleBehaviour(() -> false);
     }
 }

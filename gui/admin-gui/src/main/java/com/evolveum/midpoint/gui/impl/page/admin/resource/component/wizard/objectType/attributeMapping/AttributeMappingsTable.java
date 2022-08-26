@@ -289,6 +289,7 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
 
             refItemWrapper.setVisibleOverwrite(UserInterfaceElementVisibilityType.HIDDEN);
             mapping.addItem(refItemWrapper);
+            mapping.getNonContainers().clear();
         }
     }
 
@@ -331,6 +332,7 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
     @Override
     public void refreshTable(AjaxRequestTarget target) {
         getContainerModel().detach();
+        clearCache();
         super.refreshTable(target);
     }
 }

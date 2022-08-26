@@ -138,4 +138,10 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
         }).collect(Collectors.toList());
         return filtered;
     }
+
+    @Override
+    public void clearCache() {
+        super.clearCache();
+        model.detach();
+    }
 }
