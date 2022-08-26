@@ -19,7 +19,7 @@
                 </translation>
             </pluralLabel>
             <icon>
-                <cssClass>fa fa-dashboard</cssClass>
+                <cssClass>fa fa-tachometer-alt</cssClass>
                 <color>#001F3F</color>
             </icon>
         </display>
