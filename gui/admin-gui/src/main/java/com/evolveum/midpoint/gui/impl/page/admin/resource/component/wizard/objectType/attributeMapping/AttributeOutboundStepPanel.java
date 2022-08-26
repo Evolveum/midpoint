@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author lskublik
@@ -40,8 +41,7 @@ public class AttributeOutboundStepPanel extends AbstractValueFormResourceWizardS
 
     private static final String PANEL_TYPE = "attributeOutboundWizard";
 
-    public AttributeOutboundStepPanel(ResourceDetailsModel model,
-                                             IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
+    public AttributeOutboundStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
         super(model, newValueModel);
     }
 
@@ -51,17 +51,17 @@ public class AttributeOutboundStepPanel extends AbstractValueFormResourceWizardS
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.attributes.step.outbound");
+        return createStringResource("PageResource.wizard.step.configuration");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.attributes.outbound.text");
+        return createStringResource("PageResource.wizard.step.attributes.outbound.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.attributes.outbound.subText");
+        return createStringResource("PageResource.wizard.step.attributes.outbound.subText");
     }
 
     @Override

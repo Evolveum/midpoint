@@ -57,14 +57,12 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
     private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTable.class);
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
-    private final ResourceDetailsModel resourceDetailsModel;
 
     public AttributeMappingsTable(
             String id,
             ResourceDetailsModel model,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         super(id, MappingType.class);
-        resourceDetailsModel = model;
         this.valueModel = valueModel;
     }
 
@@ -74,6 +72,12 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
 
         getTable().setShowAsCard(false);
     }
+
+    @Override
+    protected boolean isHeaderVisible() {
+        return false;
+    }
+
 
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {

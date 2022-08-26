@@ -156,7 +156,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
 
         AjaxIconButton saveButton = new AjaxIconButton(
                 buttons.newChildId(),
-                Model.of("fa fa-circle-plus"),
+                Model.of("fa fa-floppy-disk"),
                 getPageBase().createStringResource("AttributeMappingsTableWizardPanel.saveButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -194,7 +194,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
 
     @Override
     protected IModel<String> getBreadcrumbLabel() {
-        return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.title");
+        return getTextModel();
     }
 
     @Override

@@ -50,17 +50,17 @@ public class AttributeInboundStepPanel extends AbstractValueFormResourceWizardSt
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.attributes.step.inbound");
+        return createStringResource("PageResource.wizard.step.configuration");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.attributes.inbound.text");
+        return createStringResource("PageResource.wizard.step.attributes.inbound.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.attributes.inbound.subText");
+        return createStringResource("PageResource.wizard.step.attributes.inbound.subText");
     }
 
     @Override
