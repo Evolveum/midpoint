@@ -349,7 +349,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         }
         boolean abstractRoleFilterCheck = false;
         for (AbstractSearchItemWrapper item : getItems()) {
-            if (!item.isApplyFilter(getSearchMode()) ||
+            if (hasParameter(item) ||
+                    !item.isApplyFilter(getSearchMode()) ||
                     (item instanceof AbstractRoleSearchItemWrapper && abstractRoleFilterCheck)) {
                 continue;
             }
@@ -362,6 +363,10 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             }
         }
         return conditions;
+    }
+
+    private boolean hasParameter(AbstractSearchItemWrapper<?> searchItemWrapper) {
+        return StringUtils.isNotEmpty(searchItemWrapper.getParameterName());
     }
 
     public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
