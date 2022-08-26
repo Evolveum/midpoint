@@ -5276,26 +5276,29 @@ public final class WebComponentUtil {
         return count;
     }
 
-    public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {
+    public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, ModelServiceLocator modelServiceLocator) {
         if (parameter == null || parameter.getAllowedValuesExpression() == null) {
             return new ArrayList<>();
         }
-        return getAllowedValues(parameter.getAllowedValuesExpression(), pageBase);
+        return getAllowedValues(parameter.getAllowedValuesExpression(), modelServiceLocator);
     }
 
-    public static List<DisplayableValue<?>> getAllowedValues(ExpressionType expression, PageBase pageBase) {
+    public static List<DisplayableValue<?>> getAllowedValues(ExpressionType expression, ModelServiceLocator modelServiceLocator) {
         List<DisplayableValue<?>> allowedValues = new ArrayList<>();
-
-        Task task = pageBase.createSimpleTask("evaluate expression for allowed values");
+        if (expression == null) {
+            return allowedValues;
+        }
+        Task task = modelServiceLocator.createSimpleTask("evaluate expression for allowed values");
         Object value;
         try {
-
             value = ExpressionUtil.evaluateExpressionNative(null, new VariablesMap(), null,
                     expression, MiscSchemaUtil.getExpressionProfile(),
-                    pageBase.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
+                    modelServiceLocator.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
-            pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
+            if (modelServiceLocator instanceof PageBase) {
+                ((PageBase)modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
+            }
             return allowedValues;
         }
         if (value instanceof PrismPropertyValue) {
@@ -5304,7 +5307,9 @@ public final class WebComponentUtil {
 
         if (!(value instanceof Set)) {
             LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
-            pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
+            if (modelServiceLocator instanceof PageBase) {
+                ((PageBase)modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
+            }
             return allowedValues;
         }
 
@@ -5312,7 +5317,9 @@ public final class WebComponentUtil {
             if (!(((Set<?>) value).iterator().next() instanceof PrismPropertyValue)
                     || !(((PrismPropertyValue) (((Set<?>) value).iterator().next())).getValue() instanceof DisplayableValue)) {
                 LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
-                pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
+                if (modelServiceLocator instanceof PageBase) {
+                    ((PageBase)modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
+                }
                 return allowedValues;
             }
 

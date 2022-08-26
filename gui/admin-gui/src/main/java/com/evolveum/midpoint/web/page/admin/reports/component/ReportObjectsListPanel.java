@@ -2,9 +2,21 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+
+import com.evolveum.midpoint.prism.ExpressionWrapper;
+import com.evolveum.midpoint.prism.impl.query.ValueFilterImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -24,9 +36,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -283,33 +292,75 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
         searchBoxConfiguration.setDefaultMode(SearchBoxModeType.BASIC);
         searchBoxConfiguration.getAllowedMode().add(SearchBoxModeType.BASIC);
         searchBoxConfiguration.setAllowToConfigureSearchItems(false);
-
-        List<SearchFilterParameterType> parameters = getReport().getObjectCollection() == null ?
-                Collections.emptyList() : getReport().getObjectCollection().getParameter();
         List<SearchItemType> searchItems = new ArrayList<>();
-        parameters.forEach(parameter -> {
-            SearchItemType searchItemType = new SearchItemType();
-            searchItemType.setParameter(parameter);
-            searchItemType.setVisibleByDefault(true);
-            if (parameter.getDisplay() != null) {
-                if (parameter.getDisplay().getLabel() != null) {
-                    searchItemType.setDisplayName(parameter.getDisplay().getLabel());
-                } else {
-                    searchItemType.setDisplayName(new PolyStringType(parameter.getName()));
+
+        if (getReport().getObjectCollection() != null) {
+            List<SearchFilterParameterType> parameters = getReport().getObjectCollection().getParameter();
+            parameters.forEach(parameter -> {
+                SearchItemType searchItemType = new SearchItemType();
+                searchItemType.setParameter(parameter);
+                searchItemType.setVisibleByDefault(true);
+                if (parameter.getDisplay() != null) {
+                    if (parameter.getDisplay().getLabel() != null) {
+                        searchItemType.setDisplayName(parameter.getDisplay().getLabel());
+                    } else {
+                        searchItemType.setDisplayName(new PolyStringType(parameter.getName()));
+                    }
+                    if (parameter.getDisplay().getHelp() != null) {
+                        searchItemType.setDescription(
+                                getPageBase().getLocalizationService().translate(parameter.getDisplay().getHelp().toPolyString()));
+                    }
                 }
-                if (parameter.getDisplay().getHelp() != null) {
-                    searchItemType.setDescription(
-                            getPageBase().getLocalizationService().translate(parameter.getDisplay().getHelp().toPolyString()));
+                searchItems.add(searchItemType);
+            });
+            if (getReport().getObjectCollection().getCollection() != null) {
+                SearchFilterType filter = getReport().getObjectCollection().getCollection().getFilter();
+                if (filter != null) {
+                    try {
+                        ObjectFilter parsedFilter = getPrismContext().getQueryConverter().parseFilter(filter, type);
+                        if (parsedFilter instanceof AndFilter) {
+                            List<ObjectFilter> conditions = ((AndFilter) parsedFilter).getConditions();
+                            conditions.forEach(condition -> processFilterToSearchItem(searchItems, condition));
+                        }
+                    } catch (SchemaException e) {
+                        LOGGER.debug("Unable to parse filter, {} ", filter);
+                    }
                 }
             }
-            searchItems.add(searchItemType);
-        });
+        }
 
         SearchItemsType searchItemsType = new SearchItemsType();
         searchItemsType.createSearchItemList().addAll(searchItems);
         searchBoxConfiguration.setSearchItems(searchItemsType);
 
-        return new SearchConfigurationWrapper<>(type);
+        return new SearchConfigurationWrapper<>(type, searchBoxConfiguration, getPageBase());
+    }
+
+    private void processFilterToSearchItem(List<SearchItemType> searchItems, ObjectFilter filter) {
+        if (filter instanceof ValueFilterImpl && ((ValueFilterImpl<?, ?>) filter).getExpression() != null) {
+            ExpressionWrapper expression = ((ValueFilterImpl<?, ?>) filter).getExpression();
+            ExpressionType expressionType = (ExpressionType) expression.getExpression();
+            List<JAXBElement<?>> pathElement = ExpressionUtil.findAllEvaluatorsByName(expressionType, SchemaConstantsGenerated.C_PATH);
+            if (!pathElement.isEmpty()) {
+                ItemPathType path = (ItemPathType) pathElement.get(0).getValue();
+                if (path.getItemPath().startsWithVariable()) {
+                    VariableItemPathSegment variablePath = (VariableItemPathSegment) path.getItemPath().first();
+                    SearchItemType searchItem = getSearchItemByParameterName(searchItems, variablePath.getName().toString());
+                    if (searchItem != null) {
+                        searchItem.setPath(new ItemPathType(((ValueFilterImpl<?, ?>) filter).getPath()));
+                    }
+                }
+            }
+        }
+    }
+
+    private SearchItemType getSearchItemByParameterName(List<SearchItemType> searchItemList, String parameterName) {
+        Optional<SearchItemType> searchItemType = searchItemList.stream().filter(item -> item.getParameter() != null &&
+                StringUtils.isNotEmpty(item.getParameter().getName()) && item.getParameter().getName().equals(parameterName)).findFirst();
+        if (!searchItemType.isEmpty()) {
+            return searchItemType.get();
+        }
+        return null;
     }
 
     @Override

@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -367,23 +368,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
         List<AbstractSearchItemWrapper> items = getItems();
         items.forEach(item -> {
-            if (StringUtils.isNoneEmpty(item.getFunctionParameterName())) {
-                variables.put(item.getFunctionParameterName(), item.functionParameterValue);
+            if (StringUtils.isNotEmpty(item.getParameterName())) {
+                Object parameterValue = item.getValue() != null ? item.getValue().getValue() : null;
+                TypedValue value = new TypedValue(parameterValue, item.getParameterValueType());
+                variables.put(item.getParameterName(), value);
             }
         });
-
-//        if (getConfig().getSearchItems() == null) {
-//            return variables;
-//        }
-//        for (SearchItemType item : getConfig().getSearchItems().getSearchItem()) {
-//            SearchFilterParameterType functionParameter = item.getParameter();
-//            if (functionParameter != null && functionParameter.getType() != null) {
-//                Class<?> inputClass = pageBase.getPrismContext().getSchemaRegistry().determineClassForType(functionParameter.getType());
-//                TypedValue value = new TypedValue(//item.getInput() != null ? item.getInput().getValue() :
-//                        null, inputClass);
-//                variables.put(functionParameter.getName(), value);
-//            }
-//        }
         return variables;
     }
 

@@ -98,7 +98,8 @@ public abstract class AbstractAssignmentPanel<AH extends AssignmentHolderType> e
         if (getAssignmentType() == null) {
             SearchFactory.addSearchRefWrapper(containerDef, ItemPath.create(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
             SearchFactory.addSearchRefWrapper(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-            SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
+            SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs,
+                    "AssignmentPanel.search.policyRule.name", getPageBase());
             SearchFactory.addSearchRefWrapper(containerDef,
                     ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
                             PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());

@@ -85,7 +85,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         }
 
 
-        SearchConfigurationWrapper<C> searchConfigWrapper = maybeConfig != null ? new SearchConfigurationWrapper<C>(type, maybeConfig) : new SearchConfigurationWrapper<C>(type);
+        SearchConfigurationWrapper<C> searchConfigWrapper = maybeConfig != null ? new SearchConfigurationWrapper<C>(type, maybeConfig, getPageBase()) : new SearchConfigurationWrapper<C>(type, getPageBase());
         CompiledObjectCollectionView collectionView = getObjectCollectionView();
         if (objectCollectionRefExists(collectionView)) {
             searchConfigWrapper.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());

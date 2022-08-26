@@ -612,10 +612,12 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
 
         addSpecificSearchableItemWrappers(containerDef, defs);
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+                defs, getPageBase());
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+                defs, getPageBase());
 
-        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef));
+        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
 
         return defs;
 
