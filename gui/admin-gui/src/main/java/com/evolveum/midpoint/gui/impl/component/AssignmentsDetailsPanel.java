@@ -6,8 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAssociationPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ResourceAttributePanel;
 
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -65,7 +69,7 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
         AssignmentsUtil.AssignmentTypeType assignmentTypeType = AssignmentsUtil.getAssignmentType(getModelObject());
         switch (assignmentTypeType) {
             case CONSTRUCTION:
-                tabs.add(createConstructionTabs());
+                tabs.addAll(createConstructionTabs());
                 break;
             case POLICY_RULE:
                 tabs.add(createTabs("AssignmentType.policyRule", AssignmentType.F_POLICY_RULE, PolicyRuleType.COMPLEX_TYPE));
@@ -224,15 +228,40 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
         };
 
     }
-    private PanelTab createConstructionTabs() {
-        return new PanelTab(createStringResource("AssignmentType.construction")) {
+    private List<PanelTab> createConstructionTabs() {
+        List<PanelTab> constructionTabs = new ArrayList<>();
+
+        constructionTabs.add(new PanelTab(createStringResource("AssignmentType.construction")) {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
                 return new AssignmentConstructionPanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), AssignmentType.F_CONSTRUCTION), getConfig());
             }
-        };
+        });
+
+        if (isInducement()) {
+            constructionTabs.add(new PanelTab(createStringResource("AssignmentDetailsPanel.construction.attribute")) {
+
+                @Override
+                public WebMarkupContainer createPanel(String panelId) {
+                    return new ResourceAttributePanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ATTRIBUTE)), null);
+                }
+            });
+
+            constructionTabs.add(new PanelTab(createStringResource("AssignmentDetailsPanel.construction.association")) {
+
+                @Override
+                public WebMarkupContainer createPanel(String panelId) {
+                    return new ResourceAssociationPanel(panelId, PrismContainerWrapperModel.fromContainerValueWrapper(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION)), null);
+                }
+            });
+        }
+        return constructionTabs;
 //        return createTabs("AssignmentType.construction", AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE);
+    }
+
+    private boolean isInducement() {
+        return AbstractRoleType.F_INDUCEMENT.equivalent(getModelObject().getPath().lastName());
     }
 
     private PanelTab createActivationTab() {

@@ -66,10 +66,6 @@ public class AssignmentConstructionPanel extends BasePanel<PrismContainerWrapper
             }
         };
         add(baseConstructionPanel);
-
-        ResourceAttributePanel attrsPanel = new ResourceAttributePanel(ID_ATTRIBUTES, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ConstructionType.F_ATTRIBUTE), null);
-        add(attrsPanel);
-
     }
 
     public ContainerPanelConfigurationType getConfig() {
