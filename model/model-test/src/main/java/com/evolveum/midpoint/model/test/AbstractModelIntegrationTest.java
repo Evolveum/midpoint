@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.model.test;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
-
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectableList;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieveCollection;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
@@ -29,11 +28,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.authentication.api.AuthModule;
-
-import com.evolveum.midpoint.model.test.util.ImportSingleAccountRequest.ImportSingleAccountRequestBuilder;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -62,6 +56,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 import com.evolveum.midpoint.authentication.api.ModuleWebSecurityConfiguration;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
@@ -79,10 +74,10 @@ import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.*;
+import com.evolveum.midpoint.model.test.util.ImportSingleAccountRequest.ImportSingleAccountRequestBuilder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
@@ -105,6 +100,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingConfigurationOverrides;
@@ -112,6 +108,7 @@ import com.evolveum.midpoint.repo.common.activity.run.buckets.BucketingManager;
 import com.evolveum.midpoint.repo.common.activity.run.reports.ActivityReportUtil;
 import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskHandler;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -3536,7 +3533,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected Task waitForNextRootActivityCompletion(@NotNull String rootTaskOid, int timeout) throws CommonException {
         OperationResult result = getTestOperationResult();
         XMLGregorianCalendar currentCompletionTimestamp = taskManager.getTaskWithResult(rootTaskOid, result)
-                        .getRootActivityCompletionTimestamp();
+                .getRootActivityCompletionTimestamp();
         return waitForRootActivityCompletion(rootTaskOid, currentCompletionTimestamp, timeout);
     }
 
@@ -4159,7 +4156,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             fail("Invalid number of messages recorded in dummy transport '" + name + "', expected: 1, actual: " + messages.size());
         }
         Message message = messages.get(0);
-        assertEquals("Unexpected notifier " + name + " message body", expectedBody, message.getBody());
+        assertThat(message.getBody()).startsWith(expectedBody); // there can be subscription footer
     }
 
     protected void assertSingleDummyTransportMessageContaining(String name, String expectedSubstring) {
@@ -4183,7 +4180,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         List<Message> messages = dummyTransport.getMessages("dummy:" + name);
         assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
         for (Message message : messages) {
-            if (expectedBody.equals(message.getBody())) {
+            // there can be subscription footer, so we're only interested in the start of the message
+            if (message.getBody().startsWith(expectedBody)) {
                 return;
             }
         }

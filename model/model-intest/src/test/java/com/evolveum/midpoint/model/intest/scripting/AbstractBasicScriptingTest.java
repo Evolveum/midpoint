@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.model.intest.scripting;
 
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,47 +22,41 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.util.exception.ScriptExecutionException;
-
-import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.SkipException;
 import org.testng.annotations.Test;
+import org.testng.collections.Sets;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
-
-import org.testng.collections.Sets;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -637,15 +631,15 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         //assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         assertUserAfterByUsername(USER_JACK_USERNAME)
                 .assignments()
-                    .assertAssignments(2)
-                    .by()
-                        .targetOid(ROLE_CAPTAIN_OID)
-                        .find()
-                        .end()
-                    .by()
-                        .resourceOid(RESOURCE_DUMMY_RED_OID)
-                        .find()
-                        .end();
+                .assertAssignments(2)
+                .by()
+                .targetOid(ROLE_CAPTAIN_OID)
+                .find()
+                .end()
+                .by()
+                .resourceOid(RESOURCE_DUMMY_RED_OID)
+                .find()
+                .end();
     }
 
     @Test
@@ -702,7 +696,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         assertSuccess(task.getResult());
         assertUserAfterByUsername(USER_JACK_USERNAME)
                 .assignments()
-                    .assertRole(ROLE_NICE_PIRATE_OID);
+                .assertRole(ROLE_NICE_PIRATE_OID);
     }
 
     @Test
@@ -713,7 +707,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         assertUserBefore(USER_WILL_OID)
                 .assignments()
-                    .assertAssignments(3);
+                .assertAssignments(3);
 
         ScriptingExpressionType expression = parseScriptingExpression(ASSIGN_PIRATE_MANAGER_TO_WILL);
 
@@ -729,9 +723,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 .assignments()
                 .assertAssignments(4)
                 .by()
-                    .targetOid(ROLE_PIRATE_OID)
-                    .targetRelation(SchemaConstants.ORG_MANAGER)
-                    .find();
+                .targetOid(ROLE_PIRATE_OID)
+                .targetRelation(SchemaConstants.ORG_MANAGER)
+                .find();
     }
 
     @Test
@@ -745,23 +739,23 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 .assignments()
                 .assertAssignments(4)
                 .by()
-                    .targetOid(ROLE_PIRATE_OID)
-                    .targetRelation(SchemaConstants.ORG_MANAGER)
-                    .find()
-                    .end()
+                .targetOid(ROLE_PIRATE_OID)
+                .targetRelation(SchemaConstants.ORG_MANAGER)
+                .find()
+                .end()
                 .by()
-                    .targetOid(ROLE_PIRATE_OID)
-                    .targetRelation(SchemaConstants.ORG_DEFAULT)
-                    .find()
-                    .end()
+                .targetOid(ROLE_PIRATE_OID)
+                .targetRelation(SchemaConstants.ORG_DEFAULT)
+                .find()
+                .end()
                 .by()
-                    .targetOid(ROLE_PIRATE_OID)
-                    .targetRelation(SchemaConstants.ORG_OWNER)
-                    .find()
-                    .end()
+                .targetOid(ROLE_PIRATE_OID)
+                .targetRelation(SchemaConstants.ORG_OWNER)
+                .find()
+                .end()
                 .by()
-                    .resourceOid(RESOURCE_DUMMY_OID)
-                    .find();
+                .resourceOid(RESOURCE_DUMMY_OID)
+                .find();
 
         when();
         ExecutionContext output = evaluator.evaluateExpression(expression, task, result);
@@ -775,18 +769,18 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 .assignments()
                 .assertAssignments(3)
                 .by()
-                    .targetOid(ROLE_PIRATE_OID)
-                    .targetRelation(SchemaConstants.ORG_MANAGER)
-                    .find()
-                    .end()
+                .targetOid(ROLE_PIRATE_OID)
+                .targetRelation(SchemaConstants.ORG_MANAGER)
+                .find()
+                .end()
                 .by()
-                    .targetOid(ROLE_PIRATE_OID)
-                    .targetRelation(SchemaConstants.ORG_OWNER)
-                    .find()
-                    .end()
+                .targetOid(ROLE_PIRATE_OID)
+                .targetRelation(SchemaConstants.ORG_OWNER)
+                .find()
+                .end()
                 .by()
-                    .resourceOid(RESOURCE_DUMMY_OID)
-                    .find();
+                .resourceOid(RESOURCE_DUMMY_OID)
+                .find();
     }
 
     @Test
@@ -808,9 +802,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         assertUserAfter(USER_WILL_OID)
                 .assignments()
                 .assertAssignments(1)
-                    .by()
-                        .resourceOid(RESOURCE_DUMMY_OID)
-                        .find();
+                .by()
+                .resourceOid(RESOURCE_DUMMY_OID)
+                .find();
     }
 
     @Test
@@ -856,9 +850,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
                 .assignments()
                 .assertAssignments(1)
                 .by()
-                    .targetOid(ROLE_PIRATE_OID)
-                    .targetRelation(customRelation)
-                    .find();
+                .targetOid(ROLE_PIRATE_OID)
+                .targetRelation(customRelation)
+                .find();
     }
 
     @Test
@@ -932,7 +926,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         displayDumpable("Dummy transport", dummyTransport);
         checkDummyTransportMessages("Custom", 1);
         Message m = dummyTransport.getMessages("dummy:Custom").get(0);
-        assertEquals("Wrong message body", "jack/" + USER_JACK_OID, m.getBody());
+        assertThat(m.getBody()).startsWith("jack/" + USER_JACK_OID); // there can be subscription footer
         assertEquals("Wrong message subject", "Ad hoc notification", m.getSubject());
     }
 
@@ -958,12 +952,12 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         displayDumpable("Dummy transport", dummyTransport);
         checkDummyTransportMessages("Custom", 1);
         Message m = dummyTransport.getMessages("dummy:Custom").get(0);
-        assertEquals("Wrong message body", "1", m.getBody());
+        assertThat(m.getBody()).startsWith("1"); // there can be subscription footer
         assertEquals("Wrong message subject", "Ad hoc notification 2", m.getSubject());
 
         checkDummyTransportMessages("CustomType2", 1);
         m = dummyTransport.getMessages("dummy:CustomType2").get(0);
-        assertEquals("Wrong message body", "POV:user:c0c010c0-d34d-b33f-f00d-111111111111(jack)", m.getBody());
+        assertThat(m.getBody()).startsWith("POV:user:c0c010c0-d34d-b33f-f00d-111111111111(jack)"); // there can be subscription footer
         assertEquals("Wrong message subject", "Failure notification of type 2", m.getSubject());
     }
 
@@ -1280,7 +1274,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         assertTask(taskAfterFirstRun, "task after first run")
                 .assertProgress(numberOfUsers)
                 .rootItemProcessingInformation()
-                    .assertSuccessCount(numberOfUsers);
+                .assertSuccessCount(numberOfUsers);
 
         // Testing for MID-6488
         when("second run");
@@ -1290,7 +1284,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         assertTask(taskAfterSecondRun, "task after second run")
                 .assertProgress(numberOfUsers)
                 .rootItemProcessingInformation()
-                    .assertSuccessCount(numberOfUsers);
+                .assertSuccessCount(numberOfUsers);
     }
 
     @Test

@@ -141,14 +141,6 @@ public class ResourceTemplateProvider
 //    }
 
     @Override
-    protected @NotNull List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-        List<ObjectOrdering> orderings = new ArrayList<>();
-        orderings.add(PrismContext.get().queryFactory().createOrdering(ConnectorType.F_DISPLAY_NAME, OrderDirection.ASCENDING));
-        orderings.addAll(super.createObjectOrderings(sortParam));
-        return orderings;
-    }
-
-    @Override
     protected ObjectQuery getCustomizeContentQuery() {
         S_FilterEntryOrEmpty query = PrismContext.get().queryFor(AssignmentHolderType.class);
         if (TemplateType.ALL.equals(type.getObject())

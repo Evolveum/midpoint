@@ -118,6 +118,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_MAIL_TRANSPORT_CONTENT,
         PANEL_MESSAGE_TRANSPORT_CONTENT,
         PANEL_INBOUND_MAPPING_WIZARD,
+        PANEL_OUTBOUND_MAPPING_WIZARD,
         PAGE_REQUEST_ACCESS_ROLE_CATALOG
     }
 

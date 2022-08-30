@@ -141,7 +141,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         List<Component> bar = new ArrayList<>();
 
         AjaxIconButton newObjectButton = new AjaxIconButton(idButton, new Model<>(GuiStyleConstants.CLASS_ADD_NEW_OBJECT),
-                createStringResource("MainObjectListPanel.newObject")) {
+                createStringResource(getKeyOfTitleForNewObjectButton())) {
 
             private static final long serialVersionUID = 1L;
 
@@ -154,6 +154,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         newObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectVisible()));
         bar.add(newObjectButton);
         return bar;
+    }
+
+    protected String getKeyOfTitleForNewObjectButton() {
+        return "MainObjectListPanel.newObject";
     }
 
     protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc) {

@@ -136,7 +136,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         return new VisibleEnableBehaviour(() -> !isSubmitVisible());
     }
 
-    private boolean isSubmitVisible() {
+    protected boolean isSubmitVisible() {
       return getWizard().getNextPanel() == null;
     }
 
@@ -188,6 +188,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
     }
 
     protected void onFinishPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
     }
 
     public boolean onBackPerformed(AjaxRequestTarget target) {

@@ -12,14 +12,11 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -40,6 +37,7 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
     private static final String ID_BUTTONS = "buttons";
+    private static final String ID_BUTTONS_CONTAINER = "buttonsContainer";
 
     private final ResourceDetailsModel resourceModel;
     public AbstractWizardBasicPanel(String id, ResourceDetailsModel resourceModel) {
@@ -59,7 +57,7 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
     }
 
     private void addBreadcrumb() {
-        List<Breadcrumb> breadcrumbs = getBreadcrumbsModel().getObject();
+        List<Breadcrumb> breadcrumbs = getBreadcrumb();
         IModel<String> breadcrumbLabelModel = getBreadcrumbLabel();
         String breadcrumbLabel = breadcrumbLabelModel.getObject();
 
@@ -79,12 +77,14 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
     @NotNull protected abstract IModel<String> getBreadcrumbLabel();
 
     private void removeLastBreadcrumb() {
-        int index = getBreadcrumbsModel().getObject().size() - 1;
-        getBreadcrumbsModel().getObject().remove(index);
+        int index = getBreadcrumb().size() - 1;
+        getBreadcrumb().remove(index);
     }
 
     private void initLayout() {
-        ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, getBreadcrumbsModel()) {
+
+        IModel<List<Breadcrumb>> breadcrumb = () -> getBreadcrumb();
+        ListView<Breadcrumb> breadcrumbs = new ListView<>(ID_BREADCRUMB, breadcrumb) {
 
             private static final long serialVersionUID = 1L;
 
@@ -102,7 +102,7 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
             }
         };
         add(breadcrumbs);
-        breadcrumbs.add(new VisibleBehaviour(() -> getBreadcrumbsModel().getObject().size() > 1));
+        breadcrumbs.add(new VisibleBehaviour(() -> getBreadcrumb().size() > 1));
 
         Label mainText = new Label(ID_TEXT, getTextModel());
         mainText.add(new VisibleBehaviour(() -> getTextModel().getObject() != null));
@@ -111,6 +111,10 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
         Label secondaryText = new Label(ID_SUBTEXT, getSubTextModel());
         secondaryText.add(new VisibleBehaviour(() -> getSubTextModel().getObject() != null));
         add(secondaryText);
+
+        WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
+        buttonsContainer.setOutputMarkupId(true);
+        add(buttonsContainer);
 
         RepeatingView buttons = new RepeatingView(ID_BUTTONS);
 
@@ -129,15 +133,19 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
         buttons.add(exit);
 
         addCustomButtons(buttons);
-        add(buttons);
+        buttonsContainer.add(buttons);
     }
 
-    private IModel<List<Breadcrumb>> getBreadcrumbsModel() {
+    protected WebMarkupContainer getButtonsContainer() {
+        return (WebMarkupContainer) get(ID_BUTTONS_CONTAINER);
+    }
+
+    private List<Breadcrumb> getBreadcrumb() {
         PageBase page = getPageBase();
         if (page instanceof PageResource) {
             return ((PageResource)page).getWizardBreadcrumbs();
         }
-        return Model.ofList(List.of());
+        return List.of();
     }
 
     protected IModel<String> getExitLabel() {

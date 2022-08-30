@@ -72,7 +72,8 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
                     resource.getSchema().beginGenerationConstraints();
                 }
 
-                List<QName> list = resource.getSchema().getGenerationConstraints().getGenerateObjectClass();
+                List<QName> list = new ArrayList<>();
+                list.addAll(resource.getSchema().getGenerationConstraints().getGenerateObjectClass());
                 if (list.size() == 1 && list.get(0) == null) {
                     list.clear();
                 }

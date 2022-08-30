@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -77,5 +78,10 @@ public class LimitationsStepPanel extends AbstractFormResourceWizardStepPanel {
     @Override
     protected IModel<?> getSubTextModel() {
         return createStringResource("PageResource.wizard.step.attributes.limitation.subText");
+    }
+
+    @Override
+    protected void onFinishPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
     }
 }
