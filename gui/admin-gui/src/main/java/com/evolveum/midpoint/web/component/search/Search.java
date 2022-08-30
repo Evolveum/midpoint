@@ -259,7 +259,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         for (SearchItemDefinition def : definitions) {
             boolean exists = false;
             for (SearchItemDefinition existingDef : getAllDefinitions()) {
-                if (existingDef.getPath() != null && QNameUtil.match(existingDef.getPath().lastName(), def.getPath().lastName())) {
+                if (def.getPath() != null && existingDef.getPath() != null && QNameUtil.match(existingDef.getPath().lastName(), def.getPath().lastName())) {
                     exists = true;
                     break;
                 }
