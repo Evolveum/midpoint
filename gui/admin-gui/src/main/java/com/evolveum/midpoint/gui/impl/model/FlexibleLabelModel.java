@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.model;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.RestartResponseException;
@@ -104,14 +105,23 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
             throw new RestartResponseException(PageError.class);
         }
 
-        if (property == null || property.getRealValue() == null) {
-            return "";
+        if (property.isSingleValue()) {
+            if (property == null || property.getRealValue() == null) {
+                return "";
+            }
+            return getTranslatedRealValue(property.getRealValue());
         }
-        if (property.getRealValue() instanceof PolyString) {
-            return serviceLocator.getLocalizationService().translate((PolyString) property.getRealValue(),
+        return property.getRealValues().stream()
+                .map(realValue -> getTranslatedRealValue(realValue))
+                .collect(Collectors.joining(", "));
+    }
+
+    private String getTranslatedRealValue(Object realValue) {
+        if (realValue instanceof PolyString) {
+            return serviceLocator.getLocalizationService().translate((PolyString) realValue,
                     serviceLocator.getLocale(), true);
         }
-        return property.getRealValue().toString();
+        return realValue.toString();
     }
 
     private String getExpressionValue(ExpressionType expressionType, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
