@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -83,6 +84,8 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
             PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getVisibilityHandler());
             valuePanel.setOutputMarkupId(true);
             valuePanel.add(new VisibleBehaviour(() -> getModelObject() != null && (getModelObject().isExpanded() || getModelObject().isSingleValue())));
+            valuePanel.add(AttributeAppender.replace("style", getModelObject().isMultiValue() && !getModelObject().isExpanded() ? "display:none" : ""));
+
             valuePanel.add(AttributeModifier.append("class", () -> {
                 String cssClasses = "";
                 if (getModelObject() != null && getModelObject().isMultiValue()

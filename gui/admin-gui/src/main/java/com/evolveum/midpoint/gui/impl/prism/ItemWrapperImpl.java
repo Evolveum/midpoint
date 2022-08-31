@@ -376,7 +376,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
     @Override
     public boolean isVisible(PrismContainerValueWrapper parentContainer, ItemVisibilityHandler visibilityHandler) {
 
-        if (!isVisibleByVisibilityHandler(parentContainer.isExpanded(), visibilityHandler)) {
+        if (!isVisibleByVisibilityHandler(visibilityHandler)) {
             return false;
         }
 
@@ -397,11 +397,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
         return false;
     }
 
-    protected boolean isVisibleByVisibilityHandler(boolean parentExpanded, ItemVisibilityHandler visibilityHandler) {
-        if (!parentExpanded) {
-            return false;
-        }
-
+    protected boolean isVisibleByVisibilityHandler(ItemVisibilityHandler visibilityHandler) {
 
         if (visibilityHandler != null) {
             ItemVisibility visible = visibilityHandler.isVisible(this);

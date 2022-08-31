@@ -227,6 +227,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(visibilityHandler);
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), builder.build());
+            panel.add(AttributeAppender.replace("style", () -> getModelObject().isExpanded() ? "" : "display:none"));
+
             panel.setOutputMarkupId(true);
             item.add(new VisibleEnableBehaviour() {
 
@@ -259,6 +261,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         try {
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(visibilityHandler);
             Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), builder.build());
+            panel.add(AttributeAppender.replace("style", () -> getModelObject().isExpanded() ? "" : "display:none"));
+
             panel.setOutputMarkupId(true);
             container.add(new VisibleBehaviour(() -> {
                 CVW parent = PrismContainerValuePanel.this.getModelObject();

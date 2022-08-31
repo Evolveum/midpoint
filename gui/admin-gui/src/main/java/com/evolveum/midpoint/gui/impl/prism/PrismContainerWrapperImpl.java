@@ -351,7 +351,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
             return (getParent() != null && getParent().isShowMetadata());
         }
 
-        return isVisibleByVisibilityHandler(parent.isExpanded(), visibilityHandler);
+        return isVisibleByVisibilityHandler(visibilityHandler);
     }
 
     @Override
