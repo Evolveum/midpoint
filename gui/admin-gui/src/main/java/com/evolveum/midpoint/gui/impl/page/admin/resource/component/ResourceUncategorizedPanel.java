@@ -23,4 +23,8 @@ public class ResourceUncategorizedPanel extends ResourceContentPanel {
     public ResourceUncategorizedPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
         super(id, null, model, config);
     }
+
+    public ResourceUncategorizedPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config, boolean repoSearch) {
+        super(id, null, model, config, repoSearch);
+    }
 }

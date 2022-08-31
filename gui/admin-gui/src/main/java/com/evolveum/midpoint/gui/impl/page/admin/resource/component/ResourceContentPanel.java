@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperMod
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -119,7 +120,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
             @Override
             protected ResourceContentSearchDto load() {
-                isRepoSearch = !getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).getResourceSearch();
+                isRepoSearch = isRepoSearch();
                 return getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                         SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).getContentSearch();
 
@@ -127,6 +128,12 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
         };
 
+    }
+
+    //TODO this should be fixed. It somehow doesn't make sense to look into the storage first
+    // to decide which storage should be used?
+    protected boolean isRepoSearch() {
+        return !getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).getResourceSearch();
     }
 
     private void updateResourceContentSearch() {
@@ -381,23 +388,29 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = getObjectWrapperModel().getObject().findContainer(
                     ItemPath.create(ResourceType.F_SCHEMA_HANDLING, SchemaHandlingType.F_OBJECT_TYPE));
             for (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> value : container.getValues()) {
+                ResourceObjectTypeDefinitionType objectTypeDefinition = value.getRealValue();
+                if (objectTypeDefinition == null) {
+                    continue;
+                }
+                ShadowKindType searchKind = resourceContentSearch.getObject().getKind();
+                String searchIntent = resourceContentSearch.getObject().getIntent();
                 if (!isUseObjectClass()
-                        && (resourceContentSearch.getObject().getKind().equals(value.getRealValue().getKind()))
-                        || kind.equals(value.getRealValue().getKind())) {
-                    if (resourceContentSearch.getObject().getIntent() != null
-                            && resourceContentSearch.getObject().getIntent().equals(value.getRealValue().getKind())) {
+                        && (searchKind.equals(objectTypeDefinition.getKind()))
+                        || kind.equals(objectTypeDefinition.getKind())) {
+                    if (searchIntent != null
+                            && searchIntent.equals(objectTypeDefinition.getIntent())) {
                         foundValue = value;
                     }
-                    if (Boolean.TRUE.equals(value.getRealValue().isDefaultForKind())){
+                    if (Boolean.TRUE.equals(objectTypeDefinition.isDefaultForKind())){
                         defaultValue = value;
                     }
                 }
                 if (isUseObjectClass()
-                        && resourceContentSearch.getObject().getObjectClass().equals(value.getRealValue().getObjectClass())
-                        && Boolean.TRUE.equals(value.getRealValue().isDefaultForObjectClass())) {
+                        && resourceContentSearch.getObject().getObjectClass().equals(objectTypeDefinition.getObjectClass())
+                        && Boolean.TRUE.equals(objectTypeDefinition.isDefaultForObjectClass())) {
                     foundValue = value;
                 }
-                if (Boolean.TRUE.equals(value.getRealValue().isDefault() && defaultValue == null)) {
+                if (BooleanUtils.isTrue(objectTypeDefinition.isDefault()) && defaultValue == null) {
                     defaultValue = value;
                 }
             }
@@ -513,7 +526,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         return resourceContentSearch.getObject().getObjectClass();
     }
 
-    private boolean isResourceSearch() {
+    protected boolean isResourceSearch() {
         Boolean isResourceSearch = resourceContentSearch.getObject().isResourceSearch();
         if (isResourceSearch == null) {
             return false;
