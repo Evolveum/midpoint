@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
@@ -82,6 +83,7 @@ public class PrismContainerPanel<C extends Containerable, PCW extends PrismConta
                 PrismContainerPanel.this.removeValue(valueToRemove, target);
             }
         };
+        panel.add(AttributeAppender.replace("style", getModelObject().isMultiValue() && !getModelObject().isExpanded() ? "display:none" : ""));
         item.add(panel);
         return panel;
     }
