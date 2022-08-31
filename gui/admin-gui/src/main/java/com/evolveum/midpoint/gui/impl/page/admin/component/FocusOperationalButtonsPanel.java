@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.web.component.AjaxCompositedIconSubmitButton;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -76,11 +80,18 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
     }
 
     private void createPreviewButton(RepeatingView repeatingView) {
-        AjaxIconButton preview = new AjaxIconButton(repeatingView.newChildId(), Model.of(GuiStyleConstants.CLASS_ICON_PREVIEW),
+        CompositedIconBuilder iconBuilder = new CompositedIconBuilder().setBasicIcon(GuiStyleConstants.CLASS_ICON_PREVIEW, LayeredIconCssStyle.IN_ROW_STYLE);
+        AjaxCompositedIconSubmitButton preview = new AjaxCompositedIconSubmitButton(repeatingView.newChildId(), iconBuilder.build(),
                 getPageBase().createStringResource("pageAdminFocus.button.previewChanges")) {
+
             @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                previewPerformed(ajaxRequestTarget);
+            protected void onSubmit(AjaxRequestTarget target) {
+                previewPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(getPageBase().getFeedbackPanel());
             }
         };
         preview.add(new VisibleEnableBehaviour() {
@@ -97,7 +108,7 @@ public class FocusOperationalButtonsPanel<F extends FocusType> extends Assignmen
                 return isSavePreviewButtonEnabled();
             }
         });
-        preview.showTitleAsLabel(true);
+        preview.titleAsLabel(true);
         preview.add(AttributeAppender.append("class", "btn btn-info btn-sm"));
         repeatingView.add(preview);
     }

@@ -668,7 +668,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public boolean isVisible(PrismContainerValueWrapper<?> parent, ItemVisibilityHandler visibilityHandler) {
 
-        if (!isVisibleByVisibilityHandler(parent.isExpanded(), visibilityHandler)) {
+        if (!isVisibleByVisibilityHandler(visibilityHandler)) {
             return false;
         }
 
@@ -690,11 +690,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return false;
     }
 
-    protected boolean isVisibleByVisibilityHandler(boolean parentExpanded, ItemVisibilityHandler visibilityHandler) {
-        if (!parentExpanded) {
-            return false;
-        }
-
+    protected boolean isVisibleByVisibilityHandler(ItemVisibilityHandler visibilityHandler) {
         if (visibilityHandler != null) {
             ItemVisibility visible = visibilityHandler.isVisible(this);
             if (visible != null) {
@@ -716,7 +712,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
             return true;
         }
 
-        return isEmphasized() || !isEmpty();
+        return isEmphasized() || !isEmpty() || isMandatory();
     }
 
     private boolean isVisibleForAdd(boolean parentShowEmpty) {
@@ -724,7 +720,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
             return true;
         }
 
-        return isEmphasized() || !isEmpty();
+        return isEmphasized() || !isEmpty() || isMandatory();
     }
 
     @Override
