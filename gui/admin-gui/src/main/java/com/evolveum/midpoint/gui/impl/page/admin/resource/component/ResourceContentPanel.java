@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -16,7 +15,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
 
@@ -28,11 +26,9 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -40,9 +36,9 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -277,24 +273,11 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 isRepoSearch = true;
-                getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).setResourceSearch(Boolean.FALSE);
-                getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(Boolean.FALSE);
-
-                resourceContentSearch.getObject().setResourceSearch(Boolean.FALSE);
-                updateResourceContentSearch();
-                mainForm.addOrReplace(initRepoContent(ResourceContentPanel.this.getObjectWrapperModel()));
-                target.add(getParent().addOrReplace(mainForm));
-                target.add(this);
-                target.add(getParent().get(getPageBase().createComponentPath(ID_RESOURCE_CHOICE_CONTAINER_SEARCH, ID_RESOURCE_SEARCH))
-                        .add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
-            }
-
-            @Override
-            protected void onBeforeRender() {
-                super.onBeforeRender();
-                if (!getModelObject().booleanValue()) {add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));}
+                updateSearchButtons(true, target, initRepoContent(ResourceContentPanel.this.getObjectWrapperModel()));
             }
         };
+
+        repoSearch.add(AttributeAppender.replace("class", () -> "btn btn-sm btn-default" + (isRepoSearch ? " active" : "")));
         resourceChoiceContainer.add(repoSearch);
 
         AjaxLink<Boolean> resourceSearch = new AjaxLink<Boolean>(ID_RESOURCE_SEARCH,
@@ -304,26 +287,30 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 isRepoSearch = false;
-                getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).setResourceSearch(Boolean.TRUE);
-                getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(Boolean.TRUE);
-                updateResourceContentSearch();
-                resourceContentSearch.getObject().setResourceSearch(Boolean.TRUE);
-                mainForm.addOrReplace(initResourceContent(ResourceContentPanel.this.getObjectWrapperModel()));
-                target.add(getParent().addOrReplace(mainForm));
-                target.add(this.add(AttributeModifier.append("class", " active")));
-                target.add(getParent().get(getPageBase().createComponentPath(ID_RESOURCE_CHOICE_CONTAINER_SEARCH, ID_REPO_SEARCH))
-                        .add(AttributeModifier.replace("class", "btn btn-sm btn-default")));
+                updateSearchButtons(false, target, initResourceContent(ResourceContentPanel.this.getObjectWrapperModel()));
             }
 
-            @Override
-            protected void onBeforeRender() {
-                super.onBeforeRender();
-                getModelObject().booleanValue();
-                if (getModelObject().booleanValue()) {add(AttributeModifier.replace("class", "btn btn-sm btn-default active"));}
-            }
         };
+        resourceSearch.add(AttributeAppender.replace("class", () -> "btn btn-sm btn-default" + (isRepoSearch ? "" : " active")));
         resourceChoiceContainer.add(resourceSearch);
 
+    }
+
+    private void updateSearchButtons(boolean repoSearch, AjaxRequestTarget target, Panel newPanel) {
+        getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT).setResourceSearch(!repoSearch);
+        getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(!repoSearch);
+
+        resourceContentSearch.getObject().setResourceSearch(!repoSearch);
+        updateResourceContentSearch();
+
+        Form mainForm = getMainForm();
+        mainForm.addOrReplace(newPanel);
+        target.add(mainForm);
+        target.add(get(ID_RESOURCE_CHOICE_CONTAINER_SEARCH));
+    }
+
+    private Form getMainForm() {
+        return (Form) get(ID_MAIN_FORM);
     }
 
     protected boolean isSourceChoiceVisible() {
