@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
+import org.apache.wicket.model.StringResourceModel;
 
 public class ResourceContentRepositoryPanel extends ResourceContentPanel {
     private static final long serialVersionUID = 1L;
@@ -170,6 +171,11 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
     @Override
     protected Search createSearch() {
         return SearchFactory.createSearch(ShadowType.class, getPageBase());
+    }
+
+    @Override
+    protected String getTargetOperationIndication() {
+        return ".repo";
     }
 
     @Override

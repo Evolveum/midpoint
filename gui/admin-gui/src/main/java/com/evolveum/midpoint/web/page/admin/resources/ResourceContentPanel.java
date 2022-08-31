@@ -867,6 +867,8 @@ public abstract class ResourceContentPanel extends Panel {
         return items;
     }
 
+    protected abstract String getTargetOperationIndication();
+
     protected void importResourceObject(ShadowType selected, AjaxRequestTarget target) {
         List<ShadowType> selectedShadows;
         if (selected != null) {
@@ -914,8 +916,8 @@ public abstract class ResourceContentPanel extends Panel {
         }
 
         ConfirmationPanel dialog = new ConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                createDeleteConfirmString(selected, "pageContentAccounts.message.deleteConfirmationSingle",
-                        "pageContentAccounts.message.deleteConfirmation")) {
+                createDeleteConfirmString(selected, "pageContentAccounts.message.deleteConfirmationSingle" + getTargetOperationIndication(),
+                        "pageContentAccounts.message.deleteConfirmation" + getTargetOperationIndication())) {
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 deleteAccountConfirmedPerformed(target, result, selectedShadow);

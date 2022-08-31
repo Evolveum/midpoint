@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import org.apache.wicket.model.StringResourceModel;
 
 public class ResourceContentResourcePanel extends ResourceContentPanel {
     private static final long serialVersionUID = 1L;
@@ -59,6 +60,11 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
         List<SearchItemDefinition> availableDefs = new ArrayList<>();
         availableDefs.addAll(createAttributeDefinitionList());
         return new Search(ShadowType.class, availableDefs);
+    }
+
+    @Override
+    protected String getTargetOperationIndication() {
+        return "";
     }
 
     private <T extends ObjectType> List<SearchItemDefinition> createAttributeDefinitionList() {
