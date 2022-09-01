@@ -112,6 +112,8 @@ class GetHelper {
             LOGGER.trace("Got repository shadow object:\n{}", repoShadow.debugDumpLazily());
         }
 
+        @NotNull ShadowType originalRepoShadow = repoShadow.asObjectable();
+
         // Sanity check
         if (!oid.equals(repoShadow.getOid())) {
             result.recordFatalError("Provided OID is not equal to OID of repository shadow");
@@ -176,10 +178,10 @@ class GetHelper {
             LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repoShadow, 1));
         }
         if (repoShadow == null) {
-            // Dead shadow was just removed
+            // Most probably a dead shadow was just removed
             // TODO: is this OK? What about re-appeared objects
-            LOGGER.warn("DEAD shadow {} DEAD?", oid);
-            ObjectNotFoundException e = new ObjectNotFoundException("Resource object does not exist");
+            LOGGER.debug("Shadow (no longer) exists: {}", originalRepoShadow);
+            ObjectNotFoundException e = new ObjectNotFoundException("Resource object does not exist", oid);
             result.recordFatalError(e);
             throw e;
         }
