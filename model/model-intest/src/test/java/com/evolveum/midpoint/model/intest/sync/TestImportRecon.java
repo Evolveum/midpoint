@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
-import static com.evolveum.midpoint.model.api.ModelPublicConstants.RECONCILIATION_REMAINING_SHADOWS_PATH;
-import static com.evolveum.midpoint.model.api.ModelPublicConstants.RECONCILIATION_RESOURCE_OBJECTS_PATH;
+import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.SYNCHRONIZATION_NOT_NEEDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
@@ -25,6 +24,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+
+import com.evolveum.midpoint.test.*;
 
 import org.apache.commons.lang.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,10 +63,6 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ProvisioningScriptSpec;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -148,6 +145,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     private static final String RESOURCE_DUMMY_LIME_NAME = "lime";
     private static final String RESOURCE_DUMMY_LIME_NAMESPACE = MidPointConstants.NS_RI;
 
+    private static final DummyTestResource RESOURCE_DUMMY_GRAVEYARD = new DummyTestResource(
+            TEST_DIR, "resource-dummy-graveyard.xml", "106c2242-59c9-4ccd-afcb-557437b816da", "graveyard");
+
     private static final QName DUMMY_LIME_ACCOUNT_OBJECT_CLASS = new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass");
 
     private static final TestResource<ObjectTemplateType> USER_TEMPLATE_LIME = new TestResource<>(
@@ -167,6 +167,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "task-reconcile-dummy-azure.xml", "10000000-0000-0000-5656-56560000a204");
     private static final TestResource<TaskType> TASK_RECONCILE_DUMMY_LIME = new TestResource<>(
             TEST_DIR, "task-reconcile-dummy-lime.xml", "10000000-0000-0000-5656-565600131204");
+    private static final TestTask TASK_RECONCILE_DUMMY_GRAVEYARD = new TestTask(
+            TEST_DIR, "task-reconcile-dummy-graveyard.xml", "c2665533-bae3-4d06-966c-8e8705bc37da", 20_000);
     private static final TestResource<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY = new TestResource<>(
             TEST_DIR, "task-import-dummy-lime-limited-legacy.xml", "4e2f83b8-5312-4924-af7e-52805ad20b3e");
     private static final TestResource<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED = new TestResource<>(
@@ -220,6 +222,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyResourceLime = dummyResourceCtlLime.getDummyResource();
         resourceDummyLime = importAndGetObjectFromFile(ResourceType.class, getDummyResourceLimeFile(), RESOURCE_DUMMY_LIME_OID, initTask, initResult);
         dummyResourceCtlLime.setResource(resourceDummyLime);
+
+        initAndTestDummyResource(RESOURCE_DUMMY_GRAVEYARD, initTask, initResult);
+        TASK_RECONCILE_DUMMY_GRAVEYARD.initialize(this, initTask, initResult);
 
         // Create an account that midPoint does not know about yet
         getDummyResourceController().addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, "Scabb Island");
@@ -2795,6 +2800,61 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Found", objects);
 
         assertEquals("Wrong number of objects found", 6, objects.size());
+    }
+
+    /**
+     * Reconciles a dead account. See MID-7956.
+     */
+    @Test
+    public void test700ReconcileDeadAccount() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String accountName = "test700";
+
+        given("an account + a shadow exist");
+        RESOURCE_DUMMY_GRAVEYARD.controller.addAccount(accountName);
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
+                RESOURCE_DUMMY_GRAVEYARD.oid, DUMMY_ACCOUNT_OBJECT_CLASS, prismContext);
+        List<PrismObject<ShadowType>> shadows =
+                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+        assertThat(shadows).as("shadows").hasSize(1);
+        String shadowOid = shadows.get(0).getOid();
+
+        and("the account is deleted, and shadow is marked as dead");
+        RESOURCE_DUMMY_GRAVEYARD.controller.deleteAccount(accountName);
+        PrismObject<ShadowType> shadowAfterDeletion =
+                provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
+        assertShadow(shadowAfterDeletion, "after deletion")
+                .display()
+                .assertIsDead(true);
+
+        and("time is +20 minutes (after dead shadow retention period)");
+        clock.overrideDuration("PT20M");
+
+        when("reconciliation is run");
+        TASK_RECONCILE_DUMMY_GRAVEYARD.rerun(result);
+
+        then("reconciliation is OK");
+        // @formatter:off
+        TASK_RECONCILE_DUMMY_GRAVEYARD.assertAfter()
+                .assertClosed()
+                .assertSuccess()
+                .activityState(RECONCILIATION_OPERATION_COMPLETION_PATH)
+                    .progress()
+                        .assertCommitted(0, 0, 0)
+                    .end()
+                .end()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .progress()
+                        .assertCommitted(0, 0, 0)
+                    .end()
+                .end()
+                .activityState(RECONCILIATION_REMAINING_SHADOWS_PATH)
+                    .progress()
+                        .assertCommitted(0, 0, 1) // "success" state would be probably also OK
+                    .end()
+                .end();
+        // @formatter:on
     }
 
     /**
