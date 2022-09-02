@@ -12,7 +12,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * Helper class to SecurityEnforcer, used to evaluate item authorizations.
+ * Helper class to {@link SecurityEnforcerImpl}, used to evaluate item authorizations.
  *
  * @author semancik
  */
