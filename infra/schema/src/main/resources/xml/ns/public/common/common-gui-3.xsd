@@ -346,7 +346,8 @@
     <xsd:complexType name="GroupSelectionType">
         <xsd:annotation>
             <xsd:documentation>
-                todo
+                Group selection structure creates new tile in first step of request access wizard UI (person of interest).
+                Tile button will allow user requesting access to select other users from collections specified by collectionRef or filter.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -455,7 +456,8 @@
     <xsd:complexType name="RoleCollectionViewType">
         <xsd:annotation>
             <xsd:documentation>
-                todo
+                Role collection view defines structure that should be shown in request access UI wizard - in role catalog step.
+                It will represent new menu item with list of roles defined by collectionRef or collection identifier (e.g. allOrgs,  allServices).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -466,7 +468,13 @@
             <xsd:element name="default" type="xsd:boolean" minOccurs="0" default="false"/>
             <xsd:element name="collectionIdentifier" type="xsd:string" minOccurs="0"/>
             <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0"/>
-            <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0"/>
+            <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines how details about role should be displayed on popup in role catalog step.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -480,12 +488,23 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="defaultView" type="tns:RoleCatalogViewType" minOccurs="0">
-
-            </xsd:element>
+            <xsd:element name="defaultView" type="tns:RoleCatalogViewType" minOccurs="0"/>
             <xsd:element name="allowedViews" type="tns:RoleCatalogViewType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="showRolesOfTeammate" type="xsd:boolean" minOccurs="0" default="true"/>
-            <xsd:element name="roleCatalogRef" type="tns:ObjectReferenceType" minOccurs="0"/>
+            <xsd:element name="showRolesOfTeammate" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If true, menu item will be created. It will allow user to request roles based on other user assigned roles.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="roleCatalogRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the root object of the role catalog (org. structure).
+                        Up to 3 levels of org. structure will be shown as menus/submenus.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="collection" type="tns:RoleCollectionViewType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -494,7 +513,7 @@
     <xsd:complexType name="CheckoutCommentType">
         <xsd:annotation>
             <xsd:documentation>
-                todo
+                Configuration of comment text field in last step (checkout) of request access UI wizard.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -510,7 +529,7 @@
     <xsd:complexType name="ValidityPredefinedValueType">
         <xsd:annotation>
             <xsd:documentation>
-                todo
+                Element which allows predefined validity duration for requested rolesin request access UI wizard.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -526,7 +545,7 @@
     <xsd:complexType name="CheckoutValidityConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                todo
+                Configuration of validity (assignment validity) for requested roles in last step (checkout) of request access UI wizard.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -535,7 +554,14 @@
         <xsd:sequence>
             <xsd:element name="mandatory" type="xsd:boolean" minOccurs="0" default="false"/>
             <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType" minOccurs="0"/>
-            <xsd:element name="allowOnlyGlobalSettings" type="xsd:boolean" minOccurs="0" default="false"/>
+            <xsd:element name="allowOnlyGlobalSettings" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If true, request access checkout step will allow to change validity of requested roles for the whole cart globally.
+                        If false, user can update validity range for each item in checkout table.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="predefinedValue" type="tns:ValidityPredefinedValueType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -551,12 +577,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="comment" type="tns:CheckoutCommentType" minOccurs="0">
-
-            </xsd:element>
-            <xsd:element name="validityConfiguration" type="tns:CheckoutValidityConfigurationType" minOccurs="0">
-
-            </xsd:element>
+            <xsd:element name="comment" type="tns:CheckoutCommentType" minOccurs="0"/>
+            <xsd:element name="validityConfiguration" type="tns:CheckoutValidityConfigurationType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
