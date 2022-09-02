@@ -13,10 +13,12 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -111,6 +113,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
 
     private static final String ID_SELECT_MANUALLY = "selectManually";
     private static final String ID_MULTISELECT = "multiselect";
+    private static final String ID_USER_SELECTION_LABEL = "userSelectionLabel";
 
     private PageBase page;
 
@@ -156,7 +159,6 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
     }
 
     private void initModels() {
-
         tiles = new LoadableModel<>(false) {
 
             @Override
@@ -182,6 +184,19 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 if (list.size() == 1) {
                     Tile<PersonOfInterest> tile = list.get(0);
                     tile.setSelected(true);
+                } else if (list.size() > 1 && StringUtils.isNotEmpty(selection.getDefaultSelection())) {
+                    String identifier = selection.getDefaultSelection();
+                    if (RequestAccess.DEFAULT_MYSELF_IDENTIFIER.equals(identifier)) {
+                        list.stream()
+                                .filter(t -> TileType.MYSELF == t.getValue().type)
+                                .findFirst()
+                                .ifPresent(t -> t.setSelected(true));
+                    } else {
+                        list.stream()
+                                .filter(t -> identifier.equals(t.getValue().groupIdentifier))
+                                .findFirst()
+                                .ifPresent(t -> t.setSelected(true));
+                    }
                 }
 
                 return list;
@@ -330,6 +345,15 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             }
         };
         fragment.add(selectManually);
+
+        Label userSelectionLabel = new Label(ID_USER_SELECTION_LABEL, () -> {
+            Tile<PersonOfInterest> selected = getSelectedTile();
+            String name = selected != null ? selected.getTitle() : null;
+
+            return getString("PersonOfInterestPanel.userSelection", name);
+        });
+        userSelectionLabel.setRenderBodyOnly(true);
+        fragment.add(userSelectionLabel);
 
         return fragment;
     }
