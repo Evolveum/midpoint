@@ -244,7 +244,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
         assignRole(USER_JACK_OID, ROLE_CASES_REQUESTOR_SELF_OID);
-        assignRole(USER_JACK_OID, ROLE_READ_JACKS_CAMPAIGNS_OID);        // we cannot specify "own campaigns" yet
+        assignRole(USER_JACK_OID, ROLE_READ_JACKS_CAMPAIGNS_OID); // we cannot specify "own campaigns" yet
 
         when();
         login(USER_JACK_USERNAME);
@@ -636,7 +636,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         testAutzJackReadSomeRoles(ROLE_READ_SOME_ROLES_SUBTYPE_OID);
     }
 
-    public void testAutzJackReadSomeRoles(String roleOid) throws Exception {
+    private void testAutzJackReadSomeRoles(String roleOid) throws Exception {
         given();
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, roleOid);
@@ -3178,6 +3178,36 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertDeleteDeny();
 
         assertGlobalStateUntouched();
+    }
+
+    /**
+     * Searches for users with given assignment/targetRef (both directly and using EXISTS clause). See MID-7931.
+     */
+    @Test
+    public void test400AutzJackSearchByAssignmentTargetRef() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SEARCH_USER_ASSIGNMENT_TARGET_REF.oid);
+
+        when();
+        login(USER_JACK_USERNAME);
+
+        then("searching using the direct query yields guybrush");
+        ObjectQuery directQuery = queryFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, AssignmentType.F_TARGET_REF)
+                .ref(ORG_SWASHBUCKLER_SECTION_OID, OrgType.COMPLEX_TYPE)
+                .build();
+        assertSearch(UserType.class, directQuery, 1); // guybrush
+
+        and("searching using the 'exists' query yields guybrush as well");
+        ObjectQuery existsQuery = queryFor(UserType.class)
+                .exists(UserType.F_ASSIGNMENT)
+                .block()
+                    .item(AssignmentType.F_TARGET_REF)
+                    .ref(ORG_SWASHBUCKLER_SECTION_OID, OrgType.COMPLEX_TYPE)
+                .endBlock()
+                .build();
+        assertSearch(UserType.class, existsQuery, 1); // guybrush
     }
 
     private void assertTaskAddAllow(String oid, String name, String ownerOid, String handlerUri) throws Exception {
