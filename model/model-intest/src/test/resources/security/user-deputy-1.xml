@@ -10,6 +10,6 @@
     oid="af69e388-88bd-43f9-9259-73676124c196">
     <name>deputy-1</name>
     <assignment>
-        <targetRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" relation="org:deputy"/>    <!-- jack -->
+        <targetRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" relation="org:deputy"/> <!-- jack -->
     </assignment>
 </user>
