@@ -363,7 +363,7 @@
     <xsd:complexType name="TargetSelectionType">
         <xsd:annotation>
             <xsd:documentation>
-                todo
+                Configuration structure related to request access UI wizard and its first step - person of interest.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -371,7 +371,12 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="defaultSelection" type="xsd:string" minOccurs="0">
-
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Identifier of group that should be preselected or constant "myself" to preselect option which represents
+                        user currently logged in.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="allowRequestForMyself" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
@@ -389,9 +394,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="group" type="tns:GroupSelectionType" minOccurs="0" maxOccurs="unbounded">
-                <!-- todo add missing configuration elements -->
-            </xsd:element>
+            <xsd:element name="group" type="tns:GroupSelectionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -399,7 +402,7 @@
     <xsd:complexType name="RelationSelectionType">
         <xsd:annotation>
             <xsd:documentation>
-                todo
+                Configuration structure related to request access UI wizard and its second step - relation selection.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -407,10 +410,18 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="defaultRelation" type="xsd:QName" minOccurs="0">
-
+                <xsd:annotation>
+                    <xsd:documentation>
+                        QName of preselected relation.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
             <xsd:element name="allowOtherRelations" type="xsd:boolean" minOccurs="0" default="true">
-
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to allow other relations than defaultRelation.
+                    </xsd:documentation>
+                </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -421,7 +432,7 @@
             <xsd:enumeration value="tile">
                 <xsd:annotation>
                     <xsd:documentation>
-
+                        Option to show role catalog items as tiles.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="TILE"/>
@@ -431,7 +442,7 @@
             <xsd:enumeration value="table">
                 <xsd:annotation>
                     <xsd:documentation>
-
+                        Option to show role catalog items in table.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="TABLE"/>
@@ -462,7 +473,7 @@
     <xsd:complexType name="RoleCatalogType">
         <xsd:annotation>
             <xsd:documentation>
-                todo
+                Configuration structure related to request access UI wizard and its third step - role catalog.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -533,7 +544,7 @@
     <xsd:complexType name="CheckoutType">
         <xsd:annotation>
             <xsd:documentation>
-                todo
+                Configuration structure related to request access UI wizard and its last step - checkout.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -562,18 +573,10 @@
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
-            <xsd:element name="targetSelection" type="tns:TargetSelectionType" minOccurs="0">
-
-            </xsd:element>
-            <xsd:element name="relationSelection" type="tns:RelationSelectionType" minOccurs="0">
-
-            </xsd:element>
-            <xsd:element name="roleCatalog" type="tns:RoleCatalogType" minOccurs="0">
-
-            </xsd:element>
-            <xsd:element name="checkout" type="tns:CheckoutType" minOccurs="0">
-
-            </xsd:element>
+            <xsd:element name="targetSelection" type="tns:TargetSelectionType" minOccurs="0"/>
+            <xsd:element name="relationSelection" type="tns:RelationSelectionType" minOccurs="0"/>
+            <xsd:element name="roleCatalog" type="tns:RoleCatalogType" minOccurs="0"/>
+            <xsd:element name="checkout" type="tns:CheckoutType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
