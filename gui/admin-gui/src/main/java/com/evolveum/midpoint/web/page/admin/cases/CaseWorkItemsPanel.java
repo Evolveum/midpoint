@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -70,15 +71,6 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
 
     private static final String ID_WORKITEMS_TABLE = "workitemsTable";
 
-//    public enum View {
-//        FULL_LIST,                // selectable, full information
-//        DASHBOARD,                 // not selectable, reduced info (on dashboard)
-//        ITEMS_FOR_PROCESS        // work items for a process
-//    }
-//
-//    private final View view;
-
-
     //TODO page parameters?
     private PageParameters pageParameters;
 
@@ -94,35 +86,10 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         super(id, CaseWorkItemType.class, options, configurationType);
     }
 
-//    public CaseWorkItemsPanel(String id, View view) {
-//        super(id);
-//        this.view = view;
-//    }
-//    public CaseWorkItemsPanel(String id, View view, ContainerPanelConfigurationType configurationType) {
-//        super(id);
-//        this.view = view;
-//        this.config = configurationType;
-//    }
-//
-//    public CaseWorkItemsPanel(String id, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType configurationType) {
-//        super(id);
-////        this.view = view;
-//        this.view = View.DASHBOARD;
-//        this.config = configurationType;
-//    }
-
-
-//    public CaseWorkItemsPanel(String id, View view, PageParameters pageParameters) {
-//        super(id);
-//        this.view = view;
-//        this.pageParameters = pageParameters;
-//    }
-
-//    @Override
-//    protected void onInitialize() {
-//        super.onInitialize();
-////        initLayout();
-//    }
+    //TODO wucik hack. cleanup needed. also, what about my cases? all cases? how to differentiate
+    public CaseWorkItemsPanel(String id, AssignmentHolderDetailsModel model, ContainerPanelConfigurationType configurationType) {
+        super(id, CaseWorkItemType.class, null, configurationType);
+    }
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
