@@ -20,4 +20,7 @@ Following document describes different options and configuration possibilities f
 == Role catalog
 
 
-== Checkout
+== Shopping cart (checkout)
+
+== Examples
+
