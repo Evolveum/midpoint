@@ -1,12 +1,10 @@
 /*
- * Copyright (C) 2020-2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.page.admin.component;
-
-import java.util.Iterator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -176,7 +174,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
                 target.add(getPageBase().getFeedbackPanel());
             }
         };
-        //won't probably work correctly, will be overriden with visibale behacior default value for enabled
+        // Probably won't work correctly, will be overridden with visible behavior default value for enabled.
         save.add(new EnableBehaviour(this::isSavePreviewButtonEnabled));
         save.add(new VisibleBehaviour(this::isSaveButtonVisible));
         save.titleAsLabel(true);
@@ -184,11 +182,10 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         save.add(AttributeAppender.append("class", "btn btn-success btn-sm"));
         repeatingView.add(save);
 
-        Form form = save.findParent(Form.class);
+        Form<?> form = save.findParent(Form.class);
         if (form != null) {
             form.setDefaultButton(save);
         }
-
     }
 
     protected void savePerformed(AjaxRequestTarget target) {
@@ -316,9 +313,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
         RepeatingView repeatingView = (RepeatingView) get(ID_BUTTONS);
         boolean buttonsExist = repeatingView != null && repeatingView.iterator().hasNext();
         if (buttonsExist) {
-            Iterator<Component> buttonsIt = repeatingView.iterator();
-            while (buttonsIt.hasNext()) {
-                Component comp = buttonsIt.next();
+            for (Component comp : repeatingView) {
                 comp.configure();
                 if (comp.isVisible()) {
                     return true;

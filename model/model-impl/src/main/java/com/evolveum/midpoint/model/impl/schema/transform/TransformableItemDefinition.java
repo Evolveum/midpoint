@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2021-2022 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.model.impl.schema.transform;
 
 import javax.xml.namespace.QName;
@@ -10,13 +16,6 @@ import com.evolveum.midpoint.prism.deleg.ItemDefinitionDelegator;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.google.common.base.Preconditions;
-
-/*
- * Copyright (c) 2021 Evolveum and contributors
- *
- * This work is dual-licensed under the Apache License 2.0
- * and European Union Public License. See LICENSE file for details.
- */
 
 public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends ItemDefinition<I>>
         implements ItemDefinitionDelegator<I>, PrismItemAccessDefinition.Mutable, PartiallyMutableItemDefinition<I> {
@@ -305,9 +304,9 @@ public abstract class TransformableItemDefinition<I extends Item<?,?>,D extends 
         this.processing = itemProcessing;
     }
 
-    static void apply(ItemDefinition<?> overriden, ItemDefinition<?> originalItem) {
-        //if (overriden instanceof TransformableItemDefinition) {
-        //    ((TransformableItemDefinition) overriden).apply(originalItem);
+    static void apply(ItemDefinition<?> overridden, ItemDefinition<?> originalItem) {
+        //if (overridden instanceof TransformableItemDefinition) {
+        //    ((TransformableItemDefinition) overridden).apply(originalItem);
         //}
     }
 
