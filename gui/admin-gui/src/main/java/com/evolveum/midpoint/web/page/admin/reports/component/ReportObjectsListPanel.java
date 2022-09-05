@@ -281,9 +281,6 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected Search createSearch(Class<C> type) {
-//        return SearchFactory.createSearchForReport(type,
-//                getReport().getObjectCollection() == null ? Collections.emptyList() : getReport().getObjectCollection().getParameter(),
-//                getPageBase());
         return SearchFactory.createSearch(createSearchConfigurationWrapper(type), getPageBase());
     }
 

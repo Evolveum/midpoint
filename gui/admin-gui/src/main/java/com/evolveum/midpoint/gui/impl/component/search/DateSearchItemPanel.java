@@ -23,7 +23,13 @@ public class DateSearchItemPanel extends PropertySearchItemPanel<DateSearchItemW
     protected Component initSearchItemField() {
         return new DateIntervalSearchPanel(ID_SEARCH_ITEM_FIELD,
                 new PropertyModel(getModel(), DateSearchItemWrapper.F_FROM_DATE),
-                new PropertyModel(getModel(), DateSearchItemWrapper.F_TO_DATE));
+                new PropertyModel(getModel(), DateSearchItemWrapper.F_TO_DATE)) {
+
+            @Override
+            protected boolean isInterval() {
+                return DateSearchItemPanel.this.getModelObject().isInterval();
+            }
+        };
     }
 
 }

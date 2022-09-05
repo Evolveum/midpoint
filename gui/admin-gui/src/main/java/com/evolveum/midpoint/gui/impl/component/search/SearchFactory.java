@@ -461,6 +461,9 @@ public class SearchFactory {
             if (item.getParameter().getType() != null) {
                 searchItemWrapper.setParameterValueType(PrismContext.get().getSchemaRegistry().determineClassForType(item.getParameter().getType()));
             }
+            if (searchItemWrapper instanceof DateSearchItemWrapper) {
+                ((DateSearchItemWrapper) searchItemWrapper).setInterval(false);
+            }
         }
 
         if (item.isVisibleByDefault() != null) {

@@ -9,44 +9,43 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+
+import java.io.Serializable;
 
 public class DateSearchItemWrapper extends PropertySearchItemWrapper {
 
     private static final long serialVersionUID = 1L;
 
-    public static final String F_FROM_DATE = "fromDate";
-    public static final String F_TO_DATE = "toDate";
+    public static final String F_FROM_DATE = "singleDate";
+    public static final String F_TO_DATE = "intervalSecondDate";
 
-    private XMLGregorianCalendar fromDate;
-    private XMLGregorianCalendar toDate;
+    private XMLGregorianCalendar singleDate;
+    private XMLGregorianCalendar intervalSecondDate;
+    boolean isInterval = true;
 
     public DateSearchItemWrapper(ItemPath path) {
         super(path);
     }
-
-    public XMLGregorianCalendar getFromDate() {
-        return fromDate;
+    public XMLGregorianCalendar getSingleDate() {
+        return singleDate;
     }
 
-    public void setFromDate(XMLGregorianCalendar fromDate) {
-        this.fromDate = fromDate;
+    public void setSingleDate(XMLGregorianCalendar singleDate) {
+        this.singleDate = singleDate;
     }
 
-    public XMLGregorianCalendar getToDate() {
-        return toDate;
+    public XMLGregorianCalendar getIntervalSecondDate() {
+        return intervalSecondDate;
     }
 
-    public void setToDate(XMLGregorianCalendar toDate) {
-        this.toDate = toDate;
+    public void setIntervalSecondDate(XMLGregorianCalendar intervalSecondDate) {
+        this.intervalSecondDate = intervalSecondDate;
     }
 
     @Override
@@ -59,27 +58,43 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper {
         return new SearchValue();
     }
 
+    public boolean isInterval() {
+        return isInterval;
+    }
+
+    public void setInterval(boolean interval) {
+        isInterval = interval;
+    }
+
+    @Override
+    public DisplayableValue<?> getValue() {
+        if (!isInterval && singleDate != null) {
+            return new SearchValue<>((Serializable)singleDate);
+        }
+        return super.getValue();
+    }
+
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         PrismContext ctx = PrismContext.get();
         ItemPath path = getPath();
-        if (fromDate != null && toDate != null) {
+        if (singleDate != null && intervalSecondDate != null) {
             return ctx.queryFor(type)
                     .item(path)
-                    .gt(fromDate)
+                    .gt(singleDate)
                     .and()
                     .item(path)
-                    .lt(toDate)
+                    .lt(intervalSecondDate)
                     .buildFilter();
-        } else if (fromDate != null) {
+        } else if (singleDate != null) {
             return ctx.queryFor(type)
                     .item(path)
-                    .gt(fromDate)
+                    .gt(singleDate)
                     .buildFilter();
-        } else if (toDate != null) {
+        } else if (intervalSecondDate != null) {
             return ctx.queryFor(type)
                     .item(path)
-                    .lt(toDate)
+                    .lt(intervalSecondDate)
                     .buildFilter();
         }
         return null;
