@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -266,6 +267,14 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
         return SearchFactory.createSearchForReport(type,
                 getReport().getObjectCollection() == null ? Collections.emptyList() : getReport().getObjectCollection().getParameter(),
                 getPageBase());
+    }
+
+    @Override
+    protected boolean detachSearchModel() {
+        if (ReportObjectsListPanel.this.findParent(Popupable.class) != null) {
+            return false;
+        }
+        return super.detachSearchModel();
     }
 
     @Override

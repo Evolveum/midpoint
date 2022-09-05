@@ -224,7 +224,19 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 }
                 return search;
             }
+
+            @Override
+            public void detach() {
+                if (detachSearchModel()) {
+                    super.detach();
+                }
+            }
+
         };
+    }
+
+    protected boolean detachSearchModel() {
+        return true;
     }
 
     protected String getSearchByNameParameterValue() {
