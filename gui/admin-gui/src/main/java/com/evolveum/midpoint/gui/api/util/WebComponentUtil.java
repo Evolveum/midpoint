@@ -29,6 +29,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.self.PageSelfProfile;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -2670,18 +2672,17 @@ public final class WebComponentUtil {
 
                 Constructor<?> constructor = clazz.getConstructor();
                 Object pageInstance = constructor.newInstance();
-                if (pageInstance instanceof AbstractPageObjectDetails && StringUtils.isNotEmpty(panelType)) {
+                if (pageInstance instanceof PageSelfProfile && StringUtils.isNotEmpty(panelType)) {
                     String storageKey = "details" + ((AbstractPageObjectDetails<?, ?>) pageInstance).getType().getSimpleName();
-                    FocusType principal = pageBase.getPrincipalFocus();
                     ObjectDetailsStorage pageStorage = pageBase.getSessionStorage().getObjectDetailsStorage(storageKey);
                     if (pageStorage == null) {
                         pageBase.getSessionStorage().setObjectDetailsStorage(storageKey, config);
                     } else {
                         pageStorage.setDefaultConfiguration(config);
                     }
-                    WebComponentUtil.dispatchToObjectDetailsPage(principal.asPrismObject(), component);
+                    pageBase.navigateToNext(WebComponentUtil.resolveSelfPage());
                 } else if (pageInstance instanceof WebPage) {
-                    pageBase.navigateToNext((WebPage) pageInstance);
+                    pageBase.navigateToNext((Class<? extends WebPage>) clazz);
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
@@ -5482,25 +5483,9 @@ public final class WebComponentUtil {
 
     //TODO
     public static <T extends ObjectType> Component createPanel(Class<? extends Panel> panelClass, String markupId, ObjectDetailsModels<T> objectDetailsModels, ContainerPanelConfigurationType panelConfig) {
-        if (panelClass == null) {
-            return new WebMarkupContainer(markupId);
-        }
-
         if (AbstractAssignmentTypePanel.class.isAssignableFrom(panelClass)) {
             try {
                 Panel panel = ConstructorUtils.invokeConstructor(panelClass, markupId, objectDetailsModels.getObjectWrapperModel(), panelConfig);
-                panel.setOutputMarkupId(true);
-                return panel;
-            } catch (Throwable e) {
-                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
-                return null;
-            }
-        }
-
-        if (ContainerableListPanel.class.isAssignableFrom(panelClass)) {
-            try {
-                ContainerableListPanel panel = (ContainerableListPanel) ConstructorUtils.invokeConstructor(panelClass, markupId, new ArrayList<>(), panelConfig);
-                panel.setDashboard(true);
                 panel.setOutputMarkupId(true);
                 return panel;
             } catch (Throwable e) {
@@ -5517,7 +5502,7 @@ public final class WebComponentUtil {
             e.printStackTrace();
             LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
         }
-        return new WebMarkupContainer(markupId);
+        return null;
     }
 
     public static PrismObject<ResourceType> findResource(PrismPropertyWrapper itemWrapper, PrismPropertyPanelContext panelCtx) {

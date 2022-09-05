@@ -10,6 +10,8 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
@@ -83,6 +85,9 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
         }
         VariablesMap variables = new VariablesMap();
         Class typeClass = (valueToValidate == null ? String.class : valueToValidate.getClass());
+        if (valueToValidate instanceof ObjectReferenceType && ((ObjectReferenceType) valueToValidate).asReferenceValue().isEmpty()) {
+            valueToValidate = null;
+        }
         variables.put(ExpressionConstants.VAR_INPUT, valueToValidate, typeClass);
         variables.putObject(ExpressionConstants.VAR_OBJECT, (ObjectType)getObjectType(), ObjectType.class);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);

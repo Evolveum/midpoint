@@ -55,7 +55,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
     private LoadableDetachableModel<Search<AssignmentHolderType>> searchModel;
 
-    private Model<TemplateType> templateType = Model.of(TemplateType.ALL);
+    private Model<TemplateType> templateType = Model.of(TemplateType.CONNECTOR);
 
     public CreateResourceTemplatePanel(String id) {
         super(id);
@@ -74,7 +74,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 @Override
                 protected Search<AssignmentHolderType> load() {
                     PageStorage storage = getStorage();
-                    if (storage.getSearch() == null) {
+                    if (storage.getSearch() == null || !storage.getSearch().getTypeClass().equals(templateType.getObject().getType())) {
                         Search<AssignmentHolderType> search
                                 = SearchFactory.createSearch(templateType.getObject().getType(), getPageBase());
                         storage.setSearch(search);
@@ -140,9 +140,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 super.onUpdate(target);
-                searchModel.detach();
-                target.add(CreateResourceTemplatePanel.this.get(ID_SEARCH));
-                target.add(getTilesTable());
+                target.add(CreateResourceTemplatePanel.this);
             }
         });
         fragment.add(type);

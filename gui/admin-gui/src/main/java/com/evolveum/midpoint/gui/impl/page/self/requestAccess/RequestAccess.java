@@ -81,6 +81,8 @@ public class RequestAccess implements Serializable {
 
     public static final String VALIDITY_CUSTOM_LENGTH = "validityCustomLength";
 
+    public static final String DEFAULT_MYSELF_IDENTIFIER = "myself";
+
     private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
     /**

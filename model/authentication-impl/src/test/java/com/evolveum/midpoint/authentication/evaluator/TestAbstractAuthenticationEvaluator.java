@@ -19,6 +19,8 @@ import com.evolveum.midpoint.authentication.impl.evaluator.AuthenticationEvaluat
 
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 
+import com.evolveum.midpoint.test.TestTask;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -75,6 +77,9 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
     protected static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 
+    private static final TestTask TASK_TRIGGER_SCANNER_ON_DEMAND =
+            new TestTask(COMMON_DIR, "task-trigger-scanner-on-demand.xml", "2ee5c2a9-0f46-438a-8748-7ac71f46a343");
+
     @Autowired private LocalizationMessageSource messageSource;
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
     @Autowired private Clock clock;
@@ -120,6 +125,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         // Users
         repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
         repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult).asObjectable();
+
+        TASK_TRIGGER_SCANNER_ON_DEMAND.initialize(this, initTask, initResult);
 
         messages = new MessageSourceAccessor(messageSource);
 
@@ -616,18 +623,19 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     @Test
     public void test138UnlockUserGoodPassword() throws Exception {
-        // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
-        // WHEN
-        when();
-        modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, task, result, LockoutStatusType.NORMAL);
+        when("trigger scanner runs (after 30 minutes) - should clear the lockout flag");
+        clock.overrideDuration("PT30M");
+        TASK_TRIGGER_SCANNER_ON_DEMAND.rerun(result);
+        clock.resetOverride();
 
-        // THEN
-        then();
+        then("user is unlocked");
+
+        TASK_TRIGGER_SCANNER_ON_DEMAND.assertAfter(); // just show the task
 
         PrismObject<UserType> userBetween = getUser(USER_JACK_OID);
         display("user after", userBetween);
@@ -635,15 +643,15 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertFailedLoginsForBehavior(userBetween, 0);
         assertUserLockout(userBetween, LockoutStatusType.NORMAL);
 
-        // GIVEN
+        given("preparing for new login");
         XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
 
-        // WHEN
-        when();
-        Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
+        when("a good password is provided");
+        Authentication authentication =
+                getAuthenticationEvaluator()
+                        .authenticate(connEnv, getAuthenticationContext(USER_JACK_USERNAME, getGoodPasswordJack()));
 
-        // THEN
-        then();
+        then("everything is OK");
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
         assertGoodPasswordAuthentication(authentication, USER_JACK_USERNAME);
 

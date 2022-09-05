@@ -67,7 +67,6 @@ public class ResourceTemplateProvider
     }
 
     public enum TemplateType {
-        ALL(AssignmentHolderType.class),
         TEMPLATE(ResourceType.class),
         CONNECTOR(ConnectorType.class);
 
@@ -142,23 +141,19 @@ public class ResourceTemplateProvider
 
     @Override
     protected ObjectQuery getCustomizeContentQuery() {
-        S_FilterEntryOrEmpty query = PrismContext.get().queryFor(AssignmentHolderType.class);
-        if (TemplateType.ALL.equals(type.getObject())
-                || TemplateType.TEMPLATE.equals(type.getObject())) {
-            ObjectFilter filter = PrismContext.get().queryFor(ResourceType.class)
+        if (TemplateType.TEMPLATE == type.getObject()) {
+            return PrismContext.get().queryFor(ResourceType.class)
                     .item(ResourceType.F_TEMPLATE)
                     .eq(true)
-                    .buildFilter();
-            query = (S_FilterEntryOrEmpty) query.type(ResourceType.class).filter(filter);
+                    .build();
         }
-        if (TemplateType.ALL.equals(type.getObject())) {
-            query = (S_FilterEntryOrEmpty) ((S_FilterExit) query).or();
+        if (TemplateType.CONNECTOR == type.getObject()) {
+            return PrismContext.get().queryFor(ConnectorType.class)
+                    .item(ConnectorType.F_AVAILABLE)
+                    .eq(true)
+                    .build();
         }
-        if (TemplateType.ALL.equals(type.getObject())
-                || TemplateType.CONNECTOR.equals(type.getObject())) {
-            query = query.type(ConnectorType.class); //TODO use active connector after implementation
-        }
-        return query.build();
+        return null;
     }
 
     public TemplateTile<ResourceTemplate> createDataObjectWrapper(PrismObject<AssignmentHolderType> obj) {

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceContentPanel;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.model.IModel;
@@ -45,11 +46,11 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
     }
 
     private void initLayout() {
-        ResourceContentPanel table = new ResourceContentPanel(
-                ID_TABLE, resourceObjectType.getObject().getRealValue().getKind(),
+        ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(
+                ID_TABLE,
                 getResourceModel(),
-                getConfiguration(),
-                false) {
+                getConfiguration()) {
+
             @Override
             protected boolean isIntentAndObjectClassPanelVisible() {
                 return false;
@@ -77,6 +78,16 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
 
             @Override
             protected boolean isTaskButtonsContainerVisible() {
+                return false;
+            }
+
+            @Override
+            protected boolean isResourceSearch() {
+                return true;
+            }
+
+            @Override
+            protected boolean isRepoSearch() {
                 return false;
             }
         };

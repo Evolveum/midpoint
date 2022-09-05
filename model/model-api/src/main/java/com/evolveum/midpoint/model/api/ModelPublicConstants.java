@@ -57,6 +57,7 @@ public class ModelPublicConstants {
     public static final ActivityPath FOCUS_VALIDITY_SCAN_OBJECTS_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_OBJECTS_ID);
     public static final ActivityPath FOCUS_VALIDITY_SCAN_ASSIGNMENTS_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID);
 
-    // Temporary. Think about something better.
-    public static final String PRIMARY_CORRELATION_ITEM_TARGET = "#primary#";
+    // Trigger handlers
+    public static final String NS_MODEL_TRIGGER_PREFIX = SchemaConstants.NS_MODEL + "/trigger";
+    public static final String UNLOCK_TRIGGER_HANDLER_URI = NS_MODEL_TRIGGER_PREFIX + "/unlock/handler-3";
 }

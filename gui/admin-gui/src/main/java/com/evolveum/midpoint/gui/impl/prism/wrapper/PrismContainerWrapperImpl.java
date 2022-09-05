@@ -306,7 +306,7 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         // pretend that object is always expanded. it is becasue all other containers are children of it
         // and it can influence visibility behavior on different tabs.
         boolean parentExpanded = parent instanceof PrismObjectValueWrapper ? true : parent.isExpanded();
-        return isVisibleByVisibilityHandler(parentExpanded, visibilityHandler);
+        return isVisibleByVisibilityHandler(visibilityHandler);
     }
 
     @Override

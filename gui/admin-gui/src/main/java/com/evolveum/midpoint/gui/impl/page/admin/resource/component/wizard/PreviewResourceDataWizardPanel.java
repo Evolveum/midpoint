@@ -46,8 +46,18 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel {
     }
 
     private void initLayout() {
-        ResourceContentPanel table
-                = new ResourceContentPanel(ID_TABLE, null, getResourceModel(), getConfiguration(), false) {
+        ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(ID_TABLE, getResourceModel(), getConfiguration()) {
+
+            @Override
+            protected boolean isRepoSearch() {
+                return false;
+            }
+
+            @Override
+            protected boolean isResourceSearch() {
+                return true;
+            }
+
             @Override
             protected boolean isTaskButtonsContainerVisible() {
                 return false;

@@ -224,13 +224,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         PrismObjectWrapper<O> objectWrapper = getModelWrapperObject();
         LOGGER.debug("Saving object {}", objectWrapper);
 
-        // todo: improve, delta variable is quickfix for MID-1006
-        // redirecting to user list page everytime user is created in repository
-        // during user add in gui,
-        // and we're not taking care about account/assignment create errors
-        // (error message is still displayed)
-//        delta = null;
-
         if (task == null) {
             task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
         }
@@ -310,7 +303,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     protected void reviveModels() throws SchemaException {
         WebComponentUtil.revive(getModel(), getPrismContext());
-//        WebComponentUtil.revive(parentOrgModel, getPrismContext());
     }
 
     protected ObjectChangeExecutor getChangeExecutor() {
@@ -349,28 +341,17 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         target.add(getFeedbackPanel());
         target.add(get(ID_DETAILS_VIEW));
         refreshTitle(target);
-
-//        if (soft) {
-//            for (Component component : getMainPanel().getTabbedPanel()) {
-//                if (component instanceof RefreshableTabPanel) {
-//                    for (Component c : ((RefreshableTabPanel) component).getComponentsToUpdate()) {
-//                        target.add(c);
-//                    }
-//                }
-//            }
-//        } else {
-//            target.add(getMainPanel().getTabbedPanel());
-//        }
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
-        ObjectDetailsStorage storage = getSessionStorage().getObjectDetailsStorage("details" + getType().getSimpleName());
-        if (storage != null) {
-            ContainerPanelConfigurationType config = storage.getDefaultConfiguration();
-            if (config != null) {
-                return config;
-            }
-        }
+        //TODO how to do the redirection to concrete panel?
+//        ObjectDetailsStorage storage = getSessionStorage().getObjectDetailsStorage("details" + getType().getSimpleName());
+//        if (storage != null) {
+//            ContainerPanelConfigurationType config = storage.getDefaultConfiguration();
+//            if (config != null) {
+//                return config;
+//            }
+//        }
         ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject());
 
         if (defaultConfiguration != null) {
@@ -424,22 +405,31 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), panelConfig);
         String panelType = panelConfig.getPanelType();
+
         if (panelType == null && LOGGER.isDebugEnabled()) {
+            //No panel defined, just grouping element, e.g. top "Assignments" in details navigation menu
             LOGGER.debug("AbstractPageObjectDetails.panelTypeUndefined {}", panelConfig.getIdentifier());
+            form.addOrReplace(new WebMarkupContainer(ID_MAIN_PANEL));
+            return;
         }
 
         Class<? extends Panel> panelClass = findObjectPanel(panelType);
+        if (panelClass == null) {
+            //panel type defined, but no class found. Something strange happened.
+            addErrorPanel(false, form,  MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", panelConfig.getIdentifier());
+            return;
+        }
+
         Component panel = WebComponentUtil.createPanel(panelClass, ID_MAIN_PANEL, objectDetailsModels, panelConfig);
-        panel.add(AttributeAppender.append("class", () -> {
+        if (panel != null) {
+            panel.add(AttributeAppender.append("class", () -> {
                 List panels = getPanelConfigurations().getObject();
                 if (panels == null || panels.size() <= 1) {
                     return "flex-grow-1";
                 }
 
                 return null;
-        }));
-
-        if (panel != null) {
+            }));
             form.addOrReplace(panel);
             return;
         }
