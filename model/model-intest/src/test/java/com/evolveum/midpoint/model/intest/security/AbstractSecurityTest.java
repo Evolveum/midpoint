@@ -14,6 +14,10 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.*;
+
+import com.evolveum.midpoint.test.TestResource;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -233,6 +237,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     protected static final File ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE = new File(TEST_DIR, "role-filter-object-user-type-shadow.xml");
     protected static final String ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_OID = "00000000-0000-0000-0000-00000000aa10";
 
+    protected static final TestResource<RoleType> ROLE_SEARCH_USER_ASSIGNMENT_TARGET_REF = new TestResource<>(
+            TEST_DIR, "role-search-user-assignment-targetRef.xml", "2ed2c64e-0045-41ed-b825-2bf6ce552084");
+
     protected static final File ROLE_USER_MODIFY_FILE = new File(TEST_DIR, "role-user-modify.xml");
     protected static final String ROLE_USER_MODIFY_OID = "710395da-ddd9-11e9-9d81-cf471cec8185";
 
@@ -364,7 +371,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
     protected static final int NUMBER_OF_ALL_USERS = 11;
-    protected static final int NUMBER_OF_IMPORTED_ROLES = 74;
+    protected static final int NUMBER_OF_IMPORTED_ROLES = 75;
     protected static final int NUMBER_OF_ALL_ORGS = 11;
 
     protected String userRumRogersOid;
@@ -427,6 +434,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         repoAddObjectFromFile(ROLE_ORG_READ_ORGS_MINISTRY_OF_RUM_FILE, initResult);
         repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, initResult);
         repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, initResult);
+
+        repoAdd(ROLE_SEARCH_USER_ASSIGNMENT_TARGET_REF, initResult);
 
         // Archetyped roles. Need to import them, not just add to repo.
         importObjectsFromFileNotRaw(ROLE_APPLICATION_1_FILE, initTask, initResult);

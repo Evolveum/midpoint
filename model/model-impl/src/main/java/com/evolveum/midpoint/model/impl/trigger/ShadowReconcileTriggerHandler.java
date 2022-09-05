@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -31,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -53,7 +53,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 @Component
 public class ShadowReconcileTriggerHandler implements SingleTriggerHandler {
 
-    public static final String HANDLER_URI = ModelConstants.NS_MODEL_TRIGGER_PREFIX + "/shadow-reconcile/handler-3";
+    public static final String HANDLER_URI = ModelPublicConstants.NS_MODEL_TRIGGER_PREFIX + "/shadow-reconcile/handler-3";
 
     private static final String OP_SYNCHRONIZE_SHADOW = ShadowReconcileTriggerHandler.class.getName() + ".synchronizeShadow";
     private static final String OP_RESCHEDULE = ShadowReconcileTriggerHandler.class.getName() + ".reschedule";

@@ -58,4 +58,8 @@ public class ModelPublicConstants {
     public static final ActivityPath FOCUS_VALIDITY_SCAN_FULL_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_FULL_ID);
     public static final ActivityPath FOCUS_VALIDITY_SCAN_OBJECTS_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_OBJECTS_ID);
     public static final ActivityPath FOCUS_VALIDITY_SCAN_ASSIGNMENTS_PATH = ActivityPath.fromId(FOCUS_VALIDITY_SCAN_ASSIGNMENTS_ID);
+
+    // Trigger handlers
+    public static final String NS_MODEL_TRIGGER_PREFIX = SchemaConstants.NS_MODEL + "/trigger";
+    public static final String UNLOCK_TRIGGER_HANDLER_URI = NS_MODEL_TRIGGER_PREFIX + "/unlock/handler-3";
 }

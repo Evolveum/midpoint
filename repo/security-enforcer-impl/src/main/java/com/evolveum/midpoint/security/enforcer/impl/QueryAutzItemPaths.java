@@ -11,11 +11,10 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.prism.query.ItemFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.*;
 
 /**
- * Helper class to SecurityEnforcer, used to evaluate query item authorizations.
+ * Helper class to {@link SecurityEnforcerImpl}, used to evaluate query item authorizations.
  * It checks whether we are authorized to use all items that are present in given search filter(s).
  *
  * @author semancik
@@ -35,12 +34,50 @@ public class QueryAutzItemPaths extends AutzItemPaths {
         requiredItems.add(path);
     }
 
+    /**
+     * Takes all left-hand-side items referenced by the given filter and adds them here as required ones.
+     *
+     * TODO What about right-hand-side ones?
+     */
     void addRequiredItems(ObjectFilter filter) {
-        filter.accept(visitable -> {
-            if (visitable instanceof ItemFilter) {
-                requiredItems.add(((ItemFilter)visitable).getFullPath());
+        addRequiredItemsInternal(filter, ItemPath.EMPTY_PATH);
+    }
+
+    private void addRequiredItemsInternal(ObjectFilter filter, ItemPath localRoot) {
+        if (filter == null
+                || filter instanceof UndefinedFilter
+                || filter instanceof NoneFilter
+                || filter instanceof AllFilter) {
+            // No specific items are present here
+        } else if (filter instanceof ValueFilter) {
+            requiredItems.add(
+                    localRoot.append(((ValueFilter<?, ?>) filter).getFullPath()));
+        } else if (filter instanceof ExistsFilter) {
+            ExistsFilter existsFilter = (ExistsFilter) filter;
+            ItemPath existsRoot = localRoot.append(existsFilter.getFullPath());
+            // Currently, we require also the root path to be authorized. This may be relaxed eventually
+            // (but checking there is at least one item required by the inner filter). However, it is maybe safer
+            // to require it in the current way.
+            requiredItems.add(existsRoot);
+            addRequiredItemsInternal(existsFilter.getFilter(), existsRoot);
+        } else if (filter instanceof TypeFilter) {
+            addRequiredItemsInternal(((TypeFilter) filter).getFilter(), localRoot);
+        } else if (filter instanceof LogicalFilter) {
+            for (ObjectFilter condition : ((LogicalFilter) filter).getConditions()) {
+                addRequiredItemsInternal(condition, localRoot);
             }
-        });
+        } else if (filter instanceof OrgFilter) {
+            // Currently, no item is connected to this kind of filter; TODO consider parentOrgRef
+        } else if (filter instanceof InOidFilter) {
+            // No item here (OID is not considered to be an item, for now).
+        } else if (filter instanceof OwnedByFilter) {
+            // Used for container searches. We currently do not support authorization at this level.
+            // TODO reconsider after we start supporting authorizations for containers
+        } else if (filter instanceof FullTextFilter) {
+            // No item here.
+        } else {
+            throw new AssertionError("Unsupported kind of filter: " + filter);
+        }
     }
 
     /**

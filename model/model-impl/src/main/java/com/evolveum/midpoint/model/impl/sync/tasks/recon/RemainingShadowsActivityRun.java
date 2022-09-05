@@ -253,7 +253,7 @@ final class RemainingShadowsActivityRun
     }
 
     @VisibleForTesting
-    public long getShadowReconCount() {
+    long getShadowReconCount() {
         return transientRunStatistics.getItemsProcessed();
     }
 }

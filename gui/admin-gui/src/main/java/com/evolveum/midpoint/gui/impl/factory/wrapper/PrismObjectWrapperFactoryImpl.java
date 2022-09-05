@@ -201,7 +201,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
          try {
             MetadataItemProcessingSpec metadataItemProcessingSpec = getModelInteractionService().getMetadataItemProcessingSpec(ValueMetadataType.F_PROVENANCE, object, context.getTask(), context.getResult());
              context.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
-        } catch (SchemaException | SecurityViolationException | CommunicationException | ExpressionEvaluationException | ObjectNotFoundException | ConfigurationException e) {
+        } catch (Throwable e) { //we don't want any surprises
             LOGGER.error("Cannot get metadata processing items, reason: " + e.getMessage(), e);
             return;
         }
