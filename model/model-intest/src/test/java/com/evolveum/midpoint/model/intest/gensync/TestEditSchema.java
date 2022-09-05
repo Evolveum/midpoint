@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.model.intest.gensync;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1404,6 +1407,44 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         then();
         result.computeStatus();
         assertSuccess(result);
+    }
+
+    /**
+     * We should be able to do a low-level "get" operation on hidden (multivalued) property. See MID-7968.
+     *
+     * !!! REPLACES ALL OF "defaultObjectPolicyConfiguration" IN SYSTEM CONFIG WITH ITS OWN VALUE !!!
+     */
+    @Test
+    public void test910GetHiddenProperty() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("policy configuration marks `subtype` as hidden");
+        repositoryService.modifyObject(
+                SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                deltaFor(SystemConfigurationType.class)
+                        .item(SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION)
+                        .replace(new ObjectPolicyConfigurationType()
+                                .type(UserType.COMPLEX_TYPE)
+                                .itemConstraint(new ItemConstraintType()
+                                        .path(new ItemPathType(UserType.F_SUBTYPE))
+                                        .visibility(UserInterfaceElementVisibilityType.HIDDEN)))
+                        .asItemDeltas(),
+                result);
+
+        when("user is retrieved");
+        PrismObject<UserType> user = modelService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, task, result);
+
+        and("edit object definition is applied to it");
+        PrismObjectDefinition<UserType> editDef =
+                modelInteractionService.getEditObjectDefinition(user, AuthorizationPhaseType.REQUEST, task, result);
+        user.applyDefinition(editDef, true);
+
+        then("we can ask for its subtype");
+        assertThat(user.asObjectable().getSubtype())
+                .as("user subtype collection")
+                .isEmpty();
     }
 
     private <O extends ObjectType, T> void assertProperty(PrismObject<O> object, ItemPath path,
