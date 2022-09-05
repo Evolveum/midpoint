@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Evolveum and contributors
+ * Copyright (C) 2021-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,25 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.schema.transform;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.function.Consumer;
-
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -35,10 +24,9 @@ import com.evolveum.midpoint.schema.processor.deleg.ObjectClassTypeDefinitionDel
 
 public class TransformableComplexTypeDefinition implements ComplexTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition {
 
-
     private static final long serialVersionUID = 1L;
     private static final TransformableItemDefinition REMOVED = new Removed();
-    private final Map<QName,ItemDefinition<?>> overrides = new HashMap<>();
+    private final Map<QName, ItemDefinition<?>> overrides = new HashMap<>();
 
     private DelegatedItem<ComplexTypeDefinition> delegate;
     private transient List<ItemDefinition<?>> definitionsCache;
@@ -219,8 +207,13 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         return this;
     }
 
+    @Override
+    public boolean isItemDefinitionRemoved(QName itemName) {
+        ItemDefinition<?> itemDefinition = overrides.get(itemName);
+        return itemDefinition instanceof Removed;
+    }
+
     /**
-     *
      * Currently used only to replace Refined* with LayerRefined*
      *
      * @param name
@@ -318,7 +311,6 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
             return null;
         }
 
-
         @Override
         public String toString() {
             return "REMOVED";
@@ -329,5 +321,4 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
             return this;
         }
     }
-
 }
