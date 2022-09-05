@@ -1422,7 +1422,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
      *
      * !!! REPLACES ALL OF "defaultObjectPolicyConfiguration" IN SYSTEM CONFIG WITH ITS OWN VALUE !!!
      */
-    @Test(enabled = false) // MID-7968
+    @Test
     public void test910GetHiddenProperty() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
