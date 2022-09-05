@@ -13,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
@@ -520,9 +521,10 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         }
     }
 
-    protected void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
+    private void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
             @NotNull AuthenticationBehavioralDataType behavioralData, CredentialPolicyType credentialsPolicy, String reason, boolean audit) {
-        FocusType focusBefore = principal.getFocus().clone();
+        FocusType focusAfter = principal.getFocus();
+        FocusType focusBefore = focusAfter.clone();
         Integer failedLogins = behavioralData.getFailedLogins();
         LoginEventType lastFailedLogin = behavioralData.getLastFailedLogin();
         XMLGregorianCalendar lastFailedLoginTs = null;
@@ -555,24 +557,27 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
         behavioralData.setLastFailedLogin(event);
 
-        ActivationType activationType = principal.getFocus().getActivation();
-
         if (isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
-            if (activationType == null) {
-                activationType = new ActivationType();
-                principal.getFocus().setActivation(activationType);
+            ActivationType activation = focusAfter.getActivation();
+            if (activation == null) {
+                activation = new ActivationType();
+                focusAfter.setActivation(activation);
             }
-            activationType.setLockoutStatus(LockoutStatusType.LOCKED);
+            activation.setLockoutStatus(LockoutStatusType.LOCKED);
             XMLGregorianCalendar lockoutExpirationTs = null;
             Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
             if (lockoutDuration != null) {
                 lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
             }
-            activationType.setLockoutExpirationTimestamp(lockoutExpirationTs);
+            activation.setLockoutExpirationTimestamp(lockoutExpirationTs);
+            focusAfter.getTrigger().add(
+                    new TriggerType()
+                            .handlerUri(ModelPublicConstants.UNLOCK_TRIGGER_HANDLER_URI)
+                            .timestamp(lockoutExpirationTs));
         }
 
         if (AuthSequenceUtil.isAllowUpdatingAuthBehavior(true)) {
-            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+            focusProfileService.updateFocus(principal, computeModifications(focusBefore, focusAfter));
         }
         if (audit) {
             recordAuthenticationFailure(principal, connEnv, reason);

@@ -25,11 +25,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class PropertySearchItemWrapper<T extends Serializable> extends AbstractSearchItemWrapper<T> {
 
-//    private ItemDefinition<?> itemDef;
     private ItemPath path;
     private QName valueTypeName;
     private String name;
     private String help;
+
+    public PropertySearchItemWrapper () {
+    }
 
     public PropertySearchItemWrapper (ItemPath path) {
         this.path = path;
@@ -76,43 +78,6 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
         return ShadowType.F_RESOURCE_REF.equivalent(path);
     }
 
-//    @Override
-//    public String getName() {
-//        if (searchItem.getDisplayName() != null){
-//            return WebComponentUtil.getTranslatedPolyString(searchItem.getDisplayName());
-//        }
-//        return "";
-//        String key = getDefinition().getDef().getDisplayName();
-//        if (StringUtils.isEmpty(key)) {
-//            key = getSearch().getTypeClass().getSimpleName() + '.' + getDefinition().getDef().getItemName().getLocalPart();
-//        }
-//
-//        StringResourceModel nameModel = PageBase.createStringResourceStatic(null, key);
-//        if (nameModel != null) {
-//            if (StringUtils.isNotEmpty(nameModel.getString())) {
-//                return nameModel.getString();
-//            }
-//        }
-//        String name = getDefinition().getDef().getDisplayName();
-//        if (StringUtils.isNotEmpty(name)) {
-//            return name;
-//        }
-//
-//        return getDefinition().getDef().getItemName().getLocalPart();
-//        if (getDisplayName() != null){
-//            return WebComponentUtil.getTranslatedPolyString(getDisplayName());
-//        }
-
-//        if (getDef() != null && StringUtils.isNotEmpty(getDef().getDisplayName())) {
-//            return PageBase.createStringResourceStatic(null, getDef().getDisplayName()).getString();
-//        }
-//        return WebComponentUtil.getItemDefinitionDisplayNameOrName(getDef(), null);
-//    }
-
-//    @Override
-//    public String getHelp() {
-//        return help;
-//    }
 
     @Override
     public String getTitle() {

@@ -379,7 +379,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     private <AH extends AssignmentHolderType> Search<AH> createMemberSearch(Class<AH> type) {
         MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
         if (memberPanelStorage == null) { //normally, this should not happen
-            return SearchFactory.createMemberPanelSearch(new SearchConfigurationWrapper<>(type), getPageBase());
+            return SearchFactory.createMemberPanelSearch(new SearchConfigurationWrapper<>(type, getPageBase()), getPageBase());
         }
 
         if (memberPanelStorage.getSearch() != null) {
@@ -423,7 +423,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (searchConfig.getTenantConfiguration() == null && !isNotRole()) {
             searchConfig.setTenantConfiguration(searchBoxCofig.getDefaultTenantConfiguration());
         }
-        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(defaultObjectType, searchConfig);
+        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(defaultObjectType, searchConfig, getPageBase());
         SearchFactory.createAbstractRoleSearchItemWrapperList(searchConfigWrapper, searchConfig);
         if (additionalPanelConfig != null) {
             searchConfigWrapper.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
