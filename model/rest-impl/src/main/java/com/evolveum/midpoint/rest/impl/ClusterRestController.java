@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -253,7 +254,7 @@ public class ClusterRestController extends AbstractRestController {
                         // Explicitly needed, because Spring would change content type to "*"
                         // even if application/octet-stream is in produces section
                         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(new FileInputStream(resolution.file));
+                        .body(FileUtils.readFileToByteArray(resolution.file));
             } else {
                 response = ResponseEntity.status(resolution.status).build();
             }
