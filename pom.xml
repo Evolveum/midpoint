@@ -32,7 +32,7 @@
     mvn clean install -P -docs -DskipTests
     Generated distribution archives (ZIP and tar.gz) are under dist/target.
 
-    Quick build of everything without tests, not often useful, javadoc + apidocs add quite a lot time (~9m):
+    Quick build of everything without tests, not often useful, javadoc + apidocs add quite a lot of time (~9m):
     mvn clean install -DskipTests
 
     "Quick" build with unit tests only and checkstyle (~30m):
@@ -235,7 +235,7 @@
         <jcommander.version>1.81</jcommander.version>
         <failsafe.version>3.0.0-M4</failsafe.version>
         <qpid-broker.version>8.0.4</qpid-broker.version>
-        <apache-artemis.version>2.23.1</apache-artemis.version>
+        <apache-artemis.version>2.24.0</apache-artemis.version>
         <asm.version>9.1</asm.version>
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <jetty.version>11.0.4</jetty.version>
@@ -430,46 +430,6 @@
                 <!--<version>18.3.12</version>-->
             </dependency>
 
-            <!--
-            TODO: Originally in jdk-11 profile, consolidate, now, when JDK 8 is not needed anymore.
-            In JDK 11 we want to get rid of xml-apis, that are covered by Java 9+.
-            Comes with xerces/xalan, overrides many classes from other APIs (StAX, SAX) or JDK.
-            But it contains DOM classes like org.w3c.dom.ElementTraversal that are available
-            from JDK 9+, so we still need it with JDK 8, among others in schemadist-prism.
-            BTW: 1.4 (from 2009) is NEWER version than 2.0.2 (2002)... what can you say...
-            -->
-            <dependency>
-                <groupId>xerces</groupId>
-                <artifactId>xercesImpl</artifactId>
-                <version>${xerces.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>xml-apis</groupId>
-                        <artifactId>xml-apis</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>xalan</groupId>
-                <artifactId>serializer</artifactId>
-                <version>${xalan.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>xml-apis</groupId>
-                        <artifactId>xml-apis</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <!--
-            TODO: we should get rid of xalan/xerces if possible.
-            More (from 2015): http://www.odi.ch/weblog/posting.php?posting=689
-            ForgeRock got rid of it: https://bugster.forgerock.org/jira/browse/OPENAM-7320
-            -->
-            <dependency>
-                <groupId>xalan</groupId>
-                <artifactId>xalan</artifactId>
-                <version>${xalan.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.codehaus.staxmate</groupId>
                 <artifactId>staxmate</artifactId>
@@ -1741,7 +1701,7 @@
                                         <exclude>javax.annotation:javax.annotation-api</exclude>
                                         <!-- package with multiple XML APIs, conflicts assured
                                         (WE CAN'T YET see todo at the xalan/xerces dep declarations above) -->
-                                        <!--<exclude>xml-apis:xml-apis</exclude>-->
+                                        <exclude>xml-apis:xml-apis</exclude>
                                     </excludes>
                                 </bannedDependencies>
                             </rules>
@@ -1799,7 +1759,7 @@
                                 <ignoredUsedUndeclaredDependency>jakarta.activation:jakarta.activation-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>com.sun.activation:jakarta.activation</ignoredUsedUndeclaredDependency>
 
-                                <!-- needs to much exclusions, used by apache-cxf (xjc plugin, prism-impl, schema, ..) -->
+                                <!-- needs too many exclusions, used by apache-cxf (xjc plugin, prism-impl, schema, ..) -->
                                 <ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:xsom</ignoredUsedUndeclaredDependency>
                                 <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:jaxb-runtime</ignoredUsedUndeclaredDependency>
@@ -2110,7 +2070,7 @@
           Technically, even both can be used, but go with the one used in that POM.
         - Test testing plugin says skipTests=false (that is to run the tests).
         - It defines system property mp.perf.report.prefix=target/PERF (without it CSV goes to stdout).
-        - It defines suiteXmlFile=testng-perf.xml - suite file is different then normally used ones.
+        - It defines suiteXmlFile=testng-perf.xml - suite file is different from normally used ones.
           Typically, perf test classes are ONLY in perf suite as they would slow down default builds.
         -->
         <profile>

@@ -143,8 +143,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         } else {
             shadowName = getShadowIdentifier(ShadowUtil.getPrimaryIdentifiers(object));
         }
-        String description = "Please create resource account: "+shadowName;
-        PrismObject<CaseType> aCase = addCase("create", description, ShadowUtil.getResourceOid(object.asObjectable()),
+        PrismObject<CaseType> aCase = addCase("create", ShadowUtil.getResourceOid(object.asObjectable()),
                 shadowName, null, objectDeltaType, task, result);
         return aCase.getOid();
     }
@@ -168,8 +167,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
         objectDeltaType.setOid(shadow.getOid());
         String shadowName = shadow.getName().toString();
-        String description = "Please modify resource account: "+shadowName;
-        PrismObject<CaseType> aCase = addCase("modify", description, resourceOid, shadowName,
+        PrismObject<CaseType> aCase = addCase("modify", resourceOid, shadowName,
                 shadow.getOid(), objectDeltaType, task, result);
         return aCase.getOid();
     }
@@ -180,7 +178,6 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             throws SchemaException {
         LOGGER.debug("Creating case to delete account {}", identifiers);
         String shadowName = shadow.getName().toString();
-        String description = "Please delete resource account: "+shadowName;
         ObjectDeltaType objectDeltaType = new ObjectDeltaType();
         objectDeltaType.setChangeType(ChangeTypeType.DELETE);
         objectDeltaType.setObjectType(ShadowType.COMPLEX_TYPE);
@@ -192,7 +189,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         objectDeltaType.getItemDelta().add(itemDeltaType);
         PrismObject<CaseType> aCase;
         try {
-            aCase = addCase("delete", description, resourceOid, shadowName, shadow.getOid(), objectDeltaType, task, result);
+            aCase = addCase("delete", resourceOid, shadowName, shadow.getOid(), objectDeltaType, task, result);
         } catch (ObjectAlreadyExistsException e) {
             // should not happen
             throw new SystemException(e.getMessage(), e);
@@ -200,7 +197,35 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         return aCase.getOid();
     }
 
-    private PrismObject<CaseType> addCase(String operation, String description, String resourceOid, String shadowName, String shadowOid,
+    private PolyStringType createCaseName(String operation, String shadowName, String resourceName) {
+        PolyStringType poly = new PolyStringType();
+        poly.setOrig(String.format("Request to %s '%s' on '%s'", operation, shadowName, resourceName));
+
+        PolyStringTranslationType translation = new PolyStringTranslationType();
+        translation.setKey("ManualConnectorInstance.caseName");
+
+        PolyStringTranslationArgumentType s = new PolyStringTranslationArgumentType();
+        PolyStringTranslationType tr = new PolyStringTranslationType();
+        tr.setKey("ManualConnectorInstance.operation." + operation);
+
+        s.setTranslation(tr);
+        translation.getArgument().add(s);
+
+        addTranslationArgument(translation, shadowName);
+        addTranslationArgument(translation, resourceName);
+
+        poly.setTranslation(translation);
+
+        return poly;
+    }
+
+    private void addTranslationArgument(PolyStringTranslationType translation, String value) {
+        PolyStringTranslationArgumentType s = new PolyStringTranslationArgumentType();
+        s.setValue(value);
+        translation.getArgument().add(s);
+    }
+
+    private PrismObject<CaseType> addCase(String operation, String resourceOid, String shadowName, String shadowOid,
             ObjectDeltaType objectDelta, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
         PrismObject<CaseType> aCase = getPrismContext().createObject(CaseType.class);
         CaseType caseType = aCase.asObjectable();
@@ -274,10 +299,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         String caseOid = OidUtil.generateOid();
 
         caseType.setOid(caseOid);
-        String caseName = String.format("Request to %s '%s' on '%s'", operation, shadowName, resource.getName().getOrig());
-        caseType.setName(new PolyStringType(caseName));
-
-        caseType.setDescription(description);
+        caseType.setName(createCaseName(operation, shadowName, resource.getName().getOrig()));
 
         caseType.setState(SchemaConstants.CASE_STATE_CREATED);  // Case opening process will be completed by WorkflowEngine
 
