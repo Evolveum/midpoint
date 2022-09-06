@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -1027,5 +1029,11 @@ public abstract class PageBase extends PageAdminLTE {
         showResult(result, null, false);
 
         return focus;
+    }
+
+    protected MessagePanel createMessagePanel(String panelId, MessagePanel.MessagePanelType type, String message, Object... params) {
+        MessagePanel panel = new MessagePanel(panelId, type,
+                createStringResource(message, params), false);
+        return panel;
     }
 }
