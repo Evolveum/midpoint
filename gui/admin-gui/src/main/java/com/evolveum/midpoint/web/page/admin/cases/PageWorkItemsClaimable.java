@@ -121,7 +121,7 @@ public class PageWorkItemsClaimable extends PageCaseWorkItems {
     private void claimWorkItemPerformed(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel, AjaxRequestTarget target) {
         List<PrismContainerValueWrapper<CaseWorkItemType>> selectedWorkItems = new ArrayList<>();
         if (rowModel == null) {
-            ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> tablePanel = getCaseWorkItemsTable().getContainerableListPanel();
+            ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> tablePanel = getCaseWorkItemsTable();
             selectedWorkItems.addAll(tablePanel.getSelectedObjects());
         } else {
             selectedWorkItems.addAll(Arrays.asList(rowModel.getObject()));

@@ -6,17 +6,10 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.builtin;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.Random;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+
+import java.util.*;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.prism.PrismProperty;
-
-import com.evolveum.midpoint.provisioning.ucf.api.*;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
@@ -26,11 +19,13 @@ import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -52,19 +47,18 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
-
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * @author Radovan Semancik
- *
  */
-@ManagedConnector(type="ManualConnector", version="1.0.0")
+@ManagedConnector(type = "ManualConnector", version = "1.0.0")
 public class ManualConnectorInstance extends AbstractManualConnectorInstance implements RepositoryAware,
         CaseEventDispatcherAware, TaskManagerAware {
 
@@ -143,13 +137,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         } else {
             shadowName = getShadowIdentifier(ShadowUtil.getPrimaryIdentifiers(object));
         }
-        String description = "Please create resource account: "+shadowName;
         PrismObject<CaseType> aCase = addCase(
                 "create",
-                description,
                 ShadowUtil.getResourceOid(object.asObjectable()),
                 shadowName,
-                null,
+                object.asObjectable(),
                 objectDeltaType,
                 task,
                 result);
@@ -163,21 +155,20 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         LOGGER.debug("Creating case to modify account {}:\n{}", identifiers, DebugUtil.debugDumpLazily(changes, 1));
         if (InternalsConfig.isSanityChecks()) {
             if (MiscUtil.hasDuplicates(changes)) {
-                throw new SchemaException("Duplicated changes: "+changes);
+                throw new SchemaException("Duplicated changes: " + changes);
             }
         }
         Collection<ItemDelta> changeDeltas = changes.stream()
                 .filter(Objects::nonNull)
-                .map(change -> ((PropertyModificationOperation)change).getPropertyDelta())
+                .map(change -> ((PropertyModificationOperation) change).getPropertyDelta())
                 .collect(Collectors.toList());
         ObjectDelta<? extends ShadowType> objectDelta = getPrismContext().deltaFactory().object()
                 .createModifyDelta("", changeDeltas, ShadowType.class);
         ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
         objectDeltaType.setOid(shadow.getOid());
         String shadowName = shadow.getName().toString();
-        String description = "Please modify resource account: "+shadowName;
-        PrismObject<CaseType> aCase = addCase("modify", description, resourceOid, shadowName,
-                shadow.getOid(), objectDeltaType, task, result);
+        PrismObject<CaseType> aCase =
+                addCase("modify", resourceOid, shadowName, shadow.asObjectable(), objectDeltaType, task, result);
         return aCase.getOid();
     }
 
@@ -187,7 +178,6 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             throws SchemaException {
         LOGGER.debug("Creating case to delete account {}", identifiers);
         String shadowName = shadow.getName().toString();
-        String description = "Please delete resource account: "+shadowName;
         ObjectDeltaType objectDeltaType = new ObjectDeltaType();
         objectDeltaType.setChangeType(ChangeTypeType.DELETE);
         objectDeltaType.setObjectType(ShadowType.COMPLEX_TYPE);
@@ -199,7 +189,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         objectDeltaType.getItemDelta().add(itemDeltaType);
         PrismObject<CaseType> aCase;
         try {
-            aCase = addCase("delete", description, resourceOid, shadowName, shadow.getOid(), objectDeltaType, task, result);
+            aCase = addCase("delete", resourceOid, shadowName, shadow.asObjectable(), objectDeltaType, task, result);
         } catch (ObjectAlreadyExistsException e) {
             // should not happen
             throw new SystemException(e.getMessage(), e);
@@ -207,12 +197,40 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         return aCase.getOid();
     }
 
+    private PolyStringType createCaseName(String operation, String shadowName, String resourceName) {
+        PolyStringType poly = new PolyStringType();
+        poly.setOrig(String.format("Request to %s '%s' on '%s'", operation, shadowName, resourceName));
+
+        PolyStringTranslationType translation = new PolyStringTranslationType();
+        translation.setKey("ManualConnectorInstance.caseName");
+
+        PolyStringTranslationArgumentType s = new PolyStringTranslationArgumentType();
+        PolyStringTranslationType tr = new PolyStringTranslationType();
+        tr.setKey("ManualConnectorInstance.operation." + operation);
+
+        s.setTranslation(tr);
+        translation.getArgument().add(s);
+
+        addTranslationArgument(translation, shadowName);
+        addTranslationArgument(translation, resourceName);
+
+        poly.setTranslation(translation);
+
+        return poly;
+    }
+
+    private void addTranslationArgument(PolyStringTranslationType translation, String value) {
+        PolyStringTranslationArgumentType s = new PolyStringTranslationArgumentType();
+        s.setValue(value);
+        translation.getArgument().add(s);
+    }
+
+    // Note that shadow may be without OID and even without name.
     private PrismObject<CaseType> addCase(
             String operation,
-            String description,
             String resourceOid,
             String shadowName,
-            @Nullable String shadowOid,
+            ShadowType shadow,
             ObjectDeltaType objectDelta,
             Task task,
             OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
@@ -232,18 +250,19 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result);
         } catch (ObjectNotFoundException e) {
             // We do not signal this as ObjectNotFoundException as it could be misinterpreted as "shadow
-            // object not found" with subsequent handling as such.
+            // object not found" with subsequent handling as such. (Although, recently, the ObjectNotFoundException
+            // contains both class and OID of missing object -> but just to be sure.)
             throw new SystemException("Resource " + resourceOid + " couldn't be found", e);
         }
         ObjectReferenceType archetypeRef =
                 ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_MANUAL_CASE.value(), ObjectTypes.ARCHETYPE);
 
         // @formatter:off
-        CaseType aCase = new CaseType(getPrismContext())
-                .name(String.format("Request to %s '%s' on '%s'", operation, shadowName, resource.getName().getOrig()))
-                .description(description)
+        CaseType aCase = new CaseType()
+                .name(createCaseName(operation, shadowName, resource.getName().getOrig()))
                 .state(SchemaConstants.CASE_STATE_CREATED) // Case opening process will be completed by CaseEngine
                 .objectRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                .targetRef(createTargetRef(shadow, shadowName))
                 .requestorRef(task != null ? task.getOwnerRef() : null)
                 .beginManualProvisioningContext()
                     .beginPendingOperation()
@@ -261,10 +280,6 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
                 .end();
         // @formatter:on
 
-        if (shadowOid != null) {
-            aCase.targetRef(shadowOid, ShadowType.COMPLEX_TYPE);
-        }
-
         // TODO: case payload
         // TODO: a lot of other things
 
@@ -279,11 +294,25 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         return aCase.asPrismObject();
     }
 
+    private static ObjectReferenceType createTargetRef(ShadowType shadow, String shadowName) {
+        if (shadow.getOid() != null) {
+            // Most probably in the repo -> no need to store in full.
+            return ObjectTypeUtil.createObjectRef(shadow);
+        } else if (shadow.getName() != null || shadowName == null) {
+            return ObjectTypeUtil.createObjectRefWithFullObject(shadow);
+        } else {
+            // We need to provide a sensible name, to be shown in GUI (see MID-7977)
+            ShadowType clone = shadow.clone();
+            clone.setName(PolyStringType.fromOrig(shadowName));
+            return ObjectTypeUtil.createObjectRefWithFullObject(clone);
+        }
+    }
+
     private SimpleCaseSchemaType createCaseSchema(@Nullable ResourceBusinessConfigurationType business) {
         if (business == null) {
             return null;
         }
-        SimpleCaseSchemaType schema = new SimpleCaseSchemaType(getPrismContext());
+        SimpleCaseSchemaType schema = new SimpleCaseSchemaType();
         schema.getAssigneeRef().addAll(
                 CloneUtil.cloneCollectionMembers(business.getOperatorRef()));
         schema.setDefaultAssigneeName(configuration.getDefaultAssignee());
@@ -319,7 +348,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             result.recordSuccess();
             return status;
         } else {
-            SchemaException e = new SchemaException("Unknown case state "+state);
+            SchemaException e = new SchemaException("Unknown case state " + state);
             result.recordFatalError(e);
             throw e;
         }
@@ -328,7 +357,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     @Override
     protected void connect(OperationResult result) {
         if (connected && InternalsConfig.isSanityChecks()) {
-            throw new IllegalStateException("Double connect in "+this);
+            throw new IllegalStateException("Double connect in " + this);
         }
         connected = true;
         // Nothing else to do
@@ -338,8 +367,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         try {
             Object[] shadowIdentifiers = identifiers.toArray();
 
-            return ((ResourceAttribute<?>)shadowIdentifiers[0]).getValue().getValue().toString();
-        } catch (NullPointerException e){
+            return ((ResourceAttribute<?>) shadowIdentifiers[0]).getValue().getValue().toString();
+        } catch (NullPointerException e) {
             return "";
         }
     }

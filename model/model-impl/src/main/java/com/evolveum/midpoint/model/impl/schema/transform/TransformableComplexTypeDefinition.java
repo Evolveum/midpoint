@@ -1,54 +1,33 @@
 /*
- * Copyright (c) 2021 Evolveum and contributors
+ * Copyright (C) 2021-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.schema.transform;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.processor.deleg.CompositeObjectDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectClassDefinitionDelegator;
 import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectDefinitionDelegator;
-
 import com.evolveum.midpoint.schema.processor.deleg.ResourceObjectTypeDefinitionDelegator;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CorrelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-
-import org.jetbrains.annotations.NotNull;
-
-import com.evolveum.midpoint.prism.deleg.ComplexTypeDefinitionDelegator;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-
-import org.jetbrains.annotations.Nullable;
 
 public class TransformableComplexTypeDefinition implements ComplexTypeDefinitionDelegator, PartiallyMutableComplexTypeDefinition {
 
-
     private static final long serialVersionUID = 1L;
-    private static final TransformableItemDefinition REMOVED = new Removed();
-    private final Map<QName,ItemDefinition<?>> overrides = new HashMap<>();
+    private static final TransformableItemDefinition<?, ?> REMOVED = new Removed();
+    private final Map<QName, ItemDefinition<?>> overrides = new HashMap<>();
 
     protected DelegatedItem<ComplexTypeDefinition> delegate;
     private transient List<ItemDefinition<?>> definitionsCache;
@@ -86,36 +65,36 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         return null;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(@NotNull QName name) {
-        return overriden(ComplexTypeDefinitionDelegator.super.findLocalItemDefinition(name));
+        return overridden(ComplexTypeDefinitionDelegator.super.findLocalItemDefinition(name));
     }
 
     @SuppressWarnings("unchecked")
-    private <ID extends ItemDefinition<?>> ID overriden(ID originalItem) {
+    private <ID extends ItemDefinition<?>> ID overridden(ID originalItem) {
         if (originalItem == null) {
             return null;
         }
-        ItemDefinition<?> overriden = overrides.computeIfAbsent(originalItem.getItemName(), k -> TransformableItemDefinition.from(originalItem).attachTo(this));
-        if (overriden instanceof Removed) {
+        ItemDefinition<?> overridden = overrides.computeIfAbsent(
+                originalItem.getItemName(),
+                k -> TransformableItemDefinition.from(originalItem).attachTo(this));
+        if (overridden instanceof Removed) {
             return null;
         }
-        TransformableItemDefinition.apply(overriden, originalItem);
-        return (ID) overriden;
+        TransformableItemDefinition.apply(overridden, originalItem);
+        return (ID) overridden;
     }
 
     @Override
-    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
-            boolean caseInsensitive) {
-        return overriden(ComplexTypeDefinitionDelegator.super.findLocalItemDefinition(name, clazz, caseInsensitive));
+    public <ID extends ItemDefinition<?>> ID findLocalItemDefinition(
+            @NotNull QName name, @NotNull Class<ID> clazz, boolean caseInsensitive) {
+        return overridden(ComplexTypeDefinitionDelegator.super.findLocalItemDefinition(name, clazz, caseInsensitive));
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public <ID extends ItemDefinition<?>> ID findItemDefinition(@NotNull ItemPath path, @NotNull Class<ID> clazz) {
         // FIXME: Implement proper
-        var firstChild = overriden(ComplexTypeDefinitionDelegator.super.findItemDefinition(path));
+        var firstChild = overridden(ComplexTypeDefinitionDelegator.super.findItemDefinition(path));
         if (firstChild == null) {
             return null;
         }
@@ -151,7 +130,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         if (definitionsCache == null) {
             List<ItemDefinition<?>> ret = new ArrayList<>();
             for (ItemDefinition<?> originalItem : ComplexTypeDefinitionDelegator.super.getDefinitions()) {
-                ItemDefinition<?> wrapped = overriden(originalItem);
+                ItemDefinition<?> wrapped = overridden(originalItem);
                 if (wrapped != null) {
                     ret.add(wrapped);
                 }
@@ -169,19 +148,13 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
     @Override
     public Optional<ItemDefinition<?>> substitution(QName name) {
         Optional<ItemDefinition<?>> original = ComplexTypeDefinitionDelegator.super.substitution(name);
-        if (original.isPresent()) {
-            return Optional.of(overriden(original.get()));
-        }
-        return Optional.empty();
+        return original.map(this::overridden);
     }
 
     @Override
     public Optional<ItemDefinition<?>> itemOrSubstitution(QName name) {
         Optional<ItemDefinition<?>> original = ComplexTypeDefinitionDelegator.super.itemOrSubstitution(name);
-        if (original.isPresent()) {
-            return Optional.of(overriden(original.get()));
-        }
-        return Optional.empty();
+        return original.map(this::overridden);
     }
 
     @Override
@@ -224,12 +197,14 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         return this;
     }
 
+    @Override
+    public boolean isItemDefinitionRemoved(QName itemName) {
+        ItemDefinition<?> itemDefinition = overrides.get(itemName);
+        return itemDefinition instanceof Removed;
+    }
+
     /**
-     *
      * Currently used only to replace Refined* with LayerRefined*
-     *
-     * @param name
-     * @param definition
      */
     @SuppressWarnings("rawtypes")
     @Override
@@ -380,6 +355,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
             return null;
         }
 
+        @SuppressWarnings("unchecked")
         protected Removed() {
             super(null);
         }
@@ -388,7 +364,6 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         protected ItemDefinition publicView() {
             return null;
         }
-
 
         @Override
         public String toString() {
@@ -406,5 +381,4 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
             return false;
         }
     }
-
 }

@@ -22,11 +22,10 @@ public class LookupTableLabelPanel extends Label {
     @Override
     public <C> IConverter<C> getConverter(Class<C> type) {
         IConverter<C> originConverter = super.getConverter(type);
-        if (lookupTableOid != null) {
-            LookupTableConverter<C> lookupTableConverter = new LookupTableConverter<C>(originConverter, lookupTableOid, this, true);
-            return lookupTableConverter;
+        if (lookupTableOid == null) {
+            return originConverter;
         }
-        return originConverter;
 
+        return new LookupTableConverter<C>(originConverter, lookupTableOid, this, true);
     }
 }

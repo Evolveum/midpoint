@@ -12,8 +12,20 @@
     <name>States</name>
 
     <row>
+        <key>created</key>
+        <label>Created</label>
+    </row>
+    <row>
         <key>open</key>
         <label>Open</label>
+    </row>
+    <row>
+        <key>closing</key>
+        <label>Closing</label>
+    </row>
+    <row>
+        <key>executing</key>
+        <label>Executing</label>
     </row>
     <row>
         <key>closed</key>

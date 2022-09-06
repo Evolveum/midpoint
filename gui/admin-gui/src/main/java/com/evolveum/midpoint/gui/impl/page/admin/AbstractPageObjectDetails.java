@@ -441,11 +441,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         if (!force && form.get(ID_MAIN_PANEL) != null) {
             return;
         }
-
-        WebMarkupContainer panel = new MessagePanel(ID_MAIN_PANEL, type,
-                createStringResource(message, params), false);
+        WebMarkupContainer panel = createMessagePanel(ID_MAIN_PANEL, type, message, params);
         panel.add(AttributeAppender.append("style", "margin-top: 20px;"));
-
         form.addOrReplace(panel);
     }
 

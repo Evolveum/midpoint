@@ -13,7 +13,6 @@ import java.util.List;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
@@ -31,7 +30,7 @@ public class LoggingPackageAutocompletePanel extends AutoCompleteTextPanel<Strin
 
     @Override
     public Iterator<String> getIterator(String input) {
-        return WebComponentUtil.prepareAutoCompleteList(getLookupTable(), input, ((PageBase) getPage()).getLocalizationService()).iterator();
+        return WebComponentUtil.prepareAutoCompleteList(getLookupTable(), input).iterator();
     }
 
     @Override

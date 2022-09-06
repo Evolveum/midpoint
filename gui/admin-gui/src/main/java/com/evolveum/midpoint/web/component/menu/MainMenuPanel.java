@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.menu;
 
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.IPageFactory;
 import org.apache.wicket.Session;
@@ -130,6 +132,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
                 menuItemPerformed(menuItem.getObject());
             }
         };
+        subLink.setEnabled(!menuItem.getObject().isDynamic());
         subLink.add(AttributeModifier.append("class", () -> menuItem.getObject().isMenuActive(getPageBase()) ? "active" : null));
         listItem.add(subLink);
 

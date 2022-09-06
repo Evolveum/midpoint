@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.impl.manual;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -408,7 +409,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         assertNotNull("No async reference in result", willLastCaseOid);
 
-        assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+        CaseType aCase = assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+        ObjectReferenceType targetRef = aCase.getTargetRef();
+        assertThat(targetRef).as("case targetRef").isNotNull();
     }
 
     @Test

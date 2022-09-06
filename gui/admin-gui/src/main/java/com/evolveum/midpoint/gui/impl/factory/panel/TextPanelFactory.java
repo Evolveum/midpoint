@@ -15,14 +15,12 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.LookupAutocompletePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -96,7 +94,7 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
                 panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false);
     }
 
-    protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable, LocalizationService localizationService) {
-        return WebComponentUtil.prepareAutoCompleteList(lookupTable, input, localizationService);
+    protected List<String> prepareAutoCompleteList(String input, LookupTableType lookupTable) {
+        return WebComponentUtil.prepareAutoCompleteList(lookupTable, input);
     }
 }

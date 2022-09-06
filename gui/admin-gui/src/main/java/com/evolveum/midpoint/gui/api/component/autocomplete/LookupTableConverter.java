@@ -6,25 +6,17 @@
  */
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import java.util.Locale;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
 
-import java.util.Collection;
-import java.util.Locale;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 /**
  * @author skublik
@@ -49,12 +41,11 @@ public class LookupTableConverter<C> implements IConverter<C> {
     public C convertToObject(String value, Locale locale) throws ConversionException {
         LookupTableType lookupTable = getLookupTable();
         for (LookupTableRowType row : lookupTable.getRow()) {
-            if (value.equals(row.getKey())
-                    || value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
-
+            if (value.equals(row.getKey()) || value.equals(WebComponentUtil.translateLabel(lookupTableOid, row))) {
                 return originConverter.convertToObject(row.getKey(), locale);
             }
         }
+
         boolean differentValue = true;
         if (baseComponent != null && baseComponent.getDefaultModelObject() != null
                 && baseComponent.getDefaultModelObject().equals(value)) {
@@ -66,7 +57,6 @@ public class LookupTableConverter<C> implements IConverter<C> {
         }
 
         return originConverter.convertToObject(value, locale);
-
     }
 
     @Override
@@ -75,7 +65,7 @@ public class LookupTableConverter<C> implements IConverter<C> {
         if (lookupTable != null) {
             for (LookupTableRowType row : lookupTable.getRow()) {
                 if (key.toString().equals(row.getKey())) {
-                    return WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
+                    return WebComponentUtil.translateLabel(lookupTableOid, row);
                 }
             }
         }

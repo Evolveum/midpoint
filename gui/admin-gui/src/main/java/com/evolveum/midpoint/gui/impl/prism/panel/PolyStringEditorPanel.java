@@ -24,7 +24,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -478,8 +477,7 @@ public class PolyStringEditorPanel extends InputPanel {
     }
 
     private List<String> getPredefinedValuesIterator(String input, LookupTableType predefinedValuesLookupTable) {
-        return WebComponentUtil.prepareAutoCompleteList(predefinedValuesLookupTable, input,
-                ((PageBase) getPage()).getLocalizationService());
+        return WebComponentUtil.prepareAutoCompleteList(predefinedValuesLookupTable, input);
     }
 
     @Override
