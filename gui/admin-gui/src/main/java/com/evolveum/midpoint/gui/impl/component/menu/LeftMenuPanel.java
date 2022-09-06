@@ -11,6 +11,10 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
+
+import com.evolveum.midpoint.prism.PrismObject;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -493,14 +497,13 @@ public class LeftMenuPanel extends BasePanel<Void> {
         }
     }
 
-    private boolean isAddNewObjectMenuItemAuthorized(Class<? extends PageBase> newPageClass) {
-        if (newPageClass.isAssignableFrom(PageAdminObjectDetails.class)) {
+    private <AH extends AssignmentHolderType> boolean isAddNewObjectMenuItemAuthorized(Class<? extends PageBase> newPageClass) {
+        if (PageAssignmentHolderDetails.class.isAssignableFrom(newPageClass)) {
             try {
-                PageAdminObjectDetails page = (PageAdminObjectDetails) newPageClass.getConstructor().newInstance();
-                ObjectType object = page.createNewObject();
+                PageAssignmentHolderDetails<AH, ?> page = (PageAssignmentHolderDetails<AH, ?>) newPageClass.getConstructor().newInstance();
+                PrismObject<AH> object = getPrismContext().createObject(page.getType());
                 return getPageBase().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                        AuthorizationPhaseType.REQUEST, object == null ? null : object.asPrismObject(),
-                        null, null, null);
+                        AuthorizationPhaseType.REQUEST, object, null, null, null);
             } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New object menu item", ex);
             }
