@@ -66,37 +66,12 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     private static final String ID_BACK_BUTTON = "backButton";
 
     private final LoadableModel<CaseWorkItemType> caseWorkItemModel;
-    private PageParameters pageParameters;
 
     private LoadableModel<CaseType> caseModel;
     private WorkItemId workItemId;
 
-    public PageCaseWorkItem() {
-        this((CaseWorkItemType) null);
-    }
-
-    public PageCaseWorkItem(CaseWorkItemType workItem) {
-        this(workItem, null);
-    }
-
-    public PageCaseWorkItem(CaseWorkItemType workItem, PageParameters parameters) {
-        this.pageParameters = parameters;
-
-        caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
-            @Override
-            protected CaseWorkItemType load() {
-                if (workItem != null) {
-                    return workItem;
-                } else {
-                    getSession().error("Workitem model cannot be null");
-                    throw redirectBackViaRestartResponseException();
-                }
-            }
-        };
-    }
-
     public PageCaseWorkItem(PageParameters parameters) {
-        this.pageParameters = parameters;
+        super(parameters);
 
         String caseWorkItemId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
         if (StringUtils.isEmpty(caseWorkItemId)) {
@@ -109,14 +84,14 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
             throw redirectBackViaRestartResponseException();
         }
 
-        caseModel = new LoadableModel<CaseType>(false) {
+        caseModel = new LoadableModel<>(false) {
             @Override
             protected CaseType load() {
                 return loadCaseIfNecessary();
             }
         };
 
-        caseWorkItemModel = new LoadableModel<CaseWorkItemType>(false) {
+        caseWorkItemModel = new LoadableModel<>(false) {
             @Override
             protected CaseWorkItemType load() {
                 return loadCaseWorkItemIfNecessary();
@@ -237,31 +212,30 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     }
 
     protected PrismObject<UserType> getPowerDonor() {
-        if (pageParameters != null && pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID) != null &&
-                StringUtils.isNotEmpty(pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString())) {
-            String powerDonorOid = pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString();
-            if (StringUtils.isEmpty(powerDonorOid)) {
-                return null;
-            }
-            Task task = createSimpleTask(OPERATION_LOAD_DONOR);
-            OperationResult result = task.getResult();
-
-            PrismObject<UserType> donor = WebModelServiceUtils.loadObject(UserType.class, powerDonorOid,
-                    new ArrayList<>(), PageCaseWorkItem.this, task, result);
-
-            return donor;
-
+        String powerDonorOid = getPowerDonorOid();
+        if (StringUtils.isEmpty(powerDonorOid)) {
+            return null;
         }
-        return null;
+        Task task = createSimpleTask(OPERATION_LOAD_DONOR);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> donor = WebModelServiceUtils.loadObject(UserType.class, powerDonorOid,
+                new ArrayList<>(), PageCaseWorkItem.this, task, result);
+
+        return donor;
     }
 
-    public PageParameters getPageParameters() {
-        if (pageParameters == null || StringUtils.isEmpty(pageParameters.get(OnePageParameterEncoder.PARAMETER).toString())) {
-            pageParameters = new PageParameters();
-            CaseWorkItemType workItem = caseWorkItemModel.getObject();
-            CaseType parentCase = CaseTypeUtil.getCase(workItem);
-            pageParameters.add(OnePageParameterEncoder.PARAMETER, WorkItemId.createWorkItemId(parentCase.getOid(), workItem.getId()));
-        }
-        return pageParameters;
-    }
+    //TODO WTF?
+//    public PageParameters getPageParameters() {
+//        PageParameters pageParameters = getPageParameters();
+//        if (pageParameters == null || StringUtils.isEmpty(pageParameters.get(OnePageParameterEncoder.PARAMETER).toString())) {
+//            pageParameters = new PageParameters();
+//            CaseWorkItemType workItem = caseWorkItemModel.getObject();
+//            CaseType parentCase = CaseTypeUtil.getCase(workItem);
+//            pageParameters.add(OnePageParameterEncoder.PARAMETER, WorkItemId.createWorkItemId(parentCase.getOid(), workItem.getId()));
+//        }
+//        return pageParameters;
+//    }
+
+
 }
