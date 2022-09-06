@@ -4,10 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
-/**
- *
- */
 package com.evolveum.midpoint.model.intest.manual;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -704,7 +700,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         CaseType aCase = repositoryService
                 .getObject(CaseType.class, willLastCaseOid, null, result)
                 .asObjectable();
-        assertNull("Malformed targetRef is present in the manual provisioning case", aCase.getTargetRef());
+        assertNotNull("targetRef is not present in the manual provisioning case", aCase.getTargetRef());
     }
 
     @Test
@@ -2179,26 +2175,33 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertAttributeFromCache(shadowModelAsserter, ATTR_FULLNAME_QNAME, expectedFullName);
         assertShadowActivationAdministrativeStatusFromCache(shadowModelAsserter.getObject(), ActivationStatusType.ENABLED);
 
-        assertWillCase(SchemaConstants.CASE_STATE_OPEN,
+        CaseType aCase = assertWillCase(SchemaConstants.CASE_STATE_OPEN,
                 shadowModelAsserter.pendingOperations().singleOperation().getOperation(),
                 propagationExecutionStage);
+        if (aCase != null) {
+            assertNotNull("case targetRef is null", aCase.getTargetRef());
+        }
     }
 
-    protected void assertWillCase(String expectedCaseState, PendingOperationType pendingOperation,
+    protected CaseType assertWillCase(String expectedCaseState, PendingOperationType pendingOperation,
             PendingOperationExecutionStatusType propagationExecutionStage) throws ObjectNotFoundException, SchemaException {
         String pendingOperationRef = pendingOperation.getAsynchronousOperationReference();
+        CaseType aCase;
         if (isDirect()) {
             // Case number should be in willLastCaseOid. It will get there from operation result.
             assertNotNull("No async reference in pending operation", willLastCaseOid);
-            assertCaseState(willLastCaseOid, expectedCaseState);
+            aCase = assertCaseState(willLastCaseOid, expectedCaseState);
             assertEquals("Wrong case ID in pending operation", willLastCaseOid, pendingOperationRef);
         } else {
             if (caseShouldExist(propagationExecutionStage)) {
                 assertNotNull("No async reference in pending operation", pendingOperationRef);
-                assertCaseState(pendingOperationRef, expectedCaseState);
+                aCase = assertCaseState(pendingOperationRef, expectedCaseState);
+            } else {
+                aCase = null;
             }
             willLastCaseOid = pendingOperationRef;
         }
+        return aCase;
     }
 
     protected boolean caseShouldExist(PendingOperationExecutionStatusType executionStage) {

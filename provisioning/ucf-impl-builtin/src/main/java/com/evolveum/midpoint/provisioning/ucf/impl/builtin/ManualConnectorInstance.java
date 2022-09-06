@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
 import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -142,7 +143,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             shadowName = getShadowIdentifier(ShadowUtil.getPrimaryIdentifiers(object));
         }
         PrismObject<CaseType> aCase = addCase("create", ShadowUtil.getResourceOid(object.asObjectable()),
-                shadowName, null, objectDeltaType, task, result);
+                shadowName, object.asObjectable(), objectDeltaType, task, result);
         return aCase.getOid();
     }
 
@@ -165,8 +166,9 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
         objectDeltaType.setOid(shadow.getOid());
         String shadowName = shadow.getName().toString();
-        PrismObject<CaseType> aCase = addCase("modify", resourceOid, shadowName,
-                shadow.getOid(), objectDeltaType, task, result);
+        PrismObject<CaseType> aCase =
+                addCase("modify", resourceOid, shadowName,
+                shadow.asObjectable(), objectDeltaType, task, result);
         return aCase.getOid();
     }
 
@@ -187,7 +189,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         objectDeltaType.getItemDelta().add(itemDeltaType);
         PrismObject<CaseType> aCase;
         try {
-            aCase = addCase("delete", resourceOid, shadowName, shadow.getOid(), objectDeltaType, task, result);
+            aCase = addCase("delete", resourceOid, shadowName, shadow.asObjectable(), objectDeltaType, task, result);
         } catch (ObjectAlreadyExistsException e) {
             // should not happen
             throw new SystemException(e.getMessage(), e);
@@ -223,8 +225,14 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         translation.getArgument().add(s);
     }
 
-    private PrismObject<CaseType> addCase(String operation, String resourceOid, String shadowName, String shadowOid,
-            ObjectDeltaType objectDelta, Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+    private PrismObject<CaseType> addCase(
+            String operation,
+            String resourceOid,
+            String shadowName,
+            ShadowType shadow,
+            ObjectDeltaType objectDelta,
+            Task task,
+            OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
         PrismObject<CaseType> aCase = getPrismContext().createObject(CaseType.class);
         CaseType caseType = aCase.asObjectable();
 
@@ -278,14 +286,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         caseType.setState(SchemaConstants.CASE_STATE_CREATED);  // Case opening process will be completed by WorkflowEngine
 
         caseType.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
-
-        if (shadowOid != null) {
-            caseType.setTargetRef(
-                    new ObjectReferenceType()
-                            .oid(shadowOid)
-                            .targetName(shadowName)
-                            .type(ShadowType.COMPLEX_TYPE));
-        }
+        caseType.setTargetRef(createTargetRef(shadow, shadowName, getPrismContext()));
 
         if (task != null) {
             if (isCaseOperationTask(task)) {
@@ -353,6 +354,20 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
     private boolean isCaseOperationTask(Task task) {
         return "http://midpoint.evolveum.com/xml/ns/public/workflow/operation-execution/handler-3".equals(task.getHandlerUri());
+    }
+
+    private static ObjectReferenceType createTargetRef(ShadowType shadow, String shadowName, PrismContext prismContext) {
+        if (shadow.getOid() != null) {
+            // Most probably in the repo -> no need to store in full.
+            return ObjectTypeUtil.createObjectRef(shadow, prismContext);
+        } else if (shadow.getName() != null || shadowName == null) {
+            return ObjectTypeUtil.createObjectRefWithFullObject(shadow, prismContext);
+        } else {
+            // We need to provide a sensible name, to be shown in GUI (see MID-7977)
+            ShadowType clone = shadow.clone();
+            clone.setName(PolyStringType.fromOrig(shadowName));
+            return ObjectTypeUtil.createObjectRefWithFullObject(clone, prismContext);
+        }
     }
 
     @Override
