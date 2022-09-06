@@ -45,9 +45,7 @@ public class PageWorkItemsAttorney extends PageCaseWorkItems {
 
     @Override
     protected ObjectFilter getCaseWorkItemsFilter() {
-        PageParameters parameters = getWorkItemsPageParameters();
-        String attorneyUserOid = parameters != null && parameters.get(PageAttorneySelection.PARAMETER_DONOR_OID) != null ?
-                parameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString() : null;
+        String attorneyUserOid = getPowerDonorOid();
         if (StringUtils.isEmpty(attorneyUserOid) || attorneyUserOid.equals("null")) {
             return super.getCaseWorkItemsFilter();
         }

@@ -48,13 +48,13 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private static final String PARAMETER_CASE_WORK_ITEM_ID = "caseWorkItemId";
 
     private static final String ID_CASE_WORK_ITEMS_TABLE = "caseWorkItemsTable";
-    private PageParameters pageParameters = null;
 
     public PageCaseWorkItems() {
+        this(null);
     }
 
     public PageCaseWorkItems(PageParameters pageParameters) {
-        this.pageParameters = pageParameters;
+        super(pageParameters);
     }
 
     @Override
@@ -64,8 +64,7 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
     }
 
     private void initLayout() {
-        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST,
-                pageParameters) {
+        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -98,10 +97,6 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
     protected CaseWorkItemsPanel getCaseWorkItemsTable() {
         return (CaseWorkItemsPanel) get(createComponentPath(ID_CASE_WORK_ITEMS_TABLE));
-    }
-
-    protected PageParameters getWorkItemsPageParameters(){
-        return pageParameters;
     }
 
 }
