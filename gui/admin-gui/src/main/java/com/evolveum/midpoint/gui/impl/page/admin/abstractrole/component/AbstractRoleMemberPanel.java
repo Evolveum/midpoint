@@ -82,6 +82,7 @@ import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
 import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
@@ -287,6 +288,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             @Override
             protected String getTitleForNewObjectButton() {
                 return createStringResource("TreeTablePanel.menu.createMember").getString();
+            }
+
+            @Override
+            protected boolean isCreateNewObjectEnabled() {
+                return isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE);
             }
         };
         childrenListPanel.setOutputMarkupId(true);
@@ -624,6 +630,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 AbstractRoleMemberPanel.this.getPageBase().showMainPopup(browser, target);
             }
         };
+        assignButton.add(new VisibleBehaviour(() -> isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)));
         assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return assignButton;
     }
