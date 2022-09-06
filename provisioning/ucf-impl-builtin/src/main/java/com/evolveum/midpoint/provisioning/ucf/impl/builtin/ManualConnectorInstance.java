@@ -141,7 +141,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
                 "create",
                 ShadowUtil.getResourceOid(object.asObjectable()),
                 shadowName,
-                null,
+                object.asObjectable(),
                 objectDeltaType,
                 task,
                 result);
@@ -167,7 +167,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
         objectDeltaType.setOid(shadow.getOid());
         String shadowName = shadow.getName().toString();
-        PrismObject<CaseType> aCase = addCase("modify", resourceOid, shadowName, shadow.getOid(), objectDeltaType, task, result);
+        PrismObject<CaseType> aCase =
+                addCase("modify", resourceOid, shadowName, shadow.asObjectable(), objectDeltaType, task, result);
         return aCase.getOid();
     }
 
@@ -188,7 +189,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         objectDeltaType.getItemDelta().add(itemDeltaType);
         PrismObject<CaseType> aCase;
         try {
-            aCase = addCase("delete", resourceOid, shadowName, shadow.getOid(), objectDeltaType, task, result);
+            aCase = addCase("delete", resourceOid, shadowName, shadow.asObjectable(), objectDeltaType, task, result);
         } catch (ObjectAlreadyExistsException e) {
             // should not happen
             throw new SystemException(e.getMessage(), e);
@@ -224,11 +225,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         translation.getArgument().add(s);
     }
 
+    // Note that shadow may be without OID and even without name.
     private PrismObject<CaseType> addCase(
             String operation,
             String resourceOid,
             String shadowName,
-            @Nullable String shadowOid,
+            ShadowType shadow,
             ObjectDeltaType objectDelta,
             Task task,
             OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
@@ -248,17 +250,19 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
             resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result);
         } catch (ObjectNotFoundException e) {
             // We do not signal this as ObjectNotFoundException as it could be misinterpreted as "shadow
-            // object not found" with subsequent handling as such.
+            // object not found" with subsequent handling as such. (Although, recently, the ObjectNotFoundException
+            // contains both class and OID of missing object -> but just to be sure.)
             throw new SystemException("Resource " + resourceOid + " couldn't be found", e);
         }
         ObjectReferenceType archetypeRef =
                 ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_MANUAL_CASE.value(), ObjectTypes.ARCHETYPE);
 
         // @formatter:off
-        CaseType aCase = new CaseType(getPrismContext())
+        CaseType aCase = new CaseType()
                 .name(createCaseName(operation, shadowName, resource.getName().getOrig()))
                 .state(SchemaConstants.CASE_STATE_CREATED) // Case opening process will be completed by CaseEngine
                 .objectRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                .targetRef(createTargetRef(shadow, shadowName))
                 .requestorRef(task != null ? task.getOwnerRef() : null)
                 .beginManualProvisioningContext()
                     .beginPendingOperation()
@@ -276,10 +280,6 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
                 .end();
         // @formatter:on
 
-        if (shadowOid != null) {
-            aCase.targetRef(shadowOid, ShadowType.COMPLEX_TYPE);
-        }
-
         // TODO: case payload
         // TODO: a lot of other things
 
@@ -294,11 +294,25 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
         return aCase.asPrismObject();
     }
 
+    private static ObjectReferenceType createTargetRef(ShadowType shadow, String shadowName) {
+        if (shadow.getOid() != null) {
+            // Most probably in the repo -> no need to store in full.
+            return ObjectTypeUtil.createObjectRef(shadow);
+        } else if (shadow.getName() != null || shadowName == null) {
+            return ObjectTypeUtil.createObjectRefWithFullObject(shadow);
+        } else {
+            // We need to provide a sensible name, to be shown in GUI (see MID-7977)
+            ShadowType clone = shadow.clone();
+            clone.setName(PolyStringType.fromOrig(shadowName));
+            return ObjectTypeUtil.createObjectRefWithFullObject(clone);
+        }
+    }
+
     private SimpleCaseSchemaType createCaseSchema(@Nullable ResourceBusinessConfigurationType business) {
         if (business == null) {
             return null;
         }
-        SimpleCaseSchemaType schema = new SimpleCaseSchemaType(getPrismContext());
+        SimpleCaseSchemaType schema = new SimpleCaseSchemaType();
         schema.getAssigneeRef().addAll(
                 CloneUtil.cloneCollectionMembers(business.getOperatorRef()));
         schema.setDefaultAssigneeName(configuration.getDefaultAssignee());
