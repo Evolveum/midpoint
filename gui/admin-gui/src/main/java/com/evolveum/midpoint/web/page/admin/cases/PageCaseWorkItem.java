@@ -9,7 +9,10 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -59,6 +62,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 
     private static final String DOT_CLASS = PageCaseWorkItem.class.getName() + ".";
     private static final String OPERATION_LOAD_CASE = DOT_CLASS + "loadCase";
+    private static final String OPERATION_LOAD_WORK_ITEM = DOT_CLASS + "loadWorkItem";
     private static final String OPERATION_LOAD_DONOR = DOT_CLASS + "loadPowerDonor";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItem.class);
@@ -144,22 +148,33 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         if (caseWorkItemModel.isLoaded()) {
             return caseWorkItemModel.getObject();
         }
+        Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM);
+        OperationResult result = task.getResult();
         try {
-            List<CaseWorkItemType> caseWorkItemList = caseModel.getObject().getWorkItem();
-            if (caseWorkItemList == null) {
-                throw new ObjectNotFoundException("No case work item found for case " + workItemId.getCaseOid() + " with id " + workItemId.getId());
-            }
-            for (CaseWorkItemType caseWorkItemType : caseWorkItemList) {
-                if (caseWorkItemType.getId().equals(workItemId.getId())) {
-                    return caseWorkItemType;
-                }
-            }
+            List<CaseWorkItemType> workItems = WebModelServiceUtils.searchContainers(
+                    CaseWorkItemType.class,
+                    PrismContext.get().queryFor(CaseWorkItemType.class)
+                            .id(workItemId.id)
+                            .and().ownerId(workItemId.caseOid)
+                            .build(),
+                    null,
+                    result,
+                    PageCaseWorkItem.this);
+            return MiscUtil.extractSingletonRequired(
+                    workItems,
+                    () -> new IllegalStateException("Multiple work items found for " + workItemId + ": " + workItems),
+                    () -> new ObjectNotFoundException("The work item could not be found. "
+                            + "It might have been already deleted. Its ID is '" + workItemId.asString() + "'."));
         } catch (ObjectNotFoundException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get case work item because it does not exist. (It might have been already completed or deleted.)", ex);
-        } catch (NumberFormatException ex) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse case work item id.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't get case work item", ex); // No need to write full stack trace
+            result.recordFatalError(ex);
+        } catch (Exception ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get case work item", ex);
+            result.recordFatalError(ex);
+        } finally {
+            result.close();
         }
-        getSession().error(getString("PageCaseWorkItem.couldNotGetCaseWorkItem"));
+        showResult(result, false);
         throw redirectBackViaRestartResponseException();
     }
 
