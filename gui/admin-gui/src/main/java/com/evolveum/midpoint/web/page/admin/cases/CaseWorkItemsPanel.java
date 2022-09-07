@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
@@ -25,6 +26,8 @@ import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -68,11 +71,6 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
     private static final String DOT_CLASS = CaseWorkItemsPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_POWER_DONOR_OBJECT = DOT_CLASS + "loadPowerDonorObject";
     private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItem";
-
-    private static final String ID_WORKITEMS_TABLE = "workitemsTable";
-
-    //TODO page parameters?
-    private PageParameters pageParameters;
 
     public CaseWorkItemsPanel(String id) {
         super(id, CaseWorkItemType.class);
@@ -160,17 +158,6 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
         return rowModelObject.getRealValue();
     }
 
-//    private void initLayout(){
-//        ContainerableListPanel workItemsPanel =
-//                new ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>(ID_WORKITEMS_TABLE, CaseWorkItemType.class, null, config) {
-//
-//
-//                };
-//        workItemsPanel.setOutputMarkupId(true);
-//        workItemsPanel.setDashboard(view == View.DASHBOARD);
-//        add(workItemsPanel);
-//    }
-
     private ContainerListDataProvider<CaseWorkItemType> createProvider(IModel<Search<CaseWorkItemType>> searchModel) {
         Collection<SelectorOptions<GetOperationOptions>> options = CaseWorkItemsPanel.this.getPageBase().getOperationOptionsBuilder()
                 .item(AbstractWorkItemType.F_ASSIGNEE_REF).resolve()
@@ -218,15 +205,17 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
 
             @Override
             public void onClick(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                PageCaseWorkItem pageCaseWorkItem = new PageCaseWorkItem(rowModel.getObject() != null ? rowModel.getObject().getRealValue() : null, pageParameters);
-                CaseWorkItemsPanel.this.getPageBase().navigateToNext(pageCaseWorkItem);
+                PageParameters params = getPageBase().getPageParameters();
+                PrismContainerValueWrapper<CaseWorkItemType> rowObject = rowModel.getObject();
+                if (rowObject != null) {
+                    CaseWorkItemType workItem = rowObject.getRealValue();
+                    CaseType parentCase = CaseTypeUtil.getCase(workItem);
+                    params.add(OnePageParameterEncoder.PARAMETER, WorkItemId.createWorkItemId(parentCase.getOid(), workItem.getId()));
+                }
+                CaseWorkItemsPanel.this.getPageBase().navigateToNext(PageCaseWorkItem.class, params);
             }
         };
     }
-
-//    private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns(){
-//        return ColumnUtils.getDefaultWorkItemColumns(getPageBase(), View.FULL_LIST.equals(view));
-//    }
 
     protected List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
@@ -331,8 +320,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
             AjaxRequestTarget target) {
         List<PrismContainerValueWrapper<CaseWorkItemType>> selectedWorkItems = new ArrayList<>();
         if (rowModel == null) {
-            ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> tablePanel = getContainerableListPanel();
-            selectedWorkItems.addAll(tablePanel.getSelectedObjects());
+            selectedWorkItems.addAll(getSelectedObjects());
         } else {
             selectedWorkItems.addAll(Collections.singletonList(rowModel.getObject()));
         }
@@ -353,15 +341,11 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
                     null, powerDonor, approved, completeWorkItemResult, CaseWorkItemsPanel.this.getPageBase());
         });
 
-        WebComponentUtil.clearProviderCache(getContainerableListPanel().getTable().getDataTable().getDataProvider());
+        WebComponentUtil.clearProviderCache(getTable().getDataTable().getDataProvider());
 
         target.add(getPageBase().getFeedbackPanel());
-        target.add(getContainerableListPanel());
+        target.add(CaseWorkItemsPanel.this);
 
-    }
-
-    public ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> getContainerableListPanel() {
-        return (ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>>) get(ID_WORKITEMS_TABLE);
     }
 
     protected ObjectFilter getCaseWorkItemsFilter() {
@@ -369,6 +353,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
     }
 
     private String getPowerDonorOidParameterValue() {
+        PageParameters pageParameters = getPageBase().getPageParameters();
         if (pageParameters != null && pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID) != null) {
             return pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString();
         }

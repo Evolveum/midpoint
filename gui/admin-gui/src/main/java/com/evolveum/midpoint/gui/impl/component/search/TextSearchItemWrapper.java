@@ -18,6 +18,10 @@ public class TextSearchItemWrapper extends PropertySearchItemWrapper<String> {
     private String valueEnumerationRefOid;
     private QName valueEnumerationRefType;
 
+    public TextSearchItemWrapper() {
+        super();
+    }
+
     public TextSearchItemWrapper(ItemPath path) {
         super(path);
     }

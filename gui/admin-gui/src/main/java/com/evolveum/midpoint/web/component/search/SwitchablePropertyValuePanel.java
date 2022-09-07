@@ -24,7 +24,6 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.ExpressionModel;
 import com.evolveum.midpoint.prism.*;
@@ -175,8 +174,7 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
 
                         @Override
                         public Iterator<String> getIterator(String input) {
-                            return WebComponentUtil.prepareAutoCompleteList(lookupTable.asObjectable(), input,
-                                    ((PageBase) getPage()).getLocalizationService()).iterator();
+                            return WebComponentUtil.prepareAutoCompleteList(lookupTable.asObjectable(), input).iterator();
                         }
                     };
                 } else if (CollectionUtils.isNotEmpty(allowedValues)) {

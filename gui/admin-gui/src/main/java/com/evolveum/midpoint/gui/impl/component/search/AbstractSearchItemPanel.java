@@ -6,20 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -33,9 +22,18 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrapper> extends BasePanel<S> {
 
@@ -176,8 +174,7 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
 
             @Override
             public Iterator<String> getIterator(String input) {
-                return WebComponentUtil.prepareAutoCompleteList(lookupTable, input,
-                        ((PageBase) getPage()).getLocalizationService()).iterator();
+                return WebComponentUtil.prepareAutoCompleteList(lookupTable, input).iterator();
             }
         };
 

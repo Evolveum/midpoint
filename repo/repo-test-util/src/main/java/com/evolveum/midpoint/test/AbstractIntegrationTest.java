@@ -2525,7 +2525,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .isEmpty();
     }
 
-    protected void assertCaseState(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
+    protected CaseType assertCaseState(String oid, String expectedState) throws ObjectNotFoundException, SchemaException {
         OperationResult result = new OperationResult("assertCase");
         PrismObject<CaseType> acase = repositoryService.getObject(CaseType.class, oid, null, result);
         display("Case", acase);
@@ -2539,6 +2539,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     .withFailMessage("Wrong state of " + acase)
                     .isEqualTo(expectedState);
         }
+        return caseType;
     }
 
     protected void closeCase(String caseOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

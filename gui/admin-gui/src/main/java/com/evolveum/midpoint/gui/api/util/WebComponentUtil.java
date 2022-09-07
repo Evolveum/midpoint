@@ -29,8 +29,6 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.self.PageSelfProfile;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -93,7 +91,6 @@ import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -202,6 +199,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPres
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
+import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -3233,8 +3231,7 @@ public final class WebComponentUtil {
         return getRelationRegistry().getRelationDefinition(relation);
     }
 
-    public static List<String> prepareAutoCompleteList(LookupTableType lookupTable, String input,
-            LocalizationService localizationService) {
+    public static List<String> prepareAutoCompleteList(LookupTableType lookupTable, String input) {
         List<String> values = new ArrayList<>();
 
         if (lookupTable == null) {
@@ -3243,52 +3240,23 @@ public final class WebComponentUtil {
 
         List<LookupTableRowType> rows = lookupTable.getRow();
 
-        if (input == null || input.isEmpty()) {
-            for (LookupTableRowType row : rows) {
-
-                PolyString polystring = null;
-                if (row.getLabel() != null) {
-                    polystring = setTranslateToPolystring(row);
-                }
-                values.add(localizationService.translate(polystring, getCurrentLocale(), true));
-            }
-        } else {
-            for (LookupTableRowType row : rows) {
-                if (row.getLabel() == null) {
-                    continue;
-                }
-                PolyString polystring = setTranslateToPolystring(row);
-                String rowLabel = localizationService.translate(polystring, getCurrentLocale(), true);
-                if (rowLabel != null && rowLabel.toLowerCase().contains(input.toLowerCase())) {
-                    values.add(rowLabel);
-                }
+        for (LookupTableRowType row : rows) {
+            String value = translateLabel(lookupTable.getOid(), row);
+            if (input == null || input.isEmpty()) {
+                values.add(value);
+            } else if (value != null && value.toLowerCase().contains(input.toLowerCase())) {
+                values.add(value);
             }
         }
+
         return values;
     }
 
-    private static PolyString setTranslateToPolystring(LookupTableRowType row) {
-        PolyString polystring = row.getLabel().toPolyString();
-        return setTranslateToPolystring(polystring);
-    }
+    public static String translateLabel(String lookupTableOid, LookupTableRowType row) {
+        LocalizationService localizationService = MidPointApplication.get().getLocalizationService();
 
-    private static PolyString setTranslateToPolystring(PolyString polystring) {
-        if (org.apache.commons.lang3.StringUtils.isNotBlank(polystring.getOrig())) {
-            if (polystring.getTranslation() == null) {
-                PolyStringTranslationType translation = new PolyStringTranslationType();
-                translation.setKey(polystring.getOrig());
-                if (org.apache.commons.lang3.StringUtils.isBlank(translation.getFallback())) {
-                    translation.setFallback(polystring.getOrig());
-                }
-                polystring.setTranslation(translation);
-            } else if (org.apache.commons.lang3.StringUtils.isNotBlank(polystring.getTranslation().getKey())) {
-                polystring.getTranslation().setKey(polystring.getOrig());
-                if (org.apache.commons.lang3.StringUtils.isBlank(polystring.getTranslation().getFallback())) {
-                    polystring.getTranslation().setFallback(polystring.getOrig());
-                }
-            }
-        }
-        return polystring;
+        String fallback = row.getLabel() != null ? row.getLabel().getOrig() : row.getKey();
+        return localizationService.translate(lookupTableOid + "." + row.getKey(), new String[0], getCurrentLocale(), fallback);
     }
 
     public static DropDownChoice<Boolean> createTriStateCombo(String id, IModel<Boolean> model) {
@@ -4537,57 +4505,6 @@ public final class WebComponentUtil {
         return ret;
     }
 
-    // TODO: use LocalizationService.translate(polyString) instead
-    @Deprecated
-    public static String getLocalizedOrOriginPolyStringValue(PolyString polyString) {
-        String value = getLocalizedPolyStringValue(setTranslateToPolystring(polyString));
-        if (value == null) {
-            return getOrigStringFromPoly(polyString);
-        }
-        return value;
-    }
-
-    @Deprecated
-    private static String getLocalizedPolyStringValue(PolyString polyString) {
-        if (polyString == null) {
-            return null;
-        }
-        if ((polyString.getTranslation() == null || StringUtils.isEmpty(polyString.getTranslation().getKey())) &&
-                (polyString.getLang() == null || polyString.getLang().isEmpty())) {
-            return null;
-        }
-        if (polyString.getLang() != null && !polyString.getLang().isEmpty()) {
-            //check if it's really selected by user or configured through sysconfig locale
-            String currentLocale = getCurrentLocale().getLanguage();
-            for (String language : polyString.getLang().keySet()) {
-                if (currentLocale.equals(language)) {
-                    return polyString.getLang().get(language);
-                }
-            }
-        }
-
-        if (polyString.getTranslation() != null && StringUtils.isNotEmpty(polyString.getTranslation().getKey())) {
-            List<String> argumentValues = new ArrayList<>();
-            polyString.getTranslation().getArgument().forEach(argument -> {
-                String argumentValue = "";
-                String translationValue = "";
-                if (argument.getTranslation() != null) {
-                    String argumentKey = argument.getTranslation().getKey();
-                    String valueByKey = StringUtils.isNotEmpty(argumentKey) ? new StringResourceModel(argumentKey).getString() : null;
-                    translationValue = StringUtils.isNotEmpty(valueByKey) ? valueByKey : argument.getTranslation().getFallback();
-                }
-                argumentValue = StringUtils.isNotEmpty(translationValue) ? translationValue : argument.getValue();
-                argumentValues.add(argumentValue);
-            });
-            return new StringResourceModel(polyString.getTranslation().getKey())
-                    .setDefaultValue(polyString.getTranslation().getKey())
-                    .setModel(new Model<String>())
-                    .setParameters(argumentValues.toArray())
-                    .getString();
-        }
-        return null;
-    }
-
     public static <T> List<T> sortDropDownChoices(IModel<? extends List<? extends T>> choicesModel, IChoiceRenderer<T> renderer) {
         List<T> sortedList = choicesModel.getObject().stream().sorted((choice1, choice2) -> {
             if (choice1 == null || choice2 == null) {
@@ -5277,26 +5194,29 @@ public final class WebComponentUtil {
         return count;
     }
 
-    public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, PageBase pageBase) {
+    public static List<DisplayableValue<?>> getAllowedValues(SearchFilterParameterType parameter, ModelServiceLocator modelServiceLocator) {
         if (parameter == null || parameter.getAllowedValuesExpression() == null) {
             return new ArrayList<>();
         }
-        return getAllowedValues(parameter.getAllowedValuesExpression(), pageBase);
+        return getAllowedValues(parameter.getAllowedValuesExpression(), modelServiceLocator);
     }
 
-    public static List<DisplayableValue<?>> getAllowedValues(ExpressionType expression, PageBase pageBase) {
+    public static List<DisplayableValue<?>> getAllowedValues(ExpressionType expression, ModelServiceLocator modelServiceLocator) {
         List<DisplayableValue<?>> allowedValues = new ArrayList<>();
-
-        Task task = pageBase.createSimpleTask("evaluate expression for allowed values");
+        if (expression == null) {
+            return allowedValues;
+        }
+        Task task = modelServiceLocator.createSimpleTask("evaluate expression for allowed values");
         Object value;
         try {
-
             value = ExpressionUtil.evaluateExpressionNative(null, new VariablesMap(), null,
                     expression, MiscSchemaUtil.getExpressionProfile(),
-                    pageBase.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
+                    modelServiceLocator.getExpressionFactory(), "evaluate expression for allowed values", task, task.getResult());
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
-            pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
+            if (modelServiceLocator instanceof PageBase) {
+                ((PageBase)modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
+            }
             return allowedValues;
         }
         if (value instanceof PrismPropertyValue) {
@@ -5305,7 +5225,9 @@ public final class WebComponentUtil {
 
         if (!(value instanceof Set)) {
             LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
-            pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
+            if (modelServiceLocator instanceof PageBase) {
+                ((PageBase)modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
+            }
             return allowedValues;
         }
 
@@ -5313,7 +5235,9 @@ public final class WebComponentUtil {
             if (!(((Set<?>) value).iterator().next() instanceof PrismPropertyValue)
                     || !(((PrismPropertyValue) (((Set<?>) value).iterator().next())).getValue() instanceof DisplayableValue)) {
                 LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
-                pageBase.error(pageBase.createStringResource("FilterSearchItem.message.error.wrongType", expression).getString());
+                if (modelServiceLocator instanceof PageBase) {
+                    ((PageBase)modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
+                }
                 return allowedValues;
             }
 

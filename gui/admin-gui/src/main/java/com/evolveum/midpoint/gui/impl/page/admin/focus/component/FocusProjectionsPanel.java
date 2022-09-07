@@ -272,9 +272,9 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                         List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
 
                         SearchFactory.addSearchRefWrapper(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_NAME, defs);
-                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_INTENT, defs);
-                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_KIND, defs);
+                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_NAME, defs, getPageBase());
+                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_INTENT, defs, getPageBase());
+                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_KIND, defs, getPageBase());
 
                         return defs;
                     }

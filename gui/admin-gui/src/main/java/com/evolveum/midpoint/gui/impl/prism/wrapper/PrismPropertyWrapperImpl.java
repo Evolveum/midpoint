@@ -7,26 +7,22 @@
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author katka
- *
  */
 public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T>, PrismPropertyValueWrapper<T>> implements PrismPropertyWrapper<T> {
 
@@ -62,7 +58,6 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
     public QName getMatchingRuleQName() {
         return getItemDefinition().getMatchingRuleQName();
     }
-
 
     @Override
     public @NotNull PropertyDelta<T> createEmptyDelta(ItemPath path) {
@@ -104,7 +99,9 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismProperty<T
 
     @Override
     public boolean isEmpty() {
-        if (super.isEmpty()) return true;
+        if (super.isEmpty()) {
+            return true;
+        }
         List<PrismPropertyValue<T>> pVals = getItem().getValues();
         boolean allEmpty = true;
         for (PrismPropertyValue<T> pVal : pVals) {

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -66,7 +67,7 @@ public class ReportCollectionViewPanel extends AbstractObjectMainPanel<ReportTyp
         );
         try {
             Panel propertyPanel = getPageBase().initItemPanel(
-                    ID_TYPE, propertyModel.getObject().getTypeName(), propertyModel, null);
+                    ID_TYPE, propertyModel.getObject().getTypeName(), propertyModel, new ItemPanelSettingsBuilder().build());
             add(propertyPanel);
         } catch (SchemaException e) {
             LOGGER.error("Couldn't create panel for type element in view");

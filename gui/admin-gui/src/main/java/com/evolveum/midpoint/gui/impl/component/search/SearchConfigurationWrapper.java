@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -45,11 +46,11 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
     private ObjectReferenceType projectRef;
     private ObjectReferenceType tenantRef;
 
-    public SearchConfigurationWrapper(Class<C> typeClass) {
+    public SearchConfigurationWrapper(Class<C> typeClass, ModelServiceLocator modelServiceLocator) {
         this.typeClass = typeClass;
     }
 
-   public SearchConfigurationWrapper(Class<C> typeClass, SearchBoxConfigurationType searchBoxConfig) {
+   public SearchConfigurationWrapper(Class<C> typeClass, SearchBoxConfigurationType searchBoxConfig, ModelServiceLocator modelServiceLocator) {
         this.typeClass = typeClass;
         if (searchBoxConfig.getObjectTypeConfiguration() != null) {
             searchBoxConfig.getObjectTypeConfiguration().getSupportedTypes()
@@ -82,7 +83,8 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
         }
         if (searchBoxConfig.getSearchItems() != null && CollectionUtils.isNotEmpty(searchBoxConfig.getSearchItems().getSearchItem())) {
             searchBoxConfig.getSearchItems().getSearchItem().forEach(item -> {
-                PropertySearchItemWrapper itemWrapper = SearchFactory.createPropertySearchItemWrapper(typeClass, item, null, null);
+                PropertySearchItemWrapper itemWrapper = SearchFactory.createPropertySearchItemWrapper(typeClass, item, null, null,
+                        modelServiceLocator);
                 if (itemWrapper != null) {
                     itemsList.add(itemWrapper);
                 }

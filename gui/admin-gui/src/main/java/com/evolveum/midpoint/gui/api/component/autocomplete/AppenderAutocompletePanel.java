@@ -12,7 +12,6 @@ import java.util.List;
 
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
@@ -37,7 +36,7 @@ public class AppenderAutocompletePanel extends AutoCompleteTextPanel<String> {
 
     @Override
     public Iterator<String> getIterator(String input) {
-        return WebComponentUtil.prepareAutoCompleteList(getLookupTable(), input, ((PageBase) getPage()).getLocalizationService()).iterator();
+        return WebComponentUtil.prepareAutoCompleteList(getLookupTable(), input).iterator();
     }
 
     @Override

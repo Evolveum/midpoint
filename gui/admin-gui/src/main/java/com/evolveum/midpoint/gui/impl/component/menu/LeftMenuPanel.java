@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
@@ -594,20 +595,18 @@ public class LeftMenuPanel extends BasePanel<Void> {
         boolean editActive = classMatches(newPageClass) && (isEditForAdminObjectDetails() || isEditForResourceWizzard());
         if (editActive) {
             MenuItem edit = new MenuItem(editKey, newPageClass);
+            edit.setDynamic(true);
             mainMenuItem.addMenuItem(edit);
         }
     }
 
-    private boolean isAddNewObjectMenuItemAuthorized(Class<? extends PageBase> newPageClass) {
-        if (newPageClass.isAssignableFrom(AbstractPageObjectDetails.class)) {
+    private <AH extends AssignmentHolderType> boolean isAddNewObjectMenuItemAuthorized(Class<? extends PageBase> newPageClass) {
+        if (PageAssignmentHolderDetails.class.isAssignableFrom(newPageClass)) {
             try {
-
-                AbstractPageObjectDetails page = (AbstractPageObjectDetails) newPageClass.getConstructor().newInstance();
-                Class<? extends ObjectType> objectType = page.getType();
-                PrismObject<? extends ObjectType> object = getPrismContext().createObject(objectType);
+                PageAssignmentHolderDetails<AH, ?> page = (PageAssignmentHolderDetails<AH, ?>) newPageClass.getConstructor().newInstance();
+                PrismObject<AH> object = getPrismContext().createObject(page.getType());
                 return getPageBase().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                        AuthorizationPhaseType.REQUEST, object,
-                        null, null, null);
+                        AuthorizationPhaseType.REQUEST, object, null, null, null);
             } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New object menu item", ex);
             }
@@ -622,7 +621,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private void createFocusPageViewMenu(MainMenuItem mainMenuItem, String viewKey, final Class<? extends PageBase> newPageType) {
         boolean editActive = classMatches(newPageType);
         if (editActive) {
-            mainMenuItem.addMenuItem(new MenuItem(viewKey, newPageType));
+            MenuItem editMenuItem = new MenuItem(viewKey, newPageType);
+            editMenuItem.setDynamic(true);
+            mainMenuItem.addMenuItem(editMenuItem);
         }
     }
 
@@ -655,7 +656,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectsList", PageDebugList.class));
         boolean editActive = classMatches(PageDebugView.class);
         if (editActive) {
-            repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectView", PageDebugView.class));
+            MenuItem editMenuItem = new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectView", PageDebugView.class);
+            editMenuItem.setDynamic(true);
+            repositoryObjectsMenu.addMenuItem(editMenuItem);
         }
         return repositoryObjectsMenu;
     }

@@ -14,10 +14,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.prism.path.ItemName;
 
-import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.web.component.search.*;
 
@@ -318,7 +315,7 @@ public class SearchFactory {
         SearchBoxConfigurationType config = getSearchBoxConfiguration(modelServiceLocator,
                 WebComponentUtil.containerClassToQName(PrismContext.get(), type), collectionViewName, Search.PanelType.DEFAULT);
         if (config != null) {
-            SearchConfigurationWrapper<C> preconfiguredSearchConfigWrapper = new SearchConfigurationWrapper<C>(type, config);
+            SearchConfigurationWrapper<C> preconfiguredSearchConfigWrapper = new SearchConfigurationWrapper<C>(type, config, modelServiceLocator);
             searchConfigWrapper = combineSearchBoxConfiguration(searchConfigWrapper, preconfiguredSearchConfigWrapper);
         }
         searchConfigWrapper.setCollectionViewName(collectionViewName);
@@ -424,79 +421,181 @@ public class SearchFactory {
     }
 
     public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
-            SearchItemType item, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
-        if (item.getPath() == null) {
+            SearchItemType item, ItemDefinition<?> itemDef, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
+        ItemPath itemPath = null;
+        if (itemDef == null && item.getPath() != null) {
+            PrismContainerDefinition<C> def;
+            if (ObjectType.class.isAssignableFrom(type) && modelServiceLocator != null) {
+                def = findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
+            } else {
+                def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+            }
+            itemDef = def.findItemDefinition(item.getPath().getItemPath());
+        }
+        if (item.getPath() != null) {
+            itemPath = item.getPath().getItemPath();
+        }
+        PropertySearchItemWrapper searchItemWrapper = null;
+        if (itemDef == null && !hasParameter(item)) {
             return null;
         }
-        PrismContainerDefinition<C> def;
-        if (ObjectType.class.isAssignableFrom(type) && modelServiceLocator != null) {
-            def = findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
-        } else {
-            def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+        List<DisplayableValue<?>> availableValues = getSearchItemAvailableValues(item, itemDef, modelServiceLocator);
+        QName valueTypeName = getSearchItemValueTypeName(item, itemDef);
+        LookupTableType lookupTable = getSearchItemLookupTable(item, itemDef, modelServiceLocator);
+
+        searchItemWrapper = createPropertySearchItemWrapper(type, itemDef, itemPath, valueTypeName,
+                availableValues, lookupTable);
+
+        boolean isFixedItem = false;
+        if (itemPath != null) {
+            isFixedItem = isFixedItem(type, itemPath);
         }
-        ItemDefinition<?> itemDef = def.findItemDefinition(item.getPath().getItemPath());
-        if (itemDef == null) {
-            return null;
+        searchItemWrapper.setVisible(isFixedItem || hasParameter(item));
+        searchItemWrapper.setValueTypeName(valueTypeName);
+
+        searchItemWrapper.setName(getSearchItemName(item, itemDef));
+        searchItemWrapper.setHelp(getSearchItemHelp(item, itemDef));
+
+        if (hasParameter(item)) {
+            searchItemWrapper.setParameterName(item.getParameter().getName());
+            if (item.getParameter().getType() != null) {
+                searchItemWrapper.setParameterValueType(PrismContext.get().getSchemaRegistry().determineClassForType(item.getParameter().getType()));
+            }
+            if (searchItemWrapper instanceof DateSearchItemWrapper) {
+                ((DateSearchItemWrapper) searchItemWrapper).setInterval(false);
+            }
         }
-        PropertySearchItemWrapper searchItemWrapper = createPropertySearchItemWrapper(type, itemDef, item.getPath().getItemPath());
-        String help = item.getDisplay() != null && item.getDisplay().getHelp() != null ?
-                WebComponentUtil.getTranslatedPolyString(item.getDisplay().getHelp()) : null;
-        if (StringUtils.isNotEmpty(help)) {
-            searchItemWrapper.setHelp(help);
-        }
-        if (item.getDisplayName() != null) {
-            searchItemWrapper.setName(WebComponentUtil.getTranslatedPolyString(item.getDisplayName()));
-        }
+
         if (item.isVisibleByDefault() != null) {
             searchItemWrapper.setVisible(item.isVisibleByDefault());
         }
         return searchItemWrapper;
     }
 
-    public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
-            ItemDefinition<?> itemDef, ItemPath path) {
-        PropertySearchItemWrapper itemWrapper = null;
-        boolean isFixedItem = isFixedItem(type, path);
+    private static String getSearchItemName(SearchItemType searchItem, ItemDefinition<?> itemDef) {
+        String name = null;
+        if (searchItem.getDisplayName() != null) {
+            name = WebComponentUtil.getTranslatedPolyString(searchItem.getDisplayName());
+        }
+        if (StringUtils.isNotEmpty(name)) {
+            return name;
+        }
+        name = WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(searchItem.getDisplay()));
+        if (StringUtils.isNotEmpty(name)) {
+            return name;
+        }
+        name = WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null);
+        if (StringUtils.isNotEmpty(name)) {
+            return name;
+        }
+        return hasParameter(searchItem) ? searchItem.getParameter().getName() : "";
+    }
+
+    private static String getSearchItemHelp(SearchItemType searchItem, ItemDefinition<?> itemDef) {
+        String help = WebComponentUtil.getHelp(searchItem.getDisplay());
+        if (StringUtils.isNotEmpty(help)) {
+            return help;
+        }
+        if (itemDef !=null) {
+            help = WebPrismUtil.getHelpText(itemDef);
+            if (StringUtils.isNotBlank(help)) {
+                Pattern pattern = Pattern.compile("<.+?>");
+                Matcher m = pattern.matcher(help);
+                help = m.replaceAll("");
+            }
+            if (StringUtils.isNotEmpty(help)) {
+                return help;
+            }
+        }
+        return hasParameter(searchItem) ? WebComponentUtil.getHelp(searchItem.getParameter().getDisplay()) : "";
+    }
+
+    private static boolean hasParameter(SearchItemType searchItem) {
+        return searchItem != null && searchItem.getParameter() != null;
+    }
+
+    private static boolean hasParameter(AbstractSearchItemWrapper searchItem) {
+        return searchItem != null && StringUtils.isNotEmpty(searchItem.getParameterName());
+    }
+
+    private static List<DisplayableValue<?>> getSearchItemAvailableValues(SearchItemType searchItem, ItemDefinition<?> def,
+            ModelServiceLocator modelServiceLocator) {
+        if (def instanceof PrismPropertyDefinition<?>) {
+            return CollectionUtils.isNotEmpty(((PrismPropertyDefinition<?>)def).getAllowedValues()) ?
+                    (List<DisplayableValue<?>>) ((PrismPropertyDefinition<?>)def).getAllowedValues()
+                    : getAllowedValues(ItemPath.create(def.getItemName()));
+        }
+        if (hasParameter(searchItem)) {
+            SearchFilterParameterType parameter = searchItem.getParameter();
+            return WebComponentUtil.getAllowedValues(parameter.getAllowedValuesExpression(), modelServiceLocator);
+        }
+        return new ArrayList<>();
+    }
+
+    private static LookupTableType getSearchItemLookupTable(SearchItemType searchItem, ItemDefinition<?> def,
+            ModelServiceLocator modelServiceLocator) {
+        if (def != null) {
+            PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(def, (PageBase) modelServiceLocator);
+            return lookupTable != null ? lookupTable.asObjectable() : null;
+        }
+        if (hasParameter(searchItem) && searchItem.getParameter().getAllowedValuesLookupTable() != null) {
+            PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(
+                    searchItem.getParameter().getAllowedValuesLookupTable().asReferenceValue(), (PageBase) modelServiceLocator);
+            return lookupTable != null ? lookupTable.asObjectable() : null;
+        }
+        return null;
+    }
+
+    private static QName getSearchItemValueTypeName(SearchItemType searchItem, ItemDefinition<?> def) {
+        if (def != null) {
+            return def.getTypeName();
+        }
+        if (hasParameter(searchItem)) {
+            return searchItem.getParameter().getType();
+        }
+        return null;
+    }
+
+    private static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
+            ItemDefinition<?> itemDef, ItemPath path, QName valueTypeName, List<DisplayableValue<?>> availableValues,
+            LookupTableType lookupTable) {
+
+        if (CollectionUtils.isNotEmpty(availableValues)) {
+            return new ChoicesSearchItemWrapper(path, availableValues);
+        }
+        if (lookupTable != null) {
+            return new AutoCompleteSearchItemWrapper(path, lookupTable);
+        }
         if (itemDef instanceof PrismReferenceDefinition) {
-            itemWrapper = new ReferenceSearchItemWrapper((PrismReferenceDefinition)itemDef, type);
-            itemWrapper.setVisible(isFixedItem);
+            ReferenceSearchItemWrapper itemWrapper = new ReferenceSearchItemWrapper((PrismReferenceDefinition)itemDef, type);
             itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null));
             return itemWrapper;
         }
-        PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) itemDef;
-        List<DisplayableValue> availableValues = CollectionUtils.isNotEmpty(propertyDef.getAllowedValues()) ?
-                (List<DisplayableValue>) propertyDef.getAllowedValues() : getAllowedValues(path);
-        if (CollectionUtils.isNotEmpty(availableValues)) {
-            itemWrapper = new ChoicesSearchItemWrapper(path, availableValues);
-        } else if (DOMUtil.XSD_BOOLEAN.equals(propertyDef.getTypeName())) {
-            List<DisplayableValue<Boolean>> list = new ArrayList<>();
-            list.add(new SearchValue<>(Boolean.TRUE, "Boolean.TRUE"));
-            list.add(new SearchValue<>(Boolean.FALSE, "Boolean.FALSE"));
-            itemWrapper = new ChoicesSearchItemWrapper(path, list);
-        } else if (QNameUtil.match(ItemPathType.COMPLEX_TYPE, propertyDef.getTypeName())) {
-            itemWrapper = new ItemPathSearchItemWrapper(path);
-        } else if (QNameUtil.match(itemDef.getTypeName(), DOMUtil.XSD_DATETIME)) {
-            itemWrapper = new DateSearchItemWrapper(path);
-        } else if (ShadowType.F_OBJECT_CLASS.equivalent(path)) {
-            itemWrapper = new ObjectClassSearchItemWrapper();
-        } else if (ShadowType.F_DEAD.equivalent(itemDef.getItemName())) {
-            itemWrapper = new DeadShadowSearchItemWrapper(Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-        } else if (itemDef.getValueEnumerationRef() != null) {
-            itemWrapper = new TextSearchItemWrapper(path, itemDef.getValueEnumerationRef().getOid(), itemDef.getValueEnumerationRef().getTargetType());
-        } else {
-            itemWrapper = new TextSearchItemWrapper(path);
+        if (valueTypeName != null) {
+            if (DOMUtil.XSD_BOOLEAN.equals(valueTypeName)) {
+                List<DisplayableValue<Boolean>> list = new ArrayList<>();
+                list.add(new SearchValue<>(Boolean.TRUE, "Boolean.TRUE"));
+                list.add(new SearchValue<>(Boolean.FALSE, "Boolean.FALSE"));
+                return new ChoicesSearchItemWrapper(path, list);
+            } else if (QNameUtil.match(ItemPathType.COMPLEX_TYPE, valueTypeName)) {
+                return new ItemPathSearchItemWrapper(path);
+            } else if (QNameUtil.match(valueTypeName, DOMUtil.XSD_DATETIME)) {
+                return new DateSearchItemWrapper(path);
+            }
         }
-        itemWrapper.setVisible(isFixedItem);
-        itemWrapper.setValueTypeName(itemDef.getTypeName());
-        itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null));
-        String help = WebPrismUtil.getHelpText(itemDef);
-        if (StringUtils.isNotBlank(help)) {
-            Pattern pattern = Pattern.compile("<.+?>");
-            Matcher m = pattern.matcher(help);
-            help = m.replaceAll("");
+        if (itemDef != null && itemDef.getValueEnumerationRef() != null) {
+            return new TextSearchItemWrapper(path, itemDef.getValueEnumerationRef().getOid(), itemDef.getValueEnumerationRef().getTargetType());
         }
-        itemWrapper.setHelp(help);
-        return itemWrapper;
+        if (path != null) {
+            if (ShadowType.F_OBJECT_CLASS.equivalent(path)) {
+                return new ObjectClassSearchItemWrapper();
+            } else if (ShadowType.F_DEAD.equivalent(path)) {
+                return new DeadShadowSearchItemWrapper(Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
+            } else {
+                return new TextSearchItemWrapper(path);
+            }
+        }
+        return new TextSearchItemWrapper();
     }
 
     private static boolean objectTypeSearchItemWrapperExists(List<AbstractSearchItemWrapper> items) {
@@ -619,7 +718,7 @@ public class SearchFactory {
             Iterator<AbstractSearchItemWrapper> itemsIterator = items.iterator();
             while (itemsIterator.hasNext()) {
                 AbstractSearchItemWrapper item = itemsIterator.next();
-                if (item instanceof PropertySearchItemWrapper &&
+                if (!hasParameter(item) && item instanceof PropertySearchItemWrapper &&
                         ((PropertySearchItemWrapper<?>) item).getPath().equivalent(((PropertySearchItemWrapper<?>) customItem).getPath())) {
                     execute = true;
                 } else if (item instanceof AbstractRoleSearchItemWrapper && customItem.getClass().equals(item.getClass())) {
@@ -756,7 +855,7 @@ public class SearchFactory {
 
     public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(
             Class<C> type, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
-        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(type);
+        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(type, modelServiceLocator);
         PrismContainerDefinition<C> def = null;
         if (ObjectType.class.isAssignableFrom(type)) {
             def = findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
@@ -767,7 +866,8 @@ public class SearchFactory {
         Map<ItemPath, ItemDefinition<?>> availableDefs = getSearchableDefinitionMap(def, modelServiceLocator);
 
         availableDefs.keySet().forEach(path -> {
-            searchConfigWrapper.getItemsList().add(createPropertySearchItemWrapper(type, availableDefs.get(path), path));
+            searchConfigWrapper.getItemsList().add(createPropertySearchItemWrapper(type, new SearchItemType().path(new ItemPathType(path)),
+                    availableDefs.get(path), null, modelServiceLocator));
         });
         if (ObjectType.class.isAssignableFrom(type)) {
             searchConfigWrapper.setTypeClass(type);
@@ -874,9 +974,9 @@ public class SearchFactory {
         return definitions;
     }
 
-    private static List<DisplayableValue> getAllowedValues(ItemPath path) {
+    private static List<DisplayableValue<?>> getAllowedValues(ItemPath path) {
         if (AuditEventRecordType.F_CHANNEL.equivalent(path)) {
-            List<DisplayableValue> list = new ArrayList<>();
+            List<DisplayableValue<?>> list = new ArrayList<>();
             for (GuiChannel channel : GuiChannel.values()) {
                 list.add(new SearchValue<>(channel.getUri(), channel.getLocalizationKey()));
             }
@@ -984,7 +1084,7 @@ public class SearchFactory {
     }
 
     public static <C extends Containerable> List<AbstractSearchItemWrapper> createSearchableExtensionWrapperList(
-            PrismContainerDefinition<C> objectDef) {
+            PrismContainerDefinition<C> objectDef, ModelServiceLocator modelServiceLocator) {
 
         List<AbstractSearchItemWrapper> searchItemWrappers = new ArrayList<>();
 
@@ -1003,7 +1103,7 @@ public class SearchFactory {
                     .path(new ItemPathType(ItemPath.create(extensionPath, def.getItemName())))
                     .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(def, null))));
             searchItems.forEach(searchItem -> searchItemWrappers.add(createPropertySearchItemWrapper(objectDef.getCompileTimeClass(),
-                    searchItem, null, null)));
+                    searchItem, null, null, modelServiceLocator)));
         }
         return searchItemWrappers;
     }
@@ -1117,31 +1217,34 @@ public class SearchFactory {
         if (refDef == null) {
             return;
         }
-        ReferenceSearchItemWrapper item = (ReferenceSearchItemWrapper) createPropertySearchItemWrapper(containerDef.getCompileTimeClass(), refDef, path);
+        ReferenceSearchItemWrapper item = (ReferenceSearchItemWrapper) createPropertySearchItemWrapper(containerDef.getCompileTimeClass(),
+                new SearchItemType().path(new ItemPathType(path)), refDef, null, pageBase);
         if (pageBase == null) {
             item.getAvailableValues().addAll(Collections.singletonList(WebComponentUtil.getDefaultRelationOrFail()));
             return;
         }
         item.getAvailableValues().addAll(Collections.singletonList(WebComponentUtil.getCategoryRelationChoices(category, pageBase)));
+        defs.add(item);
     }
 
     public static <C extends Containerable> void addShadowAttributeSearchItemWrapper(PrismContainerDefinition<C> containerDef,
-            ItemPath path, List<? super AbstractSearchItemWrapper> defs) {
-        addSearchPropertyWrapper(containerDef, path, defs, null);
+            ItemPath path, List<? super AbstractSearchItemWrapper> defs, ModelServiceLocator modelServiceLocator) {
+        addSearchPropertyWrapper(containerDef, path, defs, null, modelServiceLocator);
     }
 
     public static <C extends Containerable> void addSearchPropertyWrapper(PrismContainerDefinition<C> containerDef,
-            ItemPath path, List<? super AbstractSearchItemWrapper> defs) {
-        addSearchPropertyWrapper(containerDef, path, defs, null);
+            ItemPath path, List<? super AbstractSearchItemWrapper> defs, ModelServiceLocator modelServiceLocator) {
+        addSearchPropertyWrapper(containerDef, path, defs, null, modelServiceLocator);
     }
 
     public static <C extends Containerable> void addSearchPropertyWrapper(PrismContainerDefinition<C> containerDef,
-            ItemPath path, List<? super AbstractSearchItemWrapper> defs, String key) {
+            ItemPath path, List<? super AbstractSearchItemWrapper> defs, String key, ModelServiceLocator modelServiceLocator) {
         PrismPropertyDefinition propDef = containerDef.findPropertyDefinition(path);
         if (propDef == null) {
             return;
         }
-        PropertySearchItemWrapper item = createPropertySearchItemWrapper(containerDef.getCompileTimeClass(), propDef, propDef.getItemName());
+        PropertySearchItemWrapper item = createPropertySearchItemWrapper(containerDef.getCompileTimeClass(),
+                new SearchItemType().path(new ItemPathType(propDef.getItemName())), propDef, null, modelServiceLocator);
         if (key != null) {
             PolyStringType displayName = new PolyStringType(propDef.getItemName().getLocalPart());
             PolyStringTranslationType translation = new PolyStringTranslationType();

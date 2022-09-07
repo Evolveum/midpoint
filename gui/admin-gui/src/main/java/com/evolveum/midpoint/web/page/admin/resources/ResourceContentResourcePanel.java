@@ -95,8 +95,9 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
         }
 
         for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class, def,
-                    ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def))));
+            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class,
+                    new SearchItemType().path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)))),
+                    def, null, getPageBase()));
         }
 
         return itemsList;

@@ -15,17 +15,11 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLabelColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +41,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -137,10 +130,10 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
             Search search = SearchFactory.createSearch(type, getPageBase());
 
             DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
-            if (timestampItem != null && timestampItem.getFromDate() == null && timestampItem.getToDate() == null
+            if (timestampItem != null && timestampItem.getSingleDate() == null && timestampItem.getIntervalSecondDate() == null
                     && !isCollectionViewPanelForWidget() && !isDashboard()) {
                 Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-                timestampItem.setFromDate(MiscUtil.asXMLGregorianCalendar(todayDate));
+                timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
             }
             return search;
         }

@@ -40,6 +40,11 @@ public class BaseMenuItem implements Serializable {
      */
     private transient Integer displayOrder;
 
+    /**
+     * if the menu is generated dynamically, typically it is edit user, edit role, ...
+     */
+    private boolean dynamic;
+
     public BaseMenuItem(String nameModel, String iconClass, Class<? extends WebPage> pageClass,
                         PageParameters params, Class<? extends WebPage>... aliases) {
         this.aliases = aliases;
@@ -132,5 +137,11 @@ public class BaseMenuItem implements Serializable {
                 + ", active=" + active + ", aliases=" + Arrays.toString(aliases) + ")";
     }
 
+    public void setDynamic(boolean dynamic) {
+        this.dynamic = dynamic;
+    }
 
+    public boolean isDynamic() {
+        return dynamic;
+    }
 }

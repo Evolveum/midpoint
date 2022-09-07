@@ -82,6 +82,7 @@ import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleCompositedSearchItem;
 import com.evolveum.midpoint.web.page.admin.roles.SearchBoxConfigurationHelper;
@@ -288,6 +289,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             protected String getTitleForNewObjectButton() {
                 return createStringResource("TreeTablePanel.menu.createMember").getString();
             }
+
+            @Override
+            protected boolean isCreateNewObjectEnabled() {
+                return isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE);
+            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
@@ -379,7 +385,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     private <AH extends AssignmentHolderType> Search<AH> createMemberSearch(Class<AH> type) {
         MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
         if (memberPanelStorage == null) { //normally, this should not happen
-            return SearchFactory.createMemberPanelSearch(new SearchConfigurationWrapper<>(type), getPageBase());
+            return SearchFactory.createMemberPanelSearch(new SearchConfigurationWrapper<>(type, getPageBase()), getPageBase());
         }
 
         if (memberPanelStorage.getSearch() != null) {
@@ -423,7 +429,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (searchConfig.getTenantConfiguration() == null && !isNotRole()) {
             searchConfig.setTenantConfiguration(searchBoxCofig.getDefaultTenantConfiguration());
         }
-        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(defaultObjectType, searchConfig);
+        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(defaultObjectType, searchConfig, getPageBase());
         SearchFactory.createAbstractRoleSearchItemWrapperList(searchConfigWrapper, searchConfig);
         if (additionalPanelConfig != null) {
             searchConfigWrapper.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
@@ -624,6 +630,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 AbstractRoleMemberPanel.this.getPageBase().showMainPopup(browser, target);
             }
         };
+        assignButton.add(new VisibleBehaviour(() -> isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)));
         assignButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
         return assignButton;
     }

@@ -21,6 +21,8 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import org.apache.wicket.util.string.StringValue;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -45,9 +47,7 @@ public class PageWorkItemsAttorney extends PageCaseWorkItems {
 
     @Override
     protected ObjectFilter getCaseWorkItemsFilter() {
-        PageParameters parameters = getWorkItemsPageParameters();
-        String attorneyUserOid = parameters != null && parameters.get(PageAttorneySelection.PARAMETER_DONOR_OID) != null ?
-                parameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString() : null;
+        String attorneyUserOid = getPowerDonorOid();
         if (StringUtils.isEmpty(attorneyUserOid) || attorneyUserOid.equals("null")) {
             return super.getCaseWorkItemsFilter();
         }

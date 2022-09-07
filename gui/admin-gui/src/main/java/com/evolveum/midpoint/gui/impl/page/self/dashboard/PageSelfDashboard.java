@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.DashboardSearchPanel;
@@ -173,13 +174,24 @@ public class PageSelfDashboard extends PageSelf {
     private Component createWidget(String markupId, IModel<ContainerPanelConfigurationType> model) {
         ContainerPanelConfigurationType config = model.getObject();
         String panelType = config.getPanelType();
+
+        if (panelType == null && LOGGER.isDebugEnabled()) {
+            //No panel defined, just grouping element, e.g. top "Assignments" in details navigation menu
+            LOGGER.debug("AbstractPageObjectDetails.panelTypeUndefined {}", config.getIdentifier());
+            return new WebMarkupContainer(markupId);
+        }
+
         Class<? extends Panel> panelClass = findObjectPanel(panelType);
+        if (panelClass == null) {
+            //panel type defined, but no class found. Something strange happened.
+            return createMessagePanel(markupId, MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", config.getIdentifier());
+        }
 
         UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this);
 
         Component panel = WebComponentUtil.createPanel(panelClass, markupId, userDetailsModel, config);
         if (panel == null) {
-            return new WebMarkupContainer(markupId);
+            return createMessagePanel(markupId, MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", config.getIdentifier());
         }
 
         return panel;

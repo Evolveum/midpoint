@@ -119,14 +119,17 @@ public class PolicyRuleAssignmentsPanel<AH extends AssignmentHolderType> extends
     @Override
     protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
         List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs, "AssignmentPanel.search.policyRule.name");
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+                defs, getPageBase());
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+                defs, getPageBase());
+        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME),
+                defs, "AssignmentPanel.search.policyRule.name", getPageBase());
         SearchFactory.addSearchRefWrapper(containerDef,
                 ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
                         PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
 
-        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef));
+        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
         return defs;
     }
 

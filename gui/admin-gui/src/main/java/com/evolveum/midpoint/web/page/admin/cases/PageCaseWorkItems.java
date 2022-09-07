@@ -51,10 +51,11 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private PageParameters pageParameters = null;
 
     public PageCaseWorkItems() {
+        super(null);
     }
 
     public PageCaseWorkItems(PageParameters pageParameters) {
-        this.pageParameters = pageParameters;
+        super(pageParameters);
     }
 
     @Override
@@ -97,10 +98,6 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
     protected CaseWorkItemsPanel getCaseWorkItemsTable() {
         return (CaseWorkItemsPanel) get(createComponentPath(ID_CASE_WORK_ITEMS_TABLE));
-    }
-
-    protected PageParameters getWorkItemsPageParameters(){
-        return pageParameters;
     }
 
 }
