@@ -12,13 +12,6 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.util.QNameUtil;
-
-import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.component.util.SelectableRow;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -42,12 +35,14 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -64,11 +59,14 @@ import com.evolveum.midpoint.schema.util.cases.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.cases.ApprovalUtils;
 import com.evolveum.midpoint.schema.util.cases.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -656,7 +654,8 @@ public class ColumnUtils {
                         Collections.singletonList(caseType.getObjectRef()), "loadCaseWorkItemObjectRef", pageBase));
             }
         });
-        columns.add(new AjaxLinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.target")) {
+        columns.add(new AjaxLinkColumn<>(createStringResource("WorkItemsPanel.target")) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -690,10 +689,14 @@ public class ColumnUtils {
 
             @Override
             public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
-                        Collections.singletonList(caseType.getTargetRef()), "loadCaseWorkItemTargetRef", pageBase));
+                CaseWorkItemType caseWorkItem = unwrapRowModel(rowModel);
+                CaseType caseType = CaseTypeUtil.getCase(caseWorkItem);
+                if (caseType == null) {
+                    return false;
+                }
+
+                ObjectReferenceType ref = caseType.getTargetRef();
+                return ref != null && ref.getOid() != null;
             }
         });
         if (isFullView) {

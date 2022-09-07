@@ -59,14 +59,20 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
             @Override
             protected PrismReferenceValue load() {
-                if (getModelObject() == null || getModelObject().getOid() == null) {
+                R ref = getModelObject();
+                if (ref == null) {
                     return null;
                 }
-                PrismReferenceValue value = getModelObject().asReferenceValue().clone();
+
+                PrismReferenceValue value = ref.asReferenceValue().clone();
+                if (value.getOid() == null && value.getObject() == null) {
+                    return null;
+                }
+
                 if (value.getObject() == null) {
                     Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT);
                     OperationResult result = task.getResult();
-                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(getModelObject(),
+                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(ref,
                             true, getPageBase(), task, result);
                     if (referencedObject != null) {
                         value.setObject(referencedObject.clone());
@@ -114,7 +120,7 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
                 return false;
             }
 
-            return ref.getObject() != null;
+            return ref.getOid() != null;
         }));
         add(nameLink);
 

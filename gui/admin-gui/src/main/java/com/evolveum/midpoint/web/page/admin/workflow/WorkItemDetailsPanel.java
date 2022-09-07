@@ -198,8 +198,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         parentCaseLink.setOutputMarkupId(true);
         parentCaseContainer.add(parentCaseLink);
 
-        LinkedReferencePanel<ObjectReferenceType> target = new LinkedReferencePanel<>(ID_TARGET,
-                Model.of(WorkItemTypeUtil.getTargetReference(getModelObject())));
+        LinkedReferencePanel<ObjectReferenceType> target = new LinkedReferencePanel<>(ID_TARGET, () -> WorkItemTypeUtil.getTargetReference(getModelObject()));
         target.setOutputMarkupId(true);
         add(target);
 
