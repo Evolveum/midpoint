@@ -428,13 +428,12 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
         PrismObject<? extends FocusType> focus;
         try {
             focus = repositoryService.getObject(principal.getFocus().getClass(), focusOid, null, result);
+            principal.replaceFocus(focus.asObjectable());
         } catch (ObjectNotFoundException e) {
             throw new SystemException("Focus was deleted");
         } catch (SchemaException e) {
              throw new SystemException("Encountered schema exception", e);
         }
-
-
         securityContextManager.setTemporaryPrincipalOid(focusOid);
         try {
             PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);

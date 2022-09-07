@@ -32,7 +32,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDumpable {
     private static final long serialVersionUID = 8299738301872077768L;
 
-    @NotNull private final FocusType focus;
+    // Focus should not be final in case of session refresh, we need new focus object.
+    @NotNull private FocusType focus;
     private Collection<Authorization> authorizations = new ArrayList<>();
     private ActivationStatusType effectiveActivationStatus;
     private SecurityPolicyType applicableSecurityPolicy;
@@ -129,6 +130,10 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
         return focus;
     }
 
+    public void replaceFocus(FocusType newFocus) {
+        focus = newFocus;
+    }
+
     public PolyStringType getName() {
         return getFocus().getName();
     }
@@ -186,6 +191,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
     /**
      * Semi-shallow clone.
      */
+    @Override
     public MidPointPrincipal clone() {
         MidPointPrincipal clone = new MidPointPrincipal(this.focus);
         copyValues(clone);
