@@ -1,0 +1,26 @@
+= Request access configuration
+:page-toc: top
+:page-since: "4.6"
+:page-visibility: draft
+
+Following document describes different options and configuration possibilities for request access UI.
+
+== Person of interest
+
+[options="header", cols=3]
+|===
+|as
+|
+|
+|===
+
+== Relations
+
+
+== Role catalog
+
+
+== Shopping cart (checkout)
+
+== Examples
+

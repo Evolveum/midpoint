@@ -155,32 +155,32 @@ User ultraone-admin can login to midPoint and create more administrators and/or 
 
 [%autowidth,cols="h,1,1"]
 |===
-| OpenLDAP ACI | https://github.com/Evolveum/midpoint/blob/master/samples/stories/multitenant-idm-saas/aci.ldif | ACI for OpenLDAP user management for this sample. Update as you wish.
+| OpenLDAP ACI | link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/multitenant-idm-saas/aci.ldif[https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/multitenant-idm-saas/aci.ldif] | ACI for OpenLDAP user management for this sample. Update as you wish.
 
 | Sample CSV Source Data
-| link:https://github.com/Evolveum/midpoint/blob/master/samples/stories/multitenant-idm-saas/misc/midpoint-crm-flatfile.csv[https://github.com/Evolveum/midpoint/blob/master/samples/stories/multitenant-idm-saas/misc/midpoint-crm-flatfile.csv]
+| link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/multitenant-idm-saas/misc/midpoint-crm-flatfile.csv[https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/multitenant-idm-saas/misc/midpoint-crm-flatfile.csv]
 | CRM resource expects that this file is located in /var/tmp.
 Please update the filePath configuration property in the CRM resource.
 
 
 | System Configuration (fragment)
-| link:https://github.com/Evolveum/midpoint/blob/master/samples/stories/multitenant-idm-saas/misc/sysconfig-readme.txt[https://github.com/Evolveum/midpoint/blob/master/samples/stories/multitenant-idm-saas/misc/sysconfig-readme.txt]
+| link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/multitenant-idm-saas/misc/sysconfig-readme.txt[https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/multitenant-idm-saas/misc/sysconfig-readme.txt]
 | Notification configuration (redirected to file /usr/local/apache-tomcat-pokusy/logs/idm-mail-notifications.log) - change to match your system.
 Then edit System Configuration using Repository objects and replace notification configuration section with the content of this file.
 
 
 | Lookup Tables
-| link:https://github.com/Evolveum/midpoint/tree/master/samples/stories/multitenant-idm-saas/lookupTables[https://github.com/Evolveum/midpoint/tree/master/samples/stories/multitenant-idm-saas/lookupTables]
+| link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/multitenant-idm-saas/lookupTables[https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/multitenant-idm-saas/lookupTables]
 | Configuration of employeeType lookup tables.
 
 
 | Password (Value) Policies
-| link:https://github.com/Evolveum/midpoint/tree/master/samples/stories/multitenant-idm-saas/valuePolicies[https://github.com/Evolveum/midpoint/tree/master/samples/stories/multitenant-idm-saas/valuePolicies]
+| link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/multitenant-idm-saas/valuePolicies[https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/multitenant-idm-saas/valuePolicies]
 | Sample password policies that can be assigned to organizations.
 
 
 | Organization Structure
-| link:https://github.com/Evolveum/midpoint/tree/master/samples/stories/multitenant-idm-saas/org[https://github.com/Evolveum/midpoint/tree/master/samples/stories/multitenant-idm-saas/org]
+| link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/multitenant-idm-saas/org[https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/multitenant-idm-saas/org]
 | Organizational structure (root)
 
 
@@ -191,12 +191,12 @@ Connection properties, schema handling and synchronization configuration.
 
 
 | Object Templates
-| link:https://github.com/Evolveum/midpoint/tree/master/samples/stories/multitenant-idm-saas/objectTemplates[https://github.com/Evolveum/midpoint/tree/master/samples/stories/multitenant-idm-saas/objectTemplates]
+| link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/multitenant-idm-saas/objectTemplates[https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/multitenant-idm-saas/objectTemplates]
 | Policies to apply for new/changed users and organizations
 
 
 | Roles
-| link:https://github.com/Evolveum/midpoint/tree/master/samples/stories/multitenant-idm-saas/roles[https://github.com/Evolveum/midpoint/tree/master/samples/stories/multitenant-idm-saas/roles]
+| link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/multitenant-idm-saas/roles[https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/multitenant-idm-saas/roles]
 | Basic roles for provisioning and delegated administration.
 Please do not import/use "role-meta-ldap-customer-group.xml", it's work in progress.
 
@@ -214,13 +214,13 @@ Please do not import/use "role-meta-ldap-customer-group.xml", it's work in progr
 
 | CRM Simulation
 | CSV
-| link:https://github.com/Evolveum/midpoint/blob/master/samples/stories/multitenant-idm-saas/resources/crm-simulation-sync.xml[https://github.com/Evolveum/midpoint/blob/master/samples/stories/multitenant-idm-saas/resources/crm-simulation-sync.xml]
+| link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/multitenant-idm-saas/resources/crm-simulation-sync.xml[https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/multitenant-idm-saas/resources/crm-simulation-sync.xml]
 | Authoritative source.
 
 
 | OpenLDAP for Customers
 | LDAP
-| link:https://github.com/Evolveum/midpoint/blob/master/samples/stories/multitenant-idm-saas/resources/openldap-customers.xml[https://github.com/Evolveum/midpoint/blob/master/samples/stories/multitenant-idm-saas/resources/openldap-customers.xml]
+| link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/multitenant-idm-saas/resources/openldap-customers.xml[https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/multitenant-idm-saas/resources/openldap-customers.xml]
 | Target Resource
 
 

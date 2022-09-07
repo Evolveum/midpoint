@@ -7,6 +7,7 @@
 :page-wiki-metadata-modify-date: 2017-01-02T13:10:02.801+01:00
 :page-midpoint-feature: true
 :page-alias: { "parent" : "/midpoint/features/current/" }
+:page-toc: top
 
 Matching rules are short expressions that can normalize and match attribute values.
 Attributes values are normally compared literally, e.g. strings are compared as they come from the resource in a case-sensitive manner.
@@ -35,8 +36,6 @@ MidPoint allows to optionally specify a matching rule for resource attribute.
         </objectType>
     </schemaHandling>
 </resource>
-
-
 ----
 
 The matching rule will be used to match individual values of the attribute.
@@ -46,10 +45,10 @@ Matching rules are identified by QName.
 The design of the matching rules implementation is extensible and it may be possible to add custom matching rules in the future.
 However currently the set of matching rules is built-in in midPoint product.
 
-
 == Query matching
 
-Note that besides in attribute definitions, matching rules can also be used in queries using the tag _<matching>_. An example:
+Note that besides in attribute definitions, matching rules can also be used in queries using the tag _<matching>_.
+An example:
 
 .Matching rule specification
 [source,xml]
@@ -63,14 +62,12 @@ Note that besides in attribute definitions, matching rules can also be used in q
       </expression>
    </q:equal>
 </correlation>
-
 ----
 
 There are some differences, though.
 Some matching rules are universally applicable - in attribute definitions as well as in repository queries.
 Others are usable only in the definitions (like `distinguishedName`), because there are no suitable normalization algorithms that could be used directly in SQL queries.
 Yet other ones exist only for the purpose of querying the repository (like the last three in the table below).
-
 
 == Known matching rules
 
@@ -89,20 +86,17 @@ All of them have a namespace of `http://prism.evolveum.com/xml/ns/public/matchin
 | Default matching rule compares the values in the default way appropriate for the data type.
 E.g. strings are compared in a case-sensitive way.
 
-
 | `stringIgnoreCase`
 | String
 | yes
 | yes
 | Case-ignore matching (case-insensitive).
 
-
 | `distinguishedName`
 | String
 | yes
 | no
 | Matching rule for LDAP distinguished name (DN).
-
 
 | `exchangeEmailAddresses`
 | String
@@ -111,14 +105,12 @@ E.g. strings are compared in a case-sensitive way.
 | A specific matching rule for Microsoft Exchange EmailAddresses attribute consisting of SMTP:/smtp: prefix and email address.
 It considers the case in the prefix but ignores the case in the email address.
 
-
 | `uuid`
 | String
 | yes
 | no
 | Matching rule for universally unique identifier (UUID).
-Currently it is (almost) simple case ignore matching.
-
+Currently, it is (almost) simple case ignore matching.
 
 | `xml`
 | String
@@ -129,16 +121,12 @@ The XML comparison is not schema aware.
 It will not handle QNames in values correctly.
 The comparison ignores XML formatting (whitespaces between elements).
 
-
 | `polyStringStrict`
 | PolyString
-.6+| N/A (attributes are never PolyString) +
- +
-
+.6+| N/A (attributes are never PolyString)
 | yes
 | Strict xref:/midpoint/reference/concepts/polystring/[PolyString] matching.
 Both the original part and the normalized parts are compared.
-
 
 | `polyStringOrig`
 | PolyString
@@ -146,31 +134,29 @@ Both the original part and the normalized parts are compared.
 | Non-strict xref:/midpoint/reference/concepts/polystring/[PolyString] matching.
 Only the original part is compared.
 
-
 | `polyStringNorm`
 | PolyString
 | yes
 | Non-strict xref:/midpoint/reference/concepts/polystring/[PolyString] matching.
 Only the normalized part is compared.
 
-
 | `strictIgnoreCase`
 | PolyString
 | yes; in repo only
-| Case-insensitive version of `polyStringStrict`. I.e. both original and normalized parts are compared in a case-insensitive way.
-
+| Case-insensitive version of `polyStringStrict`.
+I.e. both original and normalized parts are compared in a case-insensitive way.
 
 | `origIgnoreCase`
 | PolyString
 | yes; in repo only
-| Case-insensitive version of `polyStringOrig`. May not follow DB indexes.
-
+| Case-insensitive version of `polyStringOrig`.
+May not follow DB indexes.
 
 | `normIgnoreCase`
 | PolyString
 | yes; in repo only
-| Case-insensitive version of `polyStringNorm`. (Note that because `polyStringNorm` is itself case insensitive, `normIgnoreCase` is the same as `polyStringNorm`.
-
+| Case-insensitive version of `polyStringNorm`.
+Note that because `polyStringNorm` is itself case-insensitive, `normIgnoreCase` is the same as `polyStringNorm`.
 
 |===
 

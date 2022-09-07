@@ -20,9 +20,9 @@ To make a copy of configuration object with only connection parameters different
 
 If you want to use XML objects and import them to midPoint, you can:
 
-. use some of our link:https://github.com/Evolveum/midpoint/tree/master/samples[samples] and modify them to satisfy your requirements.
-Especially link:https://github.com/Evolveum/midpoint/tree/master/samples/resources[resource samples] may be very helpful.
-For example you can use our link:https://github.com/Evolveum/midpoint/tree/master/samples/resources/openldap[OpenLDAP samples] and just change connection parameters.
+. use some of our link:https://github.com/Evolveum/midpoint-samples/tree/master/samples[samples] and modify them to satisfy your requirements.
+Especially link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/resources[resource samples] may be very helpful.
+For example you can use our link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/resources/openldap[OpenLDAP samples] and just change connection parameters.
 
 . create XML object from scratch.
 This is not recommended if you are only starting with midPoint because you would need to know midPoint XML schema.

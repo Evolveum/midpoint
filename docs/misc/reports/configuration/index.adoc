@@ -16,9 +16,13 @@ Every report output is stored in _export_ directory in `midPoint.home`. It is po
 
 Every report object consists of configuration of three basic parts:
 
-* `behavior` - represents the direction of the report. There are two possible types of `behavior`, _export_ and _import_. _Export_ behavior represents basic reporting mechanism, where the file with reported objects is generated. This behavior is default and was common also in versions before 4.4. _Import_ behavior can be used in situations, when the objects need to be imported to the midPoint from external file. Supported format is the CSV. Import behavior is experimental.
-* `engine` - defines the reports generation base. There are two supported options, reports based on object collections and reports based on dashboard. Only one can be defined at the same time.
-* `fileFormat` - represents format of the generated report file. Supported formats for now are CSV and HTML. Default format for the dashboard-based reports is HTML and for objecy collection based reports is CSV.
+* `behavior` - represents the direction of the report. There are two possible types of `behavior`: _export_ and _import_.
++
+_Export_ behavior represents basic reporting mechanism, where the file with reported objects is generated. This behavior is default and was common also in versions before 4.4.
++
+_Import_ behavior can be used in situations, when the objects need to be imported to the midPoint from external file. Supported format is the CSV. Import behavior is experimental.
+* `engine` - defines the report generation base. There are two supported options, reports based on object collections and reports based on dashboard. Only one can be defined at the same time.
+* `fileFormat` - represents format of the generated report file. Supported formats for now are CSV and HTML. Default format for the dashboard-based reports is HTML and for object collection based reports is CSV.
 
 All configuration attributes of report:
 
@@ -58,6 +62,7 @@ Output filename will be passed to the script as the "file" argument.
 == Export behaviour
 
 For now, export to CSV and HTML is supported.
+
 Configuration attributes:
 
 [%autowidth]
@@ -67,7 +72,7 @@ Configuration attributes:
 | _type_
 | *FileFormatTypeType*
 | Report data type.
-Possible _csv_ and _html_.
+Possible values: _csv_ and _html_.
 
 
 | csv
@@ -225,8 +230,8 @@ Following are the examples for what the collection definition might look like.
 [source,xml]
 ----
 <report>
-	<name>Collection report 1</name>
-	<reportEngine>collection</reportEngine>
+    <name>Collection report 1</name>
+    <reportEngine>collection</reportEngine>
     <objectCollection>
         <collection>
             <collectionRef oid="---COLLECTION_OID---" type="ObjectCollectionType"/>
@@ -239,16 +244,16 @@ Following are the examples for what the collection definition might look like.
 [source,xml]
 ----
 <report>
-	<name>Collection report 2</name>
-	<reportEngine>collection</reportEngine>
+    <name>Collection report 2</name>
+    <reportEngine>collection</reportEngine>
     <objectCollection>
         <collection>
-			<filter>
-				<all/>
-			</filter>
-			<baseCollectionRef>
-            	<collectionRef oid="---COLLECTION_OID---" type="ObjectCollectionType"/>
-			</baseCollectionRef>
+            <filter>
+                <all/>
+            </filter>
+            <baseCollectionRef>
+                <collectionRef oid="---COLLECTION_OID---" type="ObjectCollectionType"/>
+            </baseCollectionRef>
         </collection>
     </objectCollection>
 </report>
@@ -266,9 +271,9 @@ For example, let's have a view defined for report and also view defined for obje
 
 image::collection-columns.png[]
 
-Of course when we want to use only view in report it is possible by attribute useOnlyReportView.
+Of course when we want to use only view in report it is possible by attribute `useOnlyReportView`.
 
-Defining columns can be skipped when report in meant for audit records or any of the midPoint objects (such as UserType, RoleType, ServiceType,...). If no custom columns are defined for report, midPoint will use default (system defined) view for specific type of object. However, then the report is defined for containers, the columns definition cannot be omitted.
+Defining columns can be skipped when report in meant for audit records or any of the midPoint objects (such as `UserType`, `RoleType`, `ServiceType`,...). If no custom columns are defined for report, midPoint will use default (system defined) view for specific type of object. However, then the report is defined for containers, the columns definition cannot be omitted.
 
 ==== Parameters
 
@@ -293,8 +298,8 @@ image::collection-parameters.png[]
 	<reportEngine>collection</reportEngine>
     <objectCollection>
         <collection>
-			<filter>
-				<q:ref>
+            <filter>
+                <q:ref>
                     <q:path>assignment/construction/resourceRef</q:path>
                     <expression>
                         <queryInterpretationOfNoValue>filterAll</queryInterpretationOfNoValue>
@@ -316,7 +321,7 @@ image::collection-parameters.png[]
                         </script>
                     </expression>
                 </q:ref>
-			</filter>
+            </filter>
         </collection>
         <view>
             <type>UserType</type>
@@ -427,7 +432,7 @@ Following code shows basic configuration of dashboard report.
     <dashboard>
         <dashboardRef oid="--OID OF DASHBOARD--" >
         </dashboardRef>
-                <showOnlyWidgetsTable>false</showOnlyWidgetsTable>
+        <showOnlyWidgetsTable>false</showOnlyWidgetsTable>
     </dashboard>
 </report>
 ----
@@ -436,9 +441,9 @@ Configuration for dashboard report contains definition for _view_, _view_ attrib
 
 image::dashboard-view.png[]
 
-For example in our example it is first line under screenshot. We can see views for types ResourceType, AuditEventRecordType and TaskType.
+For example in our example it is first line under screenshot. We can see views for types `ResourceType`, `AuditEventRecordType` and `TaskType`.
 
-Final view of widget is merged from three levels of view. View in report for type of object, view in dashboard for widget and from view in object collection which contains configuration for widget. Columns from views are merged in a same way as in Collection report. Also we can use attribute useOnlyReportView for using only view definated by report.
+The final view of widget is merged from three levels of view. View in report for type of object, view in dashboard for widget and from view in object collection which contains configuration for widget. Columns from views are merged in a same way as in Collection report. Also, we can use attribute `useOnlyReportView` for using only view defined by report.
 
 When we don't use view, report will be contained default columns.
 In expression of column you can use variable 'object' which represent searched object or object defined in tag _path_. For more information about view configuration please see xref:/midpoint/reference/admin-gui/collections-views/configuration/#views[Views].
@@ -449,36 +454,36 @@ In expression of column you can use variable 'object' which represent searched o
                 <presentation>
                         ...
                         <view>
-                <column>
-                    <name>nameColumn</name>
-                    <c:path>name</c:path>
-                    <display>
-                        <label>Name</label>
-                    </display>
-                </column>
-                <column>
-                    <name>members</name>
-                    <display>
-                        <label>Members</label>
-                    </display>
-                    <previousColumn>nameColumn</previousColumn>
-                                        <export>
-                            <expression>
-                                <script>
-                                    <code>
-                                        import com.evolveum.midpoint.prism.query.*
-                                        import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            <column>
+                                <name>nameColumn</name>
+                                <c:path>name</c:path>
+                                <display>
+                                    <label>Name</label>
+                                </display>
+                            </column>
+                            <column>
+                                <name>members</name>
+                                <display>
+                                    <label>Members</label>
+                                </display>
+                                <previousColumn>nameColumn</previousColumn>
+                                    <export>
+                                        <expression>
+                                            <script>
+                                                <code>
+import com.evolveum.midpoint.prism.query.*
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*
 
-                                        query = prismContext.queryFor(UserType.class).item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF).ref(object.getOid()).build();
+query = prismContext.queryFor(UserType.class).item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF).ref(object.getOid()).build();
 
-                                        objects = midpoint.searchObjects(UserType.class, query)
-                                        return objects.size();
-                                          </code>
-                                </script>
-                            </expression>
-                                        </export>
-                </column>
-            </view>
+objects = midpoint.searchObjects(UserType.class, query)
+return objects.size();
+                                                </code>
+                                            </script>
+                                        </expression>
+                                    </export>
+                            </column>
+                    </view>
                 </presentation>
 ----
 
@@ -489,25 +494,25 @@ In expression of column you can use variable 'object' which represent searched o
     ...
     <dashboard>
         ...
-                <view>
-                <column>
-                    <name>givenNameColumn</name>
+        <view>
+            <column>
+                <name>givenNameColumn</name>
                 <c:path>givenName</c:path>
                 <display>
-                        <label>Given name</label>
+                    <label>Given name</label>
                 </display>
             </column>
-                        <type>UserType</type>
+            <type>UserType</type>
         </view>
-                <view>
-                <column>
-                    <name>nameColumn</name>
+        <view>
+            <column>
+                <name>nameColumn</name>
                 <c:path>name</c:path>
                 <display>
-                        <label>Name</label>
+                    <label>Name</label>
                 </display>
             </column>
-                        <type>RoleType</type>
+            <type>RoleType</type>
         </view>
     </dashboard>
 </report>
@@ -775,7 +780,7 @@ Example below shows report (ReportType) configuration for importing CSV file wit
 
 ==== Behaviour and Options
 
-We need define that this report is import and not export, for this we need define element _behavior.__Behavior_  contains direction _Import_ or _Export_. Also _behavior_ contains _importOptions_, which contains next elements:
+We need define that this report is import and not export, for this we need define element _behavior_. _Behavior_  contains direction _Import_ or _Export_. Also _behavior_ contains _importOptions_, which contains next elements:
 
 [%autowidth]
 |===
@@ -873,11 +878,11 @@ Name is obtained from _Label_ of _DispalyType_ for column, when _Label_ is empty
 
 
 Definition of column also contains _import/expression_ which can define script for generating items.
-Script have to return real value for example _String_ or _List_ of values for multivalue items for example _List<AssignmentType>. _Script get _input_ variable which is _String_, when item is singlevalue, or _List<String>_, when item is multivalue.
+Script have to return real value for example _String_ or _List_ of values for multivalue items for example _List<AssignmentType>_. Script get _input_ variable which is _String_, when item is singlevalue, or _List<String>_, when item is multivalue.
 
 === Import script
 
-We can define _importScript_ in element _behaviour. _Import script is_ExecuteScriptType _type, so we can define more actions.
+We can define _importScript_ in element _behaviour_. Import script is _ExecuteScriptType_ type, so we can define more actions.
 Script contains variables with same name as headers of imported CSV file.
 For example from next file will be created variables with names _username, role_name, action, valid_from_ and _valid_to_.
 

@@ -18,7 +18,7 @@ So beware, everything described here can change any time.
 == Overview
 
 Let us work with projects modeled as `OrgType` objects of archetype `project`. Each project named `P` has two child orgs.
-The first (named <`P>_users`, having archetype of `project-users`) contains users working on that particular project.
+The first (named `<P>_users`, having archetype of `project-users`) contains users working on that particular project.
 The second (named `<P>_groups`, having archetype of `project-groups`) contains groups that are related to that project.
 
 . When a project is created, those children have to be created automatically.

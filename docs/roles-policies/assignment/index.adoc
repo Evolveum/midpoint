@@ -135,7 +135,7 @@ The xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment
 
 == See Also
 
-* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page in Docuementation section
+* xref:/midpoint/reference/roles-policies/assignment/configuration/[Assignment Configuration] page in Documentation section
 
 * xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC]
 

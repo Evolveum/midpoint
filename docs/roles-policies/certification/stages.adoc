@@ -147,7 +147,7 @@ Optionally, we filter out the following:
 If we find at least one suitable manager, we are done.
 Otherwise, we continue the process, taking all found orgs (of suitable type, if specified), and continue by finding managers of their parents (again, of suitable type).
 
-An example, taken from link:https://github.com/Evolveum/midpoint/blob/master/samples/org/org-monkey-island-simple.xml[https://github.com/Evolveum/midpoint/blob/master/samples/org/org-monkey-island-simple.xml]:
+An example, taken from link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/org/org-monkey-island-simple.xml[https://github.com/Evolveum/midpoint-samples/blob/master/samples/org/org-monkey-island-simple.xml]:
 
 We have functional and project structure:
 
