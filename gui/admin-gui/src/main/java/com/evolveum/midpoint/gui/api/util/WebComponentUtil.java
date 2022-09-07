@@ -428,19 +428,6 @@ public final class WebComponentUtil {
         return loadedObjectsList;
     }
 
-    public static List<UserType> loadTargetUsersListForShoppingCart(String operation, PageBase pageBase) {
-        List<String> usersOidsList = pageBase.getSessionStorage().getRoleCatalog().getTargetUserOidsList();
-        if (CollectionUtils.isEmpty(usersOidsList)) {
-            return new ArrayList<>();
-        }
-        List<ObjectReferenceType> usersReferenceList = new ArrayList<>();
-        usersOidsList.forEach(userOid -> {
-            usersReferenceList.add(ObjectTypeUtil.createObjectRef(userOid, ObjectTypes.USER));
-        });
-        return WebComponentUtil.loadReferencedObjectList(usersReferenceList, operation, pageBase);
-
-    }
-
     public static ObjectFilter getShadowTypeFilterForAssociation(ConstructionType construction, String operation, PageBase pageBase) {
         PrismContext prismContext = pageBase.getPrismContext();
         if (construction == null) {
