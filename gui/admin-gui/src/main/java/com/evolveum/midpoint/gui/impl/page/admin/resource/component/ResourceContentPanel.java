@@ -74,6 +74,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
     private static final String DOT_CLASS = ResourceContentPanel.class.getName() + ".";
 
+    private static final String ID_TOP_TABLE_BUTTONS_CONTAINER = "topButtonsContainer";
     private static final String ID_TOP_TABLE_BUTTONS = "topButtons";
     private static final String ID_INTENT = "intent";
     private static final String ID_REAL_OBJECT_CLASS = "realObjectClass";
@@ -136,6 +137,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         ResourceContentSearchDto searchDto = resourceContentSearch.getObject();
         getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                 SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setContentSearch(searchDto);
+
     }
 
     private ResourceContentStorage getContentStorage(ShadowKindType kind, String searchMode) {
@@ -145,10 +147,14 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     protected void initLayout() {
         setOutputMarkupId(true);
 
+        WebMarkupContainer topButtonsContainer = new WebMarkupContainer(ID_TOP_TABLE_BUTTONS_CONTAINER);
+        add(topButtonsContainer);
+        topButtonsContainer.setOutputMarkupId(true);
+        topButtonsContainer.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
+
         RepeatingView topButtons = new RepeatingView(ID_TOP_TABLE_BUTTONS);
         topButtons.setOutputMarkupId(true);
-        topButtons.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
-        add(topButtons);
+        topButtonsContainer.add(topButtons);
 
         initSychronizationButton(topButtons);
         initAttributeMappingButton (topButtons);
@@ -188,6 +194,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 updateResourceContentSearch();
                 mainForm.addOrReplace(initTable(getObjectWrapperModel()));
                 target.add(mainForm);
+                target.add(get(ID_TOP_TABLE_BUTTONS_CONTAINER));
 
             }
         });
@@ -246,6 +253,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 LOGGER.trace("Object class panel update: {}", isUseObjectClass());
                 updateResourceContentSearch();
                 mainForm.addOrReplace(initTable(getObjectWrapperModel()));
+                target.add(get(ID_TOP_TABLE_BUTTONS_CONTAINER));
                 target.add(mainForm);
             }
 
@@ -364,9 +372,11 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
         if ((!isUseObjectClass() && resourceContentSearch.getObject().getKind() == null)
                 || (isUseObjectClass() && resourceContentSearch.getObject().getObjectClass() == null)) {
-            getPageBase().warn("Couldn't recognize resource object type");
-            LOGGER.debug("Couldn't recognize resource object type");
-            target.add(getPageBase().getFeedbackPanel());
+            if (target != null) {
+                getPageBase().warn("Couldn't recognize resource object type");
+                LOGGER.debug("Couldn't recognize resource object type");
+                target.add(getPageBase().getFeedbackPanel());
+            }
             return null;
         }
         PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> foundValue = null;
@@ -393,7 +403,9 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                     }
                 }
                 if (isUseObjectClass()
-                        && resourceContentSearch.getObject().getObjectClass().equals(objectTypeDefinition.getObjectClass())
+                        && (resourceContentSearch.getObject().getObjectClass().equals(objectTypeDefinition.getObjectClass())
+                        || (objectTypeDefinition.getDelineation() != null
+                        && resourceContentSearch.getObject().getObjectClass().equals(objectTypeDefinition.getDelineation().getObjectClass())))
                         && Boolean.TRUE.equals(objectTypeDefinition.isDefaultForObjectClass())) {
                     foundValue = value;
                 }
@@ -406,9 +418,11 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         }
         if (foundValue == null) {
             if (defaultValue == null) {
-                getPageBase().warn("Couldn't recognize resource object type");
-                LOGGER.debug("Couldn't recognize resource object type");
-                target.add(getPageBase().getFeedbackPanel());
+                if (target != null) {
+                    getPageBase().warn("Couldn't recognize resource object type");
+                    LOGGER.debug("Couldn't recognize resource object type");
+                    target.add(getPageBase().getFeedbackPanel());
+                }
                 return null;
             }
             foundValue = defaultValue;
@@ -417,7 +431,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
     }
 
     protected boolean isTopTableButtonsVisible() {
-        return true;
+        return getResourceObjectTypeValue(null) != null;
     }
 
     private List<QName> createObjectClassChoices(IModel<PrismObjectWrapper<ResourceType>> model) {

@@ -41,7 +41,7 @@ public class ResourceTilePanel<O> extends BasePanel<TemplateTile<O>> {
     private void initLayout() {
         add(AttributeAppender.append(
                 "class",
-                "card col-12 catalog-tile-panel d-flex flex-column align-items-center p-3 pb-5 pt-4 h-100 mb-0 btn"));
+                "card selectable col-12 catalog-tile-panel d-flex flex-column align-items-center p-3 pb-5 pt-4 h-100 mb-0 btn"));
         setOutputMarkupId(true);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
