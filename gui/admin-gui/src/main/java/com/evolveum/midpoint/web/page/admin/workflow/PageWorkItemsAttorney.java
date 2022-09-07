@@ -41,16 +41,22 @@ import org.apache.wicket.util.string.StringValue;
         })
 public class PageWorkItemsAttorney extends PageCaseWorkItems {
 
+    public PageWorkItemsAttorney() {
+        this(null);
+    }
+
     public PageWorkItemsAttorney(PageParameters pageParameters) {
         super(pageParameters);
+
+        if (getPowerDonorOid() == null) {
+            getSession().error("PageWorkItemsAttorney.attorney.not.selected");
+            throw redirectBackViaRestartResponseException();
+        }
     }
 
     @Override
     protected ObjectFilter getCaseWorkItemsFilter() {
         String attorneyUserOid = getPowerDonorOid();
-        if (StringUtils.isEmpty(attorneyUserOid) || attorneyUserOid.equals("null")) {
-            return super.getCaseWorkItemsFilter();
-        }
         return getPrismContext().queryFor(CaseWorkItemType.class)
                 .item(CaseWorkItemType.F_ASSIGNEE_REF)
                 .ref(attorneyUserOid, UserType.COMPLEX_TYPE)
