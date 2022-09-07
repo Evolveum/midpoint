@@ -565,6 +565,18 @@ public class ColumnUtils {
 
                 c.add(new AttributeAppender("title", descriptionValue));
             }
+
+            @Override
+            public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                CaseWorkItemType caseWorkItem = unwrapRowModel(rowModel);
+                CaseType caseType = CaseTypeUtil.getCase(caseWorkItem);
+                if (caseType == null) {
+                    return false;
+                }
+
+                ObjectReferenceType ref = caseType.getTargetRef();
+                return ref != null && ref.getOid() != null;
+            }
         });
         if (isFullView) {
             columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
