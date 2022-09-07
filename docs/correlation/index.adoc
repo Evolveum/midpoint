@@ -90,12 +90,12 @@ The following is the most basic example: an attribute mapped to a focus property
 Notes:
 
 . The correlation takes place _before_ the regular inbound mappings are evaluated.
-That is why - starting with 4.5 - there is a special inbound mapping evaluation mode: correlation-time evaluation.
-(See xref:/midpoint/projects/idmatch/implementation/correlation-time-mappings/[this page] for more information.)
-Even though the correlation-time evaluation is turned off by default, the attribute-level `correlator` element automatically turns it on for the selected inbound mapping.
+That is why - starting with 4.5 - there is a special inbound mapping evaluation mode:
+xref:/midpoint/projects/idmatch/implementation/correlation-time-mappings/[correlation-time evaluation].
+Even though it is turned off by default, the attribute-level `correlator` element automatically turns it on for the selected inbound mapping.
 
 . If multiple attributes are marked as `correlator`, they are evaluated separately.
-If there is a need of evaluation two attributes together (meaning that they have to match both), it is necessary to use the explicit `items` correlator.
+If there is a need of evaluation of two attributes together (meaning that they have to match both), it is necessary to use the explicit `items` correlator.
 
 ==== Sample 2: Resource Object Type Bound Definition
 
@@ -132,8 +132,10 @@ Here we show the same logic defined at the level of the resource object type:
     </objectType>
 </schemaHandling>
 ----
-<1> Turning on the correlation-time evaluation of this mapping
+<1> Turning on the correlation-time evaluation of this mapping.
 <2> Declaring the `name` to be the correlation item.
+
+NOTE: Unlike using `correlator` within the attribute definition, just mentioning the attribute as a correlation item does _not_ enable the correlation-time inbound processing for it.
 
 ==== Sample 3: Object Template Based Correlation Definition
 
@@ -182,6 +184,8 @@ Let us imagine, for example, that we want to correlate using given name, family 
 | Given name, family name, and date of birth exactly match.
 | 0.5
 |===
+
+NOTE: The confidence values are described on xref:/midpoint/reference/correlation/rule-composition/[rule composition] page.
 
 These rules can be configured like this:
 
@@ -240,27 +244,43 @@ Please see xref:/midpoint/reference/correlation/rule-composition/[rule compositi
 === Custom Indexing
 
 Sometimes, we need to base the search on specially-indexed data.
-For example, we could need to match only first five characters of the surname.
+For example, we could need to match only first five normalized characters of the surname.
 Or, we could want to take only digits into account when searching for the national ID.
 
-The latter requirement can be configured like this:
+These requirements can be configured like this:
 
-.Listing 5. Setting up custom indexing of extension/nationalId property
+.Listing 5. Examples of custom indexing
 [source,xml]
 ----
 <objectTemplate>
     ...
     <item>
+        <ref>familyName</ref>
+        <indexing>
+            <normalization>
+                <steps>
+                    <polyString> <!--1-->
+                        <order>1</order>
+                    </polyString>
+                    <prefix> <!--2-->
+                        <order>2</order>
+                        <length>5</length>
+                    </prefix>
+                </steps>
+            </normalization>
+        </indexing>
+    </item>
+    <item>
         <ref>extension/nationalId</ref>
         <indexing>
             <normalization>
-                <name>digits</name>
+                <name>digits</name> <!--3-->
                 <steps>
                     <custom>
                         <expression>
                             <script>
                                 <code>
-                                    basic.stringify(input).replaceAll("[^\\d]", "") <!--1-->
+                                    basic.stringify(input).replaceAll("[^\\d]", "") <!--4-->
                                 </code>
                             </script>
                         </expression>
@@ -272,9 +292,12 @@ The latter requirement can be configured like this:
     ...
 </objectTemplate>
 ----
-<1> Removes everything except for digits.
+<1> Applies the default PolyString normalizer to the original value.
+<2> Takes the first 5 characters of the normalized value.
+<3> Name by which this normalization can be referenced.
+<4> Removes everything except for digits.
 
-This indexing is then used automatically when correlating according to `extension/nationalId`.
+These indexes are then used automatically when correlating according to `familyName` and `extension/nationalId`, respectively.
 
 If there are multiple normalizations defined for a given focus item (and none is defined as the default one), we can select the one to be used by mentioning it within the correlation item definition:
 
@@ -305,9 +328,9 @@ Please see xref:/midpoint/reference/correlation/custom-indexing.adoc[custom inde
 
 By default, the searching is done using "exact match" criteria, either on original values or on the ones that underwent the standard or custom normalization.
 Sometimes, however, we want to search for objects that have a property value somewhat similar to the value we have at hand.
-For example, we get an account for _Jack Sparrow_, but besides matching users with surname _Sparrow_ we may want to consider also users _Sparow_, _Sparrou_, and so on (although potentially with a lower confidence value).
+For example, we get an account for _Jack Sparrow_, but besides matching users with surname _Sparrow_ we may want to consider also users _Sparow_, _Sparrou_, and so on; although potentially with a lower confidence value.
 
-To do this, a fuzzy search logic has been implemented. There are two methods available:
+To do this, a fuzzy search logic was implemented. There are two methods available:
 
 .Fuzzy string matching methods
 [%header]
@@ -381,7 +404,7 @@ Please see xref:/midpoint/reference/correlation/fuzzy-logic.adoc[fuzzy searching
 === Multiple Identity Data Sources
 
 The advanced correlation needs often go hand in hand with the situations when there are multiple sources of the identity data.
-For example, a university may have its Student Information System (SIS) providing data on students and faculty, Human Resources (HR) System keeping records of all staff - faculty and others, and "External persons" system for maintaining data about visitors, and other persons related to the university in a way other than being a student or employee.
+For example, a university may have its Student Information System (SIS) providing data on students and faculty, Human Resources (HR) System keeping records of all staff - faculty and others, and "External persons" system for maintaining data about visitors and other persons related to the university in a way other than being a student or employee.
 
 While the data about a person are usually consistent, there may be situations when they differ.
 For example, the given name may be recorded differently in SIS and HR systems.
@@ -391,7 +414,8 @@ An old record in the "external persons" system may be out-of-date altogether.
 This situation leads to two kinds of requirements:
 
 . When processing data from these systems, midPoint has to somehow decide which ones are "authoritative", that is, which ones to propagate to the "official" user data stored in the repository.
-. When correlating, we might want to match data from all systems for the candidate owners.
+. When correlating, we may want to match data from all systems for the candidate owners.
+(Not only the "official" user data.)
 
 MidPoint supports both of them.
 For the first one, the engineer must provide an algorithm for determination of the authoritative data source, either at the object or item level.
