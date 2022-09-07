@@ -108,6 +108,8 @@ image::naive-example.png[A naive example,width=1000,pdfwidth=50%,scaledwidth=50%
 
 === Example Computation
 
+// Looks like the colors don't work in our generated HTML (yet)
+
 Let us assume we are correlating [blue]`Ian Smith, 2004-02-06, 040206/1328` and the candidate is [blue]`John Smith, 2004-02-06, 040206/1328`.
 
 - The `name-date-id` correlator matches with a local confidence of [blue]*1.0*. Having weight of [red]*1.0*, the overall confidence increment is [purple]*1.0*.
@@ -116,14 +118,27 @@ Let us assume we are correlating [blue]`Ian Smith, 2004-02-06, 040206/1328` and 
 
 The total confidence is [purple]*1.4*, cropped down to [purple]*1.0*.
 
+.Computation in a tabular form
+[%header]
+[%autowidth]
+|===
+| Rule | Matching | Local confidence | Weight | Confidence increment | Total so far
+| `name-date-id` | `Smith`, `2004-02-06`, `040206/1328` | 1.0 | 1.0 | 1.0 | 1.0
+| `names-date` | - | - | 0.4 | - | 1.0
+| `id` | `040206/1328` | 1.0 | 0.4 | 0.4 | 1.4 -> 1.0
+|===
+
 == "Ignore if Matched by" Flag
 
 We see that the match of the rule `name-date-id` implies the match of the rule `id`.
-Hence, each candidate matching `name-date-id` gets a confidence increment `1.4`.
+Hence, each candidate matching `name-date-id` gets a confidence increment *1.4*.
 This is, most probably, not the behavior that we expect.
 (While not necessarily incorrect, it is quite counter-intuitive.)
 
 Therefore, we have introduced a mechanism to mark rule `id` as being ignored for those candidates that are matched by rule `name-date-id` before.
+
+=== Configuration
+
 It is done by setting `ignoreIfMatchedBy` like this:
 
 .Listing 2. Ignoring `id` rule for candidates matching `name-date-id`
@@ -144,15 +159,28 @@ It is done by setting `ignoreIfMatchedBy` like this:
 </correlators>
 ----
 
+=== Example Computation
+
 Now, when correlating `Ian Smith, 2004-02-06, 040206/1328` with the candidate being `John Smith, 2004-02-06, 040206/1328`,
 
-- The `name-date-id` correlator matches with a local confidence of `1.0`. Having weight of `1.0`, the overall confidence increment is `1.0`.
+- The `name-date-id` correlator matches with a local confidence of *1.0*. Having weight of *1.0*, the overall confidence increment is *1.0*.
 - The `names-date` correlator does not match.
-- The `id` correlator matches with a local confidence of `1.0`. However, it is ignored, because of the match of `name-date-id`.
+- The `id` correlator matches with a local confidence of *1.0*. However, it is ignored, because of the match of `name-date-id`.
 
 The total confidence is thus `1.0`.
 
+.Computation in a tabular form
+[%header]
+[%autowidth]
+|===
+| Rule | Matching | Local confidence | Weight | Confidence increment | Total so far
+| `name-date-id` | `Smith`, `2004-02-06`, `040206/1328` | 1.0 | 1.0 | 1.0 | 1.0
+| `names-date` | - | - | 0.4 | - | 1.0
+| `id` | `040206/1328` | 1.0 | 0.4 | (ignored) | 1.0
+|===
+
 == Tiers and Rule Ordering
+
 
 image::tiers.png[Tiers,width=1000,pdfwidth=50%,scaledwidth=50%]
 
