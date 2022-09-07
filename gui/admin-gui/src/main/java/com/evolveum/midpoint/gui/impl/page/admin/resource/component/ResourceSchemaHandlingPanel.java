@@ -79,7 +79,7 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
             @Override
             protected boolean isCreateNewObjectVisible() {
-                return false;
+                return ResourceSchemaHandlingPanel.this.isCreateNewObjectVisible();
             }
 
             @Override
@@ -137,6 +137,10 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
             }
         };
         form.add(objectTypesPanel);
+    }
+
+    protected boolean isCreateNewObjectVisible() {
+        return true;
     }
 
     protected void editItemPerformed(

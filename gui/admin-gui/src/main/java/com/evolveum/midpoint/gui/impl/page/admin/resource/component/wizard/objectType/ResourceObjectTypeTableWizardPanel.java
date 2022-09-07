@@ -66,6 +66,11 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
                     target.add(getPageBase().getFeedbackPanel());
                 }
             }
+
+            @Override
+            protected boolean isCreateNewObjectVisible() {
+                return false;
+            }
         };
         table.setOutputMarkupId(true);
         add(table);
