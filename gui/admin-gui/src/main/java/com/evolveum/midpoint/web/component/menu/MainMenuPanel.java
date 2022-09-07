@@ -159,6 +159,8 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
             }
         };
         listItem.add(subLink);
+        subLink.setEnabled(!menuItem.getObject().isDynamic());
+
 
         WebMarkupContainer subLinkIcon = new WebMarkupContainer(ID_SUB_LINK_ICON);
             subLinkIcon.add(AttributeAppender.append("class", new PropertyModel<>(menuItem, MainMenuItem.F_ICON_CLASS)));

@@ -16,12 +16,15 @@ import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -75,17 +78,9 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
     private final View view;
 
-    private PageParameters pageParameters;
-
     public CaseWorkItemsPanel(String id, View view) {
         super(id);
         this.view = view;
-    }
-
-    public CaseWorkItemsPanel(String id, View view, PageParameters pageParameters) {
-        super(id);
-        this.view = view;
-        this.pageParameters = pageParameters;
     }
 
     @Override
@@ -235,8 +230,14 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                PageCaseWorkItem pageCaseWorkItem = new PageCaseWorkItem(rowModel.getObject() != null ? rowModel.getObject().getRealValue() : null, pageParameters);
-                CaseWorkItemsPanel.this.getPageBase().navigateToNext(pageCaseWorkItem);
+                PageParameters params = getPageBase().getPageParameters();
+                PrismContainerValueWrapper<CaseWorkItemType> rowObject = rowModel.getObject();
+                if (rowObject != null) {
+                    CaseWorkItemType workItem = rowObject.getRealValue();
+                    CaseType parentCase = CaseTypeUtil.getCase(workItem);
+                    params.add(OnePageParameterEncoder.PARAMETER, WorkItemId.createWorkItemId(parentCase.getOid(), workItem.getId()));
+                }
+                CaseWorkItemsPanel.this.getPageBase().navigateToNext(PageCaseWorkItem.class, params);
             }
         };
     }
@@ -364,6 +365,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private String getPowerDonorOidParameterValue() {
+        PageParameters pageParameters = getPageBase().getPageParameters();
         if (pageParameters != null && pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID) != null) {
             return pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString();
         }
