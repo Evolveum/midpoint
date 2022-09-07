@@ -260,30 +260,6 @@ use #selfRequestAssignments instead
 
 |===
 
-== Org. structure actions
-
-[%autowidth]
-|===
-| Action | Allowed access to page | Note
-
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgStruct
-| Org.
-tree main menu
-|
-
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgTree
-| Org.
-tree hierarchy
-|
-
-| http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit
-| Org.
-unit details (including editing) and New org.
-link (based on #read, #modify, #add and #delete model authorizations)
-|
-
-|===
-
 == Organization actions
 
 [%autowidth]
@@ -510,7 +486,7 @@ link (based on #read, #modify, #add and #delete model authorizations)
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgUnit
-| Org. unit details (including editing) and New org. link
+| New org unit link
 |
 
 | http://midpoint.evolveum.com/xml/ns/public/security/authorization-ui-3#orgDetails
