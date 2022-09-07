@@ -66,6 +66,10 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     private static final String ID_WIZARD = "wizard";
     private List<Breadcrumb> wizardBreadcrumbs = new ArrayList<>();
 
+    public PageResource() {
+        super();
+    }
+
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
     }
