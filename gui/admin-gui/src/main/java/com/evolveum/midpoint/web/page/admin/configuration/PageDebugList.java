@@ -29,6 +29,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -104,7 +105,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     // search form model;
-    private final LoadableModel<Search<? extends ObjectType>> searchModel;
+    private final LoadableDetachableModel<Search<? extends ObjectType>> searchModel;
     // todo make this persistent (in user session)
     private final IModel<Boolean> showAllItemsModel = Model.of(true);
     // confirmation dialog model
@@ -113,7 +114,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     public PageDebugList() {
 
-        searchModel = new LoadableModel<>(false) {
+        searchModel = new LoadableDetachableModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -324,11 +325,11 @@ public class PageDebugList extends PageAdminConfiguration {
 
     @NotNull
     private Class<? extends ObjectType> getType() {
-        return searchModel.isLoaded() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
+        return searchModel.isAttached() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
     }
 
     private ContainerTypeSearchItem<? extends ObjectType> getTypeItem() {
-        return searchModel.isLoaded() ? searchModel.getObject().getType() : null;
+        return searchModel.isAttached() ? searchModel.getObject().getType() : null;
     }
 
     private List<InlineMenuItem> initInlineMenu() {
