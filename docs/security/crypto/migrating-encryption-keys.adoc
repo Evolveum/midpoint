@@ -16,7 +16,7 @@ Here we describe how to do that.
 == Listing encryption keys before the action (optional)
 
 Before attempting this operation you might want to check the current state of affairs.
-The following task (link:https://github.com/Evolveum/midpoint/blob/master/samples/tasks/bulk-actions/list-encryption-keys.xml[samples/tasks/bulk-actions/list-encryption-keys.xml]) lists all objects that contain protected material along with the keys used.
+The following task (link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/list-encryption-keys.xml[samples/tasks/bulk-actions/list-encryption-keys.xml]) lists all objects that contain protected material along with the keys used.
 It can also report objects with sensitive data that is not encrypted (i.e. in the cleartext or hashed).
 
 .list-encryption-keys.xml
@@ -91,7 +91,7 @@ And all objects except for `newuser1` use the key `A5yfWFgnD4euq3CgpdecmZPA/DE=`
 
 == Migrating the keys
 
-The following task (adapted from link:https://github.com/Evolveum/midpoint/blob/master/samples/tasks/bulk-actions/reencrypt-selected-objects.xml[samples/tasks/bulk-actions/task-reencrypt.xml]) will reencrypt all objects in "dry mode", meaning that it will not execute anything; it will just write out the objects that would get reencrypted.
+The following task (adapted from link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/reencrypt-selected-objects.xml[samples/tasks/bulk-actions/task-reencrypt.xml]) will reencrypt all objects in "dry mode", meaning that it will not execute anything; it will just write out the objects that would get reencrypted.
 You could limit the set of objects processed by using `mext:objectType` and `mext:objectQuery` items.
 
 .task-reencrypt.xml (dry run)

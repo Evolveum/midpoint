@@ -31,7 +31,7 @@ If the mapping is strong then it will enforce consistency of `fullName` property
 == Examples
 
 You can check defined templates for a definition through GUI via Configuration->Repository objects->Object template (from List objects).
-Also advanced resources samples from midpoint development master branch (link:https://github.com/Evolveum/midpoint/tree/master/samples/objects[here]) contain examples of templates used in a process of synchronization.
+Also advanced resources samples from midpoint development master branch (link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/objects[here]) contain examples of templates used in a process of synchronization.
 
 The user template object definition could look like this one:
 

@@ -177,7 +177,7 @@ If you need to downgrade VMWare hardware you can do it with link:https://my.vmwa
 
 === How To Set Up Custom Login Page And Google Analytics Code
 
-. open: link:https://github.com/Evolveum/midpoint/tree/master/samples/demo[https://github.com/Evolveum/midpoint/tree/master/samples/demo]
+. open: link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/demo[https://github.com/Evolveum/midpoint-samples/tree/master/samples/demo]
 
 .. see: PageLogin.html, PageBase.html
 

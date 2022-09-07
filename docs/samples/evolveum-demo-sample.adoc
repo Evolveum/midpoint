@@ -10,7 +10,7 @@
 
 This is a description of the samples in:
 
-link:https://github.com/Evolveum/midpoint/tree/master/samples/evolveum[https://github.com/Evolveum/midpoint/tree/master/samples/evolveum]
+link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/evolveum[https://github.com/Evolveum/midpoint-samples/tree/master/samples/evolveum]
 
 
 == Basic Idea

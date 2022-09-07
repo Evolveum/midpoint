@@ -38,9 +38,9 @@ image::image2019-2-11-11-35-9.png[]
 
 You can test this feature e.g. using the following samples containing long-running tasks:
 
-* link:https://github.com/Evolveum/midpoint/blob/master/samples/tasks/task-scheduling.xml#L53[https://github.com/Evolveum/midpoint/blob/master/samples/tasks/task-scheduling.xml#L53] (use Task2, maybe modified by prolonging the time to run by enlarging the `delay` parameter)
+* link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/task-scheduling.xml#L53[https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/task-scheduling.xml#L53] (use Task2, maybe modified by prolonging the time to run by enlarging the `delay` parameter)
 
-* link:https://github.com/Evolveum/midpoint/blob/master/samples/tasks/bulk-actions/script-delay-for-testing-thread-dumps.xml[https://github.com/Evolveum/midpoint/blob/master/samples/tasks/bulk-actions/script-delay-for-testing-thread-dumps.xml] (waits 10 seconds for each object found in repo)
+* link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/script-delay-for-testing-thread-dumps.xml[https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/bulk-actions/script-delay-for-testing-thread-dumps.xml] (waits 10 seconds for each object found in repo)
 
 
 == Getting thread dumps via REST

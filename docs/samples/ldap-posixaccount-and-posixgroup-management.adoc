@@ -93,21 +93,21 @@ TODO more here with fragments?
 
 [%autowidth,cols="h,1,1"]
 |===
-| OpenLDAP ACI | https://github.com/Evolveum/midpoint/blob/master/samples/stories/unix-ldap/aci.ldif | ACI for OpenLDAP user management for this sample. Update as you wish.
+| OpenLDAP ACI | link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/unix-ldap/aci.ldif[https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/unix-ldap/aci.ldif] | ACI for OpenLDAP user management for this sample. Update as you wish.
 
 | Sequences
-| link:https://github.com/Evolveum/midpoint/tree/master/samples/stories/unix-ldap/other[https://github.com/Evolveum/midpoint/tree/master/samples/stories/unix-ldap/other]
+| link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/unix-ldap/other[https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/unix-ldap/other]
 | Sequences to generate unique UID/GID numbers.
 
 
 | Resources
-| link:https://github.com/Evolveum/midpoint/blob/master/samples/stories/unix-ldap/resources/ldap-posix.xml[https://github.com/Evolveum/midpoint/blob/master/samples/stories/unix-ldap/resources/ldap-posix.xml]
+| link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/unix-ldap/resources/ldap-posix.xml[https://github.com/Evolveum/midpoint-samples/blob/master/samples/stories/unix-ldap/resources/ldap-posix.xml]
 | Configuration for source and target systems.
 Connection properties, schema handling and synchronization configuration.
 
 
 | Roles
-| link:https://github.com/Evolveum/midpoint/tree/master/samples/stories/unix-ldap/roles[https://github.com/Evolveum/midpoint/tree/master/samples/stories/unix-ldap/roles]
+| link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/unix-ldap/roles[https://github.com/Evolveum/midpoint-samples/tree/master/samples/stories/unix-ldap/roles]
 | Meta roles for creating standard LDAP groups and posixGroups.
 
 

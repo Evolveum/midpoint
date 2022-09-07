@@ -103,7 +103,7 @@ Use one of the following URLs based on your midPoint version:
 
 
 | development snapshot
-| link:https://github.com/Evolveum/midpoint/tree/master/samples/model-client-sample[https://github.com/Evolveum/midpoint/tree/master/samples/model-client-sample]
+| link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/model-client-sample[https://github.com/Evolveum/midpoint-samples/tree/master/samples/model-client-sample]
 
 
 |===
