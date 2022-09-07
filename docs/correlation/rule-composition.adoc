@@ -4,35 +4,40 @@
 
 == Correlators (Correlation Rules)
 
-The basic element of the configuration is the _correlation rule_ (or _correlator_) configuration.
+The basic element of the correlation configuration is the definition of _correlation rules_ (or _correlators_).
 
 NOTE: The _correlation rule_ is more user-oriented term, while _correlator_ is more implementation-oriented one.
 See also the xref:index.adoc[overview document].
-Risking a bit of confusion, let us use the term _correlator_ in this document, at least for now.
+Risking a bit of confusion, let us use the term _correlator_ in this document.
 
 Correlators are hierarchical, with a specified default algorithm for combining their results.
 
-In midPoint 4.6 we support only the flat hierarchy: the composite correlator defined at the top, with component correlators right beneath it.
+In midPoint 4.6 we support only the flat hierarchy: a composite correlator defined on top, with component correlators right beneath it.
 Please see <<Limitations>> section at the end of this document.
 
 == Composition Algorithm Outline
 
 Individual correlators are evaluated in a defined order (see <<Tiers and Rule Ordering>>).
+
 Each correlator produces a set of _candidates_ having zero, one, or more objects.
 Each candidate has a (local) _confidence_ value from the interval of (0, 1].
-Each correlator has its own _weight_.
+Each correlator has its own _weight_ that is used as a multiplication factor for the local confidence values produced by the correlator.
+(For convenience, a global _scale_ can be defined. It can be used to re-scale the confidence values to the interval of (0, 1].)
+
 After the evaluation, a union of all candidate sets is created, and the overall confidence for each candidate is computed:
 
 image::confidence-formula.png[Confidence formula,width=600,pdfwidth=50%,scaledwidth=50%]
 
 Where
 
-- total confidence~cand~ is the total confidence for candidate _cand_ (being computed),
-- confidence~cand,cor~ is the confidence of candidate _cand_ provided by child correlator _cor_,
-- weight~cor~ is the weight of child correlator _cor_ in the composition (a parameter of the composition; default is 1),
+- _total confidence~cand~_ is the total confidence for candidate _cand_ (being computed),
+- _confidence~cand,cor~_ is the confidence of candidate _cand_ provided by child correlator _cor_,
+- _weight~cor~_ is the weight of child correlator _cor_ in the composition (a parameter of the composition; default is 1),
 - _scale_ is the scale of the given composite correlator (a parameter of the composition; default is 1).
 
 == A Naive Example
+
+=== Rules
 
 Let us have rules like these:
 
@@ -55,7 +60,9 @@ Let us have rules like these:
 .Graphic representation of the sample set of correlation rules
 image::naive-example.png[A naive example,width=1000,pdfwidth=50%,scaledwidth=50%]
 
-.Listing 1. Configuration related to the sample set of correlation rules
+=== Configuration
+
+.Listing 1. Configuration defining the sample set of correlation rules
 [source,xml]
 ----
 <correlators>
@@ -99,13 +106,15 @@ image::naive-example.png[A naive example,width=1000,pdfwidth=50%,scaledwidth=50%
 </correlators>
 ----
 
-Let us assume we are correlating `Ian Smith, 2004-02-06, 040206/1328` and the candidate is `John Smith, 2004-02-06, 040206/1328`.
+=== Example Computation
 
-- The `name-date-id` correlator matches with a local confidence of `1.0`. Having weight of `1.0`, the overall confidence increment is `1.0`.
-- The `names-date` correlator does not match.
-- The `id` correlator matches with a local confidence of `1.0`. Having weight of `0.4`, the overall confidence increment is `0.4`.
+Let us assume we are correlating [blue]`Ian Smith, 2004-02-06, 040206/1328` and the candidate is [blue]`John Smith, 2004-02-06, 040206/1328`.
 
-The total confidence is `1.4`, cropped down to `1.0`.
+- The `name-date-id` correlator matches with a local confidence of [blue]*1.0*. Having weight of [red]*1.0*, the overall confidence increment is [purple]*1.0*.
+- The `names-date` correlator does not match. Therefore, there is no confidence increment from it.
+- The `id` correlator matches with a local confidence of [blue]*1.0*. Having weight of [red]*0.4*, the overall confidence increment is [purple]*0.4*.
+
+The total confidence is [purple]*1.4*, cropped down to [purple]*1.0*.
 
 == "Ignore if Matched by" Flag
 
