@@ -29,7 +29,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 @DirtiesContext
 public class TestConnectorManager extends AbstractIntegrationTest {
 
-    private static final String CONNID_FRAMEWORK_VERSION = "1.5.1.3";
+    private static final String CONNID_FRAMEWORK_VERSION = "1.5.1.7";
 
     @Autowired private ConnectorManager connectorManager;
 
