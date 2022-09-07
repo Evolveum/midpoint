@@ -39,18 +39,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
         })
 public class PageWorkItemsAttorney extends PageCaseWorkItems {
 
+    public PageWorkItemsAttorney() {
+        this(null);
+    }
+
     public PageWorkItemsAttorney(PageParameters pageParameters) {
         super(pageParameters);
+
+        if (getPowerDonorOid() == null) {
+            getSession().error("PageWorkItemsAttorney.attorney.not.selected");
+            throw redirectBackViaRestartResponseException();
+        }
     }
 
     @Override
     protected ObjectFilter getCaseWorkItemsFilter() {
-        PageParameters parameters = getWorkItemsPageParameters();
-        String attorneyUserOid = parameters != null && parameters.get(PageAttorneySelection.PARAMETER_DONOR_OID) != null ?
-                parameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString() : null;
-        if (StringUtils.isEmpty(attorneyUserOid) || attorneyUserOid.equals("null")) {
-            return super.getCaseWorkItemsFilter();
-        }
+        String attorneyUserOid = getPowerDonorOid();
         return getPrismContext().queryFor(CaseWorkItemType.class)
                 .item(CaseWorkItemType.F_ASSIGNEE_REF)
                 .ref(attorneyUserOid, UserType.COMPLEX_TYPE)

@@ -491,6 +491,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         boolean editActive = classMatches(newPageClass) && (isEditForAdminObjectDetails() || isEditForResourceWizzard());
         if (editActive) {
             MenuItem edit = new MenuItem(editKey, newPageClass);
+            edit.setDynamic(true);
             mainMenuItem.addMenuItem(edit);
         }
     }
@@ -502,7 +503,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private void createFocusPageViewMenu(MainMenuItem mainMenuItem, String viewKey, final Class<? extends PageBase> newPageType) {
         boolean editActive = classMatches(newPageType);
         if (editActive) {
-            mainMenuItem.addMenuItem(new MenuItem(viewKey, newPageType));
+            MenuItem editMenuItem = new MenuItem(viewKey, newPageType);
+            editMenuItem.setDynamic(true);
+            mainMenuItem.addMenuItem(editMenuItem);
         }
     }
 
@@ -531,7 +534,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectsList", PageDebugList.class));
         boolean editActive = classMatches(PageDebugView.class);
         if (editActive) {
-            repositoryObjectsMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectView", PageDebugView.class));
+            MenuItem editMenuItem = new MenuItem("PageAdmin.menu.top.configuration.repositoryObjectView", PageDebugView.class);
+            editMenuItem.setDynamic(true);
+            repositoryObjectsMenu.addMenuItem(editMenuItem);
         }
         return repositoryObjectsMenu;
     }
