@@ -10,19 +10,17 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.data.SelectableDataTable;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -38,6 +36,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -48,9 +47,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
 
 /**
  * Created by honchar.
@@ -204,15 +200,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     private void initTargetUserSelectionPanel(WebMarkupContainer parametersPanel) {
-        UserSelectionButton targetUserPanel = new UserSelectionButton(ID_TARGET_USER_PANEL,
-                new IModel<List<UserType>>() {
-                    @Override
-                    public List<UserType> getObject() {
-                        return WebComponentUtil.loadTargetUsersListForShoppingCart(OPERATION_LOAD_ASSIGNMENT_TARGET_USER,
-                                AbstractShoppingCartTabPanel.this.getPageBase());
-                    }
-                },
-                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")) {
+        IModel<List<UserType>> selectionModel = () -> WebComponentUtil.loadTargetUsersListForShoppingCart(OPERATION_LOAD_ASSIGNMENT_TARGET_USER, AbstractShoppingCartTabPanel.this.getPageBase());
+
+        UserSelectionButton targetUserPanel = new UserSelectionButton(ID_TARGET_USER_PANEL, selectionModel, true,
+                createStringResource("AssignmentCatalogPanel.selectTargetUser")) {
+
             private static final long serialVersionUID = 1L;
 
             @Override

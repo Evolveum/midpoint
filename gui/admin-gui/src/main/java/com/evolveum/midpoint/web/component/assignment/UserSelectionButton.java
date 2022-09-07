@@ -6,12 +6,9 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import java.util.*;
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -21,8 +18,12 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import javax.xml.namespace.QName;
-import java.util.*;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Created by honchar.
@@ -40,20 +41,20 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
     private StringResourceModel titleModel;
 
     public UserSelectionButton(String id, IModel<List<UserType>> selectedUsersListModel, boolean isMultiSelection,
-                               StringResourceModel titleModel){
+            StringResourceModel titleModel) {
         super(id, selectedUsersListModel);
         this.isMultiSelection = isMultiSelection;
         this.titleModel = titleModel;
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         pageBase = getPageBase();
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         AjaxLink<String> userSelectionButton = new AjaxLink<String>(ID_USER_SELECTION_BUTTON) {
             private static final long serialVersionUID = 1L;
 
@@ -101,10 +102,10 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
                 UserSelectionButton.this.onDeleteSelectedUsersPerformed(target);
             }
         };
-        deleteButton.add(new VisibleEnableBehaviour(){
+        deleteButton.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return isDeleteButtonVisible();
             }
         });
@@ -113,15 +114,15 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
 
     protected abstract String getUserButtonLabel();
 
-    protected boolean isDeleteButtonVisible(){
+    protected boolean isDeleteButtonVisible() {
         return getModelObject() != null && getModelObject().size() > 0;
     }
 
-    protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
+    protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target) {
         showUserSelectionPopup = false;
     }
 
-    protected String getTargetUserButtonClass(){
+    protected String getTargetUserButtonClass() {
         return "";
     }
 
@@ -141,7 +142,7 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
             @Override
             protected void addPerformed(AjaxRequestTarget target, QName type, List<UserType> selected) {
                 super.addPerformed(target, type, selected);
-                multipleUsersSelectionPerformed(target, selected);
+                multipleUsersSelectionPerformed(target, getAllSelectedObjectsList());
             }
 
             @Override
@@ -153,10 +154,10 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
         pageBase.showMainPopup(focusBrowser, target);
     }
 
-    protected void singleUserSelectionPerformed(AjaxRequestTarget target, UserType user){
+    protected void singleUserSelectionPerformed(AjaxRequestTarget target, UserType user) {
     }
 
-    protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList){
+    protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList) {
     }
 
     protected String getUserSelectionButtonTitle() {
@@ -188,7 +189,7 @@ public abstract class UserSelectionButton extends BasePanel<List<UserType>> {
         return titleModel.getString();
     }
 
-    protected ObjectFilter getUserQueryFilter(){
+    protected ObjectFilter getUserQueryFilter() {
         return null;
     }
 }

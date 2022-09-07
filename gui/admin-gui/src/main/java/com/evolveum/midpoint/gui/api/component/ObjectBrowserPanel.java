@@ -21,11 +21,13 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
@@ -210,6 +212,18 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
         parentPage.hideMainPopup(target);
     }
 
+    protected void onUpdateCheckbox(AjaxRequestTarget target, List<IModel<SelectableBean<O>>> list, DataTable table) {
+        list.forEach(row -> {
+            SelectableBean<O> selectableBean = row.getObject();
+            O selectedObject = selectableBean.getValue();
+            if (selectableBean.isSelected()) {
+                selectedObjectsList.add(selectedObject);
+            } else {
+                selectedObjectsList.removeIf(o -> selectedObject.getOid().equals(o.getOid()));
+            }
+        });
+    }
+
     private ObjectListPanel<O> createObjectListPanel(ObjectTypes type, final boolean multiselect) {
         Class<O> typeClass = type.getClassDefinition();
 
@@ -217,6 +231,11 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
                 multiselect) {
 
             private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdateCheckbox(AjaxRequestTarget target, List<IModel<SelectableBean<O>>> rowModel, DataTable table) {
+                ObjectBrowserPanel.this.onUpdateCheckbox(target, rowModel, table);
+            }
 
             @Override
             protected void onSelectPerformed(AjaxRequestTarget target, O object) {
@@ -296,5 +315,9 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
     @Override
     public StringResourceModel getTitle() {
         return parentPage.createStringResource("ObjectBrowserPanel.chooseObject");
+    }
+
+    public List<O> getAllSelectedObjectsList() {
+        return selectedObjectsList;
     }
 }
