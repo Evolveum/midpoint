@@ -39,7 +39,7 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
     private static final String ID_T_ON_RESOURCE = "onResourceTooltip";
 
     public CapabilityScriptPanel(String componentId, IModel<CapabilityDto<ScriptCapabilityType>> model, WebMarkupContainer capabilitiesTable,
-            PageResourceWizard parentPage){
+            PageResourceWizard parentPage) {
         super(componentId, model);
         initLayout(capabilitiesTable, parentPage);
     }
@@ -56,11 +56,12 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
         });
         add(enabled);
 
-        MultiValueTextPanel onConnector = new MultiValueTextPanel(ID_ON_CONNECTOR, prepareOnConnectorModel(), parentPage.getReadOnlyModel(), true);
+        MultiValueTextPanel<?> onConnector = new MultiValueTextPanel(
+                ID_ON_CONNECTOR, prepareOnConnectorModel(), parentPage.getReadOnlyModel(), true);
         add(onConnector);
 
-        MultiValueTextPanel onResource = new MultiValueTextPanel(ID_ON_RESOURCE, Model.of(prepareOnResourceModel()), parentPage.getReadOnlyModel(),
-                true);
+        MultiValueTextPanel<?> onResource = new MultiValueTextPanel(
+                ID_ON_RESOURCE, prepareOnResourceModel(), parentPage.getReadOnlyModel(), true);
         add(onResource);
 
         Label enabledTooltip = new Label(ID_T_ENABLED);
@@ -76,12 +77,12 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
         add(onResourceTooltip);
     }
 
-    private IModel prepareOnConnectorModel(){
-        CapabilityDto dto = (CapabilityDto)getModel().getObject();
-        ScriptCapabilityType script = (ScriptCapabilityType)dto.getCapability();
+    private IModel<?> prepareOnConnectorModel() {
+        CapabilityDto<?> dto = getModel().getObject();
+        ScriptCapabilityType script = (ScriptCapabilityType) dto.getCapability();
 
-        for(ScriptCapabilityType.Host host: script.getHost()){
-            if(ProvisioningScriptHostType.CONNECTOR.equals(host.getType())){
+        for (ScriptCapabilityType.Host host : script.getHost()) {
+            if (ProvisioningScriptHostType.CONNECTOR.equals(host.getType())) {
                 return new PropertyModel<List<String>>(host, "language");
             }
         }
@@ -90,12 +91,12 @@ public class CapabilityScriptPanel extends BasePanel<CapabilityDto<ScriptCapabil
         return Model.of(emptyList);
     }
 
-    private IModel prepareOnResourceModel(){
-        CapabilityDto dto = (CapabilityDto)getModel().getObject();
-        ScriptCapabilityType script = (ScriptCapabilityType)dto.getCapability();
+    private IModel<?> prepareOnResourceModel() {
+        CapabilityDto<?> dto = getModel().getObject();
+        ScriptCapabilityType script = (ScriptCapabilityType) dto.getCapability();
 
-        for(ScriptCapabilityType.Host host: script.getHost()){
-            if(ProvisioningScriptHostType.RESOURCE.equals(host.getType())){
+        for (ScriptCapabilityType.Host host : script.getHost()) {
+            if (ProvisioningScriptHostType.RESOURCE.equals(host.getType())) {
                 return new PropertyModel<List<String>>(host, "language");
             }
         }
