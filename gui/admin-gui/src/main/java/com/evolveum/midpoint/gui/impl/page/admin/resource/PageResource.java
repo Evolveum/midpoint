@@ -42,10 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
         })
 public class PageResource extends PageAssignmentHolderDetails<ResourceType, ResourceDetailsModel> {
 
-    public PageResource()  {
-        super();
-    }
-
     public PageResource(PageParameters pageParameters) {
         super(pageParameters);
     }
