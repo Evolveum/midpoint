@@ -484,11 +484,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
             final Class<? extends PageBase> newPageClass) {
 
         boolean addActive = classMatches(newPageClass) && !isEditForAdminObjectDetails() && !isEditForResourceWizzard();
-        if (isAddNewObjectMenuItemAuthorized(newPageClass)) {       //mid-7145
-            MenuItem newMenu = new MenuItem(newKey,
-                    GuiStyleConstants.CLASS_PLUS_CIRCLE, newPageClass, null, addActive);
-            mainMenuItem.addMenuItem(newMenu);
-        }
+        MenuItem newMenu = new MenuItem(newKey,
+                GuiStyleConstants.CLASS_PLUS_CIRCLE, newPageClass, null, addActive);
+        mainMenuItem.addMenuItem(newMenu);
 
         boolean editActive = classMatches(newPageClass) && (isEditForAdminObjectDetails() || isEditForResourceWizzard());
         if (editActive) {
@@ -496,20 +494,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
             edit.setDynamic(true);
             mainMenuItem.addMenuItem(edit);
         }
-    }
-
-    private <AH extends AssignmentHolderType> boolean isAddNewObjectMenuItemAuthorized(Class<? extends PageBase> newPageClass) {
-        if (PageAssignmentHolderDetails.class.isAssignableFrom(newPageClass)) {
-            try {
-                PageAssignmentHolderDetails<AH, ?> page = (PageAssignmentHolderDetails<AH, ?>) newPageClass.getConstructor().newInstance();
-                PrismObject<AH> object = getPrismContext().createObject(page.getType());
-                return getPageBase().isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                        AuthorizationPhaseType.REQUEST, object, null, null, null);
-            } catch (Exception ex) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't solve authorization for New object menu item", ex);
-            }
-        }
-        return true;
     }
 
     private boolean classMatches(Class<? extends PageBase> page) {

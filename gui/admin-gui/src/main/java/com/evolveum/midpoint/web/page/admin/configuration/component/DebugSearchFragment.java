@@ -27,10 +27,17 @@ public class DebugSearchFragment extends Fragment {
     private static final String ID_SHOW_ALL_ITEMS_CHECK = "showAllItemsCheck";
     private static final String ID_SEARCH_FORM = "searchForm";
 
+    private IModel<Boolean> showAllItemsModel;
+
     public DebugSearchFragment(String id, String markupId, MarkupContainer markupProvider,
             IModel<Search<? extends ObjectType>> model, IModel<Boolean> showAllItemsModel) {
         super(id, markupId, markupProvider, model);
+        this.showAllItemsModel = showAllItemsModel;
+    }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout(showAllItemsModel);
     }
 
