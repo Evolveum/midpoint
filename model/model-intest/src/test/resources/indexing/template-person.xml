@@ -1,0 +1,37 @@
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                oid="74a2112a-0ecc-4c09-818a-1d9e234e8e6f">
+    <name>person</name>
+    <item>
+        <ref>givenName</ref>
+        <indexing>
+            <normalization>
+                <default>true</default>
+                <steps>
+                    <polyString/> <!-- this is the default (and can be omitted) -->
+                </steps>
+            </normalization>
+            <normalization>
+                <steps>
+                    <polyString/> <!-- however, this one must be present -->
+                    <prefix>
+                        <length>3</length>
+                    </prefix>
+                </steps>
+            </normalization>
+        </indexing>
+    </item>
+    <item>
+        <ref>familyName</ref>
+        <indexing/>
+    </item>
+    <item>
+        <ref>costCenter</ref>
+        <indexing>
+            <normalization>
+                <steps>
+                    <none/>
+                </steps>
+            </normalization>
+        </indexing>
+    </item>
+</objectTemplate>

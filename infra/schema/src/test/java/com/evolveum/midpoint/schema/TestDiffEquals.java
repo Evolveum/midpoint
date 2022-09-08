@@ -18,11 +18,11 @@ import java.util.Date;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+@SuppressWarnings("SimplifiableAssertion")
 public class TestDiffEquals extends AbstractSchemaTest {
 
     public static final File TEST_DIR = new File("src/test/resources/diff");
@@ -77,7 +78,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
         PrismTestUtil.getPrismContext().adopt(u1);
         PrismTestUtil.getPrismContext().adopt(u2);
 
-        ObjectDelta delta = u1.asPrismObject().diff(u2.asPrismObject());
+        ObjectDelta<UserType> delta = u1.asPrismObject().diff(u2.asPrismObject());
         assertNotNull(delta);
         assertEquals(0, delta.getModifications().size());
 
@@ -90,18 +91,16 @@ public class TestDiffEquals extends AbstractSchemaTest {
 
     @Test
     public void testAssignmentEquals1() {
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-
         when();
-        AssignmentType a1a = new AssignmentType(prismContext).description("descr1");
-        AssignmentType a1b = new AssignmentType(prismContext).description("descr1");
-        AssignmentType a1e = new AssignmentType(prismContext).description("descr1")
+        AssignmentType a1a = new AssignmentType().description("descr1");
+        AssignmentType a1b = new AssignmentType().description("descr1");
+        AssignmentType a1e = new AssignmentType().description("descr1")
                 .activation(new ActivationType().effectiveStatus(ActivationStatusType.ENABLED));
-        AssignmentType a1m = new AssignmentType(prismContext).description("descr1")
+        AssignmentType a1m = new AssignmentType().description("descr1")
                 .metadata(new MetadataType().createTimestamp(
                         XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis())));
 
-        AssignmentType a2 = new AssignmentType(prismContext).description("descr2");
+        AssignmentType a2 = new AssignmentType().description("descr2");
 
         then("None of a1 equals to a2 (and vice versa)");
         assertThat(a1a).isNotEqualTo(a2);
@@ -159,24 +158,24 @@ public class TestDiffEquals extends AbstractSchemaTest {
 
     @Test
     public void testAssignmentEquivalent() {
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-
-        AssignmentType a1 = new AssignmentType(prismContext);
-        ActivationType a1a = new ActivationType(prismContext);
+        AssignmentType a1 = new AssignmentType();
+        ActivationType a1a = new ActivationType();
         a1a.setValidFrom(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
         a1a.setEffectiveStatus(ActivationStatusType.ENABLED);
         a1.setActivation(a1a);
 
-        AssignmentType a2 = new AssignmentType(prismContext);
-        ActivationType a2a = new ActivationType(prismContext);
+        AssignmentType a2 = new AssignmentType();
+        ActivationType a2a = new ActivationType();
         a2a.setEffectiveStatus(ActivationStatusType.ENABLED);
         a2.setActivation(a2a);
 
         // WHEN
         assertFalse(a1.equals(a2));
+        //noinspection unchecked
         assertFalse(a1.asPrismContainerValue().equivalent(a2.asPrismContainerValue()));            // a bit redundant
 
         assertFalse(a2.equals(a1));
+        //noinspection unchecked
         assertFalse(a2.asPrismContainerValue().equivalent(a1.asPrismContainerValue()));            // a bit redundant
     }
 
@@ -204,7 +203,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
     }
 
     @Test(enabled = false)
-    public void testContextlessAssignmentEquals2() throws Exception {
+    public void testContextlessAssignmentEquals2() {
         // (1) user without prismContext - the functionality is reduced
 
         UserType user = new UserType();
@@ -220,12 +219,12 @@ public class TestDiffEquals extends AbstractSchemaTest {
         a2identical.setDescription("descr2");
         assertTrue(user.getAssignment().contains(a2identical));
 
-        ObjectDelta delta1 = user.asPrismObject().createDelta(ChangeType.DELETE);       // delta1 is without prismContext
+        ObjectDelta<UserType> delta1 = user.asPrismObject().createDelta(ChangeType.DELETE);       // delta1 is without prismContext
         assertNull(delta1.getPrismContext());
 
         // (2) user with prismContext
 
-        UserType userWithContext = new UserType(PrismTestUtil.getPrismContext());
+        UserType userWithContext = new UserType();
 
         AssignmentType b1 = new AssignmentType();            // no prismContext here
         b1.setDescription("descr1");
@@ -243,7 +242,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
         assertNotNull(b2.asPrismContainerValue().getPrismContext());
         assertFalse(b1.equals(b2));
 
-        ObjectDelta delta2 = userWithContext.asPrismObject().createDelta(ChangeType.DELETE);
+        ObjectDelta<UserType> delta2 = userWithContext.asPrismObject().createDelta(ChangeType.DELETE);
         assertNotNull(delta2.getPrismContext());
     }
 
@@ -310,9 +309,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
     // MID-4251
     @Test
     public void testAssignmentHashcode2() {
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-
-        AssignmentType a1a = new AssignmentType(prismContext).id(6L)
+        AssignmentType a1a = new AssignmentType().id(6L)
                 .beginMetadata()
                 .createApprovalComment("hi")
                 .<AssignmentType>end()
@@ -321,7 +318,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
                 .effectiveStatus(ActivationStatusType.ENABLED)
                 .validTo("2018-01-01T00:00:00.000+01:00")
                 .end();
-        AssignmentType a1b = new AssignmentType(prismContext)
+        AssignmentType a1b = new AssignmentType()
                 .targetRef(new ObjectReferenceType().oid("target").type(OrgType.COMPLEX_TYPE))
                 .beginActivation()
                 .validTo("2018-01-01T00:00:00.000+01:00")
@@ -334,9 +331,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
     // MID-4251
     @Test
     public void testAssignmentHashcode3() {
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-
-        AssignmentType a1a = new AssignmentType(prismContext)
+        AssignmentType a1a = new AssignmentType()
                 .beginActivation()
                 .validTo("2018-01-01T00:00:00.000+01:00")
                 .end();
@@ -363,7 +358,6 @@ public class TestDiffEquals extends AbstractSchemaTest {
         ShadowType shadow1Type = shadow1.asObjectable();
         shadow1Type.setName(new PolyStringType("Whatever"));
         shadow1Type.getAuxiliaryObjectClass().add(new QName(NS_TEST_RI, "foo"));
-        PrismContainer<Containerable> shadow1Attrs = shadow1.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
 
         ShadowType shadow2Type = new ShadowType();
         PrismObject<ShadowType> shadow2 = shadow2Type.asPrismObject();
@@ -402,6 +396,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
 
         PrismAsserts.assertIsModify(delta);
         PrismAsserts.assertPropertyAdd(delta, ShadowType.F_AUXILIARY_OBJECT_CLASS, new QName(NS_TEST_RI, "bar"));
+        //noinspection unchecked
         PrismAsserts.assertContainerAdd(delta, ShadowType.F_ATTRIBUTES, shadow2Attrs.getValue().clone());
         PrismAsserts.assertModifications(delta, 2);
     }
@@ -463,12 +458,10 @@ public class TestDiffEquals extends AbstractSchemaTest {
 
     @Test      // MID-4688
     public void testDiffWithMetadata() {
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-
         ProtectedStringType value = new ProtectedStringType();
         value.setClearValue("abc");
 
-        PrismObject<UserType> user1 = new UserType(prismContext)
+        PrismObject<UserType> user1 = new UserType()
                 .beginCredentials()
                 .beginPassword()
                 .value(value.clone())
@@ -478,7 +471,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
                 .<CredentialsType>end()
                 .<UserType>end()
                 .asPrismObject();
-        PrismObject<UserType> user2 = new UserType(prismContext)
+        PrismObject<UserType> user2 = new UserType()
                 .beginCredentials()
                 .beginPassword()
                 .value(value.clone())
@@ -516,12 +509,12 @@ public class TestDiffEquals extends AbstractSchemaTest {
         propertyParsed.setRealValue("value");
         propertyRaw.setValue(prismContext.itemFactory().createPropertyValue(new PrimitiveXNodeImpl<>("value")));
 
-        PrismObject<UserType> userParsed = new UserType(prismContext)
+        PrismObject<UserType> userParsed = new UserType()
                 .name("user")
                 .asPrismObject();
         userParsed.getOrCreateExtension().add(propertyParsed);
 
-        PrismObject<UserType> userRaw = new UserType(prismContext)
+        PrismObject<UserType> userRaw = new UserType()
                 .name("user")
                 .asPrismObject();
         userRaw.getOrCreateExtension().add(propertyRaw);
@@ -547,6 +540,6 @@ public class TestDiffEquals extends AbstractSchemaTest {
             hash1 = user1.hashCode(strategy);
             hash2 = user2.hashCode(strategy);
         }
-        assertEquals("Hashcodes are not equal (strategy=" + strategy + ")", hash1, hash2);
+        assertEquals("Hash codes are not equal (strategy=" + strategy + ")", hash1, hash2);
     }
 }
