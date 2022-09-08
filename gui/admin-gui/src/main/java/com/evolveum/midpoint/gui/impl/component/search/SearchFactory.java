@@ -385,8 +385,10 @@ public class SearchFactory {
             searchConfWrapper = searchConfigurationWrapper;
         }
         if (CollectionUtils.isNotEmpty(searchConfWrapper.getAllowedTypeList()) && !objectTypeSearchItemWrapperExists(searchConfWrapper.getItemsList())) {
-            searchConfWrapper.getItemsList().add(new ObjectTypeSearchItemWrapper(searchConfWrapper.getAllowedTypeList(),
-                    WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfWrapper.getTypeClass())));
+            ObjectTypeSearchItemWrapper typeItem = new ObjectTypeSearchItemWrapper(searchConfWrapper.getAllowedTypeList(),
+                    WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfWrapper.getTypeClass()));
+            typeItem.setAllowAllTypesSearch(searchConfWrapper.isAllowAllTypeSearch());
+            searchConfWrapper.getItemsList().add(typeItem);
         }
         if (searchConfWrapper.getAllowedModeList().contains(SearchBoxModeType.OID)) {
             OidSearchItemWrapper oidWrapper = new OidSearchItemWrapper();

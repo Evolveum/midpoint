@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.ObjectTypeSearchItemWrapper;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -434,7 +435,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (additionalPanelConfig != null) {
             searchConfigWrapper.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
         }
-        searchConfigWrapper.setAllowAllTypeSearch(true);
+        searchConfigWrapper.getItemsList().forEach(item -> {
+            if (item instanceof ObjectTypeSearchItemWrapper) {
+                ((ObjectTypeSearchItemWrapper)item).setAllowAllTypesSearch(true);
+            }
+        });
         return searchConfigWrapper;
     }
 
