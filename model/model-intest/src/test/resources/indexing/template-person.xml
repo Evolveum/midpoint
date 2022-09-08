@@ -12,8 +12,11 @@
             </normalization>
             <normalization>
                 <steps>
-                    <polyString/> <!-- however, this one must be present -->
+                    <polyString> <!-- however, this one must be present -->
+                        <order>1</order>
+                    </polyString>
                     <prefix>
+                        <order>2</order>
                         <length>3</length>
                     </prefix>
                 </steps>
