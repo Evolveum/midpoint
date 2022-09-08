@@ -1,3 +1,304 @@
 = Custom Indexing
+:page-toc: top
+:page-since: "4.6"
 
-#TODO#
+Sometimes, we need to base the search on specially-indexed data.
+For example, we could need to match only first five normalized characters of the surname.
+Or, we could want to take only digits into account when searching for the national ID.
+MidPoint supports these requirements using so-called _custom indexing_.
+
+IMPORTANT: This feature is available only when using the xref:/midpoint/reference/repository/native-postgresql/[native repository implementation].
+
+NOTE: In 4.6, this feature is used in the context of the correlation only.
+However, in theory, nothing precludes its use in more general scenarios.
+One of them could be, for example, searching for users right in the user list in GUI.
+
+#TODO should we make this feature experimental? There are some open questions regarding the configuration and run-time structures.#
+
+== Overview
+
+For each user, we have a special searchable container for all data that are indexed in this way.
+Each time the original data are modified, the content of this container is updated.
+
+This feature can be used to search through:
+
+- Data normalized in a custom way, e.g. like "take first five characters of the surname".
+- Data that are not indexed by default, e.g. the description property.
+- So-called xref:/midpoint/reference/correlation/multiple-identities/[multi-identity] data.
+
+== Implementation
+
+The container that stores the indexed data is `identities/identity/items/normalized`.
+
+NOTE: #This is due to an original design from a couple of months ago.
+It is to be re-considered before 4.6 release:
+First, what should be the exact name and path?
+Second, should it be multivalued?#
+
+For each indexing (normalization) defined on a given item, it contains a value or values of the given item (or items in the multi-identity case) after the normalization has been applied.
+
+=== An Example
+
+.Sample indexing for `givenName`, `familyName`, and `costCenter` properties
+[%header]
+[%autowidth]
+|===
+| # | Item | Name | Description
+| 1
+| `givenName`
+| `polyStringNorm`
+| Default system `PolyString` normalization.
+
+| 2
+| `givenName`
+| `polyStringNorm.prefix3`
+| First three characters of the default system `PolyString` normalization.
+
+| 3
+| `familyName`
+| `polyStringNorm`
+| Default system `PolyString` normalization.
+
+| 4
+| `costCenter`
+| `original`
+| Original value (no normalization).
+|===
+
+.Listing 1. Defining sample indexing for three properties
+[source,xml]
+----
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                oid="74a2112a-0ecc-4c09-818a-1d9e234e8e6f">
+    <name>person</name>
+    <item>
+        <ref>givenName</ref>
+        <indexing>
+            <normalization>
+                <default>true</default>
+                <steps>
+                    <polyString/> <!--1-->
+                </steps>
+            </normalization>
+            <normalization>
+                <steps>
+                    <polyString> <!--2-->
+                        <order>1</order>
+                    </polyString>
+                    <prefix>
+                        <order>2</order>
+                        <length>3</length>
+                    </prefix>
+                </steps>
+            </normalization>
+        </indexing>
+    </item>
+    <item>
+        <ref>familyName</ref>
+        <indexing/> <!--3-->
+    </item>
+    <item>
+        <ref>costCenter</ref>
+        <indexing>
+            <normalization>
+                <steps>
+                    <none/> <!--4-->
+                </steps>
+            </normalization>
+        </indexing>
+    </item>
+</objectTemplate>
+----
+<1> PolyString normalization is the default one, and can be omitted. Here it is shown just for completeness.
+<2> However, at this place it must be present. Otherwise, we would take the first three characters from the original form.
+<3> This tells midPoint to index the `familyName` in the default way (`PolyString` normalization).
+<4> If one wants to preserve the original form, it must be explicitly specified like this.
+
+The original and normalized values on a real user object can then look like this:
+
+.Listing 2. Original and normalized values in the real object
+[source,xml]
+----
+<user>
+    ...
+    <givenName>Alice</givenName>
+    <familyName>Black</familyName>
+    <costCenter>CCx-1/100</costCenter>
+    ...
+    <identities>
+        <identity>
+            <items>
+                <normalized xmlns:gen370="http://midpoint.evolveum.com/xml/ns/public/common/identity-3">
+                    <gen370:familyName.polyStringNorm xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:string">black</gen370:familyName.polyStringNorm>
+                    <gen370:givenName.polyStringNorm xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:string">alice</gen370:givenName.polyStringNorm>
+                    <gen370:givenName.polyStringNorm.prefix3 xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:string">ali</gen370:givenName.polyStringNorm.prefix3>
+                    <gen370:costCenter.original xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="xsd:string">CCx-1/100</gen370:costCenter.original>
+                </normalized>
+            </items>
+        </identity>
+    </identities>
+</user>
+----
+
+== Configuration Options
+
+This feature is configured in the _object template_ by attaching `indexing` information to the `item` element.
+(It is also turned on by default when multi-identity feature is enabled for the item.)
+
+The following configuration options are available:
+
+.Configuration options for item indexing
+[%header]
+[%autowidth]
+|===
+| Option | Description | Example
+
+| `indexedItemName`
+| Local item name in the 'indexed items' container.
+Usually it can be left unspecified, because it is derived right from the item name.
+| `givenName`
+
+| `normalization`
+| Set of normalizations that are applied to the given item.
+| Default PolyString normalization
+|===
+
+Each normalization is configured using these options:
+
+.Configuration options for item normalization
+[%header]
+[%autowidth]
+|===
+| Option | Description | Example
+
+| `name`
+| Name of the index (normalization).
+It is appended to the item name.
+Usually it can be left unspecified, because it is derived from the normalization step(s).
+| `polyStringNorm`
+
+| `default`
+| Is this the default index (normalization) for the given item?
+It is necessary to specify it only if there is more than one normalization defined.
+| `true`
+
+| `indexedNormalizedItemName`
+| Overrides the generated name for the indexed item (original item name + normalization name).
+Should not be normally needed.
+| `givenName.polyStringNorm`
+
+| `steps`
+| How the indexed value is computed?
+The default is using system-defined polystring normalization method.
+| Use PolyString normalization
+|===
+
+There are the following types of normalization steps:
+
+.Types of normalization steps
+[%header]
+[%autowidth]
+|===
+| Type | Description | Default normalized item name suffix
+
+| `none`
+| Does no normalization, i.e., keeps the original value intact.
+| `.original`
+
+| `polyString`
+| Applies system-default or custom `PolyString` normalization.
+| `.polyStringNorm`
+
+| `prefix`
+| Takes first `N` characters of the value.
+| `prefixN`
+
+| `custom`
+| Applies a custom normalization expression (e.g., a Groovy script) to the value.
+| `custom` footnote:[it is advised to provide a specific name]
+|===
+
+#TODO maybe we could make these regular expression evaluators, so they could be used also in standard mappings?
+What about the defaults (`asIs` is currently the default for expression evaluators)#
+
+Each normalization step has the following options:
+
+.Configuration options for a normalization step
+[%header]
+[%autowidth]
+|===
+| Option | Applies to | Description
+
+| `order`
+| all steps
+| Order in which the step is to be applied.
+It should be used, because current prism structures (containers) are not guaranteed to preserve the order of their values.
+Steps without value go last.
+
+| `documentation`
+| all steps
+| Technical documentation for this step.
+
+| `configuration`
+| `polyString`
+| Configuration of xref:/midpoint/reference/schema/polystring-normalization/[`PolyString` normalizer].
+If not specified, the one defined at the system level is used.
+
+| `length`
+| `prefix`
+| How many characters to keep.
+
+| `expression`
+| `custom`
+| Expression that transforms the value to its normalized form.
+Expects `input` as the original value.
+|===
+
+== Querying
+
+The values are queried just like any others.
+The only difference is that their definition is dynamic, hence e.g. in Java it must be constructed manually.
+
+.Listing 3. An example normalized (indexed) item query - in Java
+[source,java]
+----
+        ItemName itemName = new ItemName(SchemaConstants.NS_IDENTITY, "familyName.polyStringNorm");
+        var def = PrismContext.get().definitionFactory()
+                .createPropertyDefinition(itemName, DOMUtil.XSD_STRING, null, null);
+
+        ObjectQuery query = PrismContext.get().queryFor(UserType.class)
+                .itemWithDef(def,
+                        UserType.F_IDENTITIES,
+                        FocusIdentitiesType.F_IDENTITY,
+                        FocusIdentityType.F_ITEMS,
+                        FocusIdentityItemsType.F_NORMALIZED,
+                        itemName)
+                .eq("green")
+                .build();
+----
+
+#TODO Beware, this does not work. 1) because of the dynamic definition, 2) the Axiom has issues with dots in names#
+
+.Listing 4. An example normalized (indexed) item Axiom query
+[source,axiom]
+----
+identities/identity/items/normalized/familyName.polyStringNorm = "green"
+----
+
+== Maintenance
+
+The index data are maintained automatically by midPoint.
+
+In the current implementation it is the `model` subsystem that takes care of that.
+This means that careless "raw" update may break the consistence of the indexed data.
+
+If this happens, or if the definition of the indexing changes, the administrator should execute any regular operation to put things into sync again.
+For example, user recomputation is such an operation.
+
+#TODO Consider finding (or creating) a special partial processing option that would do just this update.#
+
+== Limitations
+
+. This feature is available on the xref:/midpoint/reference/repository/native-postgresql/[native repository] only.
+. Only `string` and `PolyString` values are currently indexable.
+. One must be careful when changing the indexing definition, see <<Maintenance>> section.

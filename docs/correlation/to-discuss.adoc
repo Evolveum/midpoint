@@ -2,3 +2,6 @@
 
 . "owner" term - it is too related to the original correlation use case (finding owner for an account)
 . even the "correlation" -> do we plan to use this term for the "extended usages" like self-registration?
+. name and terminology of the "custom indexing" feature ... e.g., normalization? index?
+. unifying normalization steps (polystring, prefix) with expression evaluators?
+. should we mark indexing as experimental?
