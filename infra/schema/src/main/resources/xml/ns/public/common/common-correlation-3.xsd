@@ -1136,7 +1136,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="owner" type="xsd:double" minOccurs="0" default="1.0">
+            <xsd:element name="definite" type="xsd:double" minOccurs="0" default="1.0">
                 <xsd:annotation>
                     <xsd:documentation>
                         The value of the rescaled confidence (i.e., between 0 and 1) that marks the candidate as "the chosen" one.

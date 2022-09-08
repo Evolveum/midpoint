@@ -92,10 +92,10 @@ public class CorrelatorContext<C extends AbstractCorrelatorType> implements Debu
         return templateCorrelationConfiguration;
     }
 
-    public double getOwnerThreshold() {
+    public double getDefiniteThreshold() {
         CorrelationConfidenceThresholdsDefinitionType thresholds = correlationDefinitionBean.getThresholds();
-        Double owner = thresholds != null ? thresholds.getOwner() : null;
-        return Objects.requireNonNullElse(owner, DEFAULT_OWNER);
+        Double definite = thresholds != null ? thresholds.getDefinite() : null;
+        return Objects.requireNonNullElse(definite, DEFAULT_OWNER);
     }
 
     public double getCandidateThreshold() {
