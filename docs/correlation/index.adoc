@@ -44,7 +44,7 @@ There are the following types of correlation rules:
 | `idmatch` | Rule that uses an external link:https://spaces.at.internet2.edu/display/cifer/SOR-Registry+Strawman+ID+Match+API[ID Match] service. Please see xref:/midpoint/projects/idmatch/implementation/implementation/[this document] for more information. | 4.5
 |===
 
-NOTE: Technically speaking, there is also a `composite` rule that provides an aggregation of the results of its children.
+NOTE: Precisely speaking, there is also a `composite` rule that provides an aggregation of the results of its children.
 However, in 4.6 it is supported only as a top-level rule, i.e., it is present automatically - without the need to specify it explicitly.
 
 === Correlation Configuration Placement

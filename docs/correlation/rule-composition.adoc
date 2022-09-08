@@ -181,43 +181,90 @@ The total confidence is thus `1.0`.
 
 == Tiers and Rule Ordering
 
+Looking at our previous example, we feel that after rule `name-date-id` is evaluated and finds exactly one candidate (`John Smith`) with the confidence of *1.0* (certain match), we can stop right there. We don't need to evaluate any other rules.
+For such situations, rules can be grouped into _tiers_ and even _ordered_ within them.
+
+In our particular example, we will put the first rule into a separate tier with the number of *1*.
+The other rules will be put into tier *2*.
 
 image::tiers.png[Tiers,width=1000,pdfwidth=50%,scaledwidth=50%]
 
-#TODO#
+The overall algorithm is the following:
+
+. Tiers are processing sequentially, from the lower numbers to the higher ones. The unnumbered tier - if present - is evaluated last.
+. All correlators in a given tier are processed.
+Their order can be specified using explicit `order` property (usually need not be used).
+Unspecified order means "last".
+Correlators with the same order are sorted according to their dependencies given by `ignoreIfMatchedBy` information.
+. After each tier is processed, we look if we have exactly one certain candidate. (See <<Using the Resulting Confidence Values>>.)
+If we do, we finish the computation.
+If there is no certain candidate, we continue.
+We continue also in case there are multiple certain candidates, although this situation indicates there is something wrong with the correlation rules.
+
+=== Example Computation
+
+Now, when correlating `Ian Smith, 2004-02-06, 040206/1328` with the candidate being `John Smith, 2004-02-06, 040206/1328`,
+
+- The `name-date-id` correlator matches with a local confidence of *1.0*. Having weight of *1.0*, the overall confidence increment is *1.0*.
+- As this concludes the first tier, and a certain match was found, the processing stops here.
+
+.Computation in a tabular form
+[%header]
+[%autowidth]
+|===
+| Rule | Matching | Local confidence | Weight | Confidence increment | Total so far
+| `name-date-id` | `Smith`, `2004-02-06`, `040206/1328` | 1.0 | 1.0 | 1.0 | 1.0
+6+| Evaluation of other rules is skipped
+|===
 
 == Using the Resulting Confidence Values
 
 In midPoint 4.6, the resulting aggregated confidence values for individual candidates are compared with two _threshold values_:
 
-. _Automatic match threshold_ (`AM`):
-if a confidence value is equal or greater than this one, the candidate is considered to automatically match the identity data.
-(If, for some reason, multiple candidates do this, then the situation is reported as a potential problem, and human decision is requested.)
-
-. _No-match threshold_ (`NM`):
-if a confidence value is below this one, the candidate is not considered to be matching at all - not even for human decision.
+.Threshold values
+[%header]
+[%autowidth]
+|===
+| Value | Description
+| _Definite match threshold_ (`DM`)
+| If a confidence value is equal or greater than this one, the candidate is considered to definitely match the identity data.
+(If, for some reason, multiple candidates do this, then human decision is requested.)
+| _Candidate match threshold_ (`CM`)
+| If a confidence value is below this one, the candidate is not considered to be matching at all - not even for human decision.
+|===
 
 Said in other words:
 
-. If there is a single candidate with confidence value &ge; `AM` then it is automatically matched.
-. Otherwise, all candidates with confidence value &ge; `NM` are taken for human resolution.
-(If there are multiple candidates with confidence value &ge; `AM` among them, then the situation is reported as suspicious.)
+. If there is a single candidate with confidence value &ge; `DM` then it is automatically matched.
+. Otherwise, all candidates with confidence value &ge; `CM` are taken for human resolution.
 . If there are none, "no match" situation is assumed.
 
-Configuration:
-
-#TODO#
-
-Default values:
+=== Default values
 
 .Default values for the threshold
 [%header]
 [%autowidth]
 |===
 | Threshold | Default value
-| Automatic match (`AM`) | 1.0
-| No-match (`NM`) | 0.0
+| Definite match (`DM`) | 1.0
+| Candidate match (`CM`) | 0.0
 |===
+
+=== Configuration
+
+.Listing 3. Setting the thresholds
+[source,xml]
+----
+<correlation>
+    <correlators>
+        ...
+    </correlators>
+    <thresholds>
+        <definite>0.75</definite>
+        <candidate>0.25</candidate>
+    </thresholds>
+</correlation>
+----
 
 == Limitations
 
