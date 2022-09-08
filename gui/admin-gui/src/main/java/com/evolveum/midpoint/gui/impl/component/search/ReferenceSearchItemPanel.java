@@ -8,9 +8,14 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.search.ReferenceValueSearchPanel;
+import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.web.component.search.SwitchablePropertyValuePanel;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -51,10 +56,19 @@ public class ReferenceSearchItemPanel extends PropertySearchItemPanel<ReferenceS
                 return super.getAllowedRelations();
             }
 
+            @Override
+            protected void referenceValueUpdated(ObjectReferenceType ort, AjaxRequestTarget target) {
+                ((SearchValue<ObjectReferenceType>)ReferenceSearchItemPanel.this.getModelObject().getValue()).setValue(ort);
+                ReferenceSearchItemPanel.this.updateSearchPanel(ort, target);
+            }
+
             private Class<? extends Containerable> getSearchType() {
                 return ReferenceSearchItemPanel.this.getModelObject().getSearchType();
             }
         };
     }
 
+    private void updateSearchPanel(ObjectReferenceType ort, AjaxRequestTarget target) {
+        target.add(findParent(SearchPanel.class));
+    }
 }

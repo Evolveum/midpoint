@@ -70,11 +70,12 @@ public class ReferenceValueSearchPanel extends PopoverSearchPanel<ObjectReferenc
                     @Override
                     protected void onSelectPerformed(AjaxRequestTarget target, O object) {
                         getPageBase().hideMainPopup(target);
-                        ReferenceValueSearchPanel.this.getModel().setObject(new ObjectReferenceType());
-                        ReferenceValueSearchPanel.this.getModelObject().setOid(object.getOid());
-                        ReferenceValueSearchPanel.this.getModelObject().setTargetName(object.getName());
-                        ReferenceValueSearchPanel.this.getModelObject().setType(
-                                object.asPrismObject().getComplexTypeDefinition().getTypeName());
+                        ObjectReferenceType ort = new ObjectReferenceType();
+                        ort.setOid(object.getOid());
+                        ort.setTargetName(object.getName());
+                        ort.setType(object.asPrismObject().getComplexTypeDefinition().getTypeName());
+                        ReferenceValueSearchPanel.this.getModel().setObject(ort);
+                        referenceValueUpdated(ort, target);
                         target.add(ReferenceValueSearchPanel.this);
                     }
                 };
