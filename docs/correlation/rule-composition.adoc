@@ -7,7 +7,7 @@
 The basic element of the correlation configuration is the definition of _correlation rules_ (or _correlators_).
 
 NOTE: The _correlation rule_ is more user-oriented term, while _correlator_ is more implementation-oriented one.
-See also the xref:index.adoc[overview document].
+See also the xref:/midpoint/reference/correlation/[overview document].
 Risking a bit of confusion, let us use the term _correlator_ in this document.
 
 Correlators are hierarchical, with a specified default algorithm for combining their results.

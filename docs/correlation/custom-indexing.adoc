@@ -310,4 +310,8 @@ An example of such operation is focus object recomputation.
 
 . This feature is available on the xref:/midpoint/reference/repository/native-postgresql/[native repository] only.
 . Only `string` and `PolyString` values are currently indexable.
-. One must be careful when changing the indexing definition, see <<Maintenance>> section.
+. One must be careful when editing the data in "raw" mode and when changing the indexing definition, see <<Maintenance>> section.
+
+== See Also
+
+- xref:/midpoint/reference/correlation/items-correlator/[Item-based correlator]
