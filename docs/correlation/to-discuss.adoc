@@ -5,3 +5,5 @@
 . name and terminology of the "custom indexing" feature ... e.g., normalization? index?
 . unifying normalization steps (polystring, prefix) with expression evaluators?
 . should we mark indexing as experimental?
+. default names for normalized values: itemName.normalizationName uses dots that aren't recognized by Axiom
+. namespace for indexed items

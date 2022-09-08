@@ -5,7 +5,7 @@
 Sometimes, we need to base the search on specially-indexed data.
 For example, we could need to match only first five normalized characters of the surname.
 Or, we could want to take only digits into account when searching for the national ID.
-MidPoint supports these requirements using so-called _custom indexing_.
+MidPoint supports these requirements using _custom indexing_.
 
 IMPORTANT: This feature is available only when using the xref:/midpoint/reference/repository/native-postgresql/[native repository implementation].
 
@@ -20,11 +20,11 @@ One of them could be, for example, searching for users right in the user list in
 For each user, we have a special searchable container for all data that are indexed in this way.
 Each time the original data are modified, the content of this container is updated.
 
-This feature can be used to search through:
+This feature can be used to search for:
 
-- Data normalized in a custom way, e.g. like "take first five characters of the surname".
-- Data that are not indexed by default, e.g. the description property.
-- So-called xref:/midpoint/reference/correlation/multiple-identities/[multi-identity] data.
+. data normalized in a custom way, e.g. like "take first five characters of the surname",
+. data that are not indexed by default, e.g. the description property,
+. so-called xref:/midpoint/reference/correlation/multiple-identities/[multi-identity] data.
 
 == Implementation
 
@@ -110,7 +110,7 @@ For each indexing (normalization) defined on a given item, it contains a value o
 </objectTemplate>
 ----
 <1> PolyString normalization is the default one, and can be omitted. Here it is shown just for completeness.
-<2> However, at this place it must be present. Otherwise, we would take the first three characters from the original form.
+<2> However, at this place it must be present. Otherwise, we would take the first three characters of the original form.
 <3> This tells midPoint to index the `familyName` in the default way (`PolyString` normalization).
 <4> If one wants to preserve the original form, it must be explicitly specified like this.
 
@@ -140,12 +140,15 @@ The original and normalized values on a real user object can then look like this
 </user>
 ----
 
+Note that the whole `identities` container is stored separately from the main focus object.
+Moreover, the normalized values are not stored in their serialized (XML, JSON) form, only in the "indexed" form of a JSONB database column.
+
 == Configuration Options
 
-This feature is configured in the _object template_ by attaching `indexing` information to the `item` element.
+Custom indexing is configured in the _object template_ by attaching `indexing` information to the `item` element.
 (It is also turned on by default when multi-identity feature is enabled for the item.)
 
-The following configuration options are available:
+The following configuration options are available for each item:
 
 .Configuration options for item indexing
 [%header]
@@ -155,7 +158,8 @@ The following configuration options are available:
 
 | `indexedItemName`
 | Local item name in the 'indexed items' container.
-Usually it can be left unspecified, because it is derived right from the item name.
+Usually it can be left unspecified, because by default, the item local name is used.
+(The namespace is always `http://midpoint.evolveum.com/xml/ns/public/common/identity-3` (#TODO#))
 | `givenName`
 
 | `normalization`
@@ -188,9 +192,9 @@ Should not be normally needed.
 | `givenName.polyStringNorm`
 
 | `steps`
-| How the indexed value is computed?
-The default is using system-defined polystring normalization method.
-| Use PolyString normalization
+| How is the indexed value computed?
+The default is to use system-defined `PolyString` normalization method.
+| Use `PolyString` normalization
 |===
 
 There are the following types of normalization steps:
@@ -202,11 +206,11 @@ There are the following types of normalization steps:
 | Type | Description | Default normalized item name suffix
 
 | `none`
-| Does no normalization, i.e., keeps the original value intact.
+| Does no normalization, i.e., keeps the original value intact. #TODO or `asIs`?#
 | `.original`
 
 | `polyString`
-| Applies system-default or custom `PolyString` normalization.
+| Applies system-defined or custom `PolyString` normalization.
 | `.polyStringNorm`
 
 | `prefix`
@@ -218,7 +222,8 @@ There are the following types of normalization steps:
 | `custom` footnote:[it is advised to provide a specific name]
 |===
 
-#TODO maybe we could make these regular expression evaluators, so they could be used also in standard mappings?
+#TODO maybe we could make `polyString` and `prefix` regular expression evaluators, so they could be used also in standard mappings?
+And we could make all steps a single expression? (after allowing multiple evaluators)?
 What about the defaults (`asIs` is currently the default for expression evaluators)#
 
 Each normalization step has the following options:
@@ -232,12 +237,12 @@ Each normalization step has the following options:
 | `order`
 | all steps
 | Order in which the step is to be applied.
-It should be used, because current prism structures (containers) are not guaranteed to preserve the order of their values.
-Steps without value go last.
+It should be specified (if there's more than single step), because current prism structures (containers) are not guaranteed to preserve the order of their values.
+Steps without order value go last.
 
 | `documentation`
 | all steps
-| Technical documentation for this step.
+| Technical documentation for the step.
 
 | `configuration`
 | `polyString`
@@ -285,17 +290,21 @@ The only difference is that their definition is dynamic, hence e.g. in Java it m
 identities/identity/items/normalized/familyName.polyStringNorm = "green"
 ----
 
+#TODO Because of the dynamic nature of the indexes, such a query is not interpretable without knowing the archetype/object template
+of the objects in question. It is very similar to searching by shadow attribute values; their definition is specified by resource object
+type. (Currently, all indexed values are plain strings - but this may not be true in the future.)#
+
 == Maintenance
 
 The index data are maintained automatically by midPoint.
 
-In the current implementation it is the `model` subsystem that takes care of that.
+In the current implementation it is the `model` subsystem that takes care of it.
 This means that careless "raw" update may break the consistence of the indexed data.
 
 If this happens, or if the definition of the indexing changes, the administrator should execute any regular operation to put things into sync again.
-For example, user recomputation is such an operation.
+An example of such operation is focus object recomputation.
 
-#TODO Consider finding (or creating) a special partial processing option that would do just this update.#
+#TODO Consider finding (or creating) a special partial processing option that would do just this update without the overhead of the full recomputation.#
 
 == Limitations
 
