@@ -18,6 +18,8 @@ import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.web.component.search.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.NotNull;
 
 public class SearchFactory {
 
@@ -316,7 +320,8 @@ public class SearchFactory {
                 WebComponentUtil.containerClassToQName(PrismContext.get(), type), collectionViewName, Search.PanelType.DEFAULT);
         if (config != null) {
             SearchConfigurationWrapper<C> preconfiguredSearchConfigWrapper = new SearchConfigurationWrapper<C>(type, config, modelServiceLocator);
-            searchConfigWrapper = combineSearchBoxConfiguration(searchConfigWrapper, preconfiguredSearchConfigWrapper);
+            preconfiguredSearchConfigWrapper.getItemsList().forEach(item -> item.setVisible(true));
+            searchConfigWrapper = combineSearchBoxConfiguration(searchConfigWrapper, preconfiguredSearchConfigWrapper, true);
         }
         searchConfigWrapper.setCollectionViewName(collectionViewName);
         return createSearch(searchConfigWrapper, null, modelServiceLocator, Search.PanelType.DEFAULT, false);
@@ -385,8 +390,10 @@ public class SearchFactory {
             searchConfWrapper = searchConfigurationWrapper;
         }
         if (CollectionUtils.isNotEmpty(searchConfWrapper.getAllowedTypeList()) && !objectTypeSearchItemWrapperExists(searchConfWrapper.getItemsList())) {
-            searchConfWrapper.getItemsList().add(new ObjectTypeSearchItemWrapper(searchConfWrapper.getAllowedTypeList(),
-                    WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfWrapper.getTypeClass())));
+            ObjectTypeSearchItemWrapper typeItem = new ObjectTypeSearchItemWrapper(searchConfWrapper.getAllowedTypeList(),
+                    WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfWrapper.getTypeClass()));
+            typeItem.setAllowAllTypesSearch(searchConfWrapper.isAllowAllTypeSearch());
+            searchConfWrapper.getItemsList().add(typeItem);
         }
         if (searchConfWrapper.getAllowedModeList().contains(SearchBoxModeType.OID)) {
             OidSearchItemWrapper oidWrapper = new OidSearchItemWrapper();
@@ -436,15 +443,15 @@ public class SearchFactory {
             itemPath = item.getPath().getItemPath();
         }
         PropertySearchItemWrapper searchItemWrapper = null;
-        if (itemDef == null && !hasParameter(item)) {
-            return null;
+        if (itemDef == null && !hasParameter(item) && item.getFilter() == null) {
+            return searchItemWrapper;
         }
         List<DisplayableValue<?>> availableValues = getSearchItemAvailableValues(item, itemDef, modelServiceLocator);
         QName valueTypeName = getSearchItemValueTypeName(item, itemDef);
         LookupTableType lookupTable = getSearchItemLookupTable(item, itemDef, modelServiceLocator);
 
         searchItemWrapper = createPropertySearchItemWrapper(type, itemDef, itemPath, valueTypeName,
-                availableValues, lookupTable);
+                availableValues, lookupTable, item.getFilter());
 
         boolean isFixedItem = false;
         if (itemPath != null) {
@@ -468,6 +475,12 @@ public class SearchFactory {
 
         if (item.isVisibleByDefault() != null) {
             searchItemWrapper.setVisible(item.isVisibleByDefault());
+        }
+        if (item.getFilter() != null) {
+            searchItemWrapper.setPredefinedFilter(item.getFilter());
+            searchItemWrapper.setVisible(true);
+            searchItemWrapper.setApplyFilter(true);
+            searchItemWrapper.setFilterExpression(item.getFilterExpression());
         }
         return searchItemWrapper;
     }
@@ -558,7 +571,7 @@ public class SearchFactory {
 
     private static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
             ItemDefinition<?> itemDef, ItemPath path, QName valueTypeName, List<DisplayableValue<?>> availableValues,
-            LookupTableType lookupTable) {
+            LookupTableType lookupTable, SearchFilterType predefinedFilter) {
 
         if (CollectionUtils.isNotEmpty(availableValues)) {
             return new ChoicesSearchItemWrapper(path, availableValues);

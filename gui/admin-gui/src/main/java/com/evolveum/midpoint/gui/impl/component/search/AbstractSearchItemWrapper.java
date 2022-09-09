@@ -13,7 +13,9 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -26,12 +28,15 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     public static final String F_NAME = "name";
     public static final String F_HELP = "help";
     public static final String F_TITLE = "title";
+    public static final String F_APPLY_FILTER = "applyFilter";
 
     private DisplayableValue<T> value;
     private boolean applyFilter;
     private boolean selected;
     private boolean visible;
     private boolean canConfigure = true;
+    private SearchFilterType predefinedFilter;
+    private ExpressionType filterExpression;
 
     String parameterName;
     Class<T> parameterValueType;
@@ -96,7 +101,7 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     }
 
     public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-        return isVisible();
+        return applyFilter && isVisible();
     }
 
     public void setApplyFilter(boolean applyFilter) {
@@ -111,6 +116,22 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     @Override
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public SearchFilterType getPredefinedFilter() {
+        return predefinedFilter;
+    }
+
+    public void setPredefinedFilter(SearchFilterType predefinedFilter) {
+        this.predefinedFilter = predefinedFilter;
+    }
+
+    public ExpressionType getFilterExpression() {
+        return filterExpression;
+    }
+
+    public void setFilterExpression(ExpressionType filterExpression) {
+        this.filterExpression = filterExpression;
     }
 
     @Override
