@@ -1136,7 +1136,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="owner" type="xsd:double" minOccurs="0" default="1.0">
+            <xsd:element name="definite" type="xsd:double" minOccurs="0" default="1.0">
                 <xsd:annotation>
                     <xsd:documentation>
                         The value of the rescaled confidence (i.e., between 0 and 1) that marks the candidate as "the chosen" one.
@@ -1552,14 +1552,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Local item name in the 'indexed items' container.
-                        Normally, it is derived from the item name.
+                        Usually it can be left unspecified, because by default, the item local name is used.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="normalization" type="tns:IndexedItemNormalizationDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Set of normalizations that are applied to the given item.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1582,14 +1582,16 @@
             <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the index. It is appended to the item name.
+                        Name of the index (normalization). It is appended to the item name.
+                        Usually it can be left unspecified, because it is derived from the normalization step(s).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Is this the default index (normalization) for the given item?
+                        It is necessary to specify it only if there is more than one normalization defined.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1629,28 +1631,28 @@
             <xsd:element name="none" type="tns:NoOpNormalizationStepType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Does no normalization, i.e., keeps the original value intact.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="polyString" type="tns:PolyStringNormalizationStepType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Applies system-defined or custom PolyString normalization.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="prefix" type="tns:PrefixNormalizationStepType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Takes first N characters of the value.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="custom" type="tns:CustomNormalizationStepType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Applies a custom expression to the value.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1673,14 +1675,17 @@
             <xsd:element name="order" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO nulls go last
+                        Order in which the step is to be applied.
+                        It should be used, because current prism structures (containers) are not guaranteed
+                        to preserve the order of their values.
+                        Steps without value go last.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="documentation" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO (or ref?)
+                        Technical documentation for this step.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1721,7 +1726,8 @@
                     <xsd:element name="configuration" type="t:PolyStringNormalizerConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Configuration of PolyString normalizer. NOT IMPLEMENTED YET.
+                                Configuration of PolyString normalizer.
+                                If not specified, the one defined at the system level is used.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1747,7 +1753,7 @@
                     <xsd:element name="length" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                How many characters to keep.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1759,7 +1765,7 @@
     <xsd:complexType name="CustomNormalizationStepType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO; NOT IMPLEMENTED YET
+                Normalization carried out using custom expression.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>4.6</a:since>
@@ -1773,7 +1779,8 @@
                     <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                TODO
+                                Expression that transforms the value to its normalized form.
+                                Expects `input` as the original value.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

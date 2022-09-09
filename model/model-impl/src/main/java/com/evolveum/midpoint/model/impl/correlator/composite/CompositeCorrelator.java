@@ -97,7 +97,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
 
         @NotNull final Set<Integer> tiers;
 
-        final double ownerThreshold = correlatorContext.getOwnerThreshold();
+        final double definiteThreshold = correlatorContext.getDefiniteThreshold();
 
         final double scale = getScale();
 
@@ -200,7 +200,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
-            LOGGER.trace("Starting correlation operation with scale = {}, owner threshold = {}", scale, ownerThreshold);
+            LOGGER.trace("Starting correlation operation with scale = {}, 'definite' threshold = {}", scale, definiteThreshold);
 
             int tierNumber = 1;
             for (Integer tier : tiers) {
@@ -284,7 +284,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
 
         private Collection<String> getCertainOwners() {
             return currentConfidences.entrySet().stream()
-                    .filter(e -> e.getValue() >= ownerThreshold)
+                    .filter(e -> e.getValue() >= definiteThreshold)
                     .map(e -> e.getKey())
                     .collect(Collectors.toSet());
         }
@@ -307,7 +307,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
-            LOGGER.trace("Starting explanation operation with scale = {}, owner threshold = {}", scale, ownerThreshold);
+            LOGGER.trace("Starting explanation operation with scale = {}, 'definite' threshold = {}", scale, definiteThreshold);
 
             int tierNumber = 1;
             for (Integer tier : tiers) {
@@ -372,7 +372,7 @@ class CompositeCorrelator extends BaseCorrelator<CompositeCorrelatorType> {
                 throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
                 ConfigurationException, ObjectNotFoundException {
 
-            LOGGER.trace("Starting candidate check with scale = {}, owner threshold = {}", scale, ownerThreshold);
+            LOGGER.trace("Starting candidate check with scale = {}, 'definite' threshold = {}", scale, definiteThreshold);
 
             int tierNumber = 1;
             for (Integer tier : tiers) {

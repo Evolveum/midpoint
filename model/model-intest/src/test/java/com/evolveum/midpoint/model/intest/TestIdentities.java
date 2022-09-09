@@ -169,6 +169,8 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        skipIfNotNativeRepository();
+
         given("account of Bob White is added");
         DummyAccount account = RESOURCE_SINGLE.controller.addAccount("bob");
         account.addAttributeValue(ATTR_GIVEN_NAME, "Bob");
@@ -207,6 +209,8 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
     public void test130ImportAccountChuckFromVariousSources() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
+
+        skipIfNotNativeRepository();
 
         given("first account of Chuck Brown is added");
         DummyAccount account1 = RESOURCE_MULTI.controller.addAccount("10700020");
