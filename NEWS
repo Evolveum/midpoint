@@ -1,13 +1,13 @@
-midPoint 4.4.2 "Tesla" Update 2
+midPoint 4.4.3 "Tesla" Update 3
 -------------------------------
 
-Release 4.4.2 is is a forty-first midPoint release.
-It is the first maintenance update for 4.4.x version family code-named _Tesla_.
-The 4.4.2 release brings GUI performance improvements, stability improvements and miscellaneous bugfixes.
+Release 4.4.3 is is a forty-second midPoint release.
+It is the third maintenance update for 4.4.x version family code-named _Tesla_.
+The 4.4.3 release brings GUI performance improvements, stability improvements and miscellaneous bugfixes.
 
-Release date: 30th May 2022
+Release date: 9th September 2022
 Release type: Long-term support maintenance release
 End of support: 26th November 2024
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.4.2/
+https://docs.evolveum.com/midpoint/release/4.4.3/
