@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import com.evolveum.midpoint.prism.path.PathSet;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -45,4 +47,12 @@ abstract class Context {
      * Can be reasonable provided only in the case of clockwork processing, as the focus should be known.
      */
     abstract ConfigurableValuePolicySupplier createValuePolicySupplier();
+
+    /**
+     * Returns paths of focus items mentioned in the "items" correlators.
+     * They should have their inbound mappings evaluated in beforeCorrelation state (by default).
+     *
+     * Should return empty set for clockwork processing.
+     */
+    public abstract @NotNull PathSet getCorrelationItemPaths();
 }

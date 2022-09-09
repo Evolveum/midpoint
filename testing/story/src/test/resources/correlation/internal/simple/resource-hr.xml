@@ -40,7 +40,8 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
-                <c:ref>ri:empNo</c:ref>
+                <ref>ri:empNo</ref>
+                <correlator/>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -49,7 +50,7 @@
                 </inbound>
             </attribute>
             <attribute>
-                <c:ref>ri:firstName</c:ref>
+                <ref>ri:firstName</ref>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -58,7 +59,7 @@
                 </inbound>
             </attribute>
             <attribute>
-                <c:ref>ri:lastName</c:ref>
+                <ref>ri:lastName</ref>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -67,7 +68,7 @@
                 </inbound>
             </attribute>
             <attribute>
-                <c:ref>ri:email</c:ref>
+                <ref>ri:email</ref>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -76,7 +77,7 @@
                 </inbound>
             </attribute>
             <attribute>
-                <c:ref>ri:phone</c:ref>
+                <ref>ri:phone</ref>
                 <inbound>
                     <strength>strong</strength>
                     <target>
@@ -84,28 +85,6 @@
                     </target>
                 </inbound>
             </attribute>
-            <mappingsEvaluation>
-                <inbound>
-                    <defaultEvaluationPhases>
-                        <phase>clockwork</phase>
-                        <phase>beforeCorrelation</phase>
-                    </defaultEvaluationPhases>
-                </inbound>
-            </mappingsEvaluation>
-            <correlation>
-                <correlators>
-                    <filter>
-                        <ownerFilter>
-                            <q:equal>
-                                <q:path>employeeNumber</q:path>
-                                <expression>
-                                    <path>$focus/employeeNumber</path>
-                                </expression>
-                            </q:equal>
-                        </ownerFilter>
-                    </filter>
-                </correlators>
-            </correlation>
             <synchronization>
                 <reaction>
                     <situation>linked</situation>

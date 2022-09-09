@@ -43,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * FIXME Special mappings i.e. password and activation ones, are evaluated immediately and using different code path.
  *  This should be unified.
+ *
+ * TODO should the {@link Context} be both included in {@link MSource} and here?!
  */
 abstract class ShadowInboundsPreparation<F extends FocusType> {
 

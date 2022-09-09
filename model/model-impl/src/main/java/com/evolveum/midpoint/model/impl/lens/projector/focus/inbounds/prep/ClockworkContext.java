@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
+import com.evolveum.midpoint.prism.path.PathSet;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
@@ -62,5 +64,10 @@ public class ClockworkContext extends Context {
                 }
             }
         };
+    }
+
+    @Override
+    public @NotNull PathSet getCorrelationItemPaths() {
+        return new PathSet();
     }
 }

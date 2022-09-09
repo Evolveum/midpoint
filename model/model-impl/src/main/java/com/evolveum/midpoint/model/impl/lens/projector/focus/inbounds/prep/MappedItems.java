@@ -26,10 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -121,7 +118,8 @@ class MappedItems<F extends FocusType> {
         List<InboundMappingType> mappingBeans =
                 source.filterApplicableMappingBeans(
                         attributeDefinition.getInboundMappingBeans(),
-                        attributeDefinition.getCorrelatorDefinition() != null);
+                        attributeDefinition.getCorrelatorDefinition() != null,
+                        context.getCorrelationItemPaths());
         if (mappingBeans.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
             return;
@@ -187,7 +185,8 @@ class MappedItems<F extends FocusType> {
         List<InboundMappingType> mappingBeans =
                 source.filterApplicableMappingBeans(
                         associationDefinition.getInboundMappingTypes(),
-                        false);
+                        false,
+                        Set.of()); // Associations are not evaluated before clockwork anyway
         if (mappingBeans.isEmpty()) {
             LOGGER.trace("No applicable beans for this phase");
             return;

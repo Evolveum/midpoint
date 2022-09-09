@@ -11,6 +11,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.PreInboundsContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -26,13 +27,17 @@ public class PreContext extends Context {
 
     @NotNull final PreInboundsContext<?> ctx;
 
+    @NotNull private final PathSet correlationItemPaths;
+
     public PreContext(
             @NotNull PreInboundsContext<?> ctx,
+            @NotNull PathSet correlationItemPaths,
             @NotNull MappingEvaluationEnvironment env,
             @NotNull OperationResult result,
             @NotNull ModelBeans beans) {
         super(env, result, beans);
         this.ctx = ctx;
+        this.correlationItemPaths = correlationItemPaths;
     }
 
     @Override
@@ -48,5 +53,10 @@ public class PreContext extends Context {
     @Override
     ConfigurableValuePolicySupplier createValuePolicySupplier() {
         return null; // Not available if there's no focus.
+    }
+
+    @Override
+    public @NotNull PathSet getCorrelationItemPaths() {
+        return correlationItemPaths;
     }
 }

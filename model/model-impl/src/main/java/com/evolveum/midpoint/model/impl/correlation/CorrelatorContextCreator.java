@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.correlation;
 
-import static com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil.identify;
+import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.identify;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -76,7 +76,7 @@ public class CorrelatorContextCreator {
                 fullContext.systemConfiguration);
     }
 
-    static CorrelatorContext<?> createRootContext(
+    public static CorrelatorContext<?> createRootContext(
             @NotNull CorrelationDefinitionType correlationDefinitionBean,
             @Nullable ObjectTemplateType objectTemplate,
             @Nullable SystemConfigurationType systemConfiguration)

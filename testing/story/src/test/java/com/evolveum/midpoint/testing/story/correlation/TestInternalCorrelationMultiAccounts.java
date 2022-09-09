@@ -51,8 +51,10 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
             new TestResource<>(TEST_DIR, "005-function-library.xml", "c4b1f289-e45a-4788-9c53-00601e1c8ed2");
     private static final TestResource<ArchetypeType> ARCHETYPE_PROGRAM =
             new TestResource<>(TEST_DIR, "011-archetype-program.xml", "cc5626d8-1347-46b9-971d-f03dc129991e");
-    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_USER =
-            new TestResource<>(TEST_DIR, "020-object-template-user.xml", "81268f26-d4e5-4a32-8318-4b0f7b0c9a20");
+    private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_PERSON =
+            new TestResource<>(TEST_DIR, "020-object-template-person.xml", "81268f26-d4e5-4a32-8318-4b0f7b0c9a20");
+    private static final TestResource<ArchetypeType> ARCHETYPE_PERSON =
+            new TestResource<>(TEST_DIR, "021-archetype-person.xml", "eaf32546-3584-46e9-bdb8-2efbd7ecac47");
     private static final TestResource<OrgType> ORG_PROGRAMS =
             new TestResource<>(TEST_DIR, "030-org-programs.xml", "d62065fb-651a-453f-9884-67d271e1fc2b");
     private static final TestResource<OrgType> ORG_PROGRAM_BIOCH =
@@ -90,7 +92,8 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
 
         addObject(FUNCTION_LIBRARY_IDMATCH, initTask, initResult);
         addObject(ARCHETYPE_PROGRAM, initTask, initResult);
-        addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
+        addObject(OBJECT_TEMPLATE_PERSON, initTask, initResult);
+        addObject(ARCHETYPE_PERSON, initTask, initResult);
         addObject(ORG_PROGRAMS, initTask, initResult);
         addObject(ORG_PROGRAM_BIOCH, initTask, initResult);
         addObject(ORG_PROGRAM_COMP_BIO, initTask, initResult);
@@ -145,8 +148,8 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .display()
                 .assertFullName("Mary Smith")
                 .assignments()
-                    .assertAssignments(1)
-                    .single()
+                    .assertAssignments(2)
+                    .by().targetType(OrgType.COMPLEX_TYPE).find()
                         .assertTargetOid(ORG_PROGRAM_BIOCH.oid)
                     .end()
                 .end()
@@ -159,8 +162,8 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .display()
                 .assertFullName("John Smith")
                 .assignments()
-                    .assertAssignments(1)
-                    .single()
+                    .assertAssignments(2)
+                    .by().targetType(OrgType.COMPLEX_TYPE).find()
                         .assertTargetOid(ORG_PROGRAM_SW_ENG.oid)
                     .end()
                 .end()
@@ -212,7 +215,8 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .display()
                 .assertFullName("Mary Smith")
                 .assignments()
-                    .single()
+                    .assertAssignments(2)
+                    .by().targetType(OrgType.COMPLEX_TYPE).find()
                         .assertTargetOid(ORG_PROGRAM_BIOCH.oid)
                     .end()
                 .end()
@@ -222,7 +226,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .display()
                 .assertFullName("John Smith") // unchanged
                 .assignments()
-                    .assertAssignments(2)
+                    .assertAssignments(3)
                     .assertOrg(ORG_PROGRAM_SW_ENG.oid)
                     .assertOrg(ORG_PROGRAM_MATH.oid)
                 .end()
@@ -277,7 +281,8 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .display()
                 .assertFullName("Mary Smith")
                 .assignments()
-                    .single()
+                    .assertAssignments(2)
+                    .by().targetType(OrgType.COMPLEX_TYPE).find()
                         .assertTargetOid(ORG_PROGRAM_BIOCH.oid)
                     .end()
                 .end()
@@ -288,7 +293,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .display()
                 .assertFullName("John Smith") // unchanged
                 .assignments()
-                    .assertAssignments(2)
+                    .assertAssignments(3)
                     .assertOrg(ORG_PROGRAM_SW_ENG.oid)
                     .assertOrg(ORG_PROGRAM_MATH.oid)
                 .end()
@@ -359,7 +364,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .display()
                 .assertFullName("John Smith")
                 .assignments()
-                    .assertAssignments(3)
+                    .assertAssignments(4)
                     .assertOrg(ORG_PROGRAM_SW_ENG.oid)
                     .assertOrg(ORG_PROGRAM_MATH.oid)
                     .assertOrg(ORG_PROGRAM_E_ENG.oid)
@@ -509,7 +514,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .display()
                 .assertFullName("John Smith")
                 .assignments()
-                    .assertAssignments(1)
+                    .assertAssignments(2)
                     .assertOrg(ORG_PROGRAM_SW_ENG_DOCTORAL.oid)
                 .end()
                 .assertLinks(1, 0);
@@ -587,7 +592,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
                 .display()
                 .assertFullName("Jim Sanchez")
                 .assignments()
-                    .assertAssignments(1)
+                    .assertAssignments(2)
                     .assertOrg(ORG_PROGRAM_MATH.oid)
                 .end()
                 .assertLinks(1, 0);

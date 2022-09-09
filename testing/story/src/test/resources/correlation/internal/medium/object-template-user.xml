@@ -96,53 +96,51 @@
     </identity>
     <correlation>
         <correlators>
-            <composite>
-                <items>
-                    <name>name-date-id</name>
-                    <documentation>
-                        If key attributes (family name, date of birth, national ID) exactly match,
-                        we are immediately done. We ignore given name here.
-                    </documentation>
-                    <item>
-                        <ref>familyName</ref>
-                    </item>
-                    <item>
-                        <ref>extension/dateOfBirth</ref>
-                    </item>
-                    <item>
-                        <ref>extension/nationalId</ref>
-                    </item>
-                    <composition>
-                        <tier>1</tier>
-                    </composition>
-                </items>
-                <items>
-                    <name>names-date</name>
-                    <documentation>If given and family name and the date of birth match, we present an option to the operator.</documentation>
-                    <item>
-                        <ref>givenName</ref>
-                    </item>
-                    <item>
-                        <ref>familyName</ref>
-                    </item>
-                    <item>
-                        <ref>extension/dateOfBirth</ref>
-                    </item>
-                    <composition>
-                        <weight>0.1</weight>
-                    </composition>
-                </items>
-                <items>
-                    <name>id</name>
-                    <documentation>If national ID matches, we present an option to the operator.</documentation>
-                    <item>
-                        <ref>extension/nationalId</ref>
-                    </item>
-                    <composition>
-                        <weight>0.1</weight>
-                    </composition>
-                </items>
-            </composite>
+            <items>
+                <name>name-date-id</name>
+                <documentation>
+                    If key attributes (family name, date of birth, national ID) exactly match,
+                    we are immediately done. We ignore given name here.
+                </documentation>
+                <item>
+                    <ref>familyName</ref>
+                </item>
+                <item>
+                    <ref>extension/dateOfBirth</ref>
+                </item>
+                <item>
+                    <ref>extension/nationalId</ref>
+                </item>
+                <composition>
+                    <tier>1</tier>
+                </composition>
+            </items>
+            <items>
+                <name>names-date</name>
+                <documentation>If given and family name and the date of birth match, we present an option to the operator.</documentation>
+                <item>
+                    <ref>givenName</ref>
+                </item>
+                <item>
+                    <ref>familyName</ref>
+                </item>
+                <item>
+                    <ref>extension/dateOfBirth</ref>
+                </item>
+                <composition>
+                    <weight>0.1</weight>
+                </composition>
+            </items>
+            <items>
+                <name>id</name>
+                <documentation>If national ID matches, we present an option to the operator.</documentation>
+                <item>
+                    <ref>extension/nationalId</ref>
+                </item>
+                <composition>
+                    <weight>0.1</weight>
+                </composition>
+            </items>
         </correlators>
     </correlation>
 </objectTemplate>

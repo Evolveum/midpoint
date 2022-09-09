@@ -12,18 +12,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DefaultInboundMappingEvaluationPhasesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhasesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingType;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.InboundMappingEvaluationPhaseType.BEFORE_CORRELATION;
 
 /**
  * Determines applicability of a mapping in given evaluation phase.
  */
 class ApplicabilityEvaluator {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ApplicabilityEvaluator.class);
 
     private static final List<InboundMappingEvaluationPhaseType> DEFAULT_PHASES =
             List.of(InboundMappingEvaluationPhaseType.CLOCKWORK);
@@ -34,16 +41,21 @@ class ApplicabilityEvaluator {
     /** Current phase in which we are going to evaluate the mappings in question. */
     @NotNull private final InboundMappingEvaluationPhaseType currentPhase;
 
+    /** Focus items for which the correlation is defined. Only for "before clockwork" phase. */
+    @NotNull private final Collection<ItemPath> correlationItemPaths;
+
     ApplicabilityEvaluator(
             @Nullable DefaultInboundMappingEvaluationPhasesType defaultPhasesConfiguration,
-            boolean itemCorrelationDefined,
+            boolean resourceItemCorrelationDefined,
+            @NotNull Collection<ItemPath> correlationItemPaths,
             @NotNull InboundMappingEvaluationPhaseType currentPhase) {
         this.defaultPhases = new HashSet<>(
                 defaultPhasesConfiguration != null ? defaultPhasesConfiguration.getPhase() : DEFAULT_PHASES);
-        if (itemCorrelationDefined) {
-            defaultPhases.add(InboundMappingEvaluationPhaseType.BEFORE_CORRELATION);
+        if (resourceItemCorrelationDefined) {
+            defaultPhases.add(BEFORE_CORRELATION);
         }
         this.currentPhase = currentPhase;
+        this.correlationItemPaths = correlationItemPaths;
     }
 
     List<InboundMappingType> filterApplicableMappingBeans(List<InboundMappingType> beans) {
@@ -61,6 +73,25 @@ class ApplicabilityEvaluator {
                 return true;
             }
         }
-        return defaultPhases.contains(currentPhase);
+
+        if (defaultPhases.contains(currentPhase)) {
+            return true;
+        }
+
+        if (currentPhase == BEFORE_CORRELATION && targetIsUsedForCorrelation(mappingBean)) {
+            LOGGER.trace("Mapping is applicable because its target is a correlation item");
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean targetIsUsedForCorrelation(InboundMappingType mappingBean) {
+        VariableBindingDefinitionType target = mappingBean.getTarget();
+        if (target == null) {
+            return false;
+        }
+        ItemPathType path = target.getPath();
+        return path != null && correlationItemPaths.contains(path.getItemPath());
     }
 }

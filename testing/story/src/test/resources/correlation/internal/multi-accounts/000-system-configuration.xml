@@ -77,10 +77,6 @@
             <details>false</details>
         </auditing>
     </logging>
-    <defaultObjectPolicyConfiguration>
-        <objectTemplateRef oid="81268f26-d4e5-4a32-8318-4b0f7b0c9a20"/>
-        <type>UserType</type>
-    </defaultObjectPolicyConfiguration>
     <internals>
         <tracing>
             <profile id="13">
