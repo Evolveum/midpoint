@@ -1161,40 +1161,71 @@ public class ExpressionUtil {
         return false;
     }
 
-    public static <T, V extends PrismValue> V convertToPrismValue(T value, ItemDefinition definition, String contextDescription, PrismContext prismContext) throws ExpressionEvaluationException {
-        if (value == null) {
+    /**
+     * Guaranteed to return _detached_ (i.e., parent-less) prism value.
+     */
+    public static <T, V extends PrismValue> V convertToPrismValue(
+            T realValue, ItemDefinition<?> definition, String contextDescription)
+            throws ExpressionEvaluationException {
+
+        PrismValue prismValue = convertToPrismValueInternal(realValue, definition, contextDescription);
+        if (prismValue != null && prismValue.getParent() != null) {
+            //noinspection unchecked
+            return (V) prismValue.clone();
+        } else {
+            //noinspection unchecked
+            return (V) prismValue;
+        }
+    }
+
+    private static PrismValue convertToPrismValueInternal(
+            Object object, ItemDefinition<?> definition, String contextDescription)
+            throws ExpressionEvaluationException {
+        if (object == null) {
             return null;
         }
 
         if (definition instanceof PrismReferenceDefinition) {
-            return (V) ((ObjectReferenceType) value).asReferenceValue();
+
+            if (object instanceof Referencable) {
+                return ((Referencable) object).asReferenceValue();
+            } else if (object instanceof PrismReferenceValue) {
+                return (PrismReferenceValue) object;
+            } else {
+                throw new ExpressionEvaluationException(
+                        "Expected Referencable or PrismReferenceValue as expression output, got " + object.getClass());
+            }
 
         } else if (definition instanceof PrismContainerDefinition) {
 
-            if (value instanceof Containerable) {
+            if (object instanceof Containerable) {
                 try {
-                    prismContext.adopt((Containerable) value);
-                    ((Containerable) value).asPrismContainerValue().applyDefinition(definition);
+                    PrismContext.get().adopt((Containerable) object);
+                    ((Containerable) object).asPrismContainerValue().applyDefinition(definition);
                 } catch (SchemaException e) {
                     throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
                 }
-                return (V) ((Containerable) value).asPrismContainerValue();
-
-            } else if (value instanceof PrismContainerValue<?>) {
+                return ((Containerable) object).asPrismContainerValue();
+            } else if (object instanceof PrismContainerValue<?>) {
                 try {
-                    prismContext.adopt((PrismContainerValue<Containerable>) value);
-                    ((PrismContainerValue) value).applyDefinition(definition);
+                    PrismContext.get().adopt((PrismContainerValue<?>) object);
+                    ((PrismContainerValue<?>) object).applyDefinition(definition);
                 } catch (SchemaException e) {
                     throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
                 }
-                return (V) value;
-
+                return (PrismContainerValue<?>) object;
             } else {
-                throw new ExpressionEvaluationException("Expected Containerable or PrismContainerValue as expression output, got " + value.getClass());
+                throw new ExpressionEvaluationException(
+                        "Expected Containerable or PrismContainerValue as expression output, got " + object.getClass());
             }
 
         } else {
-            return (V) prismContext.itemFactory().createPropertyValue(value);
+
+            // This is really ugly hack. In ideal world, we should check if the object is not a PrismValue, and return
+            // it without wrapping in PPV. However, this would break some cases when we have no definition (see the
+            // implementation of MID-6775 in bd580662a15772e3a7addc17fe49f3479e5c3589).
+            return PrismContext.get().itemFactory().createPropertyValue(object);
+
         }
     }
 

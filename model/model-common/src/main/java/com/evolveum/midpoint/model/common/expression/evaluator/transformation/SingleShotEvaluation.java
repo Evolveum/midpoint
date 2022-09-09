@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.model.common.expression.evaluator.transformation;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -16,31 +22,22 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueTransformationEvaluationModeType;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Application of expression evaluator in "single shot" ("absolute") mode:
  * (1) If there's no delta, the expression is evaluated once. All the results go into the zero set.
  * (2) If there's a delta, expression is evaluated twice (for old and for new values). The result is computed as the difference of the results.
  */
-class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType> extends TransformationalEvaluation<V, D, E> {
+class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E extends TransformExpressionEvaluatorType>
+        extends TransformationalEvaluation<V, D, E> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SingleShotEvaluation.class);
 
@@ -133,17 +130,6 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition, E ext
             }
             String name = source.getName().getLocalPart();
             scriptVariables.addVariableDefinition(name, value, source.getDefinition());
-        }
-    }
-
-    private String getSourceName(Source<?, ?> source) throws ExpressionSyntaxException {
-        String explicitName = source.getName().getLocalPart();
-        if (explicitName != null) {
-            return explicitName;
-        } else if (context.getSources().size() == 1) {
-            return ExpressionConstants.VAR_INPUT;
-        } else {
-            throw new ExpressionSyntaxException("No name definition for source in "+context.getContextDescription());
         }
     }
 

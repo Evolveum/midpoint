@@ -97,10 +97,9 @@
                                 .findAll { it.resourceRef?.oid == TestIdentities.RESOURCE_MULTI.oid }
 
                         if (single != null) {
-                            single.clone()
+                            single
                         } else if (!multi.isEmpty()) {
                             multi.min { it.tag }
-                                .clone()
                         } else {
                             null
                         }

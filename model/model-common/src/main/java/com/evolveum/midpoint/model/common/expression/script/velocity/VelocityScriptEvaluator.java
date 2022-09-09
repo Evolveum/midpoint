@@ -89,8 +89,9 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
         }
 
         List<V> values = new ArrayList<>();
-        values.add(ExpressionUtil.convertToPrismValue(
-                evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
+        values.add(
+                ExpressionUtil.convertToPrismValue(
+                        evalResult, context.getOutputDefinition(), context.getContextDescription()));
         return values;
     }
 

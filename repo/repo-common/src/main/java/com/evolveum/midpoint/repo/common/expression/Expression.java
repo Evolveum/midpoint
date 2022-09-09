@@ -205,7 +205,8 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
             processEvaluatorProfile(contextWithProcessedVariables, evaluator);
 
             //noinspection unchecked
-            PrismValueDeltaSetTriple<V> outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(contextWithProcessedVariables, result);
+            PrismValueDeltaSetTriple<V> outputTriple =
+                    (PrismValueDeltaSetTriple<V>) evaluator.evaluate(contextWithProcessedVariables, result);
 
             if (outputTriple != null) {
                 boolean allowEmptyRealValues = false;
