@@ -10,10 +10,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.input.CheckPanel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -35,6 +38,8 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurA
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
+import org.apache.wicket.model.PropertyModel;
+
 public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrapper> extends BasePanel<S> {
 
     private static final long serialVersionUID = 1L;
@@ -44,6 +49,8 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
     private static final String ID_SEARCH_ITEM_LABEL = "searchItemLabel";
     private static final String ID_HELP = "help";
     private static final String ID_REMOVE_BUTTON = "removeButton";
+    private static final String ID_CHECK_DISABLE_FIELD = "checkDisable";
+
 
     public AbstractSearchItemPanel(String id, IModel<S> model) {
         super(id, model);
@@ -106,8 +113,24 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
                 }
             });
         }
+        searchItemField.add(new VisibleBehaviour(this::isSearchItemFieldVisible));
         searchItemField.setOutputMarkupId(true);
         searchItemContainer.add(searchItemField);
+
+        CheckPanel checkPanel = new CheckPanel(ID_CHECK_DISABLE_FIELD, new PropertyModel<>(getModel(), AbstractSearchItemWrapper.F_APPLY_FILTER));
+        (checkPanel).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                searchPerformed(ajaxRequestTarget);
+            }
+        });
+        checkPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        checkPanel.add(new VisibleBehaviour(this::isCheckPanelVisible));
+
+        checkPanel.setOutputMarkupId(true);
+        searchItemContainer.add(checkPanel);
 
         AjaxSubmitButton removeButton = new AjaxSubmitButton(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -140,6 +163,15 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
         return getModelObject().canRemoveSearchItem();
     }
 
+    private boolean isSearchItemFieldVisible() {
+        return getModelObject().isVisible() && noFilterOrHasParameters();
+    }
+
+    private boolean noFilterOrHasParameters() {
+        return getModelObject().getPredefinedFilter() == null ||
+                StringUtils.isNotEmpty(getModelObject().getParameterName());
+    }
+
     protected IModel<String> createLabelModel() {
         return StringUtils.isNotEmpty(getModelObject().getName()) ? createStringResource(getModelObject().getName()) : Model.of("");
     }
@@ -149,6 +181,8 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
     }
 
     protected void searchPerformed(AjaxRequestTarget target){
+        SearchPanel panel = findParent(SearchPanel.class);
+        panel.searchPerformed(target);
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
@@ -208,4 +242,7 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
 
     }
 
+    private boolean isCheckPanelVisible() {
+        return getModelObject().getPredefinedFilter() != null;
+    }
 }
