@@ -171,10 +171,6 @@ public class SessionStorage implements Serializable, DebugDumpable {
         detailsStorageMap.put(key, storage);
     }
 
-    public RoleCatalogStorage getRoleCatalog() {
-        return getPageStorage(KEY_ROLE_CATALOG, new RoleCatalogStorage());
-    }
-
     public AuditLogStorage getAuditLog() {
         return getPageStorage(KEY_AUDIT_LOG, new AuditLogStorage());
     }

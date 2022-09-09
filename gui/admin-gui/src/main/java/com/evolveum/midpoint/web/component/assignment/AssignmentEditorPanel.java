@@ -63,8 +63,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.page.self.PageAssignmentDetails;
-import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -1026,16 +1024,6 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         PrismObject<? extends FocusType> operationObject = null;
         if (pageBase instanceof PageFocusDetails) {
             operationObject = ((PageFocusDetails) pageBase).getPrismObject();
-        } else if ((pageBase instanceof PageAssignmentDetails || pageBase instanceof PageAssignmentsList) //shopping cart assignment details panels
-                && !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()) {
-            String targetUserOid = pageBase.getSessionStorage().getRoleCatalog().isSelfRequest() ?
-                    pageBase.getPrincipalFocus().getOid() :
-                    pageBase.getSessionStorage().getRoleCatalog().getTargetUserOidsList().get(0);
-            Task task = pageBase.createSimpleTask(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);
-            OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_USER_OBJECT);
-            operationObject = WebModelServiceUtils.loadObject(UserType.class,
-                    targetUserOid, pageBase, task, result);
-
         }
         if (operationObject == null) {
             return null;

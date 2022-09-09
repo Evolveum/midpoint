@@ -4002,6 +4002,8 @@
 
                         For attributes this automatically turns on "beforeCorrelation" mapping evaluation phase.
                         (If not explicitly forbidden in the attribute definition.)
+
+                        Currently supported for attributes only.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>

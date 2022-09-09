@@ -171,7 +171,7 @@ public class QAuditEventRecordMapping
                     new AuditEventRecordReferenceType().name(entry.getKey());
             for (MAuditRefValue refValue : entry.getValue()) {
                 AuditEventRecordReferenceValueType value = new AuditEventRecordReferenceValueType()
-                        .oid(refValue.targetOid.toString())
+                        .oid(refValue.targetOid != null ? refValue.targetOid.toString() : null)
                         .type(objectTypeToQName(refValue.targetType));
                 if (refValue.targetNameOrig != null) {
                     value.targetName(new PolyStringType(

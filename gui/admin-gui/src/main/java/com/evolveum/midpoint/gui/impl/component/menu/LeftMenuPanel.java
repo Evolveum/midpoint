@@ -77,7 +77,6 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAttorney;
-import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.page.self.PageSelfConsents;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;

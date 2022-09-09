@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="0a3a9fcf-057a-4bfa-94c4-4ca43ea952a9">
+    <name>mary</name>
+    <assignment>
+        <targetRef oid="ace64f7e-dec0-4ff4-a3e8-728b46fad6f3" type="ArchetypeType"/>
+    </assignment>
+    <costCenter>CoSt1-100</costCenter>
+    <givenName>Mary</givenName>
+    <familyName>Smith</familyName>
+</user>

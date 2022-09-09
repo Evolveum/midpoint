@@ -13,30 +13,26 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-
-import com.evolveum.midpoint.task.api.Task;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -492,23 +488,6 @@ public class AssignmentsUtil {
 
     }
 
-    public static IModel<String> getShoppingCartAssignmentsLimitReachedTitleModel(PageBase pageBase) {
-        return new LoadableModel<String>(true) {
-            @Override
-            protected String load() {
-                int assignmentsLimit = pageBase.getSessionStorage().getRoleCatalog().getAssignmentRequestLimit();
-                return isShoppingCartAssignmentsLimitReached(assignmentsLimit, pageBase) ?
-                        pageBase.createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", assignmentsLimit)
-                                .getString() : "";
-            }
-        };
-    }
-
-    public static boolean isShoppingCartAssignmentsLimitReached(int assignmentsLimit, PageBase pageBase) {
-        RoleCatalogStorage storage = pageBase.getSessionStorage().getRoleCatalog();
-        return assignmentsLimit >= 0 && storage.getAssignmentShoppingCart().size() >= assignmentsLimit;
-    }
-
     public static int loadAssignmentsLimit(OperationResult result, PageBase pageBase) {
         int assignmentsLimit = -1;
         try {
@@ -517,7 +496,8 @@ public class AssignmentsUtil {
             if (adminGuiConfig.getRoleManagement() != null) {
                 assignmentsLimit = adminGuiConfig.getRoleManagement().getAssignmentApprovalRequestLimit();
             }
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
+                SecurityViolationException | ExpressionEvaluationException ex) {
             LOGGER.error("Error getting system configuration: {}", ex.getMessage(), ex);
         }
         return assignmentsLimit;
@@ -540,7 +520,7 @@ public class AssignmentsUtil {
         return Model.of("");
     }
 
-    public static  <F extends FocusType> PrismObject<F> loadTargetObject(AssignmentType assignmentType, PageBase pageBase) {
+    public static <F extends FocusType> PrismObject<F> loadTargetObject(AssignmentType assignmentType, PageBase pageBase) {
         if (assignmentType == null) {
             return null;
         }
