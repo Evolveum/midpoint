@@ -7,7 +7,6 @@
 :page-wiki-metadata-modify-date: 2017-10-31T13:02:42.551+01:00
 :page-since: "3.5.1"
 :page-upkeep-status: yellow
-:page-outdated: true
 :page-obsolete-since: "4.6"
 
 Current MidPoint theme is based on link:https://almsaeedstudio.com/preview[AdminLTE] template.
