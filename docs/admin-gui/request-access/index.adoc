@@ -13,6 +13,8 @@ New UI takes form of proper wizard with up to four steps:
 
 First two steps may be hidden, or skipped based on configuration or authorizations of user that is currently logged in.
 
+Configuration and some examples can be found xref:configuration.adoc[here].
+
 == Person of interest
 
 .Person of interest
