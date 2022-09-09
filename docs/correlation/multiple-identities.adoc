@@ -36,7 +36,11 @@ An old record in the "external persons" system may be out-of-date altogether.
 
 Potential data inconsistencies lead to two kinds of requirements:
 
-. When processing data from these systems, midPoint has to somehow decide which ones are "authoritative", that is, which ones to propagate to the "official" user data stored in the repository. For example, each system can provide its own idea of `givenName`, `familyName`, `honorificPrefix`, and `honorificSuffix` values. MidPoint should select which values should be propagated to these properties visible on the user.
+. When processing data from these systems, midPoint has to somehow decide which ones are "authoritative", that is, which ones to propagate to the "official" user data stored in the repository.
++
+For example, each system can provide its own idea of `givenName`, `familyName`, `honorificPrefix`, and `honorificSuffix` values.
+MidPoint should select which values are to be propagated to these properties visible on the user.
+
 . When correlating, we may want to match data from all systems for the candidate owners.
 (Not only the "official" user data.)
 
@@ -157,7 +161,7 @@ It has two default sources, and other ones can be added by the engineer.
 |===
 | Source | Type | Description
 | `identity`
-| `FocusIdentityType` (a collection of)
+| a collection of `FocusIdentityType`
 | The content of `identities/identity` multivalued container.
 It contains all "incoming" identity data from the inbound mappings.
 It is the primary source of information from which we have to select the one we need.
@@ -172,7 +176,7 @@ The mapping is executed just like any other object template mapping.
 The value(s) it produces are put right into the target property - in this case it is `givenName`.
 
 In our example above we used `midpoint.selectIdentityItemValues` method.
-It is a utility method aimed at facilitating creation of value-selection functionality in these mappings.
+It is a utility method to aid in selecting values from the multiple sources.
 It has three parameters:
 
 .Parameters of `midpoint.selectIdentityItemValues` method
@@ -221,9 +225,9 @@ This is why we do not need to specify these mappings explicitly.
 </objectTemplate>
 ----
 
-==== Selecting Authoritative Values for the Whole Object
-
 This leads us to the question of how the `defaultAuthoritativeSource` value is computed.
+
+==== Selecting Authoritative Values for the Whole Object
 
 As probably expected, there is again a template mapping for this.
 In a way similar to the previous mappings, it could be specified as a regular mapping, but it is better to use the special configuration option for it.
@@ -236,13 +240,15 @@ An example:
 <objectTemplate>
     ...
     <identity>
-        <defaultAuthoritativeSource> <!--2-->
+        <defaultAuthoritativeSource>
             <expression>
                 <script>
                     <code>
-                        def RESOURCE_EXT_OID = '...'
+                        import com.evolveum.midpoint.util.MiscUtil
+
+                        def RESOURCE_SIS_OID = '...'
                         def RESOURCE_HR_OID = '...'
-                        def RESOURCE_SIS = '...'
+                        def RESOURCE_EXT_OID = '...'
 
                         // The order of authoritativeness is: SIS, HR, external
 
@@ -258,15 +264,7 @@ An example:
                         def hr = sources.find { it.resourceRef?.oid == RESOURCE_HR_OID }
                         def external = sources.find { it.resourceRef?.oid == RESOURCE_EXT_OID }
 
-                        if (sis != null) {
-                            sis.clone()
-                        } else if (hr != null) {
-                            hr.clone()
-                        } else if (external != null) {
-                            external.clone()
-                        } else {
-                            null // takes all values (there are most probably none)
-                        }
+                        MiscUtil.getFirstNonNull(sis, hr, external)
                     </code>
                 </script>
             </expression>
@@ -275,13 +273,12 @@ An example:
 </objectTemplate>
 ----
 
-Here we have three source resources, `SIS`, `HR`, and `EXT`.
+Here we have three source resources, SIS, HR, and EXT.
 We would like to implement a rule of "data from SIS are more authoritative than data from HR, and these are more authoritative than data from EXT".
 (In the real world the rules may be more complex.)
 
-Although we could use `FocusIdentitySourceTypeUtil.defaultAccount` to construct the sources explicitly, it is also possible to re-use source values already present in the `identity` collection.
+Although we could use `FocusIdentitySourceTypeUtil.defaultAccount` and `resourceObject` methods to construct the sources explicitly, it is also possible to re-use source values already present in the `identity` collection.
 That's exactly what is done in the example above.
-Note we have to `clone` the values before returning them because of internal midPoint processing reasons.
 
 The mapping has only single default source:
 
@@ -291,20 +288,26 @@ The mapping has only single default source:
 |===
 | Source | Type | Description
 | `identity`
-| `FocusIdentityType` (a collection of)
+| a collection of `FocusIdentityType`
 | The content of `identities/identity` multivalued container.
 It contains all "incoming" identity data from the inbound mappings.
 |===
 
-It returns the `FocusIdentitySourceType` object that may be used for selecting the values of individual items.
+It returns the `FocusIdentitySourceType` object that may be used for selecting the values of individual items, as we have seen in the previous section.
 
-If such a mapping does not exist or if it returns no value, the default behavior is to select all values from all sources (for a given item); as we have seen in the previous section.
-(Note that this is also the behavior of regular inbound mappings.
+If such a mapping does not exist or if it returns no value, the default behavior is to select all values from all sources (for a given item); as we have seen as well.
+footnote:[Note that this is also the behavior of regular inbound mappings.
 There is a small difference, though.
 In regular mappings, we do not always take inbounds from all projections - only from currently loaded ones plus the ones that are loaded on demand.
-In this value-selection mappings, we consider all projections.
-Those that are currently not loaded are cached from the last inbound mapping evaluation.)
+In these value-selection mappings, we always consider all projections that had their inbounds evaluated: now or in the past.
+Outputs of inbound mappings for those projections that are currently not loaded are stored in the `identities/identity` containers.]
 
 == Limitations
 
 . This feature is supported only for standard focus properties present at the root level (like `givenName`, `familyName`) and all extension properties at root level only. (I.e., not in containers in the extension).
+
+== Future Work
+
+This mechanism is intentionally consistent with the work that was done during the xref:/midpoint/projects/midprivacy/phases/01-data-provenance-prototype/[Phase 1 of the midPrivacy project: Data provenance prototype].
+The implementation is different, because the value metadata implementation is not in production state yet.
+But we eventually may unify the two.
