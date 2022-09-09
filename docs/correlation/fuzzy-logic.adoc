@@ -132,7 +132,7 @@ This computation may or may not fit your needs.
 You may provide any reasonable expression to do the computation.
 
 If the confidence expression is not specified, the confidence is set to 1.0.
-(It may be later weighted when rules are composed together, as described in xref:/midpoint/reference/correlation/rule-composition/[rule composition] document.)
+(It may be later scaled using a custom _rule weight_ when rules are composed together, as described in xref:/midpoint/reference/correlation/rule-composition/[rule composition] document.)
 
 ==== Multiple Correlation Items
 
@@ -191,7 +191,7 @@ An example:
 The confidence factor for `givenName` is defined to be equal to the trigram similarity value.
 The confidence factor for `familyName` is defined just like in the example above.
 
-For example, if a correlation candidate has a given name with the distance of 1 and similarity of 0.8, its confidence is computed as:
+For example, if a correlation candidate has a given name with the similarity of 0.8, and the family name with an edit distance of 1, its confidence is computed as:
 
 .Example of the confidence computation
 [%header]
@@ -214,6 +214,8 @@ Also, the serialization format may change in the future.
 Here we describe it only for educational purposes - to emphasize the fact that correlation is ultimately implemented using regular queries.
 ====
 
+A query based on the Levenshtein edit distance:
+
 .Listing 4. Sample Levenshtein distance query in XML
 [source,xml]
 ----
@@ -231,6 +233,8 @@ Here we describe it only for educational purposes - to emphasize the fact that c
     </q:filter>
 </q:query>
 ----
+
+A similarity-based filter:
 
 .Listing 5. Sample trigram similarity filter in Axiom
 [source,axiom]
