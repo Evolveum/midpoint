@@ -67,6 +67,8 @@
             <expression>
                 <script>
                     <code>
+                        import com.evolveum.midpoint.util.MiscUtil
+
                         import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_EXTERNAL
                         import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_HR
                         import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_SIS
@@ -85,15 +87,7 @@
                         def hr = sources.find { it.resourceRef?.oid == RESOURCE_HR.oid }
                         def external = sources.find { it.resourceRef?.oid == RESOURCE_EXTERNAL.oid }
 
-                        if (sis != null) {
-                            sis.clone()
-                        } else if (hr != null) {
-                            hr.clone()
-                        } else if (external != null) {
-                            external.clone()
-                        } else {
-                            null // takes all values (should be "none"
-                        }
+                        MiscUtil.getFirstNonNull(sis, hr, external)
                     </code>
                 </script>
             </expression>
