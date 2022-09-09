@@ -243,6 +243,8 @@ Please see xref:/midpoint/reference/correlation/rule-composition/[rule compositi
 
 === Custom Indexing
 
+IMPORTANT: This feature is available only when using the xref:/midpoint/reference/repository/native-postgresql/[native repository implementation].
+
 Sometimes, we need to base the search on specially-indexed data.
 For example, we could need to match only first five normalized characters of the surname.
 Or, we could want to take only digits into account when searching for the national ID.
@@ -324,7 +326,7 @@ If there are multiple normalizations defined for a given focus item (and none is
 
 Please see xref:/midpoint/reference/correlation/custom-indexing/[custom indexing] and xref:/midpoint/reference/correlation/items-correlator/[`items` correlator] for more information.
 
-=== Fuzzy Logic
+=== Fuzzy Matching
 
 By default, the searching is done using "exact match" criteria, either on original values or on the ones that underwent the standard or custom normalization.
 Sometimes, however, we want to search for objects that have a property value somewhat similar to the value we have at hand.
@@ -345,7 +347,7 @@ To do this, a fuzzy search logic was implemented. There are two methods availabl
 (See link:https://www.postgresql.org/docs/current/pgtrgm.html[PostgreSQL documentation on `pg_trgm` module].)
 |===
 
-NOTE: The fuzzy search is implemented for the native PostgreSQL-based repository only.
+IMPORTANT: The fuzzy search is available only when using the xref:/midpoint/reference/repository/native-postgresql/[native repository implementation].
 
 An example that searches for users having given name and family name close to the provided ones.
 The given name has to have Levenshtein edit distance (to the provided one) at most 3.
