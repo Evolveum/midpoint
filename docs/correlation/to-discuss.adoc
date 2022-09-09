@@ -4,6 +4,7 @@
 . even the "correlation" -> do we plan to use this term for the "extended usages" like self-registration?
 . name and terminology of the "custom indexing" feature ... e.g., normalization? index?
 . unifying normalization steps (polystring, prefix) with expression evaluators?
-. should we mark indexing as experimental?
 . default names for normalized values: itemName.normalizationName uses dots that aren't recognized by Axiom
 . namespace for indexed items
+. should we mark indexing as experimental?
+. should we mark "multiple identities" as experimental?

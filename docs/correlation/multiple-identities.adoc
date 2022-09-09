@@ -1,3 +1,310 @@
 = Multiple Identities
+:page-toc: top
+:page-since: "4.6"
+
+#DRAFT - pictures are missing#
+
+#TODO How should we call this feature?#
+
+#TODO Will we make this feature experimental?#
+
+The advanced correlation needs often go hand in hand with the situations when there are multiple sources of the identity data.
+
+== An Example
+
+For example, a university may have the following systems:
+
+.Source systems in a sample university installation
+[%header]
+[%autowidth]
+|===
+| System | Description
+| Student Information System (SIS)
+| Provides data on students and faculty.
+| Human Resources (HR)
+| Keeps records of all staff - faculty and others.
+| External persons (EXT)
+| Maintains data about visitors and other persons related to the university in a way other than being a student or employee.
+|===
+
+While the data about a person are usually consistent, there may be situations when they differ.
+For example, the given name may be recorded differently in SIS and HR systems.
+Or the title may be forgotten to be updated in HR.
+An old record in the "external persons" system may be out-of-date altogether.
+
+== Requirements
+
+Potential data inconsistencies lead to two kinds of requirements:
+
+. When processing data from these systems, midPoint has to somehow decide which ones are "authoritative", that is, which ones to propagate to the "official" user data stored in the repository. For example, each system can provide its own idea of `givenName`, `familyName`, `honorificPrefix`, and `honorificSuffix` values. MidPoint should select which values should be propagated to these properties visible on the user.
+. When correlating, we may want to match data from all systems for the candidate owners.
+(Not only the "official" user data.)
+
+Starting with 4.6, midPoint supports both of them.
+
+== Selecting the Authoritative Data
+
+Before 4.6, the first requirement was resolvable only using a custom code.
+
+A typical solution was that inbound mappings put the resource-specific values (like given name, family name, and so on) into temporary properties, present often in the user extension.
+This was followed by an algorithm (implemented in an object template mapping) that selected the right values and putting them into `givenName`, `familyName` and other properties of the user.
+
+Actually, the current solution in 4.6 is an adaptation of this approach.
+This time, however, it is implemented right inside midPoint.
+
+=== Configuration
+
+When selecting the most appropriate data, there is no magic available.
+It is the engineer who must provide an algorithm for this.
+MidPoint provides two levels at which this can be done:
+
+. the whole object (e.g. user),
+. an individual item (e.g. `givenName`).
+
+Working at the level of the whole object is probably easier, and maybe sufficient for the majority of installations.
+
+==== Declaring "Identity Data"
+
+Usually, not all object properties are to be handled in this "multi-source" style (#TODO name#).
+The selection of the ones that should be treated so is done in the object template.
+
+An example:
+
+.Listing 1. Setting up four multi-source properties
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <item>
+        <ref>givenName</ref>
+        <identity/>
+    </item>
+    <item>
+        <ref>familyName</ref>
+        <identity/>
+    </item>
+    <item>
+        <ref>honorificPrefix</ref>
+        <identity/>
+    </item>
+    <item>
+        <ref>honorificSuffix</ref>
+        <identity/>
+    </item>
+    ...
+</objectTemplate>
+----
+
+This declaration "redirects" inbound mappings for the properties mentioned.
+
+Therefore, instead of this:
 
 #TODO#
+
+the data will flow like this:
+
+#TODO#
+
+And here comes the question:
+_How should the data (and which ones) flow from the `identities` container to their destination places?_
+
+Although we said it is often easier to decide this question at once for the whole object, let us explain it the way around:
+from individual items up.
+
+==== Selecting Authoritative Values for an Individual Item
+
+It is no surprise that midPoint selects the authoritative data for the individual item (like `givenName`) using ordinary object template mapping.
+Although the mapping could be written just like any other, there is a nicer, shortened form available.
+
+An example:
+
+.Listing 2. Selecting authoritative value for the given name
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <item>
+        <ref>givenName</ref>
+        <identity>
+            <selection>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.schema.util.FocusIdentitySourceTypeUtil
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                            midpoint.selectIdentityItemValues(
+                                    identity,
+                                    FocusIdentitySourceTypeUtil.defaultAccount('157796ed-d4f2-429d-84f3-00ce4164263b'),
+                                    UserType.F_GIVEN_NAME)
+                        </code>
+                    </script>
+                </expression>
+            </selection>
+        </identity>
+    </item>
+    ...
+</objectTemplate>
+----
+
+The content of the `selection` element is a mapping.
+
+It has two default sources, and other ones can be added by the engineer.
+
+.Default sources for the item-selection mapping
+[%header]
+[%autowidth]
+|===
+| Source | Type | Description
+| `identity`
+| `FocusIdentityType` (a collection of)
+| The content of `identities/identity` multivalued container.
+It contains all "incoming" identity data from the inbound mappings.
+It is the primary source of information from which we have to select the one we need.
+
+| `defaultAuthoritativeSource`
+| `FocusIdentitySourceType`
+| The source for identity data that was determined to be the default one for the user.
+(See the next section.)
+|===
+
+The mapping is executed just like any other object template mapping.
+The value(s) it produces are put right into the target property - in this case it is `givenName`.
+
+In our example above we used `midpoint.selectIdentityItemValues` method.
+It is a utility method aimed at facilitating creation of value-selection functionality in these mappings.
+It has three parameters:
+
+.Parameters of `midpoint.selectIdentityItemValues` method
+[%header]
+[%autowidth]
+|===
+| Parameter | Type | Description
+| `identity`
+| `Collection<FocusIdentityType>`
+| A collection of identities where we search for the data.
+In particular, we look for the values with sub-path of `itemPath` (see the third parameter) in the `identity[x]/data` container.
+
+| `source`
+| `FocusIdentitySourceType`
+| Specification of the source we are looking for.
+The source is currently matched using resource OID, kind, intent, and tag.
+The `null` value of `source` means "take values from all sources".
+
+| `itemPath`
+| `ItemPath`
+| Item that should be provided.
+|===
+
+If no item selection mapping is provided (which is the usual case), the following one is used automatically by midPoint.
+This is why we do not need to specify these mappings explicitly.
+
+.Listing 3. Automatically-applied item selection mapping
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <item>
+        <ref>(somePath)</ref>
+        ...
+        <identity>
+            <selection>
+                <expression>
+                    <script>
+                        <code>midpoint.selectIdentityItemValues(identity, defaultAuthoritativeSource, (somePath))</code>
+                    </script>
+                </expression>
+            </selection>
+        </identity>
+    </item>
+    ...
+</objectTemplate>
+----
+
+==== Selecting Authoritative Values for the Whole Object
+
+This leads us to the question of how the `defaultAuthoritativeSource` value is computed.
+
+As probably expected, there is again a template mapping for this.
+In a way similar to the previous mappings, it could be specified as a regular mapping, but it is better to use the special configuration option for it.
+
+An example:
+
+.Listing 4. Selecting the default authoritative data source
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <identity>
+        <defaultAuthoritativeSource> <!--2-->
+            <expression>
+                <script>
+                    <code>
+                        def RESOURCE_EXT_OID = '...'
+                        def RESOURCE_HR_OID = '...'
+                        def RESOURCE_SIS = '...'
+
+                        // The order of authoritativeness is: SIS, HR, external
+
+                        if (identity == null) {
+                            return null
+                        }
+
+                        def sources = identity
+                                .collect { it.source }
+                                .findAll { it != null }
+
+                        def sis = sources.find { it.resourceRef?.oid == RESOURCE_SIS_OID }
+                        def hr = sources.find { it.resourceRef?.oid == RESOURCE_HR_OID }
+                        def external = sources.find { it.resourceRef?.oid == RESOURCE_EXT_OID }
+
+                        if (sis != null) {
+                            sis.clone()
+                        } else if (hr != null) {
+                            hr.clone()
+                        } else if (external != null) {
+                            external.clone()
+                        } else {
+                            null // takes all values (there are most probably none)
+                        }
+                    </code>
+                </script>
+            </expression>
+        </defaultAuthoritativeSource>
+    </identity>
+</objectTemplate>
+----
+
+Here we have three source resources, `SIS`, `HR`, and `EXT`.
+We would like to implement a rule of "data from SIS are more authoritative than data from HR, and these are more authoritative than data from EXT".
+(In the real world the rules may be more complex.)
+
+Although we could use `FocusIdentitySourceTypeUtil.defaultAccount` to construct the sources explicitly, it is also possible to re-use source values already present in the `identity` collection.
+That's exactly what is done in the example above.
+Note we have to `clone` the values before returning them because of internal midPoint processing reasons.
+
+The mapping has only single default source:
+
+.Default source for the source-selection mapping
+[%header]
+[%autowidth]
+|===
+| Source | Type | Description
+| `identity`
+| `FocusIdentityType` (a collection of)
+| The content of `identities/identity` multivalued container.
+It contains all "incoming" identity data from the inbound mappings.
+|===
+
+It returns the `FocusIdentitySourceType` object that may be used for selecting the values of individual items.
+
+If such a mapping does not exist or if it returns no value, the default behavior is to select all values from all sources (for a given item); as we have seen in the previous section.
+(Note that this is also the behavior of regular inbound mappings.
+There is a small difference, though.
+In regular mappings, we do not always take inbounds from all projections - only from currently loaded ones plus the ones that are loaded on demand.
+In this value-selection mappings, we consider all projections.
+Those that are currently not loaded are cached from the last inbound mapping evaluation.)
+
+== Limitations
+
+. This feature is supported only for standard focus properties present at the root level (like `givenName`, `familyName`) and all extension properties at root level only. (I.e., not in containers in the extension).

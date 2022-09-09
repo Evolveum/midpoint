@@ -2,6 +2,8 @@
 :page-toc: top
 :page-since: "4.6"
 
+== Introduction
+
 IMPORTANT: This feature is available only when using the xref:/midpoint/reference/repository/native-postgresql/[native repository implementation].
 
 For an introduction, please see xref:/midpoint/reference/correlation/#fuzzy-matching[Fuzzy Matching] section in the overview document.
