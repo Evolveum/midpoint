@@ -1,0 +1,24 @@
+= Look & Feel Customization HOWTO 4.6
+:page-toc: top
+:page-since: "4.6"
+
+Current MidPoint theme is based on link:https://almsaeedstudio.com/preview[AdminLTE] template.
+
+* AdminLTE 3.2
+* Bootstrap 4.6
+* jQuery
+* link:https://ace.c9.io/#nav=about[Ace editor]
+* other plugins
+** bootstrap-select
+** bootstrap-multiselect
+** daterangepicker
+** select2
+
+== Stylesheets and javascripts without overlay
+
+WARNING: Since midpoint 4.6 stylesheets can't be updated without modifying source code of midpoint or using overlay.
+
+Starting with midPoint 4.6 whole css/js processing has changed.
+NodeJS and Webpack 5 was incorporated into build.
+Stylesheets, javascripts and other static resources are now processed using Webpack 5 and configuration defined in package.json.
+For more details see xref:../../devel/gui/gui-development-guide.adoc#styles-and-javascript[GUI development guide].
