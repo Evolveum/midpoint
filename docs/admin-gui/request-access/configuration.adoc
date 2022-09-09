@@ -5,13 +5,46 @@
 
 Following document describes different options and configuration possibilities for request access UI.
 
+Configuration can be placed in admin gui configuration element - globally set is system configuration or in all roles.
+See xref:../admin-gui-config/index.adoc#how-it-works[Admin GUI configuration] on how configuration is compiled when user logs in.
+
+As for request access UI, configuration is merged on level of wizard steps, e.g.:
+
+* Person of interest: `targetSelection`
+* Relations: `relationSelection`
+* Role catalog: `roleCatalog`
+* Shopping cart: `checkout`
+
 == Person of interest
 
-[options="header", cols=3]
+[options="header", cols=4]
 |===
-|as
+|Element
+|Type
+|Default value
+|Description
+
+|defaultSelection
+|boolean
 |
+|Identifier of group that should be preselected or constant "myself" to preselect option which represents user currently logged in.
+
+|allowRequestForMyself
+|boolean
+|true
+|This is simple override if currently authenticated user has authorization to request for him/herself assign other relations, but we don't want them to do it via shopping cart.
+
+|allowRequestForOthers
+|boolean
+|true
+|This is simple override if currently authenticated user has authorization to assign other relations, but we don't want them to do it via shopping cart.
+
+|group
+|GroupSelectionType
 |
+|Group selection structure creates new tile in first step of request access wizard UI (person of interest).
+Tile button will allow user requesting access to select other users from collections specified by collectionRef or filter.
+Identifier and display elements are mandatory.
 |===
 
 == Relations
@@ -20,7 +53,7 @@ Following document describes different options and configuration possibilities f
 == Role catalog
 
 
-== Shopping cart (checkout)
+== Shopping cart
 
 == Examples
 
