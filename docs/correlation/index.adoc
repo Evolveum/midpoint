@@ -113,9 +113,6 @@ Here we show the same logic defined at the level of the resource object type:
                 <target>
                     <path>name</path>
                 </target>
-                <evaluationPhases> <!--1-->
-                    <include>beforeCorrelation</include>
-                </evaluationPhases>
             </inbound>
         </attribute>
         ...
@@ -123,7 +120,7 @@ Here we show the same logic defined at the level of the resource object type:
             <correlators>
                 <items>
                     <item>
-                        <ref>name</ref> <!--2-->
+                        <ref>name</ref> <!--1-->
                     </item>
                 </items>
             </correlators>
@@ -132,10 +129,9 @@ Here we show the same logic defined at the level of the resource object type:
     </objectType>
 </schemaHandling>
 ----
-<1> Turning on the correlation-time evaluation of this mapping.
-<2> Declaring the `name` to be the correlation item.
+<1> Declaring the `name` to be the correlation item.
 
-NOTE: Unlike using `correlator` within the attribute definition, just mentioning the attribute as a correlation item does _not_ enable the correlation-time inbound processing for it.
+NOTE: Like when using `correlator` within the attribute definition, mentioning the attribute as a correlation item enables the correlation-time inbound processing for it.
 
 ==== Example 3: Object Template Based Correlation Definition
 
@@ -161,6 +157,13 @@ Here we show a rule requiring that _both_ given name and family name match.
     </correlation>
 </objectTemplate>
 ----
+
+NOTE: The correlation-time inbound processing is automatically enabled also in this case.
+However, the object template must be connected to the resource object type in the _static way_, i.e. via the archetype declared in the object type definition.
+(The main reason is that midPoint has to know the archetype _before_ the correlation-time mappings are evaluated.
+That's why it is not sufficient if it's determined e.g. during inbound processing!)
+
+#TODO the attachment via system configuration is not supported - is it ok?#
 
 == Advanced Concepts
 
