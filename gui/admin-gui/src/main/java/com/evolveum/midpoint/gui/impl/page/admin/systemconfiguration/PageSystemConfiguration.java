@@ -7,6 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
@@ -26,16 +36,6 @@ import com.evolveum.midpoint.web.component.MultiCompositedButtonPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author lazyman
@@ -94,7 +94,7 @@ public class PageSystemConfiguration extends PageBase {
             return page;
         }
 
-        public static String getIcon(Class<?extends PageBaseSystemConfiguration> page) {
+        public static String getIcon(Class<? extends PageBaseSystemConfiguration> page) {
             if (page == null) {
                 return null;
             }
@@ -123,9 +123,15 @@ public class PageSystemConfiguration extends PageBase {
 
     @Override
     protected void createBreadcrumb() {
+        Breadcrumb bc = getLastBreadcrumb();
+        if (bc != null && PageSystemConfiguration.class.equals(bc.getPageClass())) {
+            // there's already breadcrumb for this page
+            return;
+        }
+
         super.createBreadcrumb();
 
-        Breadcrumb bc = getLastBreadcrumb();
+        bc = getLastBreadcrumb();
         bc.setIcon(new Model(GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON));
     }
 
