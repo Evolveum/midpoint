@@ -8,11 +8,14 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
+import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
@@ -118,19 +121,26 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         addNestedMapping(F_IDENTITIES, FocusIdentitiesType.class)
                 .addContainerTableMapping(FocusIdentitiesType.F_IDENTITY,
                         QFocusIdentityMapping.init(repositoryContext),
-                        joinOn((o, fi) -> o.oid.eq(fi.ownerOid)));
+                        joinOn((o, fi) -> o.oid.eq(fi.ownerOid)))
+                .addExtensionMapping(FocusIdentitiesType.F_NORMALIZED_DATA,
+                        MExtItemHolderType.EXTENSION, q -> q.normalizedData, repositoryContext);
     }
 
     @Override
     public @NotNull Path<?>[] selectExpressions(
             Q entity, Collection<SelectorOptions<GetOperationOptions>> options) {
+
+        List<Path<?>> paths = new ArrayList<>();
+        paths.add(entity.oid);
+        paths.add(entity.fullObject);
         if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_JPEG_PHOTO, options)) {
-            return new Path[] { entity.oid, entity.fullObject, entity.photo };
+            paths.add(entity.photo);
         }
-
-        // F_IDENTITIES are handled with another select via QFocusIdentityMapping.
-
-        return new Path[] { entity.oid, entity.fullObject };
+        if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(SchemaConstants.PATH_FOCUS_NORMALIZED_DATA, options)) {
+            paths.add(entity.normalizedData);
+            // The rest of F_IDENTITIES is handled with another select via QFocusIdentityMapping.
+        }
+        return paths.toArray(new Path[0]);
     }
 
     @Override
@@ -194,6 +204,12 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
             row.archiveTimestamp = MiscUtil.asInstant(activation.getArchiveTimestamp());
             row.lockoutStatus = activation.getLockoutStatus();
         }
+
+        FocusIdentitiesType identities = focus.getIdentities();
+        if (identities != null) {
+            row.normalizedData = processExtensions(identities.getNormalizedData(), MExtItemHolderType.EXTENSION);
+        }
+
         return row;
     }
 
@@ -215,25 +231,33 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
         }
 
         if (SelectorOptions.hasToFetchPathNotRetrievedByDefault(F_IDENTITIES, options)) {
-            loadFocusIdentities(focus, jdbcSession);
+            loadFocusIdentities(
+                    row.get(entityPath.normalizedData), focus, jdbcSession);
         }
 
         return focus;
     }
 
-    private void loadFocusIdentities(S focus, JdbcSession jdbcSession)
+    // TODO fix storing/loading "identities/defaultAuthoritativeSource"
+    //  ...and adapt "incomplete" flag setting accordingly
+    private void loadFocusIdentities(Jsonb normalizedData, S focus, JdbcSession jdbcSession)
             throws SchemaException {
+        PrismContainer<FocusIdentitiesType> focusIdentitiesContainer = focus.asPrismObject().findOrCreateContainer(F_IDENTITIES);
+        // TODO limit container ids?
+        focusIdentitiesContainer.setIncomplete(false); // DO NOT set, if only selected IDs are loaded
+
+        if (normalizedData != null) {
+            Map<String, Object> normalizedDataMap = Jsonb.toMap(normalizedData);
+            new ExtensionProcessor(repositoryContext()).extensionsToContainer(
+                    normalizedDataMap, focus.getIdentities().beginNormalizedData());
+        }
+
         QFocusIdentityMapping<MFocus> focusIdentityMapping = QFocusIdentityMapping.get();
-        PrismContainer<FocusIdentityType> focusIdentityWrapper = focus.asPrismObject().findOrCreateContainer(F_IDENTITIES);
         QFocusIdentity<?> q = focusIdentityMapping.defaultAlias();
         var query = jdbcSession.newQuery()
                 .from(q)
                 .select(q) // no complications here, we load it whole
                 .where(q.ownerOid.eq(SqaleUtils.oidToUUid(focus.getOid())));
-
-        // TODO limit container ids?
-        focusIdentityWrapper.setIncomplete(false); // DO NOT set, if only selected IDs are loaded
-
         for (MFocusIdentity row : query.fetch()) {
             FocusIdentityType focusIdentity = focusIdentityMapping.toSchemaObject(row);
             focus.getIdentities().identity(focusIdentity);

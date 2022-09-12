@@ -206,7 +206,7 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
         }
 
         public @NotNull ItemPath getSecondaryPath() {
-            return SchemaConstants.PATH_IDENTITY.append(FocusIdentityType.F_DATA, itemPath);
+            return SchemaConstants.PATH_FOCUS_IDENTITY.append(FocusIdentityType.F_DATA, itemPath);
         }
 
         public @Nullable ItemDefinition<?> getDefinition() {

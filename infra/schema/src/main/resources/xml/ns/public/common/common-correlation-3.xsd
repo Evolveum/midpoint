@@ -1316,6 +1316,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="normalizedData" type="tns:FocusNormalizedDataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A single (alternative) identity.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="defaultAuthoritativeSource" type="tns:FocusIdentitySourceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1360,13 +1367,6 @@
                         <a:embeddedObject>true</a:embeddedObject>
                         <a:elaborate>true</a:elaborate>
                     </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="items" type="tns:FocusIdentityItemsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Content (items) of the identity.
-                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1444,40 +1444,10 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:complexType name="FocusIdentityItemsType">
+    <xsd:complexType name="FocusNormalizedDataType">
         <xsd:annotation>
             <xsd:documentation>
-                Content of the identity.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.6</a:since>
-                <a:container>true</a:container>
-                <a:experimental>true</a:experimental>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="original" type="tns:IdentityItemsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Original versions of identity items.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="normalized" type="tns:IdentityItemsType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Normalized versions of identity items.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-
-    <xsd:complexType name="IdentityItemsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Set of items that form an identity. May be normalized or not.
+                TODO
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

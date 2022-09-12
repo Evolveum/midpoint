@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 import java.sql.Types;
 import java.time.Instant;
 
+import com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath;
+
 import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.EnumPath;
@@ -19,6 +21,8 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.QAssignmentHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
+
+import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbPath.JSONB_TYPE;
 
 /**
  * Querydsl query type for {@value #TABLE_NAME} table.
@@ -80,6 +84,8 @@ public class QFocus<R extends MFocus> extends QAssignmentHolder<R> {
             ColumnMetadata.named("archiveTimestamp").ofType(Types.TIMESTAMP_WITH_TIMEZONE);
     public static final ColumnMetadata LOCKOUT_STATUS =
             ColumnMetadata.named("lockoutStatus").ofType(Types.OTHER);
+    public static final ColumnMetadata NORMALIZED_DATA =
+            ColumnMetadata.named("normalizedData").ofType(JSONB_TYPE);
 
     public final StringPath costCenter = createString("costCenter", COST_CENTER);
     public final StringPath emailAddress = createString("emailAddress", EMAIL_ADDRESS);
@@ -116,6 +122,8 @@ public class QFocus<R extends MFocus> extends QAssignmentHolder<R> {
             createInstant("archiveTimestamp", ARCHIVE_TIMESTAMP);
     public final EnumPath<LockoutStatusType> lockoutStatus =
             createEnum("lockoutStatus", LockoutStatusType.class, LOCKOUT_STATUS);
+    public final JsonbPath normalizedData = addMetadata(
+            add(new JsonbPath(forProperty("normalizedData"))), NORMALIZED_DATA);
 
     public QFocus(Class<R> type, String variable) {
         this(type, variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);

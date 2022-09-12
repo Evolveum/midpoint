@@ -643,14 +643,10 @@ public abstract class SchemaConstants {
     public static final String CORRELATION_NONE = "none";
     public static final String CORRELATION_EXISTING_PREFIX = "existing-";
 
-    public static final @NotNull ItemPath PATH_IDENTITY =
+    public static final @NotNull ItemPath PATH_FOCUS_IDENTITY =
             ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY);
-    public static final @NotNull ItemPath PATH_IDENTITY_SEARCH_ITEMS =
-            ItemPath.create(
-                    FocusType.F_IDENTITIES,
-                    FocusIdentitiesType.F_IDENTITY,
-                    FocusIdentityType.F_ITEMS,
-                    FocusIdentityItemsType.F_NORMALIZED);
-    public static final @NotNull ItemPath PATH_DEFAULT_AUTHORITATIVE_SOURCE =
+    public static final @NotNull ItemPath PATH_FOCUS_NORMALIZED_DATA =
+            ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_NORMALIZED_DATA);
+    public static final @NotNull ItemPath PATH_FOCUS_DEFAULT_AUTHORITATIVE_SOURCE =
             ItemPath.create(FocusType.F_IDENTITIES, FocusIdentitiesType.F_DEFAULT_AUTHORITATIVE_SOURCE);
 }

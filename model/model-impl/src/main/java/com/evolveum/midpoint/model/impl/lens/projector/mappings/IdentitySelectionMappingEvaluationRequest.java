@@ -13,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Request to create/evaluate so-called "identity selection" mapping.
+ *
+ * TODO why unused?
  */
 public class IdentitySelectionMappingEvaluationRequest extends TemplateMappingEvaluationRequest {
 
@@ -25,7 +27,7 @@ public class IdentitySelectionMappingEvaluationRequest extends TemplateMappingEv
     public <V extends PrismValue, D extends ItemDefinition<?>, AH extends AssignmentHolderType> Source<V, D>
     constructDefaultSource(ObjectDeltaObject<AH> focusOdo) throws SchemaException {
         return new Source<>(
-                focusOdo.findIdi(SchemaConstants.PATH_IDENTITY),
+                focusOdo.findIdi(SchemaConstants.PATH_FOCUS_IDENTITY),
                 ExpressionConstants.VAR_INPUT_QNAME);
     }
 }

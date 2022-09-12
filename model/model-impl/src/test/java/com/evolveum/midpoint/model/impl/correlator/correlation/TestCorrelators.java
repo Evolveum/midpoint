@@ -262,7 +262,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         // @formatter:off
         assertUserAfter(findUserByUsernameFullRequired("smith1"))
                 .identities()
-                    .withoutSource()
+                    .normalizedData()
                         .assertNormalizedItem("givenName.polyStringNorm", "john", "ian")
                         .assertNormalizedItem("familyName.norm", "smith")
                         .assertNormalizedItem("familyName.orig", "Smith")

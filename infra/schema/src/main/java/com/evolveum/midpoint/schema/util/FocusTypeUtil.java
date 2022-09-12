@@ -178,11 +178,15 @@ public class FocusTypeUtil {
     }
 
     // TODO reconsider this method placement
-    public static void addOrReplaceIdentity(@NotNull FocusType focus, @NotNull FocusIdentityType identity) {
-        deleteCompatibleIdentity(focus, identity);
-        addIdentity(focus, identity);
+    public static void addOrReplaceNormalizedData(@NotNull FocusType focus, @NotNull FocusNormalizedDataType identity) {
+        FocusIdentitiesType identities = focus.getIdentities();
+        if (identities == null) {
+            focus.setIdentities(identities = new FocusIdentitiesType());
+        }
+        identities.setNormalizedData(identity);
     }
 
+    // TODO decide what to do with this method
     private static void addIdentity(@NotNull FocusType focus, @NotNull FocusIdentityType identity) {
         FocusIdentitiesType identities = focus.getIdentities();
         if (identities == null) {
@@ -191,6 +195,7 @@ public class FocusTypeUtil {
         identities.getIdentity().add(identity);
     }
 
+    // TODO decide what to do with this method
     private static void deleteCompatibleIdentity(@NotNull FocusType focus, @NotNull FocusIdentityType identity) {
         FocusIdentitiesType identities = focus.getIdentities();
         if (identities != null) {

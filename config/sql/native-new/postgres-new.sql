@@ -456,6 +456,7 @@ CREATE TABLE m_focus (
     validityChangeTimestamp TIMESTAMPTZ,
     archiveTimestamp TIMESTAMPTZ,
     lockoutStatus LockoutStatusType,
+    normalizedData JSONB,
 
     CHECK (FALSE) NO INHERIT
 )
@@ -495,8 +496,6 @@ CREATE TABLE m_focus_identity (
         CHECK (containerType = 'FOCUS_IDENTITY'),
     fullObject BYTEA,
     sourceResourceRefTargetOid UUID,
-    itemsOriginal JSONB,
-    itemsNormalized JSONB,
 
     PRIMARY KEY (ownerOid, cid)
 )

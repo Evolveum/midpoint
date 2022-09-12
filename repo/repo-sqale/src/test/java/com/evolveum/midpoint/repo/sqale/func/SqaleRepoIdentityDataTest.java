@@ -14,13 +14,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import com.evolveum.midpoint.prism.*;
+
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -97,26 +95,29 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         PrismContainer<Containerable> identitiesContainer = user2.asPrismObject().findContainer(FocusType.F_IDENTITIES);
         assertThat(identitiesContainer.isIncomplete()).isFalse();
 
+        // TODO assert defaultAuthoritativeSource
+
         List<FocusIdentityType> identities = user2.getIdentities().getIdentity();
         assertThat(identities).hasSize(2);
 
+        // TODO what to do with this comment?
+        //  Internally we skip this for m_focus_identity.fullObject, but this is only implementation detail
+        //  and we don't want to propagate it up. Items are retrieved without any need for explicit retrieve option.
+        PrismContainer<Containerable> normalizedDataContainer =
+                identitiesContainer.getValue().findContainer(FocusIdentitiesType.F_NORMALIZED_DATA);
+        assertThat(normalizedDataContainer.isIncomplete()).isFalse();
+
+        assertThat(normalizedDataContainer.getValue().getItems())
+                .extracting(i -> i.getElementName().toString())
+                .containsExactlyInAnyOrder("givenName", "familyName", "familyName.3", "dateOfBirth", "nationalId");
+
         // one of the identities will be checked thoroughly
         FocusIdentityType identity = identities.stream().filter(i -> i.getId().equals(1L)).findFirst().orElseThrow();
-        // Internally we skip this for m_focus_identity.fullObject, but this is only implementation detail
-        // and we don't want to propagate it up. Items are retrieved without any need for explicit retrieve option.
-        assertThat(identity.asPrismContainerValue().findContainer(FocusIdentityType.F_ITEMS).isIncomplete()).isFalse();
         FocusIdentitySourceType source = identity.getSource();
         ObjectReferenceType resourceRef = source.getResourceRef();
         assertThat(resourceRef).isNotNull()
                 .extracting(r -> r.getOid())
                 .isEqualTo("9dff5686-e695-4ad9-8098-5907758668c7");
-
-        assertThat(Containerable.asPrismContainerValue(identity.getItems().getOriginal()).getItems())
-                .extracting(i -> i.getElementName().toString())
-                .containsExactlyInAnyOrder("givenName", "familyName", "dateOfBirth", "nationalId");
-        assertThat(Containerable.asPrismContainerValue(identity.getItems().getNormalized()).getItems())
-                .extracting(i -> i.getElementName().toString())
-                .containsExactlyInAnyOrder("givenName", "familyName", "familyName.3", "dateOfBirth", "nationalId");
     }
 
     @Test
@@ -125,13 +126,12 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         ItemName familyNameQName = new ItemName(SchemaConstants.NS_C, "familyName");
         var def = PrismContext.get().definitionFactory()
                 .createPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
+        def.toMutable().setMaxOccurs(-1);
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .itemWithDef(def,
                         UserType.F_IDENTITIES,
-                        FocusIdentitiesType.F_IDENTITY,
-                        FocusIdentityType.F_ITEMS,
-                        FocusIdentityItemsType.F_NORMALIZED,
+                        FocusIdentitiesType.F_NORMALIZED_DATA,
                         familyNameQName)
                 .eq("green")
                 .build();
@@ -164,13 +164,12 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         ItemName familyNameQName = new ItemName(SchemaConstants.NS_C, "familyName");
         var def = PrismContext.get().definitionFactory()
                 .createPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
+        def.toMutable().setMaxOccurs(-1);
 
         ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .itemWithDef(def,
                         UserType.F_IDENTITIES,
-                        FocusIdentitiesType.F_IDENTITY,
-                        FocusIdentityType.F_ITEMS,
-                        FocusIdentityItemsType.F_NORMALIZED,
+                        FocusIdentitiesType.F_NORMALIZED_DATA,
                         familyNameQName)
                 .fuzzyString("gren").levenshteinInclusive(3)
                 .build();
@@ -220,7 +219,7 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         assertThat(user.getIdentities().getIdentity())
                 .filteredOn(i -> i.getSource() != null && "test300".equals(i.getSource().getTag()))
                 .singleElement()
-                .extracting(i -> i.getItems())
+                .extracting(i -> i.getData())
                 .isNull();
     }
 
@@ -265,8 +264,7 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         var def = PrismContext.get().definitionFactory()
                 .createPropertyDefinition(familyNameQName, DOMUtil.XSD_STRING, null, null);
 
-        ItemPath itemPath = ItemPath.create(UserType.F_IDENTITIES, FocusIdentitiesType.F_IDENTITY, 1L,
-                FocusIdentityType.F_ITEMS, FocusIdentityItemsType.F_NORMALIZED, familyNameQName);
+        ItemPath itemPath = ItemPath.create(UserType.F_IDENTITIES, FocusIdentitiesType.F_NORMALIZED_DATA, familyNameQName);
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(itemPath, def)
                 .replace("blue") // no more green, sorry
@@ -286,10 +284,8 @@ public class SqaleRepoIdentityDataTest extends SqaleRepoBaseTest {
         and("getObject returns focus with three identities");
         user = repositoryService.getObject(UserType.class, userOid, getWithIdentitiesOptions, result)
                 .asObjectable();
-        assertThat(user.getIdentities().getIdentity())
-                .filteredOn(i -> i.getItems() != null
-                        && "blue".equals(i.getItems().getNormalized().prismGetPropertyValue(familyNameQName, String.class)))
-                .singleElement()
-                .matches(i -> i.getId().equals(1L), "identities container ID == 1");
+        assertThat(user.getIdentities().getNormalizedData().prismGetPropertyValue(familyNameQName, String.class))
+                .as("normalized family name")
+                .isEqualTo("blue");
     }
 }

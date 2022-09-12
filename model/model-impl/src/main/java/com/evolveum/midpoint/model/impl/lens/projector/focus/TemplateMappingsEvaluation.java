@@ -385,9 +385,9 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         setDefaultStrong(selectionMapping);
         setDefaultRelativityAbsolute(selectionMapping);
         selectionMapping.getSource().add(new VariableBindingDefinitionType()
-                .path(new ItemPathType(SchemaConstants.PATH_IDENTITY)));
+                .path(new ItemPathType(SchemaConstants.PATH_FOCUS_IDENTITY)));
         selectionMapping.getSource().add(new VariableBindingDefinitionType()
-                .path(new ItemPathType(SchemaConstants.PATH_DEFAULT_AUTHORITATIVE_SOURCE)));
+                .path(new ItemPathType(SchemaConstants.PATH_FOCUS_DEFAULT_AUTHORITATIVE_SOURCE)));
         return setMappingTarget(selectionMapping, ref);
     }
 
@@ -418,10 +418,10 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         if (mapping != null) {
             ObjectTemplateMappingType clone = mapping.clone();
             clone.getSource().add(new VariableBindingDefinitionType()
-                    .path(new ItemPathType(SchemaConstants.PATH_IDENTITY)));
+                    .path(new ItemPathType(SchemaConstants.PATH_FOCUS_IDENTITY)));
             setDefaultStrong(clone);
             setDefaultRelativityAbsolute(clone);
-            return setMappingTarget(clone, new ItemPathType(SchemaConstants.PATH_DEFAULT_AUTHORITATIVE_SOURCE));
+            return setMappingTarget(clone, new ItemPathType(SchemaConstants.PATH_FOCUS_DEFAULT_AUTHORITATIVE_SOURCE));
         } else {
             return null;
         }
