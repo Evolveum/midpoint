@@ -19,6 +19,7 @@ import com.evolveum.midpoint.web.session.ObjectListStorage;
 
 import com.evolveum.midpoint.web.session.PageStorage;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -65,12 +66,14 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
                 @Override
                 protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<O>> rowModel, IModel<Boolean> selected) {
                     super.onUpdateRow(target, table, rowModel, selected);
+                    updatePreselectedObjects(Arrays.asList(rowModel));
                     onUpdateCheckbox(target, Arrays.asList(rowModel), table);
                 }
 
                 @Override
                 protected void onUpdateHeader(AjaxRequestTarget target, boolean selected, DataTable table) {
                     super.onUpdateHeader(target, selected, table);
+                    updatePreselectedObjects(TableUtil.getAvailableData(table));
                     onUpdateCheckbox(target, TableUtil.getAvailableData(table), table);
                 }
 
@@ -128,6 +131,22 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     protected String getStorageKey() {
         return null;
+    }
+
+    protected void updatePreselectedObjects(List<IModel<SelectableBean<O>>> rowModelList) {
+        if (CollectionUtils.isEmpty(rowModelList)) {
+            return;
+        }
+        rowModelList.forEach(rowModel -> {
+            SelectableBean<O> selectableBean = rowModel.getObject();
+            O selectedObject = selectableBean.getValue();
+            List<O> preselectedObjects = getPreselectedObjectList();
+            if (selectableBean.isSelected()) {
+                preselectedObjects.add(selectedObject);
+            } else {
+                preselectedObjects.removeIf(o -> selectedObject.getOid().equals(o.getOid()));
+            }
+        });
     }
 
     @Override

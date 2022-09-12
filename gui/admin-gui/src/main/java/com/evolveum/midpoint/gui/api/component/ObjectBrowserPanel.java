@@ -248,27 +248,6 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             }
 
             @Override
-            protected void onUpdateCheckbox(AjaxRequestTarget target, List<IModel<SelectableBean<O>>> rowModelList, DataTable table) {
-                updatePreselectedObjects(rowModelList);
-            }
-
-            private void updatePreselectedObjects(List<IModel<SelectableBean<O>>> rowModelList) {
-                if (CollectionUtils.isEmpty(rowModelList)) {
-                    return;
-                }
-                rowModelList.forEach(rowModel -> {
-                    SelectableBean<O> selectableBean = rowModel.getObject();
-                    O selectedObject = selectableBean.getValue();
-                    List<O> preselectedObjects = getPreselectedObjectList();
-                    if (selectableBean.isSelected()) {
-                        preselectedObjects.add(selectedObject);
-                    } else {
-                        preselectedObjects.removeIf(o -> selectedObject.getOid().equals(o.getOid()));
-                    }
-                });
-            }
-
-            @Override
             protected Search createSearch(Class<O> type) {
                 String collectionName = isCollectionViewPanelForCompiledView() ?
                         WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
