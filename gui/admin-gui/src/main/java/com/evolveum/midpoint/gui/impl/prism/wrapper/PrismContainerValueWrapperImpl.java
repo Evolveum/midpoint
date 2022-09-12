@@ -380,6 +380,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
         try {
             PrismContainerValueWrapper<ExtensionType> extension = (PrismContainerValueWrapper<ExtensionType>) item.getValue();
+            if (extension == null) {
+                return;
+            }
             List<? extends ItemWrapper<?, ?>> extensionItems = extension.getItems();
             for (ItemWrapper<?, ?> extensionItem : extensionItems) {
                 if (extensionItem.isShowInVirtualContainer()) {
