@@ -22,12 +22,15 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
@@ -237,6 +240,32 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
             @Override
             protected List<O> getPreselectedObjectList() {
                 return selectedObjectsList;
+            }
+
+            @Override
+            public List<O> getSelectedRealObjects() {
+                return getPreselectedObjectList();
+            }
+
+            @Override
+            protected void onUpdateCheckbox(AjaxRequestTarget target, List<IModel<SelectableBean<O>>> rowModelList, DataTable table) {
+                updatePreselectedObjects(rowModelList);
+            }
+
+            private void updatePreselectedObjects(List<IModel<SelectableBean<O>>> rowModelList) {
+                if (CollectionUtils.isEmpty(rowModelList)) {
+                    return;
+                }
+                rowModelList.forEach(rowModel -> {
+                    SelectableBean<O> selectableBean = rowModel.getObject();
+                    O selectedObject = selectableBean.getValue();
+                    List<O> preselectedObjects = getPreselectedObjectList();
+                    if (selectableBean.isSelected()) {
+                        preselectedObjects.add(selectedObject);
+                    } else {
+                        preselectedObjects.removeIf(o -> selectedObject.getOid().equals(o.getOid()));
+                    }
+                });
             }
 
             @Override
