@@ -22,10 +22,13 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -75,6 +78,9 @@ public class PageSelfDashboard extends PageSelf {
     }
 
     private void initLayout() {
+        MidpointForm<?> mainForm = new MidpointForm<>("mainForm");
+        add(mainForm);
+
         DashboardSearchPanel dashboardSearchPanel = new DashboardSearchPanel(ID_SEARCH_PANEL);
         List<String> searchPanelActions = Arrays.asList(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
@@ -84,14 +90,14 @@ public class PageSelfDashboard extends PageSelf {
             UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SEARCH);
             return WebComponentUtil.getElementVisibility(visibility, searchPanelActions);
         }));
-        add(dashboardSearchPanel);
+        mainForm.add(dashboardSearchPanel);
 
-        initStatisticWidgets();
+        initStatisticWidgets(mainForm);
 
-        initPreviewWidgets();
+        initPreviewWidgets(mainForm);
      }
 
-     private void initStatisticWidgets() {
+     private void initStatisticWidgets(Form mainForm) {
          ListView<ContainerPanelConfigurationType> linksPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
 
              private static final long serialVersionUID = 1L;
@@ -108,10 +114,10 @@ public class PageSelfDashboard extends PageSelf {
              UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
              return WebComponentUtil.getElementVisibility(visibility);
          }));
-         add(linksPanel);
+         mainForm.add(linksPanel);
      }
 
-     private void initPreviewWidgets() {
+     private void initPreviewWidgets(Form mainForm) {
          ListView<ContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, this::getNonStatisticWidgetList) {
 
              @Override
@@ -127,7 +133,7 @@ public class PageSelfDashboard extends PageSelf {
             UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.PREVIEW_WIDGETS);
             return getCompiledGuiProfile().getHomePage() != null && WebComponentUtil.getElementVisibility(visibility);
          }));
-         add(viewWidgetsPanel);
+         mainForm.add(viewWidgetsPanel);
      }
 
      private IModel<String> getWidgetCssClassModel(ContainerPanelConfigurationType panelConfig) {
