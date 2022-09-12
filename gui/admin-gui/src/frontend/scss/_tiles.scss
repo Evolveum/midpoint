@@ -73,6 +73,10 @@
     top: -20px;
     left: 32px;
   }
+
+  & > .title {
+    word-break: break-all;
+  }
 }
 
 @include dark-mode() {
