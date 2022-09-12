@@ -40,9 +40,9 @@ public class IdentityManagementConfigurationImpl implements IdentityManagementCo
             throws ConfigurationException {
         PathKeyedMap<IdentityItemConfiguration> itemConfigurationMap = new PathKeyedMap<>();
         for (ObjectTemplateItemDefinitionType itemDefBean : objectTemplate.getItem()) {
-            IdentityItemDefinitionType identityDefBean = itemDefBean.getIdentity();
-            if (identityDefBean != null) {
-                IdentityItemConfiguration configuration = IdentityItemConfigurationImpl.of(itemDefBean, identityDefBean);
+            IdentityItemDefinitionType multiSourceDefBean = itemDefBean.getMultiSource();
+            if (multiSourceDefBean != null) {
+                IdentityItemConfiguration configuration = IdentityItemConfigurationImpl.of(itemDefBean, multiSourceDefBean);
                 itemConfigurationMap.put(configuration.getPath(), configuration);
             }
         }

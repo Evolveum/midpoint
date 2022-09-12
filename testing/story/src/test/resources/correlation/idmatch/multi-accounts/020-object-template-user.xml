@@ -13,19 +13,19 @@
     </iterationSpecification>
     <item>
         <ref>givenName</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>familyName</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>extension/dateOfBirth</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>extension/nationalId</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <mapping>
         <strength>strong</strength>
@@ -62,7 +62,7 @@
             <path>name</path>
         </target>
     </mapping>
-    <identity>
+    <multiSource>
         <defaultAuthoritativeSource>
             <expression>
                 <script>
@@ -89,6 +89,6 @@
                 </script>
             </expression>
         </defaultAuthoritativeSource>
-    </identity>
+    </multiSource>
 
 </objectTemplate>

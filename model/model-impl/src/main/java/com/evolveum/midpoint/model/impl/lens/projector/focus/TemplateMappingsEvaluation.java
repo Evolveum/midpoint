@@ -345,15 +345,15 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
                 mappings.add(
                         new TemplateMappingEvaluationRequest(mapping, objectTemplate));
             }
-            IdentityItemDefinitionType identityDefBean = templateItemDefBean.getIdentity();
-            if (identityDefBean != null) {
+            IdentityItemDefinitionType multiSourceDefBean = templateItemDefBean.getMultiSource();
+            if (multiSourceDefBean != null) {
                 mappings.add(
                         new TemplateMappingEvaluationRequest(
-                                getOrCreateItemSelectionMapping(identityDefBean, ref),
+                                getOrCreateItemSelectionMapping(multiSourceDefBean, ref),
                                 objectTemplate));
             }
         }
-        IdentityDataHandlingType identityHandlingBean = objectTemplate.getIdentity();
+        IdentityDataHandlingType identityHandlingBean = objectTemplate.getMultiSource();
         if (identityHandlingBean != null) {
             ObjectTemplateMappingType mapping = getAuthoritativeSourceMapping(identityHandlingBean);
             if (mapping != null) {

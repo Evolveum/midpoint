@@ -16,7 +16,7 @@
     </iterationSpecification>
     <item>
         <ref>givenName</ref>
-        <identity>
+        <multiSource>
             <selection>
                 <expression>
                     <!-- Just for the demonstration of an item-specific selection algorithm -->
@@ -46,15 +46,15 @@
                     </script>
                 </expression>
             </selection>
-        </identity>
+        </multiSource>
     </item>
     <item>
         <ref>familyName</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>c:extension/ent:personalNumber</ref> <!-- here are namespaces to see if the default mapping is created correctly -->
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>name</ref>
@@ -71,7 +71,7 @@
             </expression>
         </mapping>
     </item>
-    <identity>
+    <multiSource>
         <defaultAuthoritativeSource>
             <expression>
                 <script>
@@ -107,5 +107,5 @@
                 </script>
             </expression>
         </defaultAuthoritativeSource>
-    </identity>
+    </multiSource>
 </objectTemplate>
