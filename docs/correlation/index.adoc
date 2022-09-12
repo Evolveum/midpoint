@@ -25,7 +25,7 @@ In 4.6, the correlation mechanism is based on _correlation rules_, technically c
 A rule can state that "if the family name, date of birth, and the national-wide ID all match, then the identity is the same".
 Another rule can state that "if (only) the national-wide ID matches, then the identity is the same with the confidence level of 0.7" (whatever the number means).
 
-NOTE: In the future, we plan to provide _adaptive correlation_ that would suggest correlation candidates also according to human resolution of disputed correlation situations in the history.
+NOTE: In the future, we plan to provide _AI-assisted correlation_ that would suggest correlation candidates also according to human resolution of disputed correlation situations in the history.
 At that time, the correlation rules will be not the only - or even not the primary - source for correlation suggestions.
 But, in 4.6, they are the only driver of the correlation algorithm.
 
