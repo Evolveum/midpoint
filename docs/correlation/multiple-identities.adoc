@@ -1,4 +1,4 @@
-= Multiple Identities
+= Multiple Identity Data Sources
 :page-toc: top
 :page-since: "4.6"
 
@@ -51,7 +51,7 @@ Starting with 4.6, midPoint supports both of them.
 Before 4.6, the first requirement was resolvable only using a custom code.
 
 A typical solution was that inbound mappings put the resource-specific values (like given name, family name, and so on) into temporary properties, present often in the user extension.
-This was followed by an algorithm (implemented in an object template mapping) that selected the right values and putting them into `givenName`, `familyName` and other properties of the user.
+This was followed by an object template mapping that selected the right values and putting them into `givenName`, `familyName` and other properties of the user.
 
 Actually, the current solution in 4.6 is an adaptation of this approach.
 This time, however, it is implemented right inside midPoint.
@@ -67,9 +67,9 @@ MidPoint provides two levels at which this can be done:
 
 Working at the level of the whole object is probably easier, and maybe sufficient for the majority of installations.
 
-==== Declaring "Identity Data"
+==== Declaring Multi-Source Data
 
-Usually, not all object properties are to be handled in this "multi-source" style (#TODO name#).
+Usually, not all object properties are to be handled in this "multi-source" style.
 The selection of the ones that should be treated so is done in the object template.
 
 An example:
@@ -81,19 +81,19 @@ An example:
     ...
     <item>
         <ref>givenName</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>familyName</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>honorificPrefix</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>honorificSuffix</ref>
-        <identity/>
+        <multiSource/>
     </item>
     ...
 </objectTemplate>
@@ -112,7 +112,7 @@ the data will flow like this:
 And here comes the question:
 _How should the data (and which ones) flow from the `identities` container to their destination places?_
 
-Although we said it is often easier to decide this question at once for the whole object, let us explain it the way around:
+Although we said it is often easier to decide this question at once for the whole object, let us explain that the way around:
 from individual items up.
 
 ==== Selecting Authoritative Values for an Individual Item
@@ -129,7 +129,7 @@ An example:
     ...
     <item>
         <ref>givenName</ref>
-        <identity>
+        <multiSource>
             <selection>
                 <expression>
                     <script>
@@ -145,7 +145,7 @@ An example:
                     </script>
                 </expression>
             </selection>
-        </identity>
+        </multiSource>
     </item>
     ...
 </objectTemplate>
@@ -211,7 +211,7 @@ This is why we do not need to specify these mappings explicitly.
     <item>
         <ref>(somePath)</ref>
         ...
-        <identity>
+        <multiSource>
             <selection>
                 <expression>
                     <script>
@@ -219,7 +219,7 @@ This is why we do not need to specify these mappings explicitly.
                     </script>
                 </expression>
             </selection>
-        </identity>
+        </multiSource>
     </item>
     ...
 </objectTemplate>
@@ -239,7 +239,7 @@ An example:
 ----
 <objectTemplate>
     ...
-    <identity>
+    <multiSource>
         <defaultAuthoritativeSource>
             <expression>
                 <script>
@@ -269,7 +269,7 @@ An example:
                 </script>
             </expression>
         </defaultAuthoritativeSource>
-    </identity>
+    </multiSource>
 </objectTemplate>
 ----
 
@@ -305,6 +305,7 @@ Outputs of inbound mappings for those projections that are currently not loaded 
 == Limitations
 
 . This feature is supported only for standard focus properties present at the root level (like `givenName`, `familyName`) and all extension properties at root level only. (I.e., not in containers in the extension).
+. It must be used along with archetypes, i.e., the object template must be declared in an archetype.
 
 == Future Work
 
