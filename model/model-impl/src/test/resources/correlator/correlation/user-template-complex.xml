@@ -10,7 +10,7 @@
     <name>complex</name>
     <item>
         <ref>givenName</ref>
-        <identity/> <!-- to check that it is indexed by default -->
+        <multiSource/> <!-- to check that it is indexed by default -->
     </item>
     <item>
         <ref>familyName</ref>
