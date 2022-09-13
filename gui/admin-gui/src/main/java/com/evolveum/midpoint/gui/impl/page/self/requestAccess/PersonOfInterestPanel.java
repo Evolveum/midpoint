@@ -12,8 +12,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -50,6 +48,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -58,8 +57,8 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -697,17 +696,16 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             ObjectFilter filter = null;
 
             Tile<PersonOfInterest> selected = panel.getSelectedTile();
+            String identifier = null;
             if (selected != null) {
-                String identifier = selected.getValue().groupIdentifier;
-                filter = panel.createObjectFilterFromGroupSelection(identifier);
+                identifier = selected.getValue().groupIdentifier;
             }
 
-            ObjectFilter substring = panel.getPrismContext().queryFor(UserType.class)
-                    .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
+            ObjectFilter autocompleteFilter = createAutocompleteFilter(text);
 
-            ObjectFilter full = substring;
+            ObjectFilter full = autocompleteFilter;
             if (filter != null) {
-                full = panel.getPrismContext().queryFactory().createAnd(filter, substring);
+                full = panel.getPrismContext().queryFactory().createAnd(filter, autocompleteFilter);
             }
 
             ObjectQuery query = panel.getPrismContext()
@@ -730,6 +728,45 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
             } catch (Exception ex) {
                 LOGGER.debug("Couldn't search users for multiselect", ex);
             }
+        }
+
+        private ObjectFilter createAutocompleteFilter(String text) {
+            GroupSelectionType group = panel.getSelectedGroupSelection();
+            if (group == null) {
+                return createDefaultFilter(text);
+            }
+
+            SearchFilterType filterTemplate = group.getSearchFilterTemplate();
+            if (filterTemplate == null) {
+                return createDefaultFilter(text);
+            }
+
+            Task task = panel.page.getPageTask();
+            OperationResult result = task.getResult();
+            try {
+                PrismContext ctx = PrismContext.get();
+                ObjectFilter filter = ctx.getQueryConverter().parseFilter(filterTemplate, UserType.class);
+
+                PrismPropertyDefinition<String> def = ctx.definitionFactory().createPropertyDefinition(ExpressionConstants.VAR_INPUT_QNAME,
+                        DOMUtil.XSD_STRING);
+
+                VariablesMap variables = new VariablesMap();
+                variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, text, def);
+
+                return ExpressionUtil.evaluateFilterExpressions(filter, variables, MiscSchemaUtil.getExpressionProfile(),
+                        panel.page.getExpressionFactory(), ctx, "group selection search filter template", task, result);
+            } catch (Exception ex) {
+                result.recordFatalError(ex);
+                LoggingUtils.logUnexpectedException(LOGGER,
+                        "Couldn't evaluate object filter with expression for group selection and search filter template", ex);
+            }
+
+            return createDefaultFilter(text);
+        }
+
+        private ObjectFilter createDefaultFilter(String text) {
+            return panel.getPrismContext().queryFor(UserType.class)
+                    .item(UserType.F_NAME).containsPoly(text).matchingNorm().buildFilter();
         }
 
         private String getDisplayName(PrismObject<UserType> o) {
@@ -798,7 +835,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 return outputValues.iterator().next().getRealValue();
             } catch (Exception ex) {
                 result.recordFatalError(ex);
-                LoggingUtils.logUnexpectedException(LOGGER, contextDesc, ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate expression for group selection and user display name", ex);
             }
 
             return null;

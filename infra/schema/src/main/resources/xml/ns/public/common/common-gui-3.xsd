@@ -357,7 +357,15 @@
             <xsd:element name="identifier" type="xsd:string"/>
             <xsd:element name="display" type="tns:DisplayType"/>
             <xsd:element name="collection" type="tns:CollectionRefSpecificationType"/>
-            <xsd:element name="searchFilterTemplate" type="q:SearchFilterType" minOccurs="0"/>
+            <xsd:element name="searchFilterTemplate" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Search filter template with expression that is used together with collection ref specification.
+                        Expression should use variable "input" which will contain value from autocomplete text field used for search.
+                        By default SUBSTRING search on UserType.name is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="userDisplayName" type="tns:ExpressionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
