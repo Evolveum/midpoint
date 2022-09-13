@@ -408,7 +408,20 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         t.setValue(object);
 
                         RequestAccess ra = RoleCatalogPanel.this.getModelObject();
-                        t.setCheckState(ra.isAssignedToAll(obj.getOid()) ? RoundedIconPanel.State.FULL : RoundedIconPanel.State.PARTIAL);
+
+                        RoundedIconPanel.State checkState;
+                        String checkTitle = null;
+                        if (ra.isAssignedToAll(obj.getOid())) {
+                            checkState = RoundedIconPanel.State.FULL;
+                            checkTitle = getString("RoleCatalogPanel.tileFullCheckState");
+                        } else if (ra.isAssignedToNone(obj.getOid())) {
+                            checkState = RoundedIconPanel.State.NONE;
+                        } else {
+                            checkState = RoundedIconPanel.State.PARTIAL;
+                            checkTitle = getString("RoleCatalogPanel.tilePartialCheckState");
+                        }
+                        t.setCheckState(checkState);
+                        t.setCheckTitle(checkTitle);
 
                         return t;
                     }

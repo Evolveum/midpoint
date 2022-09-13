@@ -20,6 +20,8 @@ public class CatalogTile<T extends Serializable> extends Tile<T> {
 
     private RoundedIconPanel.State checkState;
 
+    private String checkTitle;
+
     public CatalogTile() {
         this(null, null);
     }
@@ -53,5 +55,13 @@ public class CatalogTile<T extends Serializable> extends Tile<T> {
 
     public void setCheckState(RoundedIconPanel.State checkState) {
         this.checkState = checkState;
+    }
+
+    public String getCheckTitle() {
+        return checkTitle;
+    }
+
+    public void setCheckTitle(String checkTitle) {
+        this.checkTitle = checkTitle;
     }
 }
