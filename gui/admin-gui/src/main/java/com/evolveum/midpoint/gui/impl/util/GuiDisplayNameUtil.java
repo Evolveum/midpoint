@@ -14,6 +14,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -76,6 +78,15 @@ public class GuiDisplayNameUtil {
         }
 
         return name;
+    }
+
+    public static String getDisplayName(VariableBindingDefinitionType value) {
+        if (value == null || value.getPath() == null) {
+            return null;
+        }
+        ItemPathType path = value.getPath();
+
+        return path.getItemPath().stripVariableSegment().toString();
     }
 
     public static String getDisplayName(ItemConstraintType propertyConstraintType) {

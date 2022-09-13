@@ -72,6 +72,11 @@
     position: relative;
     top: -20px;
     left: 32px;
+    margin-bottom: -20px;
+
+    &.rounded-icon-none {
+      margin-bottom: 0;
+    }
   }
 
   & > .title {

@@ -153,16 +153,20 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
                     Collection<D> subDeltas = iw.getDelta();
                     if (CollectionUtils.isNotEmpty(subDeltas)) {
                         subDeltas.removeIf(d -> {
+                            if (d.getPath().namedSegmentsOnly().equivalent(ResourceAttributeDefinitionType.F_REF)) {
+                                return true;
+                            }
                             for (ItemPath pathForDelete : pathsForDelete) {
-                                if (pathForDelete.isSubPath(d.getPath())
-                                        || d.getPath().namedSegmentsOnly().equivalent(ResourceAttributeDefinitionType.F_REF)) {
+                                if (pathForDelete.isSubPath(d.getPath())) {
                                     return true;
                                 }
                             }
                             return false;
                         });
-                        LOGGER.trace("Computed deltas:\n {}", subDeltas);
-                        deltas.addAll(subDeltas);
+                        if (CollectionUtils.isNotEmpty(subDeltas)) {
+                            LOGGER.trace("Computed deltas:\n {}", subDeltas);
+                            deltas.addAll(subDeltas);
+                        }
                     } else {
                         LOGGER.trace("No deltas computed for {}", iw);
                     }
