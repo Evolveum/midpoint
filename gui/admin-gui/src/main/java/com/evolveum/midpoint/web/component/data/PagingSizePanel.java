@@ -60,11 +60,15 @@ public class PagingSizePanel extends BasePanel<Integer> {
     private String createIncrementScript(String buttonId, int increment) {
         return "$(function() { $('#" + get(buttonId).getMarkupId() + "').click( "
                 + "function() { "
-                + "MidPointTheme.increment('" + get(ID_INPUT).getMarkupId() + "', " + increment + "); "
+                + "MidPointTheme.increment('" + get(ID_INPUT).getMarkupId() + "', '"
+                + get(ID_INCREMENT).getMarkupId() + "','"
+                + get(ID_DECREMENT).getMarkupId() + "', " +
+                increment + "); "
                 + "}); });";
     }
 
     private void initLayout() {
+        add(AttributeAppender.append("class", "paging-size"));
         add(AttributeAppender.prepend("class",
                 () -> StringUtils.joinWith(" ", "input-group", small ? "input-group-sm" : "", "flex-nowrap w-auto")));
 
@@ -91,10 +95,12 @@ public class PagingSizePanel extends BasePanel<Integer> {
         add(input);
 
         WebMarkupContainer increment = new WebMarkupContainer(ID_INCREMENT);
+        increment.add(AttributeAppender.append("class", () -> getModelObject() >= 100 ? "disabled" : null));
         increment.setOutputMarkupId(true);
         add(increment);
 
         WebMarkupContainer decrement = new WebMarkupContainer(ID_DECREMENT);
+        decrement.add(AttributeAppender.append("class", () -> getModelObject() <= 5 ? "disabled" : null));
         decrement.setOutputMarkupId(true);
         add(decrement);
     }

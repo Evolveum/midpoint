@@ -481,14 +481,26 @@ export default class MidPointTheme {
         history.replaceState(null, null, "?" + queryParams.toString());
     }
 
-    increment(inputId, increment) {
+    increment(inputId, incrementId, decrementId, increment) {
         var input = $('#' + inputId);
+        var inc = $('#' + incrementId);
+        var dec = $('#' + decrementId);
 
         var value = parseInt(input.val(), 10) || 0;
 
         value = value + increment;
-        if (value <= 0) {
+        if (value <= 5) {
             value = 5;
+            dec.addClass("disabled");
+        } else {
+            dec.removeClass("disabled")
+        }
+
+        if (value >= 100) {
+            value = 100;
+            inc.addClass("disabled");
+        } else {
+            inc.removeClass("disabled");
         }
 
         input.val(value);
