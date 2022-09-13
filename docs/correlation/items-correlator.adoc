@@ -188,7 +188,7 @@ An example:
 </objectTemplate>
 ----
 
-For more information please see xref:/midpoint/reference/correlation/fuzzy-logic.adoc[fuzzy searching] document.
+For more information please see xref:/midpoint/reference/correlation/fuzzy-searching/[fuzzy searching] document.
 It contains also information on specifying custom confidence values, as these are the most useful with the connection with the fuzzy search logic.
 
 == Default Search Options for an Item
@@ -292,3 +292,7 @@ In order for the attribute-bound correlator be used, the following conditions mu
 
 The correlator created has no customizations (like weight, ordering, tier number, and so on).
 It contains only the reference to the focus item and the (optional) search parameters.
+
+== Limitations
+
+#TODO#

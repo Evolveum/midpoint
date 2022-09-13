@@ -24,7 +24,7 @@ This feature can be used to search for:
 
 . data normalized in a custom way, e.g. like "take first five characters of the surname",
 . data that are not indexed by default, e.g. the description property,
-. so-called xref:/midpoint/reference/correlation/multiple-identities/[multi-identity] data.
+. so-called xref:/midpoint/reference/correlation/multiple-identity-data-sources/["multi-source" items] data.
 
 == Implementation
 
