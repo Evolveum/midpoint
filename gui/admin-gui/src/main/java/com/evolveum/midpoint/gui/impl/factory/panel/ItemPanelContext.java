@@ -168,4 +168,8 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implemen
     public void setFormType(FormPanelType formType) {
         this.formType = formType;
     }
+
+    public IModel<IW> getItemWrapperModel() {
+        return itemWrapper;
+    }
 }

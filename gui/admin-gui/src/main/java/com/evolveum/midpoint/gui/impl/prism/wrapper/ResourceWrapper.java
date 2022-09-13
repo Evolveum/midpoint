@@ -56,6 +56,8 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
                         SynchronizationReactionType.F_NAME))
                 .put(AbstractSynchronizationActionType.class, Arrays.asList(
                         AbstractSynchronizationActionType.F_NAME))
+                .put(ResourceAttributeDefinitionType.class, Arrays.asList(
+                        ResourceAttributeDefinitionType.F_REF))
                 .build();
     }
 
