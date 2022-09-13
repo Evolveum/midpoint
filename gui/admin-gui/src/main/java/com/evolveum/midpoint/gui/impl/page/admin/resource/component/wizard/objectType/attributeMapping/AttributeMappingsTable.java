@@ -309,7 +309,13 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
                 mappingTypeDef,
                 MappingType.F_NAME,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()));
+                getPageBase()) {
+
+            @Override
+            public String getCssClass() {
+                return "col-lg-2 col-md-3";
+            }
+        });
 
         columns.addAll(createCustomColumns());
 
@@ -317,7 +323,13 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
                 mappingTypeDef,
                 MappingType.F_ENABLED,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()));
+                getPageBase()) {
+
+            @Override
+            public String getCssClass() {
+                return "col-md-2";
+            }
+        });
 
         return columns;
     }

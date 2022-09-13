@@ -229,9 +229,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         };
         ctx.setCreateIfEmpty(true);
         ctx.setDetailsPageTypeConfiguration(getPanelConfigurations());
-        if (getModelServiceLocator() instanceof PageResource) {
-            ctx.setConfigureMappingType(!((PageResource)getModelServiceLocator()).isEditObject());
-        }
+        ctx.setConfigureMappingType(true);
         return ctx;
     }
 }
