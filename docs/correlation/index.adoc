@@ -9,23 +9,23 @@
 
 The "smart correlation" is a mechanism to correlate identity data to existing focus objects in the repository.
 Typical use is e.g. the _resource objects correlation_ during the synchronization process, where (newly discovered) accounts on a resource are synchronized to midPoint.
-Another typical use will be the correlation during manual or automated registration of new users, including self-registration.
+Another use will be the correlation during manual or automated registration of new users, including self-registration.
 
 In midPoint 4.4 and before, the only way of correlation was the use of correlation filters, with strictly binary output: either a matching object was found, or there was no match.
 
 In midPoint 4.5, we introduced manual correlation for situations where there is a candidate match (or more candidate matches) that need to be resolved by the human operator.
-Moreover, multiple correlation mechanisms have been created: a custom script, call to an external ID Match API service, or simplified, item-based correlation.
+It worked with the external ID Match API service.
 
-The goal for midPoint 4.6 and beyond is to provide a configurable correlation mechanism that can work with approximate matching.
+The goal for midPoint 4.6 and beyond is to provide a configurable correlation mechanism that can provide approximate matching.
 For short, it is called _smart correlation_.
 
 == Configuration
 
 In 4.6, the correlation mechanism is based on _correlation rules_, technically called _correlators_.
-A rule can state that "if the family name, date of birth, and the national-wide ID all match, then the identity is the same".
+For example, a rule can state that "if the family name, date of birth, and the national-wide ID all match, then the identity is the same".
 Another rule can state that "if (only) the national-wide ID matches, then the identity is the same with the confidence level of 0.7" (whatever the number means).
 
-NOTE: In the future, we plan to provide _AI-assisted correlation_ that would suggest correlation candidates also according to human resolution of disputed correlation situations in the history.
+NOTE: In the future, we plan to provide _AI-assisted correlation_ that will suggest correlation candidates also according to human resolution of disputed correlation situations in the history.
 At that time, the correlation rules will be not the only - or even not the primary - source for correlation suggestions.
 But, in 4.6, they are the only driver of the correlation algorithm.
 
@@ -45,25 +45,29 @@ There are the following types of correlation rules:
 |===
 
 NOTE: Precisely speaking, there is also a `composite` rule that provides an aggregation of the results of its children.
-However, in 4.6 it is supported only as a top-level rule, i.e., it is present automatically - without the need to specify it explicitly.
+However, in 4.6 it is supported only as a top-level rule, i.e., it is present automatically - without the possibility (nor need) to specify it explicitly.
 
 === Correlation Configuration Placement
 
 The correlation configuration can reside in the following places:
 
-. A resource object type definition: either in `correlation` item, or distributed into individual attribute definitions.
-. An object template: either in `correlation` item, or distributed into individual item definitions.
+. A resource object type definition: either in top-level `correlation` item, or distributed into individual attribute definitions.
+. An object template, currently in top-level `correlation` item.
 footnote:[The item-bound usage is planned for the future. It can be configured now, but will not have any effect.]
 
-The reason for such flexibility is that in some scenarios, the correlation is bound to given type of focus objects, regardless of the origin of identity data we need to correlate: they can come from any resource or (in the future) they may come from registration or self-registration processes.
+The reason for such flexibility is that in some scenarios, the correlation is bound to given type of focus objects, regardless of the origin of identity data we need to correlate.
+They can come from any resource or (in the future) they may come from registration or self-registration processes.
 In other scenarios, though, the correlation rules are specific to given resource object type.
+
 When present, the configuration attached to the resource object type takes precedence over the one connected to the object template.
+
+IMPORTANT: The configuration attached to the object template requires the use of _archetypes_. See <<Limitations>>.
 
 === Configuration Examples
 
 ==== Example 1: Attribute-Bound Definition
 
-The following is the most basic example: an attribute mapped to a focus property that serves as a correlation item.
+The following is the most basic example: an attribute is mapped to a focus property that serves as a correlation item.
 
 .Listing 1. `icfs:name` serving as a correlation attribute
 [source,xml]
@@ -495,3 +499,9 @@ The order of "authoritativeness" (so to say) is: SIS, HR, external, as can be se
 <2> A mapping that selects the most authoritative data source for a given user.
 
 Please see xref:/midpoint/reference/correlation/multiple-identities/[the page on multiple identities] for more information.
+
+== Limitations
+
+#TODO#
+
+. #archetypes#
