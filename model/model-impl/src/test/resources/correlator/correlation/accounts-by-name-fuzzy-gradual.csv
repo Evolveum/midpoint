@@ -1,6 +1,7 @@
 # Users: John Smith, Mary Smith
 # Normalization: poly string norm
 # Search: given name with levenshtein(4, exclusive), family name with similarity(0.2, inclusive) - out of reality; just to test the algorithm
+# local confidences using default algorithms
 
 uid  | givenName | familyName | expCandidates | expResult   | _note
 1    | John      | Smith      | smith1:1.0    | smith1      | Exact match
