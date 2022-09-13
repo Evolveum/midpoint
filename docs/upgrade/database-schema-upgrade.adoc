@@ -98,7 +98,7 @@ psql -v ON_ERROR_STOP=1 -h localhost -U midaudit -W -d midaudit -f postgres-new-
 To upgrade database containing both, use multiple `-f` options:
 [source,bash]
 ----
-psql -v ON_ERROR_STOP=1 -h localhost -U midaudit -W -d midaudit \
+psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint \
   -f postgres-new-upgrade.sql -f postgres-new-upgrade-audit.sql
 ----
 
