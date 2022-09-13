@@ -502,8 +502,6 @@ CREATE TABLE m_focus_identity (
     INHERITS(m_container);
 
 CREATE INDEX m_focus_identity_sourceResourceRefTargetOid_idx ON m_focus_identity (sourceResourceRefTargetOid);
-CREATE INDEX m_focus_identity_itemsOriginal_idx ON m_focus_identity USING gin(itemsOriginal);
-CREATE INDEX m_focus_identity_itemsNormalized_idx ON m_focus_identity USING gin(itemsNormalized);
 
 -- Represents GenericObjectType, see https://docs.evolveum.com/midpoint/reference/schema/generic-objects/
 CREATE TABLE m_generic_object (

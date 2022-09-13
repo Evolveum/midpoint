@@ -141,16 +141,15 @@ CREATE TABLE m_focus_identity (
         CHECK (containerType = 'FOCUS_IDENTITY'),
     fullObject BYTEA,
     sourceResourceRefTargetOid UUID,
-    itemsOriginal JSONB,
-    itemsNormalized JSONB,
 
     PRIMARY KEY (ownerOid, cid)
 )
     INHERITS(m_container);
 
 CREATE INDEX m_focus_identity_sourceResourceRefTargetOid_idx ON m_focus_identity (sourceResourceRefTargetOid);
-CREATE INDEX m_focus_identity_itemsOriginal_idx ON m_focus_identity USING gin(itemsOriginal);
-CREATE INDEX m_focus_identity_itemsNormalized_idx ON m_focus_identity USING gin(itemsNormalized);
+
+ALTER TABLE m_focus ADD normalizedData JSONB;
+CREATE INDEX m_focus_normalizedData_idx ON m_focus USING gin(normalizedData);
 $aa$);
 
 -- resource templates
@@ -161,14 +160,6 @@ $aa$);
 -- MID-8053: "Active" connectors detection
 call apply_change(11, $aa$
 ALTER TABLE m_connector ADD available BOOLEAN;
-$aa$);
-
--- Simplifying/finalizing database schema for smart correlation
--- TODO what about removing obsolete "items original and normalized"?
---  Should we squash changes 9 and 12 into a clean one?
-call apply_change(12, $aa$
-ALTER TABLE m_object ADD normalizedData JSONB;
-CREATE INDEX m_object_normalized_data_idx ON m_object USING gin(normalizedData);
 $aa$);
 
 -- SCHEMA-COMMIT 4.6: commit TODO
