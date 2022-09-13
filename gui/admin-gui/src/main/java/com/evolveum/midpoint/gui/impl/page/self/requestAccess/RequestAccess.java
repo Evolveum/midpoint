@@ -570,7 +570,7 @@ public class RequestAccess implements Serializable {
             return null;
         }
 
-        Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
+        Task task = page.createSimpleTask(usersCount == 1 ? OPERATION_REQUEST_ASSIGNMENTS_SINGLE : OPERATION_REQUEST_ASSIGNMENTS);
         OperationResult result = task.getResult();
 
         for (ObjectReferenceType poiRef : requestItems.keySet()) {
@@ -728,17 +728,26 @@ public class RequestAccess implements Serializable {
     }
 
     public boolean isAssignedToAll(String oid) {
+        return countNumberOfAssignees(oid) == requestItems.keySet().size();
+    }
+
+    public boolean isAssignedToNone(String oid) {
+        return countNumberOfAssignees(oid) == 0;
+    }
+
+    private int countNumberOfAssignees(String oid) {
         if (oid == null) {
-            return false;
+            return 0;
         }
 
+        int count = 0;
         for (List<ObjectReferenceType> memberships : existingPoiRoleMemberships.values()) {
             boolean found = memberships.stream().anyMatch(m -> oid.equals(m.getOid()));
-            if (!found) {
-                return false;
+            if (found) {
+                count++;
             }
         }
 
-        return true;
+        return count;
     }
 }

@@ -55,7 +55,7 @@ public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogT
         RoundedImagePanel logo1 = new RoundedImagePanel(ID_LOGO, () -> createDisplayType(getModel()), createPreferredImage(getModel()));
         add(logo1);
 
-        RoundedIconPanel check = new RoundedIconPanel(ID_CHECK, () -> "fa fa-check", () -> getModelObject().getCheckState());
+        RoundedIconPanel check = new RoundedIconPanel(ID_CHECK, () -> "fa fa-check", () -> getModelObject().getCheckState(), () -> getModelObject().getCheckTitle());
         add(check);
 
         Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
