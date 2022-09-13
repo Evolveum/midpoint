@@ -22,7 +22,11 @@
 @mixin selectable-tile {
   cursor: pointer;
 
-  &:hover,
+  &:hover {
+    border: 2px solid $input-border-color;
+    border-radius: $border-radius;
+  }
+
   &.active {
     border: 2px solid $primary;
     border-radius: $border-radius;
@@ -40,7 +44,10 @@
 }
 
 @mixin selectable-tile-dark-mode {
-  &:hover,
+  &:hover {
+    border-color: $gray-400;
+  }
+
   &.active {
     border-color: $primary-alt;
   }
