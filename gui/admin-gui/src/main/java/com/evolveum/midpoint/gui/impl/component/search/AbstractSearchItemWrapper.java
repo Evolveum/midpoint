@@ -101,7 +101,11 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
     }
 
     public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-        return applyFilter && isVisible();
+        return applyPredefinedFilter() || isVisible();
+    }
+
+    private boolean applyPredefinedFilter() {
+        return getPredefinedFilter() != null && applyFilter;
     }
 
     public void setApplyFilter(boolean applyFilter) {
