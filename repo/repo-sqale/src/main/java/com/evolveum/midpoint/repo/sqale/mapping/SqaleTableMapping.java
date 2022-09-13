@@ -16,6 +16,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.PathSet;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
 import org.jetbrains.annotations.NotNull;
@@ -511,8 +513,8 @@ public abstract class SqaleTableMapping<S, Q extends FlexibleRelationalPathBase<
                 .getBytes(StandardCharsets.UTF_8);
     }
 
-    protected Collection<? extends QName> fullObjectItemsToSkip() {
-        return Collections.emptyList();
+    protected PathSet fullObjectItemsToSkip() {
+        return PathSet.empty();
     }
 
     /**

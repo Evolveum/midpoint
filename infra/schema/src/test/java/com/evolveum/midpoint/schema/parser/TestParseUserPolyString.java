@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schema.parser;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -86,7 +87,7 @@ public class TestParseUserPolyString extends AbstractObjectParserTest<UserType> 
         PrismContext prismContext = getPrismContext();
         PrismObject<UserType> jack = prismContext.parserFor(getFile()).language(language).parse();
         String serialized = prismContext.serializerFor(language)
-                .itemsToSkip(Arrays.asList(UserType.F_ORGANIZATIONAL_UNIT, UserType.F_LINK_REF, UserType.F_ASSIGNMENT))
+                .itemsToSkip(PathSet.of(UserType.F_ORGANIZATIONAL_UNIT, UserType.F_LINK_REF, UserType.F_ASSIGNMENT))
                 .options(SerializationOptions.createSkipIndexOnly())
                 .serialize(jack);
         System.out.println("Serialization with org unit, linkRef and assignment skipped:\n" + serialized);

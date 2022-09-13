@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.testng.annotations.Test;
@@ -85,16 +86,22 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
             throw new SchemaException("Error parsing file "+getFile().getPath()+": " + e.getMessage(), e);
         }
         String serialized = prismContext.serializerFor(language)
-                .itemsToSkip(Arrays.asList(UserType.F_ORGANIZATIONAL_UNIT, UserType.F_LINK_REF, UserType.F_ASSIGNMENT))
+                .itemsToSkip(
+                        PathSet.of(
+                                UserType.F_ORGANIZATIONAL_UNIT,
+                                UserType.F_LINK_REF,
+                                UserType.F_ASSIGNMENT.append(AssignmentType.F_EXTENSION)))
                 .serialize(jack);
         System.out.println("Serialization with org unit, linkRef and assignment skipped:\n" + serialized);
         PrismObject<UserType> jackReparsed = prismContext.parserFor(serialized).language(language).parse();
         assertEquals("Wrong # of org units", 0, jackReparsed.asObjectable().getOrganizationalUnit().size());
-        assertEquals("Wrong # of assignments", 0, jackReparsed.asObjectable().getAssignment().size());
+        assertEquals("Wrong # of assignments", 1, jackReparsed.asObjectable().getAssignment().size());
         assertEquals("Wrong # of links", 0, jackReparsed.asObjectable().getLinkRef().size());
         PrismAsserts.assertIncomplete(jackReparsed, UserType.F_ORGANIZATIONAL_UNIT);
         PrismAsserts.assertIncomplete(jackReparsed, UserType.F_LINK_REF);
-        PrismAsserts.assertIncomplete(jackReparsed, UserType.F_ASSIGNMENT);
+        PrismAsserts.assertNotIncomplete(jackReparsed, UserType.F_ASSIGNMENT);
+        AssignmentType assignment = jackReparsed.asObjectable().getAssignment().get(0);
+        PrismAsserts.assertIncomplete(assignment.asPrismContainerValue(), AssignmentType.F_EXTENSION);
     }
 
     private void processParsingsPCV(SerializingFunction<PrismContainerValue<UserType>> serializer, String serId) throws Exception {

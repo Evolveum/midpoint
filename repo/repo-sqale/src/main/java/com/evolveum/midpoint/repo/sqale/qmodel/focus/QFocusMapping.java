@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType.*;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
@@ -156,8 +157,8 @@ public class QFocusMapping<S extends FocusType, Q extends QFocus<R>, R extends M
     }
 
     @Override
-    protected Collection<? extends QName> fullObjectItemsToSkip() {
-        return List.of(F_JPEG_PHOTO, F_IDENTITIES);
+    protected PathSet fullObjectItemsToSkip() {
+        return PathSet.of(F_JPEG_PHOTO, F_IDENTITIES);
     }
 
     @SuppressWarnings("DuplicatedCode") // activation code duplicated with assignment
