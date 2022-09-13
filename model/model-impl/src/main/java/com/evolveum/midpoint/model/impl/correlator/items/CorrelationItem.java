@@ -269,11 +269,6 @@ public class CorrelationItem implements DebugDumpable {
         throw new ConfigurationException("Please specify Levenshtein or trigram similarity fuzzy string matching method");
     }
 
-    private ExpressionType getConfidenceExpression() {
-        ItemSearchConfidenceDefinitionType confidenceDef = searchDefinitionBean.getConfidence();
-        return confidenceDef != null ? confidenceDef.getExpression() : null;
-    }
-
     private QName getMatchingRuleName() {
         return Objects.requireNonNullElse(
                 searchDefinitionBean.getMatchingRule(),
@@ -309,6 +304,36 @@ public class CorrelationItem implements DebugDumpable {
                 .orElse(1.0);
         LOGGER.trace("Confidence values {} yielding {}", confidenceValues, resultingConfidence);
         return resultingConfidence;
+    }
+
+    private ExpressionType getConfidenceExpression() {
+        ItemSearchConfidenceDefinitionType confidenceDef = searchDefinitionBean.getConfidence();
+        ExpressionType expression = confidenceDef != null ? confidenceDef.getExpression() : null;
+        return expression != null ? expression : getDefaultConfidenceExpression();
+    }
+
+    /** For fuzzy search. */
+    private ExpressionType getDefaultConfidenceExpression() {
+        FuzzySearchDefinitionType fuzzyDef = searchDefinitionBean.getFuzzy();
+        if (fuzzyDef == null) {
+            return null;
+        }
+        if (fuzzyDef.getLevenshtein() != null) {
+            return createConfidenceExpression("1/(input+1)");
+        } else if (fuzzyDef.getSimilarity() != null) {
+            return createConfidenceExpression("input");
+        } else {
+            return null; // should not occur anyway
+        }
+    }
+
+    private ExpressionType createConfidenceExpression(String code) {
+        return
+                new ExpressionType()
+                        .expressionEvaluator(
+                                new ObjectFactory().createScript(
+                                        new ScriptExpressionEvaluatorType()
+                                                .code(code)));
     }
 
     /** Returns the values of given metric (e.g. Levenshtein distance) for given candidate for this item. */

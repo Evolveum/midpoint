@@ -135,10 +135,10 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                     new File(TEST_DIR, "correlator-by-name-original.xml"),
                     USER_TEMPLATE_ORIGINAL_INDEXING);
 
-    private static final File FILE_ACCOUNTS_BY_NAME_FUZZY = new File(TEST_DIR, "accounts-by-name-fuzzy.csv");
-    private static final TestCorrelator CORRELATOR_BY_NAME_FUZZY =
+    private static final File FILE_ACCOUNTS_BY_NAME_FUZZY_FIXED = new File(TEST_DIR, "accounts-by-name-fuzzy-fixed.csv");
+    private static final TestCorrelator CORRELATOR_BY_NAME_FUZZY_FIXED =
             new TestCorrelator(
-                    new File(TEST_DIR, "correlator-by-name-fuzzy.xml"),
+                    new File(TEST_DIR, "correlator-by-name-fuzzy-fixed.xml"),
                     USER_TEMPLATE_DEFAULT_INDEXING);
 
     private static final File FILE_ACCOUNTS_BY_NAME_FUZZY_GRADUAL =
@@ -241,9 +241,9 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     }
 
     @Test
-    public void test220CorrelateByNameFuzzy() throws Exception {
+    public void test220CorrelateByNameFuzzyFixed() throws Exception {
         skipIfNotNativeRepository();
-        executeTest(CORRELATOR_BY_NAME_FUZZY, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY);
+        executeTest(CORRELATOR_BY_NAME_FUZZY_FIXED, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY_FIXED);
     }
 
     @Test
