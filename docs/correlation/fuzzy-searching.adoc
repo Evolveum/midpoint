@@ -105,7 +105,7 @@ It works like this:
 For trigram similarity, it is simply the value of the similarity itself.
 
 The default formulas may or may not fit your needs.
-You may provide any reasonable expression to do the computation.
+You can provide any expression to do the computation.
 For example, the following code will map distances of 0, 1, 2, and 3 to the confidence values of 1.0, 0.9, 0.8, and 0.7, respectively.
 
 .Listing 2. Using a custom formula for confidence value with given Levenshtein edit distance
@@ -141,9 +141,7 @@ For example, the following code will map distances of 0, 1, 2, and 3 to the conf
 
 ==== Multiple Correlation Items
 
-If there are multiple correlation items in given correlation rule, their confidences are multiplied.
-
-An example:
+If there are multiple correlation items in given correlation rule, their confidences are multiplied. For example:
 
 .Listing 3. Two items to be matched by a fuzzy search
 [source,xml]
@@ -179,9 +177,10 @@ An example:
 </objectTemplate>
 ----
 
-Therefore, we use the default formulas for confidence factors.
+(Here we use the default formulas for confidence values.)
 
-For example, if a correlation candidate has a given name with the similarity of 0.8, and the family name with an edit distance of 1, its confidence is computed as:
+Now, let us assume that a correlation candidate has a given name with the similarity of 0.8, and the family name with an edit distance of 1.
+Its overall confidence is then computed as:
 
 .Example of the confidence computation
 [%header]
