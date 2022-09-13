@@ -690,10 +690,21 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                         .map(o -> new ObjectReferenceType()
                                 .oid(o.getOid())
                                 .type(UserType.COMPLEX_TYPE)
-                                .targetName(WebComponentUtil.getDisplayNameOrName(o))).collect(Collectors.toList()));
+                                .targetName(getDisplayName(o))).collect(Collectors.toList()));
             } catch (Exception ex) {
                 LOGGER.debug("Couldn't search users for multiselect", ex);
             }
+        }
+
+        private String getDisplayName(PrismObject<UserType> o) {
+            if (o == null) {
+                return null;
+            }
+
+            String name = WebComponentUtil.getOrigStringFromPoly(o.getName());
+            String fullName = WebComponentUtil.getOrigStringFromPoly(o.asObjectable().getFullName());
+
+            return StringUtils.isNotEmpty(fullName) ? fullName + " (" + name + ")" : name;
         }
 
         @Override
