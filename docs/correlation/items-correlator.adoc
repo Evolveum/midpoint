@@ -4,7 +4,7 @@
 
 == Introduction
 
-In earlier versions of midPoint, the only correlation mechanism available was a filter-based one.
+In earlier versions of midPoint, the only correlation mechanism available was the filter-based one.
 The administrator had to specify a query based (typically) on the values of the resource object and executed it in order to find its owner.
 
 The newly-introduced `items` correlator makes this process much easier by constructing the filter(s) automatically from the correlator configuration.
@@ -272,12 +272,10 @@ An example:
 </schemaHandling>
 ----
 
-Notes:
-
-. The presence of `correlator` element on attribute definition enables the correlation-time evaluation of the inbound mapping, as described in the xref:/midpoint/reference/correlation/[overview document].
-. The `correlator` element may be empty.
+The `correlator` element may be empty.
 Its mere existence is sufficient to enable correlation based on that attribute and its corresponding focus item.
-. The `correlator` element is translated into single-item `items` correlator, just like the one described in Listing 1.
+
+The `correlator` element is translated into single-item `items` correlator, just like the one described in Listing 1.
 It is added to other correlators defined for the object type - either attribute-bound or object-type-bound.
 
 === Requirements
@@ -287,7 +285,7 @@ In order for the attribute-bound correlator be used, the following conditions mu
 . There must be at least one inbound mapping defined for the attribute.
 . Corresponding focus item path must be determinable.
 .. Either it is specified explicitly (using `focusItem` property of the attribute-bound `correlator`);
-.. or there is _exactly one_ inbound mapping, having a target path that points to the focal object.
+.. or there is _exactly one_ inbound mapping, and it has a target path that points to the focal object.
 
 The correlator created has no customizations (like weight, ordering, tier number, and so on).
 It contains only the reference to the focus item and the (optional) search parameters.
