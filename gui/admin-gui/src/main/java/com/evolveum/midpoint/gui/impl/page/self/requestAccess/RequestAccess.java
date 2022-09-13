@@ -570,7 +570,7 @@ public class RequestAccess implements Serializable {
             return null;
         }
 
-        Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
+        Task task = page.createSimpleTask(usersCount == 1 ? OPERATION_REQUEST_ASSIGNMENTS_SINGLE : OPERATION_REQUEST_ASSIGNMENTS);
         OperationResult result = task.getResult();
 
         for (ObjectReferenceType poiRef : requestItems.keySet()) {
