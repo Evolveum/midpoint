@@ -163,7 +163,7 @@ Here we show a rule requiring that _both_ given name and family name match.
 ----
 
 The correlation-time inbound processing is automatically enabled also in this case.
-As described in <<Limitations>>, the object template must be connected to the resource object type via the archetype declared in the object type definition.footnote:[The main reason is that midPoint has to know the archetype _before_ the correlation-time mappings are evaluated.
+The object template must be connected to the resource object type via the archetype declared in the object type definition.footnote:[The main reason is that midPoint has to know the archetype _before_ the correlation-time mappings are evaluated.
 That's why it is not sufficient if it's determined e.g. during inbound processing.]
 An example:
 
@@ -506,9 +506,9 @@ Please see xref:/midpoint/reference/correlation/multiple-identity-data-sources/[
 
 == Limitations
 
-As a general rule, when referencing a configuration in an object template, it must be bound to the resource object type in question via statically-defined archetype (see Listing 3 and 4 in <<Example 3: Object Template Based Correlation Definition>>).
+As a general rule, when referencing a configuration related to smart correlation (including custom indexing or multi-source processing) in an object template, it must be bound to the resource object type in question via statically-defined archetype (see Listing 3 and 4 in <<Example 3: Object Template Based Correlation Definition>>).
 
-Other limitations are mentioned on pages that describe individual features in more details:
+Other limitations are mentioned on pages for individual sub-features:
 
 - xref:/midpoint/reference/correlation/rule-composition/#limitations[Rule composition]
 - xref:/midpoint/reference/correlation/items-correlator/#limitations[Items correlator]
