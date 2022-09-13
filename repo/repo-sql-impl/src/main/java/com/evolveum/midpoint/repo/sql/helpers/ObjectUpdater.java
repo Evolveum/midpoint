@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.persistence.PersistenceException;
 
+import com.evolveum.midpoint.prism.path.PathSet;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
@@ -226,7 +228,7 @@ public class ObjectUpdater {
         LOGGER.trace("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
-        List<ItemName> itemsToSkip = new ArrayList<>();
+        PathSet itemsToSkip = new PathSet();
         Class<T> compileTimeClass = savedObject.getCompileTimeClass();
         assert compileTimeClass != null;
         if (FocusType.class.isAssignableFrom(compileTimeClass)) {

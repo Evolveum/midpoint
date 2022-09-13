@@ -97,7 +97,7 @@ public class IndexedItemValueNormalizerImpl implements IndexedItemValueNormalize
 
     @Override
     public ItemPath getIndexItemPath() {
-        return SchemaConstants.PATH_IDENTITY_SEARCH_ITEMS.append(getIndexItemName());
+        return SchemaConstants.PATH_FOCUS_NORMALIZED_DATA.append(getIndexItemName());
     }
 
     @Override

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import java.util.UUID;
 
-import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.MContainer;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QOperationExecution;
 
@@ -19,8 +18,4 @@ public class MFocusIdentity extends MContainer {
 
     public byte[] fullObject; // serialized container value, without items
     public UUID sourceResourceRefTargetOid; // target type and relation is implied/fixed
-
-    // extension/attribute-like storage
-    public Jsonb itemsOriginal;
-    public Jsonb itemsNormalized;
 }

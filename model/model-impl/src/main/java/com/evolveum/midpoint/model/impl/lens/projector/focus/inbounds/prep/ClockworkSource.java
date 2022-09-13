@@ -398,14 +398,14 @@ class ClockworkSource extends MSource {
                     () -> "Identity container without an ID: " + identity);
 
         } else {
-            id = focusContext.getTemporaryContainerId(SchemaConstants.PATH_IDENTITY);
+            id = focusContext.getTemporaryContainerId(SchemaConstants.PATH_FOCUS_IDENTITY);
             FocusIdentityType newIdentity = new FocusIdentityType()
                     .id(id)
                     .source(identitySource)
                     .data(createNewFocus());
             focusContext.swallowToSecondaryDelta(
                     PrismContext.get().deltaFor(FocusType.class)
-                            .item(SchemaConstants.PATH_IDENTITY)
+                            .item(SchemaConstants.PATH_FOCUS_IDENTITY)
                             .add(newIdentity)
                             .asItemDelta());
         }

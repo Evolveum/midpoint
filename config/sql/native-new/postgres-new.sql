@@ -456,6 +456,7 @@ CREATE TABLE m_focus (
     validityChangeTimestamp TIMESTAMPTZ,
     archiveTimestamp TIMESTAMPTZ,
     lockoutStatus LockoutStatusType,
+    normalizedData JSONB,
 
     CHECK (FALSE) NO INHERIT
 )
@@ -495,16 +496,12 @@ CREATE TABLE m_focus_identity (
         CHECK (containerType = 'FOCUS_IDENTITY'),
     fullObject BYTEA,
     sourceResourceRefTargetOid UUID,
-    itemsOriginal JSONB,
-    itemsNormalized JSONB,
 
     PRIMARY KEY (ownerOid, cid)
 )
     INHERITS(m_container);
 
 CREATE INDEX m_focus_identity_sourceResourceRefTargetOid_idx ON m_focus_identity (sourceResourceRefTargetOid);
-CREATE INDEX m_focus_identity_itemsOriginal_idx ON m_focus_identity USING gin(itemsOriginal);
-CREATE INDEX m_focus_identity_itemsNormalized_idx ON m_focus_identity USING gin(itemsNormalized);
 
 -- Represents GenericObjectType, see https://docs.evolveum.com/midpoint/reference/schema/generic-objects/
 CREATE TABLE m_generic_object (

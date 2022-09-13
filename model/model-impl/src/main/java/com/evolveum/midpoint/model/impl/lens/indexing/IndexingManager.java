@@ -70,9 +70,9 @@ public class IndexingManager {
             return;
         }
         FocusType focusToAdd = (FocusType) objectToAdd;
-        FocusTypeUtil.addOrReplaceIdentity(focusToAdd,
-                createIdentityForIndexData(
-                        computeIndexData(focusToAdd, configuration, task, result)));
+        FocusTypeUtil.addOrReplaceNormalizedData(
+                focusToAdd,
+                computeNormalizedData(focusToAdd, configuration, task, result));
     }
 
     /**
@@ -109,9 +109,9 @@ public class IndexingManager {
                         .asObjectable();
 
         delta.addModifications(
-                computeIndexingDeltas(
+                computeNormalizedDataDeltas(
                         expectedNew,
-                        computeIndexData(expectedNew, configuration, task, result)));
+                        computeNormalizedData(expectedNew, configuration, task, result)));
     }
 
 
@@ -127,18 +127,16 @@ public class IndexingManager {
     }
 
     /**
-     * Computes "own" {@link FocusIdentityType} that contains all the normalized (index) data.
+     * Computes {@link FocusNormalizedDataType} that contains all the normalized (index) data.
      * (They are grouped together from the focal object and all identities.)
-     *
-     * This is the preliminary behavior. To be confirmed or changed later.
      */
-    private IdentityItemsType computeIndexData(
+    private @NotNull FocusNormalizedDataType computeNormalizedData(
             @NotNull FocusType focus,
             @NotNull IndexingConfiguration configuration,
             @NotNull Task task,
             @NotNull OperationResult result) throws ConfigurationException, SchemaException, ExpressionEvaluationException,
             CommunicationException, SecurityViolationException, ObjectNotFoundException {
-        IdentityItemsType normalized = new IdentityItemsType();
+        FocusNormalizedDataType normalized = new FocusNormalizedDataType();
         for (IndexingItemConfiguration itemConfig : configuration.getItems()) {
             ItemPath originalItemPath = itemConfig.getPath();
             Collection<PrismValue> allValues = collectAllValues(focus, originalItemPath);
@@ -154,19 +152,13 @@ public class IndexingManager {
         return normalized;
     }
 
-    private FocusIdentityType createIdentityForIndexData(IdentityItemsType normalized) {
-        return
-                new FocusIdentityType()
-                        .items(new FocusIdentityItemsType()
-                                .normalized(normalized));
-    }
-
     private Collection<PrismValue> collectAllValues(@NotNull FocusType focus, @NotNull ItemPath path) {
         List<PrismValue> allRealValues = new ArrayList<>();
         allRealValues.addAll(
                 focus.asPrismContainerValue().getAllValues(path));
         allRealValues.addAll(
-                focus.asPrismContainerValue().getAllValues(SchemaConstants.PATH_IDENTITY.append(FocusIdentityType.F_DATA, path)));
+                focus.asPrismContainerValue().getAllValues(
+                        SchemaConstants.PATH_FOCUS_IDENTITY.append(FocusIdentityType.F_DATA, path)));
         return allRealValues;
     }
 
@@ -214,41 +206,38 @@ public class IndexingManager {
         return normalizer.normalize(stringValue, task, result);
     }
 
-    private Collection<? extends ItemDelta<?, ?>> computeIndexingDeltas(
+    private Collection<? extends ItemDelta<?, ?>> computeNormalizedDataDeltas(
             @NotNull FocusType expectedNewFocus,
-            IdentityItemsType indexData)
+            @NotNull FocusNormalizedDataType newNormalizedData)
             throws SchemaException {
 
-        FocusIdentityType matching = FocusTypeUtil.getMatchingIdentity(expectedNewFocus, null);
-        if (matching == null) {
-            LOGGER.trace("No matching identity in focus object -> adding the value 'as is'");
+        FocusIdentitiesType existingIdentities = expectedNewFocus.getIdentities();
+        FocusNormalizedDataType existingNormalizedData =
+                existingIdentities != null ? existingIdentities.getNormalizedData() : null;
+        if (existingNormalizedData == null) {
+            LOGGER.trace("No normalized data in focus object -> adding the value 'as is'");
             return prismContext.deltaFor(FocusType.class)
-                    .item(SchemaConstants.PATH_IDENTITY)
-                    .add(createIdentityForIndexData(indexData))
+                    .item(SchemaConstants.PATH_FOCUS_NORMALIZED_DATA)
+                    .replace(newNormalizedData)
                     .asItemDeltas();
         } else {
-            FocusIdentityItemsType existingItems = matching.getItems();
-            IdentityItemsType existingIndexData = existingItems != null ? existingItems.getNormalized() : null;
             // We clone the identity to remove path information from it (the root will be the identity PCV itself).
             //noinspection unchecked
-            PrismContainerValue<IdentityItemsType> existingIndexPcvCloned =
-                    (existingIndexData != null ? existingIndexData.clone() : new IdentityItemsType()).asPrismContainerValue();
-            LOGGER.trace("Matching identity bean found -> computing a delta; matching old value is:\n{}",
-                    existingIndexPcvCloned.debugDumpLazily(1));
+            PrismContainerValue<FocusNormalizedDataType> existingNormalizedPcvCloned =
+                    existingNormalizedData.clone().asPrismContainerValue();
+            LOGGER.trace("Existing normalized data found -> computing a delta; the old value is:\n{}",
+                    existingNormalizedPcvCloned.debugDumpLazily(1));
             //noinspection rawtypes
             Collection<? extends ItemDelta> differences =
-                    existingIndexPcvCloned.diff(
-                            indexData.asPrismContainerValue(),
+                    existingNormalizedPcvCloned.diff(
+                            newNormalizedData.asPrismContainerValue(),
                             EquivalenceStrategy.DATA);
             // Now we re-add the path information to the item deltas
             differences.forEach(
                     delta ->
                             delta.setParentPath(
                                     ItemPath.create(
-                                            SchemaConstants.PATH_IDENTITY,
-                                            matching.asPrismContainerValue().getId(),
-                                            FocusIdentityType.F_ITEMS,
-                                            FocusIdentityItemsType.F_NORMALIZED,
+                                            SchemaConstants.PATH_FOCUS_NORMALIZED_DATA,
                                             delta.getParentPath())));
             LOGGER.trace("Computed identity deltas:\n{}", DebugUtil.debugDumpLazily(differences, 1));
             //noinspection CastCanBeRemovedNarrowingVariableType,unchecked
