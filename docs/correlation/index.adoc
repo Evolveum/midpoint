@@ -99,7 +99,7 @@ xref:/midpoint/projects/idmatch/implementation/correlation-time-mappings/[correl
 Even though it is turned off by default, the attribute-level `correlator` element automatically turns it on for the selected inbound mapping.
 
 . If multiple attributes are marked as `correlator`, they are evaluated separately.
-If there is a need of evaluation of two attributes together (meaning that they have to match both), it is necessary to use the explicit `items` correlator.
+If there is a need of evaluation of two attributes together (meaning that they have to match both), it is necessary to use the explicit xref:/midpoint/reference/correlation/items-correlator/[`items` correlator].
 
 ==== Example 2: Resource Object Type Bound Definition
 
@@ -135,7 +135,7 @@ Here we show the same logic defined at the level of the resource object type:
 ----
 <1> Declaring the `name` to be the correlation item.
 
-NOTE: Like when using `correlator` within the attribute definition, mentioning the attribute as a correlation item enables the correlation-time inbound processing for it.
+NOTE: Like we have seen in Example 1, mentioning the item `name` as a correlation item enables the correlation-time inbound processing for it.
 
 ==== Example 3: Object Template Based Correlation Definition
 
@@ -145,7 +145,7 @@ Here we show a rule requiring that _both_ given name and family name match.
 .Listing 3. Correlation defined at the level of object template: requiring a match of both given and family name
 [source,xml]
 ----
-<objectTemplate>
+<objectTemplate oid="3a6f3ddd-ac72-4656-abac-0e306cd29645" xmlns="...">
     ...
     <correlation>
         <correlators>
@@ -162,12 +162,37 @@ Here we show a rule requiring that _both_ given name and family name match.
 </objectTemplate>
 ----
 
-NOTE: The correlation-time inbound processing is automatically enabled also in this case.
-However, the object template must be connected to the resource object type in the _static way_, i.e. via the archetype declared in the object type definition.
-(The main reason is that midPoint has to know the archetype _before_ the correlation-time mappings are evaluated.
-That's why it is not sufficient if it's determined e.g. during inbound processing!)
+The correlation-time inbound processing is automatically enabled also in this case.
+The object template must be connected to the resource object type via the archetype declared in the object type definition.
+footnote:[The main reason is that midPoint has to know the archetype _before_ the correlation-time mappings are evaluated.
+That's why it is not sufficient if it's determined e.g. during inbound processing.]
+An example:
 
-#TODO the attachment via system configuration is not supported - is it ok?#
+.Listing 4. Connecting an object template to resource object type via an archetype
+[source,xml]
+----
+<resource oid="..." xmlns="...">
+    ...
+    <schemaHandling>
+        <objectType>
+            ...
+            <focus>
+                <type>UserType</type>
+                <archetypeRef oid="e3a9a6b9-17f6-4239-b935-6f88a655b9d7" />
+            </focus>
+            ...
+        </objectType>
+    </schemaHandling>
+</resource>
+
+<archetype oid="3a6f3ddd-ac72-4656-abac-0e306cd29645" xmlns="...">
+    ...
+    <archetypePolicy>
+        <objectTemplateRef oid="c0d96ed0-bec7-4c6e-9a69-133b0301bdb8"/>
+    </archetypePolicy>
+    ...
+</archetype>
+----
 
 == Advanced Concepts
 
@@ -196,7 +221,7 @@ NOTE: The confidence values are described on xref:/midpoint/reference/correlatio
 
 These rules can be configured like this:
 
-.Listing 4. Configuration for the rules 1-3 from Table 2
+.Listing 5. Configuration for the rules 1-3 from Table 2
 [source,xml]
 ----
 <objectTemplate>
@@ -258,7 +283,7 @@ Or, we could want to take only digits into account when searching for the nation
 
 These requirements can be configured like this:
 
-.Listing 5. Examples of custom indexing
+.Listing 6. Examples of custom indexing
 [source,xml]
 ----
 <objectTemplate>
@@ -310,7 +335,7 @@ These indexes are then used automatically when correlating according to `familyN
 
 If there are multiple normalizations defined for a given focus item (and none is defined as the default one), we can select the one to be used by mentioning it within the correlation item definition:
 
-.Listing 6. Selecting the proper normalization for correlation
+.Listing 7. Selecting the proper normalization for correlation
 [source,xml]
 ----
 <objectTemplate>
@@ -361,7 +386,7 @@ The given name has to have Levenshtein edit distance (to the provided one) at mo
 The family name has to have trigram similarity (to the provided one) at least 0.8.
 Moreover, the confidence value of the match depends on the Levenshtein edit distance, as specified in the code.
 
-.Listing 7. Correlation using fuzzy string matching
+.Listing 8. Correlation using fuzzy string matching
 [source,xml]
 ----
 <objectTemplate>
@@ -434,7 +459,7 @@ The following example shows how to configure `givenName`, `familyName`, `dateOfB
 They are kept separately for each source: SIS, HR, and "external persons" system.
 The order of "authoritativeness" (so to say) is: SIS, HR, external, as can be seen in the `defaultAuthoritativeSource` mapping.
 
-.Listing 8. Setting up four multi-source properties
+.Listing 9. Setting up four multi-source properties
 [source,xml]
 ----
 <objectTemplate>
