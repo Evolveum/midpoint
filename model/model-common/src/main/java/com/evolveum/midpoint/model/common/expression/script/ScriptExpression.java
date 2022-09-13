@@ -161,7 +161,8 @@ public class ScriptExpression {
 
             List<V> expressionResult = evaluator.evaluate(context);
             if (context.getTrace() != null) {
-                context.getTrace().getResult().addAll(TraceUtil.toAnyValueTypeList(expressionResult, prismContext));
+                context.getTrace().getResult().addAll(
+                        TraceUtil.toAnyValueTypeList(expressionResult, prismContext));
             }
 
             traceExpressionSuccess(context, expressionResult);

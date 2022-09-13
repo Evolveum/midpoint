@@ -13,7 +13,6 @@ import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.api.indexing.ValueNormalizer;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.identities.IdentitiesManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -50,7 +49,7 @@ import java.util.Objects;
 @Component
 public class IndexingManager {
 
-    private static final Trace LOGGER = TraceManager.getTrace(IdentitiesManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(IndexingManager.class);
 
     @Autowired private PrismContext prismContext;
 
@@ -72,7 +71,8 @@ public class IndexingManager {
         }
         FocusType focusToAdd = (FocusType) objectToAdd;
         FocusTypeUtil.addOrReplaceIdentity(focusToAdd,
-                computeIndexData(focusToAdd, configuration, task, result));
+                createIdentityForIndexData(
+                        computeIndexData(focusToAdd, configuration, task, result)));
     }
 
     /**
@@ -132,7 +132,7 @@ public class IndexingManager {
      *
      * This is the preliminary behavior. To be confirmed or changed later.
      */
-    private @NotNull FocusIdentityType computeIndexData(
+    private IdentityItemsType computeIndexData(
             @NotNull FocusType focus,
             @NotNull IndexingConfiguration configuration,
             @NotNull Task task,
@@ -150,11 +150,15 @@ public class IndexingManager {
             normalized.asPrismContainerValue().addAll(
                     normalizeItemValues(originalItemDef, allValues, itemConfig, task, result));
         }
-        FocusIdentityType identity = new FocusIdentityType()
-                .items(new FocusIdentityItemsType()
-                        .normalized(normalized));
-        LOGGER.trace("Computed normalized identity:\n{}", identity.debugDumpLazily(1));
-        return identity;
+        LOGGER.trace("Computed normalized identity:\n{}", normalized.debugDumpLazily(1));
+        return normalized;
+    }
+
+    private FocusIdentityType createIdentityForIndexData(IdentityItemsType normalized) {
+        return
+                new FocusIdentityType()
+                        .items(new FocusIdentityItemsType()
+                                .normalized(normalized));
     }
 
     private Collection<PrismValue> collectAllValues(@NotNull FocusType focus, @NotNull ItemPath path) {
@@ -212,23 +216,40 @@ public class IndexingManager {
 
     private Collection<? extends ItemDelta<?, ?>> computeIndexingDeltas(
             @NotNull FocusType expectedNewFocus,
-            @NotNull FocusIdentityType newIdentity)
+            IdentityItemsType indexData)
             throws SchemaException {
 
-        FocusIdentityType matching = FocusTypeUtil.getMatchingIdentity(expectedNewFocus, newIdentity.getSource());
+        FocusIdentityType matching = FocusTypeUtil.getMatchingIdentity(expectedNewFocus, null);
         if (matching == null) {
             LOGGER.trace("No matching identity in focus object -> adding the value 'as is'");
             return prismContext.deltaFor(FocusType.class)
                     .item(SchemaConstants.PATH_IDENTITY)
-                    .add(newIdentity)
+                    .add(createIdentityForIndexData(indexData))
                     .asItemDeltas();
         } else {
-            LOGGER.trace("Matching identity bean found -> computing a delta");
+            FocusIdentityItemsType existingItems = matching.getItems();
+            IdentityItemsType existingIndexData = existingItems != null ? existingItems.getNormalized() : null;
+            // We clone the identity to remove path information from it (the root will be the identity PCV itself).
+            //noinspection unchecked
+            PrismContainerValue<IdentityItemsType> existingIndexPcvCloned =
+                    (existingIndexData != null ? existingIndexData.clone() : new IdentityItemsType()).asPrismContainerValue();
+            LOGGER.trace("Matching identity bean found -> computing a delta; matching old value is:\n{}",
+                    existingIndexPcvCloned.debugDumpLazily(1));
             //noinspection rawtypes
             Collection<? extends ItemDelta> differences =
-                    matching.asPrismContainerValue().diff(
-                            newIdentity.asPrismContainerValue(),
+                    existingIndexPcvCloned.diff(
+                            indexData.asPrismContainerValue(),
                             EquivalenceStrategy.DATA);
+            // Now we re-add the path information to the item deltas
+            differences.forEach(
+                    delta ->
+                            delta.setParentPath(
+                                    ItemPath.create(
+                                            SchemaConstants.PATH_IDENTITY,
+                                            matching.asPrismContainerValue().getId(),
+                                            FocusIdentityType.F_ITEMS,
+                                            FocusIdentityItemsType.F_NORMALIZED,
+                                            delta.getParentPath())));
             LOGGER.trace("Computed identity deltas:\n{}", DebugUtil.debugDumpLazily(differences, 1));
             //noinspection CastCanBeRemovedNarrowingVariableType,unchecked
             return (Collection<? extends ItemDelta<?, ?>>) differences;

@@ -22,9 +22,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.stream.Collectors;
 
 /**
- * Utilities for handling correlation item definitions.
+ * Utilities for manipulating correlators definitions.
  */
-public class CorrelationItemDefinitionUtil {
+public class CorrelatorsDefinitionUtil {
 
     /**
      * Returns the name under which we will reference this item definition (using "ref" elements).

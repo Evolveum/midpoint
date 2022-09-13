@@ -16,6 +16,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.application.IComponentInitializationListener;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.html.border.Border;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -57,7 +58,7 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
     }
 
     private void writeDataAttribute(Component component, String key, String value) {
-        if (!component.getRenderBodyOnly()) {
+        if (!component.getRenderBodyOnly() && !(component.getParent() instanceof Border.BorderBodyContainer)) {
             component.add(AttributeModifier.append(ATTR_DATA_PREFIX + key, value));
             return;
         }

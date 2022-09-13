@@ -14,19 +14,19 @@
     </iterationSpecification>
     <item>
         <ref>givenName</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>familyName</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>extension/dateOfBirth</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>extension/nationalId</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <mapping>
         <strength>strong</strength>
@@ -63,11 +63,13 @@
             <path>name</path>
         </target>
     </mapping>
-    <identity>
+    <multiSource>
         <defaultAuthoritativeSource>
             <expression>
                 <script>
                     <code>
+                        import com.evolveum.midpoint.util.MiscUtil
+
                         import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_EXTERNAL
                         import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_HR
                         import static com.evolveum.midpoint.testing.story.correlation.TestInternalCorrelationMedium.RESOURCE_SIS
@@ -86,69 +88,59 @@
                         def hr = sources.find { it.resourceRef?.oid == RESOURCE_HR.oid }
                         def external = sources.find { it.resourceRef?.oid == RESOURCE_EXTERNAL.oid }
 
-                        if (sis != null) {
-                            sis.clone()
-                        } else if (hr != null) {
-                            hr.clone()
-                        } else if (external != null) {
-                            external.clone()
-                        } else {
-                            null // takes all values (should be "none")
-                        }
+                        MiscUtil.getFirstNonNull(sis, hr, external)
                     </code>
                 </script>
             </expression>
         </defaultAuthoritativeSource>
-    </identity>
+    </multiSource>
     <correlation>
         <correlators>
-            <composite>
-                <items>
-                    <name>name-date-id</name>
-                    <documentation>
-                        If key attributes (family name, date of birth, national ID) exactly match,
-                        we are immediately done. We ignore given name here.
-                    </documentation>
-                    <item>
-                        <ref>familyName</ref>
-                    </item>
-                    <item>
-                        <ref>extension/dateOfBirth</ref>
-                    </item>
-                    <item>
-                        <ref>extension/nationalId</ref>
-                    </item>
-                    <composition>
-                        <tier>1</tier>
-                    </composition>
-                </items>
-                <items>
-                    <name>names-date</name>
-                    <documentation>If given and family name and the date of birth match, we present an option to the operator.</documentation>
-                    <item>
-                        <ref>givenName</ref>
-                    </item>
-                    <item>
-                        <ref>familyName</ref>
-                    </item>
-                    <item>
-                        <ref>extension/dateOfBirth</ref>
-                    </item>
-                    <composition>
-                        <weight>0.1</weight>
-                    </composition>
-                </items>
-                <items>
-                    <name>id</name>
-                    <documentation>If national ID matches, we present an option to the operator.</documentation>
-                    <item>
-                        <ref>extension/nationalId</ref>
-                    </item>
-                    <composition>
-                        <weight>0.1</weight>
-                    </composition>
-                </items>
-            </composite>
+            <items>
+                <name>name-date-id</name>
+                <documentation>
+                    If key attributes (family name, date of birth, national ID) exactly match,
+                    we are immediately done. We ignore given name here.
+                </documentation>
+                <item>
+                    <ref>familyName</ref>
+                </item>
+                <item>
+                    <ref>extension/dateOfBirth</ref>
+                </item>
+                <item>
+                    <ref>extension/nationalId</ref>
+                </item>
+                <composition>
+                    <tier>1</tier>
+                </composition>
+            </items>
+            <items>
+                <name>names-date</name>
+                <documentation>If given and family name and the date of birth match, we present an option to the operator.</documentation>
+                <item>
+                    <ref>givenName</ref>
+                </item>
+                <item>
+                    <ref>familyName</ref>
+                </item>
+                <item>
+                    <ref>extension/dateOfBirth</ref>
+                </item>
+                <composition>
+                    <weight>0.1</weight>
+                </composition>
+            </items>
+            <items>
+                <name>id</name>
+                <documentation>If national ID matches, we present an option to the operator.</documentation>
+                <item>
+                    <ref>extension/nationalId</ref>
+                </item>
+                <composition>
+                    <weight>0.1</weight>
+                </composition>
+            </items>
         </correlators>
     </correlation>
 </objectTemplate>

@@ -465,7 +465,13 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="identifier" type="xsd:string"/>
-            <xsd:element name="default" type="xsd:boolean" minOccurs="0" default="false"/>
+            <xsd:element name="default" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Mark this collection as preselected. If there are more than one marked as default, first one found will be preselected.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="collectionIdentifier" type="xsd:string" minOccurs="0"/>
             <xsd:element name="collectionRef" type="tns:ObjectReferenceType" minOccurs="0"/>
             <xsd:element name="details" type="tns:ContainerPanelConfigurationType"  minOccurs="0">

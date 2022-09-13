@@ -240,7 +240,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                             .correlate(contextWithReferenceId, result);
 
             Collection<CandidateOwner> candidateOwners = childResult.getCandidateOwnersMap()
-                    .selectWithConfidenceAtLeast(correlatorContext.getOwnerThreshold());
+                    .selectWithConfidenceAtLeast(correlatorContext.getDefiniteThreshold());
 
             CandidateOwner candidateOwner =
                     MiscUtil.extractSingleton(
@@ -291,7 +291,7 @@ class IdMatchCorrelator extends BaseCorrelator<IdMatchCorrelatorType> {
                 SecurityViolationException, ObjectNotFoundException {
             double confidence = instantiateChild(followOnConfiguration, task, result)
                     .checkCandidateOwner(correlationContext, candidateOwner, result);
-            return confidence >= correlatorContext.getOwnerThreshold();
+            return confidence >= correlatorContext.getDefiniteThreshold();
         }
 
         /** Converts internal {@link MatchingResult} into "externalized form" of {@link CorrelationResult}. */

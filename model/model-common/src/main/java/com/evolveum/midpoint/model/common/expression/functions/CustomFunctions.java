@@ -137,6 +137,7 @@ public class CustomFunctions {
             }
 
             if (outputDefinition.isMultiValue()) {
+                // This is a problem if the triple contains dynamically-typed PCVs. See MID-6775.
                 return PrismValueCollectionsUtil.getRealValuesOfCollection(nonNegativeValues);
             }
 
@@ -146,6 +147,8 @@ public class CustomFunctions {
                         + nonNegativeValues.size() + ") in " + shortDesc);
             }
 
+            // This is a problem if the triple contains dynamically-typed PCVs. See MID-6775.
+            // Currently, it is hacked by wrapping these values to a PPV.
             return nonNegativeValues.iterator().next().getRealValue();
 
 

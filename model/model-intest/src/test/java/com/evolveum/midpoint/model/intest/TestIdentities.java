@@ -169,6 +169,8 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        skipIfNotNativeRepository();
+
         given("account of Bob White is added");
         DummyAccount account = RESOURCE_SINGLE.controller.addAccount("bob");
         account.addAttributeValue(ATTR_GIVEN_NAME, "Bob");
@@ -208,6 +210,8 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        skipIfNotNativeRepository();
+
         given("first account of Chuck Brown is added");
         DummyAccount account1 = RESOURCE_MULTI.controller.addAccount("10700020");
         account1.addAttributeValue(ATTR_GIVEN_NAME, "Chuck");
@@ -225,7 +229,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         assertUserAfter(findUserByUsernameFullRequired("brown1"))
                 .displayXml()
                 .assertLiveLinks(1)
-                .assertGivenName("Chuck")
+                .assertGivenName("Chuck (10700020)")
                 .identities()
                     .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700020")
                         .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("Chuck"))
@@ -233,7 +237,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                         .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
                     .end()
                     .withoutSource()
-                        .assertNormalizedItem("givenName.polyStringNorm", "chuck")
+                        .assertNormalizedItem("givenName.polyStringNorm", "chuck", "chuck 10700020")
                         .assertNormalizedItem("familyName.polyStringNorm", "brown")
                         .assertNormalizedItem("personalNumber.polyStringNorm", "1004444")
                     .end();
@@ -256,7 +260,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         assertUserAfter(findUserByUsernameFullRequired("brown1"))
                 .displayXml()
                 .assertLiveLinks(2)
-                .assertGivenName("Charles")
+                .assertGivenName("Charles (10700010)")
                 .identities()
                     .fromResource(RESOURCE_MULTI.oid, ShadowKindType.ACCOUNT, "default", "10700020")
                         .assertOriginalItem(UserType.F_GIVEN_NAME, createPolyString("Chuck"))
@@ -269,7 +273,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
                         .assertOriginalItem(PATH_PERSONAL_NUMBER, "1004444")
                     .end()
                     .withoutSource()
-                        .assertNormalizedItem("givenName.polyStringNorm", "chuck", "charles")
+                        .assertNormalizedItem("givenName.polyStringNorm", "chuck", "charles", "charles 10700010")
                         .assertNormalizedItem("familyName.polyStringNorm", "brown")
                         .assertNormalizedItem("personalNumber.polyStringNorm", "1004444")
                     .end();

@@ -36,3 +36,6 @@ rebel.xml
 .DS_Store
 _mess
 .checkstyle
+
+# midPoint Studio temporary files
+/scratches/

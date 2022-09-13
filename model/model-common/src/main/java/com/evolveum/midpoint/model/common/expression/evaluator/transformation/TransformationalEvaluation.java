@@ -25,9 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 
-/**
- *
- */
 class TransformationalEvaluation<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType> {
 
     @NotNull final ExpressionEvaluationContext context;

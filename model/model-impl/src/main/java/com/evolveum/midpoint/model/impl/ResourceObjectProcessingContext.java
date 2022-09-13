@@ -42,10 +42,6 @@ public interface ResourceObjectProcessingContext {
 
     @NotNull ResourceType getResource();
 
-    default @NotNull PrismObject<ResourceType> getResourcePrismObject() {
-        return getResource().asPrismObject();
-    }
-
     @Nullable SystemConfigurationType getSystemConfiguration();
 
     /**

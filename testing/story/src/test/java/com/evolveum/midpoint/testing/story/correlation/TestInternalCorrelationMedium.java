@@ -45,6 +45,8 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
 
     private static final TestResource<ObjectTemplateType> OBJECT_TEMPLATE_USER =
             new TestResource<>(TEST_DIR, "object-template-user.xml", "297208c0-7928-49e7-8990-131a20fc2dd8");
+    private static final TestResource<ArchetypeType> ARCHETYPE_PERSON =
+            new TestResource<>(TEST_DIR, "archetype-person.xml", "4aa8d6fb-07f7-469a-8059-9d4f54c6e500");
 
     public static final CsvResource RESOURCE_SIS = new CsvResource(TEST_DIR, "resource-sis.xml",
             "83de4034-775a-4ead-829b-a4041620d4c2", "resource-sis.csv",
@@ -75,6 +77,7 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
         super.initSystem(initTask, initResult);
 
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
+        addObject(ARCHETYPE_PERSON, initTask, initResult);
 
         RESOURCE_SIS.initializeAndTest(this, initTask, initResult);
         RESOURCE_HR.initializeAndTest(this, initTask, initResult);

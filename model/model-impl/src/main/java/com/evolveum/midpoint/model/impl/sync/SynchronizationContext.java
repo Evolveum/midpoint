@@ -276,6 +276,10 @@ public abstract class SynchronizationContext<F extends FocusType>
         return (Class<F>) synchronizationPolicy.getFocusClass();
     }
 
+    public @Nullable String getArchetypeOid() {
+        return synchronizationPolicy != null ? synchronizationPolicy.getArchetypeOid() : null;
+    }
+
     public @NotNull F getPreFocus() {
         if (preFocus != null) {
             return preFocus;

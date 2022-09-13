@@ -14,14 +14,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class FocusIdentitySourceTypeUtil {
 
-    // TODO should we keep this?
+    @VisibleForTesting
     public static FocusIdentitySourceType defaultAccount(@NotNull String resourceOid) {
+        return resourceObject(resourceOid, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+    }
+
+    public static FocusIdentitySourceType resourceObject(String resourceOid, ShadowKindType kind, String intent) {
         return new FocusIdentitySourceType()
                 .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
-                .kind(ShadowKindType.ACCOUNT)
-                .intent(SchemaConstants.INTENT_DEFAULT);
+                .kind(kind)
+                .intent(intent);
     }
 }

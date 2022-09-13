@@ -9,8 +9,6 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -39,10 +37,9 @@ import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
@@ -58,7 +55,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -66,7 +62,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.application.AsyncWebProcessManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.dialog.MainPopupDialog;
@@ -79,8 +74,6 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError404;
-import com.evolveum.midpoint.web.page.self.PageAssignmentsList;
-import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -105,7 +98,6 @@ public abstract class PageBase extends PageAdminLTE {
     private static final String ID_PAGE_TITLE = "pageTitle";
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
-    private static final String ID_CART_BUTTON = "cartButton";
     private static final String ID_CART_ITEMS_COUNT = "itemsCount";
     private static final String ID_SIDEBAR_MENU = "sidebarMenu";
     private static final String ID_LOCALE = "locale";
@@ -341,32 +333,6 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     private void initCartButton(WebMarkupContainer mainHeader) {
-        // todo old, to be removed
-        AjaxButton cartButton = new AjaxButton(ID_CART_BUTTON) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                navigateToNext(new PageAssignmentsList<>(true));
-            }
-        };
-        cartButton.setOutputMarkupId(true);
-        cartButton.add(getShoppingCartVisibleBehavior());
-        mainHeader.add(cartButton);
-
-        Label cartItemsCount = new Label(ID_CART_ITEMS_COUNT, new LoadableModel<String>(true) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String load() {
-                return Integer.toString(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size());
-            }
-        });
-        cartItemsCount.add(new VisibleBehaviour(() -> !(getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() == 0)));
-        cartItemsCount.setOutputMarkupId(true);
-        cartButton.add(cartItemsCount);
-
-        // new header item starts here
         AjaxLink cartLink = new AjaxLink<>(ID_CART_LINK) {
 
             @Override
@@ -488,12 +454,6 @@ public abstract class PageBase extends PageAdminLTE {
 
     public void hideMainPopup(AjaxRequestTarget target) {
         getMainPopup().close(target);
-    }
-
-    private VisibleBehaviour getShoppingCartVisibleBehavior() {
-        return new VisibleBehaviour(() -> !isErrorPage() && isSideMenuVisible() &&
-                (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_SELF_REQUESTS_ASSIGNMENTS_URL, PageSelf.AUTH_SELF_ALL_URI)
-                        && getSessionStorage().getRoleCatalog().getAssignmentShoppingCart().size() > 0));
     }
 
     private VisibleBehaviour createUserStatusBehaviour() {
@@ -990,7 +950,6 @@ public abstract class PageBase extends PageAdminLTE {
 
     public void reloadShoppingCartIcon(AjaxRequestTarget target) {
         target.add(get(createComponentPath(ID_MAIN_HEADER)));
-        target.add(get(createComponentPath(ID_MAIN_HEADER, ID_CART_BUTTON)));
     }
 
     public AsyncWebProcessManager getAsyncWebProcessManager() {

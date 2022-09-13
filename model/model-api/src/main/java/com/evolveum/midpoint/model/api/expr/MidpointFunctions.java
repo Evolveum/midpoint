@@ -1407,7 +1407,9 @@ public interface MidpointFunctions {
      * Selects specified values from all relevant identity data.
      *
      * @param identities a collection of identities where we search for the data
-     * @param source specification of a source we are looking for; `null` means "any non-own sources"
+     * @param source specification of a source we are looking for; `null` means "all sources"
+     * The source is currently matched using resource OID, kind, intent, and tag.
+     * See {@link FocusIdentityTypeUtil#matches(FocusIdentitySourceType, FocusIdentitySourceType)} method.
      * @param itemPath item that should be provided
      *
      * @see FocusIdentityTypeUtil#matches(FocusIdentitySourceType, FocusIdentitySourceType)

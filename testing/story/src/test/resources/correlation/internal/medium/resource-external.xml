@@ -37,7 +37,13 @@
             <kind>account</kind>
             <intent>default</intent>
             <default>true</default>
-            <objectClass>ri:AccountObjectClass</objectClass>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+                <archetypeRef oid="4aa8d6fb-07f7-469a-8059-9d4f54c6e500"/>
+            </focus>
             <attribute>
                 <ref>ri:FIRSTN</ref>
                 <inbound>
@@ -74,15 +80,6 @@
                     </target>
                 </inbound>
             </attribute>
-            <mappingsEvaluation>
-                <inbound>
-                    <defaultEvaluationPhases>
-                        <phase>clockwork</phase>
-                        <phase>beforeCorrelation</phase>
-                    </defaultEvaluationPhases>
-                </inbound>
-            </mappingsEvaluation>
-            <correlation><!-- Do we need anything here? --></correlation>
             <synchronization>
                 <reaction>
                     <situation>linked</situation>

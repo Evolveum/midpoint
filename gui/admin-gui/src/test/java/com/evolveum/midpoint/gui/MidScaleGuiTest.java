@@ -8,18 +8,7 @@ package com.evolveum.midpoint.gui;
 
 import java.io.File;
 
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
-import com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.javasimon.Split;
@@ -29,21 +18,31 @@ import org.springframework.test.context.ActiveProfiles;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
+import com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.tools.testng.PerformanceTestMethodMixin;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
+import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 //@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
@@ -120,13 +119,13 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
     @Test
     public void test030PageSelfCredentials() {
         displayTestTitle(getTestName());
-        runTestFor(PageSelfCredentials.class, "rcredentials", "Credentials");
+        runTestFor(PageSelfCredentials.class, "serlfCredentials", "Credentials");
     }
 
     @Test
     public void test040PageRequestRole() {
         displayTestTitle(getTestName());
-        runTestFor(PageAssignmentShoppingCart.class, "requestRole", "Request a role");
+        runTestFor(PageRequestAccess.class, "requestAccess", "Request access");
     }
 
     @Test

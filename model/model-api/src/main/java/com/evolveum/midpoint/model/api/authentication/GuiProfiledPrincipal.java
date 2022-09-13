@@ -8,6 +8,8 @@ package com.evolveum.midpoint.model.api.authentication;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -78,11 +80,13 @@ public class GuiProfiledPrincipal extends MidPointPrincipal {
         if (!(obj instanceof GuiProfiledPrincipal)) {
             return false;
         }
-        return getFocus().equals(((GuiProfiledPrincipal) obj).getFocus());
+        // return getFocus().equals(((GuiProfiledPrincipal) obj).getFocus());
+        // We can not compare on whole focus, same goes about hashcode, we should use oid
+        return Objects.equals(getFocus().getOid(), ((MidPointPrincipal) obj).getFocus().getOid());
     }
 
     @Override
     public int hashCode() {
-        return getFocus().hashCode();
+        return getFocus().getOid().hashCode();
     }
 }

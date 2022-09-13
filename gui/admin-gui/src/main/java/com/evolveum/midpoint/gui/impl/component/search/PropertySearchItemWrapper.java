@@ -9,7 +9,22 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.io.Serializable;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -25,6 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class PropertySearchItemWrapper<T extends Serializable> extends AbstractSearchItemWrapper<T> {
 
+    public static final Trace LOGGER = TraceManager.getTrace(PropertySearchItemWrapper.class);
+
     private ItemPath path;
     private QName valueTypeName;
     private String name;
@@ -39,7 +56,7 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
 
     @Override
     public Class<? extends AbstractSearchItemPanel> getSearchItemPanelClass() {
-        return null;
+        return TextSearchItemPanel.class;
     }
 
     @Override
@@ -110,18 +127,46 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
 
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
+        if (getPredefinedFilter() != null) {
+            if (!isApplyFilter(SearchBoxModeType.BASIC)) {
+                return null;
+            }
+            SearchFilterType filter = getPredefinedFilter();
+            ExpressionType filterExpression = getFilterExpression();
+            if (isEnabled()) {
+                if (filter == null && filterExpression != null) {
+                    ItemDefinition outputDefinition = pageBase.getPrismContext().definitionFactory().createPropertyDefinition(
+                            ExpressionConstants.OUTPUT_ELEMENT_NAME, SearchFilterType.COMPLEX_TYPE);
+                    Task task = pageBase.createSimpleTask("evaluate filter expression");
+                    try {
+                        PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, filterExpression,
+                                MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "", task, task.getResult());
+                        if (filterValue == null || filterValue.getRealValue() == null) {
+                            LOGGER.error("FilterExpression return null, ", filterExpression);
+                        }
+                        filter = filterValue.getRealValue();
+                    } catch (Exception e) {
+                        LOGGER.error("Unable to evaluate filter expression, {} ", filterExpression);
+                    }
+                }
+                if (filter != null) {
+                    try {
+                        ObjectFilter convertedFilter = pageBase.getPrismContext().getQueryConverter().parseFilter(filter, type);
+                        convertedFilter = WebComponentUtil.evaluateExpressionsInFilter(convertedFilter, variables, new OperationResult("evaluated filter"), pageBase);
+                        if (convertedFilter != null) {
+                            return convertedFilter;
+                        }
+                    } catch (SchemaException e) {
+                        LOGGER.error("Unable to parse filter {}, {} ", filter, e);
+                    }
+                }
+            }
+            return null;
+        }
         if (getValue().getValue() == null) {
             return null;
         }
         PrismContext ctx = PrismContext.get();
-//        if ((propDef.getAllowedValues() != null && !propDef.getAllowedValues().isEmpty())
-//                || DOMUtil.XSD_BOOLEAN.equals(propDef.getTypeName())) {
-//            we're looking for enum value, therefore equals filter is ok
-//            or if it's boolean value
-//            Object value = searchValue.getValue();
-//            return ctx.queryFor(searchType)
-//                    .item(path, propDef).eq(value).buildFilter();
-//        } else
         if (DOMUtil.XSD_INT.equals(valueTypeName)
                 || DOMUtil.XSD_INTEGER.equals(valueTypeName)
                 || DOMUtil.XSD_LONG.equals(valueTypeName)
@@ -155,11 +200,6 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
                 return ctx.queryFor(type)
                         .item(path).contains(text).matchingNorm().buildFilter();
             }
-//            else if (propDef.getValueEnumerationRef() != null) {
-//                String value = (String) searchValue.getValue();
-//                return ctx.queryFor(searchType)
-//                        .item(path, propDef).contains(value).matchingCaseIgnore().buildFilter();
-//            }
         return null;
     }
 }

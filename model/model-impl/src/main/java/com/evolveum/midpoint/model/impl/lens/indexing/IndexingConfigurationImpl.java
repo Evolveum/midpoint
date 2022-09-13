@@ -49,8 +49,8 @@ public class IndexingConfigurationImpl implements IndexingConfiguration {
             IndexingItemConfiguration itemConfiguration;
             if (itemIndexingDefBean != null) {
                 itemConfiguration = IndexingItemConfigurationImpl.of(itemDefBean, itemIndexingDefBean);
-            } else if (itemDefBean.getIdentity() != null) {
-                // "Identity" items are indexed by default (TODO how can that be turned off?)
+            } else if (itemDefBean.getMultiSource() != null) {
+                // "Multi-source" items are indexed by default (TODO how can that be turned off?)
                 itemConfiguration = IndexingItemConfigurationImpl.of(itemDefBean, new ItemIndexingDefinitionType());
             } else {
                 continue;

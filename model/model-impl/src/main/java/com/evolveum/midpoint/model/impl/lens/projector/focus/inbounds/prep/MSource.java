@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds.prep;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
@@ -217,14 +218,18 @@ abstract class MSource implements DebugDumpable {
 
     /**
      * Selects mappings appropriate for the current evaluation phase.
-     * (The method is here, because we have {@link #resourceObjectDefinition} where defaults are defined.)
+     * (The method is in this class, because here we have {@link #resourceObjectDefinition} where defaults are defined.)
+     *
+     * @param resourceItemCorrelatorDefined Is the correlator defined for particular resource object item (currently attribute)?
      */
     @NotNull List<InboundMappingType> filterApplicableMappingBeans(
             @NotNull List<InboundMappingType> beans,
-            boolean itemCorrelationDefined) {
+            boolean resourceItemCorrelatorDefined,
+            @NotNull Collection<ItemPath> correlationItemPaths) {
         InboundMappingEvaluationPhaseType currentPhase = getCurrentEvaluationPhase();
         List<InboundMappingType> filtered =
-                new ApplicabilityEvaluator(getDefaultEvaluationPhases(), itemCorrelationDefined, currentPhase)
+                new ApplicabilityEvaluator(
+                        getDefaultEvaluationPhases(), resourceItemCorrelatorDefined, correlationItemPaths, currentPhase)
                         .filterApplicableMappingBeans(beans);
         if (filtered.size() < beans.size()) {
             LOGGER.trace("{} out of {} mapping(s) for this item were filtered out because of evaluation phase '{}'",

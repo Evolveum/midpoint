@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -120,18 +121,14 @@ public class CorrelationServiceImpl implements CorrelationService {
     private @NotNull CompleteCorrelationResult createCompleteResult(
             CorrelationResult correlationResult, CorrelatorContext<?> correlatorContext) {
         CandidateOwnersMap candidateOwnersMap = correlationResult.getCandidateOwnersMap();
-        double ownerThreshold = correlatorContext.getOwnerThreshold();
-        var owners =
-                candidateOwnersMap.selectWithConfidenceAtLeast(
-                        ownerThreshold);
+        double definiteThreshold = correlatorContext.getDefiniteThreshold();
+        Collection<CandidateOwner> owners = candidateOwnersMap.selectWithConfidenceAtLeast(definiteThreshold);
         double candidateThreshold = correlatorContext.getCandidateThreshold();
-        var eligibleCandidates =
-                candidateOwnersMap.selectWithConfidenceAtLeast(
-                        candidateThreshold);
+        Collection<CandidateOwner> eligibleCandidates = candidateOwnersMap.selectWithConfidenceAtLeast(candidateThreshold);
 
-        LOGGER.debug("Determining overall result with owner threshold of {}, candidate threshold of {}, "
-                        + "owners: {}, eligible candidates: {}, all candidates:\n{}",
-                ownerThreshold, candidateThreshold, owners.size(), eligibleCandidates.size(),
+        LOGGER.debug("Determining overall result with 'definite' threshold of {}, candidate threshold of {}, "
+                        + "definite (owner) candidates: {}, eligible candidates: {}, all candidates:\n{}",
+                definiteThreshold, candidateThreshold, owners.size(), eligibleCandidates.size(),
                 DebugUtil.toStringCollectionLazy(candidateOwnersMap.values(), 1));
 
         ResourceObjectOwnerOptionsType optionsBean = new ResourceObjectOwnerOptionsType();
@@ -194,7 +191,7 @@ public class CorrelationServiceImpl implements CorrelationService {
         double confidence = correlatorFactoryRegistry
                 .instantiateCorrelator(correlatorContext, task, result)
                 .checkCandidateOwner(correlationContext, candidateOwner, result);
-        return confidence >= correlatorContext.getOwnerThreshold();
+        return confidence >= correlatorContext.getDefiniteThreshold();
     }
 
     @Override

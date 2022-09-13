@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +47,7 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
 
     @NotNull private final Task task;
 
-    @NotNull private final ResourceObjectDefinition objectTypeDefinition;
+    @NotNull private final ResourceObjectTypeDefinition objectTypeDefinition;
 
     @NotNull private final ModelBeans beans;
 
@@ -55,7 +57,8 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
             @NotNull F preFocus,
             @Nullable SystemConfigurationType systemConfiguration,
             @NotNull Task task,
-            @NotNull ResourceObjectDefinition objectTypeDefinition, @NotNull ModelBeans beans) {
+            @NotNull ResourceObjectTypeDefinition objectTypeDefinition,
+            @NotNull ModelBeans beans) {
         this.shadowedResourceObject = shadowedResourceObject;
         this.resource = resource;
         this.preFocus = preFocus;
@@ -104,6 +107,11 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
     }
 
     @Override
+    public @Nullable String getArchetypeOid() {
+        return objectTypeDefinition.getArchetypeOid();
+    }
+
+    @Override
     public String getChannel() {
         // This is an approximation. (Normally, the channel comes as part of the resource object change information.)
         return task.getChannel();
@@ -122,6 +130,7 @@ public class SimplePreInboundsContextImpl<F extends FocusType>
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(getClass(), indent);
         DebugUtil.debugDumpWithLabelLn(sb, "shadowedResourceObject", shadowedResourceObject, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "objectTypeDefinition", objectTypeDefinition, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "preFocus", preFocus, indent + 1);
         return sb.toString();

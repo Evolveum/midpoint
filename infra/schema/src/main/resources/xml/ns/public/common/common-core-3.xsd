@@ -4002,6 +4002,8 @@
 
                         For attributes this automatically turns on "beforeCorrelation" mapping evaluation phase.
                         (If not explicitly forbidden in the attribute definition.)
+
+                        Currently supported for attributes only.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.6</a:since>
@@ -8392,12 +8394,13 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="identity" type="tns:IdentityDataHandlingType" minOccurs="0">
+                    <xsd:element name="multiSource" type="tns:IdentityDataHandlingType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Definition of handling of the identity data. TODO better explanation
+                                Definition of handling of the data in "multi-source" mode.
 
-                                TODO better name ... multiSource? multiProvenance?
+                                TODO better explanation
+                                TODO think of a better name
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>
@@ -8489,16 +8492,16 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="identity" type="tns:IdentityItemDefinitionType" minOccurs="0">
+                    <xsd:element name="multiSource" type="tns:IdentityItemDefinitionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Marks the item as the one with multiple origins. Such items are not stored directly in their
+                                Marks the item as the one with multiple sources. Such items are not stored directly in their
                                 "main" place in the focus objects, but in $focus/identities/identity[x]/data object instead.
-                                (Where identity[x] is the value assigned to the given origin.) Then there may be special
+                                (Where identity[x] is the value assigned to the given source.) Then there may be special
                                 mapping or mappings devoted to the selection of the value or values to be stored right
                                 to the "main" place of the focus item.
 
-                                TODO better name for this configuration item... multiSource? multiProvenance? multiOrigin? multi?
+                                TODO better name for this configuration item
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.6</a:since>

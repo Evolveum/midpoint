@@ -11,6 +11,13 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
+import com.evolveum.midpoint.model.impl.correlation.CorrelatorContextCreator;
+import com.evolveum.midpoint.prism.path.PathSet;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +41,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 /**
  * Evaluation of inbound mappings during correlation, i.e. before clockwork is started.
@@ -66,7 +74,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
             new PreShadowInboundsPreparation<>(
                     mappingsMap,
                     itemDefinitionMap,
-                    new PreContext(ctx, env, result, beans),
+                    new PreContext(ctx, getCorrelationItemPaths(), env, result, beans),
                     preFocus,
                     getFocusDefinition(preFocus))
                     .collectOrEvaluate();
@@ -74,6 +82,42 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
             // Should be used only in clockwork processing.
             throw new IllegalStateException("Unexpected 'stop processing' exception: " + e.getMessage(), e);
         }
+    }
+
+    /** We need to get paths to all correlation items - to enable pre-inbounds for the respective attributes. */
+    private PathSet getCorrelationItemPaths() throws SchemaException, ObjectNotFoundException, ConfigurationException {
+        CorrelatorContext<?> correlatorContext =
+                CorrelatorContextCreator.createRootContext(
+                        getCorrelationDefinitionBean(),
+                        getObjectTemplate(),
+                        ctx.getSystemConfiguration());
+        PathSet paths = correlatorContext.getConfiguration().getCorrelationItemPaths();
+        LOGGER.trace("Correlation items: {}", paths);
+        return paths;
+    }
+
+    private @NotNull CorrelationDefinitionType getCorrelationDefinitionBean() throws SchemaException, ConfigurationException {
+        ResourceObjectTypeDefinition objectTypeDefinition = ctx.getObjectDefinitionRequired().getTypeDefinition();
+        CorrelationDefinitionType resourceCorrelationDefinitionBean =
+                objectTypeDefinition != null ? objectTypeDefinition.getCorrelationDefinitionBean() : null;
+        return resourceCorrelationDefinitionBean != null ?
+                resourceCorrelationDefinitionBean : new CorrelationDefinitionType();
+    }
+
+    private ObjectTemplateType getObjectTemplate() throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        String archetypeOid = ctx.getArchetypeOid();
+        if (archetypeOid == null) {
+            return null;
+        }
+        ArchetypePolicyType policy = beans.archetypeManager.getPolicyForArchetype(archetypeOid, result);
+        if (policy == null) {
+            return null;
+        }
+        String templateOid = getOid(policy.getObjectTemplateRef());
+        if (templateOid == null) {
+            return null;
+        }
+        return beans.archetypeManager.getExpandedObjectTemplate(templateOid, result);
     }
 
     @Override
@@ -103,7 +147,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
     }
 
     @Override
-    @Nullable PrismObject<F> getFocusNew() throws SchemaException {
+    @Nullable PrismObject<F> getFocusNew() {
         return ctx.getPreFocusAsPrismObject();
     }
 
@@ -119,7 +163,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
     }
 
     // TODO !!!!!!!!!!!!!!
-    public VariablesMap getVariablesMap() throws SchemaException {
+    public VariablesMap getVariablesMap() {
         VariablesMap variables = ModelImplUtils.getDefaultVariablesMap(
                 ctx.getPreFocus(),
                 ctx.getShadowedResourceObject(),

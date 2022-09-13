@@ -9,12 +9,15 @@ package com.evolveum.midpoint.model.api.correlator;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil;
+import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil.getComposition;
+import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.getComposition;
 
 /**
  * Wrapper for both typed (bean-only) and untyped (bean + item name) correlator configuration.
@@ -172,7 +175,7 @@ public abstract class CorrelatorConfiguration implements Serializable {
     }
 
     public @NotNull String identify() {
-        return CorrelationItemDefinitionUtil.identify(
+        return CorrelatorsDefinitionUtil.identify(
                 getConfigurationBean());
     }
 
@@ -281,6 +284,22 @@ public abstract class CorrelatorConfiguration implements Serializable {
                     getConfigurationsDeeply((CompositeCorrelatorType) bean));
         }
         return all;
+    }
+
+    public PathSet getCorrelationItemPaths() {
+        PathSet paths = new PathSet();
+        for (CorrelatorConfiguration currentConfiguration : getAllConfigurationsDeeply()) {
+            AbstractCorrelatorType currentConfigBean = currentConfiguration.getConfigurationBean();
+            if (currentConfigBean instanceof ItemsCorrelatorType) {
+                for (CorrelationItemType item : ((ItemsCorrelatorType) currentConfigBean).getItem()) {
+                    ItemPathType pathBean = item.getRef();
+                    if (pathBean != null) {
+                        paths.add(pathBean.getItemPath());
+                    }
+                }
+            }
+        }
+        return paths;
     }
 
     public static class TypedCorrelationConfiguration extends CorrelatorConfiguration {

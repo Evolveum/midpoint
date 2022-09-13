@@ -16,15 +16,45 @@
     </iterationSpecification>
     <item>
         <ref>givenName</ref>
-        <identity/>
+        <multiSource>
+            <selection>
+                <expression>
+                    <!-- Just for the demonstration of an item-specific selection algorithm -->
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.model.intest.TestIdentities
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType
+
+                            if (identity == null) {
+                                return null
+                            }
+
+                            // Appends the tag (if present) to the given name
+                            // Just a demonstration of using item-specific mapping (and of stamping the value with its origin)
+
+                            def values = midpoint.selectIdentityItemValues(identity, defaultAuthoritativeSource, UserType.F_GIVEN_NAME)
+                            if (defaultAuthoritativeSource?.tag != null) {
+                                values.collect() {
+                                    midpoint.prismContext.itemFactory().createPropertyValue(
+                                            basic.stringify(it.realValue) + " (" + defaultAuthoritativeSource.tag + ")"
+                                    )
+                                }
+                            } else {
+                                values
+                            }
+                        </code>
+                    </script>
+                </expression>
+            </selection>
+        </multiSource>
     </item>
     <item>
         <ref>familyName</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>c:extension/ent:personalNumber</ref> <!-- here are namespaces to see if the default mapping is created correctly -->
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>name</ref>
@@ -41,7 +71,7 @@
             </expression>
         </mapping>
     </item>
-    <identity>
+    <multiSource>
         <defaultAuthoritativeSource>
             <expression>
                 <script>
@@ -67,10 +97,9 @@
                                 .findAll { it.resourceRef?.oid == TestIdentities.RESOURCE_MULTI.oid }
 
                         if (single != null) {
-                            single.clone()
+                            single
                         } else if (!multi.isEmpty()) {
                             multi.min { it.tag }
-                                .clone()
                         } else {
                             null
                         }
@@ -78,5 +107,5 @@
                 </script>
             </expression>
         </defaultAuthoritativeSource>
-    </identity>
+    </multiSource>
 </objectTemplate>

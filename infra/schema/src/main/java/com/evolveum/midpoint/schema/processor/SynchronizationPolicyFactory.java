@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import static com.evolveum.midpoint.schema.util.CorrelationItemDefinitionUtil.addSingleItemCorrelator;
+import static com.evolveum.midpoint.schema.util.CorrelatorsDefinitionUtil.addSingleItemCorrelator;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.fillDefault;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.DISPUTED;

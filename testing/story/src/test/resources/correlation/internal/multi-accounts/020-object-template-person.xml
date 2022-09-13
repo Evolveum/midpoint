@@ -7,25 +7,25 @@
 
 <objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 oid="81268f26-d4e5-4a32-8318-4b0f7b0c9a20">
-    <name>object-template-user</name>
+    <name>object-template-person</name>
     <iterationSpecification>
         <maxIterations>9999</maxIterations>
     </iterationSpecification>
     <item>
         <ref>givenName</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>familyName</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>extension/dateOfBirth</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <item>
         <ref>extension/nationalId</ref>
-        <identity/>
+        <multiSource/>
     </item>
     <mapping>
         <strength>strong</strength>
@@ -62,7 +62,7 @@
             <path>name</path>
         </target>
     </mapping>
-    <identity>
+    <multiSource>
         <defaultAuthoritativeSource>
             <expression>
                 <script>
@@ -84,61 +84,58 @@
                                 .collect { it.source }
                                 .findAll { it != null }
                                 .min { it.tag }
-                                ?.clone()
                     </code>
                 </script>
             </expression>
         </defaultAuthoritativeSource>
-    </identity>
+    </multiSource>
     <correlation>
         <correlators>
-            <composite>
-                <items>
-                    <name>name-date-id</name>
-                    <documentation>
-                        If key attributes (family name, date of birth, national ID) exactly match,
-                        we are immediately done. We ignore given name here.
-                    </documentation>
-                    <item>
-                        <ref>familyName</ref>
-                    </item>
-                    <item>
-                        <ref>extension/dateOfBirth</ref>
-                    </item>
-                    <item>
-                        <ref>extension/nationalId</ref>
-                    </item>
-                    <composition>
-                        <tier>1</tier>
-                    </composition>
-                </items>
-                <items>
-                    <name>names-date</name>
-                    <documentation>If given and family name and the date of birth match, we present an option to the operator.</documentation>
-                    <item>
-                        <ref>givenName</ref>
-                    </item>
-                    <item>
-                        <ref>familyName</ref>
-                    </item>
-                    <item>
-                        <ref>extension/dateOfBirth</ref>
-                    </item>
-                    <composition>
-                        <weight>0.4</weight>
-                    </composition>
-                </items>
-                <items>
-                    <name>id</name>
-                    <documentation>If national ID matches, we present an option to the operator.</documentation>
-                    <item>
-                        <ref>extension/nationalId</ref>
-                    </item>
-                    <composition>
-                        <weight>0.4</weight>
-                    </composition>
-                </items>
-            </composite>
+            <items>
+                <name>name-date-id</name>
+                <documentation>
+                    If key attributes (family name, date of birth, national ID) exactly match,
+                    we are immediately done. We ignore given name here.
+                </documentation>
+                <item>
+                    <ref>familyName</ref>
+                </item>
+                <item>
+                    <ref>extension/dateOfBirth</ref>
+                </item>
+                <item>
+                    <ref>extension/nationalId</ref>
+                </item>
+                <composition>
+                    <tier>1</tier>
+                </composition>
+            </items>
+            <items>
+                <name>names-date</name>
+                <documentation>If given and family name and the date of birth match, we present an option to the operator.</documentation>
+                <item>
+                    <ref>givenName</ref>
+                </item>
+                <item>
+                    <ref>familyName</ref>
+                </item>
+                <item>
+                    <ref>extension/dateOfBirth</ref>
+                </item>
+                <composition>
+                    <weight>0.4</weight>
+                </composition>
+            </items>
+            <items>
+                <name>id</name>
+                <documentation>If national ID matches, we present an option to the operator.</documentation>
+                <item>
+                    <ref>extension/nationalId</ref>
+                </item>
+                <composition>
+                    <weight>0.4</weight>
+                </composition>
+            </items>
         </correlators>
     </correlation>
 </objectTemplate>

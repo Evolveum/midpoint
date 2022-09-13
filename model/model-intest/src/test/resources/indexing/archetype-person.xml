@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           oid="ace64f7e-dec0-4ff4-a3e8-728b46fad6f3">
+    <name>person</name>
+    <archetypePolicy>
+        <objectTemplateRef oid="74a2112a-0ecc-4c09-818a-1d9e234e8e6f"/>
+    </archetypePolicy>
+</archetype>

@@ -74,7 +74,6 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
 
             @Override
             protected void onUpdateCheckbox(AjaxRequestTarget target, List<IModel<SelectableBean<O>>> rowModelList, DataTable table) {
-                updatePreselectedObjects(rowModelList);
                 onSelectionPerformed(target, rowModelList, table);
             }
 
@@ -151,21 +150,6 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
     }
 
     protected void onSelectionPerformed(AjaxRequestTarget target, List<IModel<SelectableBean<O>>> rowModelList, DataTable dataTable) {
-    }
-
-    private void updatePreselectedObjects(List<IModel<SelectableBean<O>>> rowModelList) {
-        if (CollectionUtils.isEmpty(rowModelList)) {
-            return;
-        }
-        rowModelList.forEach(rowModel -> {
-            SelectableBean<O> selectableBean = rowModel.getObject();
-            O selectedObject = selectableBean.getValue();
-            if (selectableBean.isSelected()) {
-                preselectedObjects.add(selectedObject);
-            } else {
-                preselectedObjects.removeIf(o -> selectedObject.getOid().equals(o.getOid()));
-            }
-        });
     }
 
     protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<O>> rowModel) {

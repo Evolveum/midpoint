@@ -169,7 +169,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
             @Override
             public boolean isEnabled(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                return rowModel.getObject().getRealValue().getFocusMappings() == null;
+                return rowModel.getObject().getRealValue().getFocusMappings() == null && !isDashboard();
             }
 
             @Override

@@ -138,28 +138,12 @@ public class PageDebugList extends PageAdminConfiguration {
                 Search search = storage.getSearch();
 
                 if (search == null) {
-//                    ContainerTypeSearchItem<? extends ObjectType> defaultType =
-//                            new ContainerTypeSearchItem(
-//                                    new SearchValue<Class>(SystemConfigurationType.class, "ObjectType." + SystemConfigurationType.COMPLEX_TYPE.getLocalPart()),
-//                                    getAllowedTypes());
-//                    defaultType.setVisible(true);
-//                    search = SearchFactory.createSearch(defaultType, PageDebugList.this, true);
-//                    configureSearch(search);
                     search = SearchFactory.createSearch(createSearchConfigWrapper(confDialogModel.getObject().getType(), SystemConfigurationType.COMPLEX_TYPE), PageDebugList.this);
                     storage.setSearch(search);
                 }
                 return search;
             }
         };
-
-//        confDialogModel = new LoadableModel<>() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected DebugConfDialogDto load() {
-//                return new DebugConfDialogDto();
-//            }
-//        };
 
         initLayout();
     }
@@ -172,17 +156,6 @@ public class PageDebugList extends PageAdminConfiguration {
         searchConfigurationWrapper.getAllowedTypeList().addAll(getAllowedTypes());
         return searchConfigurationWrapper;
     }
-
-//    private List<DisplayableValue<Class<? extends ObjectType>>> getAllowedTypes() {
-//        List<DisplayableValue<Class<? extends ObjectType>>> choices = new ArrayList<>();
-//        List<ObjectTypes> objectTypes = WebComponentUtil.createObjectTypesList();
-//
-//        for (ObjectTypes objectType : objectTypes) {
-//            String key = "ObjectType." + objectType.getTypeQName().getLocalPart();
-//            choices.add(new SearchValue<>(objectType.getClassDefinition(), key));
-//        }
-//        return choices;
-//    }
 
     private List<Class<ObjectType>> getAllowedTypes() {
         List<Class<ObjectType>> choices = new ArrayList<>();
@@ -360,10 +333,6 @@ public class PageDebugList extends PageAdminConfiguration {
     private Class<? extends ObjectType> getType() {
         return searchModel.isLoaded() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
     }
-
-//    private ContainerTypeSearchItem<? extends ObjectType> getTypeItem() {
-//        return searchModel.isLoaded() ? searchModel.getObject().getType() : null;
-//    }
 
     private List<InlineMenuItem> initInlineMenu() {
         List<InlineMenuItem> headerMenuItems = new ArrayList<>();

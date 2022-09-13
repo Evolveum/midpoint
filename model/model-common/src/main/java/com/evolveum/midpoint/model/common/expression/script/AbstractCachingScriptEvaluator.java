@@ -108,17 +108,23 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
         // PrismReference? Shouldn't they be processed in the same way as
         // PrismProperty?
         if (evalRawResult instanceof Collection) {
+            //noinspection rawtypes
             for (Object evalRawResultElement : (Collection) evalRawResult) {
                 T evalResult = convertScalarResult(javaReturnType, evalRawResultElement, context);
-                values.add(ExpressionUtil.convertToPrismValue(
-                        evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
+                values.add(
+                        ExpressionUtil.convertToPrismValue(
+                                evalResult, context.getOutputDefinition(), context.getContextDescription()));
             }
         } else if (evalRawResult instanceof PrismProperty<?>) {
-            values.addAll((Collection<? extends V>) PrismValueCollectionsUtil.cloneCollection(((PrismProperty<T>) evalRawResult).getValues()));
+            //noinspection unchecked
+            values.addAll(
+                    (Collection<? extends V>) PrismValueCollectionsUtil.cloneCollection(
+                            ((PrismProperty<T>) evalRawResult).getValues()));
         } else {
             T evalResult = convertScalarResult(javaReturnType, evalRawResult, context);
-            values.add(ExpressionUtil.convertToPrismValue(
-                    evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
+            values.add(
+                    ExpressionUtil.convertToPrismValue(
+                            evalResult, context.getOutputDefinition(), context.getContextDescription()));
         }
 
         return values;

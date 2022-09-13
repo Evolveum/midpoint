@@ -51,8 +51,6 @@
         <returnType>xsd:anyType</returnType> <!-- Returns PrismContainerValue -->
         <script>
             <code>
-                import com.evolveum.prism.xml.ns._public.types_3.ItemType
-
                 log.info('container = {} ({})', container, container?.class)
                 log.info('containerValue = {} ({})', containerValue, containerValue?.class)
                 container?.get(0)

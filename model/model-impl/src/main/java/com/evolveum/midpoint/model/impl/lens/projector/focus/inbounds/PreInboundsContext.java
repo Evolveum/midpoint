@@ -38,4 +38,7 @@ public interface PreInboundsContext<F extends FocusType>
     @Nullable ObjectDelta<ShadowType> getResourceObjectDelta();
 
     @NotNull ResourceObjectDefinition getObjectDefinitionRequired() throws SchemaException, ConfigurationException;
+
+    /** Returns the archetype OID bound to the object type. Archetypes determined from the focus itself are not returned here. */
+    @Nullable String getArchetypeOid();
 }

@@ -37,7 +37,6 @@
             <kind>account</kind>
             <intent>default</intent>
             <default>true</default>
-            <objectClass>ri:AccountObjectClass</objectClass>
             <multiplicity>
                 <!-- Each user can have more accounts in SIS. The sisId is the tag. -->
                 <maxOccurs>unbounded</maxOccurs>
@@ -49,6 +48,13 @@
                     </expression>
                 </tag>
             </multiplicity>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+                <archetypeRef oid="eaf32546-3584-46e9-bdb8-2efbd7ecac47"/>
+            </focus>
             <attribute>
                 <ref>ri:sisId</ref>
                 <inbound>
@@ -120,16 +126,6 @@
                     </target>
                 </inbound>
             </attribute>
-
-
-            <mappingsEvaluation>
-                <inbound>
-                    <defaultEvaluationPhases>
-                        <phase>clockwork</phase>
-                        <phase>beforeCorrelation</phase>
-                    </defaultEvaluationPhases>
-                </inbound>
-            </mappingsEvaluation>
             <synchronization>
                 <reaction>
                     <situation>linked</situation>

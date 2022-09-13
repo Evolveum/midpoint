@@ -33,7 +33,8 @@ import java.util.*;
  * Each combinations of values from sources is evaluated separately and the resulting values
  * are sorted out into plus-minus-zero sets.
  */
-class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType> extends TransformationalEvaluation<V, D, E>  {
+class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E extends TransformExpressionEvaluatorType>
+        extends TransformationalEvaluation<V, D, E>  {
 
     private static final Trace LOGGER = TraceManager.getTrace(CombinatorialEvaluation.class);
 
@@ -235,7 +236,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         Collection<Source<?, ?>> sources = context.getSources();
         List<SourceTriple<?,?>> sourceTriples = new ArrayList<>(sources.size());
         for (Source<?,?> source: sources) {
-            //noinspection unchecked
+            //noinspection unchecked,rawtypes
             sourceTriples.add(
                     createSourceTriple((Source) source));
         }
@@ -253,7 +254,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
             }
         }
         if (evaluator.isIncludeNullInputs()) {
-            addFakeNullValues(sourceTriple, source);
+            addFakeNullValues(sourceTriple);
         }
         LOGGER.trace("Processed source {} triple\n{}", source.getName().getLocalPart(), sourceTriple.debugDumpLazily(1));
         return sourceTriple;
@@ -265,7 +266,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
      *
      * TODO Verify the correctness of this algorithm.
      */
-    private void addFakeNullValues(SourceTriple<V, D> sourceTriple, Source<V, D> source) {
+    private void addFakeNullValues(SourceTriple<V, D> sourceTriple) {
         if (sourceTriple.hasZeroSet()) {
             // This is good. Because we have zero set, it will be applied both for non-positive
             // and non-negative computations. Nothing has to be done.
