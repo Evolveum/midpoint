@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
 import java.time.Instant;
 
+import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
@@ -42,4 +43,5 @@ public class MFocus extends MObject {
     public Instant validityChangeTimestamp;
     public Instant archiveTimestamp;
     public LockoutStatusType lockoutStatus;
+    public Jsonb normalizedData;
 }

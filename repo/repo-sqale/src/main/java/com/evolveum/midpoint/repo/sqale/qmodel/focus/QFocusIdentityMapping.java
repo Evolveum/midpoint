@@ -6,22 +6,18 @@
  */
 package com.evolveum.midpoint.repo.sqale.qmodel.focus;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType.F_ITEMS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.FocusIdentityType.F_SOURCE;
 
-import java.util.*;
-import javax.xml.namespace.QName;
+import java.util.Objects;
+import java.util.UUID;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.repo.sqale.ExtensionProcessor;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
-import com.evolveum.midpoint.repo.sqale.jsonb.Jsonb;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
-import com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemHolderType;
 import com.evolveum.midpoint.repo.sqale.update.SqaleUpdateContext;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
@@ -71,12 +67,6 @@ public class QFocusIdentityMapping<OR extends MFocus>
                         null,
                         null,
                         QFocusMapping::getFocusMapping);
-
-        addNestedMapping(F_ITEMS, FocusIdentityItemsType.class)
-                .addExtensionMapping(FocusIdentityItemsType.F_ORIGINAL,
-                        MExtItemHolderType.EXTENSION, q -> q.itemsOriginal, repositoryContext)
-                .addExtensionMapping(FocusIdentityItemsType.F_NORMALIZED,
-                        MExtItemHolderType.EXTENSION, q -> q.itemsNormalized, repositoryContext);
     }
 
     @Override
@@ -110,44 +100,16 @@ public class QFocusIdentityMapping<OR extends MFocus>
             }
         }
 
-        FocusIdentityItemsType items = schemaObject.getItems();
-        if (items != null) {
-            row.itemsOriginal = processExtensions(items.getOriginal(), MExtItemHolderType.EXTENSION);
-            row.itemsNormalized = processExtensions(items.getNormalized(), MExtItemHolderType.EXTENSION);
-        }
-
         insert(row, jdbcSession);
         return row;
     }
 
     @Override
-    protected Collection<? extends QName> fullObjectItemsToSkip() {
-        return List.of(F_ITEMS);
-    }
-
-    @Override
     public FocusIdentityType toSchemaObject(MFocusIdentity row) throws SchemaException {
-        FocusIdentityType identity = parseSchemaObject(
+        return parseSchemaObject(
                 row.fullObject,
                 "identity for " + row.ownerOid + "," + row.cid,
                 FocusIdentityType.class);
-
-        // begin/setItems() replaces incomplete container from fullObject, which is the right thing here.
-        if (row.itemsOriginal != null || row.itemsNormalized != null) {
-            FocusIdentityItemsType focusIdentityItems = identity.beginItems();
-            if (row.itemsOriginal != null) {
-                Map<String, Object> itemMap = Jsonb.toMap(row.itemsOriginal);
-                new ExtensionProcessor(repositoryContext()).extensionsToContainer(itemMap, focusIdentityItems.beginOriginal());
-            }
-            if (row.itemsNormalized != null) {
-                Map<String, Object> itemMap = Jsonb.toMap(row.itemsNormalized);
-                new ExtensionProcessor(repositoryContext()).extensionsToContainer(itemMap, focusIdentityItems.beginNormalized());
-            }
-        } else {
-            identity.setItems(null);
-        }
-
-        return identity;
     }
 
     @Override

@@ -11,6 +11,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableTy
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.PathSet;
+
 import com.google.common.base.Strings;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
@@ -94,8 +96,8 @@ public class QLookupTableMapping
     }
 
     @Override
-    protected Collection<? extends QName> fullObjectItemsToSkip() {
-        return Collections.singleton(F_ROW);
+    protected PathSet fullObjectItemsToSkip() {
+        return PathSet.of(F_ROW);
     }
 
     @Override

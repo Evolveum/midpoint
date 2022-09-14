@@ -570,7 +570,7 @@ public class RequestAccess implements Serializable {
             return null;
         }
 
-        Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
+        Task task = page.createSimpleTask(usersCount == 1 ? OPERATION_REQUEST_ASSIGNMENTS_SINGLE : OPERATION_REQUEST_ASSIGNMENTS);
         OperationResult result = task.getResult();
 
         for (ObjectReferenceType poiRef : requestItems.keySet()) {
@@ -658,13 +658,10 @@ public class RequestAccess implements Serializable {
         markConflictsDirty();
     }
 
-    public List<QName> getAvailableRelations(PageBase page) {
-        List<ObjectReferenceType> personsOfInterest = getPersonOfInterest();
-        if (personsOfInterest.isEmpty()) {
+    private List<QName> getAssignableRelationList(PageBase page, ObjectReferenceType ref) {
+        if (ref == null) {
             return new ArrayList<>();
         }
-
-        ObjectReferenceType ref = personsOfInterest.get(0);
 
         FocusType focus;
         try {
@@ -677,14 +674,25 @@ public class RequestAccess implements Serializable {
 
         Task task = page.createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
         OperationResult result = task.getResult();
-        List<QName> relations = WebComponentUtil.getAssignableRelationsList(
+        return WebComponentUtil.getAssignableRelationsList(
                 focus.asPrismObject(), RoleType.class, WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, page);
+    }
+
+    public List<QName> getAvailableRelations(PageBase page) {
+        List<ObjectReferenceType> personsOfInterest = getPersonOfInterest();
+        ObjectReferenceType ref = null;
+        if (!personsOfInterest.isEmpty()) {
+            ref = personsOfInterest.get(0);
+        }
+
+        List<QName> relations = getAssignableRelationList(page, ref);
 
         if (CollectionUtils.isEmpty(relations)) {
             relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, page);
         }
 
         RelationSelectionType config = getRelationConfiguration(page);
+        QName defaultRelation = getDefaultRelation();
         relations = relations.stream()
                 // filter out non default relations if configuration doesn't allow other relations
                 .filter(q -> BooleanUtils.isNotFalse(config.isAllowOtherRelations()) || defaultRelation == null || q.equals(defaultRelation))
@@ -728,17 +736,26 @@ public class RequestAccess implements Serializable {
     }
 
     public boolean isAssignedToAll(String oid) {
+        return countNumberOfAssignees(oid) == requestItems.keySet().size();
+    }
+
+    public boolean isAssignedToNone(String oid) {
+        return countNumberOfAssignees(oid) == 0;
+    }
+
+    private int countNumberOfAssignees(String oid) {
         if (oid == null) {
-            return false;
+            return 0;
         }
 
+        int count = 0;
         for (List<ObjectReferenceType> memberships : existingPoiRoleMemberships.values()) {
             boolean found = memberships.stream().anyMatch(m -> oid.equals(m.getOid()));
-            if (!found) {
-                return false;
+            if (found) {
+                count++;
             }
         }
 
-        return true;
+        return count;
     }
 }

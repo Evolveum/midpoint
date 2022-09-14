@@ -8,11 +8,12 @@ package com.evolveum.midpoint.repo.sqale.qmodel.task;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.*;
 
+import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Function;
-import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.path.PathSet;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
@@ -123,8 +124,8 @@ public class QTaskMapping
     }
 
     @Override
-    protected Collection<? extends QName> fullObjectItemsToSkip() {
-        return Collections.singletonList(F_RESULT);
+    protected PathSet fullObjectItemsToSkip() {
+        return PathSet.of(F_RESULT);
     }
 
     @Override

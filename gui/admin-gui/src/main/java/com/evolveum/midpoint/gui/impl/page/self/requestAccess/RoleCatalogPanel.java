@@ -408,7 +408,20 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         t.setValue(object);
 
                         RequestAccess ra = RoleCatalogPanel.this.getModelObject();
-                        t.setCheckState(ra.isAssignedToAll(obj.getOid()) ? RoundedIconPanel.State.FULL : RoundedIconPanel.State.PARTIAL);
+
+                        RoundedIconPanel.State checkState;
+                        String checkTitle = null;
+                        if (ra.isAssignedToAll(obj.getOid())) {
+                            checkState = RoundedIconPanel.State.FULL;
+                            checkTitle = getString("RoleCatalogPanel.tileFullCheckState");
+                        } else if (ra.isAssignedToNone(obj.getOid())) {
+                            checkState = RoundedIconPanel.State.NONE;
+                        } else {
+                            checkState = RoundedIconPanel.State.PARTIAL;
+                            checkTitle = getString("RoleCatalogPanel.tilePartialCheckState");
+                        }
+                        t.setCheckState(checkState);
+                        t.setCheckTitle(checkTitle);
 
                         return t;
                     }
@@ -948,7 +961,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private AssignmentType createNewAssignment(ObjectType object, QName relation) {
         AssignmentType a = new AssignmentType();
         ObjectReferenceType targetRef = new ObjectReferenceType()
-                .targetName(object.getName())
+                .targetName(WebComponentUtil.getDisplayNameOrName(object.asPrismObject()))
                 .type(ObjectTypes.getObjectType(object.getClass()).getTypeQName())
                 .oid(object.getOid())
                 .relation(relation);
@@ -972,7 +985,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         if (selected.size() > 1) {
             msg = getString("RoleCatalogPanel.multipleAdded", selected.size());
         } else {
-            String name = WebComponentUtil.getName(selected.get(0));
+            String name = WebComponentUtil.getDisplayNameOrName(selected.get(0).asPrismObject());
             msg = getString("RoleCatalogPanel.singleAdded",
                     Strings.escapeMarkup(name, false, true));
         }

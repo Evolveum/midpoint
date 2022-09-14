@@ -8,13 +8,13 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <input wicket:id="input" type="text" class="form-control" style="max-width: 50px;" wicket:message="title:PagingSizePanel.pageSize">
+    <input wicket:id="input" type="text" class="form-control" wicket:message="title:PagingSizePanel.pageSize">
     <div class="input-group-append">
         <div class="d-flex flex-column">
-            <a wicket:id="increment" class="border flex-fill px-1 d-flex align-items-center border-bottom-0" style="line-height: 1; border-color: #ced4da !important; color: #444;">
+            <a wicket:id="increment" class="btn-increment border-bottom-0">
                 <i class="fa-solid fa-caret-up fa-xs"></i>
             </a>
-            <a wicket:id="decrement" class="border flex-fill px-1 d-flex align-items-center" style="line-height: 1; border-color: #ced4da !important; color: #444;">
+            <a wicket:id="decrement" class="btn-increment">
                 <i class="fa-solid fa-caret-down fa-xs"></i>
             </a>
         </div>

@@ -31,7 +31,7 @@ public class FocusIdentitiesAsserter<RA> extends PrismContainerValueAsserter<Foc
     }
 
     @SuppressWarnings("SameParameterValue")
-    private FocusIdentitiesAsserter<RA> assertNumber(int expected) throws SchemaException {
+    public FocusIdentitiesAsserter<RA> assertNumber(int expected) throws SchemaException {
         assertThat(getNumber())
                 .as("number of identities")
                 .isEqualTo(expected);
@@ -42,11 +42,12 @@ public class FocusIdentitiesAsserter<RA> extends PrismContainerValueAsserter<Foc
         return getIdentitiesBean().getIdentity().size();
     }
 
-    public FocusIdentityAsserter<FocusIdentitiesAsserter<RA>> withoutSource() throws SchemaException {
+    public FocusNormalizedDataAsserter<FocusIdentitiesAsserter<RA>> normalizedData() throws SchemaException {
         //noinspection unchecked
-        FocusIdentityAsserter<FocusIdentitiesAsserter<RA>> asserter =
-                new FocusIdentityAsserter<>(
-                        (PrismContainerValue<FocusIdentityType>) findRequired(null).asPrismContainerValue(),
+        FocusNormalizedDataAsserter<FocusIdentitiesAsserter<RA>> asserter =
+                new FocusNormalizedDataAsserter<>(
+                        (PrismContainerValue<FocusNormalizedDataType>)
+                                getPrismValue().asContainerable().getNormalizedData().asPrismContainerValue(),
                         this,
                         getDetails());
         copySetupTo(asserter);

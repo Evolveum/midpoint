@@ -19,6 +19,7 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -59,10 +60,9 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
                 () -> StringUtils.isNotEmpty(getModelObject().getIconCss()) ? getModelObject().getIconCss() : "far fa-fw fa-circle"));
         link.add(icon);
 
-        Label label = new Label(ID_LABEL, () -> {
-            String key = getModelObject().getLabel();
-            return getString(key, null, key);
-        });
+        Label label = new Label(ID_LABEL, createLabelModel());
+        label.add(new TooltipBehavior());
+        label.add(AttributeAppender.append("title", createLabelModel()));
         link.add(label);
 
         Label badge = new Label(ID_BADGE, () -> getModelObject().getBadge());
@@ -78,6 +78,13 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
             return StringUtils.isEmpty(item.getBadge()) && !item.isEmpty();
         }));
         link.add(chevron);
+    }
+
+    private IModel<String> createLabelModel() {
+        return () -> {
+            String key = getModelObject().getLabel();
+            return getString(key, null, key);
+        };
     }
 
     protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {

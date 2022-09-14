@@ -205,11 +205,6 @@ public class WizardModel implements IClusterable {
     }
 
     public WizardStep getNextPanel() {
-        int nextIndex = activeStepIndex + 1;
-        if (steps.size() <= nextIndex) {
-            return null;
-        }
-
-        return steps.get(nextIndex);
+        return findNextStep();
     }
 }

@@ -254,7 +254,7 @@ public class QObjectMapping<S extends ObjectType, Q extends QObject<R>, R extend
 
     /**
      * Stores other entities related to the main object row like containers, references, etc.
-     * This is not part of {@link #toRowObjectWithoutFullObject} because it requires know OID
+     * This is not part of {@link #toRowObjectWithoutFullObject} because it requires known OID
      * which is not assured before calling that method.
      *
      * *Always call this super method first in overriding methods.*

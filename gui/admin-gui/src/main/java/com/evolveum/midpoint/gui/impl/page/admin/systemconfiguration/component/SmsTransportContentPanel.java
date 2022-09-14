@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.list.ListItem;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -23,25 +29,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MessageTransportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsTransportConfigurationType;
 
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.list.ListItem;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
-//@PanelType(name = "smsTransportPanel")
-//@PanelInstance(
-//        identifier = "smsTransportPanel",
-//        applicableForType = MessageTransportConfigurationType.class,
-//        display = @PanelDisplay(
-//                label = "SmsTransportContentPanel.label",
-//                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-//                order = 30
-//        )
-//)
+@PanelType(name = "smsTransportPanel")
+@PanelInstance(
+        identifier = "smsTransportPanel",
+        applicableForType = MessageTransportConfigurationType.class,
+        display = @PanelDisplay(
+                label = "SmsTransportContentPanel.label",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 30
+        )
+)
 @Counter(provider = SmsTransportCounter.class)
 public class SmsTransportContentPanel extends GeneralTransportContentPanel<SmsTransportConfigurationType> {
 

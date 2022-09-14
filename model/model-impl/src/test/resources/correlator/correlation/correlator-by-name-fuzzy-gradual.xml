@@ -18,13 +18,6 @@
                     <inclusive>false</inclusive> <!-- just testing this -->
                 </levenshtein>
             </fuzzy>
-            <confidence>
-                <expression>
-                    <script>
-                        <code>1 / (input+1)</code>
-                    </script>
-                </expression>
-            </confidence>
         </search>
     </item>
     <item>
@@ -35,13 +28,6 @@
                     <threshold>0.2</threshold>
                 </similarity>
             </fuzzy>
-            <confidence>
-                <expression>
-                    <script>
-                        <code>input</code>
-                    </script>
-                </expression>
-            </confidence>
         </search>
     </item>
 </itemsCorrelator>

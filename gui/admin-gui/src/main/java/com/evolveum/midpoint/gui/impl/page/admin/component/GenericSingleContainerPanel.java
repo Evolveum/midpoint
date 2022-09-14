@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -18,8 +20,6 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.IModel;
 
 @PanelType(name = "formPanel")
 @PanelInstance(
@@ -152,25 +152,6 @@ import org.apache.wicket.model.IModel;
         },
         expanded = true
 )
-// todo custom panel needs to be created for logging, since profilingClassLogger property wrapper is created automagically and
-//  can't be hidden using virtual container because it's using non-existing path (item name).
-//@PanelInstance(
-//        identifier = "loggingPanel",
-//        applicableForType = LoggingConfigurationType.class,
-//        display = @PanelDisplay(
-//                label = "LoggingPanelContent.label",
-//                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
-//                order = 100
-//        ),
-//        expanded = true,
-//        containerPath = "logging",
-//        hiddenContainers = {
-//                "logging/classLogger",
-//                "logging/subSystemLogger",
-//                "logging/appender",
-//                "logging/profilingClassLogger"
-//        }
-//)
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
@@ -183,6 +164,7 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
     protected void initLayout() {
         add(new SingleContainerPanel<C>(ID_DETAILS, (IModel) getObjectWrapperModel(), getPanelConfiguration()) {
             private static final long serialVersionUID = 1L;
+
             @Override
             protected ItemVisibility getVisibility(ItemWrapper itemWrapper) {
                 ContainerPanelConfigurationType config = getPanelConfiguration();

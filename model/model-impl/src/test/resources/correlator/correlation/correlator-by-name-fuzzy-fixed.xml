@@ -7,7 +7,7 @@
 
 <itemsCorrelator
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>by-name-levenshtein</name>
+    <name>by-name-fuzzy-fixed</name>
     <item>
         <ref>givenName</ref>
         <search>
@@ -16,6 +16,13 @@
                     <threshold>1</threshold>
                 </levenshtein>
             </fuzzy>
+            <confidence>
+                <expression>
+                    <script>
+                        <code>1</code> <!-- overriding the default computation -->
+                    </script>
+                </expression>
+            </confidence>
         </search>
     </item>
     <item>
@@ -26,6 +33,13 @@
                     <threshold>0.5</threshold>
                 </similarity>
             </fuzzy>
+            <confidence>
+                <expression>
+                    <script>
+                        <code>1</code> <!-- overriding the default computation -->
+                    </script>
+                </expression>
+            </confidence>
         </search>
     </item>
 </itemsCorrelator>
