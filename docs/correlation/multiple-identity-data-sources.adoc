@@ -1,18 +1,13 @@
 = Multiple Identity Data Sources
+:page-experimental: true
 :page-toc: top
 :page-since: "4.6"
-
-#DRAFT - pictures are missing#
-
-#TODO How should we call this feature?#
-
-#TODO Will we make this feature experimental?#
 
 The advanced correlation needs often go hand in hand with the situations when there are multiple sources of the identity data.
 
 == An Example
 
-For example, a university may have the following systems:
+A university may have the following systems:
 
 .Source systems in a sample university installation
 [%header]
@@ -27,7 +22,7 @@ For example, a university may have the following systems:
 | Maintains data about visitors and other persons related to the university in a way other than being a student or employee.
 |===
 
-While the data about a person are usually consistent, there may be situations when they differ.
+While the data about a given person are usually consistent, there may be situations when they differ.
 For example, the given name may be recorded differently in SIS and HR systems.
 Or the title may be forgotten to be updated in HR.
 An old record in the "external persons" system may be out-of-date altogether.
@@ -36,11 +31,7 @@ An old record in the "external persons" system may be out-of-date altogether.
 
 Potential data inconsistencies lead to two kinds of requirements:
 
-. When processing data from these systems, midPoint has to somehow decide which ones are "authoritative", that is, which ones to propagate to the "official" user data stored in the repository.
-+
-For example, each system can provide its own idea of `givenName`, `familyName`, `honorificPrefix`, and `honorificSuffix` values.
-MidPoint should select which values are to be propagated to these properties visible on the user.
-
+. When processing data from these systems, midPoint has to somehow decide which ones are "authoritative", that is, which ones to propagate to the "official" user data stored in the repository and provisioned to target systems afterwards.
 . When correlating, we may want to match data from all systems for the candidate owners.
 (Not only the "official" user data.)
 
@@ -49,7 +40,6 @@ Starting with 4.6, midPoint supports both of them.
 == Selecting the Authoritative Data
 
 Before 4.6, the first requirement was resolvable only using a custom code.
-
 A typical solution was that inbound mappings put the resource-specific values (like given name, family name, and so on) into temporary properties, present often in the user extension.
 This was followed by an object template mapping that selected the right values and putting them into `givenName`, `familyName` and other properties of the user.
 
@@ -103,11 +93,13 @@ This declaration "redirects" inbound mappings for the properties mentioned.
 
 Therefore, instead of this:
 
-#TODO#
+.Traditional inbound mappings
+image::mapping-redirection-1.drawio.png[Mapping redirection 1]
 
 the data will flow like this:
 
-#TODO#
+.Redirected inbound mappings for multi-source items
+image::mapping-redirection-2.drawio.png[Mapping redirection 2]
 
 And here comes the question:
 _How should the data (and which ones) flow from the `identities` container to their destination places?_
