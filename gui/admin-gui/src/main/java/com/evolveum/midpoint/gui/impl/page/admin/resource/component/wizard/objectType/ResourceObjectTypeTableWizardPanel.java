@@ -48,23 +48,8 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
     private void initLayout() {
         ResourceSchemaHandlingPanel table = new ResourceSchemaHandlingPanel(ID_TABLE, getResourceModel(), getConfiguration()) {
             @Override
-            protected void editItemPerformed(
-                    AjaxRequestTarget target,
-                    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel,
-                    List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> listItems,
-                    AbstractPageObjectDetails parent) {
-                if ((listItems != null && !listItems.isEmpty()) || rowModel != null) {
-                    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
-                    if (rowModel == null) {
-                        valueModel = () -> listItems.iterator().next();
-                    } else {
-                        valueModel = rowModel;
-                    }
-                    onEditValue(valueModel, target);
-                } else {
-                    warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
-                    target.add(getPageBase().getFeedbackPanel());
-                }
+            protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
+                ResourceObjectTypeTableWizardPanel.this.onEditValue(valueModel, target);
             }
 
             @Override

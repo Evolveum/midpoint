@@ -194,7 +194,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 updateResourceContentSearch();
                 mainForm.addOrReplace(initTable(getObjectWrapperModel()));
                 target.add(mainForm);
-                target.add(get(ID_TOP_TABLE_BUTTONS_CONTAINER));
+                target.add(ResourceContentPanel.this.get(ID_TOP_TABLE_BUTTONS_CONTAINER));
 
             }
         });
@@ -253,7 +253,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 LOGGER.trace("Object class panel update: {}", isUseObjectClass());
                 updateResourceContentSearch();
                 mainForm.addOrReplace(initTable(getObjectWrapperModel()));
-                target.add(get(ID_TOP_TABLE_BUTTONS_CONTAINER));
+                target.add(ResourceContentPanel.this.get(ID_TOP_TABLE_BUTTONS_CONTAINER));
                 target.add(mainForm);
             }
 
@@ -393,7 +393,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 String searchIntent = resourceContentSearch.getObject().getIntent();
                 if (!isUseObjectClass()
                         && (searchKind.equals(objectTypeDefinition.getKind()))
-                        || kind.equals(objectTypeDefinition.getKind())) {
+                        || (kind != null && kind.equals(objectTypeDefinition.getKind()))) {
                     if (searchIntent != null
                             && searchIntent.equals(objectTypeDefinition.getIntent())) {
                         foundValue = value;

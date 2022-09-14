@@ -220,7 +220,10 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
                             || (pageResource.isEditObject()
                             && OperationTypeType.MODIFY.equals(panelConfig.getApplicableForOperation()))
                             || (!pageResource.isEditObject()
-                            && OperationTypeType.ADD.equals(panelConfig.getApplicableForOperation()))) {
+                            && OperationTypeType.ADD.equals(panelConfig.getApplicableForOperation()))
+                            || ("delineationResourceObjectTypeWizard".equals(panelConfig.getIdentifier())
+                            || "basicResourceObjectTypeWizard".equals(panelConfig.getIdentifier())
+                            || "focusResourceObjectTypeWizard".equals(panelConfig.getIdentifier()))) { // UGLY HACK we need define visibility of panel in menu
                         virtualContainers.addAll(panelConfig.getContainer());
                         collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
                     }
@@ -230,6 +233,9 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         ctx.setCreateIfEmpty(true);
         ctx.setDetailsPageTypeConfiguration(getPanelConfigurations());
         ctx.setConfigureMappingType(true);
+        if (getModelServiceLocator() instanceof PageResource) {
+            ctx.setShowEmpty(!((PageResource)getModelServiceLocator()).isEditObject());
+        }
         return ctx;
     }
 }

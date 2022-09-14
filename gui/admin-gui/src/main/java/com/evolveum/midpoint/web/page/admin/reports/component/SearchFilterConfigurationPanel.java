@@ -66,7 +66,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         super(id, model);
         this.containerWrapper = containerWrapper;
         // todo why resolving model in constructor?
-        if (model.getObject() != null && StringUtils.isNotBlank(model.getObject().getText())) {
+        if (model.getObject() == null || StringUtils.isNotBlank(model.getObject().getText())) {
             fieldType = FieldType.QUERY;
         } else {
             fieldType = FieldType.XML;

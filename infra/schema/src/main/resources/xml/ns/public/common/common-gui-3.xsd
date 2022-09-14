@@ -357,6 +357,31 @@
             <xsd:element name="identifier" type="xsd:string"/>
             <xsd:element name="display" type="tns:DisplayType"/>
             <xsd:element name="collection" type="tns:CollectionRefSpecificationType"/>
+            <xsd:element name="searchFilterTemplate" type="q:SearchFilterType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Search filter template with expression that is used together with collection ref specification.
+                        Expression should use variable "input" which will contain value from autocomplete text field used for search.
+                        By default SUBSTRING search on UserType.name is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userDisplayName" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that can be used to return String value which describes user object returned by search.
+                        By default `user.getFullName() + "(" + user.getName() + ")"` is used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="autocompleteMinChars" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Minimum number of characters that needs to be typed into autocomplete widget before search will start.
+                        Default value: 2
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>

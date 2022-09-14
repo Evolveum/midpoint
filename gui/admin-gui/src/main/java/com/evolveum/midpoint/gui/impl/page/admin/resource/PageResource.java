@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.BasicResourceWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationConfigWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -180,6 +181,29 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         addOrReplace(fragment);
         SynchronizationConfigWizardPanel wizard = new SynchronizationConfigWizardPanel(
                 ID_WIZARD, getObjectDetailsModels(), valueModel) {
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                DetailsFragment detailsFragment = createDetailsFragment();
+                PageResource.this.addOrReplace(detailsFragment);
+                target.add(detailsFragment);
+            }
+        };
+        wizard.setOutputMarkupId(true);
+        fragment.add(wizard);
+        target.add(fragment);
+    }
+
+    public void showObjectTypeWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
+        fragment.setOutputMarkupId(true);
+        addOrReplace(fragment);
+        ResourceObjectTypeWizardPanel wizard = new ResourceObjectTypeWizardPanel(ID_WIZARD, getObjectDetailsModels(), valueModel) {
+
+            @Override
+            protected boolean isSavedAfterDetailsWizard() {
+                return false;
+            }
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
