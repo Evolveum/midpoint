@@ -90,13 +90,10 @@ An example:
 ----
 
 This declaration "redirects" inbound mappings for the properties mentioned.
-
-Therefore, instead of this:
+It means that instead of the traditional flow of data show in figure 1, they will flow like indicated in figure 2.
 
 .Traditional inbound mappings
 image::mapping-redirection-1.drawio.png[Mapping redirection 1]
-
-the data will flow like this:
 
 .Redirected inbound mappings for multi-source items
 image::mapping-redirection-2.drawio.png[Mapping redirection 2]
