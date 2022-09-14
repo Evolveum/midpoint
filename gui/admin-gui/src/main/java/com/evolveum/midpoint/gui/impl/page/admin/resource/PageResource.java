@@ -32,6 +32,7 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -183,15 +184,34 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
                 ID_WIZARD, getObjectDetailsModels(), valueModel) {
 
             @Override
+            protected boolean isSavedAfterWizard() {
+                return false;
+            }
+
+            @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                DetailsFragment detailsFragment = createDetailsFragment();
-                PageResource.this.addOrReplace(detailsFragment);
-                target.add(detailsFragment);
+                backToDetailsFromWizard(target);
             }
         };
         wizard.setOutputMarkupId(true);
         fragment.add(wizard);
         target.add(fragment);
+    }
+
+    private void backToDetailsFromWizard(AjaxRequestTarget target) {
+        //TODO change it and use parameter, when it will be implemented
+        ObjectDetailsStorage storage =
+                getSessionStorage().getObjectDetailsStorage("details" + ResourceType.class.getSimpleName());
+        ContainerPanelConfigurationType defaultConfig = null;
+        if (storage != null) {
+            defaultConfig = storage.getDefaultConfiguration();
+        }
+        DetailsFragment detailsFragment = createDetailsFragment();
+        PageResource.this.addOrReplace(detailsFragment);
+        if (defaultConfig != null) {
+            replacePanel(defaultConfig, target);
+        }
+        target.add(detailsFragment);
     }
 
     public void showObjectTypeWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
@@ -207,9 +227,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                DetailsFragment detailsFragment = createDetailsFragment();
-                PageResource.this.addOrReplace(detailsFragment);
-                target.add(detailsFragment);
+                backToDetailsFromWizard(target);
             }
         };
         wizard.setOutputMarkupId(true);
@@ -226,9 +244,12 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                DetailsFragment detailsFragment = createDetailsFragment();
-                PageResource.this.addOrReplace(detailsFragment);
-                target.add(detailsFragment);
+                backToDetailsFromWizard(target);
+            }
+
+            @Override
+            protected boolean isSavedAfterWizard() {
+                return false;
             }
         };
         wizard.setOutputMarkupId(true);

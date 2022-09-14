@@ -8,18 +8,17 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.component.input.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.search.DisplayableRenderer;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -32,7 +31,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.Response;
-import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,9 +89,9 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         PrismObjectWrapper<ResourceType> objectWrapper = panelCtx.unwrapWrapperModel().findObjectWrapper();
         if (objectWrapper != null) {
 
-                IModel<List<DisplayableValue<ItemPathType>>> values = getChoices(panelCtx.getValueWrapperModel(), panelCtx.getPageBase());
+            IModel<List<DisplayableValue<ItemPathType>>> values = getChoices(panelCtx.getValueWrapperModel(), panelCtx.getPageBase());
 
-                if(!values.getObject().isEmpty()) {
+            if (!values.getObject().isEmpty()) {
 
                 if (CollectionUtils.isNotEmpty(values.getObject())) {
 
@@ -112,19 +110,22 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
                         }
                     };
 
-                    List<ItemPathType> choices = values.getObject().stream()
-                            .map(disValue -> disValue.getValue())
-                            .collect(Collectors.toList());
-
                     AutoCompleteTextPanel panel = new AutoCompleteTextPanel<>(
                             panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(), renderer) {
                         @Override
                         public Iterator<ItemPathType> getIterator(String input) {
-                            if (StringUtils.isBlank(input)) {
-                                return choices.iterator();
+                            List<DisplayableValue<ItemPathType>> choices = new ArrayList<>(values.getObject());
+                            if (StringUtils.isNotEmpty(input)) {
+                                choices = choices.stream()
+                                        .filter(v -> v.getLabel().contains(input))
+                                        .collect(Collectors.toList());
                             }
-                            return values.getObject().stream()
-                                    .filter(v -> v.getLabel().contains(input))
+                            if (skipUsedAttributes(panelCtx)) {
+                                choices = choices.stream()
+                                        .filter(v -> notEquivalentWithValues(panelCtx, v))
+                                        .collect(Collectors.toList());
+                            }
+                            return choices.stream()
                                     .map(v -> v.getValue())
                                     .collect(Collectors.toList())
                                     .iterator();
@@ -143,6 +144,39 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
 
         return super.getPanel(panelCtx);
 
+    }
+
+    private boolean notEquivalentWithValues(PrismPropertyPanelContext<ItemPathType> panelCtx, DisplayableValue<ItemPathType> v) {
+        PrismContainerWrapper<ResourceAttributeDefinitionType> mapping =
+                getAttributeMapping(panelCtx.getValueWrapperModel().getObject());
+
+        if (mapping != null) {
+            if (isVirtualPropertyOfMapping(panelCtx.unwrapWrapperModel())) {
+                PrismContainerWrapper parentContainer = panelCtx.unwrapWrapperModel().getParent().getParent();
+                @NotNull ItemName parentPath = parentContainer.getItemName();
+                for (PrismContainerValueWrapper<ResourceAttributeDefinitionType> value : mapping.getValues()) {
+                    try {
+                        PrismContainerWrapper<Containerable> valuesContainer = value.findContainer(parentPath);
+                        for (PrismContainerValueWrapper<Containerable> valueContainer : valuesContainer.getValues()) {
+                            PrismPropertyWrapper<ItemPathType> attributeRef = valueContainer.findProperty(ResourceAttributeDefinitionType.F_REF);
+                            if (attributeRef != null && v.getValue().equivalent(attributeRef.getValue().getRealValue())) {
+                                return false;
+                            }
+                        }
+                    } catch (SchemaException e) {
+                        // ignore it
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean skipUsedAttributes(PrismPropertyPanelContext<ItemPathType> panelCtx) {
+        if (isVirtualPropertyOfMapping(panelCtx.unwrapWrapperModel())) {
+            return panelCtx.unwrapWrapperModel().getParent().getParent().isSingleValue();
+        }
+        return true;
     }
 
     private IModel<List<DisplayableValue<ItemPathType>>> getChoices(
@@ -233,21 +267,29 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
     }
 
     private ResourceObjectTypeDefinitionType getResourceObjectType(PrismValueWrapper<ItemPathType> propertyWrapper) {
+        PrismContainerWrapper<ResourceAttributeDefinitionType> mapping = getAttributeMapping(propertyWrapper);
+        if (mapping != null
+                && mapping.getParent() != null
+                && mapping.getParent().getRealValue() instanceof ResourceObjectTypeDefinitionType) {
+            return (ResourceObjectTypeDefinitionType) mapping.getParent().getRealValue();
+        }
+        return null;
+    }
+
+    private PrismContainerWrapper<ResourceAttributeDefinitionType> getAttributeMapping(PrismValueWrapper<ItemPathType> propertyWrapper) {
         PrismContainerValueWrapper containerValue = null;
 
-        if (propertyWrapper.getParent() != null
-                && propertyWrapper.getParent().getParent() != null
-                && propertyWrapper.getParent().getParent().getParent() != null) {
+        if (propertyWrapper.getParent() != null) {
 
             if (!isVirtualPropertyOfMapping(propertyWrapper.getParent())) {
+                containerValue = propertyWrapper.getParent().getParent();
+            } else if (propertyWrapper.getParent().getParent() != null
+                    && propertyWrapper.getParent().getParent().getParent() != null) {
                 containerValue = propertyWrapper.getParent().getParent().getParent().getParent();
-            } else if (propertyWrapper.getParent().getParent().getParent().getParent() != null
-                    && propertyWrapper.getParent().getParent().getParent().getParent().getParent() != null) {
-                containerValue = propertyWrapper.getParent().getParent().getParent().getParent().getParent().getParent();
             }
         }
-        if (containerValue != null && containerValue.getRealValue() instanceof ResourceObjectTypeDefinitionType) {
-            return (ResourceObjectTypeDefinitionType) containerValue.getRealValue();
+        if (containerValue != null && containerValue.getRealValue() instanceof ResourceAttributeDefinitionType) {
+            return (PrismContainerWrapper<ResourceAttributeDefinitionType>) containerValue.getParent();
         }
         return null;
     }

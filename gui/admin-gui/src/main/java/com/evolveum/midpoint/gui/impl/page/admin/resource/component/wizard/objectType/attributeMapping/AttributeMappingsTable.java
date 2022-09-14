@@ -108,8 +108,7 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
             newAttributeMappingWrapper.addAttributeMappingType(getMappingType());
 
             if (newAttributeMappingWrapper instanceof ResourceAttributeMappingValueWrapper) {
-                ((ResourceAttributeMappingValueWrapper) newAttributeMappingWrapper)
-                        .addAttributeMappingType(getMappingType());
+                newAttributeMappingWrapper.addAttributeMappingType(getMappingType());
             }
 
             PrismContainerWrapper<MappingType> wrapper =
@@ -313,7 +312,7 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
 
             @Override
             public String getCssClass() {
-                return "col-lg-2 col-md-3";
+                return "col-lg-3 col-md-3";
             }
         });
 
