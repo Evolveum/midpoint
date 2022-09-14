@@ -92,7 +92,7 @@ public class IndexedItemValueNormalizerImpl implements IndexedItemValueNormalize
 
     @Override
     public ItemName getIndexItemName() {
-        return new ItemName(SchemaConstants.NS_IDENTITY, normalizedItemLocalName);
+        return new ItemName(SchemaConstants.NS_NORMALIZED_DATA, normalizedItemLocalName);
     }
 
     @Override
