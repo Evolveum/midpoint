@@ -20,7 +20,7 @@
                 </translation>
             </pluralLabel>
             <icon>
-                <cssClass>fa fa-refresh</cssClass>
+                <cssClass>fa fa-sync-alt</cssClass>
                 <color>green</color>
             </icon>
         </display>
