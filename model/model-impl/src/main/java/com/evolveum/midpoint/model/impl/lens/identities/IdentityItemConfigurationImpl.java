@@ -67,7 +67,7 @@ public class IdentityItemConfigurationImpl implements Serializable, IdentityItem
 
     @Override
     public @NotNull ItemName getDefaultSearchItemName() {
-        return new ItemName(SchemaConstants.NS_IDENTITY, getLocalName());
+        return new ItemName(SchemaConstants.NS_NORMALIZED_DATA, getLocalName());
     }
 
     @Override

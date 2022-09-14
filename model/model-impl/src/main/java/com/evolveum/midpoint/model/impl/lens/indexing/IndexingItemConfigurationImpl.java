@@ -93,7 +93,7 @@ public class IndexingItemConfigurationImpl implements Serializable, IndexingItem
 
     @Override
     public @NotNull ItemName getQualifiedName() {
-        return new ItemName(SchemaConstants.NS_IDENTITY, getName());
+        return new ItemName(SchemaConstants.NS_NORMALIZED_DATA, getName());
     }
 
     @Override
