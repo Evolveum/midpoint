@@ -110,9 +110,11 @@ Query can be represented in multiple ways and formats:
 * Many configuration objects contain queries or filters in many places.
 These are typically written in the same format as the object, for instance XML.
 * Some places (advanced GUI filters or query playground mentioned below) allow input in various serialization formats, e.g. XML, YAML or JSON.
-* Filters can be also written in xref:/midpoint/reference/concepts/query/axiom-query-language[Axiom query language] which can be used on GUI or embedded in other filters via `text` element.
+* Filters can be also written in xref:/midpoint/reference/concepts/query/axiom-query-language[Axiom query language]
+which can be used on GUI or embedded in other filters via `text` element.
 * Finally, filters and queries can be written using fluent Java-based API, which is useful not only for
-hard-core customizations (e.g. with xref:/midpoint/reference/deployment/maven-overlay-project.adoc[midPoint Overlay] mechanism) but also for xref:/midpoint/reference/expressions/expressions/script/[script expressions] written typically in Groovy language.
+hard-core customizations (e.g. with xref:/midpoint/reference/deployment/maven-overlay-project.adoc[midPoint Overlay] mechanism)
+but also for xref:/midpoint/reference/expressions/expressions/script/[script expressions] written typically in Groovy language.
 
 [IMPORTANT]
 Axiom is experimentally available since 4.3 and fully supported since 4.5.
@@ -236,7 +238,9 @@ You have to:
 
 * Select the *Object type*,
 * check *Distinct* if needed (first try without it),
-* and finally write the query into the text area.
+* choose the language for the query - XML is still the default,
+* write the query into the text area,
+* and press *Translate and execute*.
 
 Alternatively use an existing example from the selection box below.
 
@@ -259,6 +263,41 @@ Native repository actually *ignores distinct* if there is no `JOIN` in the final
 Native repository uses `LEFT JOIN` only to traverse across single-valued containers and references and their targets,
 so even then the distinct option is useless and, when honoured, can potentially hurt SQL performance.
 ====
+
+=== Fluent API script translation
+
+Since version 4.6, Query playground offers an option to translate queries from fluent API scripts.
+This way you can debug the Groovy code for an expression directly in the GUI before using it.
+
+To do this, follow these steps:
+
+* Check *Translate from Query API script*, the expression text area will appear.
+* Enter the code as an expression, e.g.:
++
+[source,xml]
+----
+<expression>
+    <script>
+        <code>
+            import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+            prismContext.queryFor(FocusType.class)
+                .item(FocusType.F_NAME).startsWith("a").build();
+        </code>
+    </script>
+</expression>
+----
+* Choose the *Object type*, just like for any other query.
+Just use the type from `queryFor(...)` call, in our example `FocusType`.
+If the query does not provide expected results, very likely the object type selection is not right.
+* Press *Translate and execute*.
+
+This will execute the query in the expression and also shows the query in the text area for
+XML/JSON/YAML query - in the language currently chosen.
+
+Using the expression requires proper imports - depending on the complexity of the script you
+may need additional imports from packages like `com.evolveum.midpoint.schema`,
+`com.evolveum.midpoint.prism.query` or others.
 
 == Trivial filters
 
