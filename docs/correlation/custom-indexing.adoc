@@ -1,5 +1,5 @@
 = Custom Indexing
-:experimental:
+:page-experimental: true
 :page-toc: top
 :page-since: "4.6"
 
