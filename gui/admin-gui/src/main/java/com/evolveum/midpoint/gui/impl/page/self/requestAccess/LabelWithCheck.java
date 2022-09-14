@@ -26,10 +26,13 @@ public class LabelWithCheck extends BasePanel<String> {
 
     private IModel<RoundedIconPanel.State> state;
 
-    public LabelWithCheck(String id, IModel<String> model, IModel<RoundedIconPanel.State> state) {
+    private IModel<String> stateTitle;
+
+    public LabelWithCheck(String id, IModel<String> model, IModel<RoundedIconPanel.State> state, IModel<String> stateTitle) {
         super(id, model);
 
         this.state = state;
+        this.stateTitle = stateTitle;
 
         initLayout();
     }
@@ -40,7 +43,7 @@ public class LabelWithCheck extends BasePanel<String> {
         Label text = new Label(ID_TEXT, getModel());
         add(text);
 
-        RoundedIconPanel check = new RoundedIconPanel(ID_CHECK, () -> "fa fa-check", state);
+        RoundedIconPanel check = new RoundedIconPanel(ID_CHECK, () -> "fa fa-check", state, stateTitle);
         add(check);
     }
 }

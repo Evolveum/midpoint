@@ -32,7 +32,7 @@ public class RoundedIconColumn<T, S> extends AbstractColumn<T, S> {
         item.add(AttributeAppender.append("style", "width: 2rem;"));
 
         RoundedImagePanel panel = new RoundedImagePanel(id, () -> createDisplayType(model), createPreferredImage(model));
-        panel.add(AttributeAppender.append("style", "height: 2rem;"));
+        panel.add(AttributeAppender.append("style", "height: 2rem; width: 2rem;"));
         item.add(panel);
     }
 

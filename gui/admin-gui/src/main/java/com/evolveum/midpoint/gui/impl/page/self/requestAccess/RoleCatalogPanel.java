@@ -407,20 +407,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                         t.setDescription(object.getValue().getDescription());
                         t.setValue(object);
 
-                        RequestAccess ra = RoleCatalogPanel.this.getModelObject();
-
-                        RoundedIconPanel.State checkState;
-                        String checkTitle = null;
-                        if (ra.isAssignedToAll(obj.getOid())) {
-                            checkState = RoundedIconPanel.State.FULL;
-                            checkTitle = getString("RoleCatalogPanel.tileFullCheckState");
-                        } else if (ra.isAssignedToNone(obj.getOid())) {
-                            checkState = RoundedIconPanel.State.NONE;
-                        } else {
-                            checkState = RoundedIconPanel.State.PARTIAL;
-                            checkTitle = getString("RoleCatalogPanel.tilePartialCheckState");
-                        }
+                        RoundedIconPanel.State checkState = computeCheckState(obj.getOid());
                         t.setCheckState(checkState);
+
+                        String checkTitle = computeCheckTitle(obj.getOid());
                         t.setCheckTitle(checkTitle);
 
                         return t;
@@ -845,6 +835,32 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         };
     }
 
+    private RoundedIconPanel.State computeCheckState(String roleOid) {
+        RequestAccess ra = getModelObject();
+        if (ra.isAssignedToAll(roleOid)) {
+            return RoundedIconPanel.State.FULL;
+        }
+
+        if (ra.isAssignedToNone(roleOid)) {
+            return RoundedIconPanel.State.NONE;
+        }
+
+        return RoundedIconPanel.State.PARTIAL;
+    }
+
+    private String computeCheckTitle(String roleOid) {
+        RequestAccess ra = getModelObject();
+        if (ra.isAssignedToAll(roleOid)) {
+            return getString("RoleCatalogPanel.tileFullCheckState");
+        }
+
+        if (ra.isAssignedToNone(roleOid)) {
+            return null;
+        }
+
+        return getString("RoleCatalogPanel.tilePartialCheckState");
+    }
+
     private List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<>();
 
@@ -855,6 +871,16 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             protected IModel<IResource> createPreferredImage(IModel<SelectableBean<ObjectType>> model) {
                 return RoleCatalogPanel.this.createImage(() -> model.getObject().getValue());
             }
+
+            @Override
+            protected DisplayType createDisplayType(IModel<SelectableBean<ObjectType>> model) {
+                ObjectType obj = model.getObject().getValue();
+                String icon = WebComponentUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
+
+                return new DisplayType()
+                        .icon(new IconType()
+                                .cssClass(icon));
+            }
         });
         columns.add(new AbstractColumn<>(createStringResource("ObjectType.name")) {
             @Override
@@ -862,11 +888,8 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 item.add(AttributeAppender.append("class", "align-middle"));
                 item.add(new LabelWithCheck(id,
                         () -> WebComponentUtil.getDisplayNameOrName(row.getObject().getValue().asPrismObject()),
-                        () -> {
-                            RequestAccess ra = getModelObject();
-                            return ra.isAssignedToAll(row.getObject().getValue().getOid()) ? RoundedIconPanel.State.FULL : RoundedIconPanel.State.PARTIAL;
-                        }
-                ));
+                        () -> computeCheckState(row.getObject().getValue().getOid()),
+                        () -> computeCheckTitle(row.getObject().getValue().getOid())));
             }
         });
         columns.add(new PropertyColumn(createStringResource("ObjectType.description"), "value.description"));
