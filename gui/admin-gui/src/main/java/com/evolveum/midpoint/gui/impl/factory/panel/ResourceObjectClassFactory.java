@@ -43,6 +43,7 @@ public class ResourceObjectClassFactory extends AbstractObjectClassFactory {
         if (!(object instanceof ResourceType)) {
             return false;
         }
-        return wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_OBJECT_CLASS);
+        return wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_OBJECT_CLASS)
+                || wrapper.getPath().lastName().equivalent(ResourceObjectTypeDefinitionType.F_AUXILIARY_OBJECT_CLASS);
     }
 }

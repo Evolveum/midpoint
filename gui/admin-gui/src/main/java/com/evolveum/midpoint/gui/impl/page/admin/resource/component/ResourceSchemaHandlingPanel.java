@@ -133,44 +133,63 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
                     super.editItemPerformed(target, rowModel, listItems);
                     return;
                 }
-                ResourceSchemaHandlingPanel.this.editItemPerformed(target, rowModel, listItems, parent);
+                if ((listItems != null && !listItems.isEmpty()) || rowModel != null) {
+                    IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
+                    if (rowModel == null) {
+                        valueModel = () -> listItems.iterator().next();
+                    } else {
+                        valueModel = rowModel;
+                    }
+                    onEditValue(valueModel, target);
+                } else {
+                    warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
+                    target.add(getPageBase().getFeedbackPanel());
+                }
             }
         };
         form.add(objectTypesPanel);
+    }
+
+    protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
+        if (valueModel != null) {
+            getObjectDetailsModels().getPageResource().showObjectTypeWizard(
+                    target,
+                    valueModel);
+        }
     }
 
     protected boolean isCreateNewObjectVisible() {
         return true;
     }
 
-    protected void editItemPerformed(
-            AjaxRequestTarget target,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel,
-            List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> listItems,
-            AbstractPageObjectDetails parent) {
-
-        ContainerPanelConfigurationType detailsPanel = new ContainerPanelConfigurationType();
-        detailsPanel.setPanelType("schemaHandlingDetails");
-
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectTypeDef;
-        if (rowModel != null) {
-            objectTypeDef = rowModel.getObject();
-        }  else {
-            objectTypeDef = listItems.iterator().next();
-        }
-        detailsPanel.setPath(new ItemPathType(objectTypeDef.getPath()));
-
-        detailsPanel.setIdentifier("schemaHandlingDetails");
-        DisplayType displayType = new DisplayType();
-        displayType.setLabel(getObjectTypeDisplayName(objectTypeDef.getNewValue().asContainerable()));
-        detailsPanel.setDisplay(displayType);
-
-        getPageBase().getSessionStorage().setObjectDetailsStorage("details" + parent.getType().getSimpleName(), detailsPanel);
-
-        ResourceSchemaHandlingPanel.this.getPanelConfiguration().getPanel().add(detailsPanel);
-        target.add(parent);
-        parent.replacePanel(detailsPanel, target);
-    }
+//    protected void editItemPerformed(
+//            AjaxRequestTarget target,
+//            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel,
+//            List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> listItems,
+//            AbstractPageObjectDetails parent) {
+//
+//        ContainerPanelConfigurationType detailsPanel = new ContainerPanelConfigurationType();
+//        detailsPanel.setPanelType("schemaHandlingDetails");
+//
+//        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectTypeDef;
+//        if (rowModel != null) {
+//            objectTypeDef = rowModel.getObject();
+//        } else {
+//            objectTypeDef = listItems.iterator().next();
+//        }
+//        detailsPanel.setPath(new ItemPathType(objectTypeDef.getPath()));
+//
+//        detailsPanel.setIdentifier("schemaHandlingDetails");
+//        DisplayType displayType = new DisplayType();
+//        displayType.setLabel(getObjectTypeDisplayName(objectTypeDef.getNewValue().asContainerable()));
+//        detailsPanel.setDisplay(displayType);
+//
+//        getPageBase().getSessionStorage().setObjectDetailsStorage("details" + parent.getType().getSimpleName(), detailsPanel);
+//
+//        ResourceSchemaHandlingPanel.this.getPanelConfiguration().getPanel().add(detailsPanel);
+//        target.add(parent);
+//        parent.replacePanel(detailsPanel, target);
+//    }
 
     private PolyStringType getObjectTypeDisplayName(ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType) {
         String displayName = resourceObjectTypeDefinitionType.getDisplayName();
@@ -184,7 +203,7 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
         return polyStringType;
     }
 
-    private MultivalueContainerListPanelWithDetailsPanel<ResourceObjectTypeDefinitionType> getMultivalueContainerListPanel(){
+    private MultivalueContainerListPanelWithDetailsPanel<ResourceObjectTypeDefinitionType> getMultivalueContainerListPanel() {
         return ((MultivalueContainerListPanelWithDetailsPanel<ResourceObjectTypeDefinitionType>) get(getPageBase().createComponentPath(ID_FORM, ID_TABLE)));
     }
 
@@ -218,7 +237,7 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
                     @Override
                     protected IModel<String> createHeaderModel() {
-                        return new ReadOnlyModel<>(() -> loadHeaderModel(getModelObject()) );
+                        return new ReadOnlyModel<>(() -> loadHeaderModel(getModelObject()));
                     }
 
                     @Override

@@ -120,7 +120,6 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 PrismContainerValueWrapper<C> modelObject = getModelObject();
                 List<PrismContainerWrapper<? extends Containerable>> containers = modelObject.getContainers(getPanelConfiguration(), getPageBase());
                 containers.removeIf(c -> !c.isVirtual() || c.getIdentifier() == null);
-                containers.forEach(c -> c.setShowEmpty(true, true));
                 return containers;
             }
         };

@@ -41,6 +41,7 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
     private static final String ID_WIZARD = "wizard";
 
     private final ResourceDetailsModel resourceModel;
+
     public AbstractResourceWizardPanel(
             String id,
             ResourceDetailsModel model) {
@@ -99,18 +100,26 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
     }
 
     protected IModel<PrismContainerValueWrapper<C>> createModelOfNewValue(ItemPath path) {
-        try {
-            PrismContainerWrapper<C> container = findContainer(path);
-            PrismContainerValue<C> newItem = container.getItem().createNewValue();
-            PrismContainerValueWrapper<C> newItemWrapper = WebPrismUtil.createNewValueWrapper(
-                    container, newItem, getPageBase(), getWrapperContext(container));
-            container.getValues().add(newItemWrapper);
-            return () -> newItemWrapper;
+        return new IModel() {
 
-        } catch (SchemaException e) {
-            LOGGER.error("Cannot find wrapper: {}", e.getMessage());
-        }
-        return null;
+            private PrismContainerValueWrapper<C> newItemWrapper;
+
+            @Override
+            public Object getObject() {
+                if (newItemWrapper == null) {
+                    try {
+                        PrismContainerWrapper<C> container = findContainer(path);
+                        PrismContainerValue<C> newItem = container.getItem().createNewValue();
+                        newItemWrapper = WebPrismUtil.createNewValueWrapper(
+                                container, newItem, getPageBase(), getWrapperContext(container));
+                        container.getValues().add(newItemWrapper);
+                    } catch (SchemaException e) {
+                        LOGGER.error("Cannot find wrapper: {}", e.getMessage());
+                    }
+                }
+                return newItemWrapper;
+            }
+        };
     }
 
     private WrapperContext getWrapperContext(PrismContainerWrapper<C> container) {

@@ -271,6 +271,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
                     PrismContainerWrapper<? extends Containerable> pcw = findContainer(virtualContainer.getIdentifier());
                     if (pcw != null) {
                         PrismContainerWrapper<? extends Containerable> vpcw = pcw.cloneVirtualContainerWithNewValue(this, modelServiceLocal);
+                        vpcw.setShowEmpty(isShowEmpty(), true);
 
                         virtualContainers.add(vpcw);
                     }

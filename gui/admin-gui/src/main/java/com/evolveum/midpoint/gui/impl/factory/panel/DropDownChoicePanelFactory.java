@@ -12,6 +12,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusSpecificationType;
+
 import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +46,8 @@ public class DropDownChoicePanelFactory extends AbstractInputGuiComponentFactory
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
         List<QName> typesList;
-        if (AssignmentType.F_FOCUS_TYPE.equals(panelCtx.getDefinitionName())) {
+        if (AssignmentType.F_FOCUS_TYPE.equals(panelCtx.getDefinitionName())
+                || ResourceObjectFocusSpecificationType.F_TYPE.equals(panelCtx.getDefinitionName())) {
             typesList = WebComponentUtil.createFocusTypeList();
         } else if ((ObjectCollectionType.F_TYPE.equals(panelCtx.getDefinitionName()) || GuiObjectListViewType.F_TYPE.equals(panelCtx.getDefinitionName()))
                 && panelCtx.unwrapWrapperModel().getParent().getDefinition() != null &&

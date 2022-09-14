@@ -46,10 +46,12 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
     }
 
     private void initLayout() {
-        ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(
+        ResourceContentPanel table = new ResourceContentPanel(
                 ID_TABLE,
+                resourceObjectType.getObject().getRealValue().getKind(),
                 getResourceModel(),
-                getConfiguration()) {
+                getConfiguration(),
+                false) {
 
             @Override
             protected boolean isIntentAndObjectClassPanelVisible() {
