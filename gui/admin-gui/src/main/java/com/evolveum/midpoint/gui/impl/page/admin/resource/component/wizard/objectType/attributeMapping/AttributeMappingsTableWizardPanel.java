@@ -157,7 +157,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
         AjaxIconButton saveButton = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-floppy-disk"),
-                getPageBase().createStringResource("AttributeMappingsTableWizardPanel.saveButton")) {
+                getSubmitLabelModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onSaveResourcePerformed(target);
@@ -167,6 +167,10 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
         saveButton.showTitleAsLabel(true);
         saveButton.add(AttributeAppender.append("class", "btn btn-success"));
         buttons.add(saveButton);
+    }
+
+    protected IModel<String> getSubmitLabelModel() {
+        return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.saveButton");
     }
 
     private void onAddNewObject(AjaxRequestTarget target) {

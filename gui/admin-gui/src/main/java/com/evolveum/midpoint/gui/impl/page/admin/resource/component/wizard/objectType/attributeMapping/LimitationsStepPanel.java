@@ -81,7 +81,7 @@ public class LimitationsStepPanel extends AbstractFormResourceWizardStepPanel {
     }
 
     @Override
-    protected void onFinishPerformed(AjaxRequestTarget target) {
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
         onExitPerformed(target);
     }
 }

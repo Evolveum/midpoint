@@ -90,8 +90,17 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
         });
 
         steps.add(new FocusResourceObjectTypeStepPanel(getResourceModel(), valueModel) {
+
             @Override
-            protected void onFinishPerformed(AjaxRequestTarget target) {
+            protected IModel<?> getSubmitLabelModel() {
+                if (isSavedAfterDetailsWizard()) {
+                    return super.getSubmitLabelModel();
+                }
+                return getPageBase().createStringResource("WizardPanel.confirm");
+            }
+
+            @Override
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
                 if (isSavedAfterDetailsWizard()) {
                     OperationResult result = onSaveResourcePerformed(target);
                     if (result != null && !result.isError()) {
@@ -241,7 +250,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             }
 
             @Override
-            protected void onFinishPerformed(AjaxRequestTarget target) {
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
                 OperationResult result = onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
                     onExitPerformed(target);

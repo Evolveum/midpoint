@@ -88,7 +88,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
 
             @Override
             public void onSubmit(AjaxRequestTarget target) {
-                onFinishPerformed(target);
+                onSubmitPerformed(target);
             }
 
             @Override
@@ -187,7 +187,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         return false;
     }
 
-    protected void onFinishPerformed(AjaxRequestTarget target) {
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
         onExitPerformed(target);
     }
 

@@ -76,28 +76,23 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
                 showInboundAttributeMappingWizardFragment(target, value);
             }
 
-//            @Override
-//            protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel, AjaxRequestTarget target) {
-//                showNewAttributeMappingWizardFragment(target, valueModel);
-//            }
-
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 AttributeMappingWizardPanel.this.onExitPerformed(target);
+            }
+
+            @Override
+            protected IModel<String> getSubmitLabelModel() {
+                if (isSavedAfterWizard()) {
+                    return super.getSubmitLabelModel();
+                }
+                return getPageBase().createStringResource("WizardPanel.confirm");
             }
         };
         return table;
     }
 
     protected void onExitPerformed(AjaxRequestTarget target) {
-    }
-
-    private void showNewAttributeMappingWizardFragment(
-            AjaxRequestTarget target,
-            IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel) {
-        showWizardFragment(
-                target,
-                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createNewAttributeMappingSteps(valueModel))));
     }
 
     private void showInboundAttributeMappingWizardFragment(
@@ -157,20 +152,6 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
         return steps;
     }
 
-    private void createNewMapping(AjaxRequestTarget target, boolean showToast) {
-//        OperationResult result = onSaveResourcePerformed(target);
-//        if (showToast && result != null && !result.isError()) {
-//            new Toast()
-//                    .success()
-//                    .title(getString("AttributeMappingsTableWizardPanel.createObjectType"))
-//                    .icon("fas fa-circle-check")
-//                    .autohide(true)
-//                    .delay(5_000)
-//                    .body(getString("AttributeMappingsTableWizardPanel.createObjectType.text")).show(target);
-        onExitPerformed(target);
-//        }
-    }
-
     @Override
     protected PrismContainerWrapper<ResourceAttributeDefinitionType> findContainer(ItemPath path) throws SchemaException {
         return valueModel.getObject().findContainer(path);
@@ -182,5 +163,9 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
 
     private void showTableFragment(AjaxRequestTarget target) {
         showChoiceFragment(target, createTablePanel());
+    }
+
+    protected boolean isSavedAfterWizard() {
+        return true;
     }
 }

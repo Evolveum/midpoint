@@ -72,7 +72,11 @@ public class SynchronizationConfigWizardPanel extends AbstractResourceWizardPane
             }
 
             @Override
-            protected void onFinishPerformed(AjaxRequestTarget target) {
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
+                if (!isSavedAfterWizard()) {
+                    onExitPerformed(target);
+                    return;
+                }
                 OperationResult result = SynchronizationConfigWizardPanel.this.onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
                     new Toast()
@@ -85,10 +89,20 @@ public class SynchronizationConfigWizardPanel extends AbstractResourceWizardPane
                     onExitPerformed(target);
                 }
             }
+
+            @Override
+            protected IModel<?> getSubmitLabelModel() {
+                if (isSavedAfterWizard()) {
+                    return super.getSubmitLabelModel();
+                }
+                return getPageBase().createStringResource("WizardPanel.confirm");
+            }
         });
 
-
-
         return steps;
+    }
+
+    protected boolean isSavedAfterWizard() {
+        return true;
     }
 }

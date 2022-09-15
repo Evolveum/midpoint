@@ -113,7 +113,7 @@ public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTa
 
                         return ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject())
                                 .getValues().stream()
-                                .filter(value -> !ValueStatus.DELETED.equals(value.getStatus()))
+                                .filter(value -> !ValueStatus.DELETED.equals(value.getStatus()) && value.getRealValue() != null)
                                 .map(value -> value.getRealValue())
                                 .collect(Collectors.toList());
                     }
@@ -124,7 +124,10 @@ public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTa
                         PrismPropertyWrapper<VariableBindingDefinitionType> sourceItem =
                                 ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject());
                         List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> toRemoveValues
-                                = new ArrayList<>(sourceItem.getValues());
+                                = new ArrayList<>(
+                                        sourceItem.getValues().stream()
+                                            .filter(v -> v.getRealValue() != null)
+                                            .collect(Collectors.toList()));
 
                         newValues.forEach(newValue -> {
                             if (newValue.getPath() == null) {
@@ -170,7 +173,7 @@ public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTa
 
             @Override
             public String getCssClass() {
-                return "col-lg-5 col-md-4";
+                return "col-lg-4 col-md-4";
             }
         });
 
