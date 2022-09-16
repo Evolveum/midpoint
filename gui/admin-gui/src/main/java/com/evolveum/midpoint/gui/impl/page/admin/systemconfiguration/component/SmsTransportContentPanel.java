@@ -10,6 +10,14 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
 
@@ -25,9 +33,8 @@ import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MessageTransportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsTransportConfigurationType;
+
+import org.apache.wicket.model.IModel;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -54,7 +61,25 @@ public class SmsTransportContentPanel extends GeneralTransportContentPanel<SmsTr
         List<IColumn<PrismContainerValueWrapper<SmsTransportConfigurationType>, String>> columns = new ArrayList<>();
         columns.addAll(super.createDefaultColumns());
         columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), SmsTransportConfigurationType.F_GATEWAY,
-                AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
+                AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()) {
+
+            @Override
+            protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+                return new PrismPropertyWrapperColumnPanel<>(componentId,
+                        (IModel<PrismPropertyWrapper<SmsGatewayConfigurationType>>) rowModel, getColumnType()) {
+
+                    @Override
+                    protected String createLabel(PrismPropertyValueWrapper<SmsGatewayConfigurationType> object) {
+                        SmsGatewayConfigurationType gateway = object.getRealValue();
+                        if (gateway == null) {
+                            return null;
+                        }
+
+                        return gateway.getName();
+                    }
+                };
+            }
+        });
         columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), SmsTransportConfigurationType.F_DEFAULT_FROM,
                 AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
 

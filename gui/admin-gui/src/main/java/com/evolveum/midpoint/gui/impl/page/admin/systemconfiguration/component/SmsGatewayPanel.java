@@ -7,28 +7,30 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.panel.ExpressionPropertyPanel;
+import java.io.Serializable;
+import java.util.Arrays;
 
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpMethodType;
-
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.validation.validator.RangeValidator;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsGatewayConfigurationType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class SmsGatewayPanel extends InputPanel {
+public class SmsGatewayPanel extends ComplexPropertyInputPanel<SmsGatewayConfigurationType> {
 
     private static final long serialVersionUID = 1L;
 
@@ -47,25 +49,8 @@ public class SmsGatewayPanel extends InputPanel {
     private static final String ID_LOG_TO_FILE = "logToFile";
     private static final String ID_NAME = "name";
 
-
-    private IModel<SmsGatewayConfigurationType> model;
-
     public SmsGatewayPanel(String id, IModel<SmsGatewayConfigurationType> model) {
-        super(id);
-
-        this.model = new LoadableModel<>() {
-
-            @Override
-            protected SmsGatewayConfigurationType load() {
-                if (model == null) {
-                    return new SmsGatewayConfigurationType();
-                }
-
-                SmsGatewayConfigurationType config = model.getObject();
-
-                return config != null ? config : new SmsGatewayConfigurationType();
-            }
-        };
+        super(id, model);
     }
 
     @Override
@@ -75,21 +60,63 @@ public class SmsGatewayPanel extends InputPanel {
         initLayout();
     }
 
-    public IModel<SmsGatewayConfigurationType> getModel() {
-        return model;
-    }
-
     private void initLayout() {
-        add(new TextPanel<>(ID_NAME, new PropertyModel<>(model, SmsGatewayConfigurationType.F_NAME.getLocalPart())));
-        add(WebComponentUtil.createEnumPanel(HttpMethodType.class, ID_METHOD, new PropertyModel<>(model, SmsGatewayConfigurationType.F_METHOD.getLocalPart()), this));
-        add(new ExpressionEditorPanel(ID_URL_EXPRESSION, new PropertyModel<>(model, SmsGatewayConfigurationType.F_URL_EXPRESSION.getLocalPart()), getPageBase()));
+        add(new TextPanel<>(ID_NAME, createEmbeddedModel(o -> o.getName(), (o, v) -> o.setName(v))), false);
+        add(WebComponentUtil.createEnumPanel(HttpMethodType.class, ID_METHOD, createEmbeddedModel(o -> o.getMethod(), (o, v) -> o.setMethod(v)), this));
+        add(new ExpressionEditorPanel(ID_URL_EXPRESSION, createEmbeddedModel(o -> o.getUrlExpression(), (o, v) -> o.setUrlExpression(v)), getPageBase()));
+        add(new ExpressionEditorPanel(ID_HEADERS_EXPRESSION, createEmbeddedModel(o -> o.getHeadersExpression(), (o, v) -> o.setHeadersExpression(v)), getPageBase()));
+        add(new ExpressionEditorPanel(ID_BODY_EXPRESSION, createEmbeddedModel(o -> o.getBodyExpression(), (o, v) -> o.setBodyExpression(v)), getPageBase()));
+        add(new TextPanel<>(ID_BODY_ENCODING, createEmbeddedModel(o -> o.getBodyEncoding(), (o, v) -> o.setBodyEncoding(v))));
+        add(new TextPanel<>(ID_USERNAME, createEmbeddedModel(o -> o.getUsername(), (o, v) -> o.setUsername(v))));
+        add(new PasswordPanel(ID_PASSWORD, createEmbeddedModel(o -> o.getPassword(), (o, v) -> o.setPassword(v))), false);
+        add(new TextPanel<>(ID_PROXY_HOST, createEmbeddedModel(o -> o.getProxyHost(), (o, v) -> o.setProxyHost(v))));
 
-//        add(new TextPanel<>(ID_USERNAME, new PropertyModel<>(model, SmsGatewayConfigurationType.F_USERNAME.getLocalPart())));
-//        add(new PasswordPanel(ID_PASSWORD, new PropertyModel<>(model, SmsGatewayConfigurationType.F_PASSWORD.getLocalPart())));
+        TextPanel port = new TextPanel<>(ID_PROXY_PORT, createEmbeddedModel(o -> o.getProxyPort(), (o, v) -> o.setProxyPort(v)));
+        FormComponent portFC = port.getBaseFormComponent();
+        portFC.setType(Integer.class);
+        portFC.add(new RangeValidator(0, 2 ^ 16 - 1)); // 65535
+        add(port);
+
+        add(new TextPanel<>(ID_PROXY_USERNAME, createEmbeddedModel(o -> o.getProxyUsername(), (o, v) -> o.setProxyUsername(v))));
+        add(new PasswordPanel(ID_PROXY_PASSWORD, createEmbeddedModel(o -> o.getProxyPassword(), (o, v) -> o.setProxyPassword(v))), false);
+        add(new TextPanel<>(ID_REDIRECT_TO_FILE, createEmbeddedModel(o -> o.getRedirectToFile(), (o, v) -> o.setRedirectToFile(v))));
+        add(new TextPanel<>(ID_LOG_TO_FILE, createEmbeddedModel(o -> o.getLogToFile(), (o, v) -> o.setLogToFile(v))));
     }
 
     @Override
     public FormComponent getBaseFormComponent() {
         return ((TextPanel) get(ID_NAME)).getBaseFormComponent();
+    }
+
+    private <T extends Serializable> IModel<T> createEmbeddedModel(SerializableFunction<SmsGatewayConfigurationType, T> get, SerializableBiConsumer<SmsGatewayConfigurationType, T> set) {
+        return new ComplexPropertyEmbeddedModel<>(getModel(), get, set) {
+
+            @Override
+            protected SmsGatewayConfigurationType createEmptyParentObject() {
+                return new SmsGatewayConfigurationType();
+            }
+
+            @Override
+            protected boolean isParentModelObjectEmpty(SmsGatewayConfigurationType object) {
+                Object[] values = new Object[] {
+                        object.getName(),
+                        object.getMethod(),
+                        object.getUrlExpression(),
+                        object.getHeadersExpression(),
+                        object.getBodyExpression(),
+                        object.getBodyEncoding(),
+                        object.getUsername(),
+                        object.getPassword(),
+                        object.getProxyHost(),
+                        object.getProxyPort(),
+                        object.getProxyUsername(),
+                        object.getProxyPassword(),
+                        object.getRedirectToFile(),
+                        object.getLogToFile()
+                };
+
+                return Arrays.stream(values).allMatch(v -> v == null);
+            }
+        };
     }
 }
