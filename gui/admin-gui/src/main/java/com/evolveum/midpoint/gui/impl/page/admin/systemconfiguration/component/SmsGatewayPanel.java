@@ -10,20 +10,22 @@ package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ThreadContext;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.validator.RangeValidator;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.input.ExpressionEditorPanel;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.SerializableBiConsumer;
 import com.evolveum.midpoint.web.component.util.SerializableFunction;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HttpMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsGatewayConfigurationType;
 
@@ -33,6 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsGatewayConfigurat
 public class SmsGatewayPanel extends ComplexPropertyInputPanel<SmsGatewayConfigurationType> {
 
     private static final long serialVersionUID = 1L;
+
+    private static final Trace LOGGER = TraceManager.getTrace(SmsGatewayPanel.class);
 
     private static final String ID_METHOD = "method";
     private static final String ID_URL_EXPRESSION = "urlExpression";
@@ -63,9 +67,12 @@ public class SmsGatewayPanel extends ComplexPropertyInputPanel<SmsGatewayConfigu
     private void initLayout() {
         add(new TextPanel<>(ID_NAME, createEmbeddedModel(o -> o.getName(), (o, v) -> o.setName(v))), false);
         add(WebComponentUtil.createEnumPanel(HttpMethodType.class, ID_METHOD, createEmbeddedModel(o -> o.getMethod(), (o, v) -> o.setMethod(v)), this));
-        add(new ExpressionEditorPanel(ID_URL_EXPRESSION, createEmbeddedModel(o -> o.getUrlExpression(), (o, v) -> o.setUrlExpression(v)), getPageBase()));
-        add(new ExpressionEditorPanel(ID_HEADERS_EXPRESSION, createEmbeddedModel(o -> o.getHeadersExpression(), (o, v) -> o.setHeadersExpression(v)), getPageBase()));
-        add(new ExpressionEditorPanel(ID_BODY_EXPRESSION, createEmbeddedModel(o -> o.getBodyExpression(), (o, v) -> o.setBodyExpression(v)), getPageBase()));
+        add(new AceEditorPanel(ID_URL_EXPRESSION, null,
+                createExpressionModel(createEmbeddedModel(o -> o.getUrlExpression(), (o, v) -> o.setUrlExpression(v))), 10));
+        add(new AceEditorPanel(ID_HEADERS_EXPRESSION, null,
+                createExpressionModel(createEmbeddedModel(o -> o.getHeadersExpression(), (o, v) -> o.setHeadersExpression(v))), 10));
+        add(new AceEditorPanel(ID_BODY_EXPRESSION, null,
+                createExpressionModel(createEmbeddedModel(o -> o.getBodyExpression(), (o, v) -> o.setBodyExpression(v))), 10));
         add(new TextPanel<>(ID_BODY_ENCODING, createEmbeddedModel(o -> o.getBodyEncoding(), (o, v) -> o.setBodyEncoding(v))));
         add(new TextPanel<>(ID_USERNAME, createEmbeddedModel(o -> o.getUsername(), (o, v) -> o.setUsername(v))));
         add(new PasswordPanel(ID_PASSWORD, createEmbeddedModel(o -> o.getPassword(), (o, v) -> o.setPassword(v))), false);
@@ -81,6 +88,47 @@ public class SmsGatewayPanel extends ComplexPropertyInputPanel<SmsGatewayConfigu
         add(new PasswordPanel(ID_PROXY_PASSWORD, createEmbeddedModel(o -> o.getProxyPassword(), (o, v) -> o.setProxyPassword(v))), false);
         add(new TextPanel<>(ID_REDIRECT_TO_FILE, createEmbeddedModel(o -> o.getRedirectToFile(), (o, v) -> o.setRedirectToFile(v))));
         add(new TextPanel<>(ID_LOG_TO_FILE, createEmbeddedModel(o -> o.getLogToFile(), (o, v) -> o.setLogToFile(v))));
+    }
+
+    private IModel<String> createExpressionModel(IModel<ExpressionType> model) {
+        return new IModel<>() {
+            @Override
+            public String getObject() {
+                ExpressionType expression = model.getObject();
+                if (expression == null) {
+                    return null;
+                }
+
+                try {
+                    return getPageBase().getPrismContext().xmlSerializer().serializeRealValue(expression);
+                } catch (Exception e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
+                    ThreadContext.getSession().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
+                }
+
+                return null;
+            }
+
+            @Override
+            public void setObject(String object) {
+                if (model == null) {
+                    return;
+                }
+
+                if (StringUtils.isBlank(object)) {
+                    model.setObject(null);
+                    return;
+                }
+
+                try {
+                    ExpressionType expression = getPageBase().getPrismContext().parserFor(object).parseRealValue(ExpressionType.class);
+                    model.setObject(expression);
+                } catch (Exception e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot parse filter", e);
+                    ThreadContext.getSession().error("Cannot parse filter: " + e.getMessage() + ". For more details, please, see midpoint log");
+                }
+            }
+        };
     }
 
     @Override
