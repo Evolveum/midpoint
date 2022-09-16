@@ -157,7 +157,7 @@ public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Po
 
     @Override
     public IModel<String> getTitle() {
-        return () -> WebComponentUtil.getTranslatedPolyString(getModelObject().getName());
+        return () -> WebComponentUtil.getDisplayNameOrName(getModelObject().asPrismObject());
     }
 
     @Override
