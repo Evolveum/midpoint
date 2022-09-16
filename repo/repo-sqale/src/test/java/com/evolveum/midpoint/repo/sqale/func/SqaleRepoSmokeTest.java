@@ -735,8 +735,11 @@ public class SqaleRepoSmokeTest extends SqaleRepoBaseTest {
      * This means that ExtensionItemFilterProcessor requires some modifications; currently the matchers are
      * incorporated into the specific type handling (e.g. poly-string), or change `isIgnoreCaseFilter()` return value.
      * None of the matchers now pass the parameter into the query like we need to do here.
+     *
+     * DISABLED: Currently we don't use custom operations for fuzzy match.
+     * SQL expressions are constructed dynamically with templates in the code.
      */
-    @Test
+    @Test(enabled = false)
     public void test901CustomOperations() {
         // Any type having strings/TEXT will do, we will use plain string, not poly-string.
         QUser u = aliasFor(QUser.class);

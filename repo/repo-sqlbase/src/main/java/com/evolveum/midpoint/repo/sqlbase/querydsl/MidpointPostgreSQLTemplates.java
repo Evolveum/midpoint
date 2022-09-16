@@ -16,6 +16,7 @@ public class MidpointPostgreSQLTemplates extends PostgreSQLTemplates {
     public static final MidpointPostgreSQLTemplates DEFAULT = new MidpointPostgreSQLTemplates();
 
     public MidpointPostgreSQLTemplates() {
-        add(SqaleOps.LEVENSHTEIN2, "levenshtein({0}, {1})"); // TODO
+        // Nothing special at this moment, we construct these functions dynamically in code.
+//        add(SqaleOps.LEVENSHTEIN2, "levenshtein({0}, {1})");
     }
 }
