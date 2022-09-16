@@ -35,7 +35,7 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperColumnPanel.class);
 
-    PrismPropertyWrapperColumnPanel(String id, IModel<PrismPropertyWrapper<T>> model, ColumnType columnType) {
+    public PrismPropertyWrapperColumnPanel(String id, IModel<PrismPropertyWrapper<T>> model, ColumnType columnType) {
         super(id, model, columnType);
     }
 
