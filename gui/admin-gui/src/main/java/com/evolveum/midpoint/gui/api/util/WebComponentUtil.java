@@ -360,7 +360,7 @@ public final class WebComponentUtil {
     }
 
     public static String getReferencedObjectDisplayNameAndName(Referencable ref, boolean loadObject, PageBase pageBase) {
-        if (ref == null) {
+        if (ref == null || ref.asReferenceValue().isEmpty()) {
             return "";
         }
         if (ref.getOid() != null && ref.asReferenceValue().getObject() == null && !loadObject) {
