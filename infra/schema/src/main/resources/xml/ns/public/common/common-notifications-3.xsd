@@ -716,7 +716,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="proxyPort" type="xsd:string" minOccurs="0">
+            <xsd:element name="proxyPort" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Proxy port.

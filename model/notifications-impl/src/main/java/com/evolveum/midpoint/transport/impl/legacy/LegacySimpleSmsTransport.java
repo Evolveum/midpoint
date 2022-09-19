@@ -189,7 +189,7 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
                 ExpressionType urlExpression = defaultIfNull(smsGatewayConfigurationType.getUrlExpression(), null);
                 String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", task, result);
                 String proxyHost = smsGatewayConfigurationType.getProxyHost();
-                String proxyPort = smsGatewayConfigurationType.getProxyPort();
+                Integer proxyPort = smsGatewayConfigurationType.getProxyPort();
                 LOGGER.debug("Sending SMS to URL {} via proxy host {} and port {} (method {})", url, proxyHost, proxyPort, method);
                 if (url == null) {
                     throw new IllegalArgumentException("No URL specified");
@@ -225,9 +225,8 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
                     ProtectedStringType proxyPassword = smsGatewayConfigurationType.getProxyPassword();
                     if (StringUtils.isNotBlank(proxyHost)) {
                         HttpHost proxy;
-                        if (StringUtils.isNotBlank(proxyPort) && isInteger(proxyPort)) {
-                            int port = Integer.parseInt(proxyPort);
-                            proxy = new HttpHost(proxyHost, port);
+                        if (proxyPort != null) {
+                            proxy = new HttpHost(proxyHost, proxyPort);
                         } else {
                             proxy = new HttpHost(proxyHost);
                         }
@@ -265,15 +264,6 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
         }
         LOGGER.warn("No more SMS gateways to try, notification to " + message.getTo() + " will not be sent.");
         result.recordWarning("Notification to " + message.getTo() + " could not be sent.");
-    }
-
-    private static boolean isInteger(String s) {
-        try {
-            Integer.parseInt(s);
-        } catch (NumberFormatException | NullPointerException e) {
-            return false;
-        }
-        return true;
     }
 
     private void setHeaders(ClientHttpRequest request, List<String> headersList) {
