@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -114,7 +115,8 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             if (delta.isDelete()) {
                 List<PrismValue> valuesFromTemplate = new ArrayList<>();
                 delta.getValuesToDelete().forEach(v -> {
-                    if (isFromTemplate(v) || isFromTemplate(v.getParentContainerValue())) {
+                    if (WebPrismUtil.isValueFromResourceTemplate(v, getItem())
+                            || WebPrismUtil.isValueFromResourceTemplate(v.getParentContainerValue(), getItem())) {
                         LOGGER.warn("Couldn't remove value, because is merged from resource template, value: " + v);
                         valuesFromTemplate.add(v);
                     }
@@ -146,7 +148,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
 
             PrismContainerValue<?> parentContainerValue = parentItem.getParent();
 
-            if (!isFromTemplate(parentContainerValue)) {
+            if (!WebPrismUtil.isValueFromResourceTemplate(parentContainerValue, getItem())) {
                 processedDeltas.add(delta);
                 continue;
             }
@@ -244,7 +246,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             return valueOfExistingDelta;
         }
 
-        if (isFromTemplate(parentValue)) {
+        if (WebPrismUtil.isValueFromResourceTemplate(parentValue, getItem())) {
             return createParentValueForAddDelta(parentValue, newContainer, valueOfExistingDelta);
         }
 
@@ -267,7 +269,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             return;
         }
         values.forEach(value -> {
-            if (isFromTemplate(value)) {
+            if (WebPrismUtil.isValueFromResourceTemplate(value, getItem())) {
                 value.setValueMetadata((ValueMetadata) null);
             }
         });
@@ -309,50 +311,13 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             return false;
         }
         item.removeIf(value -> {
-            if (isFromTemplate(((PrismValue) value))) {
+            if (WebPrismUtil.isValueFromResourceTemplate((PrismValue) value, getItem())) {
                 return true;
             }
             containsValueWithoutMetadata.set(true);
             return false;
         });
         return containsValueWithoutMetadata.get();
-    }
-
-    private boolean isFromTemplate(PrismValue valueFromDelta) {
-        if (valueFromDelta instanceof PrismObjectValue) {
-            return false;
-        }
-
-        if (hasValueMetadata(valueFromDelta)) {
-            return true;
-        }
-        Item<PrismValue, ItemDefinition> item = getItem().findItem(valueFromDelta.getParent().getPath());
-        PrismContainerValue<?> value = item.getParent();
-        while (!(value instanceof PrismObjectValue)) {
-            if (hasValueMetadata(value)) {
-                return true;
-            }
-            value = value.getParentContainerValue();
-        }
-        return false;
-    }
-
-    private boolean hasValueMetadata(PrismValue value) {
-        if (value.hasValueMetadata()) {
-            List<PrismContainerValue<Containerable>> metadataValues = value.getValueMetadata().getValues();
-
-            if (metadataValues.size() == 1) {
-                ProvenanceMetadataType provenance = ((ValueMetadataType) metadataValues.get(0).asContainerable()).getProvenance();
-                if (provenance != null) {
-                    List<ProvenanceAcquisitionType> acquisitionValues = provenance.getAcquisition();
-                    if (acquisitionValues.size() == 1) {
-                        ObjectReferenceType originRef = acquisitionValues.get(0).getOriginRef();
-                        return originRef != null && StringUtils.isNotEmpty(originRef.getOid());
-                    }
-                }
-            }
-        }
-        return false;
     }
 
     public Collection<ItemDelta> getDeltas() throws SchemaException {

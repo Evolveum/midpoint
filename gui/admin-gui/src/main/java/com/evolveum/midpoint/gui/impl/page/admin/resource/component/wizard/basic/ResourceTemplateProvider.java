@@ -50,7 +50,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * @author lazyman
+ * @author lskublik
  */
 public class ResourceTemplateProvider
         extends ObjectDataProvider<TemplateTile<ResourceTemplateProvider.ResourceTemplate>, AssignmentHolderType> {
@@ -87,57 +87,6 @@ public class ResourceTemplateProvider
         @NotNull Collection<SelectorOptions<GetOperationOptions>> rawOption = getOperationOptionsBuilder().raw().build();
         return GetOperationOptions.merge(getPrismContext(), getOptions(), getDistinctRelatedOptions(), rawOption);
     }
-
-//    @Override
-//    public Iterator<TemplateTile<ResourceTemplate>> internalIterator(long first, long count) {
-//        LOGGER.trace("begin::iterator() from {} count {}.", first, count);
-//
-//        getAvailableData().clear();
-//
-//        OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
-//        try {
-//            Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_OBJECTS);
-//
-//            ObjectQuery query = getQuery();
-//            if (query == null) {
-//                query = getPrismContext().queryFactory().createQuery();
-//            }
-//
-//            if (LOGGER.isTraceEnabled()) {
-//                LOGGER.trace("Query {} with {}", getType().getSimpleName(), query.debugDump());
-//            }
-//
-//            List<PrismObject<AssignmentHolderType>> list = getModelService().searchObjects(getType(), query, getOptionsToUse(), task, result);
-//
-//            if (LOGGER.isTraceEnabled()) {
-//                LOGGER.trace("Query {} resulted in {} objects", getType().getSimpleName(), list.size());
-//            }
-//
-//            List<TemplateTile<ResourceTemplate>> tiles = new ArrayList<>();
-//            for (PrismObject<AssignmentHolderType> object : list) {
-//                tiles.add(createDataObjectWrapper(object, result));
-//            }
-//            Collections.sort(tiles);
-//            internalSize = tiles.size();
-//            getAvailableData().addAll(
-//                    tiles.stream()
-//                            .skip(first)
-//                            .limit(count)
-//                            .collect(Collectors.toList()));
-//        } catch (Exception ex) {
-//            result.recordFatalError(getPageBase().createStringResource("ObjectDataProvider.message.listObjects.fatalError").getString(), ex);
-//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list objects", ex);
-//        } finally {
-//            result.computeStatusIfUnknown();
-//        }
-//
-//        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-//            handleNotSuccessOrHandledErrorInIterator(result);
-//        }
-//
-//        LOGGER.trace("end::iterator()");
-//        return getAvailableData().iterator();
-//    }
 
     @Override
     protected ObjectQuery getCustomizeContentQuery() {
