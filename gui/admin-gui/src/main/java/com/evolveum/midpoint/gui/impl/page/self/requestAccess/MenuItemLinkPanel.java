@@ -33,6 +33,7 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
     private static final String ID_LABEL = "label";
     private static final String ID_BADGE = "badge";
     private static final String ID_CHEVRON = "chevron";
+    private static final String ID_CHEVRON_LINK = "chevronLink";
 
     public MenuItemLinkPanel(String id, IModel<ListGroupMenuItem<T>> model) {
         super(id, model);
@@ -41,8 +42,9 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
     }
 
     private void initLayout() {
-        setRenderBodyOnly(true);
-
+        add(AttributeAppender.append("class", "item"));
+        add(AttributeAppender.append("class", () -> getModelObject().isActive() ? "active" : null));
+        add(AttributeAppender.append("class", () -> getModelObject().isDisabled() ? "disabled" : null));
         AjaxLink link = new AjaxLink<>(ID_LINK) {
 
             @Override
@@ -50,8 +52,6 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
                 onClickPerformed(target, MenuItemLinkPanel.this.getModelObject());
             }
         };
-        link.add(AttributeAppender.append("class", () -> getModelObject().isActive() ? "active" : null));
-        link.add(AttributeAppender.append("class", () -> getModelObject().isDisabled() ? "disabled" : null));
         link.setOutputMarkupId(true);
         add(link);
 
@@ -70,14 +70,23 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
         badge.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getModelObject().getBadge())));
         link.add(badge);
 
-        WebMarkupContainer chevron = new WebMarkupContainer(ID_CHEVRON);
-        chevron.add(AttributeAppender.append("class",
-                () -> getModelObject().isActive() ? "fa fa-chevron-down" : "fa fa-chevron-left"));
-        chevron.add(new VisibleBehaviour(() -> {
+        AjaxLink chevronLink = new AjaxLink<>(ID_CHEVRON_LINK) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onChevronClickPerformed(target, MenuItemLinkPanel.this.getModelObject());
+            }
+        };
+        chevronLink.add(new VisibleBehaviour(() -> {
             ListGroupMenuItem item = getModelObject();
             return StringUtils.isEmpty(item.getBadge()) && !item.isEmpty();
         }));
-        link.add(chevron);
+        add(chevronLink);
+
+        WebMarkupContainer chevron = new WebMarkupContainer(ID_CHEVRON);
+        chevron.add(AttributeAppender.append("class",
+                () -> getModelObject().isOpen() ? "fa fa-chevron-down" : "fa fa-chevron-left"));
+
+        chevronLink.add(chevron);
     }
 
     private IModel<String> createLabelModel() {
@@ -88,6 +97,10 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
     }
 
     protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
+
+    }
+
+    protected void onChevronClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
 
     }
 }

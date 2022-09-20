@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.resources;
 
 import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +18,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,6 +58,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 class ResourceSchemaHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
+
+    private static final String OP_APPLY_DEFINITION_TO_DELTA = ResourceSchemaHelper.class + ".applyDefinitionToDelta";
 
     @Autowired private ResourceManager resourceManager;
     @Autowired private ConnectorManager connectorManager;
@@ -133,8 +135,6 @@ class ResourceSchemaHelper {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
 
-        boolean isMain = sourceConnectorSpec.getConnectorName() == null;
-
         var connectorWithSchema = connectorManager.getConnectorWithSchema(sourceConnectorSpec, result);
         PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition =
                 connectorWithSchema.getConfigurationContainerDefinition().clone();
@@ -144,7 +144,7 @@ class ResourceSchemaHelper {
         // the element is global in the connector schema. therefore it does not have correct maxOccurs
         if (sourceConfigurationContainer != null) {
             configurationContainerDefinition.adoptElementDefinitionFrom(sourceConfigurationContainer.getDefinition());
-        } else if (isMain) {
+        } else if (sourceConnectorSpec.isMain()) {
             configurationContainerDefinition.adoptElementDefinitionFrom(
                     targetDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION));
         }
@@ -155,7 +155,7 @@ class ResourceSchemaHelper {
             targetConfigurationContainer.applyDefinition(configurationContainerDefinition, true);
         }
 
-        if (isMain) {
+        if (sourceConnectorSpec.isMain()) {
             // Default connector, for compatibility
             // It does not make sense to update this for any other connectors.
             // We cannot have one definition for additionalConnector[1]/connectorConfiguration and
@@ -284,149 +284,232 @@ class ResourceSchemaHelper {
         }
     }
 
+    /**
+     * Applies the definitions to items in resource object delta. Currently, those are definitions for configuration properties;
+     * for both main and additional connectors. (For some reason, the `resourceWhenNoOid` is updated as well - if present.)
+     *
+     * Limitations:
+     *
+     * - If there's a connector OID change, this method takes the definitions from the new connector. The old one is ignored.
+     */
     void applyDefinition(
             ObjectDelta<ResourceType> delta,
             ResourceType resourceWhenNoOid,
             GetOperationOptions options,
             Task task,
-            OperationResult objectResult)
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException {
 
         if (delta.isAdd()) {
             ResourceType resource = delta.getObjectToAdd().asObjectable();
-            applyConnectorSchemasToResource(resource, objectResult);
-            return;
-
+            applyConnectorSchemasToResource(resource, result);
         } else if (delta.isModify()) {
-            // Go on
+            applyDefinitionToModifyDelta(delta, resourceWhenNoOid, options, task, result);
         } else {
+            // Delete delta - nothing to do there
+        }
+    }
+
+    private void applyDefinitionToModifyDelta(
+            ObjectDelta<ResourceType> delta,
+            ResourceType resourceWhenNoOid,
+            GetOperationOptions options,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
+
+        if (delta.hasCompleteDefinition()) {
+            // nothing to do, all modifications have definitions
             return;
         }
 
-        if (delta.hasCompleteDefinition()){
-            // nothing to do, all modifications has definitions
-            return;
-        }
+        ResourceType resource = getResource(delta, resourceWhenNoOid, options, task, result);
 
-        PrismObject<ResourceType> resource;
+        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
+            applyDefinitionToDeltaForConnector(delta, connectorSpec, result);
+        }
+        applyDefinitionsForNewConnectors(delta, result);
+    }
+
+    private @NotNull ResourceType getResource(
+            ObjectDelta<ResourceType> delta,
+            ResourceType resourceWhenNoOid,
+            GetOperationOptions options,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
         String resourceOid = delta.getOid();
         if (resourceOid == null) {
-            Validate.notNull(resourceWhenNoOid, "Resource oid not specified in the object delta, and resource is not specified as well. Could not apply definition.");
-            resource = resourceWhenNoOid.asPrismObject();
+            Validate.notNull(resourceWhenNoOid, "Resource oid not specified in the object delta, "
+                    + "and resource is not specified as well. Could not apply definition.");
+            return resourceWhenNoOid;
         } else {
-            resource = resourceManager.getResource(resourceOid, options, task, objectResult);
+            return resourceManager.getResource(resourceOid, options, task, result)
+                    .asObjectable();
+        }
+    }
+
+    private void applyDefinitionToDeltaForConnector(
+            @NotNull ObjectDelta<ResourceType> delta, @NotNull ConnectorSpec connectorSpec, @NotNull OperationResult parentResult)
+            throws SchemaException {
+        OperationResult result = parentResult.subresult(OP_APPLY_DEFINITION_TO_DELTA)
+                .addArbitraryObjectAsParam("connector", connectorSpec)
+                .setMinor()
+                .build();
+        try {
+            String connectorOid = getConnectorOid(delta, connectorSpec);
+            if (connectorOid == null) {
+                result.recordFatalError("Connector OID is missing");
+                return;
+            }
+
+            PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDef =
+                    getConfigurationContainerDefinition(connectorOid, result);
+            if (configurationContainerDef == null) {
+                return;
+            }
+
+            PrismContainer<ConnectorConfigurationType> connectorConfiguration = connectorSpec.getConnectorConfiguration();
+            if (connectorConfiguration != null) {
+                connectorConfiguration.applyDefinition(configurationContainerDef);
+            }
+
+            for (ItemDelta<?,?> itemDelta : delta.getModifications()){
+                applyItemDefinition(itemDelta, connectorSpec, configurationContainerDef, result);
+            }
+
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.close();
+        }
+    }
+
+    private void applyDefinitionsForNewConnectors(ObjectDelta<ResourceType> delta, OperationResult result)
+            throws SchemaException {
+        List<PrismValue> newConnectors = delta.getNewValuesFor(ResourceType.F_ADDITIONAL_CONNECTOR);
+        for (PrismValue newConnectorPcv : newConnectors) {
+            //noinspection unchecked
+            ConnectorInstanceSpecificationType newConnector =
+                    ((PrismContainerValue<ConnectorInstanceSpecificationType>) newConnectorPcv).asContainerable();
+            String connectorOid = getOid(newConnector.getConnectorRef());
+            if (connectorOid == null) {
+                continue;
+            }
+            PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDef =
+                    getConfigurationContainerDefinition(connectorOid, result);
+            if (configurationContainerDef == null) {
+                continue;
+            }
+            ConnectorConfigurationType connectorConfiguration = newConnector.getConnectorConfiguration();
+            if (connectorConfiguration != null) {
+                connectorConfiguration.asPrismContainerValue().applyDefinition(configurationContainerDef);
+            }
+        }
+    }
+
+    private PrismContainerDefinition<ConnectorConfigurationType> getConfigurationContainerDefinition(
+            String connectorOid, OperationResult result)
+            throws SchemaException {
+
+        ConnectorType connector;
+        try {
+            connector =
+                    repositoryService
+                            .getObject(ConnectorType.class, connectorOid, null, result)
+                            .asObjectable();
+        } catch (ObjectNotFoundException e) {
+            // No connector, no fun. We can't apply the definition.
+            result.recordFatalError(
+                    "Connector (OID:" + connectorOid + ") referenced from the resource is not in the repository", e);
+            return null;
+        } catch (SchemaException e) {
+            // Probably a malformed connector.
+            result.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource "
+                    + "has schema problems: " + e.getMessage(), e);
+            LOGGER.error("Connector (OID:{}) has schema problems: {}-{}", connectorOid, e.getMessage(), e);
+            return null;
         }
 
-        ResourceType resourceType = resource.asObjectable();
-//        ResourceType resourceType = completeResource(resource.asObjectable(), null, objectResult);
-        //TODO TODO TODO FIXME FIXME FIXME copied from ObjectImprted..union this two cases
-        PrismContainer<ConnectorConfigurationType> configurationContainer = ResourceTypeUtil.getConfigurationContainer(resourceType);
-        if (configurationContainer == null || configurationContainer.isEmpty()) {
-            // Nothing to check
-            objectResult.recordWarning("The resource has no configuration");
-            return;
+        Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
+        if (connectorSchemaElement == null) {
+            // No schema to apply to
+            return null;
         }
-
-        // Check the resource configuration. The schema is in connector, so fetch the connector first
-        String connectorOid = resourceType.getConnectorRef().getOid();
-        if (StringUtils.isBlank(connectorOid)) {
-            objectResult.recordFatalError("The connector reference (connectorRef) is null or empty");
-            return;
+        MutablePrismSchema connectorSchema;
+        try {
+            connectorSchema = prismContext.schemaFactory().createPrismSchema(
+                    DOMUtil.getSchemaTargetNamespace(connectorSchemaElement));
+            connectorSchema.parseThis(
+                    connectorSchemaElement, true, "schema for " + connector, prismContext);
+        } catch (SchemaException e) {
+            throw new SchemaException("Error parsing connector schema for " + connector + ": " + e.getMessage(), e);
         }
+        QName configContainerQName = new QName(connector.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
+        PrismContainerDefinition<ConnectorConfigurationType> configContainerDef =
+                connectorSchema.findContainerDefinitionByElementName(configContainerQName);
+        if (configContainerDef == null) {
+            throw new SchemaException("Definition of configuration container " + configContainerQName
+                    + " not found in the schema of of " + connector);
+        }
+        return configContainerDef;
+    }
 
-        //ItemDelta.findItemDelta(delta.getModifications(), ResourceType.F_SCHEMA, ContainerDelta.class) == null ||
+    private String getConnectorOid(ObjectDelta<ResourceType> delta, ConnectorSpec connectorSpec) throws SchemaException {
 
-        ReferenceDelta connectorRefDelta = ItemDeltaCollectionsUtil.findReferenceModification(delta.getModifications(), ResourceType.F_CONNECTOR_REF);
-        if (connectorRefDelta != null){
-            Item<PrismReferenceValue,PrismReferenceDefinition> connectorRefNew = connectorRefDelta.getItemNewMatchingPath(null);
-            if (connectorRefNew.getValues().size() == 1){
+        // Note: strict=true means that we are looking for this delta defined straight for the property.
+        // We do so because here we don't try to apply definitions for additional connectors that are being added.
+        ReferenceDelta connectorRefDelta =
+                ItemDeltaCollectionsUtil.findItemDelta(
+                        delta.getModifications(),
+                        connectorSpec.getBasePath().append(ResourceType.F_CONNECTOR_REF),
+                        ReferenceDelta.class,
+                        true);
+
+        if (connectorRefDelta != null) {
+            Item<PrismReferenceValue,PrismReferenceDefinition> connectorRefNew =
+                    connectorRefDelta.getItemNewMatchingPath(null);
+            if (connectorRefNew.getValues().size() == 1) {
                 PrismReferenceValue connectorRefValue = connectorRefNew.getValues().iterator().next();
-                if (connectorRefValue.getOid() != null && !connectorOid.equals(connectorRefValue.getOid())){
-                    connectorOid = connectorRefValue.getOid();
+                if (connectorRefValue.getOid() != null) {
+                    // TODO what if there is a dynamic reference?
+                    return connectorRefValue.getOid();
                 }
             }
         }
 
-        PrismObject<ConnectorType> connector;
-        ConnectorType connectorType;
-        try {
-            connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, objectResult);
-            connectorType = connector.asObjectable();
-        } catch (ObjectNotFoundException e) {
-            // No connector, no fun. We can't check the schema. But this is referential integrity problem.
-            // Mark the error ... there is nothing more to do
-            objectResult.recordFatalError("Connector (OID:" + connectorOid + ") referenced from the resource is not in the repository", e);
-            return;
-        } catch (SchemaException e) {
-            // Probably a malformed connector. To be kind of robust, lets allow the import.
-            // Mark the error ... there is nothing more to do
-            objectResult.recordPartialError("Connector (OID:" + connectorOid + ") referenced from the resource has schema problems: " + e.getMessage(), e);
-            LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}-{}",
-                    connectorOid, resourceType.getName(), e.getMessage(), e);
-            return;
-        }
-
-        Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connector);
-        MutablePrismSchema connectorSchema;
-        if (connectorSchemaElement == null) {
-            // No schema to validate with
-            return;
-        }
-        try {
-            connectorSchema = prismContext.schemaFactory().createPrismSchema(
-                    DOMUtil.getSchemaTargetNamespace(connectorSchemaElement));
-            connectorSchema.parseThis(connectorSchemaElement, true, "schema for " + connector, prismContext);
-        } catch (SchemaException e) {
-            objectResult.recordFatalError("Error parsing connector schema for " + connector + ": "+e.getMessage(), e);
-            return;
-        }
-        QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
-        PrismContainerDefinition<ConnectorConfigurationType> configContainerDef =
-                connectorSchema.findContainerDefinitionByElementName(configContainerQName);
-        if (configContainerDef == null) {
-            objectResult.recordFatalError("Definition of configuration container " + configContainerQName + " not found in the schema of of " + connector);
-            return;
-        }
-
-        try {
-            configurationContainer.applyDefinition(configContainerDef);
-        } catch (SchemaException e) {
-            objectResult.recordFatalError("Configuration error in " + resource + ": "+e.getMessage(), e);
-            return;
-        }
-
-        PrismContainer configContainer = resourceType.asPrismObject().findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-        //noinspection unchecked
-        configContainer.applyDefinition(configContainerDef);
-
-        for (ItemDelta<?,?> itemDelta : delta.getModifications()){
-            applyItemDefinition(itemDelta, configContainerDef, objectResult);
-        }
+        return connectorSpec.getConnectorOid();
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> void applyItemDefinition(ItemDelta<V,D> itemDelta,
-            PrismContainerDefinition<ConnectorConfigurationType> configContainerDef, OperationResult objectResult) throws SchemaException {
-        if (itemDelta.getParentPath() == null){
-            LOGGER.trace("No parent path defined for item delta {}", itemDelta);
+    private <V extends PrismValue, D extends ItemDefinition<?>> void applyItemDefinition(
+            ItemDelta<V,D> itemDelta,
+            ConnectorSpec connectorSpec,
+            PrismContainerDefinition<ConnectorConfigurationType> configContainerDef,
+            OperationResult result) throws SchemaException {
+        if (itemDelta.getDefinition() != null) {
+            return;
+        }
+        ItemPath changedItemPath = itemDelta.getPath();
+        ItemPath configurationContainerPath = connectorSpec.getConfigurationItemPath();
+        if (!changedItemPath.startsWith(configurationContainerPath)) {
             return;
         }
 
-        QName first = itemDelta.getParentPath().firstToNameOrNull();
-        if (first == null) {
-            return;
-        }
-
-        if (itemDelta.getDefinition() == null && (ResourceType.F_CONNECTOR_CONFIGURATION.equals(first) || ResourceType.F_SCHEMA.equals(first))){
-            ItemPath path = itemDelta.getPath().rest();
-            D itemDef = configContainerDef.findItemDefinition(path);
-            if (itemDef == null){
-                LOGGER.warn("No definition found for item {}. Check your namespaces?", path);
-                objectResult.recordWarning("No definition found for item delta: " + itemDelta +". Check your namespaces?" );
-//                throw new SchemaException("No definition found for item " + path+ ". Check your namespaces?" );
-                return;
+        ItemPath remainder = changedItemPath.remainder(configurationContainerPath);
+        if (remainder.isEmpty()) {
+            // The delta is for the whole configuration container
+            //noinspection unchecked
+            itemDelta.applyDefinition((D) configContainerDef);
+        } else {
+            // The delta is for individual configuration property
+            D itemDef = configContainerDef.findItemDefinition(remainder);
+            if (itemDef == null) {
+                LOGGER.warn("No definition found for item {}. Check your namespaces?", changedItemPath);
+                result.recordWarning("No definition found for item delta: " + itemDelta +". Check your namespaces?" );
+            } else {
+                itemDelta.applyDefinition(itemDef);
             }
-            itemDelta.applyDefinition(itemDef);
-
         }
     }
 
@@ -439,7 +522,7 @@ class ResourceSchemaHelper {
     /**
      * TODO is this method correct?
      */
-    public void updateSchemaToConnectors(ResourceType resource, ResourceSchema rawResourceSchema, OperationResult result)
+    void updateSchemaToConnectors(ResourceType resource, ResourceSchema rawResourceSchema, OperationResult result)
             throws ConfigurationException, SchemaException, CommunicationException, ObjectNotFoundException {
         for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
             connectorManager

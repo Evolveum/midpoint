@@ -64,6 +64,11 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
                     protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
                         ListGroupMenuPanel.this.onMenuClickPerformed(target, item);
                     }
+
+                    @Override
+                    protected void onChevronClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
+                        ListGroupMenuPanel.this.onChevronClickPerformed(target, item);
+                    }
                 };
                 item.add(menu);
             }
@@ -73,6 +78,12 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
 
     protected void onMenuClickPerformed(AjaxRequestTarget target, ListGroupMenuItem<T> item) {
         getModelObject().onItemClickPerformed(item);
+
+        target.add(this);
+    }
+
+    protected void onChevronClickPerformed(AjaxRequestTarget target, ListGroupMenuItem<T> item) {
+        getModelObject().onItemChevronClickPerformed(item);
 
         target.add(this);
     }

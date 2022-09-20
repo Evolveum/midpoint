@@ -29,15 +29,19 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
         this.items = items;
     }
 
-    public void onItemClickPerformed(ListGroupMenuItem item) {
+    public void onItemChevronClickPerformed(ListGroupMenuItem item) {
         if (item.isEmpty()) {
-            getItems().forEach(this::deactivateItem);
-            item.setActive(true);
-
             return;
         }
 
         item.setOpen(!item.isOpen());
+    }
+
+    public void onItemClickPerformed(ListGroupMenuItem item) {
+        onItemChevronClickPerformed(item);
+
+        getItems().forEach(this::deactivateItem);
+        item.setActive(true);
     }
 
     public void activateFirstAvailableItem() {

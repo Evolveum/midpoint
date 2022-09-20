@@ -382,6 +382,9 @@
                                 Configuration of a particular mail server host. If there are more of them, they are tried
                                 one after another. If there is none, mail notifications are not sent.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MailConfigurationType.server</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
@@ -713,7 +716,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="proxyPort" type="xsd:string" minOccurs="0">
+            <xsd:element name="proxyPort" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Proxy port.

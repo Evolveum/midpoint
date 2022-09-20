@@ -629,10 +629,12 @@ public interface ProvisioningService {
         throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     /**
-     * Applies appropriate definition to the shadow/resource delta (uses provided object to get necessary information)
+     * Applies appropriate definition to the shadow/resource delta. The provided object is used to get necessary information,
+     * and it's (sometimes) updated as well. TODO this should be specified better
      */
     <T extends ObjectType> void applyDefinition(ObjectDelta<T> delta, Objectable object, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException;
 
     /**
      * Applies appropriate definition to the shadow.

@@ -98,6 +98,35 @@ public abstract class ConnectorSpec {
     /** Returns `null` for main connector, and non-`null` value for additional ones. */
     public abstract @Nullable String getConnectorName();
 
+    public abstract boolean isMain();
+
+    /**
+     * Returns the "base path" under which other items, like `capabilities` or `connectorRef` can be found.
+     *
+     * @throws IllegalStateException if the path cannot be determined e.g. because the additional connector PCVs
+     * do not have their PCV IDs assigned yet.
+     */
+    public abstract @NotNull ItemPath getBasePath();
+
+    /**
+     * Returns {@link ItemPath} to the capabilities container. This may be useful when updating the resource object
+     * by creating a list of modifications.
+     *
+     * @see #getBasePath()
+     */
+    @NotNull ItemPath getCapabilitiesItemPath() {
+        return getBasePath().append(ResourceType.F_CAPABILITIES);
+    }
+
+    /**
+     * Returns {@link ItemPath} to the configuration container.
+     *
+     * @see #getBasePath()
+     */
+    @NotNull ItemPath getConfigurationItemPath() {
+        return getBasePath().append(ResourceType.F_CONNECTOR_CONFIGURATION);
+    }
+
     /**
      * Note that connector OID is not required here, as the resource may be not resolved yet, or it may be
      * an abstract resource with missing connectorRef.
@@ -126,15 +155,6 @@ public abstract class ConnectorSpec {
         return capabilities != null ? capabilities.getNative() : null;
     }
 
-    /**
-     * Returns {@link ItemPath} to the capabilities container. This may be useful when updating the resource object
-     * by creating a list of modifications.
-     *
-     * @throws IllegalStateException if the path cannot be determined e.g. because the additional connector PCVs
-     * do not have their PCV IDs assigned yet.
-     */
-    public abstract @NotNull ItemPath getCapabilitiesItemPath();
-
     /** Sets the connector capabilities in the resource in-memory object. */
     public abstract void setCapabilities(CapabilitiesType capabilities);
 
@@ -145,6 +165,17 @@ public abstract class ConnectorSpec {
 
         private Main(@NotNull ResourceType resource) {
             super(resource);
+        }
+
+        @Override
+        public boolean isMain() {
+            return true;
+        }
+
+        @Override
+        @NotNull
+        public ItemPath getBasePath() {
+            return ItemPath.EMPTY_PATH;
         }
 
         @Override
@@ -168,11 +199,6 @@ public abstract class ConnectorSpec {
         }
 
         @Override
-        public @NotNull ItemPath getCapabilitiesItemPath() {
-            return ResourceType.F_CAPABILITIES;
-        }
-
-        @Override
         public void setCapabilities(CapabilitiesType capabilities) {
             resource.setCapabilities(capabilities);
         }
@@ -186,7 +212,6 @@ public abstract class ConnectorSpec {
             }
             capabilities.setCachingMetadata(cachingMetadata);
         }
-
         @Override
         public String toString() {
             return "ConnectorSpec.Main(" + resource + ")";
@@ -211,8 +236,21 @@ public abstract class ConnectorSpec {
         }
 
         @Override
+        public boolean isMain() {
+            return false;
+        }
+
+        @Override
         public @NotNull String getConnectorName() {
             return name;
+        }
+
+        @Override
+        @NotNull
+        public ItemPath getBasePath() {
+            ItemPath path = definitionBean.asPrismContainerValue().getPath();
+            checkPathValid(path);
+            return path;
         }
 
         @Override
@@ -231,13 +269,6 @@ public abstract class ConnectorSpec {
         @Override
         public @Nullable CapabilitiesType getCapabilities() {
             return definitionBean.getCapabilities();
-        }
-
-        @Override
-        public @NotNull ItemPath getCapabilitiesItemPath() {
-            ItemPath path = definitionBean.asPrismContainerValue().getPath();
-            checkPathValid(path);
-            return path.append(ConnectorInstanceSpecificationType.F_CAPABILITIES);
         }
 
         @Override

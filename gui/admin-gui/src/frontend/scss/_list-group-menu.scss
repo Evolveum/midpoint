@@ -35,13 +35,37 @@ $list-group-item-padding-sm-x: 1rem;
   color: $list-group-color;
   background-color: $list-group-bg;
 
-  & > a.item-link {
+  & > .item {
     display: flex;
+    flex-direction: row;
     flex-wrap: nowrap;
-    align-items: center;
-    // todo for "sm" version 0.5rem 1rem
     padding: $list-group-item-padding-y $list-group-item-padding-x;
     color: inherit;
+
+    & > .item-link {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      flex-grow: 1;
+      color: inherit;
+      overflow: hidden;
+
+      & > i.icon {
+        margin-right: 1rem;
+      }
+
+      & > span.label {
+        flex-grow: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    & > .chevron {
+      margin-left: 10px;
+      color: inherit;
+    }
 
     @include hover-focus() {
       z-index: 1; // Place hover/focus items above their siblings for proper border styling
@@ -69,21 +93,6 @@ $list-group-item-padding-sm-x: 1rem;
       color: $list-group-action-active-color;
       background-color: $list-group-action-active-bg;
     }
-
-    & > i.icon {
-      margin-right: 1rem;
-    }
-
-    & > span.label {
-      flex-grow: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    & > i.chevron {
-      margin-left: 10px;
-    }
   }
 
   & > .form-control {
@@ -104,7 +113,7 @@ $list-group-item-padding-sm-x: 1rem;
   &:first-child {
     @include border-top-radius(inherit);
 
-    & > a.item-link {
+    & > div.item {
       @include border-top-radius(inherit);
     }
   }
@@ -112,7 +121,7 @@ $list-group-item-padding-sm-x: 1rem;
   &:last-child {
     @include border-bottom-radius(inherit);
 
-    & > a.item-link:last-child {
+    & > div.item:last-child {
       @include border-bottom-radius(inherit);
     }
   }
@@ -126,7 +135,7 @@ $list-group-item-padding-sm-x: 1rem;
     }
   }
 
-  &.open > .item-link > .chevron {
+  &.open > .item-link > .chevron > i {
     transform: rotate(270deg);
   }
 }
@@ -140,12 +149,12 @@ $list-group-item-padding-sm-x: 1rem;
   border-radius: inherit;
 
   // 3rd level padding
-  & .list-group-submenu > .list-group-submenu-item > a {
+  & .list-group-submenu > .list-group-submenu-item > div {
     padding-left: 3.25rem;
   }
 
   // 2nd level padding
-  & > a.item-link {
+  & > div.item {
     padding-left: 2rem;
   }
 }
@@ -156,12 +165,13 @@ a.item-link > .form-control {
 
 .list-group-menu-sm {
 
-  & a.item-link {
+  & .item {
     padding: $list-group-item-padding-sm-y $list-group-item-padding-sm-x;
   }
 
   & .list-group-menu-item,
   & .list-group-submenu-item {
+    & > .input-group,
     & > .form-control {
       margin: 0.5rem;
       width: auto;
