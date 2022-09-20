@@ -549,8 +549,8 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         try {
             logSearchInputParameters(AuditEventRecordType.class, query, "Search audit");
 
-            query = simplifyQuery(query);
-            if (isNoneQuery(query)) {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
                 return new SearchResultList<>();
             }
 
@@ -598,8 +598,8 @@ public class SqaleAuditService extends SqaleServiceBase implements AuditService 
         try {
             logSearchInputParameters(AuditEventRecordType.class, query, "Iterative search audit");
 
-            query = simplifyQuery(query);
-            if (isNoneQuery(query)) {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
                 return new SearchResultMetadata().approxNumberOfAllResults(0);
             }
 
