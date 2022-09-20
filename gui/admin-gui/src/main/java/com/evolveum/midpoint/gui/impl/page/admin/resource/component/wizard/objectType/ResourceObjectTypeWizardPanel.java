@@ -104,6 +104,14 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                 if (isSavedAfterDetailsWizard()) {
                     OperationResult result = onSaveResourcePerformed(target);
                     if (result != null && !result.isError()) {
+                        new Toast()
+                                .success()
+                                .title(getString("ResourceWizardPanel.updateResource"))
+                                .icon("fas fa-circle-check")
+                                .autohide(true)
+                                .delay(5_000)
+                                .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
+
                         ItemPath path = valueModel.getObject().getPath();
                         if (!path.isEmpty() && ItemPath.isId(path.last())) {
                             valueModel.detach();
@@ -124,6 +132,8 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                             valueModel = getValueWrapperWitLastId(path);
                         }
                         showObjectTypePreviewFragment(valueModel, target);
+                    } else {
+                        target.add(getFeedback());
                     }
                 } else {
                     showObjectTypePreviewFragment(valueModel, target);
@@ -179,10 +189,6 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
         };
     }
 
-//    private void showTableFragment(AjaxRequestTarget target) {
-//        showChoiceFragment(target, createTablePanel());
-//    }
-
     private void showObjectTypePreviewFragment(
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model, AjaxRequestTarget target) {
         showChoiceFragment(target, new ResourceObjectTypeWizardPreviewPanel(getIdOfChoicePanel(), getResourceModel(), model) {
@@ -224,6 +230,11 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                     protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
                         return ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
                     }
+
+                    @Override
+                    protected boolean isSavedAfterWizard() {
+                        return isSavedAfterDetailsWizard();
+                    }
                 });
     }
 
@@ -254,6 +265,8 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                 OperationResult result = onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
                     onExitPerformed(target);
+                } else {
+                    target.add(getFeedback());
                 }
             }
         });
@@ -274,6 +287,11 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             @Override
             protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
                 return ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
+            }
+
+            @Override
+            protected boolean isSavedAfterWizard() {
+                return isSavedAfterDetailsWizard();
             }
         });
     }

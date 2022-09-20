@@ -41,8 +41,6 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
     private static final Trace LOGGER = TraceManager.getTrace(VerticalFormPanel.class);
 
     private static final String ID_SINGLE_CONTAINER = "singleContainer";
-    private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
-    private static final String ID_FEEDBACK = "feedback";
 
     private final ItemPanelSettings settings;
     private final ContainerPanelConfigurationType config;
@@ -86,17 +84,6 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
     }
 
     private void initLayout() {
-
-        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
-        feedbackContainer.setOutputMarkupId(true);
-        feedbackContainer.setOutputMarkupPlaceholderTag(true);
-        add(feedbackContainer);
-
-        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
-        feedbackList.setOutputMarkupId(true);
-        feedbackList.setOutputMarkupPlaceholderTag(true);
-        feedbackContainer.add(feedbackList);
-
         SingleContainerPanel<C> singleContainer = new SingleContainerPanel<C>(ID_SINGLE_CONTAINER, getModel(), config) {
             @Override
             protected Panel createPanel(String id, QName typeName, IModel<PrismContainerWrapper<C>> model, ItemPanelSettingsBuilder builder) throws SchemaException {
@@ -158,9 +145,5 @@ public abstract class VerticalFormPanel<C extends Containerable> extends BasePan
 
     protected String getIcon() {
         return "";
-    }
-
-    public WebMarkupContainer getFeedbackPanel() {
-        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 }

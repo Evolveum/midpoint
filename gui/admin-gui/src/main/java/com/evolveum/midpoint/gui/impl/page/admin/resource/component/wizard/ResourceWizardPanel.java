@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.*;
@@ -100,6 +101,13 @@ public class ResourceWizardPanel extends BasePanel {
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSaveResourcePerformed(target);
         if (!result.isError()) {
+            new Toast()
+                    .success()
+                    .title(getString("ResourceWizardPanel.createResource"))
+                    .icon("fas fa-circle-check")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(getString("ResourceWizardPanel.createResource.text")).show(target);
             exitToPreview(target);
         }
     }

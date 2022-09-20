@@ -81,12 +81,14 @@ public class SynchronizationConfigWizardPanel extends AbstractResourceWizardPane
                 if (result != null && !result.isError()) {
                     new Toast()
                             .success()
-                            .title(getString("SynchronizationConfigWizardPanel.save"))
+                            .title(getString("ResourceWizardPanel.updateResource"))
                             .icon("fas fa-circle-check")
                             .autohide(true)
                             .delay(5_000)
-                            .body(getString("SynchronizationConfigWizardPanel.save.text")).show(target);
+                            .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
                     onExitPerformed(target);
+                } else {
+                    target.add(getFeedback());
                 }
             }
 
