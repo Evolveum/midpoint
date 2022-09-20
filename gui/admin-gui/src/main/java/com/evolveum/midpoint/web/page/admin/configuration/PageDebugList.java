@@ -105,8 +105,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     // search form model;
-    private final LoadableDetachableModel<Search<? extends ObjectType>> searchModel;
-    // todo make this persistent (in user session)
+    private final IModel<Search<? extends ObjectType>> searchModel;
     private final IModel<Boolean> showAllItemsModel = Model.of(true);
     // confirmation dialog model
     private final IModel<DebugConfDialogDto> confDialogModel;
@@ -325,11 +324,11 @@ public class PageDebugList extends PageAdminConfiguration {
 
     @NotNull
     private Class<? extends ObjectType> getType() {
-        return searchModel.isAttached() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
+        return searchModel.getObject().getTypeClass();
     }
 
     private ContainerTypeSearchItem<? extends ObjectType> getTypeItem() {
-        return searchModel.isAttached() ? searchModel.getObject().getType() : null;
+        return searchModel.getObject().getType();
     }
 
     private List<InlineMenuItem> initInlineMenu() {
