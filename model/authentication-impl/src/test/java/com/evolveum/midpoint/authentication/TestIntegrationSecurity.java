@@ -76,6 +76,7 @@ public class TestIntegrationSecurity extends AbstractModelIntegrationTest {
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
+        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, true, initResult);
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, true, initResult);

@@ -145,7 +145,7 @@ public class InitialDataImport extends DataImport {
             LOGGER.info("Starting initial import of file {}.", fileName);
             model.executeChanges(
                     MiscUtil.createCollection(delta),
-                    ModelExecuteOptions.create().setIsImport().overwrite(overwrite),
+                    ModelExecuteOptions.create().setIsImport().preAuthorized().overwrite(overwrite),
                     task,
                     result);
             result.recordSuccess();

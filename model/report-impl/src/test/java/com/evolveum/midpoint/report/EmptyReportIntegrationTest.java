@@ -161,6 +161,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
             throws CommonException, EncryptionException, IOException {
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RepoAddOptions.createOverwrite(), false, initResult);
 
+        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
         try {
             repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, RepoAddOptions.createOverwrite(), false, initResult);

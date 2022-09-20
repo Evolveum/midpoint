@@ -8,7 +8,8 @@
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
     <name>SystemConfiguration</name>
     <indestructible>true</indestructible>
@@ -937,6 +938,123 @@
                     </container>
                     <panelType>delineationResourceObjectTypeWizard</panelType>
                 </panel>
+            </resourceDetailsPage>
+            <resourceDetailsPage>
+                <panel>
+                    <identifier>connectorPartialConfigurationWizard</identifier>
+                    <container>
+                        <identifier>required</identifier>
+                        <display>
+                            <label>PageResource.wizard.step.configuration</label>
+                        </display>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/jdbcUrlTemplate</path>
+                        </item>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/jdbcDriver</path>
+                        </item>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/password</path>
+                        </item>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/user</path>
+                        </item>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/port</path>
+                        </item>
+                    </container>
+                    <container>
+                        <visibility>hidden</visibility>
+                        <path>connectorConfiguration/configurationProperties</path>
+                    </container>
+                    <panelType>connectorPartialConfigurationWizard</panelType>
+                </panel>
+                <connectorRef type="ConnectorType">
+                    <filter>
+                        <q:and>
+                            <q:equal>
+                                <q:path>connectorType</q:path>
+                                <q:value>org.identityconnectors.databasetable.DatabaseTableConnector</q:value>
+                            </q:equal>
+                            <q:equal>
+                                <q:path>available</q:path>
+                                <q:value>true</q:value>
+                            </q:equal>
+                        </q:and>
+                    </filter>
+                </connectorRef>
+            </resourceDetailsPage>
+            <resourceDetailsPage>
+                <panel>
+                    <identifier>connectorPartialConfigurationWizard</identifier>
+                    <container>
+                        <identifier>required</identifier>
+                        <display>
+                            <label>PageResource.wizard.step.configuration</label>
+                        </display>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/host</path>
+                        </item>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/port</path>
+                        </item>
+                    </container>
+                    <container>
+                        <visibility>hidden</visibility>
+                        <path>connectorConfiguration/configurationProperties</path>
+                    </container>
+                    <panelType>connectorPartialConfigurationWizard</panelType>
+                </panel>
+                <connectorRef type="ConnectorType">
+                    <filter>
+                        <q:and>
+                            <q:equal>
+                                <q:path>connectorType</q:path>
+                                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
+                            </q:equal>
+                            <q:equal>
+                                <q:path>available</q:path>
+                                <q:value>true</q:value>
+                            </q:equal>
+                        </q:and>
+                    </filter>
+                </connectorRef>
+            </resourceDetailsPage>
+            <resourceDetailsPage>
+                <panel>
+                    <identifier>connectorPartialConfigurationWizard</identifier>
+                    <container>
+                        <identifier>required</identifier>
+                        <display>
+                            <label>PageResource.wizard.step.configuration</label>
+                        </display>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/host</path>
+                        </item>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/port</path>
+                        </item>
+                    </container>
+                    <container>
+                        <visibility>hidden</visibility>
+                        <path>connectorConfiguration/configurationProperties</path>
+                    </container>
+                    <panelType>connectorPartialConfigurationWizard</panelType>
+                </panel>
+                <connectorRef type="ConnectorType">
+                    <filter>
+                        <q:and>
+                            <q:equal>
+                                <q:path>connectorType</q:path>
+                                <q:value>com.evolveum.polygon.connector.ldap.ad.AdLdapConnector</q:value>
+                            </q:equal>
+                            <q:equal>
+                                <q:path>available</q:path>
+                                <q:value>true</q:value>
+                            </q:equal>
+                        </q:and>
+                    </filter>
+                </connectorRef>
             </resourceDetailsPage>
         </objectDetails>
         <configurableUserDashboard>
