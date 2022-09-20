@@ -15,9 +15,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +32,8 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -121,7 +120,7 @@ public class ObjectQueryUtil {
                 createObjectClassFilter(objectClass));
     }
 
-    public static S_FilterExit createResourceAndObjectClassFilterPrefix(String resourceOid, QName objectClass) throws SchemaException {
+    public static S_FilterExit createResourceAndObjectClassFilterPrefix(String resourceOid, QName objectClass) {
         Validate.notNull(resourceOid, "Resource where to search must not be null.");
         Validate.notNull(objectClass, "Object class to search must not be null.");
         return PrismContext.get().queryFor(ShadowType.class)
@@ -430,7 +429,9 @@ public class ObjectQueryUtil {
         return simplify(filter, PrismContext.get());
     }
 
-    @Deprecated public static ObjectFilter simplify(ObjectFilter filter, PrismContext prismContext) {
+    /** DEPRECATED - replace with simplify(filter) and make private when not used. */
+    @Deprecated
+    public static ObjectFilter simplify(ObjectFilter filter, PrismContext prismContext) {
         if (filter == null) {
             return null;
         }
@@ -488,7 +489,6 @@ public class ObjectQueryUtil {
             } else {
                 return simplifiedFilter;
             }
-
         } else if (filter instanceof NotFilter) {
             ObjectFilter subfilter = ((NotFilter) filter).getFilter();
             ObjectFilter simplifiedSubfilter = simplify(subfilter, prismContext);
@@ -541,6 +541,25 @@ public class ObjectQueryUtil {
             // Cannot simplify
             return filter.clone();
         }
+    }
+
+    /**
+     * Returns cloned query with simplified filter - ALL, NONE only at the top level, never UNDEFINED.
+     */
+    public static ObjectQuery simplifyQuery(ObjectQuery query) {
+        if (query != null) {
+            // simplify() creates new filter instance which can be modified
+            ObjectFilter filter = simplify(query.getFilter());
+            query = query.cloneWithoutFilter();
+            query.setFilter(filter instanceof AllFilter ? null : filter);
+        }
+
+        return query;
+    }
+
+    /** Returns true if query is not null and its filter is {@link NoneFilter}. */
+    public static boolean isNoneQuery(ObjectQuery query) {
+        return query != null && query.getFilter() instanceof NoneFilter;
     }
 
     private static PrismValue getValueFromFilter(ObjectFilter filter, QName itemName) throws SchemaException {

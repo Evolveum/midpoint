@@ -10,7 +10,7 @@ import java.util.Collections;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -50,7 +50,6 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private static final String ID_WORK_ITEM_REJECT_BUTTON = "workItemRejectButton";
     private static final String ID_WORK_ITEM_FORWARD_BUTTON = "workItemForwardButton";
     private static final String ID_WORK_ITEM_CLAIM_BUTTON = "workItemClaimButton";
-    private static final String ID_ACTION_BUTTONS = "actionButtons";
 
     public CaseWorkItemActionsPanel(String id, IModel<CaseWorkItemType> caseWorkItemModel) {
         super(id, caseWorkItemModel);
@@ -63,10 +62,9 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private void initLayout() {
-        WebMarkupContainer actionButtonsContainer = new WebMarkupContainer(ID_ACTION_BUTTONS);
-        actionButtonsContainer.setOutputMarkupId(true);
-        actionButtonsContainer.add(new VisibleBehaviour(() -> CaseTypeUtil.isCaseWorkItemNotClosed(CaseWorkItemActionsPanel.this.getModelObject())));
-        add(actionButtonsContainer);
+        setOutputMarkupId(true);
+        add(AttributeAppender.append("class", "d-flex gap-2"));
+        add(new VisibleBehaviour(() -> CaseTypeUtil.isCaseWorkItemNotClosed(CaseWorkItemActionsPanel.this.getModelObject())));
 
         AjaxButton workItemApproveButton = new AjaxButton(ID_WORK_ITEM_APPROVE_BUTTON, getApproveButtonTitleModel()) {
             private static final long serialVersionUID = 1L;
@@ -82,7 +80,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         };
         workItemApproveButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
         workItemApproveButton.setOutputMarkupId(true);
-        actionButtonsContainer.add(workItemApproveButton);
+        add(workItemApproveButton);
 
         AjaxButton workItemRejectButton = new AjaxButton(ID_WORK_ITEM_REJECT_BUTTON, getRejectButtonTitleModel()) {
             private static final long serialVersionUID = 1L;
@@ -97,7 +95,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         };
         workItemRejectButton.setOutputMarkupId(true);
         workItemRejectButton.add(new VisibleBehaviour(this::isApproveRejectButtonVisible));
-        actionButtonsContainer.add(workItemRejectButton);
+        add(workItemRejectButton);
 
         AjaxButton workItemForwardButton = new AjaxButton(ID_WORK_ITEM_FORWARD_BUTTON,
                 createStringResource("pageWorkItem.button.forward")) {
@@ -110,7 +108,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         };
         workItemForwardButton.setOutputMarkupId(true);
         workItemForwardButton.add(new VisibleBehaviour(this::isForwardButtonVisible));
-        actionButtonsContainer.add(workItemForwardButton);
+        add(workItemForwardButton);
 
         AjaxButton workItemClaimButton = new AjaxButton(ID_WORK_ITEM_CLAIM_BUTTON,
                 createStringResource("pageWorkItem.button.claim")) {
@@ -124,7 +122,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         workItemClaimButton.add(new VisibleBehaviour(() -> isClaimButtonVisible()));
         workItemClaimButton.setOutputMarkupId(true);
 
-        actionButtonsContainer.add(workItemClaimButton);
+        add(workItemClaimButton);
     }
 
     private CaseWorkItemType getCaseWorkItemModelObject() {
