@@ -7,9 +7,16 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -17,9 +24,13 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaGenerationConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,18 +44,20 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lskublik
  */
 public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPanel {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SelectObjectClassesStepPanel.class);
 
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH_FIELD = "searchFiled";
@@ -55,29 +68,37 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
     private static final String ID_DESELECT_BUTTON = "deselectButton";
     private static final String ID_TABLE = "table";
 
-    private final LoadableModel<List<QName>> selectedItems;
+    private final LoadableModel<Map<QName, Boolean>> selectedItems;
 
     public SelectObjectClassesStepPanel(ResourceDetailsModel model) {
         super(model);
-//        selectedItems = new ItemRealValueModel<>()
-
         selectedItems = new LoadableModel<>() {
             @Override
-            protected List<QName> load() {
-                @NotNull ResourceType resource = getResourceModel().getObjectType();
-                if (resource.getSchema() == null) {
-                    resource.beginSchema();
-                }
-                if (resource.getSchema().getGenerationConstraints() == null) {
-                    resource.getSchema().beginGenerationConstraints();
-                }
+            protected Map<QName, Boolean> load() {
+                Map<QName, Boolean> map = new HashMap();
+                try {
+                    PrismPropertyWrapper<QName> generationConstraints = getResourceModel().getObjectWrapper().findProperty(
+                            ItemPath.create(
+                                    ResourceType.F_SCHEMA,
+                                    XmlSchemaType.F_GENERATION_CONSTRAINTS,
+                                    SchemaGenerationConstraintsType.F_GENERATE_OBJECT_CLASS));
+                    if (generationConstraints != null) {
+                        generationConstraints.getValues().forEach(v -> {
+                                if (v.getRealValue() != null) {
+                                    map.put(
+                                            v.getRealValue(),
+                                            !WebPrismUtil.isValueFromResourceTemplate(
+                                                    v.getNewValue(),
+                                                    getResourceModel().getObjectType().asPrismObject())
+                                    );
+                                }
+                        });
 
-                List<QName> list = new ArrayList<>();
-                list.addAll(resource.getSchema().getGenerationConstraints().getGenerateObjectClass());
-                if (list.size() == 1 && list.get(0) == null) {
-                    list.clear();
+                    }
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't find property for schema generation constraints", e);
                 }
-                return list;
+                return map;
             }
         };
     }
@@ -130,19 +151,24 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
         WebMarkupContainer selectedItemsContainer = new WebMarkupContainer(ID_SELECTED_ITEMS_CONTAINER);
         selectedItemsContainer.setOutputMarkupId(true);
         add(selectedItemsContainer);
-        ListView<QName> selectedContainer = new ListView<>(ID_SELECTED_ITEM_CONTAINER, selectedItems) {
+
+        ListView<QName> selectedContainer = new ListView<>(
+                ID_SELECTED_ITEM_CONTAINER,
+                () -> new ArrayList<>(selectedItems.getObject().keySet())) {
 
             @Override
             protected void populateItem(ListItem<QName> item) {
                 QName objectClass = item.getModelObject();
 
                 item.add(new Label(ID_SELECTED_ITEM, () -> objectClass.getLocalPart()));
-                item.add(new AjaxButton(ID_DESELECT_BUTTON) {
+                AjaxButton deselectButton = new AjaxButton(ID_DESELECT_BUTTON) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         deselectItem(objectClass, target);
                     }
-                });
+                };
+                item.add(deselectButton);
+                deselectButton.add(new VisibleBehaviour(() -> selectedItems.getObject().get(objectClass)));
             }
         };
         selectedContainer.setOutputMarkupId(true);
@@ -185,7 +211,9 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
             protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<ObjectClassWrapper>> rowModel, IModel<Boolean> selected) {
                 super.onUpdateRow(target, table, rowModel, selected);
                 if (Boolean.TRUE.equals(selected.getObject())) {
-                    selectedItems.getObject().add(rowModel.getObject().getValue().getObjectClassName());
+                    if (!selectedItems.getObject().containsKey(rowModel.getObject().getValue().getObjectClassName())) {
+                        selectedItems.getObject().put(rowModel.getObject().getValue().getObjectClassName(), true);
+                    }
                 } else {
                     selectedItems.getObject().remove(rowModel.getObject().getValue().getObjectClassName());
                 }
@@ -197,12 +225,24 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
                 super.onUpdateHeader(target, selected, table);
                 ObjectClassDataProvider provider = (ObjectClassDataProvider) table.getDataProvider();
                 if (selected) {
-                    provider.getListFromModel().forEach(objectClass -> selectedItems.getObject().add(objectClass.getObjectClassName()));
+                    provider.getListFromModel().forEach(objectClass -> {
+                        if (!selectedItems.getObject().containsKey(objectClass.getObjectClassName())) {
+                            selectedItems.getObject().put(objectClass.getObjectClassName(), true);
+                        }
+                    });
                 } else {
                     provider.getListFromModel().forEach(objectClass -> selectedItems.getObject().remove(objectClass.getObjectClassName()));
                 }
                 target.add(getSelectedItemsContainer());
 
+            }
+
+            @Override
+            protected IModel<Boolean> getEnabled(IModel<SelectableBean<ObjectClassWrapper>> rowModel) {
+                if (rowModel == null) {
+                    return super.getEnabled(rowModel);
+                }
+                return new PropertyModel<>(rowModel, "value.enabled");
             }
         });
 
@@ -249,10 +289,38 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
             @Override
             protected SelectableBean<ObjectClassWrapper> createObjectWrapper(ObjectClassWrapper object) {
                 SelectableBean<ObjectClassWrapper> wrapper = super.createObjectWrapper(object);
-                wrapper.setSelected(selectedItems.getObject().contains(object.getObjectClassName()));
+                if (selectedItems.getObject().containsKey(object.getObjectClassName())) {
+                    wrapper.setSelected(true);
+                    object.setEnabled(selectedItems.getObject().get(object.getObjectClassName()));
+                }
                 return wrapper;
             }
         };
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        List<QName> classForSave = new ArrayList<>();
+
+        selectedItems.getObject().forEach((key, enabled) -> {
+            if (enabled) {
+                classForSave.add(key);
+            }
+        });
+
+        if (classForSave.isEmpty()) {
+            return;
+        }
+
+        @NotNull ResourceType resource = getResourceModel().getObjectType();
+        if (resource.getSchema() == null) {
+            resource.beginSchema();
+        }
+        if (resource.getSchema().getGenerationConstraints() == null) {
+            resource.getSchema().beginGenerationConstraints();
+        }
+
+        resource.getSchema().getGenerationConstraints().getGenerateObjectClass().addAll(classForSave);
     }
 
     @Override

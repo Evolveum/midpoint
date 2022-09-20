@@ -19,13 +19,13 @@
     <div class="d-flex justify-content-between align-items-center">
         <div class="d-flex" wicket:id="buttonToolbar"/>
         <div class="d-flex align-items-center" wicket:id="footerContainer">
-            <div class="mr-2">
+            <form class="mr-3" wicket:id="form">
+                <div wicket:id="pageSize"/>
+            </form>
+            <div class="mr-3">
                 <span class="align-middle" wicket:id="count"/>
             </div>
-            <div class="mr-2" wicket:id="paging" />
-            <form wicket:id="form">
-                <div wicket:id="menu"/>
-            </form>
+            <div wicket:id="paging" />
         </div>
     </div>
 </wicket:fragment>
