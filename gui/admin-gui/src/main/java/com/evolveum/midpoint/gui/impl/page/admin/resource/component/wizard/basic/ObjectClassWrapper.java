@@ -25,6 +25,8 @@ public class ObjectClassWrapper extends Selectable<ObjectClassWrapper>
 
     @NotNull private final ResourceObjectClassDefinition definition;
 
+    private boolean enabled = true;
+
     public ObjectClassWrapper(@NotNull ResourceObjectClassDefinition definition) {
         Validate.notNull(definition, "Refined object definition must not be null.");
         this.definition = definition;
@@ -78,5 +80,13 @@ public class ObjectClassWrapper extends Selectable<ObjectClassWrapper>
 
     public boolean isAuxiliary() {
         return definition.isAuxiliary();
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean getEnabled() {
+        return enabled;
     }
 }

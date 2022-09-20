@@ -139,6 +139,7 @@ public class BasicResourceWizardPanel extends BasePanel {
                 steps.add(new SelectObjectClassesStepPanel(getResourceModel()) {
                     @Override
                     protected void onSubmitPerformed(AjaxRequestTarget target) {
+                        super.onSubmitPerformed(target);
                         BasicResourceWizardPanel.this.onFinishBasicWizardPerformed(target);
                     }
                 });
