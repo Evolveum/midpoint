@@ -1,19 +1,18 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.audit.impl;
+package com.evolveum.midpoint.repo.common;
 
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -22,67 +21,54 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.util.AbstractSpringTest;
 
-/**
- * @author semancik
- *
- */
-@ContextConfiguration(locations = {"classpath:ctx-audit.xml",
-        "classpath:ctx-task.xml",
-        "classpath:ctx-audit-test.xml",
-        "classpath:ctx-repo-cache.xml",
-        "classpath:ctx-repository-test.xml",
-        "classpath:ctx-configuration-test.xml"})
-public class TestAuditServiceImpl extends AbstractSpringTest {
+public class TestAuditServiceImpl extends AbstractRepoCommonTest {
 
     private static final String LOG_FILENAME = "target/test.log";
 
     @Autowired
-    AuditService auditService;
+    private AuditService auditService;
 
     @Autowired
-    TaskManager taskManager;
+    private TaskManager taskManager;
 
     @Test
     public void testAuditSimple() throws FileNotFoundException {
-        // GIVEN
+        given();
         AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.ADD_OBJECT);
         Task task = taskManager.createTaskInstance();
 
-        // WHEN
+        when();
         auditService.audit(auditRecord, task, task.getResult());
 
-        // THEN
-
-        //Thread.sleep(2000);
+        then();
         System.err.println("FOOOOOOOOOOOOO");
         String auditLine = parseAuditLineFromLogFile(LOG_FILENAME);
-        assertNotNull(auditLine);
+        assertThat(auditLine).isNotNull();
         System.out.println("Audit line:");
         System.out.println(auditLine);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private String parseAuditLineFromLogFile(String filename) throws FileNotFoundException {
         File log = new File(filename);
         if (!log.exists()) {
-            AssertJUnit.fail("Log file "+filename+" does not exist");
+            fail("Log file " + filename + " does not exist");
         }
-        System.out.println("Log file length: "+log.length());
+        System.out.println("Log file length: " + log.length());
         if (log.length() == 0) {
-            AssertJUnit.fail("Log file "+filename+" is empty");
+            fail("Log file " + filename + " is empty");
         }
         String auditLine = null;
         Scanner input = new Scanner(log);
 
-        while(input.hasNext()) {
+        while (input.hasNext()) {
             String line = input.nextLine();
-            if (line.matches(".*"+LoggingConfigurationManager.AUDIT_LOGGER_NAME+".*")) {
+            if (line.matches(".*" + LoggingConfigurationManager.AUDIT_LOGGER_NAME + ".*")) {
                 auditLine = line;
             }
         }
         input.close();
         return auditLine;
     }
-
 }
