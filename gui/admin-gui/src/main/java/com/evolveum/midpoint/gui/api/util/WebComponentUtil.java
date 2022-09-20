@@ -79,6 +79,7 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.gui.api.AdminLTESkin;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
@@ -360,7 +361,7 @@ public final class WebComponentUtil {
     }
 
     public static String getReferencedObjectDisplayNameAndName(Referencable ref, boolean loadObject, PageBase pageBase) {
-        if (ref == null) {
+        if (ref == null || ref.asReferenceValue().isEmpty()) {
             return "";
         }
         if (ref.getOid() != null && ref.asReferenceValue().getObject() == null && !loadObject) {
@@ -5202,7 +5203,7 @@ public final class WebComponentUtil {
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
             if (modelServiceLocator instanceof PageBase) {
-                ((PageBase)modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
+                ((PageBase) modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.evaluateAllowedValuesExpression", expression).getString());
             }
             return allowedValues;
         }
@@ -5213,7 +5214,7 @@ public final class WebComponentUtil {
         if (!(value instanceof Set)) {
             LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
             if (modelServiceLocator instanceof PageBase) {
-                ((PageBase)modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
+                ((PageBase) modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
             }
             return allowedValues;
         }
@@ -5223,7 +5224,7 @@ public final class WebComponentUtil {
                     || !(((PrismPropertyValue) (((Set<?>) value).iterator().next())).getValue() instanceof DisplayableValue)) {
                 LOGGER.error("Exception return unexpected type, expected Set<PPV<DisplayableValue>>, but was " + (value == null ? null : value.getClass()));
                 if (modelServiceLocator instanceof PageBase) {
-                    ((PageBase)modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
+                    ((PageBase) modelServiceLocator).error(PageBase.createStringResourceStatic("FilterSearchItem.message.error.wrongType", expression).getString());
                 }
                 return allowedValues;
             }
@@ -5523,5 +5524,15 @@ public final class WebComponentUtil {
         }
 
         return new ByteArrayResource("image/jpeg", photo);
+    }
+
+    public static AdminLTESkin getMidPointSkin() {
+        DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+        if (info == null || StringUtils.isEmpty(info.getSkin())) {
+            return AdminLTESkin.SKIN_DEFAULT;
+        }
+
+        String skin = info.getSkin();
+        return AdminLTESkin.create(skin);
     }
 }
