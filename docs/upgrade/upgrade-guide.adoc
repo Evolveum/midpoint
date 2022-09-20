@@ -9,8 +9,6 @@
 :page-alias: { "parent" : "/midpoint/guides/" }
 :page-upkeep-status: green
 :page-toc: top
-:experimental:
-
 
 This document describes the necessary steps to upgrade xref:/midpoint/install/distribution/[MidPoint installation].
 It describes the usual steps, risks and consideration for upgrade, therefore it is quite comprehensive.
@@ -171,16 +169,19 @@ Each midPoint release usually extends database schema with new tables, columns, 
 
 MidPoint is distributed with a convenient SQL script that alters the database schema as necessary.
 The scripts are located in the `doc/config/sql/` subdirectory of the distribution package.
-Select the upgrade script appropriate for your database and midPoint versions.
-File names should be self-explanatory.
-For example, the `postgresql-upgrade-4.2-4.3.sql` is used to upgrade PostgreSQL database from midPoint 4.2 schema to midPoint 4.3 schema.
+Since version 4.4, separate versions for the xref:/midpoint/reference/repository/native-postgresql/[Native repository]
+and the xref:/midpoint/reference/repository/generic/[Generic repository] are provided.
 
-Use appropriate tool for your database to run the script.
-For example, PostgreSQL `psql` tool can be used:
+Database upgrade is thoroughly described in xref:/midpoint/reference/upgrade/database-schema-upgrade[this document].
+There are also deployment specific details to consider, e.g. is the audit in the same database?
+
+For example, using the recommended xref:/midpoint/reference/repository/native-postgresql/[Native repository]
+based on PostgreSQL, one can upgrade the database using the `psql` tool (considering the audit and the main repository are in a single database):
 
 [source,bash]
 ----
-psql --host=localhost --username=midpoint < doc/config/sql/postgresql-upgrade-4.2-4.3.sql
+psql -v ON_ERROR_STOP=1 -h localhost -U midpoint -W -d midpoint \
+  -f postgres-new-upgrade.sql -f postgres-new-upgrade-audit.sql
 ----
 
 The upgrade script is non-destructive.

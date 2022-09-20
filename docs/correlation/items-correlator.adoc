@@ -4,7 +4,7 @@
 
 == Introduction
 
-In earlier versions of midPoint, the only correlation mechanism available was a filter-based one.
+In earlier versions of midPoint, the only correlation mechanism available was the filter-based one.
 The administrator had to specify a query based (typically) on the values of the resource object and executed it in order to find its owner.
 
 The newly-introduced `items` correlator makes this process much easier by constructing the filter(s) automatically from the correlator configuration.
@@ -56,20 +56,22 @@ There are the following configuration options available:
 | Option | Meaning | Default
 
 | `index`
-| What index to use when matching this item?
+| What index (normalization) to use when matching this item?
 | Default index (for indexed items) or original value (otherwise).
 
 | `matchingRule`
-| What matching rule to use?
+| What matching rule to use? (For non-fuzzy search.)
 .2+| Rule of `mr:default`.
 
 | `fuzzy`
 | Specification of the fuzzy search to be used.
 
-| `confidence`
-| Expression for computing the resulting confidence value.
+.3+| `confidence`
+.3+| Expression for computing the resulting confidence value.
 The confidence values for individual items are multiplied to provide the overall value for given candidate.
-| 1.0
+| 1 for non-fuzzy search
+| `1/(d+1)` for Levenshtein distance of `d`
+| `s` for trigram similarity of `s`
 |===
 
 The `matchingRule` and `fuzzy` elements are mutually exclusive.
@@ -156,7 +158,7 @@ For example, we may want to specify that when correlating on `employeeNumber` we
 ----
 
 NOTE: It is possible to define a default matching rule attached to a focus item as such - by providing `matchingRule` property right on the definition of the item.
-However, this definition is currently not used for correlation search. It may change in the future.
+However, this definition is currently _not used_ for correlation search. It may change in the future.
 
 === Specifying Fuzzy Search
 
@@ -188,14 +190,14 @@ An example:
 </objectTemplate>
 ----
 
-For more information please see xref:/midpoint/reference/correlation/fuzzy-logic.adoc[fuzzy searching] document.
+For more information please see xref:/midpoint/reference/correlation/fuzzy-searching/[fuzzy searching] document.
 It contains also information on specifying custom confidence values, as these are the most useful with the connection with the fuzzy search logic.
 
 == Default Search Options for an Item
 
 It is also possible to specify correlation search options that are to be applied when given item is used in any `items` correlator.
 
-An example:
+For example, let us specify the default search options used when correlating by `givenName`.
 
 .Listing 5. Specifying the fuzzy search used when correlating
 [source,xml]
@@ -240,15 +242,12 @@ An example:
 <1> These search options are specified at one place only.
 <2> Item `givenName` can be now used in various correlation rules.
 
-These search options are completely overridden when `search` element is present in a correlator.
+NOTE: These search options are completely overridden when `search` element is present in a correlator.
 (Meaning there is no partial override.)
-
-#TODO should this be changed?#
 
 == Short (Attribute-Bound) Form
 
 In simple scenarios, it is possible to define single-item correlator right on the resource object attribute.
-
 An example:
 
 .Listing 6. `ri:employeeNumber` serving as a correlation attribute
@@ -273,12 +272,10 @@ An example:
 </schemaHandling>
 ----
 
-Notes:
+The `correlator` element may be empty.
+Its mere existence is sufficient to enable correlation based on that attribute and its corresponding focus item.
 
-. The presence of `correlator` element on attribute definition enables the correlation-time evaluation of the inbound mapping, as described in the xref:/midpoint/reference/correlation/[overview document].
-. The `correlator` element may be empty.
-Its mere existence is sufficient to enable correlation based on that attribute.
-. The `correlator` element is translated into single-item `items` correlator, just like the one described in Listing 1.
+The `correlator` element is translated into single-item `items` correlator, just like the one described in Listing 1.
 It is added to other correlators defined for the object type - either attribute-bound or object-type-bound.
 
 === Requirements
@@ -288,7 +285,12 @@ In order for the attribute-bound correlator be used, the following conditions mu
 . There must be at least one inbound mapping defined for the attribute.
 . Corresponding focus item path must be determinable.
 .. Either it is specified explicitly (using `focusItem` property of the attribute-bound `correlator`);
-.. or there is _exactly one_ inbound mapping, having a target path that points to the focal object.
+.. or there is _exactly one_ inbound mapping, and it has a target path that points to the focal object.
 
 The correlator created has no customizations (like weight, ordering, tier number, and so on).
 It contains only the reference to the focus item and the (optional) search parameters.
+
+== Limitations
+
+- Matching rules defined at the level of focus items in the object template are ignored during the correlation search. (See a note in <<Specifying Matching Rule>> section.)
+- When using attribute-bound form, the <<Requirements>> described above must be met.
