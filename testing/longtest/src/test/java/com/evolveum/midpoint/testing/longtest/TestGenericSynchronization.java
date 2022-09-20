@@ -99,6 +99,7 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 
         loadOpenDJWithData();
 
+        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
 
         // System Configuration and administrator

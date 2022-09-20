@@ -1754,9 +1754,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         securityContextManager.setUserProfileService(focusProfileService);
 
-        // Initialize provisioning
-        provisioning.postInit(result);
-
         if (result.isUnknown()) {
             result.computeStatus();
         }

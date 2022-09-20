@@ -245,6 +245,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // This should discover the connectors
         logger.trace("initSystem: trying modelService.postInit()");
+        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
         logger.trace("initSystem: modelService.postInit() done");
 
