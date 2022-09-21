@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.provisioning.api.ShadowState;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -223,6 +224,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     transient private String humanReadableString;
 
+    /** Lazily evaluated. */
+    transient private ShadowState currentShadowState;
+
     LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
         super(ShadowType.class, lensContext);
         this.resourceShadowDiscriminator = resourceAccountType;
@@ -236,6 +240,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setSyncDelta(ObjectDelta<ShadowType> syncDelta) {
         this.syncDelta = syncDelta;
+    }
+
+    @Override
+    public void setObjectCurrent(PrismObject<ShadowType> objectCurrent) {
+        super.setObjectCurrent(objectCurrent);
+        this.currentShadowState = null;
     }
 
     @Override
@@ -1570,5 +1580,33 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setSynchronizationSource(boolean synchronizationSource) {
         this.synchronizationSource = synchronizationSource;
+    }
+
+    public ShadowState getCurrentShadowState()
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            ObjectNotFoundException {
+        if (currentShadowState != null) {
+            return currentShadowState;
+        }
+        PrismObject<ShadowType> objectCurrent = getObjectCurrent();
+        if (objectCurrent == null) {
+            return null;
+        }
+        // Temporary code, ugly hack
+        Task task = getLensContext().getProvisioningService().getTaskManager()
+                .createTaskInstance(LensProjectionContext.class + ".getCurrentShadowState");
+        OperationResult result = task.getResult();
+        currentShadowState =
+                getLensContext().getProvisioningService().determineShadowState(objectCurrent, task, result);
+        LOGGER.trace("Shadow state for {} is {}", objectCurrent, currentShadowState);
+        return currentShadowState;
+    }
+
+    public boolean isReaping() {
+        try {
+            return getCurrentShadowState() == ShadowState.REAPING;
+        } catch (CommonException e) {
+            throw new SystemException("Could not determine shadow state: " + e.getMessage(), e);
+        }
     }
 }

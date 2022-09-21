@@ -74,6 +74,9 @@ import javax.xml.namespace.QName;
 
 import java.util.*;
 
+import static com.evolveum.midpoint.provisioning.api.ShadowState.*;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 /**
  * Shadow cache is a facade that covers all the operations with shadows. It
  * takes care of splitting the operations between repository and resource,
@@ -854,7 +857,8 @@ public class ShadowCache {
         checker.setProvisioningContext(ctx);
         checker.setShadowObject(shadow);
         checker.setShadowOid(shadowOid);
-        checker.setConstraintViolationConfirmer(conflictingShadowCandidate -> !Boolean.TRUE.equals(conflictingShadowCandidate.asObjectable().isDead()) );
+        checker.setConstraintViolationConfirmer(
+                conflictingShadowCandidate -> isNotDeadOrReaping(conflictingShadowCandidate, ctx));
         checker.setUseCache(false);
 
         ConstraintsCheckingResult retval = checker.check(task, result);
@@ -863,6 +867,22 @@ public class ShadowCache {
         if (!retval.isSatisfiesConstraints()) {
             throw new ObjectAlreadyExistsException("Conflicting shadow already exists on "+ctx.getResource());
         }
+    }
+
+    private boolean isNotDeadOrReaping(PrismObject<ShadowType> shadow, ProvisioningContext ctx)
+            throws SchemaException {
+        if (ShadowUtil.isDead(shadow)) {
+            return false;
+        }
+        ProvisioningContext shadowCtx = ctx.spawn(shadow);
+        ShadowState state;
+        try {
+            state = shadowCaretaker.determineShadowState(shadowCtx, shadow, clock.currentTimeXMLGregorianCalendar());
+        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException |
+                 ExpressionEvaluationException e) {
+            throw new SystemException("Couldn't determine shadow state: " + e.getMessage(), e);
+        }
+        return state != REAPING && state != CORPSE && state != TOMBSTONE;
     }
 
     private void validateSchema(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -1289,8 +1309,8 @@ public class ShadowCache {
         } catch (ObjectNotFoundException ex) {
             parentResult.recordFatalError("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(),
                     ex);
-            throw new ObjectNotFoundException("An error occured while deleting resource object " + repoShadow
-                    + "whith identifiers " + repoShadow + ": " + ex.getMessage(), ex);
+            throw new ObjectNotFoundException("An error occurred while deleting resource object " + repoShadow
+                    + "with identifiers " + repoShadow + ": " + ex.getMessage(), ex);
         } catch (EncryptionException e) {
             throw new SystemException(e.getMessage(), e);
         }
@@ -1358,7 +1378,11 @@ public class ShadowCache {
         ctx.assertDefinition();
         shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 
-        repoShadow = shadowManager.refreshProvisioningIndexes(ctx, repoShadow, task, parentResult);
+        try {
+            repoShadow = shadowManager.refreshProvisioningIndexes(ctx, repoShadow, true, parentResult);
+        } catch (ObjectAlreadyExistsException e) {
+            throw new SystemException("Unexpected exception while refreshing provisioning indexes: " + e.getMessage(), e);
+        }
 
         RefreshShadowOperation refreshShadowOperation = refreshShadowPendingOperations(ctx, repoShadow, options, task, parentResult);
 
@@ -1368,10 +1392,40 @@ public class ShadowCache {
             refreshShadowOperation.setRefreshedShadow(null);
         }
 
+        updateProvisioningIndexesAfterDeletion(ctx, refreshShadowOperation, parentResult);
+
         return refreshShadowOperation;
     }
 
-
+    /**
+     * When a deletion is determined to be failed, we try to restore the `primaryIdentifierValue` index.
+     * (We may be unsuccessful if there was another shadow created in the meanwhile.)
+     *
+     * This method assumes that the pending operations have been already updated with the result of retried operations.
+     *
+     * (For simplicity and robustness, we just refresh provisioning indexes. It should be efficient enough.)
+     */
+    private void updateProvisioningIndexesAfterDeletion(
+            ProvisioningContext ctx, RefreshShadowOperation refreshShadowOperation, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        PrismObject<ShadowType> shadow = refreshShadowOperation.getRefreshedShadow();
+        if (shadow == null) {
+            LOGGER.trace("updateProvisioningIndexesAfterDeletion: no shadow");
+            return;
+        }
+        if (emptyIfNull(refreshShadowOperation.getExecutedDeltas()).stream()
+                .noneMatch(d -> ObjectDelta.isDelete(d.getObjectDelta()))) {
+            LOGGER.trace("updateProvisioningIndexesAfterDeletion: no DELETE delta found");
+            return;
+        }
+        try {
+            shadowManager.refreshProvisioningIndexes(ctx, shadow, false, result);
+        } catch (ObjectAlreadyExistsException e) {
+            LOGGER.debug("Couldn't set `primaryIdentifierValue` for {} - probably a new one was created in the meanwhile. "
+                    + "Marking this one as dead.", shadow, e);
+            shadowManager.markShadowTombstone(shadow, result);
+        }
+    }
 
     private RefreshShadowOperation refreshShadowPendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
         ShadowType shadowType = repoShadow.asObjectable();
@@ -1703,7 +1757,7 @@ public class ShadowCache {
 
         rso.setRefreshResult(retryResult);
 
-        LOGGER.trace("refreshshadowOperaton {}", rso.debugDump());
+        LOGGER.trace("refreshShadowOperation {}", rso.debugDump());
         return rso;
     }
 

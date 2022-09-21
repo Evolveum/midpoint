@@ -596,7 +596,7 @@ public class ProvisioningUtil {
         if (completionTimestamp == null) {
             return false;
         }
-        return isOverPeriod(now, period, completionTimestamp);
+        return period == null || XmlTypeConverter.isAfterInterval(completionTimestamp, period, now);
     }
 
     public static boolean isOverPeriod(XMLGregorianCalendar now, Duration period, XMLGregorianCalendar lastActivityTimestamp) {

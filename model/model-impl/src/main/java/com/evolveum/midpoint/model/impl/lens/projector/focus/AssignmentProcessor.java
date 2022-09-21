@@ -420,7 +420,8 @@ public class AssignmentProcessor {
 
             @Override
             public void onAssigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-                LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+                LensProjectionContext projectionContext =
+                        LensUtil.getOrCreateProjectionContext(context, rat, false);
                 projectionContext.setAssigned(true);
                 projectionContext.setAssignedOld(false);
                 projectionContext.setLegalOld(false);
@@ -434,7 +435,7 @@ public class AssignmentProcessor {
 
             @Override
             public void onUnchangedValid(ResourceShadowDiscriminator key, String desc) throws SchemaException {
-                LensProjectionContext projectionContext = context.findProjectionContext(key);
+                LensProjectionContext projectionContext = context.findProjectionContext(key, false);
                 if (projectionContext == null) {
                     if (processOnlyExistingProjCxts) {
                         LOGGER.trace("Projection {} skip: unchanged (valid), processOnlyExistingProjCxts", desc);
@@ -443,7 +444,7 @@ public class AssignmentProcessor {
                     // The projection should exist before the change but it does not
                     // This happens during reconciliation if there is an inconsistency.
                     // Pretend that the assignment was just added. That should do.
-                    projectionContext = LensUtil.getOrCreateProjectionContext(context, key);
+                    projectionContext = LensUtil.getOrCreateProjectionContext(context, key, false);
                 }
                 LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
                 projectionContext.setAssigned(true);
@@ -459,7 +460,7 @@ public class AssignmentProcessor {
 
             @Override
             public void onUnchangedInvalid(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
-                LensProjectionContext projectionContext = context.findProjectionContext(rat);
+                LensProjectionContext projectionContext = context.findProjectionContext(rat, true);
                 if (projectionContext == null) {
                     if (processOnlyExistingProjCxts) {
                         LOGGER.trace("Projection {} skip: unchanged (invalid), processOnlyExistingProjCxts", desc);
@@ -487,7 +488,7 @@ public class AssignmentProcessor {
             @Override
             public void onUnassigned(ResourceShadowDiscriminator rat, String desc) throws SchemaException {
                 if (accountExists(context, rat)) {
-                    LensProjectionContext projectionContext = context.findProjectionContext(rat);
+                    LensProjectionContext projectionContext = context.findProjectionContext(rat, true);
                     if (projectionContext == null) {
                         if (processOnlyExistingProjCxts) {
                             LOGGER.trace("Projection {} skip: unassigned, processOnlyExistingProjCxts", desc);
@@ -530,7 +531,7 @@ public class AssignmentProcessor {
                                 getConstructions(constructionMapTriple.getZeroMap().get(rat), true),
                                 getConstructions(constructionMapTriple.getPlusMap().get(rat), true),
                                 getConstructions(constructionMapTriple.getMinusMap().get(rat), false));
-                LensProjectionContext projectionContext = context.findProjectionContext(rat);
+                LensProjectionContext projectionContext = context.findProjectionContext(rat, true);
                 if (projectionContext != null) {
                     // This can be null in a exotic case if we delete already deleted account
                     if (LOGGER.isTraceEnabled()) {

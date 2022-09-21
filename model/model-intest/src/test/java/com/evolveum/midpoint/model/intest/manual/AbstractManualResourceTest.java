@@ -6,51 +6,16 @@
  */
 package com.evolveum.midpoint.model.intest.manual;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.test.util.ParallelTestThread;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Listeners;
-import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.PointInTimeType;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -66,35 +31,41 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.util.ParallelTestThread;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.*;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
+import org.w3c.dom.Element;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author Radovan Semancik
@@ -127,6 +98,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     public static final String USER_PHOENIX_FULL_NAME = "Phoebe Phoenix";
     public static final String ACCOUNT_PHOENIX_DESCRIPTION_MANUAL = "from the ashes";
     public static final String ACCOUNT_PHOENIX_PASSWORD_MANUAL = "VtakOhnivak";
+
+    protected static final TestResource USER_PHOENIX_2 =
+            new TestResource(TEST_DIR, "user-phoenix-2.xml", "e22bc5ed-0e31-4391-9cc8-1fbaa9a9dfeb");
 
     protected static final String USER_WILL_NAME = "will";
     protected static final String USER_WILL_GIVEN_NAME = "Will";
@@ -263,6 +237,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
     protected boolean hasMultivalueInterests() {
         return true;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    protected boolean isDisablingInsteadOfDeletion() {
+        return false;
     }
 
     @Test
@@ -1559,7 +1538,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     }
 
     /**
-     * Let the pending operations exprire. So we have simpler situation in following tests.
+     * Let the pending operations expire. So we have simpler situation in following tests.
      * MID-4587
      */
     @Test
@@ -1755,12 +1734,115 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertSteadyResources();
     }
 
+    /**
+     * Creates an account, then deletes and re-creates it again.
+     *
+     * Uses `phoenix-2` to avoid clashing with the original one.
+     *
+     * MID-8069
+     */
+    @Test
+    public void test430CreateDeleteCreate() throws Exception {
+        final String TEST_NAME = "test430CreateDeleteCreate";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        clock.resetOverride();
+
+        addObject(USER_PHOENIX_2, task, result);
+
+        displayWhen(TEST_NAME);
+
+        assignAccountToUser(USER_PHOENIX_2.oid, getResourceOid(), null, task, result);
+
+        assertUser(USER_PHOENIX_2.oid, "after creation (not propagated)")
+                .singleLink()
+                .resolveTarget()
+                .display();
+
+        clockForward("PT3M"); // Make sure the operation will be picked up by propagation task
+        runPropagation();
+
+        String shadowOid = getSingleLinkOid(getUser(USER_PHOENIX_2.oid));
+        PrismObject<ShadowType> shadowAfterCreation = getShadowModel(shadowOid);
+        display("Shadow after creation and propagation (model)", shadowAfterCreation);
+        assertShadowNotDead(shadowAfterCreation);
+
+        PendingOperationType pendingOperation = assertSinglePendingOperation(
+                shadowAfterCreation, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+        closeCase(pendingOperation.getAsynchronousOperationReference());
+
+        PrismObject<ShadowType> shadowAfterCreationAndCaseClosure = getShadowModel(shadowOid);
+        display("Shadow after creation, propagation, and case closure (model)",
+                shadowAfterCreationAndCaseClosure);
+        assertShadowExists(shadowAfterCreationAndCaseClosure, true);
+
+        // the account is deleted
+
+        unassignAccountFromUser(USER_PHOENIX_2.oid, getResourceOid(), null, task, result);
+
+        assertUser(USER_PHOENIX_2.oid, "after deletion (not propagated)")
+                .singleLink()
+                .resolveTarget()
+                .display();
+
+        if (!isDisablingInsteadOfDeletion()) {
+            PrismObject<ShadowType> shadowAfterDeletionFuture = getShadowModelFuture(shadowOid);
+            display("Shadow after deletion (model, future)", shadowAfterDeletionFuture);
+            assertShadowDead(shadowAfterDeletionFuture);
+        }
+
+        // the account is re-created (during grouping period) - with a changed property value
+
+        modifyUserReplace(
+                USER_PHOENIX_2.oid,
+                UserType.F_FULL_NAME,
+                ModelExecuteOptions.createRaw(),
+                task,
+                result,
+                createPolyString("Phoenix The Second"));
+
+        assignAccountToUser(USER_PHOENIX_2.oid, getResourceOid(), null, task, result);
+
+        //then("there is a consistent (newly created) shadow");
+        displayThen(TEST_NAME);
+        PrismObject<UserType> userAfterRecreation = getUser(USER_PHOENIX_2.oid);
+        display("User after re-creation", userAfterRecreation);
+
+        List<ObjectReferenceType> linkRefs = userAfterRecreation.asObjectable().getLinkRef();
+        if (!isDisablingInsteadOfDeletion()) {
+            assertEquals(2, linkRefs.size());
+            List<ObjectReferenceType> originalLinkRefs = linkRefs.stream()
+                    .filter(ref -> ref.getOid().equals(shadowOid))
+                    .collect(Collectors.toList());
+            assertEquals(1, originalLinkRefs.size());
+            List<ObjectReferenceType> newLinkRefs = linkRefs.stream()
+                    .filter(ref -> !ref.getOid().equals(shadowOid))
+                    .collect(Collectors.toList());
+            assertEquals(1, newLinkRefs.size());
+            ObjectReferenceType newLinkRef = newLinkRefs.get(0);
+
+            PrismObject<ShadowType> shadowAfterRecreation = getShadowModel(newLinkRef.getOid());
+            display("Newly-created shadow after re-creation", shadowAfterRecreation);
+            PrismObject<ShadowType> originalShadowAfterRecreation = getShadowModel(shadowOid);
+            display("Original shadow after re-creation", originalShadowAfterRecreation);
+            PrismObject<ShadowType> originalShadowAfterRecreationFuture = getShadowModelFuture(shadowOid);
+            display("Original shadow after re-creation (model, future)", originalShadowAfterRecreationFuture);
+            assertShadowDead(originalShadowAfterRecreationFuture);
+        } else {
+            assertEquals(1, linkRefs.size());
+            PrismObject<ShadowType> originalShadowAfterRecreation = getShadowModel(shadowOid);
+            display("Original shadow after re-creation", originalShadowAfterRecreation);
+        }
+    }
+
     protected boolean are9xxTestsEnabled() {
         // Disabled by default. These are intense parallel tests and they will fail for resources
         // that do not have extra consistency checks and do not use proposed shadows.
         return false;
     }
-
 
     protected int getConcurrentTestNumberOfThreads() {
         return 4;

@@ -18,10 +18,8 @@ import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.ConstraintsChecker;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.impl.ShadowState;
+import com.evolveum.midpoint.provisioning.api.ShadowState;
+import com.evolveum.midpoint.provisioning.impl.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -81,6 +79,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import static com.evolveum.midpoint.provisioning.api.ShadowState.*;
+
 /**
  * Responsibilities:
  *     Communicate with the repo
@@ -108,6 +108,7 @@ public class ShadowManager {
     @Autowired private Protector protector;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private ShadowDeltaComputer shadowDeltaComputer;
+    @Autowired private ShadowCaretaker shadowCaretaker;
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowManager.class);
 
@@ -970,10 +971,11 @@ public class ShadowManager {
         }
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Updading repository shadow (after error handling)\n{}", DebugUtil.debugDump(shadowChanges, 1));
+            LOGGER.trace("Updating repository shadow (after error handling)\n{}", DebugUtil.debugDump(shadowChanges, 1));
         }
 
         repositoryService.modifyObject(ShadowType.class, opState.getRepoShadow().getOid(), shadowChanges, parentResult);
+        ItemDeltaCollectionsUtil.applyTo(shadowChanges, opState.getRepoShadow().asObjectable().asPrismContainerValue());
     }
 
 
@@ -1436,8 +1438,19 @@ public class ShadowManager {
         return repoShadow;
     }
 
-    public String determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException {
+    public String determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
+            throws SchemaException {
         if (ShadowUtil.isDead(shadow)) {
+            return null;
+        }
+        ShadowState state;
+        try {
+            state = shadowCaretaker.determineShadowState(ctx, shadow, clock.currentTimeXMLGregorianCalendar());
+        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException |
+                 ExpressionEvaluationException e) {
+            throw new SystemException("Couldn't determine shadow state: " + e.getMessage(), e);
+        }
+        if (state == REAPING || state == CORPSE || state == TOMBSTONE) {
             return null;
         }
         ResourceAttribute<String> primaryIdentifier = getPrimaryIdentifier(shadow);
@@ -1480,7 +1493,8 @@ public class ShadowManager {
     }
 
     public PrismObject<ShadowType> refreshProvisioningIndexes(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+            PrismObject<ShadowType> repoShadow, boolean resolveConflicts, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         ShadowType shadowType = repoShadow.asObjectable();
         String currentPrimaryIdentifierValue = shadowType.getPrimaryIdentifierValue();
 
@@ -1500,6 +1514,10 @@ public class ShadowManager {
             repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), modifications, parentResult);
 
         } catch (ObjectAlreadyExistsException e) {
+            if (!resolveConflicts) {
+                throw e; // Client will take care of this
+            }
+
             // Boom! We have some kind of inconsistency here. There is not much we can do to fix it. But let's try to find offending object.
             LOGGER.error("Error updating primaryIdentifierValue for "+repoShadow+" to value "+expectedPrimaryIdentifierValue+": "+e.getMessage(), e);
 
@@ -1918,6 +1936,15 @@ public class ShadowManager {
         ObjectDelta<ShadowType> requestDelta = oldRepoShadow.createDeleteDelta();
         List<ItemDelta> internalShadowModifications = computeInternalShadowModifications(ctx, opState, requestDelta);
         addModifyMetadataDeltas(opState.getRepoShadow(), internalShadowModifications);
+
+        if (oldRepoShadow.asObjectable().getPrimaryIdentifierValue() != null) {
+            // State goes to reaping or corpse or tombstone -> primaryIdentifierValue must be freed (if not done so yet)
+            ItemDeltaCollectionsUtil.addNotEquivalent(
+                    internalShadowModifications,
+                    prismContext.deltaFor(ShadowType.class)
+                            .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
+                            .asItemDeltas());
+        }
 
         LOGGER.trace("Updating repository {} after DELETE operation {}, {} repository shadow modifications", oldRepoShadow, opState, internalShadowModifications.size());
         modifyShadowAttributes(ctx, oldRepoShadow, internalShadowModifications, parentResult);

@@ -95,6 +95,11 @@ public class TestSemiManualDisable extends TestSemiManual {
     }
 
     @Override
+    protected boolean isDisablingInsteadOfDeletion() {
+        return true;
+    }
+
+    @Override
     protected void assertUnassignedShadow(ShadowAsserter<?> shadowModelAsserter, boolean backingStoreUpdated, ActivationStatusType expectAlternativeActivationStatus) {
         shadowModelAsserter
             .assertLife()

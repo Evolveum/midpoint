@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -182,11 +183,20 @@ public class MockFactory {
 
             @Override
             public void shutdown() {
-
             }
 
             @Override
             public SystemConfigurationType getSystemConfiguration() {
+                return null;
+            }
+
+            @Override
+            public ShadowState determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+                return null;
+            }
+
+            @Override
+            public TaskManager getTaskManager() {
                 return null;
             }
         };

@@ -645,7 +645,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         clone.objectDefinition = this.objectDefinition;
         clone.objectNew = cloneObject(this.objectNew);
         clone.objectOld = cloneObject(this.objectOld);
-        clone.objectCurrent = cloneObject(this.objectCurrent);
+        setObjectCurrent(cloneObject(this.objectCurrent));
         clone.objectTypeClass = this.objectTypeClass;
         clone.oid = this.oid;
         clone.primaryDelta = cloneDelta(this.primaryDelta);

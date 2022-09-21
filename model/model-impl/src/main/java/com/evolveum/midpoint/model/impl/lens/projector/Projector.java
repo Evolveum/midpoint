@@ -383,6 +383,10 @@ public class Projector {
                 return;
             }
 
+            if (projectionContext.isReaping()) {
+                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is being reaped");
+                return;
+            }
 
             LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
 

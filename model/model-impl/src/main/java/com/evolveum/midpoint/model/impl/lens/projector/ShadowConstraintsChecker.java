@@ -120,7 +120,8 @@ public class ShadowConstraintsChecker<F extends FocusType> {
                 LensProjectionContext foundContext = context.findProjectionContextByOid(conflictingShadowCandidate.getOid());
                 if (foundContext != null) {
                     if (foundContext.getResourceShadowDiscriminator() != null) {
-                        if (foundContext.getResourceShadowDiscriminator().isTombstone()) {
+                        if (foundContext.getResourceShadowDiscriminator().isTombstone()
+                                || foundContext.isReaping()) {
                             violation = false;
                         }
                         LOGGER.trace("Comparing with account in other context resulted to violation confirmation of {}", violation);

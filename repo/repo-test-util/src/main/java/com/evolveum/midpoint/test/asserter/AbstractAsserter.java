@@ -62,6 +62,11 @@ public abstract class AbstractAsserter<RA> {
         this.objectResolver = objectResolver;
     }
 
+    public AbstractAsserter<RA> withObjectResolver(SimpleObjectResolver objectResolver) {
+        setObjectResolver(objectResolver);
+        return this;
+    }
+
     protected Protector getProtector() {
         return protector;
     }

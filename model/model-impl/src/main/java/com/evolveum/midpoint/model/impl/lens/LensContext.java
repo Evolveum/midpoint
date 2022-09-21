@@ -328,9 +328,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     }
 
     public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat) {
+        return findProjectionContext(rat, true);
+    }
+
+    public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat, boolean acceptReaped) {
         Validate.notNull(rat);
         for (LensProjectionContext projCtx : getProjectionContexts()) {
             if (projCtx.compareResourceShadowDiscriminator(rat, true)) {
+                if (!acceptReaped && projCtx.isReaping()) {
+                    continue;
+                }
                 return projCtx;
             }
         }

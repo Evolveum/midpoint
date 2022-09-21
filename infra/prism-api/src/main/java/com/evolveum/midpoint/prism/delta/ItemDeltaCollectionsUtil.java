@@ -241,4 +241,15 @@ public class ItemDeltaCollectionsUtil {
         return findItemDelta(deltas, itemName, ReferenceDelta.class);
     }
 
+    public static void addNotEquivalent(Collection<? extends ItemDelta> modifications,
+            Collection<? extends ItemDelta> deltasToAdd) {
+        if (deltasToAdd == null) {
+            return;
+        }
+        for (ItemDelta deltaToAdd: deltasToAdd) {
+            if (!hasEquivalent(modifications, deltaToAdd)) {
+                ((Collection)modifications).add(deltaToAdd);
+            }
+        }
+    }
 }

@@ -166,6 +166,16 @@ public class ActivationProcessor {
             }
         }
 
+        if (projCtx.isReaping()) {
+            // Projections being reaped (i.e. having pending DELETE actions) should be kept intact.
+            // This is based on assumption that it is not possible to cancel the pending DELETE operation.
+            // If it was, we could try to do that.
+            projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+            LOGGER.trace("Evaluated decision for {} to {} because it is reaping, skipping further activation processing",
+                    projCtxDesc, SynchronizationPolicyDecision.KEEP);
+            return;
+        }
+
         if (synchronizationIntent == SynchronizationIntent.DELETE || projCtx.isDelete()) {
             // TODO: is this OK?
             projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);

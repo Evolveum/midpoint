@@ -15,8 +15,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.sync.AsyncUpdater;
 import com.evolveum.midpoint.provisioning.impl.sync.SynchronizationOperationResult;
 import com.evolveum.midpoint.provisioning.impl.sync.LiveSynchronizer;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -47,12 +50,6 @@ import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
-import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
-import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
-import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -102,6 +99,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class ProvisioningServiceImpl implements ProvisioningService, SystemConfigurationChangeListener {
 
     private static final String OPERATION_REFRESH_SHADOW = ProvisioningServiceImpl.class.getName() +".refreshShadow";
+    private static final String OPERATION_DETERMINE_SHADOW_STATE = ProvisioningServiceImpl.class.getName() +".determineShadowState";
 
     @Autowired ShadowCache shadowCache;
     @Autowired ResourceManager resourceManager;
@@ -112,6 +110,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private LiveSynchronizer liveSynchronizer;
     @Autowired private AsyncUpdater asyncUpdater;
+    @Autowired private ShadowCaretaker shadowCaretaker;
+    @Autowired private Clock clock;
+    @Autowired private TaskManager taskManager;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -1367,5 +1368,28 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     @Override
     public SystemConfigurationType getSystemConfiguration() {
         return systemConfiguration;
+    }
+
+    @Override
+    public ShadowState determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        OperationResult result = parentResult.createMinorSubresult(OPERATION_DETERMINE_SHADOW_STATE);
+        try {
+            ProvisioningContext ctx = ctxFactory.create(shadow, task, result);
+            ShadowState state = shadowCaretaker.determineShadowState(ctx, shadow, clock.currentTimeXMLGregorianCalendar());
+            LOGGER.trace("Shadow state for {} is determined to be {}", shadow, state);
+            return state;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
+    public TaskManager getTaskManager() {
+        return taskManager;
     }
 }

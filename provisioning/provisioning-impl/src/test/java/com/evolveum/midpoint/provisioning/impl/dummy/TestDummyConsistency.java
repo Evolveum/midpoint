@@ -2722,7 +2722,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertKind(ShadowKindType.ACCOUNT)
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertNoPrimaryIdentifierValue()
             .assertNoLegacyConsistency()
             .attributes()
                 .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
@@ -2764,7 +2764,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .display()
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertNoPrimaryIdentifierValue()
             .assertNoLegacyConsistency()
             .attributes()
                 .assertResourceAttributeContainer()

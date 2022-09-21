@@ -142,9 +142,14 @@ public class LensUtil {
         return context.findProjectionContext(rsd);
     }
 
-    public static <F extends ObjectType> LensProjectionContext getOrCreateProjectionContext(LensContext<F> context,
-            ResourceShadowDiscriminator rsd) {
-        LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
+    public static <F extends ObjectType> LensProjectionContext getOrCreateProjectionContext(
+            LensContext<F> context, ResourceShadowDiscriminator rsd) {
+        return getOrCreateProjectionContext(context, rsd, true);
+    }
+
+    public static <F extends ObjectType> LensProjectionContext getOrCreateProjectionContext(
+            LensContext<F> context, ResourceShadowDiscriminator rsd, boolean acceptReaped) {
+        LensProjectionContext accountSyncContext = context.findProjectionContext(rsd, acceptReaped);
         if (accountSyncContext == null) {
             accountSyncContext = context.createProjectionContext(rsd);
             ResourceType resource = context.getResource(rsd.getResourceOid());

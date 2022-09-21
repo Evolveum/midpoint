@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -528,4 +529,15 @@ public interface ProvisioningService {
      * Temporary and quick hack. TODO fix this
      */
     SystemConfigurationType getSystemConfiguration();
+
+    /**
+     * Determines shadow lifecycle state (shadow state for short).
+     * TEMPORARY (in 4.6 this is implemented in a better way)
+     */
+    ShadowState determineShadowState(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException;
+
+    /** TEMPORARY */
+    TaskManager getTaskManager();
 }
