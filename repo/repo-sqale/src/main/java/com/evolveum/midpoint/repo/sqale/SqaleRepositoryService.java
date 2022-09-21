@@ -623,6 +623,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         return new ModifyObjectResult<>(originalObject, prismObject, modifications);
     }
 
+    @SuppressWarnings("resource")
     private <T extends ObjectType> void replaceObject(
             @NotNull RootUpdateContext<?, QObject<MObject>, MObject> updateContext,
             PrismObject<T> newObject)
@@ -831,8 +832,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try {
             logSearchInputParameters(type, query, "Count objects");
 
-            query = simplifyQuery(query);
-            if (isNoneQuery(query)) {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
                 return 0;
             }
 
@@ -882,8 +883,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try {
             logSearchInputParameters(type, query, "Search objects");
 
-            query = simplifyQuery(query);
-            if (isNoneQuery(query)) {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
                 return new SearchResultList<>();
             }
 
@@ -937,8 +938,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try {
             logSearchInputParameters(type, query, "Iterative search objects");
 
-            query = simplifyQuery(query);
-            if (isNoneQuery(query)) {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
                 return new SearchResultMetadata().approxNumberOfAllResults(0);
             }
 
@@ -1188,8 +1189,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try {
             logSearchInputParameters(type, query, "Count containers");
 
-            query = simplifyQuery(query);
-            if (isNoneQuery(query)) {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
                 return 0;
             }
 
@@ -1238,8 +1239,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         try {
             logSearchInputParameters(type, query, "Search containers");
 
-            query = simplifyQuery(query);
-            if (isNoneQuery(query)) {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
                 return new SearchResultList<>();
             }
 
@@ -1703,8 +1704,8 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         try {
             ObjectQuery query = request.getQuery();
-            query = simplifyQuery(query);
-            if (isNoneQuery(query)) {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
                 return new RepositoryQueryDiagResponse(null, null, null); // or List.of() and Map.of()?
             }
 

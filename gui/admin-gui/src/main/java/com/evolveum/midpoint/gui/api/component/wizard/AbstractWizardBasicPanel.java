@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 
@@ -36,6 +37,8 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
     private static final String ID_BC_NAME = "bcName";
     private static final String ID_TEXT = "text";
     private static final String ID_SUBTEXT = "subText";
+    private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
+    private static final String ID_FEEDBACK = "feedback";
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_BUTTONS_CONTAINER = "buttonsContainer";
 
@@ -112,6 +115,16 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
         secondaryText.add(new VisibleBehaviour(() -> getSubTextModel().getObject() != null));
         add(secondaryText);
 
+        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
+        feedbackContainer.setOutputMarkupId(true);
+        feedbackContainer.setOutputMarkupPlaceholderTag(true);
+        add(feedbackContainer);
+
+        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
+        feedbackList.setOutputMarkupId(true);
+        feedbackList.setOutputMarkupPlaceholderTag(true);
+        feedbackContainer.add(feedbackList);
+
         WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
         buttonsContainer.setOutputMarkupId(true);
         add(buttonsContainer);
@@ -165,5 +178,9 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
 
     protected IModel<String> getTextModel(){
         return getPageBase().createStringResource(getClass().getSimpleName() + ".subText");
+    }
+
+    protected WebMarkupContainer getFeedback() {
+        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 }

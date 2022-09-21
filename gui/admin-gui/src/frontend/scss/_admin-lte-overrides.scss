@@ -16,3 +16,9 @@
     color: darken($button-default-color, 10%);
   }
 }
+
+// this is a fix for card widget with tool buttons which is inside of tab panel
+.card.card-outline-tabs .card-tools {
+  margin: 0;
+  margin-right: -0.625rem;
+}

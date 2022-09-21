@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -103,9 +104,5 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
 
     private VerticalFormPanel getVerticalForm() {
         return (VerticalFormPanel) get(ID_FORM);
-    }
-
-    protected WebMarkupContainer getFeedback() {
-        return getVerticalForm().getFeedbackPanel();
     }
 }

@@ -128,6 +128,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
         mockClockworkHook = new MockClockworkHook();
         hookRegistry.registerChangeHook(MOCK_CLOCKWORK_HOOK_URL, mockClockworkHook);
 
+        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
 
         // System Configuration

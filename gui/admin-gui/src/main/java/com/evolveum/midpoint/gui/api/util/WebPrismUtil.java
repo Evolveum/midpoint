@@ -270,4 +270,41 @@ public class WebPrismUtil {
         acquisitionType.setTimestamp(app.getClock().currentTimeXMLGregorianCalendar());
         return acquisitionType;
     }
+
+    public static boolean isValueFromResourceTemplate(PrismValue valueFromDelta, PrismContainer parent) {
+        if (valueFromDelta instanceof PrismObjectValue) {
+            return false;
+        }
+
+        if (hasValueMetadata(valueFromDelta)) {
+            return true;
+        }
+        Item<PrismValue, ItemDefinition> item = parent.findItem(valueFromDelta.getParent().getPath());
+        PrismContainerValue<?> value = item.getParent();
+        while (!(value instanceof PrismObjectValue)) {
+            if (hasValueMetadata(value)) {
+                return true;
+            }
+            value = value.getParentContainerValue();
+        }
+        return false;
+    }
+
+    private static boolean hasValueMetadata(PrismValue value) {
+        if (value.hasValueMetadata()) {
+            List<PrismContainerValue<Containerable>> metadataValues = value.getValueMetadata().getValues();
+
+            if (metadataValues.size() == 1) {
+                ProvenanceMetadataType provenance = ((ValueMetadataType) metadataValues.get(0).asContainerable()).getProvenance();
+                if (provenance != null) {
+                    List<ProvenanceAcquisitionType> acquisitionValues = provenance.getAcquisition();
+                    if (acquisitionValues.size() == 1) {
+                        ObjectReferenceType originRef = acquisitionValues.get(0).getOriginRef();
+                        return originRef != null && StringUtils.isNotEmpty(originRef.getOid());
+                    }
+                }
+            }
+        }
+        return false;
+    }
 }

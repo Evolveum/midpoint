@@ -17,6 +17,8 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
+import org.apache.wicket.model.StringResourceModel;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
@@ -35,7 +37,7 @@ public abstract class ComplexPropertyInputPanel<T extends Serializable> extends 
         return model;
     }
 
-    protected MarkupContainer add(Component child, boolean addUpdatingBehaviour) {
+    protected MarkupContainer add(Component child, boolean addUpdatingBehaviour, String label) {
         if (addUpdatingBehaviour) {
             FormComponent fc = null;
             if (child instanceof FormComponent) {
@@ -49,10 +51,19 @@ public abstract class ComplexPropertyInputPanel<T extends Serializable> extends 
             }
         }
 
+        if (label != null && child instanceof InputPanel) {
+            FormComponent fc = ((InputPanel) child).getBaseFormComponent();
+            fc.setLabel(new StringResourceModel(label));
+        }
+
         return super.add(child);
     }
 
+    protected MarkupContainer add(Component child, String label) {
+        return add(child, true, label);
+    }
+
     protected MarkupContainer add(Component child) {
-        return add(child, true);
+        return add(child, true, null);
     }
 }

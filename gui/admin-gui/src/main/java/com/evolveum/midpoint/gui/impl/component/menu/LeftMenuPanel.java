@@ -178,20 +178,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 setResponsePage(page);
             }
         };
-        logo.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !isCustomLogoVisible();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return getPageBase().isLogoLinkEnabled();
-            }
-        });
+        logo.add(new VisibleEnableBehaviour(() ->  !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
+        logo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
         add(logo);
 
         AjaxLink<String> customLogo = new AjaxLink<>(ID_CUSTOM_LOGO) {
@@ -204,15 +192,8 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 setResponsePage(page);
             }
         };
-        customLogo.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isCustomLogoVisible();
-            }
-        });
+        customLogo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
+        customLogo.add(new VisibleBehaviour(() -> isCustomLogoVisible()));
         add(customLogo);
 
         IModel<IconType> logoModel = new IModel<>() {

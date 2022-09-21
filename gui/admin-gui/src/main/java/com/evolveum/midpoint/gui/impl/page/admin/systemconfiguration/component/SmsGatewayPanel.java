@@ -65,29 +65,29 @@ public class SmsGatewayPanel extends ComplexPropertyInputPanel<SmsGatewayConfigu
     }
 
     private void initLayout() {
-        add(new TextPanel<>(ID_NAME, createEmbeddedModel(o -> o.getName(), (o, v) -> o.setName(v))), false);
-        add(WebComponentUtil.createEnumPanel(HttpMethodType.class, ID_METHOD, createEmbeddedModel(o -> o.getMethod(), (o, v) -> o.setMethod(v)), this));
+        add(new TextPanel<>(ID_NAME, createEmbeddedModel(o -> o.getName(), (o, v) -> o.setName(v))), false, "SmsGatewayPanel.name");
+        add(WebComponentUtil.createEnumPanel(HttpMethodType.class, ID_METHOD, createEmbeddedModel(o -> o.getMethod(), (o, v) -> o.setMethod(v)), this), "SmsGatewayPanel.method");
         add(new AceEditorPanel(ID_URL_EXPRESSION, null,
-                createExpressionModel(createEmbeddedModel(o -> o.getUrlExpression(), (o, v) -> o.setUrlExpression(v))), 10));
+                createExpressionModel(createEmbeddedModel(o -> o.getUrlExpression(), (o, v) -> o.setUrlExpression(v))), 10), "SmsGatewayPanel.urlExpression");
         add(new AceEditorPanel(ID_HEADERS_EXPRESSION, null,
-                createExpressionModel(createEmbeddedModel(o -> o.getHeadersExpression(), (o, v) -> o.setHeadersExpression(v))), 10));
+                createExpressionModel(createEmbeddedModel(o -> o.getHeadersExpression(), (o, v) -> o.setHeadersExpression(v))), 10), "SmsGatewayPanel.headersExpression");
         add(new AceEditorPanel(ID_BODY_EXPRESSION, null,
-                createExpressionModel(createEmbeddedModel(o -> o.getBodyExpression(), (o, v) -> o.setBodyExpression(v))), 10));
-        add(new TextPanel<>(ID_BODY_ENCODING, createEmbeddedModel(o -> o.getBodyEncoding(), (o, v) -> o.setBodyEncoding(v))));
-        add(new TextPanel<>(ID_USERNAME, createEmbeddedModel(o -> o.getUsername(), (o, v) -> o.setUsername(v))));
-        add(new PasswordPanel(ID_PASSWORD, createEmbeddedModel(o -> o.getPassword(), (o, v) -> o.setPassword(v))), false);
-        add(new TextPanel<>(ID_PROXY_HOST, createEmbeddedModel(o -> o.getProxyHost(), (o, v) -> o.setProxyHost(v))));
+                createExpressionModel(createEmbeddedModel(o -> o.getBodyExpression(), (o, v) -> o.setBodyExpression(v))), 10), "SmsGatewayPanel.bodyExpression");
+        add(new TextPanel<>(ID_BODY_ENCODING, createEmbeddedModel(o -> o.getBodyEncoding(), (o, v) -> o.setBodyEncoding(v))), "SmsGatewayPanel.bodyEncoding");
+        add(new TextPanel<>(ID_USERNAME, createEmbeddedModel(o -> o.getUsername(), (o, v) -> o.setUsername(v))), "SmsGatewayPanel.username");
+        add(new PasswordPanel(ID_PASSWORD, createEmbeddedModel(o -> o.getPassword(), (o, v) -> o.setPassword(v))), false, "SmsGatewayPanel.password");
+        add(new TextPanel<>(ID_PROXY_HOST, createEmbeddedModel(o -> o.getProxyHost(), (o, v) -> o.setProxyHost(v))), "SmsGatewayPanel.proxyHost");
 
         TextPanel port = new TextPanel<>(ID_PROXY_PORT, createEmbeddedModel(o -> o.getProxyPort(), (o, v) -> o.setProxyPort(v)));
         FormComponent portFC = port.getBaseFormComponent();
         portFC.setType(Integer.class);
-        portFC.add(new RangeValidator(0, 2 ^ 16 - 1)); // 65535
-        add(port);
+        portFC.add(new RangeValidator(0, 65535));
+        add(port, "SmsGatewayPanel.proxyPort");
 
-        add(new TextPanel<>(ID_PROXY_USERNAME, createEmbeddedModel(o -> o.getProxyUsername(), (o, v) -> o.setProxyUsername(v))));
-        add(new PasswordPanel(ID_PROXY_PASSWORD, createEmbeddedModel(o -> o.getProxyPassword(), (o, v) -> o.setProxyPassword(v))), false);
-        add(new TextPanel<>(ID_REDIRECT_TO_FILE, createEmbeddedModel(o -> o.getRedirectToFile(), (o, v) -> o.setRedirectToFile(v))));
-        add(new TextPanel<>(ID_LOG_TO_FILE, createEmbeddedModel(o -> o.getLogToFile(), (o, v) -> o.setLogToFile(v))));
+        add(new TextPanel<>(ID_PROXY_USERNAME, createEmbeddedModel(o -> o.getProxyUsername(), (o, v) -> o.setProxyUsername(v))), "SmsGatewayPanel.proxyUsername");
+        add(new PasswordPanel(ID_PROXY_PASSWORD, createEmbeddedModel(o -> o.getProxyPassword(), (o, v) -> o.setProxyPassword(v))), false, "SmsGatewayPanel.proxyPassword");
+        add(new TextPanel<>(ID_REDIRECT_TO_FILE, createEmbeddedModel(o -> o.getRedirectToFile(), (o, v) -> o.setRedirectToFile(v))), "SmsGatewayPanel.redirectToFile");
+        add(new TextPanel<>(ID_LOG_TO_FILE, createEmbeddedModel(o -> o.getLogToFile(), (o, v) -> o.setLogToFile(v))), "SmsGatewayPanel.logToFile");
     }
 
     private IModel<String> createExpressionModel(IModel<ExpressionType> model) {

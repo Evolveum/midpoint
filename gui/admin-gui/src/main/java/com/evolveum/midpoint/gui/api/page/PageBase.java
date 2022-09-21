@@ -36,10 +36,12 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.LegacyValidator;
+import com.evolveum.midpoint.gui.api.AdminLTESkin;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.menu.LeftMenuPanel;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
@@ -355,6 +357,7 @@ public abstract class PageBase extends PageAdminLTE {
 
     private void initLayout() {
         WebMarkupContainer mainHeader = new WebMarkupContainer(ID_MAIN_HEADER);
+        mainHeader.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
         mainHeader.setOutputMarkupId(true);
         add(mainHeader);
 
@@ -386,7 +389,12 @@ public abstract class PageBase extends PageAdminLTE {
 
         LeftMenuPanel sidebarMenu = new LeftMenuPanel(ID_SIDEBAR_MENU);
         sidebarMenu.add(AttributeAppender.append("class",
-                () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "sidebar-dark-lightblue" : "sidebar-light-lightblue"));
+                () -> {
+                    boolean dark = getSessionStorage().getMode() == SessionStorage.Mode.DARK;
+
+                    AdminLTESkin skin = WebComponentUtil.getMidPointSkin();
+                    return skin.getSidebarCss(dark);
+                }));
         sidebarMenu.add(createUserStatusBehaviour());
         add(sidebarMenu);
 
@@ -407,24 +415,13 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     public static AttributeAppender createHeaderColorStyleModel(boolean checkSkinUsage) {
-        return new AttributeAppender("style", new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
-                if (info == null || StringUtils.isEmpty(info.getHeaderColor())) {
-                    return null;
-                }
-
-//                TODO fix for MID-4897
-//                if (checkSkinUsage && StringUtils.isEmpty(info.getSkin())) {
-//                    return null;
-//                }
-
-                return "background-color: " + info.getHeaderColor() + " !important;";
+        return AttributeAppender.append("style", () -> {
+            DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
+            if (info == null || StringUtils.isEmpty(info.getHeaderColor())) {
+                return null;
             }
+
+            return "background-color: " + info.getHeaderColor() + " !important;";
         });
     }
 

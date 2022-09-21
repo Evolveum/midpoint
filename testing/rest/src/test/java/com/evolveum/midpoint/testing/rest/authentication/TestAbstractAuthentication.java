@@ -48,6 +48,7 @@ public abstract class TestAbstractAuthentication extends AbstractRestServiceInit
 
         InternalMonitor.reset();
 
+        provisioningService.postInit(result);
         getModelService().postInit(result);
 
         result.computeStatus();

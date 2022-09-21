@@ -909,6 +909,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 .build();
 
         try {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
+                return 0;
+            }
+
             var queryContext = AuditSqlQueryContext.from(
                     AuditEventRecordType.class, sqlRepoContext);
             return sqlQueryExecutor.count(queryContext, query, options);
@@ -935,6 +940,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 .build();
 
         try {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
+                return new SearchResultList<>();
+            }
+
             var queryContext = AuditSqlQueryContext.from(
                     AuditEventRecordType.class, sqlRepoContext);
             SearchResultList<AuditEventRecordType> result =
@@ -968,7 +978,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 .build();
 
         try {
-            if (query == null) {
+            query = ObjectQueryUtil.simplifyQuery(query);
+            if (ObjectQueryUtil.isNoneQuery(query)) {
                 return new SearchResultMetadata().approxNumberOfAllResults(0);
             }
 

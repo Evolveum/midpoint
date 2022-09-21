@@ -896,7 +896,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (query != null) {
             ObjectFilter filter = query.getFilter();
-            filter = ObjectQueryUtil.simplify(filter, prismContext);
+            filter = ObjectQueryUtil.simplify(filter);
             if (filter instanceof NoneFilter) {
                 subResult.recordSuccess();
                 return null;

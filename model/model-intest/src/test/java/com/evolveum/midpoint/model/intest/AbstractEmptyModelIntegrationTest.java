@@ -61,6 +61,7 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
         InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
         super.initSystem(initTask, initResult);
 
+        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
         ManualConnectorInstance.setRandomDelayRange(0);
 

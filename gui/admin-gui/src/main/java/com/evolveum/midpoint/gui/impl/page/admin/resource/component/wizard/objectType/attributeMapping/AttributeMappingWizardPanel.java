@@ -53,15 +53,19 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
 
             @Override
             protected void onSaveResourcePerformed(AjaxRequestTarget target) {
+                if (!isSavedAfterWizard()) {
+                    onExitPerformed(target);
+                    return;
+                }
                 OperationResult result = AttributeMappingWizardPanel.this.onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
                     new Toast()
                             .success()
-                            .title(getString("AttributeMappingsTableWizardPanel.createObjectType"))
+                            .title(getString("ResourceWizardPanel.updateResource"))
                             .icon("fas fa-circle-check")
                             .autohide(true)
                             .delay(5_000)
-                            .body(getString("AttributeMappingsTableWizardPanel.createObjectType.text")).show(target);
+                            .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
                     onExitPerformed(target);
                 }
             }

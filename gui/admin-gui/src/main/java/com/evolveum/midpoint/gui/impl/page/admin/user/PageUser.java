@@ -205,8 +205,6 @@ public class PageUser extends PageFocusDetails<UserType, UserDetailsModel> {
         } finally {
             result.recomputeStatus();
         }
-
-        showResult(result);
     }
 
     private Collection<ObjectDelta<? extends ObjectType>> prepareDelegationDelta(PrismObject<UserType> user, AssignmentEditorDto dto)

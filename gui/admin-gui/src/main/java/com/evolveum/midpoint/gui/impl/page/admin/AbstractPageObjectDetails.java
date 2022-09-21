@@ -278,11 +278,15 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         ObjectChangeExecutor changeExecutor = getChangeExecutor();
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = changeExecutor.executeChanges(deltas, previewOnly, task, result, target);
 
+        showResultAfterExecuteChanges(changeExecutor, result);
+
+        return executedDeltas;
+    }
+
+    protected void showResultAfterExecuteChanges(ObjectChangeExecutor changeExecutor, OperationResult result) {
         if (changeExecutor instanceof ObjectChangesExecutorImpl) {
             showResult(result);
         }
-
-        return executedDeltas;
     }
 
     protected boolean noChangesToExecute(Collection<ObjectDelta<? extends ObjectType>> deltas, ExecuteChangeOptionsDto options) {

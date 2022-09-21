@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,13 +14,13 @@ import org.postgresql.util.PSQLException;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.sqlbase.JdbcRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sqlbase.perfmon.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -114,21 +114,6 @@ public class SqaleServiceBase {
 
         logger.trace("Full query\n{}",
                 query == null ? "undefined" : query.debugDumpLazily());
-    }
-
-    protected ObjectQuery simplifyQuery(ObjectQuery query) {
-        if (query != null) {
-            // simplify() creates new filter instance which can be modified
-            ObjectFilter filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext());
-            query = query.cloneWithoutFilter();
-            query.setFilter(filter instanceof AllFilter ? null : filter);
-        }
-
-        return query;
-    }
-
-    protected boolean isNoneQuery(ObjectQuery query) {
-        return query != null && query.getFilter() instanceof NoneFilter;
     }
     // endregion
 

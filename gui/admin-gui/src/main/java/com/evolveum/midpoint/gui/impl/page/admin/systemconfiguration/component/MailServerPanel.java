@@ -43,22 +43,21 @@ public class MailServerPanel extends ComplexPropertyInputPanel<MailServerConfigu
     }
 
     private void initLayout() {
-        add(new TextPanel<>(ID_HOST, createEmbeddedModel(c -> c.getHost(), (c, o) -> c.setHost(o))), false);
+        add(new TextPanel<>(ID_HOST, createEmbeddedModel(c -> c.getHost(), (c, o) -> c.setHost(o))), false, "MailServerPanel.host");
 
         TextPanel port = new TextPanel<>(ID_PORT, createEmbeddedModel(c -> c.getPort(), (c, o) -> c.setPort(o)));
         FormComponent portFC = port.getBaseFormComponent();
         portFC.setType(Integer.class);
-        portFC.add(new RangeValidator(0, 2 ^ 16 - 1)); // 65535
-        add(port);
+        portFC.add(new RangeValidator(0, 65535));
+        add(port, "MailServerPanel.port");
 
-        TextPanel username = new TextPanel<>(ID_USERNAME, createEmbeddedModel(c -> c.getUsername(), (c, o) -> c.setUsername(o)));
-        add(username);
+        add(new TextPanel<>(ID_USERNAME, createEmbeddedModel(c -> c.getUsername(), (c, o) -> c.setUsername(o))), "MailServerPanel.username");
 
-        add(new PasswordPanel(ID_PASSWORD, createEmbeddedModel(c -> c.getPassword(), (c, o) -> c.setPassword(o))), false);
+        add(new PasswordPanel(ID_PASSWORD, createEmbeddedModel(c -> c.getPassword(), (c, o) -> c.setPassword(o))), false, "MailServerPanel.password");
 
         DropDownChoicePanel transportSecurity = WebComponentUtil.createEnumPanel(MailTransportSecurityType.class, ID_TRANSPORT_SECURITY,
                 createEmbeddedModel(c -> c.getTransportSecurity(), (c, o) -> c.setTransportSecurity(o)), this);
-        add(transportSecurity);
+        add(transportSecurity, "MailServerPanel.transportSecurity");
     }
 
     private <T extends Serializable> IModel<T> createEmbeddedModel(SerializableFunction<MailServerConfigurationType, T> get, SerializableBiConsumer<MailServerConfigurationType, T> set) {

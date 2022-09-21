@@ -47,7 +47,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private static final String ID_PAGING_FOOTER = "pagingFooter";
     private static final String ID_PAGING = "paging";
     private static final String ID_COUNT = "count";
-    private static final String ID_MENU = "menu";
+    private static final String ID_PAGE_SIZE = "pageSize";
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
     private static final String ID_FORM = "form";
@@ -320,7 +320,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
             Form form = new MidpointForm(ID_FORM);
             footerContainer.add(form);
-            PagingSizePanel menu = new PagingSizePanel(ID_MENU) {
+            PagingSizePanel menu = new PagingSizePanel(ID_PAGE_SIZE) {
 
                 @Override
                 protected void onPageSizeChangePerformed(AjaxRequestTarget target) {
@@ -347,7 +347,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         }
 
         public Component getFooterMenu() {
-            return get(ID_FOOTER_CONTAINER).get(ID_MENU);
+            return get(ID_FOOTER_CONTAINER).get(ID_PAGE_SIZE);
         }
 
         public Component getFooterCountLabel() {

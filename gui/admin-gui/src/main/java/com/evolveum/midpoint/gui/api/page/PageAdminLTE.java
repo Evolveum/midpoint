@@ -142,8 +142,6 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     private static final String ID_SUBSCRIPTION_MESSAGE = "subscriptionMessage";
     private static final String ID_COPYRIGHT_MESSAGE = "copyrightMessage";
 
-    private static final String CLASS_DEFAULT_SKIN = "skin-blue-light";
-
     public static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
 
@@ -269,8 +267,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     private void initLayout() {
         TransparentWebMarkupContainer body = new TransparentWebMarkupContainer(ID_BODY);
         body.add(AttributeAppender.append("class", () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "dark-mode" : null));
-//        body.add(new AttributeAppender("class", "hold-transition ", " "));
-//        body.add(new AttributeAppender("class", "custom-hold-transition ", " "));
+        // body.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getAccentCss()));
 
         addDefaultBodyStyle(body);
         add(body);
@@ -284,20 +281,7 @@ public abstract class PageAdminLTE extends WebPage implements ModelServiceLocato
     }
 
     protected void addDefaultBodyStyle(TransparentWebMarkupContainer body) {
-        body.add(AttributeAppender.append("class", new IModel<String>() {
 
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                DeploymentInformationType info = MidPointApplication.get().getDeploymentInfo();
-                if (info == null || StringUtils.isEmpty(info.getSkin())) {
-                    return CLASS_DEFAULT_SKIN;
-                }
-
-                return info.getSkin();
-            }
-        }));
     }
 
     private void addFooter() {

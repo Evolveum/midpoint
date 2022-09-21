@@ -9,7 +9,10 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -17,9 +20,30 @@ import org.apache.wicket.model.IModel;
  */
 public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPanel {
 
+    private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
+    private static final String ID_FEEDBACK = "feedback";
+
     private final ResourceDetailsModel resourceModel;
     public AbstractResourceWizardStepPanel(ResourceDetailsModel model){
         this.resourceModel = model;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initFeedbackContainer();
+    }
+
+    private void initFeedbackContainer() {
+        WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
+        feedbackContainer.setOutputMarkupId(true);
+        feedbackContainer.setOutputMarkupPlaceholderTag(true);
+        add(feedbackContainer);
+
+        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
+        feedbackList.setOutputMarkupId(true);
+        feedbackList.setOutputMarkupPlaceholderTag(true);
+        feedbackContainer.add(feedbackList);
     }
 
     public ResourceDetailsModel getResourceModel() {
@@ -35,6 +59,7 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPan
 //    }
 
     protected void onSubmitPerformed(AjaxRequestTarget target) {
+        target.add(getFeedback());
     }
 
     @Override
@@ -44,5 +69,9 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPan
 
     protected IModel<String> getFormTitle() {
         return getTitle();
+    }
+
+    protected WebMarkupContainer getFeedback() {
+        return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
     }
 }
