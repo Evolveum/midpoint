@@ -121,8 +121,8 @@ class DeleteHelper {
 
         shadowCaretaker.applyAttributesDefinition(ctx, opState.getRepoShadow());
 
-        PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx,
-                opState, result);
+        PendingOperationType duplicateOperation =
+                shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, opState, result);
         if (duplicateOperation != null) {
             result.setInProgress();
             return opState.getRepoShadow();
@@ -200,8 +200,8 @@ class DeleteHelper {
         try {
             ctx.checkNotInMaintenance();
 
-            AsynchronousOperationResult asyncReturnValue = resourceObjectConverter
-                    .deleteResourceObject(ctx, repoShadow, scripts, connOptions, result);
+            AsynchronousOperationResult asyncReturnValue =
+                    resourceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, connOptions, result);
             opState.processAsyncResult(asyncReturnValue);
 
             resourceManager.modifyResourceAvailabilityStatus(ctx.getResourceOid(), AvailabilityStatusType.UP,

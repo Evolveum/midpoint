@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.Util.createSuccessOperationDescription;
 import static com.evolveum.midpoint.provisioning.impl.shadows.Util.needsRetry;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +21,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -88,9 +89,8 @@ class RefreshHelper {
     @Autowired private DeleteHelper deleteHelper;
     @Autowired private DefinitionsHelper definitionsHelper;
 
-    @Nullable
-    public RefreshShadowOperation refreshShadow(PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options,
-            Task task, OperationResult result)
+    public @NotNull RefreshShadowOperation refreshShadow(
+            PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, EncryptionException {
 
@@ -99,7 +99,11 @@ class RefreshHelper {
         ctx.assertDefinition();
         shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
 
-        repoShadow = shadowManager.refreshProvisioningIndexes(ctx, repoShadow, task, result);
+        try {
+            shadowManager.refreshProvisioningIndexes(ctx, repoShadow, true, result);
+        } catch (ObjectAlreadyExistsException e) {
+            throw SystemException.unexpected(e, "when refreshing provisioning indexes");
+        }
 
         RefreshShadowOperation refreshShadowOperation = refreshShadowPendingOperations(ctx, repoShadow, options, task, result);
 
@@ -109,12 +113,21 @@ class RefreshHelper {
         if (shadowAfterCleanup == null) {
             refreshShadowOperation.setRefreshedShadow(null);
         }
+
+        updateProvisioningIndexesAfterDeletion(ctx, refreshShadowOperation, result);
+
         return refreshShadowOperation;
     }
 
-    private RefreshShadowOperation refreshShadowPendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-            ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    private @NotNull RefreshShadowOperation refreshShadowPendingOperations(
+            ProvisioningContext ctx,
+            PrismObject<ShadowType> repoShadow,
+            ProvisioningOperationOptions options,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+
         ShadowType shadowType = repoShadow.asObjectable();
         List<PendingOperationType> pendingOperations = shadowType.getPendingOperation();
         boolean isDead = ShadowUtil.isDead(shadowType);
@@ -137,9 +150,9 @@ class RefreshHelper {
         ctx.assertDefinition();
         List<PendingOperationType> sortedOperations = shadowCaretaker.sortPendingOperations(shadowType.getPendingOperation());
 
-        refreshShadowAsyncStatus(ctx, repoShadow, sortedOperations, task, parentResult);
+        refreshShadowAsyncStatus(ctx, repoShadow, sortedOperations, task, result);
 
-        return refreshShadowRetryOperations(ctx, repoShadow, sortedOperations, options, task, parentResult);
+        return refreshShadowRetryOperations(ctx, repoShadow, sortedOperations, options, task, result);
     }
 
     /**
@@ -359,9 +372,15 @@ class RefreshHelper {
         }
     }
 
-    private RefreshShadowOperation refreshShadowRetryOperations(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow, List<PendingOperationType> sortedOperations,
-            ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    private @NotNull RefreshShadowOperation refreshShadowRetryOperations(
+            ProvisioningContext ctx,
+            PrismObject<ShadowType> repoShadow,
+            List<PendingOperationType> sortedOperations,
+            ProvisioningOperationOptions options,
+            Task task,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException{
         ShadowType shadowType = repoShadow.asObjectable();
         OperationResult retryResult = new OperationResult(OP_REFRESH_RETRY);
         if (ShadowUtil.isDead(shadowType)) {
@@ -576,4 +595,33 @@ class RefreshHelper {
         }
     }
 
+    /**
+     * When a deletion is determined to be failed, we try to restore the `primaryIdentifierValue` index.
+     * (We may be unsuccessful if there was another shadow created in the meanwhile.)
+     *
+     * This method assumes that the pending operations have been already updated with the result of retried operations.
+     *
+     * (For simplicity and robustness, we just refresh provisioning indexes. It should be efficient enough.)
+     */
+    private void updateProvisioningIndexesAfterDeletion(
+            ProvisioningContext ctx, RefreshShadowOperation refreshShadowOperation, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        PrismObject<ShadowType> shadow = refreshShadowOperation.getRefreshedShadow();
+        if (shadow == null) {
+            LOGGER.trace("updateProvisioningIndexesAfterDeletion: no shadow");
+            return;
+        }
+        if (emptyIfNull(refreshShadowOperation.getExecutedDeltas()).stream()
+                .noneMatch(d -> ObjectDelta.isDelete(d.getObjectDelta()))) {
+            LOGGER.trace("updateProvisioningIndexesAfterDeletion: no DELETE delta found");
+            return;
+        }
+        try {
+            shadowManager.refreshProvisioningIndexes(ctx, shadow, false, result);
+        } catch (ObjectAlreadyExistsException e) {
+            LOGGER.debug("Couldn't set `primaryIdentifierValue` for {} - probably a new one was created in the meanwhile. "
+                    + "Marking this one as dead.", shadow, e);
+            shadowManager.markShadowTombstone(shadow, ctx.getTask(), result);
+        }
+    }
 }

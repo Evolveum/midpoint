@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.Contract;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -164,13 +165,12 @@ class ModifyHelper {
             if (shouldExecuteResourceOperationDirectly(ctx)) {
                 LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}", repoShadow, DebugUtil.debugDumpLazily(modifications));
 
-                RefreshShadowOperation refreshShadowOperation = null;
+                RefreshShadowOperation refreshShadowOperation;
                 if (!inRefresh && Util.shouldRefresh(repoShadow)) {
                     refreshShadowOperation = refreshHelper.refreshShadow(repoShadow, options, task, parentResult);
-                }
-
-                if (refreshShadowOperation != null) {
                     repoShadow = refreshShadowOperation.getRefreshedShadow();
+                } else {
+                    refreshShadowOperation = null;
                 }
 
                 if (repoShadow == null) {
@@ -231,6 +231,7 @@ class ModifyHelper {
         return repoShadow.getOid();
     }
 
+    @Contract("null -> true")
     private boolean shouldExecuteModify(RefreshShadowOperation refreshShadowOperation) {
         if (refreshShadowOperation == null) {
             LOGGER.trace("Nothing refreshed, modify can continue.");
