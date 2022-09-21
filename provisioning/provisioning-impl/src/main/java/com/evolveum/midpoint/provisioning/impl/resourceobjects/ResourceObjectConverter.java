@@ -145,10 +145,7 @@ public class ResourceObjectConverter {
 
         LOGGER.trace("Locating resource object {}", identifiers);
 
-        ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
-
-        ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
-        if (hasAllIdentifiers(identifiers, objectDefinition)) {
+        if (hasAllPrimaryIdentifiers(identifiers, ctx.getObjectDefinitionRequired())) {
             return fetchResourceObject(
                     ctx,
                     identifiers,
@@ -157,12 +154,40 @@ public class ResourceObjectConverter {
                     true, // todo consider whether it is always necessary to fetch the entitlements
                     result);
         } else {
-            // Search
-            ResourceAttributeDefinition<?> secondaryIdentifierDef = getSecondaryIdentifierDef(objectDefinition);
-            ResourceAttribute<?> secondaryIdentifier = getSecondaryIdentifier(identifiers, secondaryIdentifierDef);
+            return searchBySecondaryIdentifiers(ctx, identifiers, result);
+        }
+    }
+
+    private PrismObject<ShadowType> searchBySecondaryIdentifiers(
+            ProvisioningContext ctx,
+            Collection<? extends ResourceAttribute<?>> identifiers,
+            OperationResult result)
+            throws SchemaException, CommunicationException, SecurityViolationException, ObjectNotFoundException,
+            ConfigurationException, ExpressionEvaluationException {
+
+        ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
+        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdDefs = objectDefinition.getSecondaryIdentifiers();
+        LOGGER.trace("Searching by secondary identifier(s) {}, using values of: {}", secondaryIdDefs, identifiers);
+        if (secondaryIdDefs.isEmpty()) {
+            throw new SchemaException("No secondary identifier(s) defined, cannot search");
+        }
+
+        ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, result);
+
+        for (ResourceAttributeDefinition<?> secondaryIdDef : secondaryIdDefs) {
+            ResourceAttribute<?> secondaryIdentifier = getSecondaryIdentifier(identifiers, secondaryIdDef);
+            if (secondaryIdentifier == null) {
+                LOGGER.trace("Secondary identifier {} is not provided, will try another one (if available)", secondaryIdDef);
+                continue;
+            }
             PrismPropertyValue<?> secondaryIdentifierValue = getSecondaryIdentifierValue(secondaryIdentifier);
+            if (secondaryIdentifierValue == null) {
+                LOGGER.trace("Secondary identifier {} has no value, will try another one (if available)", secondaryIdentifier);
+                continue;
+            }
+
             ObjectQuery query = prismContext.queryFor(ShadowType.class)
-                    .itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getItemName())
+                    .itemWithDef(secondaryIdDef, ShadowType.F_ATTRIBUTES, secondaryIdDef.getItemName())
                     .eq(secondaryIdentifierValue)
                     .build();
             Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
@@ -186,7 +211,8 @@ public class ResourceObjectConverter {
                         ctx.getUcfExecutionContext(),
                         result);
                 if (shadowHolder.isEmpty()) {
-                    throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
+                    // We could consider continuing with another secondary identifier, but let us keep the original behavior.
+                    throw new ObjectNotFoundException("No object found for secondary identifier " + secondaryIdentifier);
                 }
                 PrismObject<ShadowType> shadow = shadowHolder.getValue();
                 // todo consider whether it is always necessary to fetch the entitlements
@@ -197,51 +223,39 @@ public class ResourceObjectConverter {
                 throw new GenericConnectorException(e.getMessage(), e);
             }
         }
+        throw new SchemaException("No suitable secondary identifier(s) defined, cannot search");
     }
 
-    private @NotNull ResourceAttributeDefinition<?> getSecondaryIdentifierDef(ResourceObjectDefinition objectDefinition)
-            throws SchemaException {
-        Collection<? extends ResourceAttributeDefinition<?>> secondaryIdentifierDefs =
-                objectDefinition.getSecondaryIdentifiers();
-        // Assume single secondary identifier for simplicity
-        if (secondaryIdentifierDefs.size() > 1) {
-            throw new UnsupportedOperationException("Composite secondary identifier is not supported yet");
-        } else if (secondaryIdentifierDefs.isEmpty()) {
-            throw new SchemaException("No secondary identifier defined, cannot search");
-        }
-        return secondaryIdentifierDefs.iterator().next();
-    }
-
-    private @NotNull ResourceAttribute<?> getSecondaryIdentifier(
-            Collection<? extends ResourceAttribute<?>> identifiers, ResourceAttributeDefinition<?> secondaryIdentifierDef)
-            throws SchemaException {
+    private ResourceAttribute<?> getSecondaryIdentifier(
+            Collection<? extends ResourceAttribute<?>> identifiers, ResourceAttributeDefinition<?> secondaryIdentifierDef) {
         for (ResourceAttribute<?> identifier: identifiers) {
             if (identifier.getElementName().equals(secondaryIdentifierDef.getItemName())) {
                 return identifier;
             }
         }
-        throw new SchemaException("No secondary identifier present, cannot search. Identifiers: "+ identifiers);
+        return null;
     }
 
-    private @NotNull PrismPropertyValue<?> getSecondaryIdentifierValue(ResourceAttribute<?> secondaryIdentifier)
+    private PrismPropertyValue<?> getSecondaryIdentifierValue(ResourceAttribute<?> secondaryIdentifier)
             throws SchemaException {
-        //noinspection unchecked
+        //noinspection unchecked,rawtypes
         List<PrismPropertyValue<?>> secondaryIdentifierValues = (List) secondaryIdentifier.getValues();
         if (secondaryIdentifierValues.size() > 1) {
             throw new SchemaException("Secondary identifier has more than one value: " + secondaryIdentifier.getValues());
         } else if (secondaryIdentifierValues.size() == 1) {
             return secondaryIdentifierValues.get(0).clone();
         } else {
-            throw new SchemaException("Secondary identifier has no values: " + secondaryIdentifier);
+            return null;
         }
     }
 
-    private boolean hasAllIdentifiers(Collection<? extends ResourceAttribute<?>> attributes,
-            ResourceObjectDefinition objectDefinition) {
+    // TODO: there should be only one primary identifier (clarify the method)
+    private boolean hasAllPrimaryIdentifiers(
+            Collection<? extends ResourceAttribute<?>> attributes, ResourceObjectDefinition objectDefinition) {
         Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = objectDefinition.getPrimaryIdentifiers();
-        for (ResourceAttributeDefinition<?> identifierDef: identifierDefs) {
+        for (ResourceAttributeDefinition<?> identifierDef : identifierDefs) {
             boolean found = false;
-            for(ResourceAttribute<?> attribute: attributes) {
+            for (ResourceAttribute<?> attribute: attributes) {
                 if (attribute.getElementName().equals(identifierDef.getItemName()) && !attribute.isEmpty()) {
                     found = true;
                 }
@@ -501,8 +515,7 @@ public class ResourceObjectConverter {
             // This could occur if shadow was re-read during op state processing
             shadowCaretaker.applyAttributesDefinition(ctx, shadow);
         }
-        Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(shadow);
-        return identifiers;
+        return ShadowUtil.getAllIdentifiers(shadow);
     }
 
     private void updateQuantum(ProvisioningContext ctx, ConnectorInstance connectorUsedForOperation, AsynchronousOperationResult aResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

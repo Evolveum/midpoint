@@ -4238,6 +4238,22 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .build();
     }
 
+    protected <T> ObjectQuery createAccountAttributeQueryWithKindAndIntent(
+            ResourceType resourceType, QName attributeName, T attributeValue)
+            throws SchemaException, ConfigurationException {
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resourceType);
+        ResourceObjectDefinition accountDef =
+                schema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        ResourceAttributeDefinition<?> attrDef = accountDef.findAttributeDefinitionRequired(attributeName);
+        return prismContext.queryFor(ShadowType.class)
+                .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
+                .and().item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
+                .and().item(ShadowType.F_INTENT).eq(SchemaConstants.INTENT_DEFAULT)
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassName())
+                .and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
+                .build();
+    }
+
     protected void dumpResourceCapabilities(@NotNull ResourceType resource) throws SchemaException {
         for (CapabilityType capability : ResourceTypeUtil.getEnabledCapabilities(resource)) {
             System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
