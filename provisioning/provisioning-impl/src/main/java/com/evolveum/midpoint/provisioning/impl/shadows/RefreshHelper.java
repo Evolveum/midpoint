@@ -561,8 +561,7 @@ class RefreshHelper {
 
     private void expirePendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
             ObjectDelta<ShadowType> shadowDelta, XMLGregorianCalendar now)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws SchemaException {
         ShadowType shadowType = repoShadow.asObjectable();
 
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);

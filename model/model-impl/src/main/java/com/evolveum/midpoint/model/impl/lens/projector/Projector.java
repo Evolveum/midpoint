@@ -257,15 +257,14 @@ public class Projector {
         parentResult.addParam("resourceName", projectionContext.getResourceName());
 
         if (projectionContext.getWave() != context.getProjectionWave()) {
-            LOGGER.trace("Skipping projection of {} because its wave ({}) is different from current projection wave ({})",
-                    projectionContext, projectionContext.getWave(), context.getProjectionWave());
-            parentResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Wave of the projection context differs from current projector wave");
+            recordSkipReason(parentResult,
+                    "Skipping projection because the wave of the projection context (" + projectionContext.getWave() +
+                            ") differs from current projector wave (" + context.getProjectionWave() + ")");
             return;
         }
 
         if (projectionContext.isCompleted()) {
-            LOGGER.trace("Skipping projection of {} because it's already completed", projectionContext);
-            parentResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Projection context is already completed");
+            recordSkipReason(parentResult, "Skipping projection because the projection context is already completed");
             return;
         }
 
@@ -277,18 +276,24 @@ public class Projector {
             context.checkAbortRequested();
 
             if (!projectionContext.isCanProject()) {
-                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because of limited propagation");
+                recordSkipReason(result, "Skipping projection because of limited propagation");
                 return;
             }
 
             if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
                     projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
-                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is " + projectionContext.getSynchronizationPolicyDecision());
+                recordSkipReason(result,
+                        "Skipping projection because it is " + projectionContext.getSynchronizationPolicyDecision());
                 return;
             }
 
             if (projectionContext.isGone()) {
-                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is gone");
+                recordSkipReason(result, "Skipping projection because it is gone");
+                return;
+            }
+
+            if (projectionContext.isReaping()) {
+                recordSkipReason(result, "Skipping projection because it is being reaped");
                 return;
             }
 
@@ -300,7 +305,7 @@ public class Projector {
             context.checkConsistenceIfNeeded();
 
             if (!dependencyProcessor.checkDependencies(projectionContext)) {
-                result.recordNotApplicable("Skipping projection because it has unsatisfied dependencies");
+                recordSkipReason(result, "Skipping projection because it has unsatisfied dependencies");
                 return;
             }
 
@@ -313,7 +318,7 @@ public class Projector {
                     Projector.class, context, projectionContext, activityDescription, now, task, result);
 
             if (projectionContext.isGone()) {
-                result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is gone");
+                recordSkipReason(result, "Skipping projection because it is gone");
                 return;
             }
 
@@ -349,6 +354,11 @@ public class Projector {
             projectionContext.setBroken();
             ModelImplUtils.handleConnectorErrorCriticality(projectionContext.getResource(), e, result);
         }
+    }
+
+    private static void recordSkipReason(OperationResult result, String message) {
+        LOGGER.trace("{}", message);
+        result.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
     }
 
     private <F extends ObjectType> void addConflictingContexts(LensContext<F> context) {

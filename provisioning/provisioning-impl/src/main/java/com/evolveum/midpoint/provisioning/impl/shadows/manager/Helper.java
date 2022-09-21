@@ -8,15 +8,19 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 class Helper {
 
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired private ShadowCaretaker shadowCaretaker;
 
     <T> T getNormalizedAttributeValue(PrismPropertyValue<T> pval, ResourceAttributeDefinition<?> rAttrDef) throws SchemaException {
         return matchingRuleRegistry
@@ -76,6 +81,11 @@ class Helper {
         if (ShadowUtil.isDead(shadow)) {
             return null;
         }
+        ShadowLifecycleStateType state = shadowCaretaker.determineShadowState(ctx, shadow);
+        if (state == REAPING || state == CORPSE || state == TOMBSTONE) {
+            return null;
+        }
+
         //noinspection unchecked
         ResourceAttribute<T> primaryIdentifier =
                 (ResourceAttribute<T>) getPrimaryIdentifier(shadow);

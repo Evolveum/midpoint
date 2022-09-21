@@ -39,7 +39,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     protected void initializeProjectionContext() {
         // projection context may not exist yet (existence might not be yet decided)
         setProjectionContext(
-                construction.getLensContext().findFirstProjectionContext(targetKey));
+                construction.getLensContext().findFirstProjectionContext(targetKey, false));
     }
 
     @Override

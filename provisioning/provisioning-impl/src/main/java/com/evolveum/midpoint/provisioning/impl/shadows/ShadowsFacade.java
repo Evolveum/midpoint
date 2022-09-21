@@ -121,9 +121,7 @@ public class ShadowsFacade {
         definitionsHelper.applyDefinition(query, task, result);
     }
 
-    public void determineShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    public void determineShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow) {
         stateHelper.determineShadowState(ctx, shadow);
     }
 

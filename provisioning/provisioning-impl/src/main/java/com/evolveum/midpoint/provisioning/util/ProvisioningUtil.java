@@ -9,33 +9,30 @@ package com.evolveum.midpoint.provisioning.util;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
-import static java.util.Collections.emptyList;
-
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectPattern;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
@@ -68,10 +65,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 public class ProvisioningUtil {
 
     private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
@@ -81,11 +74,6 @@ public class ProvisioningUtil {
     public static final Duration DEFAULT_DEAD_SHADOW_RETENTION_PERIOD_DURATION = XmlTypeConverter.createDuration("P7D");
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
-
-    public static PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition(
-            PrismContext prismContext) {
-        return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-    }
 
     public static ExecuteProvisioningScriptOperation convertToScriptOperation(
             ProvisioningScriptType scriptType, String desc, PrismContext prismContext) throws SchemaException {
@@ -409,94 +397,6 @@ public class ProvisioningUtil {
         a.setValidityChangeTimestamp(null);
     }
 
-    // mirrors cleanupShadowActivation
-    public static List<ItemDelta<?, ?>> createShadowActivationCleanupDeltas(
-            ShadowType repo, PrismContext prismContext) throws SchemaException {
-        ActivationType activation = repo.getActivation();
-        if (activation == null) {
-            return emptyList();
-        }
-        S_ItemEntry i = prismContext.deltaFor(ShadowType.class);
-        if (activation.getAdministrativeStatus() != null) {
-            i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS).replace();
-        }
-        if (activation.getEffectiveStatus() != null) {
-            i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS).replace();
-        }
-        if (activation.getValidFrom() != null) {
-            i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_VALID_FROM).replace();
-        }
-        if (activation.getValidTo() != null) {
-            i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_VALID_TO).replace();
-        }
-        if (activation.getValidityStatus() != null) {
-            i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS).replace();
-        }
-        if (activation.getLockoutStatus() != null) {
-            i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS).replace();
-        }
-        if (activation.getLockoutExpirationTimestamp() != null) {
-            i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP).replace();
-        }
-        if (activation.getValidityChangeTimestamp() != null) {
-            i = i.item(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP).replace();
-        }
-        return i.asItemDeltas();
-    }
-
-    /**
-     * Identifiers are set.
-     * Extra non-identifying attributes are removed.
-     */
-    public static Collection<? extends ItemDelta<?, ?>> createShadowAttributesReconciliationDeltas(
-            PrismObject<ShadowType> sourceShadow,
-            PrismObject<ShadowType> repoShadowBefore,
-            PrismContext prismContext) throws SchemaException {
-        List<ItemDelta<?, ?>> rv = new ArrayList<>();
-        ResourceAttributeContainer attributes = ShadowUtil.getAttributesContainer(sourceShadow);
-        ResourceAttributeContainerDefinition attributesDefinition = attributes.getDefinition();
-        if (attributesDefinition == null) {
-            throw new IllegalStateException("No definition for " + attributes);
-        }
-        List<QName> identifiers = attributesDefinition.getAllIdentifiers().stream().map(ItemDefinition::getItemName).collect(Collectors.toList());
-        List<QName> outstandingInRepo;
-        PrismContainer<?> repoAttributes = repoShadowBefore.findContainer(ShadowType.F_ATTRIBUTES);
-        if (repoAttributes != null) {
-            outstandingInRepo = repoAttributes.getValue().getItems().stream()
-                    .map(Item::getElementName)
-                    .collect(Collectors.toCollection(ArrayList::new));
-        } else {
-            outstandingInRepo = new ArrayList<>();
-        }
-        for (ResourceAttribute<?> attribute : attributes.getAttributes()) {
-            QName attributeName = attribute.getElementName();
-            boolean isIdentifier = QNameUtil.matchAny(attributeName, identifiers);
-            List<? extends PrismPropertyValue<?>> valuesToReplace;
-            if (isIdentifier) {
-                valuesToReplace = CloneUtil.cloneCollectionMembers(attribute.getValues());
-                LOGGER.trace("- updating identifier {} value of {}", attributeName, attribute.getValues());
-                rv.add(prismContext.deltaFor(ShadowType.class)
-                        .item(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName), attribute.getDefinition()).replace(valuesToReplace)
-                        .asItemDelta());
-                QNameUtil.remove(outstandingInRepo, attributeName);
-            }
-        }
-        for (QName outstanding : outstandingInRepo) {
-            boolean isIdentifier = QNameUtil.matchAny(outstanding, identifiers);
-            if (!isIdentifier) {
-                ResourceAttributeDefinition<?> outstandingDefinition = attributesDefinition.findAttributeDefinition(ItemName.fromQName(outstanding));
-                if (outstandingDefinition == null) {
-                    continue;       // cannot do anything with this
-                }
-                LOGGER.trace("- removing non-identifier {} value", outstanding);
-                rv.add(prismContext.deltaFor(ShadowType.class)
-                        .item(ItemPath.create(ShadowType.F_ATTRIBUTES, outstanding), outstandingDefinition).replace()
-                        .asItemDelta());
-            }
-        }
-        return rv;
-    }
-
     public static void cleanupShadowPassword(PasswordType p) {
         p.setValue(null);
     }
@@ -560,18 +460,8 @@ public class ProvisioningUtil {
         return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
     }
 
-    public static boolean isAttributeModification(ItemDelta modification) {
-        QName firstPathName = modification.getPath().firstName();
-        return isAttributeModification(firstPathName);
-    }
-
     public static boolean isAttributeModification(QName firstPathName) {
         return QNameUtil.match(firstPathName, ShadowType.F_ATTRIBUTES);
-    }
-
-    public static boolean isNonAttributeResourceModification(ItemDelta modification) {
-        QName firstPathName = modification.getPath().firstName();
-        return isNonAttributeResourceModification(firstPathName);
     }
 
     public static boolean isNonAttributeResourceModification(QName firstPathName) {
@@ -587,7 +477,7 @@ public class ProvisioningUtil {
         return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
     }
 
-    public static Duration getGracePeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public static Duration getGracePeriod(ProvisioningContext ctx) {
         Duration gracePeriod = null;
         ResourceConsistencyType consistency = ctx.getResource().getConsistency();
         if (consistency != null) {
@@ -596,7 +486,7 @@ public class ProvisioningUtil {
         return gracePeriod;
     }
 
-    public static Duration getPendingOperationRetentionPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public static Duration getPendingOperationRetentionPeriod(ProvisioningContext ctx) {
         Duration period = null;
         ResourceConsistencyType consistency = ctx.getResource().getConsistency();
         if (consistency != null) {
@@ -619,7 +509,7 @@ public class ProvisioningUtil {
         return period == null || XmlTypeConverter.isAfterInterval(completionTimestamp, period, now);
     }
 
-    public static Duration getRetryPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public static Duration getRetryPeriod(ProvisioningContext ctx) {
         Duration period = null;
         ResourceConsistencyType consistency = ctx.getResource().getConsistency();
         if (consistency != null) {
@@ -631,7 +521,7 @@ public class ProvisioningUtil {
         return period;
     }
 
-    public static Duration getDeadShadowRetentionPeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public static Duration getDeadShadowRetentionPeriod(ProvisioningContext ctx) {
         Duration period = null;
         ResourceConsistencyType consistency = ctx.getResource().getConsistency();
         if (consistency != null) {
@@ -643,16 +533,14 @@ public class ProvisioningUtil {
         return period;
     }
 
-    public static int getMaxRetryAttempts(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public static int getMaxRetryAttempts(ProvisioningContext ctx) {
         ResourceConsistencyType consistency = ctx.getResource().getConsistency();
         if (consistency == null) {
             return DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS;
         }
-        Integer operationRetryMaxAttempts = consistency.getOperationRetryMaxAttempts();
-        if (operationRetryMaxAttempts == null) {
-            return DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS;
-        }
-        return operationRetryMaxAttempts;
+        return Objects.requireNonNullElse(
+                consistency.getOperationRetryMaxAttempts(),
+                DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS);
     }
 
     public static boolean isCompleted(OperationResultStatusType statusType) {

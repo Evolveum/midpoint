@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.ValueSelector;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -485,5 +486,10 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     @Override
     public UserAsserter<RA> assertExtensionValue(String localName, Object realValue) {
         return (UserAsserter<RA>) super.assertExtensionValue(localName, realValue);
+    }
+
+    @Override
+    public UserAsserter<RA> withObjectResolver(SimpleObjectResolver objectResolver) {
+        return (UserAsserter<RA>) super.withObjectResolver(objectResolver);
     }
 }

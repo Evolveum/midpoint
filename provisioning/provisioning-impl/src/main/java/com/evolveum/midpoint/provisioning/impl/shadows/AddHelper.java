@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.provisioning.impl.shadows.Util.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
@@ -69,7 +69,6 @@ class AddHelper {
 
     @Autowired private ErrorHandlerLocator errorHandlerLocator;
     @Autowired private Clock clock;
-    @Autowired private PrismContext prismContext;
     @Autowired private ShadowsFacade shadowsFacade;
     @Autowired private ResourceObjectConverter resourceObjectConverter;
     @Autowired private ShadowCaretaker shadowCaretaker;
@@ -142,7 +141,7 @@ class AddHelper {
             shadowCaretaker.applyAttributesDefinition(ctx, resourceObjectToAdd);
         }
 
-        preAddChecks(ctx, resourceObjectToAdd, opState, task, parentResult);
+        preAddChecks(ctx, resourceObjectToAdd, opState, parentResult);
 
         shadowManager.addNewProposedShadow(ctx, resourceObjectToAdd, opState, task, parentResult);
 
@@ -314,7 +313,7 @@ class AddHelper {
 
     private void preAddChecks(ProvisioningContext ctx, PrismObject<ShadowType> resourceObjectToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
+            OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
         checkConstraints(resourceObjectToAdd, opState, ctx, result);
         ctx.validateSchema(resourceObjectToAdd.asObjectable());
@@ -344,7 +343,7 @@ class AddHelper {
         checker.setProvisioningContext(ctx);
         checker.setShadowObject(resourceObjectToAdd);
         checker.setShadowOid(shadowOid);
-        checker.setConstraintViolationConfirmer(ShadowUtil::isNotDead);
+        checker.setConstraintViolationConfirmer(shadow -> isNotDeadOrReaping(shadow, ctx));
         checker.setUseCache(false);
 
         ConstraintsCheckingResult checkingResult = checker.check(result);
@@ -354,6 +353,19 @@ class AddHelper {
         if (!checkingResult.isSatisfiesConstraints()) {
             throw new ObjectAlreadyExistsException("Conflicting shadow already exists on "+ctx.getResource());
         }
+    }
+
+    private boolean isNotDeadOrReaping(PrismObject<ShadowType> shadow, ProvisioningContext ctx)
+            throws SchemaException, ConfigurationException {
+        if (ShadowUtil.isDead(shadow)) {
+            return false;
+        }
+        ProvisioningContext shadowCtx = ctx.spawnForShadow(shadow.asObjectable());
+        shadowsFacade.determineShadowState(shadowCtx, shadow);
+        ShadowLifecycleStateType shadowLifecycleState = shadow.asObjectable().getShadowLifecycleState();
+        return shadowLifecycleState != REAPING
+                && shadowLifecycleState != CORPSE
+                && shadowLifecycleState != TOMBSTONE;
     }
 
     void notifyAfterAdd(

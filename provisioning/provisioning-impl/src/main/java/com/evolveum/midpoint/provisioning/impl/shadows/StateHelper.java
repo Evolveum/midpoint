@@ -15,7 +15,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -28,9 +27,7 @@ class StateHelper {
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired protected ShadowManager shadowManager;
 
-    public void determineShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    public void determineShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow) {
         shadowCaretaker.updateShadowState(ctx, shadow);
     }
 }

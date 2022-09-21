@@ -8,6 +8,7 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -80,10 +81,11 @@ public class ShadowCaretaker {
 
     // value should be a value of attributes container
     private void applyAttributeDefinition(ProvisioningContext ctx, PrismValue value)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            throws SchemaException  {
         if (!(value instanceof PrismContainerValue)) {
             return; // should never occur
         }
+        //noinspection unchecked
         PrismContainerValue<ShadowAttributesType> pcv = (PrismContainerValue<ShadowAttributesType>) value;
         for (Item<?, ?> item : pcv.getItems()) {
             ItemDefinition<?> itemDef = item.getDefinition();
@@ -105,10 +107,9 @@ public class ShadowCaretaker {
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> void applyAttributeDefinition(
+    private <V extends PrismValue, D extends ItemDefinition<?>> void applyAttributeDefinition(
             ProvisioningContext ctx, ObjectDelta<ShadowType> delta, ItemDelta<V, D> itemDelta)
-                    throws SchemaException, ConfigurationException, ObjectNotFoundException,
-                    CommunicationException, ExpressionEvaluationException {
+            throws SchemaException {
         if (!SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
             // just to be sure
             return;
@@ -132,17 +133,15 @@ public class ShadowCaretaker {
         }
     }
 
-    @NotNull public PrismObject<ShadowType> applyAttributesDefinitionToImmutable(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    @NotNull public PrismObject<ShadowType> applyAttributesDefinitionToImmutable(
+            ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException {
         PrismObject<ShadowType> mutableShadow = shadow.clone();
         applyAttributesDefinition(ctx, mutableShadow);
         return mutableShadow.createImmutableClone();
     }
 
-    public ProvisioningContext applyAttributesDefinition(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    public ProvisioningContext applyAttributesDefinition(
+            ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException {
         ProvisioningContext subctx = ctx.spawnForShadow(shadow.asObjectable());
         subctx.assertDefinition();
         ResourceObjectDefinition objectDefinition = subctx.getObjectDefinitionRequired();
@@ -216,17 +215,12 @@ public class ShadowCaretaker {
             PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow,
             boolean skipExecutionPendingOperations,
             XMLGregorianCalendar now)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException {
         if (repoShadow == null) {
             return resourceShadow;
         }
 
-        PrismObject<ShadowType> resultShadow;
-        if (resourceShadow == null) {
-            resultShadow = repoShadow;
-        } else {
-            resultShadow = resourceShadow;
-        }
+        PrismObject<ShadowType> resultShadow = Objects.requireNonNullElse(resourceShadow, repoShadow);
 
         if (ShadowUtil.isDead(resultShadow)) {
             return resultShadow;
@@ -318,9 +312,7 @@ public class ShadowCaretaker {
     public ChangeTypeType findPreviousPendingLifecycleOperationInGracePeriod(
             @Nullable ProvisioningContext ctx,
             @NotNull PrismObject<ShadowType> shadow,
-            @NotNull XMLGregorianCalendar now)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            @NotNull XMLGregorianCalendar now) {
         List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
         if (pendingOperations.isEmpty()) {
             return null;
@@ -357,19 +349,21 @@ public class ShadowCaretaker {
     public @NotNull ShadowLifecycleStateType determineShadowState(
             @NotNull ProvisioningContext ctx,
             @NotNull PrismObject<ShadowType> shadow,
-            @NotNull XMLGregorianCalendar now)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            @NotNull XMLGregorianCalendar now) {
         return determineShadowStateInternal(ctx, shadow, now);
-    }
+   }
+
+    public @NotNull ShadowLifecycleStateType determineShadowState(
+            @NotNull ProvisioningContext ctx,
+            @NotNull PrismObject<ShadowType> shadow) {
+        return determineShadowStateInternal(ctx, shadow, clock.currentTimeXMLGregorianCalendar());
+   }
 
     /** If emergency situations the context can be null. */
     private @NotNull ShadowLifecycleStateType determineShadowStateInternal(
             @Nullable ProvisioningContext ctx,
             @NotNull PrismObject<ShadowType> shadow,
-            @NotNull XMLGregorianCalendar now)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            @NotNull XMLGregorianCalendar now) {
         ShadowType shadowBean = shadow.asObjectable();
         ChangeTypeType pendingLifecycleOperation = findPreviousPendingLifecycleOperationInGracePeriod(ctx, shadow, now);
         if (ShadowUtil.isDead(shadowBean)) {
@@ -398,10 +392,8 @@ public class ShadowCaretaker {
     }
 
     /** Determines and updates the shadow state. */
-    public void updateShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException {
-        ShadowLifecycleStateType state = determineShadowState(ctx, shadow, clock.currentTimeXMLGregorianCalendar());
+    public void updateShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow) {
+        ShadowLifecycleStateType state = determineShadowState(ctx, shadow);
         shadow.asObjectable().setShadowLifecycleState(state);
     }
 
@@ -415,9 +407,7 @@ public class ShadowCaretaker {
 
     /** Determines and updates (and returns) the shadow state. */
     public @NotNull ShadowLifecycleStateType updateAndReturnShadowState(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow, XMLGregorianCalendar now)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            PrismObject<ShadowType> shadow, XMLGregorianCalendar now) {
         ShadowLifecycleStateType state = determineShadowState(ctx, shadow, now);
         shadow.asObjectable().setShadowLifecycleState(state);
         return state;

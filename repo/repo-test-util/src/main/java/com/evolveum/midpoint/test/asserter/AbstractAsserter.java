@@ -63,6 +63,11 @@ public abstract class AbstractAsserter<RA> {
         this.objectResolver = objectResolver;
     }
 
+    public AbstractAsserter<RA> withObjectResolver(SimpleObjectResolver objectResolver) {
+        setObjectResolver(objectResolver);
+        return this;
+    }
+
     public RepositoryService getRepositoryService() {
         return repositoryService;
     }

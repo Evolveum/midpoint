@@ -129,8 +129,7 @@ class DeleteHelper {
         }
 
         PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow, now);
+        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow);
 
         LOGGER.trace("Deleting object {} from {}, options={}, shadowState={}", repoShadow, ctx.getResource(), options, shadowState);
 

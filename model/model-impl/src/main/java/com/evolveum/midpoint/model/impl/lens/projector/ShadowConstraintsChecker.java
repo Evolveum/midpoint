@@ -120,12 +120,12 @@ public class ShadowConstraintsChecker<F extends FocusType> {
                 LOGGER.trace("No contexts found for {}; this looks like a real constraint violation", candidateOid);
                 return true;
             }
-            if (matchingContexts.stream().allMatch(LensProjectionContext::isGone)) {
-                LOGGER.trace("All {} context(s) of {} are gone. This looks like a phantom constraint violation",
+            if (matchingContexts.stream().allMatch(LensProjectionContext::isGoneOrReaping)) {
+                LOGGER.trace("All {} context(s) of {} are gone or being reaped. This looks like a phantom constraint violation",
                         matchingContexts.size(), candidateOid);
                 return false;
             } else {
-                LOGGER.trace("There are {} context(s) for {}, not all gone. Confirming the constraint violation.",
+                LOGGER.trace("There are {} context(s) for {}, not all gone or being reaped. Confirming the constraint violation.",
                         matchingContexts.size(), candidateOid);
                 return true;
             }

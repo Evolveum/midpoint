@@ -109,8 +109,7 @@ public class ShadowManager {
      * Non-iteratively searches for shadows in the repository.
      */
     public SearchResultList<PrismObject<ShadowType>> searchShadows(ProvisioningContext ctx, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 
         ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
         return repositoryService.searchObjects(ShadowType.class, repoQuery, options, parentResult);
@@ -118,9 +117,7 @@ public class ShadowManager {
 
     /** Simply counts the shadows in repository. */
     public int countShadows(ProvisioningContext ctx, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, ExpressionEvaluationException {
-
+            OperationResult result) throws SchemaException {
         ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
         return repositoryService.countObjects(ShadowType.class, repoQuery, options, result);
     }
@@ -138,8 +135,7 @@ public class ShadowManager {
      */
     public PrismObject<ShadowType> lookupLiveShadowByPrimaryId(ProvisioningContext ctx,
             @NotNull PrismProperty<?> primaryIdentifier, @NotNull QName objectClass, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+            throws SchemaException {
         return shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
     }
 

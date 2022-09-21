@@ -6832,7 +6832,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     /**
-     * Returns model object resolver disguised as SimpleObjectResolver to be used in asserts.
+     * Returns model object resolver disguised as {@link SimpleObjectResolver} to be used in asserts.
      */
     protected SimpleObjectResolver createSimpleModelObjectResolver() {
         return new SimpleObjectResolver() {
