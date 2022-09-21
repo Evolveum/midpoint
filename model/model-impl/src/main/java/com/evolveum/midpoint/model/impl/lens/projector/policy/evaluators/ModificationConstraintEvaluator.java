@@ -9,7 +9,15 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
 import javax.xml.bind.JAXBElement;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +32,12 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModificationPolicyConstraintType;
 
+import java.util.Collection;
+
 @Component
 public abstract class ModificationConstraintEvaluator<T extends ModificationPolicyConstraintType> implements PolicyConstraintEvaluator<T> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ModificationConstraintEvaluator.class);
 
     @Autowired protected ConstraintEvaluatorHelper evaluatorHelper;
     @Autowired protected PrismContext prismContext;
@@ -57,5 +69,28 @@ public abstract class ModificationConstraintEvaluator<T extends ModificationPoli
         VariablesMap variables = evaluatorHelper.createVariablesMap(ctx, constraintElement);
         String contextDescription = "expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")";
         return evaluatorHelper.evaluateBoolean(constraint.getExpression(), variables, contextDescription, ctx.task, result);
+    }
+
+    boolean pathMatchesExactly(
+            @NotNull Collection<? extends ItemDelta<?, ?>> deltas, @NotNull ItemPath path, int segmentsToSkip) {
+        for (ItemDelta<?, ?> delta : deltas) {
+            ItemPath modifiedPath = delta.getPath().rest(segmentsToSkip).removeIds(); // because of extension/cities[2]/name (in delta) vs. extension/cities/name (in spec)
+            if (path.equivalent(modifiedPath)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    boolean valuesChanged(
+            @NotNull PrismContainerValue<?> oldContainerValue,
+            @NotNull PrismContainerValue<?> newContainerValue,
+            @NotNull ItemPath path) {
+        Collection<PrismValue> oldValues = oldContainerValue.getAllValues(path);
+        Collection<PrismValue> newValues = newContainerValue.getAllValues(path);
+        boolean different = !MiscUtil.unorderedCollectionEquals(oldValues, newValues);
+        LOGGER.trace("valuesChanged considering '{}': oldValues: {}, newValues: {}, different: {}",
+                path, oldValues, newValues, different);
+        return different;
     }
 }

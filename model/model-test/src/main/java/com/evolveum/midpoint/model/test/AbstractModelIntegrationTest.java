@@ -170,6 +170,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     private static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
 
+    protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+    protected static final ItemName EXT_SEA = new ItemName(NS_PIRACY, "sea");
+
     protected static final String NS_LINKED = "http://midpoint.evolveum.com/xml/ns/samples/linked";
     public static final ItemName RECOMPUTE_MEMBERS_NAME = new ItemName(NS_LINKED, "recomputeMembers");
 

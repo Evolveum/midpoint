@@ -763,7 +763,7 @@
                             <xsd:documentation>
                                 Specification of items that must be modified (all of them) in order for this
                                 constraint be triggered. If no items are specified then any modification will
-                                trigger this constraint.
+                                trigger this constraint. The item paths should not contain container value IDs.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>ModificationPolicyConstraintType.item</a:displayName>

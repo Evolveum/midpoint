@@ -5,12 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="38e1ca2b-bd0b-445b-bbaa-8b663e132e7e"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Cyclic references</name>
     <assignment>
         <policyRule>

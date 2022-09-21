@@ -237,7 +237,7 @@ public class CryptoUtil {
 
     private static class CombinedVisitor implements ConfigurableVisitor, JaxbVisitor {
 
-        private ProtectedStringProcessor processor;
+        private final ProtectedStringProcessor processor;
         private String lastPropName = "?";
 
         private CombinedVisitor(ProtectedStringProcessor processor) {
@@ -253,6 +253,7 @@ public class CryptoUtil {
                     MiscUtil.throwExceptionAsUnchecked(e);
                 }
             } else {
+                // Should we parse not-yet-parsed RawType here?
                 JaxbVisitable.visitPrismStructure(visitable, this);
             }
         }

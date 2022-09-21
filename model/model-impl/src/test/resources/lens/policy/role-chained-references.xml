@@ -5,12 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="bce9b2d2-f4a2-436d-97e9-880b8e284cf7"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Chained references</name>
     <assignment>
         <policyRule>

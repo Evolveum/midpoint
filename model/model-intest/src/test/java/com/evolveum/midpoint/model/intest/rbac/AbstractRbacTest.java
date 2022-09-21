@@ -82,7 +82,9 @@ public abstract class AbstractRbacTest extends AbstractInitializedModelIntegrati
     protected static final File ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_FILE = new File(TEST_DIR, "role-immutable-description-global.xml");
     protected static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_OID = "b7ea1c0c-31d6-445e-8949-9f8f4a665b3b";
     protected static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_DESCRIPTION = "Thou shalt not modify description of this role!";
-    protected static final String ROLE_IMMUTABLE_DESCRIPTION_GLOBAL_IDENTIFIER = "GIG001D";
+
+    protected static final TestResource<RoleType> ROLE_IMMUTABLE_SEA_GLOBAL = new TestResource<>(
+            TEST_DIR, "role-immutable-sea-global.xml", "e6bb0eae-4583-427a-9079-f93f925353c9");
 
     protected static final File ROLE_DETECTING_MODIFICATIONS_FILE = new File(TEST_DIR, "role-detecting-modifications.xml");
     protected static final String ROLE_DETECTING_MODIFICATIONS_OID = "42ef2848-3793-4120-8d03-d8e5f8c23237";

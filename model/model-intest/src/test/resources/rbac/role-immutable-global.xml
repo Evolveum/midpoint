@@ -10,10 +10,7 @@
    -->
 
 <role oid="e7ba8884-b2f6-11e6-a0b9-d3540dd687d6"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Immutable Global</name>
     <description>Thou shalt not modify this role!</description>
     <identifier>GIG001</identifier>

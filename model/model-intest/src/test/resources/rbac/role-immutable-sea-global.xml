@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role oid="e6bb0eae-4583-427a-9079-f93f925353c9"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Immutable Sea Global</name>
+    <description>Thou shalt not modify 'sea' property of this role!</description>
+</role>

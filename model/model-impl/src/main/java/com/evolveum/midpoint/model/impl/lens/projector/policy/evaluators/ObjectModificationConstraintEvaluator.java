@@ -12,7 +12,6 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -38,6 +37,8 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import java.util.List;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
@@ -136,8 +137,8 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
         if (!constraint.getItem().isEmpty()) {
             boolean exactPathMatch = isTrue(constraint.isExactPathMatch());
             for (ItemPathType path : constraint.getItem()) {
-                if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), prismContext.toPath(path), exactPathMatch)) {
-                    LOGGER.trace("Path {} does not match the constraint", path);
+                if (!pathMatches(summaryDelta, ctx, prismContext.toPath(path), exactPathMatch)) {
+                    LOGGER.trace("Path {} does not match the constraint (no modification there)", path);
                     return false;
                 }
             }
@@ -145,14 +146,26 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
         return expressionPasses(constraintElement, ctx, result);
     }
 
-    private <AH extends AssignmentHolderType> boolean pathMatches(ObjectDelta<?> delta, PrismObject<AH> objectOld, ItemPath path,
-            boolean exactPathMatch) throws SchemaException {
+    private <AH extends AssignmentHolderType> boolean pathMatches(
+            ObjectDelta<?> delta, ObjectPolicyRuleEvaluationContext<AH> ctx, ItemPath path, boolean exactPathMatch)
+            throws SchemaException {
         if (delta.isAdd()) {
             return delta.getObjectToAdd().containsItem(path, false);
         } else if (delta.isDelete()) {
+            PrismObject<AH> objectOld = ctx.focusContext.getObjectOld();
             return objectOld != null && objectOld.containsItem(path, false);
         } else {
-            return ItemDeltaCollectionsUtil.pathMatches(emptyIfNull(delta.getModifications()), path, 0, exactPathMatch);
+            if (exactPathMatch) {
+                return pathMatchesExactly(
+                        emptyIfNull(delta.getModifications()), path, 0);
+            } else {
+                ItemPath nameOnlyPath = path.namedSegmentsOnly();
+                PrismObject<AH> oldObject = ctx.focusContext.getObjectOld();
+                PrismObject<AH> newObject = ctx.focusContext.getObjectNew();
+                stateCheck(oldObject != null, "No 'old' object in %s", ctx);
+                stateCheck(newObject != null, "No 'new' object in %s", ctx);
+                return valuesChanged(oldObject.getValue(), newObject.getValue(), nameOnlyPath);
+            }
         }
     }
 
