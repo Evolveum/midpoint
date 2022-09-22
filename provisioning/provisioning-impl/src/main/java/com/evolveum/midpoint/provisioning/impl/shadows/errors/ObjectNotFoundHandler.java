@@ -18,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleState
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -64,7 +63,6 @@ class ObjectNotFoundHandler extends HardErrorHandler {
 
     @Autowired private ShadowManager shadowManager;
     @Autowired private ShadowCaretaker shadowCaretaker;
-    @Autowired private Clock clock;
 
     @Override
     public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
@@ -144,9 +142,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
             OperationResult failedOperationResult, Task task, OperationResult parentResult)
-            throws SchemaException, GenericFrameworkException, CommunicationException,
-            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+            throws SchemaException {
 
         if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
             discoverDeletedShadow(ctx, repoShadow, cause, task, parentResult);
@@ -159,11 +155,9 @@ class ObjectNotFoundHandler extends HardErrorHandler {
     }
 
     private void discoverDeletedShadow(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
-            Exception cause, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            Exception cause, Task task, OperationResult parentResult) throws SchemaException {
 
-        ShadowLifecycleStateType shadowState =
-                shadowCaretaker.determineShadowState(ctx, repositoryShadow, clock.currentTimeXMLGregorianCalendar());
+        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repositoryShadow);
         if (shadowState != ShadowLifecycleStateType.LIVE) {
             // Do NOT do discovery of shadow that can legally not exist. This is no discovery.
             // We already know that the object are supposed not to exist yet or to dead already.

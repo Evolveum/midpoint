@@ -275,7 +275,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     /**
      * TODO not sure if this method should be here or in {@link ProjectionsLoadOperation} (that is currently the only client)
-     *  The reason for being here is the similarity to {@link #getOrCreateProjectionContext(LensContext, ConstructionTargetKey)}
+     *  The reason for being here is the similarity to {@link #getOrCreateProjectionContext(LensContext, ConstructionTargetKey, boolean)}
      *  and coupling with {@link #getOrCreateProjectionContext(LensContext, HumanReadableDescribable, Supplier, Supplier)}.
      */
     public @NotNull static <F extends ObjectType> GetOrCreateProjectionContextResult getOrCreateProjectionContext(
@@ -288,11 +288,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public @NotNull static <F extends ObjectType> GetOrCreateProjectionContextResult getOrCreateProjectionContext(
-            LensContext<F> context, ConstructionTargetKey targetKey) {
+            LensContext<F> context, ConstructionTargetKey targetKey, boolean acceptReaping) {
         return getOrCreateProjectionContext(
                 context,
                 targetKey,
-                () -> context.findFirstProjectionContext(targetKey),
+                () -> context.findFirstProjectionContext(targetKey, acceptReaping),
                 () -> context.createProjectionContext(targetKey.toProjectionContextKey()));
     }
 
@@ -494,10 +494,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /**
      * TODO
      */
-    public LensProjectionContext findFirstProjectionContext(@NotNull ConstructionTargetKey targetKey) {
+    public LensProjectionContext findFirstProjectionContext(
+            @NotNull ConstructionTargetKey targetKey,
+            boolean acceptReaping) {
         return getProjectionContexts().stream()
                 .filter(p -> !p.isGone())
                 .filter(p -> p.matches(targetKey))
+                .filter(p -> !p.isReaping() || acceptReaping)
                 .min(Comparator.comparing(LensProjectionContext::getOrder))
                 .orElse(null);
     }

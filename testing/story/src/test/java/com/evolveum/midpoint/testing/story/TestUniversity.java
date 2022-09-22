@@ -7,12 +7,16 @@
 
 package com.evolveum.midpoint.testing.story;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import java.io.File;
-import javax.xml.namespace.QName;
+import static com.evolveum.midpoint.model.api.util.ReferenceResolver.Source.REPOSITORY;
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.QNAME_UID;
 
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
+import java.io.File;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -28,9 +32,9 @@ import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -38,13 +42,12 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Tests MID-2422, among others.
+ *
+ * Tests 2xx are related to MID-7966.
  *
  * @author Radovan Semancik
  */
@@ -63,7 +66,6 @@ public class TestUniversity extends AbstractStoryTest {
 
     protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 
     private static final String DUMMY_PRIVILEGE_ATTRIBUTE_HR_ORGPATH = "orgpath";
 
@@ -230,16 +232,63 @@ public class TestUniversity extends AbstractStoryTest {
         assertNoGroupMembers(vc);
     }
 
+    /** MID-7966 */
+    @Test
+    public void test200FetchJohn() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a group 'group200'");
+        openDJController.addEntry(
+                "dn: cn=group200,dc=example,dc=com\n" +
+                "objectClass: groupOfUniqueNames\n" +
+                "cn: group200");
+
+        and("a user 'john' in that group");
+        openDJController.addEntry(
+                "dn: uid=john,dc=example,dc=com\n" +
+                        "objectClass: inetOrgPerson\n" +
+                        "uid: john\n" +
+                        "cn: john\n" +
+                        "sn: Smith\n" +
+                        "departmentNumber: group200");
+
+        when("'john' is fetched");
+        List<PrismObject<ShadowType>> accounts = modelService.searchObjects(
+                ShadowType.class,
+                createAccountAttributeQueryWithKindAndIntent(resourceOpenDjType, QNAME_UID, "john"),
+                null, task, result);
+
+        then("account was found");
+        assertSuccess(result);
+        assertThat(accounts).as("accounts").hasSize(1);
+        PrismObject<ShadowType> account = accounts.get(0);
+        displayDumpable("account of john", account);
+
+        and("it has the correct association");
+        List<ShadowAssociationType> associations = account.asObjectable().getAssociation();
+        assertThat(associations).as("associations").hasSize(1);
+        ShadowAssociationType association = associations.get(0);
+        assertThat(association.getName()).as("association name").isEqualTo(new QName(NS_RI, "department"));
+        List<PrismObject<? extends ObjectType>> targets =
+                referenceResolver.resolve(association.getShadowRef(), null, REPOSITORY, null, task, result);
+        assertThat(targets).as("association targets").hasSize(1);
+        PrismObject<? extends ObjectType> target = targets.get(0);
+        assertThat(target.asObjectable().getName().getOrig())
+                .as("association target name")
+                .isEqualTo("cn=group200,dc=example,dc=com");
+    }
+
     private void assertGroupMembers(PrismObject<OrgType> org, String... members) throws Exception {
         String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
         PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-        assertAttribute(groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"), members);
+        assertAttribute(groupShadow.asObjectable(), new QName(NS_RI, "uniqueMember"), members);
     }
 
     private void assertNoGroupMembers(PrismObject<OrgType> org) throws Exception {
         String groupOid = getLinkRefOid(org, RESOURCE_OPENDJ_OID, ShadowKindType.ENTITLEMENT, "org-group");
         PrismObject<ShadowType> groupShadow = getShadowModel(groupOid);
-        assertNoAttribute(groupShadow.asObjectable(), new QName(MidPointConstants.NS_RI, "uniqueMember"));
+        assertNoAttribute(groupShadow.asObjectable(), new QName(NS_RI, "uniqueMember"));
     }
 
     @Test

@@ -5,10 +5,7 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <role oid="a6b10a7c-b57e-11e6-bcb3-1ba47cb07e2e"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Immutable Assign</name>
     <assignment>
         <!-- Untouchable metarole -->

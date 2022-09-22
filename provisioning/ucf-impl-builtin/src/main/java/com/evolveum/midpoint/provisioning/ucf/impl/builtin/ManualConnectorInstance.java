@@ -364,10 +364,12 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     private String getShadowIdentifier(Collection<? extends ResourceAttribute<?>> identifiers) {
+        if (identifiers == null || identifiers.isEmpty()) {
+            return "";
+        }
         try {
-            Object[] shadowIdentifiers = identifiers.toArray();
-
-            return ((ResourceAttribute<?>) shadowIdentifiers[0]).getValue().getValue().toString();
+            // FIXME treat somehow this magic
+            return ((ResourceAttribute<?>) identifiers.iterator().next()).getValue().getValue().toString();
         } catch (NullPointerException e) {
             return "";
         }

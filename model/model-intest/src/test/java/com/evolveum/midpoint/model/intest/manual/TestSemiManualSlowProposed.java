@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.SkipException;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 
 import com.evolveum.midpoint.provisioning.ucf.impl.builtin.ManualConnectorInstance;
@@ -25,7 +27,7 @@ import com.evolveum.midpoint.task.api.Task;
  * The resource is "slow" in a way that it takes approx. a second to process a ticket.
  * This may cause all sorts of race conditions.
  * <p>
- * THIS TEST IS DISABLED MID-4166
+ * THIS TEST IS DISABLED MID-4166 (see also {@link #skip()})
  *
  * @author Radovan Semancik
  */
@@ -33,6 +35,11 @@ import com.evolveum.midpoint.task.api.Task;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManualSlowProposed extends TestSemiManual {
+
+    @BeforeMethod
+    public void skip() {
+        throw new SkipException("Disabled for now");
+    }
 
     @Autowired
     @Qualifier("cacheRepositoryService")

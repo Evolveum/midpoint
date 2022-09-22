@@ -325,6 +325,27 @@
             </filter>
         </focusSelector>
     </globalPolicyRule>
+    <globalPolicyRule>
+        <name>immutable-role-sea</name>
+        <policyConstraints>
+            <modification>
+                <operation>modify</operation>
+                <item>extension/sea</item>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <enforcement/>
+        </policyActions>
+        <focusSelector>
+            <type>RoleType</type>
+            <filter>
+                <q:equal>
+                    <q:path>description</q:path>
+                    <q:value>Thou shalt not modify 'sea' property of this role!</q:value>
+                </q:equal>
+            </filter>
+        </focusSelector>
+    </globalPolicyRule>
 
     <internals>
         <maxModelClicks>30</maxModelClicks>     <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->

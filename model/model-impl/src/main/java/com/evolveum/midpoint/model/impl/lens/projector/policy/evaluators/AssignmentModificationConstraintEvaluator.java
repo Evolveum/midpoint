@@ -11,7 +11,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,6 +35,8 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
+
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -203,30 +204,40 @@ public class AssignmentModificationConstraintEvaluator extends ModificationConst
             for (ItemPathType path : constraint.getItem()) {
                 ItemPath itemPath = prismContext.toPath(path);
                 if (ctx.isAdded && pathDoesNotMatch(ctx.evaluatedAssignment.getAssignment(false), itemPath)) {
-                    LOGGER.trace("pathsMatch: returns false because isAdded and path {} does not match new assignment", itemPath);
+                    LOGGER.trace("pathsMatch: returns 'false' because isAdded and path {} does not match new assignment", itemPath);
                     return false;
                 } else if (ctx.isDeleted && pathDoesNotMatch(ctx.evaluatedAssignment.getAssignment(true), itemPath)) {
-                    LOGGER.trace("pathsMatch: returns false because isDeleted and path {} does not match old assignment", itemPath);
+                    LOGGER.trace("pathsMatch: returns 'false' because isDeleted and path {} does not match old assignment", itemPath);
                     return false;
-                } else {
-                    Collection<? extends ItemDelta<?, ?>> subItemDeltas = ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas();
-                    if (ctx.isKept && pathDoesNotMatch(subItemDeltas, itemPath, exactMatch)) {
-                        LOGGER.trace("pathsMatch: returns false because isKept and path {} does not match new assignment; "
-                                        + "exact={}; sub item deltas={}", itemPath, exactMatch, subItemDeltas);
-                        return false;
+                } else if (ctx.isKept) {
+                    if (exactMatch) {
+                        Collection<? extends ItemDelta<?, ?>> subItemDeltas = ctx.evaluatedAssignment.getAssignmentIdi().getSubItemDeltas();
+                        if (!pathMatchesExactly(emptyIfNull(subItemDeltas), itemPath, 2)) {
+                            LOGGER.trace("pathsMatch: returns false because isKept and path {} does not match new assignment; "
+                                    + "exact=true; sub item deltas={}", itemPath, subItemDeltas);
+                            return false;
+                        }
+                    } else {
+                        AssignmentType oldValue = ctx.evaluatedAssignment.getAssignment(true);
+                        AssignmentType newValue = ctx.evaluatedAssignment.getAssignment(false);
+                        stateCheck(oldValue != null, "No 'old' assignment value in %s", ctx);
+                        stateCheck(newValue != null, "No 'new' assignment value in %s", ctx);
+                        ItemPath nameOnlyPath = itemPath.namedSegmentsOnly();
+                        if (!valuesChanged(oldValue.asPrismContainerValue(), newValue.asPrismContainerValue(), nameOnlyPath)) {
+                            LOGGER.trace(
+                                    "pathsMatch: returns 'false' because isKept and value(s) for path {} have not been changed",
+                                    nameOnlyPath);
+                            return false;
+                        }
                     }
                 }
             }
-            LOGGER.trace("pathsMatch: returns false because all paths ({}) match", constraint.getItem());
+            LOGGER.trace("pathsMatch: returns 'true' because all paths ({}) match", constraint.getItem());
             return true;
         }
     }
 
     private boolean pathDoesNotMatch(AssignmentType assignment, ItemPath path) throws SchemaException {
         return !assignment.asPrismContainerValue().containsItem(path, false);
-    }
-
-    private boolean pathDoesNotMatch(Collection<? extends ItemDelta<?, ?>> deltas, ItemPath path, boolean exactMatch) {
-        return !ItemDeltaCollectionsUtil.pathMatches(emptyIfNull(deltas), path, 2, exactMatch);
     }
 }

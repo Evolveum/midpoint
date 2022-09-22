@@ -4065,6 +4065,45 @@ public class TestRbac extends AbstractRbacTest {
     }
 
     @Test
+    public void test820ModifyRoleImmutableGlobalAddExtension() throws Exception {
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a role with unmodifiable 'sea' property");
+        repoAdd(ROLE_IMMUTABLE_SEA_GLOBAL, result);
+
+        try {
+            when("a container with 'sea' property is added");
+            PrismContainerValue<?> extensionContainerValue =
+                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class)
+                            .findContainerDefinition(RoleType.F_EXTENSION)
+                            .instantiate()
+                            .getValue();
+            extensionContainerValue.createProperty(EXT_SEA)
+                    .setRealValue("Caribbean");
+            traced( () ->
+            executeChanges(
+                    prismContext.deltaFor(RoleType.class)
+                            .item(RoleType.F_EXTENSION)
+                            .add(extensionContainerValue.clone())
+                            .asObjectDelta(ROLE_IMMUTABLE_SEA_GLOBAL.oid),
+                    null, task, result));
+
+            AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+            then("failure should occur");
+            displayExpectedException(e);
+            result.computeStatus();
+            TestUtil.assertFailure(result);
+        }
+
+        assertRoleAfter(ROLE_IMMUTABLE_SEA_GLOBAL.oid)
+                .assertNoItem(RoleType.F_EXTENSION);
+    }
+
+    @Test
     public void test826AddNonCreateableRole() throws Exception {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 

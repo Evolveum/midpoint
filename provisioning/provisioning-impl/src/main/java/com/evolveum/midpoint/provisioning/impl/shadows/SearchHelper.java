@@ -437,8 +437,7 @@ class SearchHelper {
     @NotNull
     private SearchResultList<PrismObject<ShadowType>> searchShadowsInRepository(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> originalOptions, OperationResult parentResult)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, ExpressionEvaluationException {
+            throws SchemaException {
         // This is because we need to apply definitions later
         var options = GetOperationOptions.updateToReadWrite(originalOptions);
         SearchResultList<PrismObject<ShadowType>> objects = shadowManager.searchShadows(ctx, query, options, parentResult);

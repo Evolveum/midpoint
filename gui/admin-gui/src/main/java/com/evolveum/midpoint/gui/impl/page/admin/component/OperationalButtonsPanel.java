@@ -252,7 +252,7 @@ public class OperationalButtonsPanel<O extends ObjectType> extends BasePanel<Pri
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                editRawPerformed(target);
+                editRawPerformedConfirmed();
             }
 
         };

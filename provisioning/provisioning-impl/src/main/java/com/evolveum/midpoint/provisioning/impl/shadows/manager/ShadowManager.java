@@ -12,7 +12,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 
@@ -109,8 +108,7 @@ public class ShadowManager {
      * Non-iteratively searches for shadows in the repository.
      */
     public SearchResultList<PrismObject<ShadowType>> searchShadows(ProvisioningContext ctx, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 
         ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
         return repositoryService.searchObjects(ShadowType.class, repoQuery, options, parentResult);
@@ -118,9 +116,7 @@ public class ShadowManager {
 
     /** Simply counts the shadows in repository. */
     public int countShadows(ProvisioningContext ctx, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
-            CommunicationException, ExpressionEvaluationException {
-
+            OperationResult result) throws SchemaException {
         ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
         return repositoryService.countObjects(ShadowType.class, repoQuery, options, result);
     }
@@ -138,8 +134,7 @@ public class ShadowManager {
      */
     public PrismObject<ShadowType> lookupLiveShadowByPrimaryId(ProvisioningContext ctx,
             @NotNull PrismProperty<?> primaryIdentifier, @NotNull QName objectClass, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+            throws SchemaException {
         return shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
     }
 
@@ -284,9 +279,13 @@ public class ShadowManager {
         return helper.determinePrimaryIdentifierValue(ctx, shadow);
     }
 
-    public PrismObject<ShadowType> refreshProvisioningIndexes(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        return shadowUpdater.refreshProvisioningIndexes(ctx, repoShadow, task, result);
+    /**
+     * @throws ObjectAlreadyExistsException Only if `resolveConflicts` is `false`
+     */
+    public void refreshProvisioningIndexes(
+            ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, boolean resolveConflicts, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        shadowUpdater.refreshProvisioningIndexes(ctx, repoShadow, resolveConflicts, result);
     }
 
     public void recordModifyResult(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow,

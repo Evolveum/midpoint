@@ -21,6 +21,9 @@ import java.io.File;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,8 +31,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Role21 - uses default approval (org:approver)
  * Role22 - uses metarole 1 'default' induced approval (org:special-approver)
  * Role23 - uses both metarole 'default' and 'security' induced approval (org:special-approver and org:security-approver)
+ * RoleExtensionPropertyModApproval - requires an approval when extension property is to be modified
  */
 @ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -79,6 +81,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
     private static final File ROLE_ROLE27_FILE = new File(TEST_RESOURCE_DIR, "role-role27-modifications-and.xml");
     private static final File ROLE_ROLE28_FILE = new File(TEST_RESOURCE_DIR, "role-role28-modifications-or.xml");
     private static final File ROLE_ROLE29_FILE = new File(TEST_RESOURCE_DIR, "role-role29-modifications-no-items.xml");
+    private static final TestResource<RoleType> ROLE_EXTENSION_PROPERTY_MOD_APPROVAL = new TestResource<>(
+            TEST_RESOURCE_DIR, "role-extension-property-mod-approval.xml", "60459cec-7bdb-4872-99ae-65063c9c2e82");
 
     private static final TestResource<ObjectType> ROLE_SKIPPED_FILE = new TestResource<>(TEST_RESOURCE_DIR, "role-skipped.xml", "66134203-f023-4986-bb5c-a350941909eb");
     private static final TestResource<RoleType> ROLE_APPROVE_UNASSIGN = new TestResource<>(TEST_RESOURCE_DIR, "role-approve-unassign.xml", "3746aa73-ae91-4326-8493-f5ac5b22f3b6");
@@ -170,6 +174,8 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         // import this one last to avoid approvals at this stage
         addObject(USER_APPROVER_OF_ROLE_BEING_ENABLED_AND_DISABLED, initTask, initResult);
+
+        repoAdd(ROLE_EXTENSION_PROPERTY_MOD_APPROVAL, initResult);
 
         DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_JSON);
     }
@@ -1291,6 +1297,38 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
 
         assertUser(userJackOid, "after")
                 .assertAssignments(1);
+    }
+
+    /**
+     * MID-7945
+     */
+    @Test
+    public void test940AddSensitiveExtensionProperty() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("a role with sensitive extension property is modified (by adding the extension)");
+        PrismContainerValue<?> extensionContainerValue =
+                prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class)
+                        .findContainerDefinition(RoleType.F_EXTENSION)
+                        .instantiate()
+                        .getValue();
+        extensionContainerValue.createProperty(EXT_SEA)
+                .setRealValue("Caribbean");
+        executeChanges(
+                prismContext.deltaFor(RoleType.class)
+                        .item(RoleType.F_EXTENSION)
+                        .add(extensionContainerValue.clone())
+                        .asObjectDelta(ROLE_EXTENSION_PROPERTY_MOD_APPROVAL.oid),
+                null, task, result);
+
+        then("operation is in progress");
+        assertInProgress(result);
+
+        and("an approval case is created");
+        assertCase(result, "after")
+                .subcases()
+                .assertSubcases(1);
     }
 
     private void executeAssignRoles123ToJack(boolean immediate,

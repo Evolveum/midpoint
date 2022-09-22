@@ -46,7 +46,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
     public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
-    protected static final int NUMBER_OF_GLOBAL_POLICY_RULES = 7;
+    protected static final int NUMBER_OF_GLOBAL_POLICY_RULES = 8;
 
     protected static final String USER_TEMPLATE_FILENAME = COMMON_DIR + "/user-template.xml";
     protected static final String USER_TEMPLATE_OID = "10000000-0000-0000-0000-000000000002";

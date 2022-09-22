@@ -462,7 +462,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     @Override
                     public void onAssigned(@NotNull ConstructionTargetKey key, String desc)
                             throws SchemaException, ConfigurationException {
-                        LensProjectionContext projectionContext = LensContext.getOrCreateProjectionContext(context, key).context;
+                        LensProjectionContext projectionContext =
+                                LensContext.getOrCreateProjectionContext(context, key, false).context;
                         projectionContext.setAssigned(true);
                         projectionContext.setAssignedOldIfUnknown(false);
                         projectionContext.setLegalOldIfUnknown(false);
@@ -477,7 +478,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     @Override
                     public void onUnchangedValid(@NotNull ConstructionTargetKey key, String desc)
                             throws SchemaException, ConfigurationException {
-                        LensProjectionContext projectionContext = context.findFirstProjectionContext(key);
+                        LensProjectionContext projectionContext = context.findFirstProjectionContext(key, false);
                         if (projectionContext == null) {
                             if (processOnlyExistingProjContexts) {
                                 LOGGER.trace("Projection {} skip: unchanged (valid), processOnlyExistingProjContexts", desc);
@@ -486,7 +487,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                             // The projection should exist before the change but it does not
                             // This happens during reconciliation if there is an inconsistency.
                             // Pretend that the assignment was just added. That should do.
-                            projectionContext = LensContext.getOrCreateProjectionContext(context, key).context;
+                            projectionContext =
+                                    LensContext.getOrCreateProjectionContext(context, key, false).context;
                         }
                         LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
                         projectionContext.setAssigned(true);
@@ -503,7 +505,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     @Override
                     public void onUnchangedInvalid(@NotNull ConstructionTargetKey key, String desc)
                             throws SchemaException, ConfigurationException {
-                        LensProjectionContext projectionContext = context.findFirstProjectionContext(key);
+                        LensProjectionContext projectionContext = context.findFirstProjectionContext(key, true);
                         if (projectionContext == null) {
                             if (processOnlyExistingProjContexts) {
                                 LOGGER.trace("Projection {} skip: unchanged (invalid), processOnlyExistingProjContexts", desc);
@@ -532,7 +534,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     public void onUnassigned(@NotNull ConstructionTargetKey key, String desc)
                             throws SchemaException, ConfigurationException {
                         // Note we look only at wave >= current wave here
-                        LensProjectionContext projectionContext = context.findFirstProjectionContext(key);
+                        LensProjectionContext projectionContext = context.findFirstProjectionContext(key, true);
                         if (projectionContext != null && projectionContext.getObjectCurrent() != null) {
                             projectionContext.setAssigned(false);
                             projectionContext.setAssignedOldIfUnknown(true);
@@ -566,7 +568,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                                         getConstructions(constructionMapTriple.getZeroMap().get(key), true),
                                         getConstructions(constructionMapTriple.getPlusMap().get(key), true),
                                         getConstructions(constructionMapTriple.getMinusMap().get(key), false));
-                        LensProjectionContext projectionContext = context.findFirstProjectionContext(key);
+                        LensProjectionContext projectionContext = context.findFirstProjectionContext(key, true);
                         if (projectionContext != null) {
                             // This can be null in a exotic case if we delete already deleted account
                             LOGGER.trace("Construction delta set triple for {}:\n{}", key,

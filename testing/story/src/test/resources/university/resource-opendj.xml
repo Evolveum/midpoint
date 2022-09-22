@@ -43,8 +43,8 @@
             <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
             <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
             <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
-             <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
-             <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
         </icfc:configurationProperties>
 
         <icfc:resultsHandlerConfiguration>
@@ -56,6 +56,25 @@
     </connectorConfiguration>
 
     <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <delineation>
+                <objectClass>ri:inetOrgPerson</objectClass>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+            </focus>
+            <association>
+                <ref>ri:department</ref>
+                <tolerant>false</tolerant>
+                <kind>entitlement</kind>
+                <intent>org-group</intent>
+                <direction>subjectToObject</direction>
+                <associationAttribute>ri:departmentNumber</associationAttribute>
+                <valueAttribute>ri:cn</valueAttribute>
+            </association>
+        </objectType>
         <objectType>
             <kind>generic</kind>
             <intent>org-ou</intent>
@@ -140,6 +159,7 @@
                 <c:ref>ri:cn</c:ref>
                 <displayName>Common Name</displayName>
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <secondaryIdentifier>true</secondaryIdentifier> <!-- MID-7966 -->
                 <outbound>
                     <source>
                         <c:path>$focus/name</c:path>

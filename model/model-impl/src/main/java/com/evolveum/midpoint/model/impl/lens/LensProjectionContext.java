@@ -624,6 +624,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return key.isGone();
     }
 
+    public boolean isGoneOrReaping() {
+        return isGone() || isReaping();
+    }
+
     public boolean isReaping() {
         return getCurrentShadowState() == ShadowLifecycleStateType.REAPING;
     }

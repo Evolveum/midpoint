@@ -121,16 +121,15 @@ class DeleteHelper {
 
         shadowCaretaker.applyAttributesDefinition(ctx, opState.getRepoShadow());
 
-        PendingOperationType duplicateOperation = shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx,
-                opState, result);
+        PendingOperationType duplicateOperation =
+                shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, opState, result);
         if (duplicateOperation != null) {
             result.setInProgress();
             return opState.getRepoShadow();
         }
 
         PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow, now);
+        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow);
 
         LOGGER.trace("Deleting object {} from {}, options={}, shadowState={}", repoShadow, ctx.getResource(), options, shadowState);
 
@@ -201,8 +200,8 @@ class DeleteHelper {
         try {
             ctx.checkNotInMaintenance();
 
-            AsynchronousOperationResult asyncReturnValue = resourceObjectConverter
-                    .deleteResourceObject(ctx, repoShadow, scripts, connOptions, result);
+            AsynchronousOperationResult asyncReturnValue =
+                    resourceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, connOptions, result);
             opState.processAsyncResult(asyncReturnValue);
 
             resourceManager.modifyResourceAvailabilityStatus(ctx.getResourceOid(), AvailabilityStatusType.UP,

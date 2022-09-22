@@ -13,6 +13,8 @@ import java.io.File;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.SkipException;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Listeners;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -27,12 +29,17 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 /**
  * @author Radovan Semancik
  * <p>
- * THIS TEST IS DISABLED MID-4166
+ * THIS TEST IS DISABLED MID-4166 (see also {@link #skip()})
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestSemiManualDisableSlowProposed extends TestSemiManualDisable {
+
+    @BeforeMethod
+    public void skip() {
+        throw new SkipException("Disabled for now");
+    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

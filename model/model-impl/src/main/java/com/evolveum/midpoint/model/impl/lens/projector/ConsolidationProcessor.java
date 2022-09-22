@@ -625,8 +625,6 @@ public class ConsolidationProcessor {
     /**
      * This method consolidate property delta against account absolute state which came from sync (not as delta)
      *
-     * @param accCtx
-     * @param delta
      * @return method return updated delta, or null if delta was empty after filtering (removing unnecessary values).
      */
     private <T> PropertyDelta<T> consolidateWithSyncAbsolute(LensProjectionContext accCtx, PropertyDelta<T> delta,

@@ -171,10 +171,9 @@ class GetHelper {
         if (shouldRefreshOnRead(resource, rootOptions)) {
             LOGGER.trace("Refreshing {} before reading", repoShadow);
             ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
-            RefreshShadowOperation refreshShadowOperation = refreshHelper.refreshShadow(repoShadow, refreshOpts, task, result);
-            if (refreshShadowOperation != null) {
-                repoShadow = refreshShadowOperation.getRefreshedShadow();
-            }
+            repoShadow = refreshHelper
+                    .refreshShadow(repoShadow, refreshOpts, task, result)
+                    .getRefreshedShadow();
             LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repoShadow, 1));
         }
         if (repoShadow == null) {

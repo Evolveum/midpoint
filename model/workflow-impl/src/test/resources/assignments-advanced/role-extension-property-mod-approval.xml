@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="60459cec-7bdb-4872-99ae-65063c9c2e82">
+    <name>role-extension-property-mod-approval</name>
+    <assignment>
+        <policyRule>
+            <policyConstraints>
+                <modification>
+                    <item>extension/sea</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <approval>
+                    <approverRef oid="00000000-0000-0000-0000-000000000002" type="UserType" /> <!-- administrator -->
+                </approval>
+            </policyActions>
+        </policyRule>
+    </assignment>
+</role>

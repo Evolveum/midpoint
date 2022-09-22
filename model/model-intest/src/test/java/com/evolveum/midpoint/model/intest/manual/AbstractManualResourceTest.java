@@ -15,12 +15,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.schema.processor.*;
 
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -90,6 +93,9 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     public static final String USER_PHOENIX_FULL_NAME = "Phoebe Phoenix";
     public static final String ACCOUNT_PHOENIX_DESCRIPTION_MANUAL = "from the ashes";
     public static final String ACCOUNT_PHOENIX_PASSWORD_MANUAL = "VtakOhnivak";
+
+    protected static final TestResource<UserType> USER_PHOENIX_2 =
+            new TestResource<>(TEST_DIR, "user-phoenix-2.xml", "e22bc5ed-0e31-4391-9cc8-1fbaa9a9dfeb");
 
     protected static final String USER_WILL_NAME = "will";
     protected static final String USER_WILL_GIVEN_NAME = "Will";
@@ -226,6 +232,11 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
     protected boolean hasMultivalueInterests() {
         return true;
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    protected boolean isDisablingInsteadOfDeletion() {
+        return false;
     }
 
     @Test
@@ -1432,7 +1443,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
     }
 
     /**
-     * Let the pending operations exprire. So we have simpler situation in following tests.
+     * Let the pending operations expire. So we have simpler situation in following tests.
      * MID-4587
      */
     @Test
@@ -1617,6 +1628,103 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
         assertEquals("Unexpected number of live shadows", 1, liveShadows);
 
         assertSteadyResources();
+    }
+
+    /**
+     * Creates an account, then deletes and re-creates it again.
+     *
+     * Uses `phoenix-2` to avoid clashing with the original one.
+     *
+     * MID-8069
+     */
+    @Test
+    public void test430CreateDeleteCreate() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        clock.resetOverride();
+
+        given("there is a phoenix-2 user");
+        addObject(USER_PHOENIX_2, task, result);
+
+        when("the account is assigned to it");
+
+        assignAccountToUser(USER_PHOENIX_2.oid, getResourceOid(), null, task, result);
+
+        assertUser(USER_PHOENIX_2.oid, "after creation (not propagated)")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display();
+
+        clockForward("PT3M"); // Make sure the operation will be picked up by propagation task
+        runPropagation();
+
+        String shadowOid = getSingleLinkOid(getUser(USER_PHOENIX_2.oid));
+        PrismObject<ShadowType> shadowAfterCreation = getShadowModel(shadowOid);
+        display("Shadow after (model)", shadowAfterCreation);
+        assertShadowNotDead(shadowAfterCreation);
+
+        PendingOperationType pendingOperation = assertSinglePendingOperation(
+                shadowAfterCreation, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+        closeCase(pendingOperation.getAsynchronousOperationReference());
+
+        and("the account is deleted");
+
+        unassignAccountFromUser(USER_PHOENIX_2.oid, getResourceOid(), null, task, result);
+
+        assertUser(USER_PHOENIX_2.oid, "after deletion (not propagated)")
+                .withObjectResolver(createSimpleModelObjectResolver())
+                .singleLink()
+                .resolveTarget()
+                .display();
+
+        if (!isDisablingInsteadOfDeletion()) {
+            PrismObject<ShadowType> shadowAfterDeletionFuture = getShadowModelFuture(shadowOid);
+            display("Shadow after deletion (model, future)", shadowAfterDeletionFuture);
+            assertShadowDead(shadowAfterDeletionFuture);
+        }
+
+        and("the account is re-created (during grouping period) - with a changed property value");
+
+        modifyUserReplace(
+                USER_PHOENIX_2.oid,
+                UserType.F_FULL_NAME,
+                ModelExecuteOptions.create().raw(),
+                task,
+                result,
+                createPolyString("Phoenix The Second"));
+
+        assignAccountToUser(USER_PHOENIX_2.oid, getResourceOid(), null, task, result);
+
+        then("there is a consistent (newly created) shadow");
+        PrismObject<UserType> userAfterRecreation = getUser(USER_PHOENIX_2.oid);
+        display("User after re-creation", userAfterRecreation);
+
+        List<ObjectReferenceType> linkRefs = userAfterRecreation.asObjectable().getLinkRef();
+        if (!isDisablingInsteadOfDeletion()) {
+            assertThat(linkRefs).as("link refs").hasSize(2);
+            List<ObjectReferenceType> originalLinkRefs = linkRefs.stream()
+                    .filter(ref -> ref.getOid().equals(shadowOid))
+                    .collect(Collectors.toList());
+            assertThat(originalLinkRefs).as("original link refs").hasSize(1);
+            List<ObjectReferenceType> newLinkRefs = linkRefs.stream()
+                    .filter(ref -> !ref.getOid().equals(shadowOid))
+                    .collect(Collectors.toList());
+            assertThat(newLinkRefs).as("other link refs").hasSize(1);
+            ObjectReferenceType newLinkRef = newLinkRefs.get(0);
+
+            PrismObject<ShadowType> shadowAfterRecreation = getShadowModel(newLinkRef.getOid());
+            display("Newly-created shadow after re-creation", shadowAfterRecreation);
+            PrismObject<ShadowType> originalShadowAfterRecreation = getShadowModel(shadowOid);
+            display("Original shadow after re-creation", originalShadowAfterRecreation);
+            PrismObject<ShadowType> originalShadowAfterRecreationFuture = getShadowModelFuture(shadowOid);
+            display("Original shadow after re-creation (model, future)", originalShadowAfterRecreationFuture);
+            assertShadowDead(originalShadowAfterRecreationFuture);
+        } else {
+            assertThat(linkRefs).as("link refs").hasSize(1);
+            PrismObject<ShadowType> originalShadowAfterRecreation = getShadowModel(shadowOid);
+            display("Original shadow after re-creation", originalShadowAfterRecreation);
+        }
     }
 
     protected boolean are9xxTestsEnabled() {

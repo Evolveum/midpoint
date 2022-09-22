@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.common.util;
 
 import java.util.List;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -30,12 +32,27 @@ public class RepoCommonUtils {
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
         switch (criticality) {
             case FATAL:
-                LOGGER.debug("Exception {} criticality set as FATAL in {}, stopping evaluation; exception message: {}", e.getClass().getSimpleName(), object, e.getMessage());
-                LOGGER.error("Fatal error while processing projection on {}: {}", object, e.getMessage(), e);
+                LOGGER.debug("Exception {} criticality set as FATAL in {}, stopping evaluation; exception message: {}",
+                        e.getClass().getSimpleName(), object, e.getMessage());
+                if (e instanceof CommonException) {
+                    LoggingUtils.logExceptionAsWarning( // Intentionally not displaying the full exception (MID-6695)
+                            LOGGER, "An error (potentially recoverable) while processing projection on {}: {}",
+                            e, object, e.getMessage());
+                } else {
+                    LoggingUtils.logUnexpectedException(
+                            // This may be a programming problem in midPoint - or a disguised operational problem.
+                            // In the latter case, please log a JIRA issue to fix the error reporting mechanism.
+                            //
+                            // TODO It is unclear what we should do with SystemException.
+                            //  For the time being, we will display it in full.
+                            LOGGER, "Unexpected exception occurred while processing projection on {}: {}",
+                            e, object, e.getMessage());
+                }
                 throwException(e, result);
                 throw new AssertionError("not reached");
             case PARTIAL:
-                LOGGER.debug("Exception {} criticality set as PARTIAL in {}, continuing evaluation; exception message: {}", e.getClass().getSimpleName(), object, e.getMessage());
+                LOGGER.debug("Exception {} criticality set as PARTIAL in {}, continuing evaluation; exception message: {}",
+                        e.getClass().getSimpleName(), object, e.getMessage());
                 if (result != null) {
                     result.recordPartialError(e);
                 }
@@ -43,7 +60,8 @@ public class RepoCommonUtils {
                 LOGGER.warn("Operation result:\n{}", result != null ? result.debugDump() : "(null)");
                 break;
             case IGNORE:
-                LOGGER.debug("Exception {} criticality set as IGNORE in {}, continuing evaluation; exception message: {}", e.getClass().getSimpleName(), object, e.getMessage());
+                LOGGER.debug("Exception {} criticality set as IGNORE in {}, continuing evaluation; exception message: {}",
+                        e.getClass().getSimpleName(), object, e.getMessage());
                 if (result != null) {
                     result.recordHandledError(e);
                 }

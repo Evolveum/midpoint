@@ -59,7 +59,6 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private String additionalBoxCssClasses = null;
     private boolean isRefreshEnabled;
     private List<IColumn<T, String>> columns;
-    private ISortableDataProvider provider;
 
     //interval in seconds
     private static final int DEFAULT_REFRESH_INTERVAL = 60;
@@ -79,6 +78,18 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         this.tableId = tableId;
         this.isRefreshEnabled = isRefreshEnabled;
         initLayout(columns, provider);
+    }
+
+    public void goToLastPage() {
+        long size = getDataTable().getDataProvider().size();
+        int itemsPerPage = getItemsPerPage();
+
+        long page = size / itemsPerPage;
+        if (size % itemsPerPage != 0) {
+            page++;
+        }
+
+        setCurrentPage(page);
     }
 
     public void setShowAsCard(boolean showAsCard) {

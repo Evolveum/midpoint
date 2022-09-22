@@ -1571,10 +1571,10 @@
                                 </p>
                                 <p>
                                     The relation in linkRef has the following meaning: org:default means that
-                                    that the shadow the link is pointing to is "live", i.e. the corresponding
+                                    the shadow the link is pointing to is "live", i.e. the corresponding
                                     object exists on the resource. On the other hand, org:related means that
                                     the shadow exists in repo, but with dead = true, i.e. the corresponding
-                                    object is not existing on the resource any more.
+                                    object is not existing on the resource anymore.
                                 </p>
                                 <p>
                                     Especially, when the shadow is in the Reaping state (see
