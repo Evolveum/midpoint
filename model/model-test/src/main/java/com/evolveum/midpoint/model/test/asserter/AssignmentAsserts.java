@@ -317,6 +317,6 @@ public class AssignmentAsserts {
     }
 
     public <AH extends AssignmentHolderType> void assertHasArchetype(PrismObject<AH> object, String oid) {
-        AssertJUnit.assertTrue(object + " does not have archetype " + oid, ObjectTypeUtil.hasArchetype(object, oid));
+        AssertJUnit.assertTrue(object + " does not have archetype " + oid, ObjectTypeUtil.hasArchetypeRef(object, oid));
     }
 }

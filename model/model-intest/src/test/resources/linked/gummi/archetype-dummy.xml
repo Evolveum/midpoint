@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           oid="c1e5dc3d-dc84-4e71-b916-814b71bb264a">
+    <name>dummy</name>
+    <documentation>
+        A dummy archetype that does nothing.
+    </documentation>
+</archetype>

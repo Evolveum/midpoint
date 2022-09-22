@@ -71,7 +71,7 @@ public class TestSequence extends AbstractWfTestPolicy {
         UserType user = new UserType()
                 .fullName("Joe Black");
 
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         then("an approval case should be created");
 

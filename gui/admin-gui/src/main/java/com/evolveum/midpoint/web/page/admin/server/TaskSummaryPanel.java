@@ -130,7 +130,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
         };
         tagLiveSyncToken.add(new VisibleBehaviour(() -> {
             TaskType task = getModelObject();
-            return task != null && ObjectTypeUtil.hasArchetype(task, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
+            return task != null && ObjectTypeUtil.hasArchetypeRef(task, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value());
         }));
         summaryTagList.add(tagLiveSyncToken);
         return summaryTagList;
@@ -288,7 +288,7 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     }
 
     private String getLiveSyncToken(TaskType taskType) {
-        if (!ObjectTypeUtil.hasArchetype(taskType, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())) {
+        if (!ObjectTypeUtil.hasArchetypeRef(taskType, SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value())) {
             return null;
         }
         Object token = taskInformationModel.getObject().getLiveSyncToken();

@@ -73,15 +73,15 @@ public class CaseTypeUtil {
     }
 
     public static boolean isCorrelationCase(@Nullable CaseType aCase) {
-        return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value());
+        return aCase != null && ObjectTypeUtil.hasArchetypeRef(aCase, SystemObjectsType.ARCHETYPE_CORRELATION_CASE.value());
     }
 
     public static boolean isManualProvisioningCase(@Nullable CaseType aCase) {
-        return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
+        return aCase != null && ObjectTypeUtil.hasArchetypeRef(aCase, SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
     }
 
     public static boolean isApprovalCase(@Nullable CaseType aCase) {
-        return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+        return aCase != null && ObjectTypeUtil.hasArchetypeRef(aCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
     }
 
     public static List<ObjectReferenceType> getAllCurrentAssignees(CaseType aCase) {

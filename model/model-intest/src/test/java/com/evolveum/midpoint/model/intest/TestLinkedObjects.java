@@ -72,6 +72,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<ArchetypeType> ARCHETYPE_USER = new TestResource<>(GUMMI_DIR, "archetype-gummi-user.xml", "c46b1bcc-af43-44ee-a107-71f36e952cc5");
     private static final TestResource<ArchetypeType> ARCHETYPE_TOKEN = new TestResource<>(GUMMI_DIR, "archetype-magic-token.xml", "e7bff8d1-cebd-4fbe-b935-64cfc2f22f52");
     private static final TestResource<ArchetypeType> ARCHETYPE_DEVICE = new TestResource<>(GUMMI_DIR, "archetype-device.xml", "d6d90e2c-ad25-4f7f-a0e1-2f5fac03b402");
+    private static final TestResource<ArchetypeType> ARCHETYPE_DUMMY = new TestResource<>(GUMMI_DIR, "archetype-dummy.xml", "c1e5dc3d-dc84-4e71-b916-814b71bb264a");
 
     private static final TestResource<ServiceType> SERVICE_MEDALLION = new TestResource<>(GUMMI_DIR, "service-medallion.xml", "8734f795-f6b4-4cc5-843b-6307aaf88f9d");
     private static final TestResource<ServiceType> SERVICE_WHISTLE = new TestResource<>(GUMMI_DIR, "service-whistle.xml", "40c18026-ca88-4bda-ab0b-f1a2a9c94818");
@@ -116,6 +117,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         addObject(ARCHETYPE_USER, initTask, initResult);
         addObject(ARCHETYPE_TOKEN, initTask, initResult);
         addObject(ARCHETYPE_DEVICE, initTask, initResult);
+        addObject(ARCHETYPE_DUMMY, initTask, initResult);
 
         addObject(SERVICE_MEDALLION, initTask, initResult);
         addObject(SERVICE_WHISTLE, initTask, initResult);
@@ -651,6 +653,112 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
+     * Change archetype of the sword from "device" to "dummy" (that does nothing).
+     *
+     * MID-8060
+     */
+    @Test
+    public void test380MakeSwordDummy() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("sword is switched to dummy archetype");
+        traced( () -> executeChanges(
+                prismContext.deltaFor(ServiceType.class)
+                        .item(ServiceType.F_ASSIGNMENT)
+                        .delete(new AssignmentType()
+                                .targetRef(ARCHETYPE_DEVICE.oid, ArchetypeType.COMPLEX_TYPE))
+                        .add(new AssignmentType()
+                                .targetRef(ARCHETYPE_DUMMY.oid, ArchetypeType.COMPLEX_TYPE))
+                        .asObjectDelta(SERVICE_SWORD.oid),
+                null, task, result) );
+
+        then();
+        assertSuccess(result);
+
+        assertServiceAfter(SERVICE_SWORD.oid)
+                .assertArchetypeRef(ARCHETYPE_DUMMY.oid)
+                .assertDescription(null); // The mapping disappeared, so its value went to minus set.
+
+        assertUserAfter(USER_CUBBY.oid)
+                .assertOrganizations();
+    }
+
+    /**
+     * Change archetype of a new service from "dummy" to "device".
+     *
+     * MID-8060
+     */
+    @Test
+    public void test390SwitchServiceArchetype() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a spoon with dummy archetype");
+        ServiceType spoon390 = new ServiceType()
+                .name("spoon390")
+                .assignment(new AssignmentType()
+                        .targetRef(ARCHETYPE_DUMMY.oid, ArchetypeType.COMPLEX_TYPE));
+        addObject(spoon390, task, result);
+
+        and("a user with the spoon");
+        UserType user390 = new UserType()
+                .name("user390")
+                .fullName("User 390")
+                .assignment(new AssignmentType()
+                        .targetRef(ARCHETYPE_USER.oid, ArchetypeType.COMPLEX_TYPE))
+                .assignment(new AssignmentType()
+                        .targetRef(spoon390.getOid(), ServiceType.COMPLEX_TYPE));
+        addObject(user390, task, result);
+
+        when("spoon is switched to 'device' archetype");
+        traced( () -> executeChanges(
+                prismContext.deltaFor(ServiceType.class)
+                        .item(ServiceType.F_ASSIGNMENT)
+                        .delete(new AssignmentType()
+                                .targetRef(ARCHETYPE_DUMMY.oid, ArchetypeType.COMPLEX_TYPE))
+                        .add(new AssignmentType()
+                                .targetRef(ARCHETYPE_DEVICE.oid, ArchetypeType.COMPLEX_TYPE))
+                        .asObjectDelta(spoon390.getOid()),
+                null, task, result) );
+
+        then();
+        assertSuccess(result);
+
+        assertServiceAfter(spoon390.getOid())
+                .assertArchetypeRef(ARCHETYPE_DEVICE.oid)
+                .assertDescription("Used by user390 (User 390)");
+
+        assertUserAfter(user390.getOid())
+                .assertOrganizations("spoon390 users");
+    }
+
+    /**
+     * Creating archetyped device "from scratch".
+     *
+     * MID-8059
+     */
+    @Test
+    public void test400CreateArchetypedDevice() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when("archetyped device is created");
+        ServiceType hammer400 = new ServiceType()
+                .name("hammer400")
+                .assignment(new AssignmentType()
+                        .targetRef(ARCHETYPE_DEVICE.oid, ArchetypeType.COMPLEX_TYPE));
+        addObject(hammer400, task, result);
+
+        then("it is there");
+        assertSuccess(result);
+
+        assertServiceAfter(hammer400.getOid())
+                .assertArchetypeRef(ARCHETYPE_DEVICE.oid)
+                .assertDescription("Not used");
+    }
+
+    /**
      * Creates a project. Two children should be created automatically.
      */
     @Test
@@ -660,12 +768,12 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        OrgType ariane = new OrgType(prismContext)
+        OrgType ariane = new OrgType()
                 .name("ariane")
                 .beginAssignment()
                 .targetRef(ARCHETYPE_PROJECT.oid, ArchetypeType.COMPLEX_TYPE)
                 .end();
-        addObject(ariane.asPrismObject(), task, result);
+        addObject(ariane, task, result);
 
         then();
         assertSuccess(result);
@@ -744,26 +852,26 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        OrgType root = new OrgType(prismContext)
+        OrgType root = new OrgType()
                 .name("root")
                 .beginAssignment()
                 .targetRef(ARCHETYPE_DELETION_SAFE_ORG.oid, ArchetypeType.COMPLEX_TYPE)
                 .end();
-        addObject(root.asPrismObject(), task, result);
+        addObject(root, task, result);
 
-        OrgType child = new OrgType(prismContext)
+        OrgType child = new OrgType()
                 .name("child")
                 .beginAssignment()
                 .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
                 .end();
-        addObject(child.asPrismObject(), task, result);
+        addObject(child, task, result);
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("user")
                 .beginAssignment()
                 .targetRef(root.getOid(), OrgType.COMPLEX_TYPE)
                 .end();
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         when();
         deleteObject(OrgType.class, root.getOid(), task, result);

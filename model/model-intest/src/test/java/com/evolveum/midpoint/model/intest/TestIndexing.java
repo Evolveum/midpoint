@@ -61,8 +61,7 @@ public class TestIndexing extends AbstractEmptyModelIntegrationTest {
                         .familyName("Black")
                         .costCenter("CCx-1/100")
                         .assignment(new AssignmentType()
-                                .targetRef(ARCHETYPE_PERSON.oid, ArchetypeType.COMPLEX_TYPE))
-                        .asPrismObject(),
+                                .targetRef(ARCHETYPE_PERSON.oid, ArchetypeType.COMPLEX_TYPE)),
                 task,
                 result);
 
@@ -91,8 +90,7 @@ public class TestIndexing extends AbstractEmptyModelIntegrationTest {
                         .givenName("Alice")
                         .familyName("Black")
                         .assignment(new AssignmentType()
-                                .targetRef(ARCHETYPE_PERSON.oid, ArchetypeType.COMPLEX_TYPE))
-                        .asPrismObject(),
+                                .targetRef(ARCHETYPE_PERSON.oid, ArchetypeType.COMPLEX_TYPE)),
                 task,
                 result);
 

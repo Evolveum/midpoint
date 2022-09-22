@@ -3419,7 +3419,7 @@ public class TestMapping extends AbstractMappingTest {
                 .end();
 
         when();
-        String oid = addObject(user.asPrismObject(), task, result);
+        String oid = addObject(user, task, result);
 
         then();
         assertUser(oid, "user after")
@@ -3448,7 +3448,7 @@ public class TestMapping extends AbstractMappingTest {
                     .beginAssignment()
                         .targetRef(ROLE_DISABLED_MAPPING.oid, RoleType.COMPLEX_TYPE)
                     .end();
-        String oid = addObject(user.asPrismObject(), task, result);
+        String oid = addObject(user, task, result);
 
         then();
         assertSuccess(result);

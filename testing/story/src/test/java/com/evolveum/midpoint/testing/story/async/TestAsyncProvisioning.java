@@ -97,7 +97,7 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
                                 resourceOutbound, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext));
 
         when("object is added and the addition is processed by the async update task");
-        addObject(jim.asPrismObject(), task, result);
+        addObject(jim, task, result);
 
         waitForTaskProgress(TASK_ASYNC_UPDATE.oid, 1, 30000, result);
 

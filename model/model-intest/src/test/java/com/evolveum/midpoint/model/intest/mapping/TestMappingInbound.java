@@ -894,7 +894,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         riskVectorTreason.findOrCreateProperty(RISK).setRealValue("treason");
         riskVectorTreason.findOrCreateProperty(VALUE).setRealValue(2);
 
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         DummyAccount account = new DummyAccount(ACCOUNT_RISKY_USERNAME);
         account.setEnabled(true);
@@ -954,7 +954,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         protectionContainer.add(protection.asPrismContainerValue());
         user.asPrismObject().addExtensionItem(protectionContainer);
 
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         DummyAccount account = new DummyAccount(ACCOUNT_GDPR_USERNAME);
         account.setEnabled(true);

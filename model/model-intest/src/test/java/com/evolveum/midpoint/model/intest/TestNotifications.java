@@ -899,7 +899,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 .<AssignmentType>end()
                 .end();
 
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         modifyResourceMaintenance(RESOURCE_DUMMY_OID, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
 

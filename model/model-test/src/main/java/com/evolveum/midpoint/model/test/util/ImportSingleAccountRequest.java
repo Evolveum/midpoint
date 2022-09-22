@@ -93,7 +93,7 @@ public class ImportSingleAccountRequest {
                                                 .intent(typeIdentification.getIntent())
                                                 .query(prismContext.getQueryConverter().createQueryType(query))
                                                 .queryApplication(ResourceObjectSetQueryApplicationModeType.APPEND)))));
-        String taskOid = test.addObject(importTask.asPrismObject(), task, result);
+        String taskOid = test.addObject(importTask, task, result);
         if (tracingProfile != null) {
             test.traced(
                     tracingProfile,

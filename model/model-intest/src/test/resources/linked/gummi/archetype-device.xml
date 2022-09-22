@@ -78,5 +78,30 @@
             </policyActions>
         </policyRule>
     </inducement>
+    <inducement>
+        <policyRule>
+            <name>recompute-user-on-archetype-change</name>
+            <documentation>
+                This is to test whether archetype change can properly induce user recomputation; loosely related to MID-8060.
+            </documentation>
+            <policyConstraints>
+                <modification>
+                    <item>archetypeRef</item>
+                </modification>
+            </policyConstraints>
+            <policyActions>
+                <scriptExecution>
+                    <object>
+                        <linkSource>
+                            <linkType>user</linkType>
+                        </linkSource>
+                    </object>
+                    <executeScript>
+                        <s:recompute/>
+                    </executeScript>
+                </scriptExecution>
+            </policyActions>
+        </policyRule>
+    </inducement>
 
 </archetype>

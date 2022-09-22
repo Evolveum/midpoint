@@ -77,9 +77,13 @@ public class LinkedObjectsFunctions {
     <T extends AssignmentHolderType> List<T> findLinkedSources(Class<T> type) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
+        ObjectReferenceType focusObjectReference = midpointFunctions.getFocusObjectReference();
+        if (focusObjectReference == null) {
+            return List.of(); // There cannot be any sources yet, because the focus is not in repository.
+        }
         ObjectQuery query = prismContext.queryFor(type)
                 .item(AssignmentHolderType.F_ROLE_MEMBERSHIP_REF)
-                .ref(midpointFunctions.getFocusObjectReference().asReferenceValue())
+                .ref(focusObjectReference.asReferenceValue())
                 .build();
         return midpointFunctions.searchObjects(type, query, null);
     }
@@ -99,7 +103,11 @@ public class LinkedObjectsFunctions {
             throw new IllegalStateException("No definition for source link type " + linkType + " for " + focusContext);
         }
 
-        PrismReferenceValue focusReference = midpointFunctions.getFocusObjectReference().asReferenceValue();
+        ObjectReferenceType focusObjectReference = midpointFunctions.getFocusObjectReference();
+        if (focusObjectReference == null) {
+            return List.of();
+        }
+        PrismReferenceValue focusReference = focusObjectReference.asReferenceValue();
         LinkedSelectorToFilterTranslator translator = new LinkedSelectorToFilterTranslator(definition.getSelector(), focusReference,
                 "finding linked sources for " + focusContext, prismContext, expressionFactory,
                 currentTask, currentResult);
@@ -241,9 +249,10 @@ public class LinkedObjectsFunctions {
                 prismContext.relationMatches(selector.getRelation(), ref.getRelation());
     }
 
-    private <T extends AssignmentHolderType> boolean objectMatches(AssignmentHolderType targetObject, Class<T> type, String archetypeOid) {
+    private <T extends AssignmentHolderType> boolean objectMatches(
+            AssignmentHolderType targetObject, Class<T> type, String archetypeOid) {
         return (type == null || type.isAssignableFrom(targetObject.getClass()))
-                && (archetypeOid == null || hasArchetype(targetObject, archetypeOid));
+                && (archetypeOid == null || hasArchetypeRef(targetObject, archetypeOid));
     }
 
     private boolean objectMatches(AssignmentHolderType targetObject, ObjectSelectorType selector)
