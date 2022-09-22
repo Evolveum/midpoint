@@ -14,11 +14,22 @@ Current MidPoint theme is based on link:https://almsaeedstudio.com/preview[Admin
 ** daterangepicker
 ** select2
 
-== Stylesheets and javascripts without overlay
+== Stylesheets and javascripts
 
-WARNING: Since midpoint 4.6 stylesheets can't be updated without modifying source code of midpoint or using overlay.
+WARNING: Since midPoint 4.6, stylesheets can't be changed without modifying source code of midpoint or using overlay.
 
 Starting with midPoint 4.6 whole css/js processing has changed.
-NodeJS and Webpack 5 was incorporated into build.
+In previous versions midPoint compiled all LESS and CSS files (sources + files from midpoint.home) during startup into final CSS files that were used to style web pages.
+
+With midPoint 4.6 NodeJS and Webpack 5 was incorporated into build.
 Stylesheets, javascripts and other static resources are now processed using Webpack 5 and configuration defined in package.json.
+These are invoked using maven during build time and final CSS/javascript files are bundled into final midPoint JAR file.
+
+Simple style and javascript changes can be done via maven overlay by adding content to CSS/javascript files:
+
+* src/main/resources/static/css/overlay.css
+* src/main/resources/static/js/overlay.js
+
+These files are empty by default and are linked last on midPoint web pages.
+
 For more details see xref:../../devel/gui/gui-development-guide.adoc#styles-and-javascript[GUI development guide].
