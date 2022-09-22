@@ -106,6 +106,7 @@ public class MappingTestEvaluator {
         beans.objectResolver = resolver;
         beans.prismContext = prismContext;
         beans.protector = protector;
+        beans.init();
 
         if (withMetadata) {
             BuiltinMetadataMappingsRegistry builtinMetadataMappingsRegistry = new BuiltinMetadataMappingsRegistry();
