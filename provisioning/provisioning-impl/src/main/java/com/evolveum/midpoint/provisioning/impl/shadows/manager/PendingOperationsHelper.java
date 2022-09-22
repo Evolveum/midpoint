@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -91,16 +92,12 @@ class PendingOperationsHelper {
             OperationResultStatus implicitStatus,
             XMLGregorianCalendar now) {
 
-        PrismContainerDefinition<PendingOperationType> containerDefinition = opState.getRepoShadow().getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
+        PrismContainerDefinition<PendingOperationType> containerDefinition =
+                opState.getRepoShadow().getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
 
-        OperationResultStatus opStateResultStatus = opState.getResultStatus();
-        if (opStateResultStatus == null) {
-            opStateResultStatus = implicitStatus;
-        }
-        OperationResultStatusType opStateResultStatusType = null;
-        if (opStateResultStatus != null) {
-            opStateResultStatusType = opStateResultStatus.createStatusType();
-        }
+        OperationResultStatus opStateResultStatus = MiscUtil.getFirstNonNull(opState.getResultStatus(), implicitStatus);
+        OperationResultStatusType opStateResultStatusType =
+                opStateResultStatus != null ? opStateResultStatus.createStatusType() : null;
         String asynchronousOperationReference = opState.getAsynchronousOperationReference();
 
         for (PendingOperationType pendingOperation : opState.getPendingOperations()) {
@@ -133,7 +130,7 @@ class PendingOperationsHelper {
 
                 if (pendingOperation.getRequestTimestamp() == null) {
                     // This is mostly failsafe. We do not want operations without timestamps. Those would be quite difficult to cleanup.
-                    // Therefore unprecise timestamp is better than no timestamp.
+                    // Therefore imprecise timestamp is better than no timestamp.
                     PropertyDelta<XMLGregorianCalendar> timestampDelta = createPendingOperationDelta(containerDefinition, containerPath,
                             PendingOperationType.F_REQUEST_TIMESTAMP, now);
                     shadowChanges.add(timestampDelta);

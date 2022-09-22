@@ -12,7 +12,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 
@@ -280,9 +279,13 @@ public class ShadowManager {
         return helper.determinePrimaryIdentifierValue(ctx, shadow);
     }
 
-    public PrismObject<ShadowType> refreshProvisioningIndexes(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-            Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        return shadowUpdater.refreshProvisioningIndexes(ctx, repoShadow, task, result);
+    /**
+     * @throws ObjectAlreadyExistsException Only if `resolveConflicts` is `false`
+     */
+    public void refreshProvisioningIndexes(
+            ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, boolean resolveConflicts, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        shadowUpdater.refreshProvisioningIndexes(ctx, repoShadow, resolveConflicts, result);
     }
 
     public void recordModifyResult(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow,

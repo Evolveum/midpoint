@@ -10,15 +10,6 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -94,27 +85,27 @@ public class TestDummyConsistencyReaper extends TestDummyConsistency {
     // But the account is deleted, shadow is dead and dead shadow reaping is merciless.
     @Test
     @Override
-    public void test190AccountMorganDeadExpireOperation() throws Exception {
+    public void test190AccountMorganDeadExpireOperation() {
         // nothing to do
     }
 
     // Same as above, the shadow is gone.
     @Test
     @Override
-    public void test192AccountMorganSecondDeadExpireOperation() throws Exception {
+    public void test192AccountMorganSecondDeadExpireOperation() {
         // nothing to do
     }
 
     // Same as above, the shadow is gone.
     @Test
     @Override
-    public void test194AccountMorganDeadExpireShadow() throws Exception {
+    public void test194AccountMorganDeadExpireShadow() {
         // nothing to do
     }
 
     // The shadow is gone already.
     @Test
-    public void test196AccountMorganSecondDeadExpireShadow() throws Exception {
+    public void test196AccountMorganSecondDeadExpireShadow() {
         // nothing to do
     }
 }

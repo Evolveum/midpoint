@@ -12,9 +12,6 @@ import java.io.File;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
-import com.evolveum.midpoint.test.TestResource;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -24,7 +21,6 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -35,6 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -76,12 +73,11 @@ public class TestDummyConsistency extends AbstractDummyTest {
     private XMLGregorianCalendar lastRequestEndTs;
     private XMLGregorianCalendar lastAttemptStartTs;
     private XMLGregorianCalendar lastAttemptEndTs;
-    protected String shadowMorganOid = ACCOUNT_MORGAN_OID;
+    String shadowMorganOid = ACCOUNT_MORGAN_OID;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-//        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_PROVISIONING_LOGGING;
     }
 
     @Override
@@ -2237,6 +2233,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         checkUniqueness(asserterFuture.getObject());
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertCreatedMorgan(int expectedAttemptNumber) throws Exception {
 
         // @formatter:off
@@ -2435,6 +2432,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertModifiedMorgan(
             int expectedAttemptNumber, int expectedNumberOfPendingOperations, String expectedFullName)
             throws Exception {
@@ -2674,7 +2672,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertKind(ShadowKindType.ACCOUNT)
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertNoPrimaryIdentifierValue()
             .assertNoLegacyConsistency()
             .attributes()
                 .assertAttributes(SchemaConstants.ICFS_NAME, SchemaConstants.ICFS_UID);
@@ -2715,7 +2713,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .display()
             .assertIsExists()
             .assertNotDead()
-            .assertPrimaryIdentifierValue(ACCOUNT_MORGAN_NAME)
+            .assertNoPrimaryIdentifierValue()
             .assertNoLegacyConsistency()
             .attributes()
                 .assertResourceAttributeContainer()
@@ -2853,6 +2851,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected void assertDeletedMorgan(int expectedAttemptNumber, int expectedNumberOfPendingOperations) throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
