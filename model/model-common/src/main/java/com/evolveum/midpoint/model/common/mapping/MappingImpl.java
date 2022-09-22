@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.mapping;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
 import com.evolveum.midpoint.model.common.mapping.metadata.ItemValueMetadataProcessingSpec;
@@ -79,7 +80,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition<?>> exte
         ItemValueMetadataProcessingSpec processingSpec = ItemValueMetadataProcessingSpec.forScope(TRANSFORMATION);
         processingSpec.addPathsToIgnore(mappingBean.getIgnoreMetadataProcessing());
         // TODO What about persona mappings? outbound mappings? We should not use object template for that.
-        processingSpec.populateFromCurrentFocusTemplate(parser.getOutputPath(), beans.objectResolver,
+        processingSpec.populateFromCurrentFocusTemplate(parser.getOutputPath(), ModelCommonBeans.get().objectResolver,
                 getMappingContextDescription(), task, result);
         processingSpec.addMetadataMappings(mappingBean.getMetadataMapping());
         return processingSpec;
