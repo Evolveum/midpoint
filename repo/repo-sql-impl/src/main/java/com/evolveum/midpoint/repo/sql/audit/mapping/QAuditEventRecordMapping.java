@@ -164,7 +164,7 @@ public class QAuditEventRecordMapping
 
     private AuditEventRecordType mapSimpleAttributes(MAuditEventRecord row) {
         // prismContext in constructor ensures complex type definition
-        return new AuditEventRecordType(repositoryContext().prismContext())
+        return new AuditEventRecordType()
                 .repoId(row.id)
                 .channel(row.channel)
                 .eventIdentifier(row.eventIdentifier)
@@ -283,7 +283,10 @@ public class QAuditEventRecordMapping
         MAuditEventRecord bean = new MAuditEventRecord();
         bean.id = record.getRepoId(); // this better be null if we want to insert
         bean.eventIdentifier = record.getEventIdentifier();
-        bean.timestamp = MiscUtil.asInstant(record.getTimestamp());
+        // We definitely want this set, otherwise we can't enforce NOT NULL column, which is
+        // important - e.g. Oracle doesn't use index for nullable column.
+        bean.timestamp = MiscUtil.asInstant(
+                Objects.requireNonNullElse(record.getTimestamp(), System.currentTimeMillis()));
         bean.channel = record.getChannel();
         bean.eventStage = MiscUtil.enumOrdinal(RAuditEventStage.from(record.getEventStage()));
         bean.eventType = MiscUtil.enumOrdinal(RAuditEventType.from(record.getEventType()));
