@@ -133,7 +133,8 @@ public class ConnIdUtil {
 
         // We intentionally do not use LOGGER.error here, to avoid dumping the stack unless the DEBUG logging is set.
         // This is because ConnID errors often get handled in upper layers. See also MID-5937.
-        LoggingUtils.logExceptionAsWarning(LOGGER, "Got ConnId exception (might be handled by upper layers later) {} in {}: {}",
+        LoggingUtils.logExceptionAsWarning(
+                LOGGER, "Got ConnId exception (might be handled by upper layers later) {} in {}: {}",
                 connIdException, connIdException.getClass().getName(), desc, connIdException.getMessage());
 
         if (connIdException instanceof RemoteWrappedException) {
