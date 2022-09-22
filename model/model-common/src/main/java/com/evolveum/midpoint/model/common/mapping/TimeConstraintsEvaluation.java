@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.common.mapping;
 
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -133,7 +134,8 @@ class TimeConstraintsEvaluation implements Serializable {
                 time = (XMLGregorianCalendar) referenceTime.clone();
             }
         } else {
-            MutablePrismPropertyDefinition<XMLGregorianCalendar> timeDefinition = m.beans.prismContext.definitionFactory().createPropertyDefinition(
+            MutablePrismPropertyDefinition<XMLGregorianCalendar> timeDefinition =
+                    PrismContext.get().definitionFactory().createPropertyDefinition(
                     ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.XSD_DATETIME);
             timeDefinition.setMaxOccurs(1);
 
@@ -142,7 +144,7 @@ class TimeConstraintsEvaluation implements Serializable {
             timeVariables.addVariableDefinition(ExpressionConstants.VAR_REFERENCE_TIME, referenceTime, timeDefinition);
 
             PrismPropertyValue<XMLGregorianCalendar> timePropVal = ExpressionUtil.evaluateExpression(m.sources, timeVariables, timeDefinition,
-                    expressionBean, m.expressionProfile, m.beans.expressionFactory, "time expression in " + m.getMappingContextDescription(), m.getTask(), result);
+                    expressionBean, m.expressionProfile, ModelCommonBeans.get().expressionFactory, "time expression in " + m.getMappingContextDescription(), m.getTask(), result);
 
             if (timePropVal == null) {
                 return null;
@@ -165,7 +167,7 @@ class TimeConstraintsEvaluation implements Serializable {
         ItemPath path = m.parser.getSourcePath(source);
 
         Object sourceObject = ExpressionUtil.resolvePathGetValue(path, m.variables, false,
-                m.getTypedSourceContext(), m.beans.objectResolver, m.beans.prismContext,
+                m.getTypedSourceContext(), ModelCommonBeans.get().objectResolver, PrismContext.get(),
                 "reference time definition in " + m.getMappingContextDescription(), m.getTask(), result);
         LOGGER.trace("parseTimeSource: path = {}, source object = {}", path, sourceObject);
 

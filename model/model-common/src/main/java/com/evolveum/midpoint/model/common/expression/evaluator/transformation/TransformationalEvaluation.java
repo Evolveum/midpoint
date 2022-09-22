@@ -64,7 +64,7 @@ class TransformationalEvaluation<V extends PrismValue, D extends ItemDefinition,
             for (Source<?, ?> source : context.getSources()) {
                 trace.beginSource()
                         .name(source.getName())
-                        .itemDeltaItem(source.toItemDeltaItemType(prismContext));
+                        .itemDeltaItem(source.toItemDeltaItemType());
             }
             trace.skipEvaluationPlus(context.isSkipEvaluationPlus())
                     .skipEvaluationMinus(context.isSkipEvaluationMinus())
@@ -76,7 +76,7 @@ class TransformationalEvaluation<V extends PrismValue, D extends ItemDefinition,
 
     void recordEvaluationEnd(PrismValueDeltaSetTriple<V> outputTriple) {
         if (trace != null && outputTriple != null) {
-            trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, prismContext));
+            trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple));
         }
     }
 }

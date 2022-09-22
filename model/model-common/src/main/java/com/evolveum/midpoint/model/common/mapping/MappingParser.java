@@ -7,8 +7,10 @@
 
 package com.evolveum.midpoint.model.common.mapping;
 
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -135,7 +137,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
         String variableName = sourceQName.getLocalPart();
 
         TypedValue<?> typedSourceObject = ExpressionUtil.resolvePathGetTypedValue(path, m.variables, true,
-                m.getTypedSourceContext(), m.beans.objectResolver, m.beans.prismContext,
+                m.getTypedSourceContext(), ModelCommonBeans.get().objectResolver, PrismContext.get(),
                 "source definition in " + m.getMappingContextDescription(), m.getTask(), result);
 
         Object sourceObject = typedSourceObject != null ? typedSourceObject.getValue() : null;
@@ -179,7 +181,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                     m.expressionProfile, variableName, null,
                     "domain of " + variableName, "domain of " + variableName + " in " + m.getMappingContextDescription(),
                     m.getTask(), result);
-            setDef.init(m.beans.expressionFactory);
+            setDef.init(ModelCommonBeans.get().expressionFactory);
             setDef.setAdditionalVariables(m.variables);
             try {
 
