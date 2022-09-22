@@ -171,6 +171,7 @@ public class ClassLoggersContentPanel extends MultivalueContainerListPanel<Class
                 logger.setSelected(true);
             }
         }
+        getTable().goToLastPage();
         target.add(this);
     }
 }
