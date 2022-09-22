@@ -78,7 +78,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new InboundAttributeMappingsTable(panelId, getResourceModel(), valueModel) {
+                return new InboundAttributeMappingsTable(panelId, valueModel) {
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
@@ -97,7 +97,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new OutboundAttributeMappingsTable(panelId, getResourceModel(), valueModel) {
+                return new OutboundAttributeMappingsTable(panelId, valueModel) {
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
@@ -154,6 +154,19 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
         newObjectTypeButton.add(AttributeAppender.append("class", "btn btn-primary"));
         buttons.add(newObjectTypeButton);
 
+        AjaxIconButton showOverrides = new AjaxIconButton(
+                buttons.newChildId(),
+                Model.of("fa fa-shuffle"),
+                getPageBase().createStringResource("AttributeMappingsTableWizardPanel.showOverrides")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onShowOverrides(target);
+            }
+        };
+        showOverrides.showTitleAsLabel(true);
+        showOverrides.add(AttributeAppender.append("class", "btn btn-primary"));
+        buttons.add(showOverrides);
+
         AjaxIconButton saveButton = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-floppy-disk"),
@@ -168,6 +181,8 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
         saveButton.add(AttributeAppender.append("class", "btn btn-success"));
         buttons.add(saveButton);
     }
+
+    protected abstract void onShowOverrides(AjaxRequestTarget target);
 
     protected IModel<String> getSubmitLabelModel() {
         return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.saveButton");

@@ -9,15 +9,16 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.AbstractFormResourceWizardStepPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -29,18 +30,17 @@ import org.apache.wicket.model.IModel;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.limitation", icon = "fa fa-circle"),
-//        containerPath = "schemaHandling/objectType/attribute/limitations",
         expanded = true)
-public class LimitationsStepPanel extends AbstractFormResourceWizardStepPanel {
+public class LimitationsStepPanel extends AbstractValueFormResourceWizardStepPanel<PropertyLimitationsType> {
 
     private static final String PANEL_TYPE = "limitationsMappingWizard";
 
-    private final IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> newValueModel;
+    private final IModel<PrismContainerValueWrapper<PropertyLimitationsType>> valueModel;
 
     public LimitationsStepPanel(ResourceDetailsModel model,
-            IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> newValueModel) {
-        super(model);
-        this.newValueModel = newValueModel;
+            IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> parentModel) {
+        super(model, null);
+        this.valueModel = createNewValueModel(parentModel, ResourceAttributeDefinitionType.F_LIMITATIONS);
     }
 
     protected String getPanelType() {
@@ -48,17 +48,17 @@ public class LimitationsStepPanel extends AbstractFormResourceWizardStepPanel {
     }
 
     @Override
-    protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
-        PrismContainerWrapperModel<ResourceAttributeDefinitionType, Containerable> model
-                = PrismContainerWrapperModel.fromContainerValueWrapper(newValueModel, ResourceAttributeDefinitionType.F_LIMITATIONS);
-        model.getObject().setExpanded(true);
-        return model;
+    public IModel<PrismContainerValueWrapper<PropertyLimitationsType>> getValueModel() {
+        return valueModel;
     }
 
-    @Override
-    protected boolean isExitButtonVisible() {
-        return true;
-    }
+    //    @Override
+//    protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
+//        PrismContainerWrapperModel<ResourceAttributeDefinitionType, Containerable> model
+//                = PrismContainerWrapperModel.fromContainerValueWrapper(newValueModel, ResourceAttributeDefinitionType.F_LIMITATIONS);
+//        model.getObject().setExpanded(true);
+//        return model;
+//    }
 
     @Override
     protected String getIcon() {
@@ -81,7 +81,12 @@ public class LimitationsStepPanel extends AbstractFormResourceWizardStepPanel {
     }
 
     @Override
-    protected void onSubmitPerformed(AjaxRequestTarget target) {
-        onExitPerformed(target);
+    protected boolean isSubmitVisible() {
+        return false;
+    }
+
+    @Override
+    public VisibleEnableBehaviour getNextBehaviour() {
+        return new VisibleBehaviour(() -> false);
     }
 }

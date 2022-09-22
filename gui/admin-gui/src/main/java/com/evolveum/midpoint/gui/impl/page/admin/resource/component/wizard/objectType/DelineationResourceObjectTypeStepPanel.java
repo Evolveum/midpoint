@@ -17,6 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 /**
  * @author lskublik
@@ -25,18 +26,21 @@ import org.apache.wicket.model.IModel;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.delineation", icon = "fa fa-circle"),
-//        containerPath = "schemaHandling/objectType/attribute/limitations",
         expanded = true)
 public class DelineationResourceObjectTypeStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDelineationType> {
 
     private static final String PANEL_TYPE = "delineationResourceObjectTypeWizard";
-
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> objectTypeValueModel;
+    private IModel<PrismContainerValueWrapper<ResourceObjectTypeDelineationType>> valueModel = null;
 
     public DelineationResourceObjectTypeStepPanel(ResourceDetailsModel model,
                            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
-        super(model, createNewValueModel(newValueModel, ResourceObjectTypeDefinitionType.F_DELINEATION));
-        this.objectTypeValueModel = newValueModel;
+        super(model, null);
+        this.valueModel = createNewValueModel(newValueModel, ResourceObjectTypeDefinitionType.F_DELINEATION);
+    }
+
+    @Override
+    public IModel<PrismContainerValueWrapper<ResourceObjectTypeDelineationType>> getValueModel() {
+        return valueModel;
     }
 
     protected String getPanelType() {

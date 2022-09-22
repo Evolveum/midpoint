@@ -65,8 +65,8 @@ public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTa
 
     private static final Trace LOGGER = TraceManager.getTrace(OutboundAttributeMappingsTable.class);
 
-    public OutboundAttributeMappingsTable(String id, ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, model, valueModel);
+    public OutboundAttributeMappingsTable(String id, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        super(id, valueModel);
     }
 
     @Override

@@ -86,6 +86,11 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
             }
 
             @Override
+            protected void onShowOverrides(AjaxRequestTarget target) {
+                showAttributeOverrides(target);
+            }
+
+            @Override
             protected IModel<String> getSubmitLabelModel() {
                 if (isSavedAfterWizard()) {
                     return super.getSubmitLabelModel();
@@ -94,6 +99,43 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
             }
         };
         return table;
+    }
+
+    private void showAttributeOverrides(AjaxRequestTarget target) {
+        showChoiceFragment(
+                target,
+                new MappingOverridesTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), getValueModel()) {
+                    @Override
+                    protected void onSaveResourcePerformed(AjaxRequestTarget target) {
+                        if (!isSavedAfterWizard()) {
+                            onExitPerformed(target);
+                            return;
+                        }
+                        OperationResult result = AttributeMappingWizardPanel.this.onSaveResourcePerformed(target);
+                        if (result != null && !result.isError()) {
+                            new Toast()
+                                    .success()
+                                    .title(getString("ResourceWizardPanel.updateResource"))
+                                    .icon("fas fa-circle-check")
+                                    .autohide(true)
+                                    .delay(5_000)
+                                    .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
+                            onExitPerformed(target);
+                        }
+                    }
+
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        showTableFragment(target);
+                    }
+
+                    @Override
+                    protected void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> value, AjaxRequestTarget target) {
+                        showWizardFragment(
+                                target,
+                                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createNewAttributeOverrideSteps(value))));
+                    }
+                });
     }
 
     protected void onExitPerformed(AjaxRequestTarget target) {
@@ -137,20 +179,20 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
         return steps;
     }
 
-    private List<WizardStep> createNewAttributeMappingSteps(
+    private List<WizardStep> createNewAttributeOverrideSteps(
             IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new BasicSettingStepPanel(getResourceModel(), valueModel) {
+        steps.add(new MainConfigurationStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showTableFragment(target);
+                showAttributeOverrides(target);
             }
         });
 
         steps.add(new LimitationsStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showTableFragment(target);
+                showAttributeOverrides(target);
             }
         });
         return steps;

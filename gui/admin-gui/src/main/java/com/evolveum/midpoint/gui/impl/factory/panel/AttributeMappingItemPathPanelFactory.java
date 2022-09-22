@@ -192,7 +192,8 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
                         if (objectType != null) {
                             List<ItemPathType> existingPaths = new ArrayList<>();
                             objectType.getAttribute().forEach(attributeMapping -> {
-                                if (attributeMapping.getRef() != null) {
+                                if (attributeMapping.getRef() != null
+                                        && !attributeMapping.getRef().equivalent(wrapper.getRealValue())) {
                                     existingPaths.add(attributeMapping.getRef());
                                 }
                             });
