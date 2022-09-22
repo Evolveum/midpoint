@@ -17,7 +17,7 @@ MidPoint objects do not live in isolation.
 Often they need to take data from related objects.
 And so if an object changes, the change needs to be cascaded to related objects.
 
-In midPoint 3,3 (2015) we have implemented "recompute affected" model execution option.
+In midPoint 3.3 (2015) we have implemented "recompute affected" model execution option.
 Its purpose was to trigger recomputation of members of a role that was modified by the operation.
 Today we need to reimplement this mechanism in more generic and powerful way.
 Here it is.
@@ -118,7 +118,7 @@ A link between two objects can be:
 
 |===
 
-So the link between two objects (A  B) is in one of 4 states:
+So the link between two objects (A → B) is in one of 4 states:
 
 [%autowidth]
 |===
@@ -135,7 +135,7 @@ There is an assignment from A to B. The assignment is valid and effective, so th
 
 | No
 | Yes
-| There is no direct assignment from A to B, but the link was created indirectly, e.g. via some inducement, for example from A to B, where B induces C. So A  C is not prescribed but actual.
+| There is no direct assignment from A to B, but the link was created indirectly, e.g. via some inducement, for example from A to B, where B induces C. So A → C is not prescribed but actual.
 
 | No
 | No
@@ -186,7 +186,7 @@ Therefore:
 
 . You cannot use it in inbound mappings.
 
-. If you use it in object templates, you need to specify `evaluationPhaseafterAssignments/evaluationPhase`.
+. If you use it in object templates, you need to specify `evaluationPhase` of `afterAssignments`.
 
 . The use in assigned/induced focus mappings or resource outbound mappings is OK.
 
@@ -204,7 +204,7 @@ On the other hand, `midpoint.findLinkedSources` returns the same data in both ol
 
 == Cascading the changes
 
-We often need recompute one side of the link when relevant parts of an object on the other side (or the link itself) change.
+We often need to recompute one side of the link when relevant parts of an object on the other side (or the link itself) change.
 We usually use policy rule with `scriptExecution` policy action for this.
 
 
