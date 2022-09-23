@@ -45,7 +45,6 @@ public class AbstractUninitializedCertificationTest extends AbstractModelIntegra
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
-        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
 
         // System Configuration

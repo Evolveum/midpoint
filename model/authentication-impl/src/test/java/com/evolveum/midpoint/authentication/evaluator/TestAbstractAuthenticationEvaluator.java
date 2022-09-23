@@ -105,7 +105,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
 
         // System Configuration

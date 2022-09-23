@@ -56,7 +56,6 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
-        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
         userAdministrator = repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, initResult);
         login(userAdministrator);

@@ -28,12 +28,6 @@
         <constructor-arg name="cacheRepositoryService" ref="cacheRepositoryService"/>
     </bean>
 
-    <bean id="provisioningInitialSetup"
-            class="com.evolveum.midpoint.init.ProvisioningInitialSetup"
-            init-method="init">
-        <property name="provisioning" ref="provisioningService"/>
-    </bean>
-
     <bean id="initialDataImport"
             class="com.evolveum.midpoint.init.InitialDataImport"
             init-method="init">

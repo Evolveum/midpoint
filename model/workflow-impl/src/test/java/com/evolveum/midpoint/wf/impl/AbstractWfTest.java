@@ -92,7 +92,6 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
 
         PrismObject<SystemConfigurationType> sysconfig = prismContext.parseObject(getSystemConfigurationFile());
