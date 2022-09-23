@@ -63,6 +63,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -319,7 +320,7 @@ public class ProvisioningUtil {
         if (message == null) {
             message = ex.getMessage();
         }
-        logger.error(message, ex);
+        LoggingUtils.logExceptionAsWarning(logger, message, ex);
         opResult.recordFatalError(message, ex);
         opResult.cleanupResult(ex);
     }
