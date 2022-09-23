@@ -372,10 +372,11 @@ public class ShadowCaretaker {
                 return ShadowState.TOMBSTONE;
             }
         }
+        if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
+            return ShadowState.REAPING;
+        }
         if (ShadowUtil.isExists(shadowType)) {
-            if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
-                return ShadowState.REAPING;
-            } else if (pendingLifecycleOperation == ChangeTypeType.ADD) {
+            if (pendingLifecycleOperation == ChangeTypeType.ADD) {
                 return ShadowState.GESTATION;
             } else {
                 return ShadowState.LIFE;
