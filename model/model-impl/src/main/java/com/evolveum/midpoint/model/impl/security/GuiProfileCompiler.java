@@ -671,7 +671,7 @@ public class GuiProfileCompiler {
         }
         String oldConnectorRef = resolveReferenceIfNeeded(oldConf.getConnectorRef(), result);
         String newConnctorRef = resolveReferenceIfNeeded(newConf.getConnectorRef(), result);
-        if (oldConnectorRef == null || oldConnectorRef == null) {
+        if (oldConnectorRef == null || newConnctorRef == null) {
             return false;
         }
         return oldConnectorRef.equals(newConnctorRef);
