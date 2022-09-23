@@ -105,7 +105,7 @@ class RefreshHelper {
             throw SystemException.unexpected(e, "when refreshing provisioning indexes");
         }
 
-        RefreshShadowOperation refreshShadowOperation = refreshShadowPendingOperations(ctx, repoShadow, options, task, result);
+        RefreshShadowOperation refreshShadowOperation = processPendingOperations(ctx, repoShadow, options, task, result);
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
@@ -119,7 +119,7 @@ class RefreshHelper {
         return refreshShadowOperation;
     }
 
-    private @NotNull RefreshShadowOperation refreshShadowPendingOperations(
+    private @NotNull RefreshShadowOperation processPendingOperations(
             ProvisioningContext ctx,
             PrismObject<ShadowType> repoShadow,
             ProvisioningOperationOptions options,
@@ -152,7 +152,7 @@ class RefreshHelper {
 
         refreshShadowAsyncStatus(ctx, repoShadow, sortedOperations, task, result);
 
-        return refreshShadowRetryOperations(ctx, repoShadow, sortedOperations, options, task, result);
+        return retryOperations(ctx, repoShadow, sortedOperations, options, task, result);
     }
 
     /**
@@ -372,7 +372,7 @@ class RefreshHelper {
         }
     }
 
-    private @NotNull RefreshShadowOperation refreshShadowRetryOperations(
+    private @NotNull RefreshShadowOperation retryOperations(
             ProvisioningContext ctx,
             PrismObject<ShadowType> repoShadow,
             List<PendingOperationType> sortedOperations,
