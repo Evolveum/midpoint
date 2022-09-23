@@ -280,7 +280,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                isRepoSearch = true;
                 updateSearchButtons(true, target, initRepoContent(ResourceContentPanel.this.getObjectWrapperModel()));
             }
         };
@@ -294,7 +293,6 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                isRepoSearch = false;
                 updateSearchButtons(false, target, initResourceContent(ResourceContentPanel.this.getObjectWrapperModel()));
             }
 
@@ -309,12 +307,14 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         getContentStorage(kind, SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).setResourceSearch(!repoSearch);
 
         resourceContentSearch.getObject().setResourceSearch(!repoSearch);
+        this.isRepoSearch = repoSearch;
         updateResourceContentSearch();
 
         Form mainForm = getMainForm();
         mainForm.addOrReplace(newPanel);
         target.add(mainForm);
         target.add(get(ID_RESOURCE_CHOICE_CONTAINER_SEARCH));
+
     }
 
     private Form getMainForm() {
