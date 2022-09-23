@@ -588,6 +588,7 @@ public abstract class SchemaConstants {
     public static final String TECHNICAL_OBJECT_SPECIFICATION_KEY = "TechnicalObjectSpecification";
     public static final String OBJECT_SPECIFICATION_KEY = "ObjectSpecification";
     public static final String OBJECT_SPECIFICATION_WITH_PATH_KEY = "ObjectSpecificationWithPath";
+    public static final String USER_DESCRIPTIVE_NAME = "UserDescriptiveName";
 
     // a bit of hack
     public static final String COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI = SchemaConstants.NS_MODEL + "/completedTaskCleanup/handler-3";
