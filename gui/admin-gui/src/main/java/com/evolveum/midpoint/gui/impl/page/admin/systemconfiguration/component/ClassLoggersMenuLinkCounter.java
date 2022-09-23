@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.ProfilingClassLoggerWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.web.application.SimpleCounter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
@@ -27,7 +28,11 @@ public class ClassLoggersMenuLinkCounter extends SimpleCounter<AssignmentHolderD
         SystemConfigurationType object = model.getObjectType();
         LoggingConfigurationType lg = object.getLogging();
 
-        return lg != null ? lg.getClassLogger().size() : 0;
+        if (lg == null) {
+            return 0;
+        }
+
+        return (int) lg.getClassLogger().stream().filter(l -> !ProfilingClassLoggerWrapperFactoryImpl.LOGGER_PROFILING.equals(l.getPackage())).count();
     }
 }
 

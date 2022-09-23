@@ -6,19 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.impl.component.menu.PageTypes;
-import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
-
-import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -44,6 +34,7 @@ import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisitor;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
@@ -52,6 +43,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.*;
+import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -78,6 +70,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
@@ -211,16 +204,17 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     }
                 }
 
+                // todo this should not be here! Search model doesn't handle paging, only query. Paging is handled by table (which technically doesn't care about specific query)
                 if (isCollectionViewPanel()) {
                     CompiledObjectCollectionView view = getObjectCollectionView();
                     if (view == null) {
                         getPageBase().redirectToNotFoundPage();
                     }
-//                    search.setCollectionSearchItem(new ObjectCollectionSearchItem(search, view));
-//                    search.setCollectionItemVisible(isCollectionViewPanelForWidget());
+
                     if (isCollectionViewPanelForWidget()) {
                         search.getItems().add(new ObjectCollectionSearchItemWrapper(view));
                     }
+
                     if (storage != null && view.getPaging() != null) {
                         ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging(), getPrismContext());
                         if (storage.getPaging() == null) {
@@ -232,6 +226,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                         }
                     }
                 }
+
                 if (storage != null) {
                     storage.setSearch(search);
                 }
@@ -338,6 +333,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             }
         };
         itemTable.setOutputMarkupId(true);
+
+        if (getTableId() != null) {
+            itemTable.setItemsPerPage(getSession().getSessionStorage().getUserProfile().getPagingSize(getTableId()));
+        }
+
         if (getPageStorage() != null) {
             ObjectPaging pageStorage = getPageStorage().getPaging();
             if (pageStorage != null) {
