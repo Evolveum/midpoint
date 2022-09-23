@@ -21,8 +21,6 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
-import com.evolveum.midpoint.init.ProvisioningInitialSetup;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
@@ -139,7 +137,6 @@ public class PageAbout extends PageAdminConfiguration {
 
     @Autowired RepositoryCache repositoryCache;
     @Autowired protected SystemObjectCache systemObjectCache;
-    @Autowired ProvisioningService provisioningService;
 
     public PageAbout() {
         repoDiagModel = new LoadableModel<RepositoryDiag>(false) {
@@ -592,8 +589,6 @@ public class PageAbout extends PageAdminConfiguration {
                     return null;
                 }
             });
-
-            provisioningService.postInit(result);
 
             InitialDataImport initialDataImport = new InitialDataImport();
             initialDataImport.setModel(getModelService());

@@ -10,6 +10,10 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -263,7 +267,7 @@ public class GuiProfileCompiler {
                     .filter(currentDetails -> currentDetails.getConnectorRef() == null)
                     .findFirst();
             for (GuiResourceDetailsPageType resourceDetails : adminGuiConfiguration.getObjectDetails().getResourceDetailsPage()) {
-                joinResourceDetails(composite.getObjectDetails(), resourceDetails, detailForAllResources);
+                joinResourceDetails(composite.getObjectDetails(), resourceDetails, detailForAllResources, result);
             }
         }
         if (adminGuiConfiguration.getUserDashboard() != null) {
@@ -614,8 +618,8 @@ public class GuiProfileCompiler {
         objectDetailsSet.getShadowDetailsPage().add(newObjectDetails.clone());
     }
 
-    private void joinResourceDetails(GuiObjectDetailsSetType objectDetailsSet, GuiResourceDetailsPageType newObjectDetails, Optional<GuiResourceDetailsPageType> detailForAllResources) {
-        objectDetailsSet.getResourceDetailsPage().removeIf(currentDetails -> isTheSameConnectorType(currentDetails, newObjectDetails));
+    private void joinResourceDetails(GuiObjectDetailsSetType objectDetailsSet, GuiResourceDetailsPageType newObjectDetails, Optional<GuiResourceDetailsPageType> detailForAllResources, OperationResult result) {
+        objectDetailsSet.getResourceDetailsPage().removeIf(currentDetails -> isTheSameConnectorType(currentDetails, newObjectDetails, result));
         if (!detailForAllResources.isEmpty() && newObjectDetails.getConnectorRef() != null) {
             GuiResourceDetailsPageType merged = adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
                     detailForAllResources.get(),
@@ -660,12 +664,34 @@ public class GuiProfileCompiler {
         return oldCoords.equals(newCoords);
     }
 
-    private boolean isTheSameConnectorType(GuiResourceDetailsPageType oldConf, GuiResourceDetailsPageType newConf) {
+    private boolean isTheSameConnectorType(GuiResourceDetailsPageType oldConf, GuiResourceDetailsPageType newConf, OperationResult result) {
         if (oldConf.getConnectorRef() == null || newConf.getConnectorRef() == null) {
             LOGGER.trace("Cannot join resource details configuration as defined in {} and {}. No connector defined", oldConf, newConf);
             return false;
         }
-        return oldConf.getConnectorRef().getOid().equals(newConf.getConnectorRef().getOid());
+        String oldConnectorRef = resolveReferenceIfNeeded(oldConf.getConnectorRef(), result);
+        String newConnctorRef = resolveReferenceIfNeeded(newConf.getConnectorRef(), result);
+        if (oldConnectorRef == null || newConnctorRef == null) {
+            return false;
+        }
+        return oldConnectorRef.equals(newConnctorRef);
+    }
+
+    private String resolveReferenceIfNeeded(ObjectReferenceType reference, OperationResult result) {
+        if (reference.getOid() != null) {
+            return reference.getOid();
+        }
+        if (reference.getFilter() == null) {
+            LOGGER.debug("Neither filter, nor oid defined in the reference: {}", reference);
+            return null;
+        }
+
+        if (reference.getResolutionTime() == EvaluationTimeType.RUN) {
+            ModelImplUtils.resolveRef(reference.asReferenceValue(), repositoryService,
+                    false, false, EvaluationTimeType.RUN, prismContext,
+                    "resolving connector reference", false, result);
+        }
+        return reference.getOid();
     }
 
     private boolean isTheSameObjectForm(ObjectFormType oldForm, ObjectFormType newForm) {

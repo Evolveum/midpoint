@@ -121,7 +121,6 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
         // WHEN
         repositoryService.postInit(result);
-        provisioningService.postInit(result);
         modelService.postInit(result);
 
         // THEN

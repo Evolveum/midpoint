@@ -63,7 +63,6 @@ public class MidScaleGuiTest extends AbstractGuiIntegrationTest implements Perfo
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
         userAdministrator = repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, initResult);
 

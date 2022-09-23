@@ -294,7 +294,6 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
                     "looks like the previous test haven't cleaned it up", e);
         }
 
-        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
 
         // TODO what now? config is unused

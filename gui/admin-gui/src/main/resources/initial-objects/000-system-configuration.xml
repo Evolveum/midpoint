@@ -1058,6 +1058,7 @@
                     <panelType>connectorPartialConfigurationWizard</panelType>
                 </panel>
                 <connectorRef type="ConnectorType">
+                    <resolutionTime>run</resolutionTime>
                     <filter>
                         <q:and>
                             <q:equal>
@@ -1094,6 +1095,7 @@
                     <panelType>connectorPartialConfigurationWizard</panelType>
                 </panel>
                 <connectorRef type="ConnectorType">
+                    <resolutionTime>run</resolutionTime>
                     <filter>
                         <q:and>
                             <q:equal>
@@ -1130,6 +1132,7 @@
                     <panelType>connectorPartialConfigurationWizard</panelType>
                 </panel>
                 <connectorRef type="ConnectorType">
+                    <resolutionTime>run</resolutionTime>
                     <filter>
                         <q:and>
                             <q:equal>

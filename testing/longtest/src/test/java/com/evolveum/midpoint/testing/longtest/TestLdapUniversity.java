@@ -81,7 +81,6 @@ public class TestLdapUniversity extends AbstractModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
 
         // System Configuration
