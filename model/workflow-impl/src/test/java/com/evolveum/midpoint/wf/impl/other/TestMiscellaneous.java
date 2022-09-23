@@ -498,7 +498,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         assertCase(approvalCase, "after")
                 .display()
-                .assertNameOrig("Assigning role \"vault-access\" to user \"Launchpad McQuack\"")
+                .assertNameOrig("Assigning role \"vault-access\" to user \"Launchpad McQuack (launchpad)\"")
                 .assertApprovalCaseArchetype()
                 .assertObjectRef(USER_LAUNCHPAD.oid, UserType.COMPLEX_TYPE)
                 .assertTargetRef(ROLE_VAULT_ACCESS.oid, RoleType.COMPLEX_TYPE)
@@ -519,7 +519,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                 .workItems()
                     .assertWorkItems(1)
                     .single()
-                        .assertNameOrig("Assigning role \"vault-access\" to user \"Launchpad McQuack\"")
+                        .assertNameOrig("Assigning role \"vault-access\" to user \"Launchpad McQuack (launchpad)\"")
                         .assertStageNumber(1)
                         .assertOriginalAssigneeRef(USER_SCROOGE.oid, UserType.COMPLEX_TYPE)
                         .assertPerformerRef(USER_SCROOGE.oid, UserType.COMPLEX_TYPE) // we should perhaps list attorney here as well
@@ -578,7 +578,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         assertCase(approvalCase, "after")
                 .display()
-                .assertNameOrig("Assigning role \"vault-access\" to user \"Launchpad McQuack\"")
+                .assertNameOrig("Assigning role \"vault-access\" to user \"Launchpad McQuack (launchpad)\"")
                 .assertApprovalCaseArchetype()
                 .assertObjectRef(USER_LAUNCHPAD.oid, UserType.COMPLEX_TYPE)
                 .assertTargetRef(ROLE_VAULT_ACCESS.oid, RoleType.COMPLEX_TYPE)
@@ -599,7 +599,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                 .workItems()
                     .assertWorkItems(1)
                     .single()
-                        .assertNameOrig("Assigning role \"vault-access\" to user \"Launchpad McQuack\"")
+                        .assertNameOrig("Assigning role \"vault-access\" to user \"Launchpad McQuack (launchpad)\"")
                         .assertStageNumber(1)
                         .assertOriginalAssigneeRef(USER_SCROOGE.oid, UserType.COMPLEX_TYPE)
                         .assertPerformerRef(USER_SCROOGE.oid, UserType.COMPLEX_TYPE) // we should perhaps list attorney here as well
