@@ -59,7 +59,7 @@ public class IterationItemInformation {
 
     public IterationItemInformation(ShadowType shadow) {
         this(PolyString.getOrig(shadow.getName()),
-                ObjectTypeUtil.getDetailedDisplayName(shadow.asPrismObject()),
+                ObjectTypeUtil.getDetailedDisplayName(shadow),
                 ShadowType.COMPLEX_TYPE, shadow.getOid());
     }
 
