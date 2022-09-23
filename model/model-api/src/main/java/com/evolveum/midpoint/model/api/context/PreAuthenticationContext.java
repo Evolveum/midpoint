@@ -17,11 +17,8 @@ import java.util.List;
 
 public class PreAuthenticationContext extends AbstractAuthenticationContext {
 
-    public PreAuthenticationContext(String username, Class<? extends FocusType> principalType){
-        super(username, principalType);
-    }
-
-    public PreAuthenticationContext(String username, Class<? extends FocusType> principalType, List<ObjectReferenceType> requireAssignment) {
+    public PreAuthenticationContext(
+            String username, Class<? extends FocusType> principalType, List<ObjectReferenceType> requireAssignment) {
         super(username, principalType, requireAssignment);
     }
 

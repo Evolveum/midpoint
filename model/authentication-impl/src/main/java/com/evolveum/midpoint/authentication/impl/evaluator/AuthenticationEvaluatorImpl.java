@@ -113,9 +113,9 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
         CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
         if (checkCredentials(principal, authnCtx, connEnv)) {
-            if(!AuthenticationEvaluatorUtil.checkRequiredAssignment(focusType.getAssignment(), authnCtx.getRequireAssignments())){
-                recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "not contains required assignment", authnCtx.getPrincipalType(), false);
-                recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "not contains required assignment", false);
+            if (!AuthenticationEvaluatorUtil.checkRequiredAssignmentTargets(focusType, authnCtx.getRequireAssignments())) {
+                recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "does not contain required assignment", authnCtx.getPrincipalType(), false);
+                recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "does not contain required assignment", false);
                 throw new InternalAuthenticationServiceException("web.security.flexAuth.invalid.required.assignment");
             }
         } else {
@@ -256,7 +256,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
             throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
         }
 
-        if(AuthenticationEvaluatorUtil.checkRequiredAssignment(principal.getFocus().getAssignment(), authnCtx.getRequireAssignments())){
+        if (AuthenticationEvaluatorUtil.checkRequiredAssignmentTargets(principal.getFocus(), authnCtx.getRequireAssignments())) {
             PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, null, authnCtx.getPrincipalType(), true);
             return token;
