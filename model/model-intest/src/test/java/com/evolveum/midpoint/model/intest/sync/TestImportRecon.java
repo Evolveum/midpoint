@@ -3090,7 +3090,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .assignment(new AssignmentType()
                         .construction(new ConstructionType()
                                 .resourceRef(RESOURCE_DUMMY_ARCHETYPED.oid, ResourceType.COMPLEX_TYPE)));
-        String oid = addObject(user.asPrismObject(), task, result);
+        String oid = addObject(user, task, result);
 
         then("user gets the archetype");
         assertUserAfter(oid)

@@ -927,7 +927,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             SchemaException {
         ErrorSelectorType errorSelectorType = ResourceTypeUtil.getConnectorErrorCriticality(resource);
         CriticalityType criticality = ExceptionUtil.getCriticality(errorSelectorType, t, CriticalityType.FATAL);
-        RepoCommonUtils.processErrorCriticality(task, criticality, t, result);
+        RepoCommonUtils.processErrorCriticality(resource, criticality, t, result);
         if (criticality == CriticalityType.IGNORE) {
             result.muteLastSubresultError();
         }

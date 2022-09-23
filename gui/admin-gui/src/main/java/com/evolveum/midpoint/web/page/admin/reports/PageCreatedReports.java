@@ -451,7 +451,7 @@ public class PageCreatedReports extends PageAdmin {
     private boolean isTrace(IModel<?> rowModel) {
         //noinspection unchecked
         SelectableBean<ReportDataType> row = (SelectableBean<ReportDataType>) rowModel.getObject();
-        return ObjectTypeUtil.hasArchetype(row.getValue(), SystemObjectsType.ARCHETYPE_TRACE.value());
+        return ObjectTypeUtil.hasArchetypeRef(row.getValue(), SystemObjectsType.ARCHETYPE_TRACE.value());
     }
 
     private IModel<String> createDeleteConfirmString() {

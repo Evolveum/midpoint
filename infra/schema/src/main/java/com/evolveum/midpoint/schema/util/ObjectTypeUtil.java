@@ -929,11 +929,13 @@ public class ObjectTypeUtil {
         return rv;
     }
 
-    public static <AH extends AssignmentHolderType> boolean hasArchetype(PrismObject<AH> object, String oid) {
-        return hasArchetype(object.asObjectable(), oid);
+    // BEWARE: Checks archetypeRef. This may be a problem during clockwork processing.
+    public static <AH extends AssignmentHolderType> boolean hasArchetypeRef(PrismObject<AH> object, String oid) {
+        return hasArchetypeRef(object.asObjectable(), oid);
     }
 
-    public static <AH extends AssignmentHolderType> boolean hasArchetype(AH objectable, String oid) {
+    // BEWARE: Checks archetypeRef. This may be a problem during clockwork processing.
+    public static <AH extends AssignmentHolderType> boolean hasArchetypeRef(AH objectable, String oid) {
         for (ObjectReferenceType orgRef : objectable.getArchetypeRef()) {
             if (oid.equals(orgRef.getOid())) {
                 return true;

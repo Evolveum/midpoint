@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.policy.scriptExecutor;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -133,10 +134,14 @@ class LinkSourceFinder implements AutoCloseable {
 
     private LinkedObjectSelectorType resolveSourceSelector(String linkTypeName)
             throws SchemaException, ConfigurationException {
-        LinkTypeDefinitionType definition = actx.beans.linkManager.getSourceLinkTypeDefinitionRequired(
-                linkTypeName, actx.focusContext.getObjectAny(), result);
+        LensFocusContext<?> fc = actx.focusContext;
+        LinkTypeDefinitionType definition =
+                actx.beans.linkManager.getSourceLinkTypeDefinitionRequired(
+                        linkTypeName,
+                        Arrays.asList(fc.getObjectNew(), fc.getObjectCurrent(), fc.getObjectOld()),
+                        result);
         return definition.getSelector() != null ?
-                definition.getSelector() : new LinkSourceObjectSelectorType(actx.beans.prismContext);
+                definition.getSelector() : new LinkSourceObjectSelectorType();
     }
 
     private ObjectQuery createQuery() throws CommunicationException, ObjectNotFoundException, SchemaException,
@@ -163,7 +168,7 @@ class LinkSourceFinder implements AutoCloseable {
                 .buildFilter();
 
         narrowedSourceTypes.add(narrowedSourceType);
-        return ObjectQueryUtil.simplify(queryFactory.createAnd(allSourcesFilter, selectorFilter), beans.prismContext);
+        return ObjectQueryUtil.simplify(queryFactory.createAnd(allSourcesFilter, selectorFilter));
     }
 
     @NotNull
@@ -181,7 +186,7 @@ class LinkSourceFinder implements AutoCloseable {
 
     @NotNull
     private List<PrismObject<? extends ObjectType>> searchForSources(CompleteQuery<?> completeQuery) throws SchemaException {
-        //noinspection unchecked
+        //noinspection unchecked,rawtypes
         return (List) beans.repositoryService.searchObjects(completeQuery.getType(),
                 completeQuery.getQuery(), completeQuery.getOptions(), result);
     }

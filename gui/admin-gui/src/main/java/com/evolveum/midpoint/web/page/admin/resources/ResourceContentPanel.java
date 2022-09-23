@@ -365,7 +365,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 new DropdownButtonDto(String.valueOf(tasksList.size()), icon, label, items)) {
             @Override
             protected String getSpecialDropdownMenuClass() {
-                return "pull-left";
+                return "dropdown-menu-left";
             }
         };
         taskButtonsContainer.add(button);

@@ -32,8 +32,8 @@ import java.util.List;
  * @author lskublik
  */
 public abstract class InboundAttributeMappingsTable extends AttributeMappingsTable{
-    public InboundAttributeMappingsTable(String id, ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, model, valueModel);
+    public InboundAttributeMappingsTable(String id, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        super(id, valueModel);
     }
 
     @Override

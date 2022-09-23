@@ -60,7 +60,6 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
 
     public AttributeMappingsTable(
             String id,
-            ResourceDetailsModel model,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         super(id, MappingType.class);
         this.valueModel = valueModel;
@@ -106,10 +105,6 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
             ResourceAttributeMappingValueWrapper newAttributeMappingWrapper =
                     WebPrismUtil.createNewValueWrapper(mappingAttributeContainer, newMapping, getPageBase(), target);
             newAttributeMappingWrapper.addAttributeMappingType(getMappingType());
-
-            if (newAttributeMappingWrapper instanceof ResourceAttributeMappingValueWrapper) {
-                newAttributeMappingWrapper.addAttributeMappingType(getMappingType());
-            }
 
             PrismContainerWrapper<MappingType> wrapper =
                     newAttributeMappingWrapper.findContainer(getPathBaseOnMappingType());

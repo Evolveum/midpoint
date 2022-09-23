@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.common.mapping;
 
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -145,7 +146,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                 m.variables,
                 true,
                 m.getTypedSourceContext(),
-                m.beans.objectResolver,
+                ModelCommonBeans.get().objectResolver,
                 "source definition in " + m.getMappingContextDescription(),
                 m.getTask(),
                 result);
@@ -194,7 +195,7 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
                     m.expressionProfile, variableName, null,
                     "domain of " + variableName, "domain of " + variableName + " in " + m.getMappingContextDescription(),
                     m.getTask(), result);
-            setDef.init(m.beans.expressionFactory);
+            setDef.init(ModelCommonBeans.get().expressionFactory);
             setDef.setAdditionalVariables(m.variables);
             try {
 

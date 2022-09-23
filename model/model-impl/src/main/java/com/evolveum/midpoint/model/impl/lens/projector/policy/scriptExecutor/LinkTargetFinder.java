@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
@@ -85,7 +86,7 @@ class LinkTargetFinder implements AutoCloseable {
         if (linkTypeName == null) {
             return selector;
         } else {
-            LinkTargetObjectSelectorType mergedSelector = new LinkTargetObjectSelectorType(beans.prismContext);
+            LinkTargetObjectSelectorType mergedSelector = new LinkTargetObjectSelectorType();
             LinkedObjectSelectorType linkSelector = resolveLinkTypeInternal(linkTypeName);
             if (linkSelector != null) {
                 ((PrismContainerValue<?>) mergedSelector.asPrismContainerValue()).mergeContent(linkSelector.asPrismContainerValue(), emptyList());
@@ -99,7 +100,7 @@ class LinkTargetFinder implements AutoCloseable {
     @NotNull
     private LinkTargetObjectSelectorType resolveLinkType(String linkTypeName)
             throws SchemaException, ConfigurationException {
-        LinkTargetObjectSelectorType resultingSelector = new LinkTargetObjectSelectorType(beans.prismContext);
+        LinkTargetObjectSelectorType resultingSelector = new LinkTargetObjectSelectorType();
         LinkedObjectSelectorType linkSelector = resolveLinkTypeInternal(linkTypeName);
         if (linkSelector != null) {
             ((PrismContainerValue<?>) resultingSelector.asPrismContainerValue()).mergeContent(linkSelector.asPrismContainerValue(), emptyList());
@@ -109,8 +110,9 @@ class LinkTargetFinder implements AutoCloseable {
 
     private LinkedObjectSelectorType resolveLinkTypeInternal(String linkTypeName)
             throws SchemaException, ConfigurationException {
+        LensFocusContext<?> fc = actx.focusContext;
         LinkTypeDefinitionType definition = actx.beans.linkManager.getTargetLinkTypeDefinitionRequired(
-                linkTypeName, actx.focusContext.getObjectAny(), result);
+                linkTypeName, Arrays.asList(fc.getObjectNew(), fc.getObjectCurrent(), fc.getObjectOld()), result);
         return definition.getSelector();
     }
 

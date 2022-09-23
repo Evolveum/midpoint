@@ -325,7 +325,7 @@ public class ReportManagerImpl implements ReportManager {
                     result).asObjectable();
 
             // Extra safety check: traces can be retrieved only when special authorization is present
-            if (ObjectTypeUtil.hasArchetype(reportData, SystemObjectsType.ARCHETYPE_TRACE.value())) {
+            if (ObjectTypeUtil.hasArchetypeRef(reportData, SystemObjectsType.ARCHETYPE_TRACE.value())) {
                 securityEnforcer.authorize(ModelAuthorizationAction.READ_TRACE.getUrl(), null,
                         AuthorizationParameters.EMPTY, null, task, result);
                 reportType = "trace";

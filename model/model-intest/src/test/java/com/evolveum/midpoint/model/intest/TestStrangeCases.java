@@ -1549,7 +1549,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
                 .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
                 .end();
 
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         dummyTransport.clearMessages();
         notificationManager.setDisabled(false);
@@ -1586,7 +1586,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
         when();
         try {
-            addObject(user.asPrismObject(), task, result);
+            addObject(user, task, result);
         } catch (Exception e) {
             displayExpectedException(e);
         }

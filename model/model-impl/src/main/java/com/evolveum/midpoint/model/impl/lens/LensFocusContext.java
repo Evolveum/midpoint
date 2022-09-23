@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -431,17 +432,23 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     // preliminary implementation
-    public LinkTypeDefinitionType getSourceLinkTypeDefinition(@NotNull String linkTypeName, LinkManager linkManager,
-            OperationResult result) throws SchemaException, ConfigurationException {
-        PrismObject<O> objectAny = getObjectAny();
-        return objectAny != null ? linkManager.getSourceLinkTypeDefinition(linkTypeName, objectAny, result) : null;
+    public LinkTypeDefinitionType getSourceLinkTypeDefinition(
+            @NotNull String linkTypeName, LinkManager linkManager, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        return linkManager.getSourceLinkTypeDefinition(
+                linkTypeName,
+                Arrays.asList(getObjectNew(), getObjectCurrent(), getObjectOld()),
+                result);
     }
 
     // preliminary implementation
-    public LinkTypeDefinitionType getTargetLinkTypeDefinition(@NotNull String linkTypeName, LinkManager linkManager,
-            OperationResult result) throws SchemaException, ConfigurationException {
-        PrismObject<O> objectAny = getObjectAny();
-        return objectAny != null ? linkManager.getTargetLinkTypeDefinition(linkTypeName, objectAny, result) : null;
+    public LinkTypeDefinitionType getTargetLinkTypeDefinition(
+            @NotNull String linkTypeName, LinkManager linkManager, OperationResult result)
+            throws SchemaException, ConfigurationException {
+        return linkManager.getTargetLinkTypeDefinition(
+                linkTypeName,
+                Arrays.asList(getObjectNew(), getObjectCurrent(), getObjectOld()),
+                result);
     }
 
     /**

@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Manages link definitions.
  *
- * Current implementation is very limited as it deals only with locally-defined links in in archetype.
+ * Current implementation is very limited as it deals only with locally-defined links in an archetype.
  * Future extensions:
  * - consider links defined in object policy configuration (in system configuration)
  * - consider links globally e.g. target link A->B defined in archetype A is visible as source link in archetype B
@@ -39,56 +39,70 @@ public class LinkManager {
 
     @Autowired private ArchetypeManager archetypeManager;
 
-    @NotNull
-    public <O extends ObjectType> LinkTypeDefinitionType getSourceLinkTypeDefinitionRequired(String linkTypeName,
-            PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-        LinkTypeDefinitionType definition = getSourceLinkTypeDefinition(linkTypeName, object, result);
-        if (definition != null) {
-            return definition;
-        } else {
-            throw new IllegalStateException("No source link '" + linkTypeName + "' present in " + object);
-        }
+    public @NotNull LinkTypeDefinitionType getSourceLinkTypeDefinitionRequired(
+            String linkTypeName,
+            List<PrismObject<? extends ObjectType>> objectVariants,
+            OperationResult result) throws SchemaException, ConfigurationException {
+        return MiscUtil.requireNonNull(
+                getSourceLinkTypeDefinition(linkTypeName, objectVariants, result),
+                () -> new ConfigurationException("No source link '" + linkTypeName + "' present in " +
+                        MiscUtil.getFirstNonNullFromList(objectVariants)));
     }
 
-    public <O extends ObjectType> LinkTypeDefinitionType getSourceLinkTypeDefinition(String linkTypeName,
-            PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-        ArchetypePolicyType archetypePolicyType = determineArchetypePolicy(object, result);
-        if (archetypePolicyType == null || archetypePolicyType.getLinks() == null) {
-            return null;
-        } else {
-            return getLinkDefinition(linkTypeName, archetypePolicyType.getLinks().getSourceLink());
+    public LinkTypeDefinitionType getSourceLinkTypeDefinition(
+            String linkTypeName,
+            List<PrismObject<? extends ObjectType>> objectVariants,
+            OperationResult result) throws SchemaException, ConfigurationException {
+        for (PrismObject<? extends ObjectType> objectVariant : objectVariants) {
+            if (objectVariant != null) {
+                ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(objectVariant, result);
+                LinkTypeDefinitionsType links = archetypePolicy != null ? archetypePolicy.getLinks() : null;
+                if (links != null) {
+                    LinkTypeDefinitionType definition = getLinkDefinition(linkTypeName, links.getSourceLink());
+                    if (definition != null) {
+                        return definition;
+                    }
+                }
+            }
         }
+        return null;
     }
 
-    @NotNull
-    public <O extends ObjectType> LinkTypeDefinitionType getTargetLinkTypeDefinitionRequired(String linkTypeName,
-            PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-        LinkTypeDefinitionType definition = getTargetLinkTypeDefinition(linkTypeName, object, result);
-        if (definition != null) {
-            return definition;
-        } else {
-            throw new IllegalStateException("No target link '" + linkTypeName + "' present in " + object);
-        }
+    public @NotNull LinkTypeDefinitionType getTargetLinkTypeDefinitionRequired(
+            String linkTypeName,
+            List<PrismObject<? extends ObjectType>> objectVariants,
+            OperationResult result) throws SchemaException, ConfigurationException {
+        return MiscUtil.requireNonNull(
+                getTargetLinkTypeDefinition(linkTypeName, objectVariants, result),
+                () -> new ConfigurationException("No target link '" + linkTypeName + "' present in " +
+                        MiscUtil.getFirstNonNullFromList(objectVariants)));
     }
 
-    public <O extends ObjectType> LinkTypeDefinitionType getTargetLinkTypeDefinition(String linkTypeName,
-            PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-        ArchetypePolicyType archetypePolicyType = determineArchetypePolicy(object, result);
-        if (archetypePolicyType == null || archetypePolicyType.getLinks() == null) {
-            return null;
-        } else {
-            return getLinkDefinition(linkTypeName, archetypePolicyType.getLinks().getTargetLink());
+    public LinkTypeDefinitionType getTargetLinkTypeDefinition(
+            String linkTypeName,
+            List<PrismObject<? extends ObjectType>> objectVariants,
+            OperationResult result) throws SchemaException, ConfigurationException {
+        for (PrismObject<? extends ObjectType> objectVariant : objectVariants) {
+            if (objectVariant != null) {
+                ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(objectVariant, result);
+                LinkTypeDefinitionsType links = archetypePolicy != null ? archetypePolicy.getLinks() : null;
+                if (links != null) {
+                    LinkTypeDefinitionType definition = getLinkDefinition(linkTypeName, links.getTargetLink());
+                    if (definition != null) {
+                        return definition;
+                    }
+                }
+            }
         }
+        return null;
     }
 
     private LinkTypeDefinitionType getLinkDefinition(String linkTypeName, List<LinkTypeDefinitionType> definitions) {
         List<LinkTypeDefinitionType> matchingDefinitions = definitions.stream()
                 .filter(def -> linkTypeName.equals(def.getName()))
                 .collect(Collectors.toList());
-        return MiscUtil.extractSingleton(matchingDefinitions, () -> new IllegalStateException("Multiple link definitions named '" + linkTypeName + "'."));
-    }
-
-    private <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
-        return archetypeManager.determineArchetypePolicy(object, result);
+        return MiscUtil.extractSingleton(
+                matchingDefinitions,
+                () -> new IllegalStateException("Multiple link definitions named '" + linkTypeName + "'."));
     }
 }

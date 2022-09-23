@@ -8,21 +8,17 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div>
-        <div class="row">
-            <span class="col-xs-10">
-                <div class="list-group">
-                    <div wicket:id="list">
-                        <a class="list-group-item" wicket:id="item"/>
-                    </div>
-                </div>
-            </span>
-            <span class="col-xs-2">
-                <div class="btn-group-vertical" role="group">
-                    <a class="btn btn-default btn-small" wicket:id="buttonReset"/>
-                </div>
-            </span>
-        </div>
+    <div class="row">
+        <span class="col-xs-10">
+            <div class="list-group">
+                <wicket:container wicket:id="list">
+                    <a class="list-group-item" wicket:id="item"/>
+                </wicket:container>
+            </div>
+        </span>
+        <span class="col-xs-2">
+            <a class="btn btn-default ml-2" wicket:id="buttonReset"/>
+        </span>
     </div>
 </wicket:panel>
 </html>

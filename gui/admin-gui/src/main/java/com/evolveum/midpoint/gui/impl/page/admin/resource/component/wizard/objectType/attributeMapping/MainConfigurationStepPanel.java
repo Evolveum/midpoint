@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
@@ -23,15 +22,16 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "basicSettingAttributeWizard",
+@PanelInstance(identifier = "mainConfigurationAttributeWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.basicSetting", icon = "fa fa-circle"))
-public class BasicSettingStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceAttributeDefinitionType> {
+        display = @PanelDisplay(label = "PageResource.wizard.step.attributes.mainConfiguration", icon = "fa fa-circle"),
+        expanded = true)
+public class MainConfigurationStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceAttributeDefinitionType> {
 
-    private static final String PANEL_TYPE = "basicAttributeWizard";
+    private static final String PANEL_TYPE = "mainConfigurationAttributeWizard";
 
-    public BasicSettingStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> newValueModel) {
+    public MainConfigurationStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> newValueModel) {
         super(model, newValueModel);
     }
 
@@ -42,17 +42,17 @@ public class BasicSettingStepPanel extends AbstractValueFormResourceWizardStepPa
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.attributes.basicSetting");
+        return createStringResource("PageResource.wizard.step.attributes.mainConfiguration");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.attributes.basicSetting.text");
+        return createStringResource("PageResource.wizard.step.attributes.mainConfiguration.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.attributes.basicSetting.subText");
+        return createStringResource("PageResource.wizard.step.attributes.mainConfiguration.subText");
     }
 
     @Override

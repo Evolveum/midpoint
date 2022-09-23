@@ -33,7 +33,6 @@ import org.apache.wicket.model.IModel;
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.inbound", icon = "fa fa-circle"),
-//        containerPath = "schemaHandling/objectType/attribute/inbound",
         expanded = true)
 public class AttributeInboundStepPanel extends AbstractValueFormResourceWizardStepPanel<MappingType> {
 
@@ -50,7 +49,7 @@ public class AttributeInboundStepPanel extends AbstractValueFormResourceWizardSt
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.configuration");
+        return createStringResource("PageResource.wizard.step.attributes.mainConfiguration");
     }
 
     @Override

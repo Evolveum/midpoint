@@ -4535,7 +4535,7 @@ public class TestRbac extends AbstractRbacTest {
                 .beginAssignment()
                     .targetRef(ROLE_ADDING_RECOMPUTE_TRIGGER.oid, RoleType.COMPLEX_TYPE)
                 .end();
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
