@@ -7,8 +7,11 @@
 package com.evolveum.midpoint.authentication.evaluator;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,10 +21,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionAnswerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<Map<String, String>, SecurityQuestionsAuthenticationContext, AuthenticationEvaluator<SecurityQuestionsAuthenticationContext>>{
@@ -40,9 +39,9 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
     }
 
     @Override
-    public SecurityQuestionsAuthenticationContext getAuthenticationContext(String username,
-            Map<String, String> value) {
-        return new SecurityQuestionsAuthenticationContext(username, UserType.class, value);
+    public SecurityQuestionsAuthenticationContext getAuthenticationContext(
+            String username, Map<String, String> value, List<ObjectReferenceType> requiredAssignments) {
+        return new SecurityQuestionsAuthenticationContext(username, UserType.class, value, requiredAssignments);
     }
 
     @Override

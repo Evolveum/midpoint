@@ -897,7 +897,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                     PrismValueDeltaSetTriple<PrismValue> prismValueDeltaSetTriple =
                             prismContext.deltaFactory().createPrismValueDeltaSetTriple();
                     ivwoTriple.transform(prismValueDeltaSetTriple, ItemValueWithOrigin::getItemValue);
-                    trace.setDeltaSetTriple(DeltaSetTripleType.fromDeltaSetTriple(prismValueDeltaSetTriple, prismContext));
+                    trace.setDeltaSetTriple(DeltaSetTripleType.fromDeltaSetTriple(prismValueDeltaSetTriple));
                 }
                 if (existingItem != null) {
                     trace.setExistingItem(ItemType.fromItem(existingItem, prismContext));

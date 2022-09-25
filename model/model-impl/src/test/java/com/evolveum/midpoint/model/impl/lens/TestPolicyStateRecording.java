@@ -282,7 +282,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
         // WHEN
         when();
-        addObject(alice.asPrismObject(), getTestTask(), getTestOperationResult());
+        addObject(alice, getTestTask(), getTestOperationResult());
 
         // THEN
         then();
@@ -317,7 +317,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
         // WHEN
         when();
-        addObject(chuck.asPrismObject(), getTestTask(), getTestOperationResult());
+        addObject(chuck, getTestTask(), getTestOperationResult());
 
         // THEN
         then();
@@ -353,7 +353,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
         // WHEN
         when();
-        addObject(dan.asPrismObject(), getTestTask(), getTestOperationResult());
+        addObject(dan, getTestTask(), getTestOperationResult());
 
         // THEN
         then();
@@ -437,7 +437,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
         // WHEN
         when();
-        addObject(wrong2.asPrismObject(), getTestTask(), getTestOperationResult());
+        addObject(wrong2, getTestTask(), getTestOperationResult());
 
         // THEN
         then();
@@ -464,7 +464,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
 
         // WHEN
         when();
-        addObject(wrong3.asPrismObject(), getTestTask(), getTestOperationResult());
+        addObject(wrong3, getTestTask(), getTestOperationResult());
 
         // THEN
         then();

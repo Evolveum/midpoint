@@ -3351,7 +3351,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismProperty<String> costCenterProp = costCenterDef.instantiate();
         costCenterProp.setRealValue("CC000");
         role.asPrismObject().getOrCreateExtension().getValue().add(costCenterProp);
-        return addObject(role.asPrismObject(), task, result);
+        return addObject(role, task, result);
     }
 
     private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {

@@ -1661,12 +1661,17 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 
         String shadowOid = getSingleLinkOid(getUser(USER_PHOENIX_2.oid));
         PrismObject<ShadowType> shadowAfterCreation = getShadowModel(shadowOid);
-        display("Shadow after (model)", shadowAfterCreation);
+        display("Shadow after creation and propagation (model)", shadowAfterCreation);
         assertShadowNotDead(shadowAfterCreation);
 
         PendingOperationType pendingOperation = assertSinglePendingOperation(
                 shadowAfterCreation, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
         closeCase(pendingOperation.getAsynchronousOperationReference());
+
+        PrismObject<ShadowType> shadowAfterCreationAndCaseClosure = getShadowModel(shadowOid);
+        display("Shadow after creation, propagation, and case closure (model)",
+                shadowAfterCreationAndCaseClosure);
+        assertShadowExists(shadowAfterCreationAndCaseClosure, true);
 
         and("the account is deleted");
 

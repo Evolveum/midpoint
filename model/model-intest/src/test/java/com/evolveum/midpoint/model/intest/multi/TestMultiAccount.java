@@ -861,7 +861,7 @@ public class TestMultiAccount extends AbstractInitializedModelIntegrationTest {
         UserType user = new UserType(prismContext)
                 .name("test500")
                 .organization("org1");
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         when();
 

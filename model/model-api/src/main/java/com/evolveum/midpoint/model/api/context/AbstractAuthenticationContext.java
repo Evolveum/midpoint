@@ -13,19 +13,18 @@ import java.util.List;
 
 public abstract class AbstractAuthenticationContext {
 
-    private String username;
+    // TODO which ones can be null and which ones cannot?
 
-    private Class<? extends FocusType> principalType;
+    private final String username;
 
-    private List<ObjectReferenceType> requireAssignments;
+    private final Class<? extends FocusType> principalType;
+
+    private final List<ObjectReferenceType> requireAssignments;
 
     private boolean supportActivationByChannel = true;
 
-    public AbstractAuthenticationContext(String username, Class<? extends FocusType> principalType) {
-        this(username, principalType, null);
-    }
-
-    public AbstractAuthenticationContext(String username, Class<? extends FocusType> principalType, List<ObjectReferenceType> requireAssignment){
+    public AbstractAuthenticationContext(
+            String username, Class<? extends FocusType> principalType, List<ObjectReferenceType> requireAssignment) {
         this.username = username;
         this.requireAssignments = requireAssignment;
         this.principalType = principalType;

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.authentication.evaluator;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
@@ -21,6 +23,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import java.util.List;
+
 public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, PasswordAuthenticationContext, AuthenticationEvaluator<PasswordAuthenticationContext>> {
 
     @Autowired
@@ -32,8 +36,9 @@ public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticat
     }
 
     @Override
-    public PasswordAuthenticationContext getAuthenticationContext(String username, String value) {
-        return new PasswordAuthenticationContext(username, value, UserType.class);
+    public PasswordAuthenticationContext getAuthenticationContext(
+            String username, String value, List<ObjectReferenceType> requiredAssignments) {
+        return new PasswordAuthenticationContext(username, value, UserType.class, requiredAssignments);
     }
 
     @Override

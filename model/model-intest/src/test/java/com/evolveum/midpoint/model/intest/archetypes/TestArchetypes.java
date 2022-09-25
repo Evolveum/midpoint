@@ -419,7 +419,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
      * Here, the `costCenter` is computed only on the second projector run. The first run does not see
      * the archetype, because it is computed after the template is evaluated.
      */
-    @Test
+    @Test(enabled = false) // Disabled, because we do not support indirectly-assigned archetypes.
     public void test110AssignJackRoleEmployeeBase() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -474,7 +474,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
         // @formatter:on
     }
 
-    @Test
+    @Test(enabled = false) // Disabled, as test110 is disabled as well.
     public void test115UnassignJackRoleEmployeeBase() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1119,7 +1119,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                 .beginAssignment()
                     .targetRef(ARCHETYPE_STUDENT.oid, ArchetypeType.COMPLEX_TYPE)
                 .end();
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         then("John has a lab account");
         assertSuccess(result);

@@ -50,12 +50,11 @@ public class StartInstruction implements DebugDumpable {
     //region Constructors
     protected StartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
         this.changeProcessor = changeProcessor;
-        PrismContext prismContext = PrismContext.get();
-        aCase = new CaseType(prismContext);
+        aCase = new CaseType();
         ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE);
         aCase.getArchetypeRef().add(approvalArchetypeRef.clone());
         aCase.beginAssignment().targetRef(approvalArchetypeRef).end();
-        aCase.setMetadata(new MetadataType(prismContext));
+        aCase.setMetadata(new MetadataType());
         aCase.getMetadata().setCreateTimestamp(createXMLGregorianCalendar(new Date()));
     }
 
@@ -65,7 +64,7 @@ public class StartInstruction implements DebugDumpable {
     //endregion
 
     // region Getters and setters
-    protected ChangeProcessor getChangeProcessor() {
+    private ChangeProcessor getChangeProcessor() {
         return changeProcessor;
     }
 
@@ -96,7 +95,8 @@ public class StartInstruction implements DebugDumpable {
         LensContextType bean;
         if (context != null) {
             boolean reduced = context.getState() == ModelState.PRIMARY;
-            bean = ((LensContext) context).toBean(reduced ? LensContext.ExportType.REDUCED : LensContext.ExportType.OPERATIONAL);
+            bean = ((LensContext<?>) context)
+                    .toBean(reduced ? LensContext.ExportType.REDUCED : LensContext.ExportType.OPERATIONAL);
         } else {
             bean = null;
         }
@@ -125,7 +125,7 @@ public class StartInstruction implements DebugDumpable {
         aCase.setTargetRef(ref);
     }
 
-    public void setRequesterRef(PrismObject<? extends FocusType> requester) {
+    protected void setRequesterRef(PrismObject<? extends FocusType> requester) {
         aCase.setRequestorRef(createObjectRef(requester, PrismContext.get()));
     }
 

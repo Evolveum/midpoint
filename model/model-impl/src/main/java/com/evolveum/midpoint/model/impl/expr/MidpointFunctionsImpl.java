@@ -2059,20 +2059,15 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Experimental
-    public <T extends AssignmentHolderType> T createLinkedSource(String linkType) throws CommunicationException, ObjectNotFoundException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    public <T extends AssignmentHolderType> T createLinkedSource(String linkType) throws SchemaException, ConfigurationException {
         return linkedObjectsFunctions.createLinkedSource(linkType);
     }
 
     @Experimental
-    @NotNull
-    public ObjectReferenceType getFocusObjectReference() {
+    public @Nullable ObjectReferenceType getFocusObjectReference() {
         ObjectType focusObject = getFocusObjectAny();
         String oid = focusObject.getOid();
-        if (oid == null) {
-            throw new IllegalStateException("No OID in focus object");
-        }
-        return ObjectTypeUtil.createObjectRef(focusObject, prismContext);
+        return oid != null ? ObjectTypeUtil.createObjectRef(focusObject, prismContext) : null;
     }
 
     @Experimental

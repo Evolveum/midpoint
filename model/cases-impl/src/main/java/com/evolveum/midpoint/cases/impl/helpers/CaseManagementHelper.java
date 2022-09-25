@@ -99,7 +99,8 @@ public class CaseManagementHelper {
     }
 
     private boolean isApprovalCase(CaseType aCase) {
-        return aCase.getArchetypeRef().stream().anyMatch(ref -> SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value().equals(ref.getOid()));
+        return aCase.getArchetypeRef().stream()
+                .anyMatch(ref -> SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value().equals(ref.getOid()));
     }
 
     private TreeNode<CaseType> getCaseTree(String caseOid, OperationResult result)

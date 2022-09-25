@@ -233,8 +233,12 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     @Override
     public OrgType getParentOrgByArchetype(ObjectType object, String archetypeOid, boolean preAuthorized) throws SchemaException, SecurityViolationException {
-        Collection<OrgType> parentOrgs = getParentOrgs(object, PrismConstants.Q_ANY, org -> archetypeOid == null
-                || ObjectTypeUtil.hasArchetype(org, archetypeOid), preAuthorized);
+        Collection<OrgType> parentOrgs = getParentOrgs(
+                object,
+                PrismConstants.Q_ANY,
+                org -> archetypeOid == null
+                        || ObjectTypeUtil.hasArchetypeRef(org, archetypeOid),
+                preAuthorized);
         if (parentOrgs.isEmpty()) {
             return null;
         } else if (parentOrgs.size() > 1) {

@@ -233,7 +233,7 @@ public class ShadowManager {
             ProvisioningOperationState<? extends AsynchronousOperationResult> opState, ObjectDelta<ShadowType> delta,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ObjectAlreadyExistsException, ExpressionEvaluationException {
+            ExpressionEvaluationException {
         shadowUpdater.recordOperationException(ctx, opState, delta, result);
     }
 

@@ -3957,7 +3957,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
             when();
             try {
                 UserType user = new UserType(prismContext).name("passwordless");
-                addObject(user.asPrismObject(), task, result);
+                addObject(user, task, result);
                 fail("unexpected success");
             } catch (PolicyViolationException e) {
                 assertMessage(e, "Provided password does not satisfy the policies: The value must be present.");
@@ -3981,7 +3981,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         setPasswordMinOccurs(0, task, result);
 
         UserType alice = new UserType(prismContext).name("alice");
-        addObject(alice.asPrismObject(), task, result);
+        addObject(alice, task, result);
 
         PrismObject<UserType> aliceReloaded = getUser(alice.getOid());
         assertNull("alice has credentials", aliceReloaded.asObjectable().getCredentials());
@@ -4019,7 +4019,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         setPasswordMinOccurs(0, task, result);
 
         UserType user = new UserType(prismContext).name("bob");
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         PrismObject<UserType> userReloaded = getUser(user.getOid());
         assertNull("user has credentials", userReloaded.asObjectable().getCredentials());
@@ -4057,7 +4057,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         setPasswordMinOccurs(0, task, result);
 
         UserType user = new UserType(prismContext).name("charlie");
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         PrismObject<UserType> userReloaded = getUser(user.getOid());
         assertNull("user has credentials", userReloaded.asObjectable().getCredentials());
@@ -4092,7 +4092,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         setPasswordMinOccurs(0, task, result);
 
         UserType user = new UserType(prismContext).name("david");
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         PrismObject<UserType> userReloaded = getUser(user.getOid());
         assertNull("user has credentials", userReloaded.asObjectable().getCredentials());
@@ -4127,7 +4127,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         setPasswordMinOccurs(0, task, result);
 
         UserType user = new UserType(prismContext).name("eve");
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         PrismObject<UserType> userReloaded = getUser(user.getOid());
         assertNull("user has credentials", userReloaded.asObjectable().getCredentials());
@@ -4161,7 +4161,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         setPasswordMinOccurs(0, task, result);
 
         UserType user = new UserType(prismContext).name("frank");
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         PrismObject<UserType> userReloaded = getUser(user.getOid());
         assertNull("user has credentials", userReloaded.asObjectable().getCredentials());

@@ -215,7 +215,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition<?>,
             for (SourceTriple<?, ?> sourceTriple : sourceTripleList) {
                 trace.getSource().get(i)
                         .setDeltaSetTriple(
-                                DeltaSetTripleType.fromDeltaSetTriple(sourceTriple, prismContext));
+                                DeltaSetTripleType.fromDeltaSetTriple(sourceTriple));
                 i++;
             }
         }

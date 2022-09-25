@@ -46,7 +46,6 @@ public abstract class RestServiceInitializer extends AbstractRestServiceInitiali
 
         InternalMonitor.reset();
 
-        provisioningService.postInit(result);
         getModelService().postInit(result);
 
         result.computeStatus();

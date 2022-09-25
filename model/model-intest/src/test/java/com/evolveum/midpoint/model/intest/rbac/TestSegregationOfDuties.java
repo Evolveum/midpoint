@@ -1280,7 +1280,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 .beginAssignment()
                     .targetRef(ROLE_CONTROLLING_1_OID, RoleType.COMPLEX_TYPE)
                 .end();
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         when();
         assignOrg(user.getOid(), ORG_EXECUTIVE_RANDOM.oid, task, result);

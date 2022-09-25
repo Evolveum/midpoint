@@ -131,7 +131,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                         .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                         .<AssignmentType>end()
                     .end();
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         modifyResourceMaintenance(resourceOid, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
         deleteObject(UserType.class, user.getOid(), task, result);

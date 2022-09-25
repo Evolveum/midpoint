@@ -2708,7 +2708,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
                 .beginActivation()
                 .validFrom(yesterday)
                 .end();
-        String oid = addObject(user.asPrismObject(), task, result);
+        String oid = addObject(user, task, result);
         assertSuccess(result);
 
         // WHEN

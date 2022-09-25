@@ -85,14 +85,14 @@ public class Source<V extends PrismValue,D extends ItemDefinition>
     }
 
     @NotNull
-    public ItemDeltaItemType toItemDeltaItemType(PrismContext prismContext) throws SchemaException {
+    public ItemDeltaItemType toItemDeltaItemType() throws SchemaException {
         ItemDeltaItemType rv = new ItemDeltaItemType();
-        rv.setOldItem(ItemType.fromItem(getItemOld(), prismContext));
+        rv.setOldItem(ItemType.fromItem(getItemOld(), PrismContext.get()));
         ItemDelta<V, D> delta = getDelta();
         if (delta != null) {
             rv.getDelta().addAll(DeltaConvertor.toItemDeltaTypes(delta));
         }
-        rv.setNewItem(ItemType.fromItem(getItemNew(), prismContext));
+        rv.setNewItem(ItemType.fromItem(getItemNew(), PrismContext.get()));
         return rv;
     }
 }

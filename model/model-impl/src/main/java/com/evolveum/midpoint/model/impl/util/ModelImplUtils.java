@@ -285,7 +285,7 @@ public class ModelImplUtils {
         }
     }
 
-    private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
+    public static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
             boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTimeType,
             PrismContext prismContext, String contextDesc, boolean throwExceptionOnFailure, OperationResult parentResult) {
         String refName = refVal.getParent() != null ?

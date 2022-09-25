@@ -794,7 +794,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                     .<AssignmentType>end()
                 .end();
 
-        String userOid = addObject(user.asPrismObject(), task, result);
+        String userOid = addObject(user, task, result);
 
         when();
 
@@ -867,7 +867,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                     .name(name)
                     .linkRef(ObjectTypeUtil.createObjectRefWithFullObject(shadow.clone(), prismContext));
 
-            String userOid = addObject(user.asPrismObject(), task, result);
+            String userOid = addObject(user, task, result);
 
             user = assertUser(userOid, "after creation")
                     .display()

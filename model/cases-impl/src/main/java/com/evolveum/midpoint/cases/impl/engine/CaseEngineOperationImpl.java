@@ -282,7 +282,7 @@ public class CaseEngineOperationImpl implements DebugDumpable, CaseEngineOperati
     }
 
     public boolean isApprovalCase() {
-        return ObjectTypeUtil.hasArchetype(currentCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+        return ObjectTypeUtil.hasArchetypeRef(currentCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
     }
 
     @Override

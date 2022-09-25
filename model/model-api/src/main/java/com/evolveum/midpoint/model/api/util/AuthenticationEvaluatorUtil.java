@@ -6,55 +6,59 @@
  */
 package com.evolveum.midpoint.model.api.util;
 
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import java.util.Collection;
 import java.util.List;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BehaviorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import static com.evolveum.midpoint.util.MiscUtil.*;
 
 /**
  * @author skublik
  */
-
 public class AuthenticationEvaluatorUtil {
 
-    public static boolean checkRequiredAssignment(List<AssignmentType> assignments, List<ObjectReferenceType> requireAssignments) {
-        if (requireAssignments == null || requireAssignments.isEmpty()){
+    /**
+     * Checks whether focus has all the required abstract roles assigned (directly or indirectly - see MID-8123).
+     */
+    public static boolean checkRequiredAssignmentTargets(
+            @NotNull FocusType focus, List<ObjectReferenceType> requiredTargetRefs) {
+        if (requiredTargetRefs == null || requiredTargetRefs.isEmpty()) {
             return true;
         }
-        if (assignments == null || assignments.isEmpty()) {
-            return false;
-        }
-
-        for (ObjectReferenceType requiredAssignment : requireAssignments) {
-            if (requiredAssignment == null) {
-                throw new IllegalStateException("Required assignment is null");
-            }
-            if (requiredAssignment.getOid() == null){
-                throw new IllegalStateException("Oid of required assignment is null");
-            }
-            boolean match = false;
-            for (AssignmentType assignment : assignments) {
-                ObjectReferenceType targetRef = assignment.getTargetRef();
-                if (targetRef != null) {
-                    if (targetRef.getOid() != null && targetRef.getOid().equals(requiredAssignment.getOid())) {
-                        match = true;
-                        break;
-                    }
-                } else if (assignment.getConstruction() != null && requiredAssignment.getType() != null
-                        && QNameUtil.match(requiredAssignment.getType(), ResourceType.COMPLEX_TYPE)) {
-                    if (assignment.getConstruction().getResourceRef() != null &&
-                            assignment.getConstruction().getResourceRef().getOid() != null &&
-                            assignment.getConstruction().getResourceRef().getOid().equals(requiredAssignment.getOid())) {
-                        match = true;
-                        break;
-                    }
-                }
-            }
-            if (!match) {
+        for (ObjectReferenceType requiredTargetRef : requiredTargetRefs) {
+            if (!containsRef(focus.getRoleMembershipRef(), requiredTargetRef)) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * We don't use the built-in {@link Collection#contains(java.lang.Object)} because of its (a bit) unclear semantics
+     * for references. We strictly want to match on OID, type (if present) and relation.
+     */
+    private static boolean containsRef(@NotNull List<ObjectReferenceType> references, ObjectReferenceType requiredTargetRef) {
+        argCheck(requiredTargetRef != null, "Required assignment target value is null");
+        String requiredOid =
+                argNonNull(requiredTargetRef.getOid(), () -> "Required assignment target OID is null: " + requiredTargetRef);
+        QName requiredType = requiredTargetRef.getType();
+        QName requiredRelation = requiredTargetRef.getRelation();
+
+        return references.stream()
+                .anyMatch(
+                        ref -> requiredOid.equals(ref.getOid())
+                                && (requiredType == null || QNameUtil.match(requiredType, ref.getType()))
+                                && PrismContext.get().relationMatches(requiredRelation, ref.getRelation()));
     }
 
     public static AuthenticationBehavioralDataType getBehavior(FocusType focus) {

@@ -193,7 +193,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         return delta.getModifications();
     }
 
-    private class AuthenticationRequirements {
+    private static class AuthenticationRequirements {
         List<ObjectReferenceType> requireAssignment = null;
         AuthenticationChannel channel = null;
         Class<? extends FocusType> focusType = UserType.class;

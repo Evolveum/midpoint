@@ -1346,8 +1346,8 @@ public interface MidpointFunctions {
     /**
      * Returns a list of archetype OIDs for given object.
      *
-     * Currently, those OIDs are taken from archetype assignments and `archetypeRef` values.
-     * (Note that under normal conditions, these should be in sync!)
+     * Currently, those OIDs are taken from archetype assignments.
+     * ArchetypeRef values are ignored.
      */
     @NotNull List<String> getArchetypeOids(ObjectType object);
 

@@ -228,7 +228,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
                         .resourceRef(RESOURCE_DUMMY_OID, ResourceType.COMPLEX_TYPE)
                     .<AssignmentType>end()
                 .end();
-        addObject(user.asPrismObject(), task, result);
+        addObject(user, task, result);
 
         String shadowOid = assertUser(user.getOid(), "after creation")
                 .display()

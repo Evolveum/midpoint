@@ -21,6 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 /**
  * Commonly-used beans for model-common module.
  *
@@ -31,6 +33,17 @@ import org.springframework.stereotype.Component;
 @Experimental
 @Component
 public class ModelCommonBeans {
+
+    private static ModelCommonBeans instance;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    public static ModelCommonBeans get() {
+        return instance;
+    }
 
     @Autowired public PrismContext prismContext;
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService cacheRepositoryService;

@@ -14,12 +14,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 public class TestNonceAuthenticationEvaluator extends TestAbstractAuthenticationEvaluator<String, NonceAuthenticationContext, AuthenticationEvaluator<NonceAuthenticationContext>> {
 
@@ -35,8 +37,9 @@ public class TestNonceAuthenticationEvaluator extends TestAbstractAuthentication
     }
 
     @Override
-    public NonceAuthenticationContext getAuthenticationContext(String username, String value) {
-        return new NonceAuthenticationContext(username, UserType.class, value, null);
+    public NonceAuthenticationContext getAuthenticationContext(
+            String username, String value, List<ObjectReferenceType> requiredAssignments) {
+        return new NonceAuthenticationContext(username, UserType.class, value, null, requiredAssignments);
     }
 
     @Override

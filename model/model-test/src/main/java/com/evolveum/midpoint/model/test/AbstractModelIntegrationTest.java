@@ -3961,6 +3961,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return addObject(object, null, task, result);
     }
 
+    public String addObject(ObjectType object, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException, PolicyViolationException, ObjectAlreadyExistsException {
+        return addObject(object.asPrismObject(), task, result);
+    }
+
     protected <O extends ObjectType> String addObject(PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         ObjectDelta<O> addDelta = object.createAddDelta();
         assertFalse("Immutable object provided?", addDelta.getObjectToAdd().isImmutable());
@@ -5767,7 +5773,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected CaseType getApprovalCase(List<PrismObject<CaseType>> cases) {
         List<CaseType> rv = cases.stream()
-                .filter(o -> ObjectTypeUtil.hasArchetype(o, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value()))
+                .filter(o -> ObjectTypeUtil.hasArchetypeRef(o, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value()))
                 .map(o -> o.asObjectable())
                 .collect(Collectors.toList());
         if (rv.isEmpty()) {
