@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.component.input;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.DisplayableValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -26,9 +27,9 @@ import java.util.Optional;
  */
 public class AutoCompleteDisplayableValueConverter<T> implements IConverter<T> {
 
-    private final IModel<List<DisplayableValue<T>>> values;
+    private final IModel<? extends List<DisplayableValue<T>>> values;
 
-    public AutoCompleteDisplayableValueConverter(IModel<List<DisplayableValue<T>>> values) {
+    public AutoCompleteDisplayableValueConverter(IModel<? extends List<DisplayableValue<T>>> values) {
         this.values = values;
     }
 

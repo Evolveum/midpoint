@@ -121,6 +121,8 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
                                     .delay(5_000)
                                     .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
                             onExitPerformed(target);
+                        } else {
+                            target.add(getFeedback());
                         }
                     }
 

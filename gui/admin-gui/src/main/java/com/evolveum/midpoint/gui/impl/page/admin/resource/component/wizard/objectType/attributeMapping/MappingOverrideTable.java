@@ -94,7 +94,7 @@ public abstract class MappingOverrideTable extends MultivalueContainerListPanel<
 
     @Override
     protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
-        getContainerModel().getObject().getValues().add(createNewOverride(target));
+        createNewOverride(target);
         refreshTable(target);
     }
 
