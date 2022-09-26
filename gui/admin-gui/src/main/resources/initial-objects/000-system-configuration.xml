@@ -977,6 +977,58 @@
                     <panelType>limitationsMappingWizard</panelType>
                 </panel>
                 <panel>
+                    <identifier>reactionMainSettingWizard</identifier>
+                    <container>
+                        <identifier>reactionMainSetting</identifier>
+                        <display>
+                            <label>PageResource.wizard.step.synchronization.reaction.mainSettings</label>
+                        </display>
+                        <item>
+                            <path>schemaHandling/objectType/synchronization/reaction/name</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/synchronization/reaction/description</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/synchronization/reaction/situation</path>
+                            <visibility>visible</visibility>
+                        </item>
+                    </container>
+                    <container>
+                        <visibility>hidden</visibility>
+                        <path>schemaHandling/objectType/synchronization/reaction</path>
+                    </container>
+                    <panelType>reactionMainSettingWizard</panelType>
+                </panel>
+                <panel>
+                    <identifier>reactionOptionalSettingWizard</identifier>
+                    <container>
+                        <identifier>reactionOptionalSetting</identifier>
+                        <display>
+                            <label>PageResource.wizard.step.synchronization.reaction.optionalSettings</label>
+                        </display>
+                        <item>
+                            <path>schemaHandling/objectType/synchronization/reaction/condition</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/synchronization/reaction/channel</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/synchronization/reaction/order</path>
+                            <visibility>visible</visibility>
+                        </item>
+                    </container>
+                    <container>
+                        <visibility>hidden</visibility>
+                        <path>schemaHandling/objectType/synchronization/reaction</path>
+                    </container>
+                    <panelType>reactionOptionalSettingWizard</panelType>
+                </panel>
+                <panel>
                     <identifier>mainConfigurationAttributeWizard</identifier>
                     <container>
                         <identifier>mainConfigurationAttribute</identifier>
@@ -1058,6 +1110,7 @@
                     <panelType>connectorPartialConfigurationWizard</panelType>
                 </panel>
                 <connectorRef type="ConnectorType">
+                    <resolutionTime>run</resolutionTime>
                     <filter>
                         <q:and>
                             <q:equal>
@@ -1094,6 +1147,7 @@
                     <panelType>connectorPartialConfigurationWizard</panelType>
                 </panel>
                 <connectorRef type="ConnectorType">
+                    <resolutionTime>run</resolutionTime>
                     <filter>
                         <q:and>
                             <q:equal>
@@ -1130,6 +1184,7 @@
                     <panelType>connectorPartialConfigurationWizard</panelType>
                 </panel>
                 <connectorRef type="ConnectorType">
+                    <resolutionTime>run</resolutionTime>
                     <filter>
                         <q:and>
                             <q:equal>

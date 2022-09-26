@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
@@ -38,7 +37,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -103,7 +101,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
     }
 
     @Override
-    protected ISelectableDataProvider<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> createProvider() {
+    protected ISelectableDataProvider<PrismContainerValueWrapper<CaseWorkItemType>> createProvider() {
         return CaseWorkItemsPanel.this.createProvider(getSearchModel());
     }
 

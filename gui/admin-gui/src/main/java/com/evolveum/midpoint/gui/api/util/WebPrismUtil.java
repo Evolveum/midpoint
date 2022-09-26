@@ -181,10 +181,26 @@ public class WebPrismUtil {
             PrismContainerValue<C> value = valueIterator.next();
 
             PrismContainerValue<C> valueAfter = cleanupEmptyContainerValue(value);
+            if (isUseAsEmptyValue(valueAfter)) {
+                continue;
+            }
             if (valueAfter == null || valueAfter.isIdOnly() || valueAfter.isEmpty()) {
                 valueIterator.remove();
             }
         }
+    }
+
+    //TODO quick hack ... use for it wrappers
+    private static <C extends Containerable> boolean isUseAsEmptyValue(PrismContainerValue<C> valueAfter) {
+        return valueAfter != null && isUseAsEmptyValue(valueAfter.getRealClass());
+    }
+
+    private static <C extends Containerable> boolean isUseAsEmptyValue(Item item) {
+        return item != null && isUseAsEmptyValue(item.getDefinition().getTypeClass());
+    }
+
+    private static <C extends Containerable> boolean isUseAsEmptyValue(Class<?> typeClass) {
+        return typeClass != null && AbstractSynchronizationActionType.class.isAssignableFrom(typeClass);
     }
 
     public static <C extends Containerable> PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {
@@ -196,13 +212,13 @@ public class WebPrismUtil {
                 Item<?, ?> item = iterator.next();
 
                 cleanupEmptyValues(item);
-                if (item.isEmpty()) {
+                if (!isUseAsEmptyValue(item) && item.isEmpty()) {
                     iterator.remove();
                 }
             }
         }
 
-        if (value.getItems() == null || value.getItems().isEmpty()) {
+        if (!isUseAsEmptyValue(value) && (value.getItems() == null || value.getItems().isEmpty())) {
             return null;
         }
 

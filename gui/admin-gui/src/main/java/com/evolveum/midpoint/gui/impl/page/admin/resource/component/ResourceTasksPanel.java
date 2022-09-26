@@ -18,7 +18,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -37,7 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -87,7 +85,7 @@ public class ResourceTasksPanel extends AbstractObjectMainPanel<ResourceType, Re
                     }
 
                     @Override
-                    protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
+                    protected ISelectableDataProvider<SelectableBean<TaskType>> createProvider() {
                         return createSelectableBeanObjectDataProvider(() -> createResourceTasksQuery(), null);
                     }
 

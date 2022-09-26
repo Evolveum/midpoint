@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  */
 public class SelectableBeanContainerDataProvider<C extends Containerable> extends BaseSearchDataProvider<C, SelectableBean<C>>
-        implements ISelectableDataProvider<C, SelectableBean<C>>{
+        implements ISelectableDataProvider<SelectableBean<C>>{
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanContainerDataProvider.class);

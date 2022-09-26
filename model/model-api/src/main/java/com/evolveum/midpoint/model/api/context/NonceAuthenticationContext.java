@@ -14,15 +14,21 @@ import java.util.List;
 
 public class NonceAuthenticationContext extends AbstractAuthenticationContext {
 
-    private String nonce;
-    private NonceCredentialsPolicyType policy;
+    private final String nonce;
+    private final NonceCredentialsPolicyType policy;
 
-    public NonceAuthenticationContext(String username, Class<? extends FocusType> principalType, String nonce, NonceCredentialsPolicyType policy) {
+    public NonceAuthenticationContext(
+            String username, Class<? extends FocusType> principalType, String nonce, NonceCredentialsPolicyType policy) {
         this(username, principalType, nonce, policy, null);
     }
 
-    public NonceAuthenticationContext(String username, Class<? extends FocusType> principalType, String nonce, NonceCredentialsPolicyType policy, List<ObjectReferenceType> requireAssignment) {
-        super(username, principalType);
+    public NonceAuthenticationContext(
+            String username,
+            Class<? extends FocusType> principalType,
+            String nonce,
+            NonceCredentialsPolicyType policy,
+            List<ObjectReferenceType> requireAssignment) {
+        super(username, principalType, requireAssignment);
         this.nonce = nonce;
         this.policy = policy;
     }

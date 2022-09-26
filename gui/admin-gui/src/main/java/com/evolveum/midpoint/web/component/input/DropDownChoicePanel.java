@@ -64,7 +64,9 @@ public class DropDownChoicePanel<T> extends InputPanel {
             public String getModelValue() {
                 T object = this.getModelObject();
                 if (object != null) {
-                    if (QName.class.isAssignableFrom(object.getClass())) {
+                    if (QName.class.isAssignableFrom(object.getClass())
+                            && !getChoices().isEmpty()
+                            && QName.class.isAssignableFrom(getChoices().iterator().next().getClass())) {
                         for (int i = 0; i < getChoices().size(); i++) {
                             if (QNameUtil.match((QName) getChoices().get(i), (QName) object)) {
                                 return this.getChoiceRenderer().getIdValue(object, i);

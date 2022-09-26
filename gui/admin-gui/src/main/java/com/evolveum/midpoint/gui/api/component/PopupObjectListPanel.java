@@ -87,7 +87,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     }
 
     @Override
-    protected final ISelectableDataProvider<O, SelectableBean<O>> createProvider() {
+    protected final ISelectableDataProvider<SelectableBean<O>> createProvider() {
         return createSelectableBeanObjectDataProvider(() -> getCustomizeContentQuery(), null);
     }
 

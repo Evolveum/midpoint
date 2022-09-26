@@ -134,7 +134,7 @@ public class PageAttorneySelection extends PageBase {
             }
 
             @Override
-            protected ISelectableDataProvider<UserType, SelectableBean<UserType>> createProvider() {
+            protected ISelectableDataProvider<SelectableBean<UserType>> createProvider() {
                 return createSelectableBeanObjectDataProvider(() -> getAttorneySelectionQuery(), null);
             }
 

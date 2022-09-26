@@ -91,7 +91,7 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
 
     @Override
     protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
-        getContainerModel().getObject().getValues().add(createNewMapping(target));
+        createNewMapping(target);
         refreshTable(target);
     }
 

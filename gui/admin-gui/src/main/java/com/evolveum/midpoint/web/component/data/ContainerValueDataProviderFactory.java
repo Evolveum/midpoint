@@ -58,7 +58,7 @@ public interface ContainerValueDataProviderFactory<T extends Containerable, C ex
      * @param path Path on which prism container values are located
      * @return Data Provider instance
      */
-    ISelectableDataProvider<T, PrismContainerValueWrapper<T>> create(Component component, @NotNull IModel<Search<T>> search, IModel<List<PrismContainerValueWrapper<T>>> model,
+    ISelectableDataProvider<PrismContainerValueWrapper<T>> create(Component component, @NotNull IModel<Search<T>> search, IModel<List<PrismContainerValueWrapper<T>>> model,
             Class<? extends Objectable>  objectType, String oid, ItemPath path);
 
     /**
@@ -75,7 +75,7 @@ public interface ContainerValueDataProviderFactory<T extends Containerable, C ex
      * @return Data Provider instance
      */
 
-    ISelectableDataProvider<T, PrismContainerValueWrapper<T>> create(Component component, @NotNull IModel<Search<T>> search, IModel<List<PrismContainerValueWrapper<T>>> model,
+    ISelectableDataProvider<PrismContainerValueWrapper<T>> create(Component component, @NotNull IModel<Search<T>> search, IModel<List<PrismContainerValueWrapper<T>>> model,
             Class<? extends Objectable>  objectType, String oid, ItemPath path, CompiledObjectCollectionView compiledObjectCollectionView, Customization<T> customization);
 
     /**

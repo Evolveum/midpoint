@@ -14,7 +14,6 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             elementFormDefault="qualified"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -31,7 +30,6 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
@@ -130,6 +128,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AuthenticationModulesType">
@@ -157,6 +156,7 @@
             <xsd:element name="ldap" type="tns:LdapAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="other" type="tns:OtherAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractAuthenticationModuleType" abstract="true">
@@ -196,6 +196,7 @@
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractCredentialAuthenticationModuleType" abstract="true">
@@ -379,6 +380,7 @@
             <xsd:element name="name" type="xsd:string"/>
             <xsd:element name="value" type="xsd:string"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="LdapAuthenticationModuleType">
@@ -464,6 +466,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="Saml2AuthenticationModuleType">
@@ -504,6 +507,7 @@
             <xsd:element name="readTimeout" type="xsd:int" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="connectTimeout" type="xsd:int" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="Saml2ServiceProviderAuthenticationModuleType">
@@ -598,6 +602,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="Saml2SigningAlgorithmAuthenticationModuleType">
@@ -683,6 +688,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ModuleSaml2KeyStoreKeyType">
@@ -720,6 +726,7 @@
             <xsd:element name="keyAlias" type="xsd:string" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="keyPassword" type="t:ProtectedStringType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractSimpleKeyType">
@@ -742,6 +749,7 @@
             <xsd:element name="passphrase" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="certificate" type="t:ProtectedStringType" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="ModuleSaml2SimpleKeyType">
@@ -860,6 +868,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="Saml2ProviderMetadataAuthenticationModuleType">
@@ -897,6 +906,7 @@
                 </xsd:element>
             </xsd:choice>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="OidcAuthenticationModuleType">
@@ -989,6 +999,7 @@
                 </xsd:element>
             </xsd:choice> <!--> can use only one of types, but all can be null<-->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="OidcClientAuthenticationModuleType">
@@ -1080,6 +1091,7 @@
                 </xsd:element>
             </xsd:choice> <!--> can use only one of types, but all can be null<-->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="OidcClientAuthenticationMethodType">
@@ -1171,6 +1183,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="MailNonceAuthenticationModuleType">
@@ -1337,9 +1350,13 @@
             <xsd:element name="requireAssignmentTarget" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Required assignment target. This authentication sequence is applicable only to users that
+                        Required assignment target(s). This authentication sequence is applicable only to users that
                         have active assignment with this target (and relation). If the sequence is attempted on a user
                         that does not have this assignment then the authentication will fail.
+
+                        All targets must be present. They are checked against effective link values ("roleMembershipRef").
+                        OID, type (if present), and relation is matched. If relation is not defined, org:default is assumed.
+                        Value of q:any may be used to denote any relation value.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1376,6 +1393,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="FocusBehaviorUpdateType">
@@ -1473,6 +1491,7 @@
             </xsd:element>
             <!-- later: URL parameter to select this sequence? -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AuthenticationSequenceModuleType">
@@ -1528,6 +1547,7 @@
             </xsd:element>
             <!-- later: requireAuthenticationAttribute, transformAuthenticationAttribute -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="AuthenticationSequenceModuleNecessityType">
@@ -1645,6 +1665,7 @@
             </xsd:element>
             <!-- More credential types may come here in the future. -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="RegistrationsPolicyType">
@@ -1669,6 +1690,7 @@
 
             <!-- More registration types may come here in the future. -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CredentialsResetPolicyType">
@@ -1773,6 +1795,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CredentialSourceType">
@@ -1797,6 +1820,7 @@
             </xsd:element>
             <!-- Later: generate, key-exchange, PKI, ... -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="UserEntryCredentialSourceType">
@@ -1821,6 +1845,7 @@
             <!--                 </xsd:annotation> -->
             <!--             </xsd:element> -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractRegistrationPolicyType">
@@ -1869,6 +1894,7 @@
             </xsd:element>
             <!-- More registration types may come here in the future. -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="SelfRegistrationPolicyType">
@@ -1898,7 +1924,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
 
     <xsd:complexType name="CredentialPolicyType">
         <xsd:annotation>
@@ -2087,6 +2112,7 @@
             </xsd:element>
             <!-- TODO: similarity criteria (history vs new password) -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="CredentialsPropagationUserControlType">
@@ -2169,6 +2195,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="CredentialsResetTypeType">
@@ -2250,6 +2277,7 @@
             </xsd:element>
             <!-- Storage parameters (ciphers, digest methods, key lengths, ... -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:simpleType name="CredentialsStorageTypeType">
@@ -2482,6 +2510,7 @@
             employee number in each user therefore there is no need for each user to manually fill-in the expected answer.
             We can use expression instead. Something like "$user/employeeNumber" -->
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="NonceCredentialsPolicyType">
@@ -2501,6 +2530,4 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
-
 </xsd:schema>

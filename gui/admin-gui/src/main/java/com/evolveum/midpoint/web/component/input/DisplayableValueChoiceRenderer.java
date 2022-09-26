@@ -40,7 +40,7 @@ public class DisplayableValueChoiceRenderer<T> implements IChoiceRenderer<T> {
     @Override
     public String getIdValue(T object, int index) {
 
-        if (object instanceof String && choices != null) {
+        if (object != null && choices != null) {
             for (DisplayableValue v : choices) {
                 if (object.equals(v.getValue())) {
                     return String.valueOf(choices.indexOf(v));

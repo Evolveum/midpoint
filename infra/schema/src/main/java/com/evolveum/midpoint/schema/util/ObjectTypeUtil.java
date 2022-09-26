@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 import java.util.Objects;
@@ -15,8 +17,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -791,16 +793,41 @@ public class ObjectTypeUtil {
         }
     }
 
+    /**
+     * Creates a localizable designation of an object - its type and name. See {@link #getDescriptiveName(Objectable)}.
+     */
     public static LocalizableMessage createDisplayInformation(PrismObject<?> object, boolean startsWithUppercase) {
         if (object != null) {
-            String displayName = getDetailedDisplayName((PrismObject<ObjectType>) object);
+            Objectable objectable = object.asObjectable();
             return new LocalizableMessageBuilder()
                     .key(SchemaConstants.OBJECT_SPECIFICATION_KEY)
-                    .arg(createTypeDisplayInformation(object.asObjectable().getClass().getSimpleName(), startsWithUppercase))
-                    .arg(StringUtils.isEmpty(displayName) ? object.asObjectable().getName() : displayName)
+                    .arg(createTypeDisplayInformation(objectable.getClass().getSimpleName(), startsWithUppercase))
+                    .arg(getDescriptiveName(objectable))
                     .build();
         } else {
-            return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
+            return LocalizableMessageBuilder.buildFallbackMessage("?");
+        }
+    }
+
+    /**
+     * - User name is in the form of "full name (object name)".
+     * - Names for other objects are either "detailed display name" ({@link #getDetailedDisplayName(Objectable)}) or plain name.
+     */
+    private static Object getDescriptiveName(Objectable object) {
+        if (object instanceof UserType) {
+            PolyStringType fullName = ((UserType) object).getFullName();
+            if (fullName != null) {
+                return new LocalizableMessageBuilder()
+                        .key(SchemaConstants.USER_DESCRIPTIVE_NAME)
+                        .arg(fullName)
+                        .arg(object.getName())
+                        .build();
+            } else {
+                return object.getName();
+            }
+        } else {
+            String detailedDisplayName = getDetailedDisplayName(object);
+            return StringUtils.isEmpty(detailedDisplayName) ? object.getName() : detailedDisplayName;
         }
     }
 
@@ -813,7 +840,7 @@ public class ObjectTypeUtil {
                     .arg(path)
                     .build();
         } else {
-            return LocalizableMessageBuilder.buildFallbackMessage("?");          // should not really occur!
+            return LocalizableMessageBuilder.buildFallbackMessage("?"); // should not really occur!
         }
     }
 
@@ -1020,20 +1047,23 @@ public class ObjectTypeUtil {
      * Returns display name for given object, e.g. fullName for a user, displayName for a role,
      * and more detailed description for a shadow. TODO where exactly does this method belong?
      */
-    public static <O extends ObjectType> String getDetailedDisplayName(PrismObject<O> object) {
-        if (object == null) {
-            return null;
-        }
-        O objectable = object.asObjectable();
+    public static String getDetailedDisplayName(PrismObject<?> object) {
+        return getDetailedDisplayName(
+                asObjectable(object));
+    }
+
+    public static String getDetailedDisplayName(Objectable objectable) {
         if (objectable instanceof UserType) {
-            return PolyString.getOrig(((UserType) objectable).getFullName());
+            return getOrig(((UserType) objectable).getFullName());
         } else if (objectable instanceof AbstractRoleType) {
-            return PolyString.getOrig(((AbstractRoleType) objectable).getDisplayName());
+            return getOrig(((AbstractRoleType) objectable).getDisplayName());
         } else if (objectable instanceof ShadowType) {
             ShadowType shadow = (ShadowType) objectable;
-            String objectName = PolyString.getOrig(shadow.getName());
+            String objectName = getOrig(shadow.getName());
             QName oc = shadow.getObjectClass();
             String ocName = oc != null ? oc.getLocalPart() : null;
+            // This is dangerous (in general), as the PolyString localization information is lost.
+            // But it's OK for shadows.
             return objectName + " (" + shadow.getKind() + " - " + shadow.getIntent() + " - " + ocName + ")";
         } else {
             return null;

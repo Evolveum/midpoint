@@ -159,7 +159,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     @Override
-    protected ISelectableDataProvider<O, SelectableBean<O>> createProvider() {
+    protected ISelectableDataProvider<SelectableBean<O>> createProvider() {
         return createSelectableBeanObjectDataProvider(null, null); // default
     }
 

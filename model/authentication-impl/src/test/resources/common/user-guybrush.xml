@@ -7,21 +7,15 @@
   -->
 <user oid="c0c010c0-d34d-b33f-f00d-111111111116"
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
-        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-        xmlns:xsd='http://www.w3.org/2001/XMLSchema'
-        xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+        xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
     <name>guybrush</name>
-
-    <linkRef oid="22226666-2200-6666-6666-444400004444" type="c:ShadowType"/>
 
     <fullName>Guybrush Threepwood</fullName>
     <givenName>Guybrush</givenName>
     <familyName>Threepwood</familyName>
     <locality>Melee Island</locality>
 
- <credentials>
+    <credentials>
         <nonce>
             <value>
                 <t:clearValue>asdfghjkl654321</t:clearValue>

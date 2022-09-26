@@ -19,6 +19,7 @@ import com.evolveum.midpoint.authentication.impl.evaluator.AuthenticationEvaluat
 
 import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.TestTask;
 
 import org.jetbrains.annotations.NotNull;
@@ -63,19 +64,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public abstract class TestAbstractAuthenticationEvaluator<V, AC extends AbstractAuthenticationContext, T extends AuthenticationEvaluator<AC>> extends AbstractModelImplementationIntegrationTest {
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-    public static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "security-policy.xml");
-    public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-    public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
+    private static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "security-policy.xml");
+    private static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
+    private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 
-    protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
+    private static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
     protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-    protected static final String USER_JACK_USERNAME = "jack";
-    protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
+    private static final String USER_JACK_USERNAME = "jack";
+    static final String USER_JACK_PASSWORD = "deadmentellnotales";
 
-    protected static final File USER_GUYBRUSH_FILE = new File(COMMON_DIR, "user-guybrush.xml");
-    protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
-    protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
-    protected static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
+    private static final TestResource<UserType> USER_PAINTER = new TestResource<>(
+            COMMON_DIR, "user-painter.xml", "4e6b2224-4577-4558-a48b-fac1078124b8");
+    private static final String USER_PAINTER_NAME = "painter";
+
+    // painter (user) -> blue (role) -> yellow (role);
+    // and red role is not assigned
+    private static final TestResource<RoleType> ROLE_RED = new TestResource<>(
+            COMMON_DIR, "role-red.xml", "11cc2082-5e60-480b-9ac0-002ba20ab5c5");
+    private static final TestResource<RoleType> ROLE_YELLOW = new TestResource<>(
+            COMMON_DIR, "role-yellow.xml", "b40d6287-5c76-4a45-a61a-3cedebcf99b2");
+    private static final TestResource<RoleType> ROLE_BLUE = new TestResource<>(
+            COMMON_DIR, "role-blue.xml", "8eed0da1-e949-4d0d-b154-0a81167e287b");
+
+    private static final File USER_GUYBRUSH_FILE = new File(COMMON_DIR, "user-guybrush.xml");
+    static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
+    private static final String USER_GUYBRUSH_USERNAME = "guybrush";
+    static final String USER_GUYBRUSH_PASSWORD = "XmarksTHEspot";
 
     private static final TestTask TASK_TRIGGER_SCANNER_ON_DEMAND =
             new TestTask(COMMON_DIR, "task-trigger-scanner-on-demand.xml", "2ee5c2a9-0f46-438a-8748-7ac71f46a343");
@@ -87,7 +101,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     private MessageSourceAccessor messages;
 
     public abstract T getAuthenticationEvaluator();
-    public abstract AC getAuthenticationContext(String username, V value);
+    public abstract AC getAuthenticationContext(String username, V value, List<ObjectReferenceType> requiredAssignments);
+
+    private AC getAuthenticationContext(String username, V value) {
+        return getAuthenticationContext(username, value, List.of());
+    }
 
     public abstract V getGoodPasswordJack();
     public abstract V getBadPasswordJack();
@@ -99,13 +117,14 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     public abstract AbstractCredentialType getCredentialUsedForAuthentication(UserType user);
     public abstract QName getCredentialType();
 
-    public abstract void modifyUserCredential(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
+    public abstract void modifyUserCredential(Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
 
         // System Configuration
@@ -123,7 +142,14 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
         login(userAdministrator);
 
+        // Roles
+        addObject(ROLE_RED, initTask, initResult);
+        addObject(ROLE_YELLOW, initTask, initResult);
+        addObject(ROLE_BLUE, initTask, initResult);
+
         // Users
+        addObject(USER_PAINTER, initTask, initResult); // using model because of assignments
+
         repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
         repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult).asObjectable();
 
@@ -131,7 +157,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         messages = new MessageSourceAccessor(messageSource);
 
-        ((AuthenticationEvaluatorImpl) getAuthenticationEvaluator()).setPrincipalManager(new GuiProfiledPrincipalManager() {
+        ((AuthenticationEvaluatorImpl<?, ?>) getAuthenticationEvaluator()).setPrincipalManager(new GuiProfiledPrincipalManager() {
 
             @Override
             public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -150,7 +176,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             @Override
             public GuiProfiledPrincipal getPrincipal(PrismObject<? extends FocusType> user,
-                                                     AuthorizationTransformer authorizationLimiter, OperationResult result)
+                    AuthorizationTransformer authorizationLimiter, OperationResult result)
                     throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
                 GuiProfiledPrincipal principal = focusProfileService.getPrincipal(user);
                 addFakeAuthorization(principal);
@@ -457,7 +483,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     @Test
-    public void test132PasswordLoginLockedoutGoodPassword() throws Exception {
+    public void test132PasswordLoginLockedOutGoodPassword() throws Exception {
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
@@ -482,7 +508,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     @Test
-    public void test133PasswordLoginLockedoutBadPassword() throws Exception {
+    public void test133PasswordLoginLockedOutBadPassword() throws Exception {
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
@@ -510,7 +536,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     @Test
-    public void test135PasswordLoginLockedoutLockExpires() throws Exception {
+    public void test135PasswordLoginLockedOutLockExpires() throws Exception {
         // GIVEN
         clock.overrideDuration("PT30M");
 
@@ -598,7 +624,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     @Test
-    public void test137PasswordLoginLockedoutGoodPasswordAgain() throws Exception {
+    public void test137PasswordLoginLockedOutGoodPasswordAgain() throws Exception {
         // GIVEN
         ConnectionEnvironment connEnv = createConnectionEnvironment();
 
@@ -943,6 +969,72 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertFailedLoginsForBehavior(userAfter, 1);
     }
 
+    /**
+     * Authentication requires assignment to `blue` role. The user has this role directly assigned.
+     * The authentication should be therefore successful.
+     *
+     * MID-8123
+     */
+    @Test
+    public void test300RequiredAssignmentPresentDirectly() {
+        clock.resetOverride();
+
+        given("auth context that requires membership in role 'blue' (present directly)");
+        ConnectionEnvironment connEnv = createConnectionEnvironment();
+        AC context = getAuthenticationContext(USER_PAINTER_NAME, getGoodPasswordJack(), List.of(ROLE_BLUE.ref()));
+
+        when("authentication is attempted");
+        Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, context);
+
+        then("authentication is successful");
+        assertGoodPasswordAuthentication(authentication, USER_PAINTER_NAME);
+    }
+
+    /**
+     * Authentication requires assignment to `yellow` role. The user has this role indirectly assigned.
+     * The authentication should be successful even in this case.
+     *
+     * MID-8123
+     */
+    @Test
+    public void test310RequiredAssignmentPresentIndirectly() {
+        clock.resetOverride();
+
+        given("auth context that requires membership in role 'yellow' (present indirectly)");
+        ConnectionEnvironment connEnv = createConnectionEnvironment();
+        AC context = getAuthenticationContext(USER_PAINTER_NAME, getGoodPasswordJack(), List.of(ROLE_YELLOW.ref()));
+
+        when("authentication is attempted");
+        Authentication authentication = getAuthenticationEvaluator().authenticate(connEnv, context);
+
+        then("authentication is successful");
+        assertGoodPasswordAuthentication(authentication, USER_PAINTER_NAME);
+    }
+
+    /**
+     * Authentication requires assignment to `red` role. The user does not have this role. The authentication should fail.
+     *
+     * MID-8123
+     */
+    @Test
+    public void test320RequiredAssignmentNotPresent() {
+        clock.resetOverride();
+
+        given("auth context that requires membership in role 'red' (not present)");
+        ConnectionEnvironment connEnv = createConnectionEnvironment();
+        AC context = getAuthenticationContext(USER_PAINTER_NAME, getGoodPasswordJack(), List.of(ROLE_RED.ref()));
+
+        when("authentication is attempted");
+        try {
+            getAuthenticationEvaluator().authenticate(connEnv, context);
+            fail("unexpected success");
+        } catch (InternalAuthenticationServiceException e) {
+            then("an exception is raised");
+            displayExpectedException(e);
+            assertMissingAssignment(e);
+        }
+    }
+
     private void assertGoodPasswordAuthentication(Authentication authentication, String expectedUsername) {
         assertNotNull("No authentication", authentication);
         assertTrue("authentication: not authenticated", authentication.isAuthenticated());
@@ -951,11 +1043,11 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     private void assertBadPasswordException(BadCredentialsException e) {
-        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid.credentials"), getTranslatedMessage(e));
+        assertEquals("Wrong exception message (key)", messages.getMessage("web.security.provider.invalid.credentials"), getTranslatedMessage(e));
     }
 
     private void assertEmptyPasswordException(BadCredentialsException e) {
-        assertEquals("Wrong exception meessage (key)", messages.getMessage(getEmptyPasswordExceptionMessageKey()), getTranslatedMessage(e));
+        assertEquals("Wrong exception message (key)", messages.getMessage(getEmptyPasswordExceptionMessageKey()), getTranslatedMessage(e));
     }
 
     private String getTranslatedMessage(Throwable t) {
@@ -963,19 +1055,23 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     }
 
     private void assertLockedException(LockedException e) {
-        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.locked"), getTranslatedMessage(e));
+        assertEquals("Wrong exception message (key)", messages.getMessage("web.security.provider.locked"), getTranslatedMessage(e));
     }
 
     private void assertDisabledException(DisabledException e) {
-        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.disabled"), getTranslatedMessage(e));
+        assertEquals("Wrong exception message (key)", messages.getMessage("web.security.provider.disabled"), getTranslatedMessage(e));
     }
 
     private void assertExpiredException(CredentialsExpiredException e) {
-        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.credential.expired"), getTranslatedMessage(e));
+        assertEquals("Wrong exception message (key)", messages.getMessage("web.security.provider.credential.expired"), getTranslatedMessage(e));
     }
 
     private void assertNoUserException(UsernameNotFoundException e) {
-        assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid.credentials"), getTranslatedMessage(e));
+        assertEquals("Wrong exception message (key)", messages.getMessage("web.security.provider.invalid.credentials"), getTranslatedMessage(e));
+    }
+
+    private void assertMissingAssignment(InternalAuthenticationServiceException e) {
+        assertEquals("Wrong exception message (key)", messages.getMessage("web.security.flexAuth.invalid.required.assignment"), getTranslatedMessage(e));
     }
 
     private ConnectionEnvironment createConnectionEnvironment() {
@@ -1099,7 +1195,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertFailedLoginsForBehavior(userAfter, expectedFailInBehavior);
     }
 
-    public AuthenticationBehavioralDataType getAuthenticationBehavior(UserType user) {
+    private AuthenticationBehavioralDataType getAuthenticationBehavior(UserType user) {
         if (user.getBehavior() == null || user.getBehavior().getAuthentication() == null) {
             return new AuthenticationBehavioralDataType();
         }

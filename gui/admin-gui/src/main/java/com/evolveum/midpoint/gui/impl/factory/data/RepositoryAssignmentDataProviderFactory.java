@@ -44,7 +44,7 @@ public class RepositoryAssignmentDataProviderFactory  implements ContainerValueD
     }
 
     @Override
-    public ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> create(
+    public ISelectableDataProvider<PrismContainerValueWrapper<AssignmentType>> create(
         org.apache.wicket.Component component, @NotNull IModel<Search<AssignmentType>> search,
         IModel<List<PrismContainerValueWrapper<AssignmentType>>> model, Class<? extends Objectable> objectType,
         String oid, ItemPath path) {
@@ -52,14 +52,14 @@ public class RepositoryAssignmentDataProviderFactory  implements ContainerValueD
     }
 
     @Override
-    public ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> create(
+    public ISelectableDataProvider<PrismContainerValueWrapper<AssignmentType>> create(
         org.apache.wicket.Component component, @NotNull IModel<Search<AssignmentType>> search,
         IModel<List<PrismContainerValueWrapper<AssignmentType>>> model, Class<? extends Objectable> objectType,
         String oid, ItemPath path, CompiledObjectCollectionView collection, Customization<AssignmentType> customization) {
         return doCreate(component, search, model, objectType, oid, path, collection, customization);
     }
 
-    private static ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> doCreate(
+    private static ISelectableDataProvider<PrismContainerValueWrapper<AssignmentType>> doCreate(
         org.apache.wicket.Component component, @NotNull IModel<Search<AssignmentType>> search,
         IModel<List<PrismContainerValueWrapper<AssignmentType>>> model, Class<? extends Objectable> objectType,
         String oid, ItemPath path, CompiledObjectCollectionView collection, Customization<AssignmentType> customization) {

@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -151,7 +150,14 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         login(userAdministrator);
         Task task = getTestTask();
 
-        OperationResult result = executeAssignRole1(userJackOid, false, false, USER_LEAD1.oid, null, true);
+        OperationResult result = executeAssignRole1(
+                userJackOid,
+                "Jack Sparrow (jack)",
+                false,
+                false,
+                USER_LEAD1.oid,
+                null,
+                true);
 
         // MID-5814
         assertThatOperationResult(result)
@@ -210,7 +216,14 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 
         importLead10(getTestTask(), getTestOperationResult());
 
-        executeAssignRole1(userJackOid, false, false, USER_LEAD1.oid, null, false);
+        executeAssignRole1(
+                userJackOid,
+                "Jack Sparrow (jack)",
+                false,
+                false,
+                USER_LEAD1.oid,
+                null,
+                false);
     }
 
     /**
@@ -221,7 +234,14 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1(userJackOid, true, false, USER_LEAD1.oid, null, false);
+        executeAssignRole1(
+                userJackOid,
+                "Jack Sparrow (jack)",
+                true,
+                false,
+                USER_LEAD1.oid,
+                null,
+                false);
     }
 
     /**
@@ -326,7 +346,14 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         importLead1Deputies(task, getTestOperationResult());
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1(userJackOid, false, true, USER_LEAD1.oid, null, false);
+        executeAssignRole1(
+                userJackOid,
+                "Jack Sparrow (jack)",
+                false,
+                true,
+                USER_LEAD1.oid,
+                null,
+                false);
     }
 
     /**
@@ -337,7 +364,14 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1(userJackOid, false, true, USER_LEAD1_DEPUTY_1.oid, null, false);
+        executeAssignRole1(
+                userJackOid,
+                "Jack Sparrow (jack)",
+                false,
+                true,
+                USER_LEAD1_DEPUTY_1.oid,
+                null,
+                false);
     }
 
     @Test(enabled = false)
@@ -345,27 +379,45 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         login(userAdministrator);
 
         unassignAllRoles(userJackOid);
-        executeAssignRole1(userJackOid, false, true, USER_LEAD1.oid, SchemaConstants.ORG_APPROVER, false);
+        executeAssignRole1(
+                userJackOid,
+                "Jack Sparrow (jack)",
+                false,
+                true,
+                USER_LEAD1.oid,
+                SchemaConstants.ORG_APPROVER,
+                false);
     }
 
     @Test
     public void test200AddRole1AssignmentToDraftUser() throws Exception {
         login(userAdministrator);
 
-        executeAssignRole1(USER_DRAFT.oid, false, true, USER_LEAD1.oid, null, false);
+        executeAssignRole1(
+                USER_DRAFT.oid,
+                "Draft (draft)",
+                false,
+                true,
+                USER_LEAD1.oid,
+                null,
+                false);
     }
 
     // in memory tracing is required to check for MID-5814
-    private OperationResult executeAssignRole1(String userOid, boolean immediate, boolean deputiesOfLeadOneSeeItems, String approverOid, QName relation,
+    private OperationResult executeAssignRole1(
+            String userOid,
+            String userDisplayName,
+            boolean immediate,
+            boolean deputiesOfLeadOneSeeItems,
+            String approverOid,
+            QName relation,
             boolean useInMemoryTracing) throws Exception {
         PrismObject<UserType> user = getUser(userOid);
-        String userDisplayName = user.asObjectable().getFullName() != null && StringUtils.isNotEmpty(user.asObjectable().getFullName().getOrig())
-                ? user.asObjectable().getFullName().getOrig() : user.getName().getOrig();
         // @formatter:off
         ObjectDelta<UserType> delta = prismContext
                 .deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType(prismContext)
+                .add(new AssignmentType()
                         .targetRef(getRoleOid(1), RoleType.COMPLEX_TYPE, relation))
                 .asObjectDelta(userOid);
         // @formatter:on
@@ -449,7 +501,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
                     opTask.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
                     opTask.addTracingRequest(TracingRootType.WORKFLOW_OPERATION);
                     opTask.setTracingProfile(
-                            new TracingProfileType(prismContext)
+                            new TracingProfileType()
                                     .createTraceFile(false)
                                     .collectLogEntries(true)
                     );
@@ -541,9 +593,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
             @Override
             protected List<ExpectedTask> getExpectedTasks() {
                 return Arrays.asList(
-                        new ExpectedTask(getRoleOid(1), "Assigning role \"" + getRoleName(1) + "\" to user \"Jack Sparrow\""),
-                        new ExpectedTask(getRoleOid(2), "Assigning role \"" + getRoleName(2) + "\" to user \"Jack Sparrow\""),
-                        new ExpectedTask(getRoleOid(3), "Assigning role \"" + getRoleName(3) + "\" to user \"Jack Sparrow\""));
+                        new ExpectedTask(getRoleOid(1), "Assigning role \"" + getRoleName(1) + "\" to user \"Jack Sparrow (jack)\""),
+                        new ExpectedTask(getRoleOid(2), "Assigning role \"" + getRoleName(2) + "\" to user \"Jack Sparrow (jack)\""),
+                        new ExpectedTask(getRoleOid(3), "Assigning role \"" + getRoleName(3) + "\" to user \"Jack Sparrow (jack)\""));
             }
 
             @Override

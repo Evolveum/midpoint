@@ -41,6 +41,8 @@ public class MultiButtonPanel<T> extends BasePanel<T> {
     }
 
     private void initLayout() {
+        add(AttributeAppender.append("class", "d-flex gap-1 flex-wrap"));
+
         RepeatingView buttons = new RepeatingView(ID_BUTTONS);
         add(buttons);
 

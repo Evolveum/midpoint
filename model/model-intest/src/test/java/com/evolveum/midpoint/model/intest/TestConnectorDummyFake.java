@@ -58,7 +58,6 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         // Make sure that the connectors are discovered
-        provisioningService.postInit(initResult);
         modelService.postInit(initResult);
 
         // Make sure to call postInit first. This add system config to repo.
