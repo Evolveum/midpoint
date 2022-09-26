@@ -11,16 +11,7 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +25,15 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -197,31 +192,6 @@ class Helper {
             T normalizedRealValue = matchingRule.normalize(pval.getValue());
             pval.setValue(normalizedRealValue);
         }
-    }
-
-    public <T> boolean compareAttribute(ResourceObjectDefinition objectDefinition,
-            ResourceAttribute<T> attributeA, T... valuesB) throws SchemaException {
-        //noinspection unchecked
-        ResourceAttributeDefinition<T> refinedAttributeDefinition =
-                (ResourceAttributeDefinition<T>) objectDefinition.findAttributeDefinitionRequired(attributeA.getElementName());
-        Collection<T> valuesA = getNormalizedAttributeValues(attributeA, refinedAttributeDefinition);
-        return MiscUtil.unorderedCollectionEquals(valuesA, Arrays.asList(valuesB));
-    }
-
-    public <T> boolean compareAttribute(ResourceObjectDefinition objectDefinition,
-            ResourceAttribute<T> attributeA, ResourceAttribute<T> attributeB) throws SchemaException {
-
-        //noinspection unchecked
-        ResourceAttributeDefinition<T> refinedAttributeDefinitionA =
-                (ResourceAttributeDefinition<T>) objectDefinition.findAttributeDefinitionRequired(attributeA.getElementName());
-        Collection<T> valuesA = getNormalizedAttributeValues(attributeA, refinedAttributeDefinitionA);
-
-        //noinspection unchecked
-        ResourceAttributeDefinition<T> refinedAttributeDefinitionB =
-                (ResourceAttributeDefinition<T>) objectDefinition.findAttributeDefinitionRequired(attributeB.getElementName());
-        Collection<T> valuesB = getNormalizedAttributeValues(attributeB, refinedAttributeDefinitionB);
-
-        return MiscUtil.unorderedCollectionEquals(valuesA, valuesB);
     }
 
     boolean isRepositoryOnlyModification(Collection<? extends ItemDelta> modifications) {

@@ -50,7 +50,7 @@ public class ProvisioningOperationOptions implements Serializable, ShortDumpable
     private String runAsAccountOid;
 
     /**
-     * if set to true, postoponed retry operations are executed even though
+     * if set to true, postponed retry operations are executed even though
      * the retry period hasn't ended yet.
      */
     private Boolean forceRetry;

@@ -32,8 +32,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -42,13 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 abstract class HardErrorHandler extends ErrorHandler {
-
-    private static final String OPERATION_HANDLE_GET_ERROR = HardErrorHandler.class.getName() + ".handleGetError";
-    private static final String OPERATION_HANDLE_ADD_ERROR = HardErrorHandler.class.getName() + ".handleAddError";
-    private static final String OPERATION_HANDLE_MODIFY_ERROR = HardErrorHandler.class.getName() + ".handleModifyError";
-    private static final String OPERATION_HANDLE_DELETE_ERROR = HardErrorHandler.class.getName() + ".handleDeleteError";
-
-    private static final Trace LOGGER = TraceManager.getTrace(HardErrorHandler.class);
 
     @Override
     public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,

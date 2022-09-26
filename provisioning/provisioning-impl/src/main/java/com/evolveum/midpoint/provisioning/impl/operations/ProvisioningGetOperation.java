@@ -111,7 +111,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
         }
     }
 
-    private PrismObject<ShadowType> getShadow(@NotNull OperationResult result)
+    private @NotNull PrismObject<ShadowType> getShadow(@NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException {
         try {

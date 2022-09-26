@@ -68,10 +68,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 public class ProvisioningUtil {
 
     private static final QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
-    public static final Duration DEFAULT_OPERATION_RETRY_PERIOD_DURATION = XmlTypeConverter.createDuration("PT30M");
-    public static final int DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS = 3;
+    private static final Duration DEFAULT_OPERATION_RETRY_PERIOD_DURATION = XmlTypeConverter.createDuration("PT30M");
+    private static final int DEFAULT_OPERATION_RETRY_MAX_ATTEMPTS = 3;
     private static final Duration DEFAULT_PENDING_OPERATION_RETENTION_PERIOD_DURATION = XmlTypeConverter.createDuration("P1D");
-    public static final Duration DEFAULT_DEAD_SHADOW_RETENTION_PERIOD_DURATION = XmlTypeConverter.createDuration("P7D");
+    private static final Duration DEFAULT_DEAD_SHADOW_RETENTION_PERIOD_DURATION = XmlTypeConverter.createDuration("P7D");
 
     private static final Trace LOGGER = TraceManager.getTrace(ProvisioningUtil.class);
 
@@ -521,16 +521,10 @@ public class ProvisioningUtil {
         return period;
     }
 
-    public static Duration getDeadShadowRetentionPeriod(ProvisioningContext ctx) {
-        Duration period = null;
+    public static @NotNull Duration getDeadShadowRetentionPeriod(ProvisioningContext ctx) {
         ResourceConsistencyType consistency = ctx.getResource().getConsistency();
-        if (consistency != null) {
-            period = consistency.getDeadShadowRetentionPeriod();
-        }
-        if (period == null) {
-            period = DEFAULT_DEAD_SHADOW_RETENTION_PERIOD_DURATION;
-        }
-        return period;
+        Duration period = consistency != null ? consistency.getDeadShadowRetentionPeriod() : null;
+        return period != null ? period : DEFAULT_DEAD_SHADOW_RETENTION_PERIOD_DURATION;
     }
 
     public static int getMaxRetryAttempts(ProvisioningContext ctx) {
@@ -599,7 +593,8 @@ public class ProvisioningUtil {
                 || resource.getConsistency().isDiscovery();
     }
 
-    public static OperationResultStatus postponeModify(ProvisioningContext ctx,
+    public static OperationResultStatus postponeModify(
+            ProvisioningContext ctx,
             PrismObject<ShadowType> repoShadow,
             Collection<? extends ItemDelta> modifications,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,

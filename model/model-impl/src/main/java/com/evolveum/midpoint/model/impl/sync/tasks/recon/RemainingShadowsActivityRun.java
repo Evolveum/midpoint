@@ -145,15 +145,18 @@ final class RemainingShadowsActivityRun
      */
     private void reconcileShadow(ShadowType shadow, String requestIdentifier, Task task, OperationResult result)
             throws SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException {
+            ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
         LOGGER.trace("Reconciling shadow {}, fullSynchronizationTimestamp={}", shadow,
                 shadow.getFullSynchronizationTimestamp());
         try {
+            // For a long time, the forceRefresh option was turned off in dry run mode.
+            // However, it looks like we should apply it each time, to (e.g.) force deletion of dead shadows
+            // even in the dry run - see MID-7927.
             Collection<SelectorOptions<GetOperationOptions>> options =
                     SchemaService.get().getOperationOptionsBuilder()
                             .doNotDiscovery() // We are doing "discovery" ourselves
                             .errorReportingMethod(FetchErrorReportingMethodType.FORCED_EXCEPTION) // As well as complete handling!
-                            .forceRefresh(!isDryRun())
+                            .forceRefresh()
                             .readOnly()
                             .build();
             PrismObject<ShadowType> shadowFetched =
@@ -186,13 +189,13 @@ final class RemainingShadowsActivityRun
             ObjectNotFoundException e,
             Task task,
             OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, SecurityViolationException {
+            ConfigurationException, ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException {
         if (!shadow.getOid().equals(e.getOid())) {
             LOGGER.debug("Got unrelated ObjectNotFoundException, rethrowing: " + e.getMessage(), e);
             throw e;
         }
 
-        LOGGER.debug("We have a shadow that seemingly does not exist on the resource. Will handle that.");
+        LOGGER.debug("We have an object that seemingly does not exist on the resource. Will handle that.");
 
         result.muteLastSubresultError();
 
@@ -205,12 +208,13 @@ final class RemainingShadowsActivityRun
             return;
         }
 
-        reactShadowGone(shadow, requestIdentifier, task, result);
+        reactResourceObjectGone(shadow, requestIdentifier, task, result);
     }
 
-    private void reactShadowGone(ShadowType originalShadow, String requestIdentifier, Task task, OperationResult result)
+    private void reactResourceObjectGone(
+            ShadowType originalShadow, String requestIdentifier, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, SecurityViolationException {
+            ExpressionEvaluationException, SecurityViolationException, ObjectAlreadyExistsException {
 
         // We reload e.g. to get current "gone" status. Otherwise the clockwork is confused.
         PrismObject<ShadowType> shadow = reloadShadow(originalShadow, task, result);
@@ -226,6 +230,9 @@ final class RemainingShadowsActivityRun
         change.setItemProcessingIdentifier(requestIdentifier); // To record synchronization state changes
         ModelImplUtils.clearRequestee(task);
         getModelBeans().eventDispatcher.notifyChange(change, task, result);
+
+        // Finally, we refresh the shadow. It is to get rid of dead shadows if retention is set to 0 (MID-7927).
+        getModelBeans().provisioningService.refreshShadow(shadow, null, task, result);
     }
 
     private PrismObject<ShadowType> reloadShadow(ShadowType originalShadow, Task task, OperationResult result)
@@ -236,11 +243,16 @@ final class RemainingShadowsActivityRun
             // 1. not read-only because we modify the shadow afterwards
             // 2. using provisioning (not the repository) to get the lifecycle state;
             //    but using raw mode to avoid deleting dead shadows
-            return getModelBeans().provisioningService.getObject(ShadowType.class, originalShadow.getOid(),
-                    GetOperationOptions.createRawCollection(), task, result);
+            return getModelBeans().provisioningService.getObject(
+                    ShadowType.class, originalShadow.getOid(), GetOperationOptions.createRawCollection(), task, result);
         } catch (ObjectNotFoundException e) {
+            result.muteLastSubresultError();
+
             // TODO Could be the shadow deleted during preprocessing?
             //  Try to find out if it can occur.
+
+            // Note that the model will (most probably) crash when provided by non-existing shadow.
+            // This should be analyzed and fixed one day.
             LOGGER.debug("Shadow disappeared. But we need to notify the model! Shadow: {}", originalShadow);
 
             originalShadow.setDead(true);

@@ -61,7 +61,7 @@ public class ShadowsFacade {
      * @param identifiersOverride Identifiers that are known to the caller and that should override
      * the ones (if any) in the shadow.
      */
-    public PrismObject<ShadowType> getShadow(
+    public @NotNull PrismObject<ShadowType> getShadow(
             @NotNull String oid,
             @Nullable PrismObject<ShadowType> repositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,

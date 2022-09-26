@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest.sync;
 
 import static com.evolveum.midpoint.model.api.ModelPublicConstants.*;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.createResourceAndObjectClassQuery;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.SYNCHRONIZATION_NOT_NEEDED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
@@ -142,6 +143,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
     private static final DummyTestResource RESOURCE_DUMMY_GRAVEYARD = new DummyTestResource(
             TEST_DIR, "resource-dummy-graveyard.xml", "106c2242-59c9-4ccd-afcb-557437b816da", "graveyard");
+    private static final DummyTestResource RESOURCE_DUMMY_REAPING = new DummyTestResource(
+            TEST_DIR, "resource-dummy-reaping.xml", "9f5842cb-74c0-434f-85d1-b2999f189500", "reaping");
 
     private static final QName DUMMY_LIME_ACCOUNT_OBJECT_CLASS = RI_ACCOUNT_OBJECT_CLASS;
 
@@ -164,6 +167,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             TEST_DIR, "task-reconcile-dummy-lime.xml", "10000000-0000-0000-5656-565600131204");
     private static final TestTask TASK_RECONCILE_DUMMY_GRAVEYARD = new TestTask(
             TEST_DIR, "task-reconcile-dummy-graveyard.xml", "c2665533-bae3-4d06-966c-8e8705bc37da", 20_000);
+    private static final TestTask TASK_RECONCILE_DUMMY_REAPING_DRY_RUN = new TestTask(
+            TEST_DIR, "task-reconcile-dummy-reaping-dry-run.xml", "2c51a65a-84bc-4496-a34f-5e3070131da9", 20_000);
     private static final TestResource<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY = new TestResource<>(
             TEST_DIR, "task-import-dummy-lime-limited-legacy.xml", "4e2f83b8-5312-4924-af7e-52805ad20b3e");
     private static final TestResource<TaskType> TASK_IMPORT_DUMMY_LIME_LIMITED = new TestResource<>(
@@ -239,6 +244,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         initAndTestDummyResource(RESOURCE_DUMMY_GRAVEYARD, initTask, initResult);
         TASK_RECONCILE_DUMMY_GRAVEYARD.initialize(this, initTask, initResult);
+        initAndTestDummyResource(RESOURCE_DUMMY_REAPING, initTask, initResult);
+        TASK_RECONCILE_DUMMY_REAPING_DRY_RUN.initialize(this, initTask, initResult);
 
         // Create an account that midPoint does not know about yet
         getDummyResourceController().addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, "Scabb Island");
@@ -2045,15 +2052,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-//        setGlobalTracingOverride(createModelLoggingTracingProfile());
         restartTask(TASK_RECONCILE_DUMMY_AZURE.oid);
 
         // THEN
         then();
 
         Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_AZURE.oid, false);
-
-//        unsetGlobalTracingOverride();
 
         dumpStatistics(taskAfter);
 
@@ -2794,7 +2798,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
+        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
 
         // WHEN
         when();
@@ -3064,7 +3068,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .execute(result);
 
         then("the task has failed");
-        var taskAfter = assertTask(taskOid, "after")
+        assertTask(taskOid, "after")
                 .display()
                 .assertPartialError()
                 .getObjectable();
@@ -3129,7 +3133,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         given("an account + a shadow exist");
         RESOURCE_DUMMY_GRAVEYARD.controller.addAccount(accountName);
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(
+        ObjectQuery query = createResourceAndObjectClassQuery(
                 RESOURCE_DUMMY_GRAVEYARD.oid, RI_ACCOUNT_OBJECT_CLASS);
         List<PrismObject<ShadowType>> shadows =
                 provisioningService.searchObjects(ShadowType.class, query, null, task, result);
@@ -3171,6 +3175,113 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                     .end()
                 .end();
         // @formatter:on
+    }
+
+    /**
+     * Dry-run-reconciling an account that has been deleted. See MID-7927.
+     */
+    @Test
+    public void test720DryRunReconcileDeletedAccount() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String accountName = "test720";
+        clock.resetOverride();
+
+        given("an account + a shadow exist");
+        RESOURCE_DUMMY_REAPING.controller.addAccount(accountName);
+        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_REAPING.oid, RI_ACCOUNT_OBJECT_CLASS);
+        List<PrismObject<ShadowType>> shadows =
+                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+        assertThat(shadows).as("shadows").hasSize(1);
+        String shadowOid = shadows.get(0).getOid();
+
+        and("the account is deleted (midPoint does not know)");
+        RESOURCE_DUMMY_REAPING.controller.deleteAccount(accountName);
+
+        when("dry-run reconciliation is run");
+        TASK_RECONCILE_DUMMY_REAPING_DRY_RUN.rerun(result);
+
+        then("reconciliation is OK");
+        // @formatter:off
+        TASK_RECONCILE_DUMMY_REAPING_DRY_RUN.assertAfter()
+                .assertClosed()
+                .assertSuccess()
+                .activityState(RECONCILIATION_OPERATION_COMPLETION_PATH)
+                    .progress()
+                        .assertCommitted(0, 0, 0)
+                    .end()
+                .end()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .progress()
+                        .assertCommitted(0, 0, 0)
+                    .end()
+                .end()
+                .activityState(RECONCILIATION_REMAINING_SHADOWS_PATH)
+                    .progress()
+                        .assertCommitted(1, 0, 0)
+                    .end()
+                .end();
+        // @formatter:on
+
+        and("the shadow should be gone");
+        assertNoRepoShadow(shadowOid);
+    }
+
+    /**
+     * Dry-run-reconciling an account that is already dead. See MID-7927.
+     */
+    @Test
+    public void test730DryRunReconcileDeadAccount() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        String accountName = "test730";
+        clock.resetOverride();
+
+        given("an account + a shadow exist");
+        RESOURCE_DUMMY_REAPING.controller.addAccount(accountName);
+        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_REAPING.oid, RI_ACCOUNT_OBJECT_CLASS);
+        List<PrismObject<ShadowType>> shadows =
+                provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+        assertThat(shadows).as("shadows").hasSize(1);
+        String shadowOid = shadows.get(0).getOid();
+
+        and("the account is deleted (midPoint does not know)");
+        RESOURCE_DUMMY_REAPING.controller.deleteAccount(accountName);
+
+        and("the account is discovered to be missing (midPoint marks it as dead)");
+        PrismObject<ShadowType> shadowAfterDeletion =
+                provisioningService.getObject(ShadowType.class, shadowOid, null, task, result);
+        assertShadow(shadowAfterDeletion, "after deletion")
+                .assertDead()
+                .assertIsNotExists();
+
+        when("dry-run reconciliation is run");
+        TASK_RECONCILE_DUMMY_REAPING_DRY_RUN.rerun(result);
+
+        then("reconciliation is OK");
+        // @formatter:off
+        TASK_RECONCILE_DUMMY_REAPING_DRY_RUN.assertAfter()
+                .assertClosed()
+                .assertSuccess()
+                .activityState(RECONCILIATION_OPERATION_COMPLETION_PATH)
+                    .progress()
+                        .assertCommitted(0, 0, 0)
+                    .end()
+                .end()
+                .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
+                    .progress()
+                        .assertCommitted(0, 0, 0)
+                    .end()
+                .end()
+                .activityState(RECONCILIATION_REMAINING_SHADOWS_PATH)
+                    .progress()
+                        .assertCommitted(0, 0, 1) // "not needed" (but can be success as well)
+                    .end()
+                .end();
+        // @formatter:on
+
+        and("the shadow should be gone");
+        assertNoRepoShadow(shadowOid);
     }
 
     /**
@@ -3277,7 +3388,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     }
 
     private void assertDummyAccountShadows(int expected, boolean raw, Task task, OperationResult result) throws CommonException {
-        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
+        ObjectQuery query = createResourceAndObjectClassQuery(RESOURCE_DUMMY_OID, RI_ACCOUNT_OBJECT_CLASS);
 
         final MutableInt count = new MutableInt(0);
         ResultHandler<ShadowType> handler = (shadow, parentResult) -> {

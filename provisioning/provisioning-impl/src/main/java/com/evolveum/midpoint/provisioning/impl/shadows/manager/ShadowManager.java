@@ -373,15 +373,4 @@ public class ShadowManager {
     public void setKindIfNecessary(ShadowType repoShadowType, ProvisioningContext ctx) {
         helper.setKindIfNecessary(repoShadowType, ctx);
     }
-
-    @SafeVarargs
-    public final <T> boolean compareAttribute(ResourceObjectDefinition objectDefinition,
-            ResourceAttribute<T> attributeA, T... valuesB) throws SchemaException {
-        return helper.compareAttribute(objectDefinition, attributeA, valuesB);
-    }
-
-    public <T> boolean compareAttribute(ResourceObjectDefinition objectDefinition,
-            ResourceAttribute<T> attributeA, ResourceAttribute<T> attributeB) throws SchemaException {
-        return helper.compareAttribute(objectDefinition, attributeA, attributeB);
-    }
 }
