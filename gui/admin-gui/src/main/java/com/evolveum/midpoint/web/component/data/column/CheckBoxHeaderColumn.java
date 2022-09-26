@@ -8,13 +8,11 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.model.SelectableObjectModel;
 
 import com.evolveum.midpoint.gui.impl.util.TableUtil;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 
@@ -32,7 +30,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.TableHeadersToolbar;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;

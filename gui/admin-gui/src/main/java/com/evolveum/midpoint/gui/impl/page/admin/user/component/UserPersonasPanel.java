@@ -113,7 +113,7 @@ public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDet
                     }
 
                     @Override
-                    protected ISelectableDataProvider<UserType, SelectableBean<UserType>> createProvider() {
+                    protected ISelectableDataProvider<SelectableBean<UserType>> createProvider() {
                         return createSelectableBeanObjectDataProvider(() -> getFocusPersonasQuery(), null);
                     }
 

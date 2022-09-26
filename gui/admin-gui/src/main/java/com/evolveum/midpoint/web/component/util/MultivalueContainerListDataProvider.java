@@ -28,9 +28,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  * @author katkav
  */
 public class MultivalueContainerListDataProvider<C extends Containerable> extends BaseSearchDataProvider<C, PrismContainerValueWrapper<C>>
-        implements ISelectableDataProvider<C, PrismContainerValueWrapper<C>> {
+        implements ISelectableDataProvider<PrismContainerValueWrapper<C>> {
 
     private final IModel<List<PrismContainerValueWrapper<C>>> model;
     private final boolean sortable; // just to ensure backward compatibility with existing usages

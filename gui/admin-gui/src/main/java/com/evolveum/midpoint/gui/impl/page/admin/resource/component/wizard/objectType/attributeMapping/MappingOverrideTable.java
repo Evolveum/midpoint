@@ -169,7 +169,7 @@ public abstract class MappingOverrideTable extends MultivalueContainerListPanel<
     }
 
     @Override
-    protected ISelectableDataProvider<ResourceAttributeDefinitionType, PrismContainerValueWrapper<ResourceAttributeDefinitionType>> createProvider() {
+    protected ISelectableDataProvider<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> createProvider() {
         return new MultivalueContainerListDataProvider<>(MappingOverrideTable.this, getSearchModel(), new PropertyModel<>(getContainerModel(), "values")) {
 
             @Override

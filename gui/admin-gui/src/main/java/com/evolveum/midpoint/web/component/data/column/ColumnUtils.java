@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -103,13 +103,13 @@ public class ColumnUtils {
             return new PolyStringPropertyColumn<>(createStringResource(name), sortableProperty,
                     expression);
         }
-        return new PropertyColumn<T, String>(createStringResource(name), sortableProperty, expression) {
+        return new PropertyColumn<>(createStringResource(name), sortableProperty, expression) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item item, String componentId, IModel rowModel) {
                 if (multivalue) {
-                    IModel<List> values = new PropertyModel<>(rowModel, expression);
+                    IModel<List<?>> values = new PropertyModel<>(rowModel, expression);
                     RepeatingView repeater = new RepeatingView(componentId);
                     for (final Object task : values.getObject()) {
                         repeater.add(new Label(repeater.newChildId(), task.toString()));
@@ -144,13 +144,12 @@ public class ColumnUtils {
 //            return getDefaultAssignmentsColumns(pageBase);
         } else {
             return new ArrayList<>();
-//            throw new UnsupportedOperationException("Will be implemented eventually");
         }
     }
 
     public static <O extends ObjectType> IColumn<SelectableBean<O>, String> createIconColumn(PageBase pageBase) {
 
-        return new CompositedIconColumn<SelectableBean<O>>(createIconColumnHeaderModel()) {
+        return new CompositedIconColumn<>(createIconColumnHeaderModel()) {
 
             @Override
             protected CompositedIcon getCompositedIcon(IModel<SelectableBean<O>> rowModel) {
@@ -160,13 +159,7 @@ public class ColumnUtils {
                 return WebComponentUtil.createCompositeIconForObject(rowModel.getObject().getValue(),
                         rowModel.getObject().getResult(), pageBase);
             }
-
-//            @Override
-//            public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
-//                return getIconColumnDataModel(rowModel);
-//            }
         };
-
     }
 
     public static <T extends ObjectType> String getIconColumnValue(IModel<SelectableBean<T>> rowModel) {
@@ -190,12 +183,8 @@ public class ColumnUtils {
             return WebComponentUtil.createOrgIcon();
         } else if (ServiceType.class.equals(type)) {
             return WebComponentUtil.createServiceIcon();
-        } else if (ShadowType.class.equals(type)) { // TODO: duplicated lower, this one is used
-            if (object == null) {
-                return WebComponentUtil.createErrorIcon(result);
-            } else {
-                return WebComponentUtil.createShadowIcon(object.asPrismContainer());
-            }
+        } else if (ShadowType.class.equals(type)) {
+            return WebComponentUtil.createShadowIcon(object.asPrismContainer());
         } else if (type.equals(TaskType.class)) {
             return WebComponentUtil.createTaskIcon();
         } else if (type.equals(ResourceType.class)) {
@@ -206,8 +195,6 @@ public class ColumnUtils {
             return GuiStyleConstants.EVO_CASE_OBJECT_ICON;
         } else if (type.equals(CaseWorkItemType.class)) {
             return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON;
-        } else if (ShadowType.class.equals(type)) { // TODO ignored, see above
-            return GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON;
         }
 
         return "";
@@ -266,7 +253,7 @@ public class ColumnUtils {
     }
 
     private static IModel<String> createIconColumnHeaderModel() {
-        return new Model<String>() {
+        return new Model<>() {
             @Override
             public String getObject() {
                 return "";
@@ -305,7 +292,7 @@ public class ColumnUtils {
         List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
         columns.add(
-                new AbstractColumn<SelectableBean<T>, String>(createStringResource("TaskType.kind")) {
+                new AbstractColumn<>(createStringResource("TaskType.kind")) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -328,7 +315,7 @@ public class ColumnUtils {
                     }
                 });
 
-        columns.add(new AbstractColumn<SelectableBean<T>, String>(
+        columns.add(new AbstractColumn<>(
                 createStringResource("TaskType.intent")) {
 
             @Override
@@ -349,7 +336,7 @@ public class ColumnUtils {
             }
         });
 
-        columns.add(new AbstractColumn<SelectableBean<T>, String>(
+        columns.add(new AbstractColumn<>(
                 createStringResource("TaskType.objectClass")) {
 
             @Override
@@ -530,7 +517,7 @@ public class ColumnUtils {
     }
 
     private static <T extends AbstractRoleType> IColumn<SelectableBean<T>, String> getAbstractRoleColumnForProjection() {
-        IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<SelectableBean<T>, String>(
+        IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<>(
                 createStringResource("AbstractRole.projectionsColumn")) {
 
             @Override
@@ -565,7 +552,7 @@ public class ColumnUtils {
 
     public static List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> getDefaultWorkItemColumns(PageBase pageBase, boolean isFullView) {
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
-        columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+        columns.add(new AbstractExportableColumn<>(
                 createStringResource("WorkItemsPanel.stage")) {
             private static final long serialVersionUID = 1L;
 
@@ -581,7 +568,7 @@ public class ColumnUtils {
             }
 
         });
-        columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+        columns.add(new AbstractExportableColumn<>(
                 createStringResource("pageCases.table.state")) {
             private static final long serialVersionUID = 1L;
 
@@ -700,7 +687,7 @@ public class ColumnUtils {
             }
         });
         if (isFullView) {
-            columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+            columns.add(new AbstractExportableColumn<>(
                     createStringResource("WorkItemsPanel.actors")) {
                 private static final long serialVersionUID = 1L;
 
@@ -721,7 +708,7 @@ public class ColumnUtils {
 
             });
         }
-        columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+        columns.add(new AbstractExportableColumn<>(
                 createStringResource("WorkItemsPanel.created")) {
             private static final long serialVersionUID = 1L;
 
@@ -738,13 +725,13 @@ public class ColumnUtils {
             }
         });
         if (isFullView) {
-            columns.add(new AbstractColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(createStringResource("WorkItemsPanel.started")) {
+            columns.add(new AbstractColumn<>(createStringResource("WorkItemsPanel.started")) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
                         final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    cellItem.add(new DateLabelComponent(componentId, new IModel<Date>() {
+                    cellItem.add(new DateLabelComponent(componentId, new IModel<>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
@@ -756,7 +743,7 @@ public class ColumnUtils {
                     }, WebComponentUtil.getShortDateTimeFormat(pageBase)));
                 }
             });
-            columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+            columns.add(new AbstractExportableColumn<>(
                     createStringResource("WorkItemsPanel.deadline")) {
                 private static final long serialVersionUID = 1L;
 
@@ -773,7 +760,7 @@ public class ColumnUtils {
                             pageBase));
                 }
             });
-            columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+            columns.add(new AbstractExportableColumn<>(
                     createStringResource("WorkItemsPanel.escalationLevel")) {
                 private static final long serialVersionUID = 1L;
 
@@ -832,8 +819,6 @@ public class ColumnUtils {
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
                 item.add(new Label(componentId, getDataModel(rowModel)));
             }
-
-
         };
         columns.add(column);
 
@@ -1160,8 +1145,6 @@ public class ColumnUtils {
                     item.add(new Label(componentId, AssignmentsUtil.getIdentifierLabelModel(unwrapSelectableRowModel(rowModel), pageBase)));
                 }
             });
-
-
         }
         if (showAllColumns || QNameUtil.match(assignmentTargetRefType, RoleType.COMPLEX_TYPE)) {
             assignmentColumns.add(new PropertyColumn<>(pageBase.createStringResource("AssignmentDataTablePanel.tenantColumnName"),

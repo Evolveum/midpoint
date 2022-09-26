@@ -516,7 +516,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     @Override
-    protected ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> createProvider() {
+    protected ISelectableDataProvider<PrismContainerValueWrapper<AssignmentType>> createProvider() {
         var searchModel = getSearchModel();
         var assignments = loadValuesModel();
         var itemPath = model.getObject().getPath();

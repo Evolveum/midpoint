@@ -9,12 +9,10 @@ package com.evolveum.midpoint.web.component.util;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 
 import org.apache.commons.beanutils.PropertyUtils;
@@ -25,18 +23,15 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-import org.opensaml.xmlsec.signature.P;
 
 /**
  * @author lazyman
  */
 public class SelectableListDataProvider<W extends Serializable, T extends Serializable>
-        extends BaseSortableDataProvider<W> implements ISelectableDataProvider<T, W> {
+        extends BaseSortableDataProvider<W> implements ISelectableDataProvider<W> {
 
     private final IModel<List<T>> model;
 
