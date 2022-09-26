@@ -352,37 +352,29 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
 
     private void addAllAssignmentsPerformed(AjaxRequestTarget target) {
 
-        List<AssignmentEditorDto> availableProviderData = new ArrayList<>();
-        getGridViewComponent().visitChildren(SelectableDataTable.SelectableRowItem.class, new IVisitor<SelectableDataTable.SelectableRowItem<AssignmentEditorDto>, Void>() {
+        ObjectDataProvider provider = getGridViewComponent().getProvider();
+        List<AssignmentEditorDto> availableProviderData = provider.getAvailableData();
 
-            @Override
-            public void component(SelectableDataTable.SelectableRowItem<AssignmentEditorDto> row, IVisit<Void> visit) {
-                availableProviderData.add(row.getModelObject());
-            }
+        if (availableProviderData == null) {
+            return;
+        }
+
+        int limit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT), getPageBase());
+        int addedAssignmentsCount = availableProviderData.size() + getRoleCatalogStorage().getAssignmentShoppingCart().size();
+        if (limit >= 0 && addedAssignmentsCount > limit) {
+            warn(createStringResource("AssignmentPanel.assignmentsLimitReachedWarning", limit).getString());
+            target.add(AbstractShoppingCartTabPanel.this.getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        availableProviderData.forEach(newAssignment -> {
+            AssignmentEditorDto assignmentToAdd = newAssignment.clone();
+            assignmentToAdd.getTargetRef().setRelation(getNewAssignmentRelation());
+            getRoleCatalogStorage().getAssignmentShoppingCart().add(assignmentToAdd);
         });
 
-//        List<AssignmentEditorDto> availableProviderData =
-//                getGridViewComponent().getProvider().getAvailableData();
-
-        if (availableProviderData != null) {
-            int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
-                    getPageBase());
-            int addedAssignmentsCount = availableProviderData.size() + getRoleCatalogStorage().getAssignmentShoppingCart().size();
-            if (assignmentsLimit >= 0 && addedAssignmentsCount > assignmentsLimit) {
-                warn(createStringResource("AssignmentPanel.assignmentsLimitReachedWarning", assignmentsLimit).getString());
-                target.add(AbstractShoppingCartTabPanel.this.getPageBase().getFeedbackPanel());
-                return;
-            }
-
-            availableProviderData.forEach(newAssignment -> {
-                AssignmentEditorDto assignmentToAdd = newAssignment.clone();
-                assignmentToAdd.getTargetRef().setRelation(getNewAssignmentRelation());
-                getRoleCatalogStorage().getAssignmentShoppingCart().add(assignmentToAdd);
-            });
-
-            target.add(AbstractShoppingCartTabPanel.this);
-            assignmentAddedToShoppingCartPerformed(target);
-        }
+        target.add(AbstractShoppingCartTabPanel.this);
+        assignmentAddedToShoppingCartPerformed(target);
     }
 
     private ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> getTabPanelProvider() {
