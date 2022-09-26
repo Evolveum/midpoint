@@ -9,7 +9,6 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
 
 import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.impl.query.ValueFilterImpl;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -149,7 +148,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     }
 
     @Override
-    protected ISelectableDataProvider<C, SelectableBean<C>> createProvider() {
+    protected ISelectableDataProvider<SelectableBean<C>> createProvider() {
         SelectableBeanContainerDataProvider<C> provider = new SelectableBeanContainerDataProvider<C>(this, getSearchModel(), null, false) {
             private static final long serialVersionUID = 1L;
 

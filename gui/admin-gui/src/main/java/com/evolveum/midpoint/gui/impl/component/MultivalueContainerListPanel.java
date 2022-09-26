@@ -19,7 +19,6 @@ import com.evolveum.midpoint.web.component.*;
 
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
@@ -126,7 +125,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     }
 
     @Override
-    protected ISelectableDataProvider<C, PrismContainerValueWrapper<C>> createProvider() {
+    protected ISelectableDataProvider<PrismContainerValueWrapper<C>> createProvider() {
         return new MultivalueContainerListDataProvider<>(MultivalueContainerListPanel.this, getSearchModel(), new PropertyModel<>(getContainerModel(), "values")) {
 
             @Override

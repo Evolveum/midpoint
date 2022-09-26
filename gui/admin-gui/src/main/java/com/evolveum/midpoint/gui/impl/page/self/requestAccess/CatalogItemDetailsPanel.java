@@ -93,6 +93,7 @@ public class CatalogItemDetailsPanel extends BasePanel<ObjectType> implements Po
                             WrapperContext context = new WrapperContext(task, result);
                             context.setReadOnly(true);
                             context.setDetailsPageTypeConfiguration(containers.getObject());
+                            context.setCreateIfEmpty(true);
 
                             return factory.createObjectWrapper(prism, ItemStatus.NOT_CHANGED, context);
                         } catch (Exception ex) {

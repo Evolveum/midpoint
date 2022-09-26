@@ -195,7 +195,7 @@ public class PageCreatedReports extends PageAdmin {
             }
 
             @Override
-            protected ISelectableDataProvider<ReportDataType, SelectableBean<ReportDataType>> createProvider() {
+            protected ISelectableDataProvider<SelectableBean<ReportDataType>> createProvider() {
                 return createSelectableBeanObjectDataProvider(() -> appendTypeFilter(),
                         (sortParam) -> PageCreatedReports.this.createCustomOrdering(sortParam));
             }

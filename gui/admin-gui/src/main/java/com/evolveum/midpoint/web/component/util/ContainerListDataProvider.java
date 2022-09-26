@@ -9,19 +9,18 @@ package com.evolveum.midpoint.web.component.util;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.web.component.data.BaseSearchDataProvider;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -33,30 +32,27 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSearchDataProvider;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
-
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by honchar
  */
 public class ContainerListDataProvider<C extends Containerable> extends BaseSearchDataProvider<C, PrismContainerValueWrapper<C>>
-        implements ISelectableDataProvider<C, PrismContainerValueWrapper<C>> {
+        implements ISelectableDataProvider<PrismContainerValueWrapper<C>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerListDataProvider.class);
     private static final String DOT_CLASS = ContainerListDataProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_CONTAINERS = DOT_CLASS + "searchContainers";
     private static final String OPERATION_COUNT_CONTAINERS = DOT_CLASS + "countContainers";
 
-    private Collection<SelectorOptions<GetOperationOptions>> options;
+    private final Collection<SelectorOptions<GetOperationOptions>> options;
 
     public ContainerListDataProvider(Component component, @NotNull IModel<Search<C>> search) {
         this(component, search, null);
     }
-
 
     public ContainerListDataProvider(Component component, @NotNull IModel<Search<C>> search, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(component, search, false, false);
@@ -77,7 +73,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
             ObjectPaging paging = createPaging(first, count);
 
             ObjectQuery query = getQuery();
-            if (query == null){
+            if (query == null) {
                 query = getPrismContext().queryFactory().createQuery();
             }
             query.setPaging(paging);
@@ -121,14 +117,13 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
         return (PrismContainerValueWrapper<C>) factory.createValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context);
     }
 
-
     @Override
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_CONTAINERS);
         try {
-            count = WebModelServiceUtils.countContainers(getType(), getQuery(), options,  getPageBase());
+            count = WebModelServiceUtils.countContainers(getType(), getQuery(), options, getPageBase());
         } catch (Exception ex) {
             result.recordFatalError(getPageBase().createStringResource("ContainerListDataProvider.message.listContainers.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count containers", ex);
@@ -145,5 +140,4 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSear
         LOGGER.trace("end::internalSize(): {}", count);
         return count;
     }
-
 }

@@ -212,7 +212,9 @@ class SearchHelper {
             throws SchemaException {
         List<ObjectFilter> attributeFilter = new ArrayList<>();
         for (ObjectFilter f : conditions) {
-            if (f instanceof PropertyValueFilter) { // TODO
+            if (f instanceof PropertyValueFilter) {
+                // TODO: This should accept the simple paths named below and attribute/* paths.
+                //  As it stands now it also adds filters like metadata/certifierRef which is not a resource attribute.
                 ItemPath parentPath = ((PropertyValueFilter<?>) f).getParentPath();
                 if (parentPath.isEmpty()) {
                     QName elementName = ((PropertyValueFilter<?>) f).getElementName();
@@ -246,8 +248,6 @@ class SearchHelper {
             } else if (f instanceof UnaryLogicalFilter) {
                 ObjectFilter subFilter = ((UnaryLogicalFilter) f).getFilter();
                 attributeFilter.add(prismContext.queryFactory().createNot(subFilter));
-            } else if (f instanceof SubstringFilter) { // TODO fix
-                attributeFilter.add(f);
             } else if (f instanceof RefFilter) {
                 ItemPath parentPath = ((RefFilter) f).getParentPath();
                 if (parentPath.isEmpty()) {
@@ -277,8 +277,8 @@ class SearchHelper {
             return searchShadowsInRepository(ctx, query, options, result);
         } else {
             SearchResultList<PrismObject<ShadowType>> rv = new SearchResultList<>();
-            SearchResultMetadata metadata =
-                    searchObjectsIterative(ctx, query, options, (s, lResult) -> rv.add(s), result);
+            SearchResultMetadata metadata = searchObjectIterativeResource(
+                    ctx, query, options, (s, lResult) -> rv.add(s), result, rootOptions);
             rv.setMetadata(metadata);
             return rv;
         }

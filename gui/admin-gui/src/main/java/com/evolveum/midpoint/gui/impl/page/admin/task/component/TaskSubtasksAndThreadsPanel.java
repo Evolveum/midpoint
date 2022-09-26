@@ -7,11 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.task.component;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
-import com.evolveum.midpoint.gui.impl.page.admin.task.RootTaskLoader;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -25,7 +21,6 @@ import com.evolveum.midpoint.schema.util.task.TaskInformation;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
@@ -83,7 +78,7 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
         TaskTablePanel subtasksPanel = new TaskTablePanel(ID_SUBTASKS_PANEL, createOperationOptions()) {
 
             @Override
-            protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
+            protected ISelectableDataProvider<SelectableBean<TaskType>> createProvider() {
                 return createSelectableBeanObjectDataProvider(() -> createSubtasksQuery(), null);
             }
 
@@ -127,7 +122,7 @@ public class TaskSubtasksAndThreadsPanel extends AbstractObjectMainPanel<TaskTyp
         TaskTablePanel workerThreadsTable = new TaskTablePanel(ID_WORKER_THREADS_TABLE, null) {
 
             @Override
-            protected ISelectableDataProvider<TaskType, SelectableBean<TaskType>> createProvider() {
+            protected ISelectableDataProvider<SelectableBean<TaskType>> createProvider() {
                 return new SelectableListDataProvider<>(TaskSubtasksAndThreadsPanel.this, createWorkersModel());
             }
 

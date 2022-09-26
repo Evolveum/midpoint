@@ -12,27 +12,22 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.PasswordInboundStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.PasswordOutboundStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.DefaultSettingStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.ReactionStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationConfigWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
@@ -112,25 +107,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                                 .delay(5_000)
                                 .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
 
-                        ItemPath path = valueModel.getObject().getPath();
-                        if (!path.isEmpty() && ItemPath.isId(path.last())) {
-                            valueModel.detach();
-                            valueModel = new LoadableDetachableModel<>() {
-                                @Override
-                                protected PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> load() {
-                                    try {
-                                        return getResourceModel().getObjectWrapper().findContainerValue(path);
-                                    } catch (SchemaException e) {
-                                        LOGGER.error("Cannot find container value wrapper, \nparent: {}, \npath: {}",
-                                                getResourceModel().getObjectWrapper(), path);
-                                    }
-                                    return null;
-                                }
-                            };
-                        } else {
-                            valueModel.detach();
-                            valueModel = getValueWrapperWitLastId(path);
-                        }
+                        valueModel = refreshValueModel(valueModel);
                         showObjectTypePreviewFragment(valueModel, target);
                     } else {
                         target.add(getFeedback());
@@ -151,42 +128,6 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
 
     protected boolean isSavedAfterDetailsWizard() {
         return true;
-    }
-
-    private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueWrapperWitLastId(ItemPath itemPath) {
-        return new LoadableDetachableModel<>() {
-
-            private ItemPath pathWithId;
-
-            @Override
-            protected PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> load() {
-                if (!itemPath.isEmpty() && ItemPath.isId(itemPath.last())) {
-                    pathWithId = itemPath;
-                }
-
-                try {
-                    if (pathWithId != null) {
-                        return getResourceModel().getObjectWrapper().findContainerValue(pathWithId);
-                    }
-                    PrismContainerWrapper<ResourceObjectTypeDefinitionType> container = getResourceModel().getObjectWrapper().findContainer(itemPath);
-                    PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> ret = null;
-                    for (PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> value : container.getValues()) {
-                        if (ret == null || ret.getNewValue().getId() == null
-                                || (value.getNewValue().getId() != null && ret.getNewValue().getId() < value.getNewValue().getId())) {
-                            ret = value;
-                        }
-                    }
-                    if (ret != null && ret.getNewValue().getId() != null) {
-                        pathWithId = ret.getPath();
-                    }
-                    return ret;
-                } catch (SchemaException e) {
-                        LOGGER.error("Cannot find container value wrapper, \nparent: {}, \npath: {}",
-                                getResourceModel().getObjectWrapper(), pathWithId);
-                }
-                return null;
-            }
-        };
     }
 
     private void showObjectTypePreviewFragment(
@@ -221,14 +162,18 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         showWizardFragment(
                 target,
-                new SynchronizationConfigWizardPanel(getIdOfWizardPanel(), getResourceModel(), valueModel) {
+                new SynchronizationWizardPanel(getIdOfWizardPanel(), getResourceModel(), valueModel) {
                     protected void onExitPerformed(AjaxRequestTarget target) {
                         showObjectTypePreviewFragment(getValueModel(), target);
                     }
 
                     @Override
                     protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
-                        return ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
+                        OperationResult result = ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
+                        if (result != null && !result.isError()) {
+                            refreshValueModel();
+                        }
+                        return result;
                     }
 
                     @Override
@@ -286,26 +231,95 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
 
             @Override
             protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
-                return ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
+                OperationResult result = ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
+                if (result != null && !result.isError()) {
+                    refreshValueModel();
+                }
+                return result;
             }
 
-            @Override
-            protected boolean isSavedAfterWizard() {
-                return isSavedAfterDetailsWizard();
-            }
-        });
-    }
+                @Override
+                protected boolean isSavedAfterWizard () {
+                    return isSavedAfterDetailsWizard();
+                }
+            });
+        }
 
-    private void showTableForDataOfCurrentlyObjectType(
-            AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        showChoiceFragment(target, new PreviewResourceObjectTypeDataWizardPanel(
-                getIdOfChoicePanel(),
-                getResourceModel(),
-                valueModel) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showObjectTypePreviewFragment(getResourceObjectType(), target);
+
+        private void showTableForDataOfCurrentlyObjectType (
+                AjaxRequestTarget target, IModel < PrismContainerValueWrapper < ResourceObjectTypeDefinitionType >> valueModel){
+            showChoiceFragment(target, new PreviewResourceObjectTypeDataWizardPanel(
+                    getIdOfChoicePanel(),
+                    getResourceModel(),
+                    valueModel) {
+                @Override
+                protected void onExitPerformed(AjaxRequestTarget target) {
+                    showObjectTypePreviewFragment(getResourceObjectType(), target);
+                }
+            });
+        }
+
+        private <C extends Containerable > IModel < PrismContainerValueWrapper < C >> refreshValueModel(
+                IModel < PrismContainerValueWrapper < C >> valueModel) {
+            ItemPath path = valueModel.getObject().getPath();
+            if (!path.isEmpty() && ItemPath.isId(path.last())) {
+                valueModel.detach();
+                return new LoadableDetachableModel<>() {
+                    @Override
+                    protected PrismContainerValueWrapper<C> load() {
+                        try {
+                            return getResourceModel().getObjectWrapper().findContainerValue(path);
+                        } catch (SchemaException e) {
+                            LOGGER.error("Cannot find container value wrapper, \nparent: {}, \npath: {}",
+                                    getResourceModel().getObjectWrapper(), path);
+                        }
+                        return null;
+                    }
+                };
+            } else {
+                valueModel.detach();
+                return getValueWrapperWitLastId(path);
             }
-        });
+        }
+
+        private <C extends Containerable > IModel < PrismContainerValueWrapper < C >> getValueWrapperWitLastId(ItemPath itemPath)
+        {
+            return new LoadableDetachableModel<>() {
+
+                private ItemPath pathWithId;
+
+                @Override
+                protected PrismContainerValueWrapper<C> load() {
+                    if (!itemPath.isEmpty() && ItemPath.isId(itemPath.last())) {
+                        pathWithId = itemPath;
+                    }
+
+                    try {
+                        if (pathWithId != null) {
+                            return getResourceModel().getObjectWrapper().findContainerValue(pathWithId);
+                        }
+                        PrismContainerWrapper<C> container = getResourceModel().getObjectWrapper().findContainer(itemPath);
+                        PrismContainerValueWrapper<C> ret = null;
+                        for (PrismContainerValueWrapper<C> value : container.getValues()) {
+                            if (ret == null || ret.getNewValue().getId() == null
+                                    || (value.getNewValue().getId() != null && ret.getNewValue().getId() < value.getNewValue().getId())) {
+                                ret = value;
+                            }
+                        }
+                        if (ret != null && ret.getNewValue().getId() != null) {
+                            pathWithId = ret.getPath();
+                        }
+                        return ret;
+                    } catch (SchemaException e) {
+                        LOGGER.error("Cannot find container value wrapper, \nparent: {}, \npath: {}",
+                                getResourceModel().getObjectWrapper(), pathWithId);
+                    }
+                    return null;
+                }
+            };
+        }
+
+        private void refreshValueModel () {
+            valueModel = refreshValueModel(valueModel);
+        }
     }
-}

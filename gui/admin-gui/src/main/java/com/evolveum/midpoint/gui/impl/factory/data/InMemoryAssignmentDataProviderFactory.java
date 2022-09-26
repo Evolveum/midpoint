@@ -44,7 +44,7 @@ public class InMemoryAssignmentDataProviderFactory implements ContainerValueData
     }
 
     @Override
-    public ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> create(
+    public ISelectableDataProvider<PrismContainerValueWrapper<AssignmentType>> create(
             org.apache.wicket.Component component, @NotNull IModel<Search<AssignmentType>> search,
             IModel<List<PrismContainerValueWrapper<AssignmentType>>> model, Class<? extends Objectable> objectType,
             String oid, ItemPath path) {
@@ -52,7 +52,7 @@ public class InMemoryAssignmentDataProviderFactory implements ContainerValueData
     }
 
     @Override
-    public ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> create(
+    public ISelectableDataProvider<PrismContainerValueWrapper<AssignmentType>> create(
             org.apache.wicket.Component component, @NotNull IModel<Search<AssignmentType>> search,
             IModel<List<PrismContainerValueWrapper<AssignmentType>>> model, Class<? extends Objectable> objectType,
             String oid, ItemPath path, CompiledObjectCollectionView collection, Customization<AssignmentType> customization) {
@@ -62,7 +62,7 @@ public class InMemoryAssignmentDataProviderFactory implements ContainerValueData
     /**
      * Static method is necessary to not serialize the factory as well.
      */
-    private static ISelectableDataProvider<AssignmentType, PrismContainerValueWrapper<AssignmentType>> doCreate(
+    private static ISelectableDataProvider<PrismContainerValueWrapper<AssignmentType>> doCreate(
             org.apache.wicket.Component component, @NotNull IModel<Search<AssignmentType>> search,
             IModel<List<PrismContainerValueWrapper<AssignmentType>>> model, Class<? extends Objectable> objectType,
             String oid, ItemPath path, CompiledObjectCollectionView collection, Customization<AssignmentType> customization) {

@@ -88,7 +88,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             }
 
             @Override
-            protected ISelectableDataProvider<UserSessionManagementType, SelectableBean<F>> createProvider() {
+            protected ISelectableDataProvider<SelectableBean<F>> createProvider() {
                 LoadableModel<List<UserSessionManagementType>> principals = new LoadableModel<List<UserSessionManagementType>>(true) {
 
                     @Override
@@ -97,7 +97,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
                     }
                 };
 
-                return new SelectableListDataProvider<SelectableBean<F>, UserSessionManagementType>(InternalsLoggedInUsersPanel.this, principals) {
+                return new SelectableListDataProvider<>(InternalsLoggedInUsersPanel.this, principals) {
 
                     @Override
                     protected SelectableBean<F> createObjectWrapper(UserSessionManagementType principal) {

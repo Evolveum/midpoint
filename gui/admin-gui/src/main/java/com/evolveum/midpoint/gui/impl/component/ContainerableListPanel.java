@@ -180,11 +180,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     search = storage.getSearch();
                 }
 
-                if (search == null || search.isTypeChanged()) {
-//                ||
-//                        (!SearchBoxModeType.ADVANCED.equals(search.getSearchMode()) && !search.getItems().containsAll(newSearch.getItems()))
-//                        || search.isTypeChanged()
-//                        ) {
+                if (search == null || search.isTypeChanged() ||
+                        (!SearchBoxModeType.BASIC.equals(search.getSearchMode()) && !search.allPropertyItemsPresent(newSearch.getItems()))) {
                     search = newSearch;
 //                    search.searchWasReload();
                 }
@@ -269,7 +266,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     protected BoxedTablePanel<PO> initItemTable() {
 
         List<IColumn<PO, String>> columns = createColumns();
-        ISelectableDataProvider<C, PO> provider = createProvider();
+        ISelectableDataProvider<PO> provider = createProvider();
         setDefaultSorting(provider);
         BoxedTablePanel<PO> itemTable = new BoxedTablePanel<>(ID_ITEMS_TABLE,
                 provider, columns, getTableId()) {
@@ -878,7 +875,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected abstract ISelectableDataProvider<C, PO> createProvider();
+    protected abstract ISelectableDataProvider<PO> createProvider();
 
     public int getSelectedObjectsCount() {
         List<PO> selectedList = getSelectedObjects();
@@ -962,7 +959,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private AjaxIconButton createViewAllButton(String buttonId) {
         AjaxIconButton viewAll = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ICON_SEARCH),
                 createStringResource("AjaxIconButton.viewAll")) {
-
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -1347,7 +1343,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return DefaultColumnUtils.getDefaultView(getType());
     }
 
-    protected void setDefaultSorting(ISelectableDataProvider<C, PO> provider) {
+    protected void setDefaultSorting(ISelectableDataProvider<PO> provider) {
         if (provider instanceof SortableDataProvider
                 && isCollectionViewPanel() && getObjectCollectionView().getPaging() != null
                 && getObjectCollectionView().getPaging().getOrderBy() != null) {

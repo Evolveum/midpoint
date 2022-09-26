@@ -136,7 +136,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected ISelectableDataProvider<ShadowType, PrismContainerValueWrapper<ShadowType>> createProvider() {
+                    protected ISelectableDataProvider<PrismContainerValueWrapper<ShadowType>> createProvider() {
                         return new ProjectionsListProvider(FocusProjectionsPanel.this, getSearchModel(), loadShadowModel()) {
                             @Override
                             protected PageStorage getPageStorage() {
