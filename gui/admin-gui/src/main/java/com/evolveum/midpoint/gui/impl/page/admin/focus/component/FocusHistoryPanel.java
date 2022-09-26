@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Evolveum and contributors
+ * Copyright (C) 2021-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -91,15 +91,15 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
                     return columns;
                 }
                 IColumn<SelectableBean<AuditEventRecordType>, String> column
-                        = new AbstractColumn<SelectableBean<AuditEventRecordType>, String>(new Model<>()) {
+                        = new AbstractColumn<>(new Model<>()) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void populateItem(Item<ICellPopulator<SelectableBean<AuditEventRecordType>>> cellItem, String componentId,
-                                             IModel<SelectableBean<AuditEventRecordType>> rowModel) {
+                            IModel<SelectableBean<AuditEventRecordType>> rowModel) {
 
-                        cellItem.add(new MultiButtonPanel<SelectableBean<AuditEventRecordType>>(componentId, rowModel, 2) {
+                        cellItem.add(new MultiButtonPanel<>(componentId, rowModel, 2) {
 
                             private static final long serialVersionUID = 1L;
 
@@ -141,7 +141,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
             }
 
             @Override
-            protected ObjectQuery getCustomizeContentQuery(){
+            protected ObjectQuery getCustomizeContentQuery() {
                 return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
                         .item(AuditEventRecordType.F_TARGET_REF)
                         .ref(getObjectWrapper().getOid())
@@ -174,7 +174,7 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
         PrismObject<F> object = getReconstructedObject(oid, eventIdentifier, type);
 
         //TODO fix sessionStorage
-        getPageBase().getSessionStorage().setObjectDetailsStorage("details" + type.getSimpleName(),null);
+        getPageBase().getSessionStorage().setObjectDetailsStorage("details" + type.getSimpleName(), null);
 
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OID_PARAMETER_LABEL, oid);
@@ -188,11 +188,11 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
         if (UserType.class.equals(objectClass)) {
             getPageBase().navigateToNext(PageUserHistory.class, pageParameters);
         } else if (RoleType.class.equals(objectClass)) {
-            getPageBase().navigateToNext(PageRoleHistory.class,pageParameters);
+            getPageBase().navigateToNext(PageRoleHistory.class, pageParameters);
         } else if (OrgType.class.equals(objectClass)) {
-            getPageBase().navigateToNext(PageOrgHistory.class,pageParameters);
+            getPageBase().navigateToNext(PageOrgHistory.class, pageParameters);
         } else if (ServiceType.class.equals(objectClass)) {
-            getPageBase().navigateToNext(PageServiceHistory.class,pageParameters);
+            getPageBase().navigateToNext(PageServiceHistory.class, pageParameters);
         }
     }
 
@@ -218,5 +218,4 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
 
         getPageBase().navigateToNext(PageXmlDataReview.class, pageParameters);
     }
-
 }
