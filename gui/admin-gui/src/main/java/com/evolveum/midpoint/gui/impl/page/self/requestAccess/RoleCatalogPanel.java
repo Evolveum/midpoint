@@ -911,10 +911,10 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         return columns;
     }
 
-    private ContainerPanelConfigurationType createDefaultContainerPanelConfiguration() {
+    private ContainerPanelConfigurationType createDefaultContainerPanelConfiguration(QName type) {
         ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
         c.identifier("sample-panel");
-        c.type(RoleType.COMPLEX_TYPE);
+        c.type(type);
         c.panelType("formPanel");
         VirtualContainersSpecificationType vcs =
                 c.beginContainer()
@@ -928,16 +928,18 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void itemDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
+        QName type = ObjectTypes.getObjectType(object.getClass()).getTypeQName();
+
         ContainerPanelConfigurationType config;
 
         ListGroupMenuItem<RoleCatalogQueryItem> selectedMenu = menuModel.getObject().getActiveMenu();
 
         RoleCatalogQueryItem item = selectedMenu != null ? selectedMenu.getValue() : null;
         if (item == null || item.collection() == null) {
-            config = createDefaultContainerPanelConfiguration();
+            config = createDefaultContainerPanelConfiguration(type);
         } else {
             RoleCollectionViewType view = item.collection();
-            config = view.getDetails() != null ? view.getDetails() : createDefaultContainerPanelConfiguration();
+            config = view.getDetails() != null ? view.getDetails() : createDefaultContainerPanelConfiguration(type);
         }
 
         List<ContainerPanelConfigurationType> finalConfig = new ArrayList<>();
