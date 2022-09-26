@@ -180,11 +180,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                     search = storage.getSearch();
                 }
 
-                if (search == null || search.isTypeChanged()) {
-//                ||
-//                        (!SearchBoxModeType.ADVANCED.equals(search.getSearchMode()) && !search.getItems().containsAll(newSearch.getItems()))
-//                        || search.isTypeChanged()
-//                        ) {
+                if (search == null || search.isTypeChanged() ||
+                        (!SearchBoxModeType.BASIC.equals(search.getSearchMode()) && !search.allPropertyItemsPresent(newSearch.getItems()))) {
                     search = newSearch;
 //                    search.searchWasReload();
                 }

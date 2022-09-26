@@ -373,7 +373,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
         List<AbstractSearchItemWrapper> items = getItems();
         items.forEach(item -> {
-            if (StringUtils.isNotEmpty(item.getParameterName())) {
+            if (StringUtils.isNotEmpty(item.getParameterName()) && item.isApplyFilter(SearchBoxModeType.BASIC)) {
                 Object parameterValue = item.getValue() != null ? item.getValue().getValue() : null;
                 TypedValue value = new TypedValue(parameterValue, item.getParameterValueType());
                 variables.put(item.getParameterName(), value);
@@ -392,6 +392,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public void setFullText(String fullText) {
         this.fullText = fullText;
+    }
+
+    public boolean allPropertyItemsPresent(List<AbstractSearchItemWrapper> items) {
+        for (AbstractSearchItemWrapper item : items) {
+            if (item instanceof PropertySearchItemWrapper && ((PropertySearchItemWrapper)item).getPath() != null &&
+                    findPropertySearchItem(((PropertySearchItemWrapper<?>) item).getPath()) == null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public PropertySearchItemWrapper findPropertyItemByPath(ItemPath path) {
