@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface ValueNormalizer {
 
-    @NotNull String normalize(@NotNull String input, Task task, OperationResult result)
+    @NotNull String normalize(@NotNull Object input, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException,
             SecurityViolationException, ConfigurationException, ObjectNotFoundException;
 

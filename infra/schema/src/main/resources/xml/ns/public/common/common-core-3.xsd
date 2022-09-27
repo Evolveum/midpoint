@@ -8335,8 +8335,10 @@
                     <xsd:element name="includeRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Included template. All the mappings of the included template are processed as if they
-                                were directly placed in this template.
+                                Included template. All the contents of the included template is processed as if it
+                                was directly placed in this template. Limitations: 1. This reference does not support dynamic
+                                (run-time evaluated) filters. 2. There should be no overlapping item definitions nor mappings
+                                in the child templates.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>

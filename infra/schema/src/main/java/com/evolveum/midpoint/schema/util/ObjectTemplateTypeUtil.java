@@ -7,11 +7,24 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateCorrelationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.evolveum.midpoint.util.MiscUtil.configNonNull;
 
 public class ObjectTemplateTypeUtil {
 
@@ -21,5 +34,22 @@ public class ObjectTemplateTypeUtil {
         }
         ObjectTemplateCorrelationType correlation = template.getCorrelation();
         return correlation != null ? correlation.getCorrelators() : null;
+    }
+
+    public static @Nullable ObjectTemplateItemDefinitionType findItemDefinition(
+            @NotNull ObjectTemplateType template, @NotNull ItemPath path) throws ConfigurationException {
+        List<ObjectTemplateItemDefinitionType> definitions = new ArrayList<>();
+        for (ObjectTemplateItemDefinitionType itemDefBean : template.getItem()) {
+            ItemPathType ref = configNonNull(itemDefBean.getRef(), () -> "No 'ref' in " + itemDefBean + " in " + template);
+            if (ref.getItemPath().equivalent(path)) {
+                definitions.add(itemDefBean);
+            }
+        }
+        if (definitions.size() > 1) {
+            throw new ConfigurationException(
+                    "Multiple (" + definitions.size() + ") definitions for '" + path + "' in " + template);
+        } else {
+            return MiscUtil.extractSingleton(definitions);
+        }
     }
 }

@@ -30,11 +30,13 @@ public class TestingAccount implements DebugDumpable {
     private static final ItemName ATTR_CORRELATOR_QNAME = new ItemName(NS_RI, ATTR_CORRELATOR);
 
     static final String ATTR_EMPLOYEE_NUMBER = "employeeNumber";
+    static final String ATTR_COST_CENTER = "costCenter";
 
     static final String ATTR_GIVEN_NAME = "givenName";
     static final String ATTR_FAMILY_NAME = "familyName";
     static final String ATTR_DATE_OF_BIRTH = "dateOfBirth";
     static final String ATTR_NATIONAL_ID = "nationalId";
+    static final String ATTR_HONORIFIC_PREFIX = "honorificPrefix";
 
     static final String ATTR_TEST = "test"; // used for the test itself
     private static final ItemName ATTR_TEST_QNAME = new ItemName(NS_RI, ATTR_TEST);

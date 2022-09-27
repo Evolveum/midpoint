@@ -47,6 +47,10 @@ class ExpectedMatches {
                 return UserType.F_GIVEN_NAME;
             case "fn":
                 return UserType.F_FAMILY_NAME;
+            case "hp":
+                return UserType.F_HONORIFIC_PREFIX;
+            case "cc":
+                return UserType.F_COST_CENTER;
             case "dob":
                 return ItemPath.fromString("extension/dateOfBirth");
             case "id":

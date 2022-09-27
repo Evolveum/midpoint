@@ -76,6 +76,22 @@
                 </inbound>
             </attribute>
             <attribute>
+                <ref>ri:honorificPrefix</ref>
+                <inbound>
+                    <target>
+                        <path>honorificPrefix</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:costCenter</ref>
+                <inbound>
+                    <target>
+                        <path>costCenter</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
                 <ref>ri:dateOfBirth</ref>
                 <inbound>
                     <target>

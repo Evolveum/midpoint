@@ -13,8 +13,10 @@ import com.evolveum.midpoint.model.api.indexing.IndexingConfiguration;
 
 import com.evolveum.midpoint.model.impl.lens.identities.IdentityManagementConfigurationImpl;
 import com.evolveum.midpoint.model.impl.lens.indexing.IndexingConfigurationImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
+import com.evolveum.midpoint.schema.util.ObjectTemplateTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemCorrelationDefinitionType;
@@ -27,15 +29,20 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
+
 public class TemplateCorrelationConfigurationImpl implements TemplateCorrelationConfiguration {
 
+    @Nullable private final ObjectTemplateType expandedObjectTemplate;
     @NotNull private final IdentityManagementConfiguration identityManagementConfiguration;
     @NotNull private final IndexingConfiguration indexingConfiguration;
     @NotNull private final PathKeyedMap<ItemCorrelationDefinitionType> correlationDefinitionMap = new PathKeyedMap<>();
 
     private TemplateCorrelationConfigurationImpl(
+            @Nullable ObjectTemplateType expandedObjectTemplate,
             @NotNull IdentityManagementConfiguration identityManagementConfiguration,
             @NotNull IndexingConfiguration indexingConfiguration) {
+        this.expandedObjectTemplate = expandedObjectTemplate;
         this.identityManagementConfiguration = identityManagementConfiguration;
         this.indexingConfiguration = indexingConfiguration;
     }
@@ -43,6 +50,7 @@ public class TemplateCorrelationConfigurationImpl implements TemplateCorrelation
     public static @NotNull TemplateCorrelationConfigurationImpl of(@Nullable ObjectTemplateType objectTemplate)
             throws ConfigurationException {
         TemplateCorrelationConfigurationImpl config = new TemplateCorrelationConfigurationImpl(
+                objectTemplate,
                 IdentityManagementConfigurationImpl.of(objectTemplate),
                 IndexingConfigurationImpl.of(objectTemplate));
         if (objectTemplate != null) {
@@ -63,6 +71,11 @@ public class TemplateCorrelationConfigurationImpl implements TemplateCorrelation
     }
 
     @Override
+    public @Nullable ObjectTemplateType getExpandedObjectTemplate() {
+        return expandedObjectTemplate;
+    }
+
+    @Override
     public @NotNull IdentityManagementConfiguration getIdentityManagementConfiguration() {
         return identityManagementConfiguration;
     }
@@ -78,9 +91,19 @@ public class TemplateCorrelationConfigurationImpl implements TemplateCorrelation
     }
 
     @Override
+    public @Nullable QName getDefaultMatchingRuleName(@NotNull ItemPath itemPath) throws ConfigurationException {
+        if (expandedObjectTemplate == null) {
+            return null;
+        }
+        ObjectTemplateItemDefinitionType itemDef = ObjectTemplateTypeUtil.findItemDefinition(expandedObjectTemplate, itemPath);
+        return itemDef != null ? itemDef.getMatchingRule() : null;
+    }
+
+    @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-                "identityManagementConfiguration=" + identityManagementConfiguration +
+                "objectTemplate=" + expandedObjectTemplate +
+                ", identityManagementConfiguration=" + identityManagementConfiguration +
                 ", indexingConfiguration=" + indexingConfiguration +
                 ", correlationDefinitionMap: " + correlationDefinitionMap.keySet() +
                 '}';

@@ -110,9 +110,13 @@ public class CorrelatorTestUtil {
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 TestingAccount.ATTR_EMPLOYEE_NUMBER, String.class, false, false);
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                TestingAccount.ATTR_COST_CENTER, String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 TestingAccount.ATTR_GIVEN_NAME, String.class, false, false);
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 TestingAccount.ATTR_FAMILY_NAME, String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                TestingAccount.ATTR_HONORIFIC_PREFIX, String.class, false, false);
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 TestingAccount.ATTR_DATE_OF_BIRTH, String.class, false, false);
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),

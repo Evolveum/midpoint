@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -188,6 +190,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected DashboardService dashboardService;
     @Autowired protected ModelAuditService modelAuditService;
     @Autowired protected ActivityBasedTaskHandler activityBasedTaskHandler;
+    @Autowired protected ArchetypeManager archetypeManager;
 
     @Autowired
     @Qualifier("cacheRepositoryService")

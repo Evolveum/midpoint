@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="e18dc8f8-0e88-4a4d-afb0-3248c704599a">
+    <name>matching-rules-main</name>
+    <includeRef oid="a9759cd0-d3e1-4aa6-9c26-54e879b4994c"/>
+</objectTemplate>

@@ -1,0 +1,15 @@
+# All of the following items are used for correlation:
+#
+# `givenName` - not indexed - `polyStringNorm` matching rule (in object template)
+# `familyName` - indexed in a default way - so `polyStringNorm` normalization is used, with `default` matching rule
+# `honorificPrefix` (polystring) - not indexed - no matching rule (so `default` should be used)
+# `costCenter` - not indexed - `stringIgnoreCase` matching rule (in object template)
+# `employeeNumber` (string) - not indexed - no matching rule (so `default` should be used)
+#
+# See also `user-template-matching-rules-child.xml` file.
+
+uid  | givenName | familyName | honorificPrefix | costCenter | employeeNumber    | expCandidates           | expResult   | expMatch                       | _note
+1    | John      | Smith      | Bc.             | dcs        | 10001             | smith1:1.0              | smith1      | gn:F,fn:F,hp:F,cc:F,en:F       | All items match exactly.
+2    | JOHN...   | SMITH...   | Bc.             | DCS        | 10001             | smith1:1.0              | smith1      | gn:F,fn:F,hp:F,cc:F,en:F       | PolyStringNorm/caseIgnore items should still have the same normalized value (dot is eliminated).
+3    | John      | Smith      | bc.             | dcs        | 10001             |                         | _none       |                                | Honorific prefix should not match now.
+4    | John      | Smith      | Bc.             | dcs        | 10001.            |                         | _none       |                                | Employee number should not match now.

@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <user xsi:type="UserType">
+        <name>smith1</name>
+        <costCenter>dcs</costCenter>
+        <givenName>John</givenName>
+        <familyName>Smith</familyName>
+        <honorificPrefix>Bc.</honorificPrefix>
+        <employeeNumber>10001</employeeNumber>
+    </user>
+</objects>

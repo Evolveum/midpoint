@@ -1,0 +1,20 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="adf4f05f-7dd6-440e-bfe9-880280f73283">
+    <name>b1</name>
+    <includeRef oid="0ec39991-6ba7-4025-8470-8f8d09687f8c"/>
+    <includeRef oid="c0726932-4cd1-42b8-ace3-0fb08c6ac83d"/>
+    <item>
+        <ref>displayName</ref>
+        <mapping>
+            <name>m1</name>
+        </mapping>
+    </item>
+</objectTemplate>

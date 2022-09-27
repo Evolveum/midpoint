@@ -713,7 +713,7 @@ public class SchemaTransformer {
         for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
                 ItemPathType ref = templateItemDefType.getRef();
                 if (ref == null) {
-                throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
+                    throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
                 }
                 ItemPath itemPath = prismContext.toPath(ref);
                 ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);

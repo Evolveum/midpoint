@@ -10,7 +10,7 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     <name>emp</name>
-    <description>Correlates solely on the basis of employeeNumber. Requests manual action if it cannot decide.</description>
+    <description>Correlates solely on the basis of employeeNumber.</description>
     <ownerFilter>
         <q:equal>
             <q:path>employeeNumber</q:path>

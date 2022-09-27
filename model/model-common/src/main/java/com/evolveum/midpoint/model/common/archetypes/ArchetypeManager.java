@@ -13,9 +13,11 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
+import com.evolveum.midpoint.schema.merger.template.ObjectTemplateMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -43,6 +45,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
  * Component that can efficiently determine archetypes for objects.
@@ -83,7 +87,11 @@ public class ArchetypeManager implements Cache {
     @Autowired private ArchetypePolicyMerger archetypePolicyMerger;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
 
+    /** Indexed by archetype OID. */
     private final Map<String, ArchetypePolicyType> archetypePolicyCache = new ConcurrentHashMap<>();
+
+    /** Contains IMMUTABLE expanded object templates. */
+    private final ObjectTemplateCache objectTemplateCache = new ObjectTemplateCache();
 
     @PostConstruct
     public void register() {
@@ -394,6 +402,7 @@ public class ArchetypeManager implements Cache {
         // it safely and invalidate eagerly. Hopefully objects of these types do not change often.
         if (type == null || INVALIDATION_RELATED_CLASSES.contains(type)) {
             archetypePolicyCache.clear();
+            objectTemplateCache.clear();
         }
     }
 
@@ -418,12 +427,127 @@ public class ArchetypeManager implements Cache {
      * see the note in the class-level javadoc. However, if the `oid` parameter cannot be resolved,
      * the respective exception is thrown.
      *
-     * FIXME implement the expansion function
+     * @return Immutable expanded template
      */
     public @NotNull ObjectTemplateType getExpandedObjectTemplate(@NotNull String oid, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
-        return cacheRepositoryService
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+        ObjectTemplateType cached = objectTemplateCache.get(oid);
+        if (cached != null) {
+            return cached;
+        }
+
+        ObjectTemplateType main = cacheRepositoryService
                 .getObject(ObjectTemplateType.class, oid, null, result)
                 .asObjectable();
+        expandObjectTemplate(main, new ResolutionChain(oid), result);
+        main.freeze();
+        objectTemplateCache.put(main);
+
+        return main;
+    }
+
+    /**
+     * Expands the object template by merging the (recursively) expanded included templates into it.
+     *
+     * Because of the "multiple inheritance" - i.e., multiple potential includeRef values - any particular included template
+     * may be fetched multiple times. This should present little harm, as everything should be resolved from repo cache,
+     * and expanded versions are cached as well.
+     *
+     * The `resolutionChain` contains OIDs on the "resolution path" from the main template to the currently-expanded one.
+     * It is used to check for cycles as well as to describe the path in case of problems.
+     */
+    private void expandObjectTemplate(ObjectTemplateType template, ResolutionChain resolutionChain, OperationResult result)
+            throws ConfigurationException, SchemaException {
+        List<ObjectReferenceType> includeRefList = template.getIncludeRef();
+        LOGGER.trace("Starting expansion of {}: {} include(s); chain = {}", template, includeRefList.size(), resolutionChain);
+        for (ObjectReferenceType includeRef : includeRefList) {
+            String includedOid =
+                    MiscUtil.configNonNull(includeRef.getOid(), () -> "OID-less includeRef is not supported in " + template);
+            ObjectTemplateType included = getExpandedObjectTemplateInternal(includedOid, resolutionChain, result);
+            if (included != null) {
+                new ObjectTemplateMergeOperation(template, included)
+                        .execute();
+            }
+        }
+        LOGGER.trace("Expansion of {} done; chain = {}", template, resolutionChain);
+    }
+
+    /** @return Mutable expanded template - to allow potential modifications during merging (is this really needed?) */
+    private @Nullable ObjectTemplateType getExpandedObjectTemplateInternal(
+            String oid, ResolutionChain resolutionChain, OperationResult result)
+            throws SchemaException, ConfigurationException {
+
+        ObjectTemplateType cached = objectTemplateCache.get(oid);
+        if (cached != null) {
+            return cached.clone();
+        }
+
+        resolutionChain.addAndCheckForCycles(oid);
+        try {
+            ObjectTemplateType template;
+            try {
+                template = cacheRepositoryService
+                        .getObject(ObjectTemplateType.class, oid, null, result)
+                        .asObjectable();
+            } catch (ObjectNotFoundException e) {
+                LOGGER.warn("Included object template {} was not found; the resolution chain is: {}", oid, resolutionChain);
+                return null;
+            }
+            expandObjectTemplate(template, resolutionChain, result);
+            objectTemplateCache.put(template);
+            return template;
+        } finally {
+            resolutionChain.removeLast(oid);
+        }
+    }
+
+    private static class ResolutionChain {
+
+        private final Deque<String> oids = new ArrayDeque<>();
+
+        ResolutionChain(@NotNull String initial) {
+            oids.addLast(initial);
+        }
+
+        void addAndCheckForCycles(@NotNull String oid) throws ConfigurationException {
+            configCheck(
+                    !oids.contains(oid), "A cycle in object template references: %s", this);
+            oids.addLast(oid);
+        }
+
+        void removeLast(@NotNull String oid) {
+            String last = oids.removeLast();
+            stateCheck(
+                    oid.equals(last),
+                    "Unexpected last element of resolution chain: %s (expected %s); remainder = %s",
+                    last, oid, this);
+        }
+
+        @Override
+        public String toString() {
+            return String.join(" -> ", oids);
+        }
+    }
+
+    private static class ObjectTemplateCache {
+
+        /** Indexed by OID. Contains immutable objects. */
+        private final Map<String, ObjectTemplateType> objects = new ConcurrentHashMap<>();
+
+        public void clear() {
+            objects.clear();
+        }
+
+        /** Returns immutable object. */
+        public ObjectTemplateType get(@NotNull String oid) {
+            return objects.get(oid);
+        }
+
+        /** Does not modify the object being added - creates a clone, if needed. */
+        public void put(@NotNull ObjectTemplateType template) {
+            objects.put(
+                    Objects.requireNonNull(template.getOid()),
+                    CloneUtil.toImmutable(template));
+        }
     }
 }

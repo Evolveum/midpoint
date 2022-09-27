@@ -64,8 +64,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     /** Archetype policy driving the working with the focus object. */
     private transient ArchetypePolicyType archetypePolicy;
 
-    /** Object template relevant for the focus object. */
+    /** Object template relevant for the focus object. Unexpanded (legacy) form. */
     private transient ObjectTemplateType focusTemplate;
+
+    /** Object template relevant for the focus object. Expanded (new) form. */
+    private transient ObjectTemplateType expandedFocusTemplate;
 
     private transient IdentityManagementConfiguration identityManagementConfiguration; // TODO
     private transient IndexingConfiguration indexingConfiguration; // TODO
@@ -152,6 +155,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         this.focusTemplate = focusTemplate;
     }
 
+    public void setExpandedFocusTemplate(ObjectTemplateType expandedFocusTemplate) {
+        this.expandedFocusTemplate = expandedFocusTemplate;
+    }
+
     public boolean isFocusTemplateSetExplicitly() {
         return lensContext.getExplicitFocusTemplateOid() != null;
     }
@@ -159,7 +166,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     // preliminary version
     public @NotNull IdentityManagementConfiguration getIdentityManagementConfiguration() throws ConfigurationException {
         if (identityManagementConfiguration == null) {
-            identityManagementConfiguration = IdentitiesManager.createIdentityConfiguration(focusTemplate);
+            identityManagementConfiguration = IdentitiesManager.createIdentityConfiguration(expandedFocusTemplate);
         }
         return identityManagementConfiguration;
     }
@@ -167,7 +174,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     // preliminary version
     public @NotNull IndexingConfiguration getIndexingConfiguration() throws ConfigurationException {
         if (indexingConfiguration == null) {
-            indexingConfiguration = IndexingConfigurationImpl.of(focusTemplate);
+            indexingConfiguration = IndexingConfigurationImpl.of(expandedFocusTemplate);
         }
         return indexingConfiguration;
     }

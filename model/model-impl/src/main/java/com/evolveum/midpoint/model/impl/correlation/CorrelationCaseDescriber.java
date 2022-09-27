@@ -53,6 +53,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 /**
  * Creates {@link CorrelationCaseDescription} for given correlation "case".
  *
@@ -193,8 +195,10 @@ class CorrelationCaseDescriber<F extends FocusType> {
 
         Collection<PrismValue> preFocusValues = preFocus.asPrismContainerValue().getAllValues(itemPath);
         IndexingItemConfiguration indexing = templateCorrelationConfiguration.getIndexingConfiguration().getForPath(itemPath);
+        QName defaultMatchingRule = templateCorrelationConfiguration.getDefaultMatchingRuleName(itemPath);
         CorrelationCaseDescription.Match match =
-                new MatchDetermination(candidate, correlationProperty, preFocusValues, primaryValues, allValues, indexing)
+                new MatchDetermination(
+                        candidate, correlationProperty, preFocusValues, primaryValues, allValues, indexing, defaultMatchingRule)
                         .determine(task, result);
         return new CorrelationPropertyValuesDescription(
                 correlationProperty, primaryValues, secondaryOnlyValues, match);
@@ -236,6 +240,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
         @NotNull private final Set<PrismValue> primaryValues;
         @NotNull private final Set<PrismValue> allValues;
         @Nullable private final IndexingItemConfiguration indexing;
+        @Nullable private final QName defaultMatchingRule;
 
         private MatchDetermination(
                 @NotNull F candidate,
@@ -243,13 +248,15 @@ class CorrelationCaseDescriber<F extends FocusType> {
                 @NotNull Collection<PrismValue> preFocusValues,
                 @NotNull Set<PrismValue> primaryValues,
                 @NotNull Set<PrismValue> allValues,
-                @Nullable IndexingItemConfiguration indexing) {
+                @Nullable IndexingItemConfiguration indexing,
+                @Nullable QName defaultMatchingRule) {
             this.candidate = candidate;
             this.correlationProperty = correlationProperty;
             this.preFocusValues = preFocusValues;
             this.primaryValues = primaryValues;
             this.allValues = allValues;
             this.indexing = indexing;
+            this.defaultMatchingRule = defaultMatchingRule;
         }
 
         CorrelationCaseDescription.Match determine(Task task, OperationResult result)
@@ -267,7 +274,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
                 return NOT_APPLICABLE;
             }
             ValueNormalizer defaultValueNormalizer = indexing != null ?
-                    indexing.getDefaultNormalizer() : IndexingManager.getDefaultNormalizer();
+                    indexing.getDefaultNormalizer() : IndexingManager.getNormalizerFor(defaultMatchingRule);
             String preFocusNormalized = IndexingManager.normalizeValue(preFocusRealValue, defaultValueNormalizer, task, result);
 
             for (PrismValue primaryValue : primaryValues) {
@@ -312,7 +319,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
             }
 
             Collection<? extends ValueNormalizer> normalizers = indexing != null ?
-                    indexing.getNormalizers() : Set.of(IndexingManager.getDefaultNormalizer());
+                    indexing.getNormalizers() : Set.of(IndexingManager.getNormalizerFor(defaultMatchingRule));
             LOGGER.trace("Trying to find a match using applicable normalizers (count: {})", normalizers.size());
 
             for (PrismValue anyValue : allValues) {

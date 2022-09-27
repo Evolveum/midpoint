@@ -35,6 +35,12 @@ class TypeSpecificMergersConfigurator {
                         ResourceObjectTypeDefinitionType.class,
                         () -> new ObjectTypeDefinitionMerger(marker)),
 
+                // for ObjectTemplateType
+                entry(
+                        ObjectTemplateItemDefinitionType.class,
+                        () -> new GenericItemMerger(
+                                marker, SingletonItemPathNaturalKeyImpl.of(ResourceAttributeDefinitionType.F_REF))),
+
                 // for ResourceObjectTypeDefinitionType (object type definitions and embedded structures)
                 entry(
                         ResourceItemDefinitionType.class,

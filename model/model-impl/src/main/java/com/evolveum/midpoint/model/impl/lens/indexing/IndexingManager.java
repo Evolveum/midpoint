@@ -17,14 +17,17 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -181,29 +185,40 @@ public class IndexingManager {
         return normalizedItems;
     }
 
-    public static @NotNull ValueNormalizer getDefaultNormalizer() {
-        return (input, task, result) ->
-                PrismContext.get().getDefaultPolyStringNormalizer().normalize(input);
+    public static ValueNormalizer getNormalizerFor(@Nullable QName matchingRuleName) throws SchemaException {
+        if (matchingRuleName == null) {
+            return (input, task, result) -> stringify(input);
+        } else if (QNameUtil.match(matchingRuleName, PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME)) {
+            // The "normalize" in polyStringNorm matching rule does not fit the purpose of this method.
+            // TODO Is our approach OK at all? Or, is the PolyStringNormMatchingRule.normalize method faulty?
+            return (input, task, result) -> PrismContext.get().getDefaultPolyStringNormalizer().normalize(stringify(input));
+        } else {
+            MatchingRule<Object> matchingRule =
+                    SchemaService.get().matchingRuleRegistry().getMatchingRule(matchingRuleName, null);
+            return (input, task, result) -> stringify(matchingRule.normalize(input));
+        }
+    }
+
+    public static @NotNull String stringify(Object value) {
+        if (value instanceof PolyString) {
+            return ((PolyString) value).getOrig();
+        } else if (value instanceof String) {
+            return (String) value;
+        } else {
+            throw new UnsupportedOperationException(
+                    String.format("Only string or polystring identity items are supported yet: '%s' is %s",
+                            value, value.getClass()));
+        }
     }
 
     public static @NotNull String normalizeValue(
-            @NotNull Object originalRealValue,
+            @NotNull Object value,
             @NotNull ValueNormalizer normalizer,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        String stringValue;
-        if (originalRealValue instanceof PolyString) {
-            stringValue = ((PolyString) originalRealValue).getOrig();
-        } else if (originalRealValue instanceof String) {
-            stringValue = (String) originalRealValue;
-        } else {
-            throw new UnsupportedOperationException(
-                    String.format("Only string or polystring identity items are supported yet: '%s' is %s",
-                            originalRealValue, originalRealValue.getClass()));
-        }
-        return normalizer.normalize(stringValue, task, result);
+        return normalizer.normalize(value, task, result);
     }
 
     private Collection<? extends ItemDelta<?, ?>> computeNormalizedDataDeltas(

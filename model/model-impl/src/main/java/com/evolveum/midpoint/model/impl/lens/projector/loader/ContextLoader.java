@@ -278,7 +278,7 @@ public class ContextLoader implements ProjectorProcessor {
             @NotNull LensFocusContext<F> focusContext,
             boolean overwrite,
             @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
 
         ObjectTemplateType current = focusContext.getFocusTemplate();
         if (current != null) {
@@ -325,16 +325,18 @@ public class ContextLoader implements ProjectorProcessor {
 
     private <F extends ObjectType> void resolveAndSetTemplate(
             @NotNull LensFocusContext<F> focusContext, String newOid, @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException {
-        ObjectTemplateType template;
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
         if (newOid != null) {
-            template = cacheRepositoryService
-                    .getObject(ObjectTemplateType.class, newOid, createReadOnlyCollection(), result)
-                    .asObjectable();
+            focusContext.setFocusTemplate(
+                    cacheRepositoryService
+                            .getObject(ObjectTemplateType.class, newOid, createReadOnlyCollection(), result)
+                            .asObjectable());
+            focusContext.setExpandedFocusTemplate(
+                    archetypeManager.getExpandedObjectTemplate(newOid, result));
         } else {
-            template = null;
+            focusContext.setFocusTemplate(null);
+            focusContext.setExpandedFocusTemplate(null);
         }
-        focusContext.setFocusTemplate(template);
     }
 
     /**

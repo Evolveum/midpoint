@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.correlation.TemplateCorrelationConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTemplateTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.DOMUtil;
@@ -76,6 +78,9 @@ public class CorrelationItem implements DebugDumpable {
     /** Note we ignore "index" from this configuration. It is already processed into {@link #valueNormalizer} field. */
     @NotNull private final ItemSearchDefinitionType searchDefinitionBean;
 
+    /** Matching rule defined for this item in the object template. (Not related to indexing.) */
+    @Nullable private final QName defaultMatchingRuleName;
+
     // TODO
     @NotNull private final List<? extends PrismValue> prismValues;
 
@@ -85,12 +90,14 @@ public class CorrelationItem implements DebugDumpable {
             @Nullable IndexedItemValueNormalizer valueNormalizer,
             @Nullable ItemSearchDefinitionType searchDefinitionBean,
             @Nullable IndexingItemConfiguration indexingItemConfiguration,
+            @Nullable QName defaultMatchingRuleName,
             @NotNull List<? extends PrismValue> prismValues) {
         this.name = name;
         this.itemPath = itemPath;
         this.valueNormalizer = valueNormalizer;
         this.searchDefinitionBean = searchDefinitionBean != null ? searchDefinitionBean : new ItemSearchDefinitionType();
         this.indexingItemConfiguration = indexingItemConfiguration;
+        this.defaultMatchingRuleName = defaultMatchingRuleName;
         this.prismValues = prismValues;
     }
 
@@ -103,12 +110,15 @@ public class CorrelationItem implements DebugDumpable {
         @Nullable IndexingItemConfiguration indexingConfig = getIndexingItemConfiguration(itemBean, correlatorContext);
         @Nullable ItemSearchDefinitionType searchDef = getSearch(itemBean, correlatorContext, path);
         @Nullable String explicitIndexName = searchDef != null ? searchDef.getIndex() : null;
+        @Nullable QName defaultMatchingRuleName =
+                correlatorContext.getTemplateCorrelationConfiguration().getDefaultMatchingRuleName(path);
         return new CorrelationItem(
                 getName(itemBean),
                 path,
                 getValueNormalizer(indexingConfig, explicitIndexName, path),
                 searchDef,
                 indexingConfig,
+                defaultMatchingRuleName,
                 getPrismValues(preFocus, path));
     }
 
@@ -270,9 +280,15 @@ public class CorrelationItem implements DebugDumpable {
     }
 
     private QName getMatchingRuleName() {
-        return Objects.requireNonNullElse(
-                searchDefinitionBean.getMatchingRule(),
-                PrismConstants.DEFAULT_MATCHING_RULE_NAME);
+        QName explicitRule = searchDefinitionBean.getMatchingRule();
+        if (explicitRule != null) {
+            return explicitRule;
+        }
+        if (indexingItemConfiguration != null) {
+            return PrismConstants.DEFAULT_MATCHING_RULE_NAME;
+        } else {
+            return defaultMatchingRuleName;
+        }
     }
 
     /**

@@ -85,9 +85,12 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
 
     protected static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "correlator/correlation");
 
+    /** The vehicle for correlator testing. Contains the accounts that are correlated. */
     private static final DummyTestResource RESOURCE_DUMMY_CORRELATION = new DummyTestResource(
             TEST_DIR, "resource-dummy-correlation.xml",
             "4a7f6b3e-64cc-4cd9-b5ba-64ecc47d7d10", "correlation", CorrelatorTestUtil::createAttributeDefinitions);
+
+    // The following templates are used for testing the smart correlator (in various settings).
 
     /** Names, date of birth, and national ID are indexed using the default (i.e., polystring norm) algorithm. */
     private static final TestResource<ObjectTemplateType> USER_TEMPLATE_DEFAULT_INDEXING = new TestResource<>(
@@ -97,62 +100,26 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     private static final TestResource<ObjectTemplateType> USER_TEMPLATE_ORIGINAL_INDEXING = new TestResource<>(
             TEST_DIR, "user-template-original-indexing.xml", "c3c93da0-d17e-4926-8208-8441ba745381");
 
-    /** Names, date of birth, and national ID are indexed using their original value. */
+    /** Names, date of birth, and national ID are indexed in various (complex) ways. */
     private static final TestResource<ObjectTemplateType> USER_TEMPLATE_COMPLEX = new TestResource<>(
             TEST_DIR, "user-template-complex.xml", "dc393b43-e125-4ebf-987d-366c57120e96");
 
-    // TODO
+    /** TODO. */
+    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_MATCHING_RULES_MAIN = new TestResource<>(
+            TEST_DIR, "user-template-matching-rules-main.xml", "e18dc8f8-0e88-4a4d-afb0-3248c704599a");
+
+    /** TODO. */
+    private static final TestResource<ObjectTemplateType> USER_TEMPLATE_MATCHING_RULES_CHILD = new TestResource<>(
+            TEST_DIR, "user-template-matching-rules-child.xml", "a9759cd0-d3e1-4aa6-9c26-54e879b4994c");
+
+    /** Used for 1xx tests (filter, expression, and ID Match correlators). */
     private static final File FILE_USERS_TRADITIONAL = new File(TEST_DIR, "users-traditional.xml");
-    private static final File FILE_USERS_ITEMS = new File(TEST_DIR, "users-items.xml");
 
-    private static final File FILE_ACCOUNTS_EMP = new File(TEST_DIR, "accounts-emp.csv");
-    private static final TestCorrelator CORRELATOR_EMP = new TestCorrelator(new File(TEST_DIR, "correlator-emp.xml"));
+    /** Used for majority of 2xx tests (items a.k.a. smart correlator). */
+    private static final File FILE_USERS_SMART_BASIC = new File(TEST_DIR, "users-smart-basic.xml");
 
-    private static final File FILE_ACCOUNTS_EMP_FN = new File(TEST_DIR, "accounts-emp-fn.csv");
-    private static final TestCorrelator CORRELATOR_EMP_FN = new TestCorrelator(new File(TEST_DIR, "correlator-emp-fn.xml"));
-
-    private static final File FILE_ACCOUNTS_EMP_FN_OPT = new File(TEST_DIR, "accounts-emp-fn-opt.csv");
-    private static final TestCorrelator CORRELATOR_EMP_FN_OPT = new TestCorrelator(new File(TEST_DIR, "correlator-emp-fn-opt.xml"));
-
-    private static final File FILE_ACCOUNTS_OWNER = new File(TEST_DIR, "accounts-owner.csv");
-    private static final TestCorrelator CORRELATOR_OWNER = new TestCorrelator(new File(TEST_DIR, "correlator-owner.xml"));
-
-    private static final File FILE_ACCOUNTS_OWNER_REF = new File(TEST_DIR, "accounts-owner-ref.csv");
-    private static final TestCorrelator CORRELATOR_OWNER_REF = new TestCorrelator(new File(TEST_DIR, "correlator-owner-ref.xml"));
-
-    private static final File FILE_ACCOUNTS_ID_MATCH = new File(TEST_DIR, "accounts-id-match.csv");
-    private static final TestCorrelator CORRELATOR_ID_MATCH = new TestCorrelator(new File(TEST_DIR, "correlator-id-match.xml"));
-
-    private static final File FILE_ACCOUNTS_BY_NAME_DEFAULT = new File(TEST_DIR, "accounts-by-name-default.csv");
-    private static final TestCorrelator CORRELATOR_BY_NAME_DEFAULT =
-            new TestCorrelator(
-                    new File(TEST_DIR, "correlator-by-name-default.xml"),
-                    USER_TEMPLATE_DEFAULT_INDEXING);
-
-    private static final File FILE_ACCOUNTS_BY_NAME_ORIGINAL = new File(TEST_DIR, "accounts-by-name-original.csv");
-    private static final TestCorrelator CORRELATOR_BY_NAME_ORIGINAL =
-            new TestCorrelator(
-                    new File(TEST_DIR, "correlator-by-name-original.xml"),
-                    USER_TEMPLATE_ORIGINAL_INDEXING);
-
-    private static final File FILE_ACCOUNTS_BY_NAME_FUZZY_FIXED = new File(TEST_DIR, "accounts-by-name-fuzzy-fixed.csv");
-    private static final TestCorrelator CORRELATOR_BY_NAME_FUZZY_FIXED =
-            new TestCorrelator(
-                    new File(TEST_DIR, "correlator-by-name-fuzzy-fixed.xml"),
-                    USER_TEMPLATE_DEFAULT_INDEXING);
-
-    private static final File FILE_ACCOUNTS_BY_NAME_FUZZY_GRADUAL =
-            new File(TEST_DIR, "accounts-by-name-fuzzy-gradual.csv");
-    private static final TestCorrelator CORRELATOR_BY_NAME_FUZZY_GRADUAL =
-            new TestCorrelator(
-                    new File(TEST_DIR, "correlator-by-name-fuzzy-gradual.xml"),
-                    USER_TEMPLATE_DEFAULT_INDEXING);
-
-    private static final File FILE_ACCOUNTS_COMPLEX = new File(TEST_DIR, "accounts-complex.csv");
-    private static final TestCorrelator CORRELATOR_COMPLEX =
-            new TestCorrelator(
-                    new File(TEST_DIR, "correlator-complex.xml"),
-                    USER_TEMPLATE_COMPLEX);
+    /** Used for "matching rules" test. */
+    private static final File FILE_USERS_SMART_MATCHING_RULES = new File(TEST_DIR, "users-smart-matching-rules.xml");
 
     @Autowired private CorrelatorFactoryRegistry correlatorFactoryRegistry;
     @Autowired private CorrelationServiceImpl correlationService;
@@ -184,41 +151,67 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                         RESOURCE_DUMMY_CORRELATION.controller.getRefinedSchema(),
                         ShadowKindType.ACCOUNT,
                         SchemaConstants.INTENT_DEFAULT);
+
+        // This object should be there "in the background". It is referenced from the main template for matching rules.
+        repoAdd(USER_TEMPLATE_MATCHING_RULES_CHILD, initResult);
     }
 
+    /**
+     * Correlate solely on the basis of `employeeNumber` (legacy correlator).
+     */
     @Test
-    public void test100CorrelateOnEmployeeNumber() throws Exception {
-        executeTest(CORRELATOR_EMP, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_EMP);
+    public void test100FilterByEmployeeNumber() throws Exception {
+        executeTest("filter-by-employee-number", FILE_USERS_TRADITIONAL);
     }
 
+    /**
+     * Correlates on `employeeNumber`, confirms on `familyName`.
+     */
     @Test
-    public void test110CorrelateOnEmployeeNumberConfirmingByFamilyName() throws Exception {
-        executeTest(CORRELATOR_EMP_FN, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_EMP_FN);
+    public void test110FilterByEmployeeNumberConfirmByFamilyName() throws Exception {
+        executeTest("filter-by-employee-number-confirm-by-family-name", FILE_USERS_TRADITIONAL);
     }
 
+    /**
+     * Correlates on `employeeNumber`, confirms on `familyName`.
+     * Skipping the confirmation if there's only a single candidate.
+     */
     @Test
-    public void test120CorrelateOnEmployeeNumberConfirmingByFamilyNameExceptForSingleResult() throws Exception {
-        executeTest(CORRELATOR_EMP_FN_OPT, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_EMP_FN_OPT);
+    public void test120FilterByEmployeeNumberConfirmByFamilyNameExceptForSingleResult() throws Exception {
+        executeTest("filter-by-employee-number-confirm-by-family-name-except-for-single-result", FILE_USERS_TRADITIONAL);
     }
 
+    /**
+     * Tests "owner expression" correlator. A bit hacked: Uses `employeeNumber` as owner OID.
+     */
     @Test
-    public void test150CorrelateUsingEmployeeNumberAsOwnerOidWithFullObject() throws Exception {
-        // We skip the explanation because "owner" correlator does not support it.
-        executeTest(CORRELATOR_OWNER, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_OWNER, DESCRIBE_ONLY, null);
-    }
-
-    @Test
-    public void test160CorrelateUsingEmployeeNumberAsOwnerOidWithReference() throws Exception {
-        // We skip the explanation because "owner" correlator does not support it.
-        executeTest(CORRELATOR_OWNER_REF, FILE_USERS_TRADITIONAL, FILE_ACCOUNTS_OWNER_REF, DESCRIBE_ONLY, null);
-    }
-
-    @Test
-    public void test190CorrelateUsingIdMatchService() throws Exception {
-        executeTest(
-                CORRELATOR_ID_MATCH,
+    public void test150OwnerExpression() throws Exception {
+        executeTest("owner-expression",
                 FILE_USERS_TRADITIONAL,
-                FILE_ACCOUNTS_ID_MATCH,
+                DESCRIBE_ONLY, // We skip the explanation because "owner" correlator does not support it.
+                null);
+    }
+
+    /**
+     * Tests "ownerRef expression" correlator. A bit hacked: Uses `employeeNumber` as owner OID.
+     */
+    @Test
+    public void test160OwnerRefExpression() throws Exception {
+        executeTest(
+                "owner-ref-expression",
+                FILE_USERS_TRADITIONAL,
+                DESCRIBE_ONLY, // We skip the explanation because "owner" correlator does not support it.
+                null);
+    }
+
+    /**
+     * Tests ID Match correlator.
+     */
+    @Test
+    public void test190IdMatch() throws Exception {
+        executeTest(
+                "id-match",
+                FILE_USERS_TRADITIONAL,
                 FULL,
                 accounts -> {
                     // We need a specific record in our ID Match service.
@@ -228,35 +221,64 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 });
     }
 
+    /**
+     * Correlating by given name and family name, using default indexing.
+     */
     @Test
-    public void test200CorrelateByNameDefault() throws Exception {
+    public void test200SmartByNameWithDefaultIndexing() throws Exception {
         skipIfNotNativeRepository();
-        executeTest(CORRELATOR_BY_NAME_DEFAULT, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_DEFAULT);
+        executeTest(
+                "smart-by-name-with-default-indexing",
+                FILE_USERS_SMART_BASIC,
+                USER_TEMPLATE_DEFAULT_INDEXING);
     }
 
+    /**
+     * Correlating by given name and family name, using "original value" indexing.
+     */
     @Test
-    public void test210CorrelateByNameOriginal() throws Exception {
+    public void test210SmartByNameWithOriginalIndexing() throws Exception {
         skipIfNotNativeRepository();
-        executeTest(CORRELATOR_BY_NAME_ORIGINAL, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_ORIGINAL);
+        executeTest(
+                "smart-by-name-with-original-indexing",
+                FILE_USERS_SMART_BASIC,
+                USER_TEMPLATE_ORIGINAL_INDEXING);
     }
 
+    /**
+     * Correlating by given name and family name, using fuzzy search with default (gradual) confidence.
+     */
     @Test
-    public void test220CorrelateByNameFuzzyFixed() throws Exception {
+    public void test220SmartByNameFuzzy() throws Exception {
         skipIfNotNativeRepository();
-        executeTest(CORRELATOR_BY_NAME_FUZZY_FIXED, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY_FIXED);
+        executeTest(
+                "smart-by-name-fuzzy",
+                FILE_USERS_SMART_BASIC,
+                USER_TEMPLATE_DEFAULT_INDEXING);
     }
 
+    /**
+     * Correlating by given name and family name, using fuzzy search with confidence fixed to 1.
+     */
     @Test
-    public void test225CorrelateByNameFuzzyGradual() throws Exception {
+    public void test225SmartByNameFuzzyFixedConfidence() throws Exception {
         skipIfNotNativeRepository();
-        // We skip the explanation (for now), because fuzzy filters are not supported
-        executeTest(CORRELATOR_BY_NAME_FUZZY_GRADUAL, FILE_USERS_ITEMS, FILE_ACCOUNTS_BY_NAME_FUZZY_GRADUAL);
+        executeTest(
+                "smart-by-name-fuzzy-fixed-confidence",
+                FILE_USERS_SMART_BASIC,
+                USER_TEMPLATE_DEFAULT_INDEXING);
     }
 
+    /**
+     * Complex smart correlation scenario with multiple rules.
+     */
     @Test
-    public void test230CorrelateComplex() throws Exception {
+    public void test230SmartMultiRuleComplex() throws Exception {
         skipIfNotNativeRepository();
-        executeTest(CORRELATOR_COMPLEX, FILE_USERS_ITEMS, FILE_ACCOUNTS_COMPLEX);
+        executeTest(
+                "smart-multi-rule-complex",
+                FILE_USERS_SMART_BASIC,
+                USER_TEMPLATE_COMPLEX);
 
         // Just for completeness, let us check the normalizations
         // @formatter:off
@@ -271,10 +293,79 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         // @formatter:on
     }
 
-    private void executeTest(TestCorrelator correlator, File usersFile, File accountsFile)
+    /**
+     * Tests whether matching rules are applied correctly.
+     * Also, tests whether "include" directives in object templates are respected.
+     *
+     * See the CSV file for the description of items to correlate.
+     */
+    @Test
+    public void test250SmartWithMatchingRules() throws Exception {
+        skipIfNotNativeRepository();
+        executeTest(
+                "smart-with-matching-rules",
+                FILE_USERS_SMART_MATCHING_RULES,
+                USER_TEMPLATE_MATCHING_RULES_MAIN);
+
+        // Just for completeness, let us check the normalizations
+        // @formatter:off
+        assertUserAfter(findUserByUsernameFullRequired("smith1"))
+                .identities()
+                    .normalizedData()
+                        .assertNormalizedItem("familyName.polyStringNorm", "smith");
+        // @formatter:on
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void executeTest(String name, File usersFile)
             throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
             InterruptedException, ObjectAlreadyExistsException {
-        executeTest(correlator, usersFile, accountsFile, FULL, null);
+        executeTest(
+                correlator(name),
+                usersFile,
+                accountsFile(name),
+                FULL,
+                null);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void executeTest(String name, File usersFile, TestResource<ObjectTemplateType> template)
+            throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
+            InterruptedException, ObjectAlreadyExistsException {
+        executeTest(
+                correlator(name, template),
+                usersFile,
+                accountsFile(name),
+                FULL,
+                null);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void executeTest(String name, File usersFile, TestResource<ObjectTemplateType> template, DescriptionMode mode)
+            throws ConflictException, EncryptionException, CommonException, IOException, SchemaViolationException,
+            InterruptedException, ObjectAlreadyExistsException {
+        executeTest(
+                correlator(name, template),
+                usersFile,
+                accountsFile(name),
+                mode,
+                null);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void executeTest(
+            String name,
+            File usersFile,
+            DescriptionMode descriptionMode,
+            FailableConsumer<List<CorrelationTestingAccount>, CommonException> additionalInitializer)
+            throws CommonException, IOException, ConflictException, SchemaViolationException,
+            InterruptedException, ObjectAlreadyExistsException, EncryptionException {
+        executeTest(
+                correlator(name),
+                usersFile,
+                accountsFile(name),
+                descriptionMode,
+                additionalInitializer);
     }
 
     private void executeTest(
@@ -294,7 +385,8 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         if (!Objects.equals(userTemplateOid, currentlyUsedTemplateOid)) {
             if (userTemplateResource != null && userTemplateResource.getObject() == null) {
                 repoAdd(userTemplateResource, result);
-                userTemplateResource.reload(result);
+                ObjectTemplateType expanded = archetypeManager.getExpandedObjectTemplate(userTemplateResource.oid, result);
+                userTemplateResource.object = expanded.asPrismObject();
             }
             System.out.println("Setting user template OID (in system config) to be " + userTemplateOid);
             setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid, result);
@@ -530,6 +622,20 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         assertThat(propertyDesc.getMatch()).as("match for " + path).isEqualTo(expectedMatch);
     }
 
+    private static File accountsFile(String name) {
+        return new File(TEST_DIR, name + ".csv");
+    }
+
+    private static TestCorrelator correlator(String name) {
+        return correlator(name, null);
+    }
+
+    private static TestCorrelator correlator(String name, TestResource<ObjectTemplateType> template) {
+        return new TestCorrelator(
+                new File(TEST_DIR, name + ".xml"),
+                template);
+    }
+
     enum DescriptionMode {
         FULL, DESCRIBE_ONLY, NONE
     }
@@ -537,13 +643,9 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     /** Definition of the correlator and its instance. */
     static class TestCorrelator {
         @NotNull private final File file;
-        @Nullable private final TestResource<ObjectTemplateType> userTemplateResource; // loaded on startup
+        @Nullable private final TestResource<ObjectTemplateType> userTemplateResource; // loaded on start of test execution
         private CorrelatorContext<?> correlatorContext;
         private Correlator instance; // set on initialization
-
-        TestCorrelator(@NotNull File file) {
-            this(file, null);
-        }
 
         TestCorrelator(@NotNull File file, @Nullable TestResource<ObjectTemplateType> userTemplateResource) {
             this.file = file;

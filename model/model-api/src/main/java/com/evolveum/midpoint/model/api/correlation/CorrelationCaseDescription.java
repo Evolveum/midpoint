@@ -308,6 +308,9 @@ public class CorrelationCaseDescription<F extends FocusType> implements DebugDum
          * A full match: The default normalization of the primary value (or one of the primary values) exactly matches
          * the same normalization of the source value. Usually displayed in green.
          *
+         * (Default normalization is either default "indexing", or the result of the application of the item matching rule
+         * from the object template.)
+         *
          * This should be adequate for the majority of cases. An exception could be if we use a correlator with more
          * strict indexing than the default one. But this may be seen as a configuration issue: one should perhaps
          * set the default correlator to be the more strict one.

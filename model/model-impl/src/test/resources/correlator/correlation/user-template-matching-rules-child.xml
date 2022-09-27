@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+        oid="a9759cd0-d3e1-4aa6-9c26-54e879b4994c">
+    <name>matching-rules-child</name>
+    <item>
+        <ref>givenName</ref>
+        <matchingRule>mr:polyStringNorm</matchingRule>
+    </item>
+    <item>
+        <ref>familyName</ref>
+        <indexing/>
+    </item>
+    <item>
+        <ref>costCenter</ref>
+        <matchingRule>mr:stringIgnoreCase</matchingRule>
+    </item>
+    <!-- honorificPrefix (polystring) has no matching rule specified -->
+    <!-- employeeNumber (string) has no matching rule specified -->
+</objectTemplate>
