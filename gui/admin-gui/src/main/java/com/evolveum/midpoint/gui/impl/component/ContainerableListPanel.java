@@ -72,6 +72,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
@@ -1305,7 +1306,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             objectCollection.setView(getDefaultView());
         }
         SearchFilterType searchFilter = null;
-        ObjectQuery query = getSearchModel().getObject().createObjectQuery(getPageBase());
+        ISelectableDataProvider<?> dataProvider = getDataProvider();
+        ObjectQuery query = (dataProvider instanceof BaseSortableDataProvider)
+                ? ((BaseSortableDataProvider<?>) dataProvider).getQuery()
+                : getSearchModel().getObject().createObjectQuery(getPageBase());
         if (query != null) {
             ObjectFilter filter = query.getFilter();
             try {
