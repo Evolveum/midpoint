@@ -6,65 +6,40 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.login.PageRegistrationConfirmation;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-
-import com.evolveum.midpoint.web.component.search.SearchItem;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
-
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C>> implements Popupable {
 
@@ -77,10 +52,11 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     private static final String ID_SAVE_BUTTON = "saveButton";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
 
-    private Class<C> type;
+    private final Class<C> type;
     IModel<String> feedbackMessageModel = Model.of();
     IModel<String> queryNameModel = Model.of();
-    private String defaultCollectionViewIdentifier = null;
+    private final String defaultCollectionViewIdentifier;
+
     public SaveSearchPanel(String id, IModel<Search<C>> searchModel, Class<C> type, String defaultCollectionViewIdentifier) {
         super(id, searchModel);
         this.type = type;
@@ -96,7 +72,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     private void initLayout() {
         setOutputMarkupId(true);
 
-        MessagePanel feedbackMessage = new MessagePanel(ID_FEEDBACK_MESSAGE, MessagePanel.MessagePanelType.WARN, feedbackMessageModel);
+        MessagePanel<?> feedbackMessage = new MessagePanel<>(ID_FEEDBACK_MESSAGE, MessagePanel.MessagePanelType.WARN, feedbackMessageModel);
         feedbackMessage.add(new VisibleBehaviour(() -> feedbackMessageModel.getObject() != null && StringUtils.isNotEmpty(feedbackMessageModel.getObject())));
         feedbackMessage.setOutputMarkupId(true);
         add(feedbackMessage);
@@ -182,7 +158,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
                 try {
                     searchItem.setFilter(getPageBase().getQueryConverter().createSearchFilterType(filter));
                 } catch (SchemaException e) {
-                    LOGGER.error("Unable to create search filter from query: ", filter, e.getLocalizedMessage());
+                    LOGGER.error("Unable to create search filter from query: {}, {}", filter, e.getLocalizedMessage());
                 }
                 searchItem.setVisibleByDefault(true);
                 searchItems.add(searchItem);
@@ -197,7 +173,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             SearchItemType axiomSearchItem = new SearchItemType();
             ObjectFilter axiomFilter = PrismContext.get()
                     .createQueryParser(PrismContext.get().getSchemaRegistry().staticNamespaceContext().allPrefixes())
-                    .parseQuery(getModelObject().getTypeClass(), getModelObject().getDslQuery());
+                    .parseFilter(getModelObject().getTypeClass(), getModelObject().getDslQuery());
             axiomSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(axiomFilter));
             return axiomSearchItem;
         } catch (SchemaException e) {
@@ -216,7 +192,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             advancedSearchItem.setFilter(PrismContext.get().getQueryConverter().createSearchFilterType(advancedFilter));
             return advancedSearchItem;
         } catch (Exception e) {
-            LOGGER.error("Unable to parse advanced filter from query: ", getModelObject().getAdvancedQuery(), e.getLocalizedMessage());
+            LOGGER.error("Unable to parse advanced filter from query: {}, {}", getModelObject().getAdvancedQuery(), e.getLocalizedMessage());
             getPageBase().error("Unable to parse advanced filter from query: " + getModelObject().getAdvancedQuery());
         }
         return null;
@@ -330,23 +306,23 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
 
         OperationResult result = new OperationResult("save search to user");
         try {
-            ObjectDelta<UserType> userDelta = null;
+            ObjectDelta<UserType> userDelta;
             if (!viewExists) {
                 searchConfig.getAvailableFilter().add(availableFilter);
                 userDelta = getPrismContext().deltaFor(UserType.class)
                         .item(path.toArray(ItemName[]::new))
                         .add(valueToAdd).asObjectDelta(principalFocus.getOid());
             } else {
-                Object[] viewPath = new Object[]{UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
+                Object[] viewPath = new Object[] { UserType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.F_OBJECT_COLLECTION_VIEWS,
                         GuiObjectListViewsType.F_OBJECT_COLLECTION_VIEW, objectListView.getId(), GuiObjectListViewType.F_SEARCH_BOX_CONFIGURATION,
-                        SearchBoxConfigurationType.F_AVAILABLE_FILTER};
+                        SearchBoxConfigurationType.F_AVAILABLE_FILTER };
                 userDelta = getPrismContext().deltaFor(UserType.class)
                         .item(viewPath)
                         .add(availableFilter).asObjectDelta(principalFocus.getOid());
             }
             WebModelServiceUtils.save(userDelta, result, getPageBase().createSimpleTask("task"), getPageBase());
         } catch (Exception e) {
-            LOGGER.error("Unable to save a filter to user, ", e.getLocalizedMessage());
+            LOGGER.error("Unable to save a filter to user, {}", e.getLocalizedMessage());
             error("Unable to save a filter to user, " + e.getLocalizedMessage());
             ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
             return;
@@ -356,7 +332,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
     }
 
-      @Override
+    @Override
     public int getWidth() {
         return 500;
     }
@@ -367,12 +343,12 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     }
 
     @Override
-    public String getWidthUnit(){
+    public String getWidthUnit() {
         return "px";
     }
 
     @Override
-    public String getHeightUnit(){
+    public String getHeightUnit() {
         return "px";
     }
 
@@ -385,5 +361,4 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     public StringResourceModel getTitle() {
         return getPageBase().createStringResource("SaveSearchPanel.saveSearch");
     }
-
 }

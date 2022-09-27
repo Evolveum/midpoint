@@ -466,7 +466,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                         PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, item.getPredefinedFilter().getFilterExpression(),
                                 MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "", task, task.getResult());
                         if (filterValue == null || filterValue.getRealValue() == null) {
-                            LOGGER.error("FilterExpression return null, ", item.getPredefinedFilter().getFilterExpression());
+                            LOGGER.error("FilterExpression return null, {}", item.getPredefinedFilter().getFilterExpression());
                         }
                         filter = filterValue.getRealValue();
                     } catch (Exception e) {
@@ -741,7 +741,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             if (StringUtils.isEmpty(dslQuery)) {
                 return null;
             }
-            return ctx.createQueryParser().parseQuery(getTypeClass(), dslQuery);
+            return ctx.createQueryParser().parseFilter(getTypeClass(), dslQuery);
         }
 
         return null;
@@ -901,13 +901,4 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public List<SearchBoxModeType> getAllowedSearchType() {
         return allowedSearchType;
     }
-
-//    public SearchBoxConfigurationType getSearchBoxConfig() {
-//        SearchBoxConfigurationType searchBoxConfigurationType = new SearchBoxConfigurationType();
-//        searchBoxConfigurationType.setAllowToConfigureSearchItems(canConfigure);
-//        searchBoxConfigurationType.setDefaultMode(searchType);
-//
-//        ObjectTypeSearchItemConfigurationType objectTypeSearchItemConfigurationType = new ObjectTypeSearchItemConfigurationType();
-//        searchBoxConfigurationType.setObjectTypeConfiguration();
-//    }
 }
