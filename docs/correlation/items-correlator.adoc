@@ -61,7 +61,7 @@ There are the following configuration options available:
 
 | `matchingRule`
 | What matching rule to use? (For non-fuzzy search.)
-.2+| Rule of `mr:default`.
+.2+| Rule of `mr:default` (for indexed items; note they are normalized using `polyStringNorm` algorithm by default); or the rule specified in the object template for given item (for non-indexed items).
 
 | `fuzzy`
 | Specification of the fuzzy search to be used.
@@ -75,7 +75,6 @@ The confidence values for individual items are multiplied to provide the overall
 |===
 
 The `matchingRule` and `fuzzy` elements are mutually exclusive.
-If none is specified, an exact match (i.e., rule `mr:default`) is carried out.
 
 === Specifying the Index to Use
 
