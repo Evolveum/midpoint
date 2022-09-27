@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,8 +9,6 @@ package com.evolveum.midpoint.web.component;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +25,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.model.FlexibleLabelModel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -236,16 +234,14 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     }
 
     private IModel<String> getIconCssClass() {
-        return new ReadOnlyModel<>(() -> {
-
+        return () -> {
             String archetypeIcon = getArchetypeIconCssClass();
             if (StringUtils.isNotBlank(archetypeIcon)) {
                 return archetypeIcon;
             }
 
             return getDefaultIconCssClass();
-
-        });
+        };
     }
 
     private IModel<String> createArchetypeBackgroundModel() {
@@ -264,7 +260,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     }
 
     private FlexibleLabelModel<C> createFlexibleLabelModel(QName modelPropertyName, GuiFlexibleLabelType configuration) {
-        return new FlexibleLabelModel<C>(getModel(), ItemName.fromQName(modelPropertyName), getPageBase(), configuration) {
+        return new FlexibleLabelModel<>(getModel(), ItemName.fromQName(modelPropertyName), getPageBase(), configuration) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -293,11 +289,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     }
 
     private SummaryTag<C> getArchetypeSummaryTag() {
-//        String archetypeIconCssClass = getArchetypeIconCssClass();
-//        String archetypeIconColor = getArchetypePolicyAdditionalCssClass();
-//        String archetypeLabel = getArchetypeLabel();
-//        if (StringUtils.isNotEmpty(archetypeLabel)) {
-        SummaryTag<C> archetypeSummaryTag = new SummaryTag<C>(ID_SUMMARY_TAG, getModel()) {
+        SummaryTag<C> archetypeSummaryTag = new SummaryTag<>(ID_SUMMARY_TAG, getModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -310,8 +302,6 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         };
         archetypeSummaryTag.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getArchetypeLabel())));
         return archetypeSummaryTag;
-//        }
-//        return null;
     }
 
     protected void addAdditionalVariablesMap(VariablesMap variables) {

@@ -14,7 +14,6 @@ import java.util.List;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -59,13 +58,13 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
 
     @Override
     protected IModel<String> getDisplayNameModel() {
-        return new ReadOnlyModel<>(() -> {
+        return () -> {
             CaseWorkItemType caseWorkItemType = CaseWorkItemSummaryPanel.this.getModelObject();
             CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
             return defaultIfNull(
                     WfGuiUtil.getLocalizedProcessName(caseType != null ? caseType.getApprovalContext() : null, CaseWorkItemSummaryPanel.this),
                     caseWorkItemType != null ? WebComponentUtil.getTranslatedPolyString(caseWorkItemType.getName()) : null);
-        });
+        };
     }
 
     @Override

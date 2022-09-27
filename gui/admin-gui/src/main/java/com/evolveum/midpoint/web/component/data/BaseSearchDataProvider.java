@@ -28,7 +28,7 @@ public abstract class BaseSearchDataProvider<C extends Containerable, T extends 
 
     private final IModel<Search<C>> search;
 
-    //TODO why do we need this? varaibles are serialized, in case
+    //TODO why do we need this? variables are serialized, in case
     // of bug objects (e.g. prism objects) it might have impact on performance
     private final Map<String, Object> variables = new HashMap<>();
 

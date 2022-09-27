@@ -1,23 +1,25 @@
 /*
- * Copyright (c) 2021 Evolveum and contributors
+ * Copyright (C) 2021-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.page.admin.user.component;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.QueryFactory;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
@@ -32,25 +34,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.model.IModel;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author honchar
  */
 @PanelType(name = "personas")
 @PanelInstance(identifier = "personas",
         applicableForType = UserType.class,
-        display = @PanelDisplay(label = "pageAdminFocus.personas", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 80))
+        display = @PanelDisplay(label = "pageAdminFocus.personas",
+                icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT,
+                order = 80))
 @Counter(provider = PersonasCounter.class)
 public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDetailsModel> {
     private static final long serialVersionUID = 1L;
-    private static final String DOT_CLASS = UserPersonasPanel.class.getName() + ".";
-    private static final String OPERATION_SEARCH_PERSONAS_OBJECTS = DOT_CLASS + "searchPersonas";
 
     private static final String ID_PERSONAS_TABLE = "personasTable";
 
@@ -59,12 +54,12 @@ public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDet
     }
 
     protected void initLayout() {
-        MainObjectListPanel<UserType> userListPanel =
-                new MainObjectListPanel<UserType>(ID_PERSONAS_TABLE, UserType.class, null) {
+        MainObjectListPanel<UserType> userListPanel = new MainObjectListPanel<>(
+                ID_PERSONAS_TABLE, UserType.class, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected IColumn<SelectableBean<UserType>, String> createCheckboxColumn(){
+            protected IColumn<SelectableBean<UserType>, String> createCheckboxColumn() {
                 return null;
             }
 
@@ -90,18 +85,20 @@ public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDet
                                 UserType personaRefObj = personaRefSelectableBean.getValue();
                                 ObjectReferenceType ort = new ObjectReferenceType();
                                 ort.setOid(personaRefObj.getOid());
-                                ort.setType(WebComponentUtil.classToQName(UserPersonasPanel.this.getPrismContext(), personaRefObj.getClass()));
+                                ort.setType(WebComponentUtil.classToQName(
+                                        UserPersonasPanel.this.getPrismContext(), personaRefObj.getClass()));
                                 WebComponentUtil.dispatchToObjectDetailsPage(ort, UserPersonasPanel.this, false);
                             }
                         };
                     }
 
                     @Override
-                    public boolean isHeaderMenuItem(){
+                    public boolean isHeaderMenuItem() {
                         return false;
                     }
                 });
-                return menuItems;          }
+                return menuItems;
+            }
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, UserType object) {
@@ -109,18 +106,13 @@ public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDet
 
             @Override
             protected boolean isCreateNewObjectEnabled() {
-                        return false;
-                    }
+                return false;
+            }
 
-                    @Override
-                    protected ISelectableDataProvider<SelectableBean<UserType>> createProvider() {
-                        return createSelectableBeanObjectDataProvider(() -> getFocusPersonasQuery(), null);
-                    }
-
-//                    @Override
-//            protected ObjectQuery getCustomizeContentQuery() {
-//
-//            }
+            @Override
+            protected ISelectableDataProvider<SelectableBean<UserType>> createProvider() {
+                return createSelectableBeanObjectDataProvider(() -> getFocusPersonasQuery(), null);
+            }
 
             @Override
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<UserType>> rowModel) {
@@ -134,8 +126,8 @@ public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDet
 
             @Override
             protected boolean enableSavePageSize() {
-                        return false;
-                    }
+                return false;
+            }
         };
         userListPanel.setOutputMarkupId(true);
         add(userListPanel);
@@ -149,28 +141,11 @@ public class UserPersonasPanel extends AbstractObjectMainPanel<UserType, UserDet
         return query;
     }
 
-    private LoadableModel<List<PrismObject<FocusType>>> loadModel(){
-        return new LoadableModel<List<PrismObject<FocusType>>>(false) {
-            @Override
-            protected List<PrismObject<FocusType>> load() {
-                List<String> personaOidsList = getPersonasOidsList();
-                List<PrismObject<FocusType>> personasList = new ArrayList<>();
-                if (personaOidsList.size() > 0){
-                    QueryFactory factory = getPrismContext().queryFactory();
-                    ObjectQuery query = factory.createQuery(factory.createInOid(personaOidsList));
-                    OperationResult result = new OperationResult(OPERATION_SEARCH_PERSONAS_OBJECTS);
-                    personasList = WebModelServiceUtils.searchObjects(FocusType.class, query, result, getPageBase());
-                }
-                return personasList;
-            }
-        };
-    }
-
-    private List<String> getPersonasOidsList(){
+    private List<String> getPersonasOidsList() {
         List<ObjectReferenceType> personasRefList = getObjectWrapper().getObject().asObjectable().getPersonaRef();
         List<String> oidsList = new ArrayList<>();
-        if (personasRefList != null){
-            for (ObjectReferenceType ref : personasRefList){
+        if (personasRefList != null) {
+            for (ObjectReferenceType ref : personasRefList) {
                 oidsList.add(ref.getOid());
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,9 +9,6 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -28,11 +25,12 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.org.PageOrg;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRole;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -43,7 +41,6 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -62,7 +59,7 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
     private static final String ID_BUTTON_ADD = "addButton";
 
     AssignmentsInfoDialog(String id, final List<AssignmentInfoDto> data, PageBase pageBase) {
-        super(id, new ReadOnlyModel<>(() -> MiscUtil.emptyIfNull(data)));
+        super(id, () -> MiscUtil.emptyIfNull(data));
 
         initLayout(pageBase);
     }
@@ -75,13 +72,14 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
         content.setOutputMarkupId(true);
         add(content);
 
-        BoxedTablePanel<AssignmentInfoDto> table = new BoxedTablePanel<AssignmentInfoDto>(ID_TABLE, provider, columns);
+        BoxedTablePanel<AssignmentInfoDto> table = new BoxedTablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
         content.add(table);
 
         AjaxButton addButton = new AjaxButton(ID_BUTTON_ADD,
                 createStringResource("userBrowserDialog.button.selectButton")) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 List<AssignmentInfoDto> allAssignmentInfoDtos = AssignmentsInfoDialog.this.getModelObject();
@@ -108,10 +106,10 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
         if (enableMultiSelect()) {
             columns.add(new CheckBoxHeaderColumn<>());
         }
-        columns.add(new AjaxLinkColumn<AssignmentInfoDto>(createStringResource("AssignmentPreviewDialog.column.name"), AssignmentInfoDto.F_TARGET_NAME) {
+        columns.add(new AjaxLinkColumn<>(createStringResource("AssignmentPreviewDialog.column.name"), AssignmentInfoDto.F_TARGET_NAME) {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<AssignmentInfoDto> rowModel){
+            public void onClick(AjaxRequestTarget target, IModel<AssignmentInfoDto> rowModel) {
                 AssignmentInfoDto dto = rowModel.getObject();
                 chooseOperationPerformed(dto.getTargetOid(), dto.getTargetClass());
             }
@@ -121,13 +119,13 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
                 if (enableMultiSelect()) {
                     return false;
                 }
-                Class targetClass = rowModel.getObject().getTargetClass();
+                Class<?> targetClass = rowModel.getObject().getTargetClass();
                 String authorizationAction = WebComponentUtil.getAuthorizationActionForTargetClass(targetClass);
                 return authorizationAction != null && WebComponentUtil.isAuthorized(authorizationAction);
             }
         });
 
-        columns.add(new IconColumn<AssignmentInfoDto>(createStringResource("")) {
+        columns.add(new IconColumn<>(createStringResource("")) {
             @Override
             protected DisplayType getIconDisplayType(IModel<AssignmentInfoDto> rowModel) {
                 ObjectTypeGuiDescriptor guiDescriptor = ObjectTypeGuiDescriptor.getDescriptor(rowModel.getObject().getTargetClass());
@@ -137,18 +135,13 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
         });
 
         if (showDirectIndirectColumn()) {
-            columns.add(new AbstractColumn<AssignmentInfoDto, String>(createStringResource("Type")) {
+            columns.add(new AbstractColumn<>(createStringResource("Type")) {
                 @Override
                 public void populateItem(Item<ICellPopulator<AssignmentInfoDto>> cellItem, String componentId, final IModel<AssignmentInfoDto> rowModel) {
-                    cellItem.add(new Label(componentId, new IModel<String>() {
-
-                        @Override
-                        public String getObject() {
-                            return rowModel.getObject().isDirect() ?
-                                    createStringResource("AssignmentPreviewDialog.type.direct").getString() :
-                                    createStringResource("AssignmentPreviewDialog.type.indirect").getString();
-                        }
-                    }));
+                    cellItem.add(new Label(componentId,
+                            (IModel<String>) () -> rowModel.getObject().isDirect()
+                                    ? createStringResource("AssignmentPreviewDialog.type.direct").getString()
+                                    : createStringResource("AssignmentPreviewDialog.type.indirect").getString()));
                     ObjectType assignmentParent = rowModel.getObject().getAssignmentParent();
                     if (assignmentParent != null) {
                         cellItem.add(AttributeModifier.replace("title", createStringResource("AssignmentPreviewDialog.tooltip.indirect.parent").getString() + ": " + assignmentParent.getName()));
@@ -172,17 +165,17 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
         return columns;
     }
 
-    private void chooseOperationPerformed(String oid, Class clazz){
+    private void chooseOperationPerformed(String oid, Class<?> clazz) {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, oid);
 
         PageBase page = getPageBase();
 
-        if(clazz.equals(RoleType.class)){
+        if (clazz.equals(RoleType.class)) {
             page.navigateToNext(PageRole.class, parameters);
-        } else if(clazz.equals(ResourceType.class)){
+        } else if (clazz.equals(ResourceType.class)) {
             page.navigateToNext(PageResource.class, parameters);
-        } else if(clazz.equals(OrgType.class)){
+        } else if (clazz.equals(OrgType.class)) {
             page.navigateToNext(PageOrg.class, parameters);
         }
     }
@@ -204,12 +197,12 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
     }
 
     @Override
-    public String getWidthUnit(){
+    public String getWidthUnit() {
         return "px";
     }
 
     @Override
-    public String getHeightUnit(){
+    public String getHeightUnit() {
         return "px";
     }
 
@@ -223,8 +216,6 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
         return new StringResourceModel("AssignmentPreviewDialog.label");
     }
 
-
     protected void addButtonClicked(AjaxRequestTarget target, List<AssignmentInfoDto> dtoList) {
     }
-
 }

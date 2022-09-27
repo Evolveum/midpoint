@@ -1,19 +1,11 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
-
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -28,6 +20,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
@@ -36,11 +30,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW extends PrismValueWrapper>
         extends BasePanel<IW> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractItemWrapperColumnPanel.class);
     protected PageBase pageBase;
     protected ItemPath itemName;
 
-    private ColumnType columnType;
+    private final ColumnType columnType;
 
     private static final String ID_VALUES = "values";
     private static final String ID_VALUE = "value";
@@ -62,7 +55,7 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
         if (getModelObject() != null) {
             AbstractItemWrapperColumnPanel.this.getModelObject().revive(getPageBase().getPrismContext());
         }
-        ListView<VW> listView = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModel(), "values")) {
+        ListView<VW> listView = new ListView<>(ID_VALUES, new PropertyModel<>(getModel(), "values")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -83,7 +76,7 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
         }
         switch (columnType) {
             case STRING:
-                Label label = new Label(ID_VALUE, new ReadOnlyModel<>(() -> createLabel(item.getModelObject())));
+                Label label = new Label(ID_VALUE, () -> createLabel(item.getModelObject()));
                 item.add(label);
                 break;
             case LINK:
@@ -93,7 +86,7 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
                 item.add(createValuePanel(ID_VALUE, getModel(), item.getModelObject()));
                 break;
             case EXISTENCE_OF_VALUE:
-                IModel labelModel = Model.of("");
+                IModel<?> labelModel = Model.of("");
                 if (existenceOfValue(item.getModelObject())) {
                     labelModel = getPageBase().createStringResource("AbstractItemWrapperColumnPanel.existValue");
                 }
@@ -106,12 +99,13 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
     protected abstract String createLabel(VW object);
     protected abstract Panel createLink(String id, IModel<VW> object);
     protected abstract Panel createValuePanel(String id, IModel<IW> model, VW object);
+
     protected boolean existenceOfValue(VW object) {
         Object realValue = object.getRealValue();
         return realValue != null;
     }
 
-    protected ItemPanelSettings createPanelSettings(){
+    protected ItemPanelSettings createPanelSettings() {
         return new ItemPanelSettingsBuilder().displayedInColumn(true).build();
     }
 }

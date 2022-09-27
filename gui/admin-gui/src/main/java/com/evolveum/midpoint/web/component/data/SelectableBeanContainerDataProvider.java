@@ -186,7 +186,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     protected Iterator<SelectableBean<C>> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
         LOGGER.trace("handling non-success result {}", result);
         // page.showResult() will not work here. We are too deep in the rendering now.
-        // Also do NOT re-throw not redirect to to error page. That will break the page.
+        // Also do NOT re-throw not redirect to the error page. That will break the page.
         // Just return a SelectableBean that indicates the error.
         List<SelectableBean<C>> errorList = new ArrayList<>(1);
         SelectableBean<C> bean = new SelectableBeanImpl<>();
