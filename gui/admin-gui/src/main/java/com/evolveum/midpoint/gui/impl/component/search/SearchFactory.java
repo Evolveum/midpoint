@@ -471,7 +471,6 @@ public class SearchFactory {
             if (searchItemWrapper instanceof DateSearchItemWrapper) {
                 ((DateSearchItemWrapper) searchItemWrapper).setInterval(false);
             }
-            searchItemWrapper.setCanConfigure(false);
         }
 
         if (item.isVisibleByDefault() != null) {

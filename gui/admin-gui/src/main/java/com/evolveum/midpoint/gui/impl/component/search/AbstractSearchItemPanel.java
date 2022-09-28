@@ -187,6 +187,7 @@ public abstract class AbstractSearchItemPanel<S extends AbstractSearchItemWrappe
 
     private void deletePerformed(AjaxRequestTarget target) {
         getModelObject().setVisible(false);
+        getModelObject().setValue(getModelObject().getDefaultValue());
         SearchPanel panel = findParent(SearchPanel.class);
         panel.displayedSearchItemsModelReset();
         panel.refreshSearchForm(target);
