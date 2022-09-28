@@ -1,132 +1,35 @@
-= Look & Feel Customization HOWTO
-:page-wiki-name: Look & Feel Customization HOWTO
-:page-wiki-id: 21528591
-:page-wiki-metadata-create-user: lazyman
-:page-wiki-metadata-create-date: 2015-10-19T19:44:29.416+02:00
-:page-wiki-metadata-modify-user: lazyman
-:page-wiki-metadata-modify-date: 2017-10-31T13:02:42.551+01:00
-:page-since: "3.5.1"
-:page-upkeep-status: yellow
-:page-obsolete-since: "4.6"
+= Look & Feel Customization HOWTO 4.6
+:page-toc: top
+:page-since: "4.6"
 
 Current MidPoint theme is based on link:https://almsaeedstudio.com/preview[AdminLTE] template.
-AdminLTE uses:
 
-* Bootstrap 3
-
-* jQuery 2.11
-
-* other plugins
-
-We're also using:
-
+* AdminLTE 3.2
+* Bootstrap 4.6
+* jQuery
 * link:https://ace.c9.io/#nav=about[Ace editor]
+* other plugins
+** bootstrap-select
+** bootstrap-multiselect
+** daterangepicker
+** select2
 
-* select and multiselect combo boxes for bootstrap
+== Stylesheets and javascripts
 
+WARNING: Since midPoint 4.6, stylesheets can't be changed without modifying source code of midpoint or using overlay.
 
-== Quick customization tips
+Starting with midPoint 4.6 whole css/js processing has changed.
+In previous versions midPoint compiled all LESS and CSS files (sources + files from midpoint.home) during startup into final CSS files that were used to style web pages.
 
+With midPoint 4.6 NodeJS and Webpack 5 was incorporated into build.
+Stylesheets, javascripts and other static resources are now processed using Webpack 5 and configuration defined in package.json.
+These are invoked using maven during build time and final CSS/javascript files are bundled into final midPoint JAR file.
 
-=== AdminLTE skins
+Simple style and javascript changes can be done via maven overlay by adding content to CSS/javascript files:
 
-Template contains 12 predefined skins:
+* src/main/resources/static/css/overlay.css
+* src/main/resources/static/js/overlay.js
 
-* skin-blue
+These files are empty by default and are linked last on midPoint web pages.
 
-* skin-blue-light
-
-* skin-yellow
-
-* skin-yellow-light
-
-* skin-green
-
-* skin-green-light
-
-* skin-purple
-
-* skin-purple-light
-
-* skin-red
-
-* skin-red-light
-
-* skin-black
-
-* skin-black-light
-
-To change skin you have to modify `PageTemplate.html` which you can find in module `admin-gui/src/main/java/com/evolveum/midpoint/web/page/PageTemplate.html`. You can also change it in `war` if you prefer to customize GA release.
-
-[source,xml]
-----
-<link href="../../../../../webjars/adminlte/2.3.0/dist/css/skins/skin-blue-light.min.css" rel="stylesheet" type="text/css" />
-----
-
-and
-
-[source,xml]
-----
-<body class="skin-blue-light">
-----
-
-
-=== Changing template header and logo
-
-To change template header color and logo you have to edit file midpoint-theme.less which is located in module in `admin-gui/src/main/webapp/less/midpoint-theme.less`. You can also change it in war if you prefer to customize GA release.
-
-[source,css]
-----
-.skin-blue-light .main-header {
-  & .logo {
-    //background-color: red;	//this will change color under logo image
-
-    &:hover {
-      //background-color: red;  //this will change color under logo image during hover event
-    }
-
-    & > span {
-      height: 100%;
-      width: 100%;
-      display: inline-block;
-      background: url("../img/midpoint_logo_white_180.png") no-repeat 10px 3px;	//here you can put logo of your company
-    }
-  }
-
-  & nav.navbar.navbar-static-top {
-    //background-color: red;	//this will change color of navigation bar on top of page
-  }
-}
-----
-
-
-== Stylesheets without overlay
-
-++++
-{% include since.html since="3.7" %}
-++++
-
-
-It is possible to add file named `midpoint.less` to `midpoint.home` folder.
-This file will be used during less compilation (during runtime) and styles will be appended to the end of `midpoint-theme.css` so it can be used to override existing CSS styles without need to build maven overlay project.
-
-
-== Stylesheet files description
-
-All style sheets are compiled from LESS files located in `admin-gui/src/main/webapp/less/...` based on `wro4j.xml` definitions.
-Most interesting files for review/change when updating styles in MidPoint are:
-
-* admin-lte/bootstrap-less/variables.less
-
-* admin-lte/less/variables.less
-
-* midpoint-theme-variables.less
-
-* midpoint-theme.less
-
-Best way to change them is using xref:/midpoint/reference/deployment/maven-overlay-project/[maven overlay] project.
-
-
-== Javascript files description
-
-Javascript files are located in `admin-gui/src/main/webapp/js/...` . Most of the MidPoint specific code is located in `midpoint-theme.js`.
+For more details see xref:../../devel/gui/gui-development-guide.adoc#styles-and-javascript[GUI development guide].
