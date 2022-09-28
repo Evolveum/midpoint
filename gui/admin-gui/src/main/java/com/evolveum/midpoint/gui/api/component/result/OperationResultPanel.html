@@ -9,7 +9,7 @@
 <wicket:panel>
     <div class="feedback-message card" wicket:id="detailsBox">
         <div class="card-header">
-            <h3 class="card-title" wicket:id="message">
+            <h3 class="card-title mw-100" style="word-break: break-all" wicket:id="message">
                 <i class="mr-2 fa" wicket:id="iconType"></i>
                 <span wicket:id="messageLabel"/>
                 <a class="text-sm" wicket:id="backgroundTask">
@@ -22,7 +22,7 @@
 
             <div class="card-tools">
                 <a wicket:id="showAll" class="btn btn-tool">
-                    <i  class="fa fa-chevron-left"></i>
+                    <i class="fa fa-chevron-left"></i>
                 </a>
                 <a wicket:id="hideAll" class="btn btn-tool">
                     <i class="fa fa-chevron-down"></i>
@@ -44,20 +44,24 @@
                     <span wicket:id="resultMessage"/>
                 </wicket:container>
                 <wicket:container wicket:id="paramsContainer">
-                    <table class="paramtable">
-                        <tr class="paramtable-row" wicket:id="params">
-                            <th class="paramtable-name" wicket:id="paramName"/>
-                            <td class="paramtable-value" wicket:id="paramValue"/>
-                        </tr>
-                    </table>
+                    <div class="overflow-auto">
+                        <table class="paramtable">
+                            <tr class="paramtable-row" wicket:id="params">
+                                <th class="paramtable-name" wicket:id="paramName"/>
+                                <td class="paramtable-value" wicket:id="paramValue"/>
+                            </tr>
+                        </table>
+                    </div>
                 </wicket:container>
                 <wicket:container wicket:id="contextsContainer">
-                    <table class="paramtable">
-                        <tr class="paramtable-row"  wicket:id="contexts">
-                            <th class="paramtable-name" wicket:id="contextName"/>
-                            <td class="paramtable-value" wicket:id="contextValue"/>
-                        </tr>
-                    </table>
+                    <div class="overflow-auto">
+                        <table class="paramtable">
+                            <tr class="paramtable-row" wicket:id="contexts">
+                                <th class="paramtable-name" wicket:id="contextName"/>
+                                <td class="paramtable-value" wicket:id="contextValue"/>
+                            </tr>
+                        </table>
+                    </div>
                 </wicket:container>
                 <wicket:container wicket:id="countContainer">
                     <span wicket:id="count"/>
@@ -71,7 +75,7 @@
                 </wicket:container>
             </dl>
             <wicket:container wicket:id="subresults">
-                <div wicket:id="subresult" />
+                <div wicket:id="subresult"/>
             </wicket:container>
         </div>
     </div>
