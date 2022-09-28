@@ -1103,8 +1103,9 @@ public class SearchFactory {
 
     public static <C extends Containerable> List<AbstractSearchItemWrapper> createSearchableExtensionWrapperList(
             PrismContainerDefinition<C> objectDef, ModelServiceLocator modelServiceLocator, ItemPath extensionPath) {
+
         List<AbstractSearchItemWrapper> searchItemWrappers = new ArrayList<>();
-        PrismContainerDefinition ext = objectDef.findContainerDefinition(ObjectType.F_EXTENSION);
+        PrismContainerDefinition ext = objectDef.findContainerDefinition(extensionPath);
         if (ext == null) {
             return searchItemWrappers;
         }
@@ -1112,12 +1113,13 @@ public class SearchFactory {
             List<ItemDefinition<?>> defs = ((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
                     .filter(def -> (def instanceof PrismReferenceDefinition || def instanceof PrismPropertyDefinition)
                             && isIndexed(def)).collect(Collectors.toList());
-            List<SearchItemType> searchItems = new ArrayList<>();
-            defs.forEach(def -> searchItems.add(new SearchItemType()
-                    .path(new ItemPathType(ItemPath.create(extensionPath, def.getItemName())))
-                    .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(def, null))));
-            searchItems.forEach(searchItem -> searchItemWrappers.add(createPropertySearchItemWrapper(objectDef.getCompileTimeClass(),
-                    searchItem, null, null, modelServiceLocator)));
+            for(ItemDefinition<?> def : defs) {
+                var searchItem = new SearchItemType()
+                        .path(new ItemPathType(ItemPath.create(extensionPath, def.getItemName())))
+                        .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(def, null));
+                searchItemWrappers.add(createPropertySearchItemWrapper(objectDef.getCompileTimeClass(),
+                        searchItem, def, null, modelServiceLocator));
+            }
         }
         return searchItemWrappers;
     }

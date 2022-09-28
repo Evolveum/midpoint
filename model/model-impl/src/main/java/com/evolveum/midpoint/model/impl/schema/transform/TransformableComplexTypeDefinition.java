@@ -102,7 +102,7 @@ public class TransformableComplexTypeDefinition implements ComplexTypeDefinition
         if (rest.isEmpty()) {
             return clazz.cast(firstChild);
         }
-        return firstChild.findItemDefinition(path, clazz);
+        return (ID) firstChild.findItemDefinition(path, clazz);
 
     }
 

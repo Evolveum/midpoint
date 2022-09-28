@@ -45,7 +45,7 @@ public class TransformableReferenceDefinition extends TransformableItemDefinitio
     }
 
     @Override
-    public <T extends ItemDefinition> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
+    public <T extends ItemDefinition<?>> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
         if (!path.startsWithObjectReference()) {
             return super.findItemDefinition(path, clazz);
         } else {
