@@ -349,7 +349,7 @@ public class SearchFactory {
         return createSearch(searchConfig, null, modelServiceLocator, Search.PanelType.DEFAULT, true);
     }
 
-   public static <C extends Containerable> com.evolveum.midpoint.gui.impl.component.search.Search<C> createMemberPanelSearch(
+   public static <C extends Containerable> Search<C> createMemberPanelSearch(
            SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
         return createSearch(searchConfig, null, modelServiceLocator, Search.PanelType.MEMBER_PANEL, true);
     }
