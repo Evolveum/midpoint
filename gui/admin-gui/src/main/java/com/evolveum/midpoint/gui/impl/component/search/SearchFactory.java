@@ -1098,11 +1098,12 @@ public class SearchFactory {
 
     public static <C extends Containerable> List<AbstractSearchItemWrapper> createSearchableExtensionWrapperList(
             PrismContainerDefinition<C> objectDef, ModelServiceLocator modelServiceLocator) {
+        return createSearchableExtensionWrapperList(objectDef, modelServiceLocator, ObjectType.F_EXTENSION);
+    }
 
+    public static <C extends Containerable> List<AbstractSearchItemWrapper> createSearchableExtensionWrapperList(
+            PrismContainerDefinition<C> objectDef, ModelServiceLocator modelServiceLocator, ItemPath extensionPath) {
         List<AbstractSearchItemWrapper> searchItemWrappers = new ArrayList<>();
-
-        ItemPath extensionPath = ObjectType.F_EXTENSION;
-
         PrismContainerDefinition ext = objectDef.findContainerDefinition(ObjectType.F_EXTENSION);
         if (ext == null) {
             return searchItemWrappers;
