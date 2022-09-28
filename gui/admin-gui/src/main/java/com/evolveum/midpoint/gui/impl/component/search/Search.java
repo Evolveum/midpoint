@@ -374,7 +374,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
         List<AbstractSearchItemWrapper> items = getItems();
         items.forEach(item -> {
-            if (StringUtils.isNotEmpty(item.getParameterName()) && item.isApplyFilter(SearchBoxModeType.BASIC)) {
+            if (StringUtils.isNotEmpty(item.getParameterName())) {
                 Object parameterValue = item.getValue() != null ? item.getValue().getValue() : null;
                 TypedValue value = new TypedValue(parameterValue, item.getParameterValueType());
                 variables.put(item.getParameterName(), value);

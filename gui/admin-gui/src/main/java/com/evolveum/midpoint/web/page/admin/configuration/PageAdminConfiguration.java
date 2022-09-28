@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -48,7 +47,7 @@ public class PageAdminConfiguration extends PageAdmin {
         Task task = createSimpleTask(result.getOperation());
 
         // @formatter:off
-        ActivityDefinitionType definition = new ActivityDefinitionType(PrismContext.get())
+        ActivityDefinitionType definition = new ActivityDefinitionType()
                 .beginWork()
                     .beginDeletion()
                         .beginObjects()
@@ -63,8 +62,7 @@ public class PageAdminConfiguration extends PageAdmin {
         task.setRootActivityDefinition(definition);
         task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
 
-        getTaskManager().switchToBackground(task, result);
-        result.setBackgroundTaskOid(task.getOid());
+        getModelInteractionService().switchToBackground(task, result);
         return task.getOid();
     }
 

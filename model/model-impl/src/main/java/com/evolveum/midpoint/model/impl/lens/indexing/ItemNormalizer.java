@@ -20,8 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-import static com.evolveum.midpoint.model.impl.lens.indexing.IndexingManager.normalizeValue;
-
 /**
  * Normalizes a given item using provided {@link IndexedItemValueNormalizer}.
  *
@@ -54,7 +52,7 @@ class ItemNormalizer {
             Object originalRealValue = originalValue.getRealValue();
             if (originalRealValue != null) {
                 normalizedItem.addRealValue(
-                        normalizeValue(originalRealValue, valueNormalizer, task, result));
+                        valueNormalizer.normalize(originalRealValue, task, result));
             } else {
                 LOGGER.warn("No real value in {} in {}", originalValue, originalItemDef);
             }

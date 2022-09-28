@@ -14,11 +14,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.correlation.TemplateCorrelationConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexingItemConfiguration;
 import com.evolveum.midpoint.model.api.indexing.IndexedItemValueNormalizer;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.indexing.IndexingManager;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.FuzzyStringMatchFilter;
@@ -30,7 +28,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectTemplateTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 
 import com.evolveum.midpoint.util.DOMUtil;
@@ -244,7 +241,7 @@ public class CorrelationItem implements DebugDumpable {
             return new SearchSpec(
                     valueNormalizer.getIndexItemPath(),
                     valueNormalizer.getIndexItemDefinition(),
-                    IndexingManager.normalizeValue(getValueToFind(), valueNormalizer, task, result));
+                    valueNormalizer.normalize(getValueToFind(), task, result));
         } else {
             return new SearchSpec(
                     itemPath,

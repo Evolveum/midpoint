@@ -13,6 +13,7 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseContextClassificationUseType;
@@ -64,6 +65,11 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.BaseContextCl
  * 2. Base context must be specified by "equals" filter with a single value.
  * 3. The attribute specifying base context top must have DN matching rule (that is used as a flag that it's a DN).
  * 4. The DN in shadow is used by finding an identifier with DN matching rule.
+ *
+ * TODO The serious solution would be either to add a scope checking method to ConnId. (It would be evaluated locally
+ *  by connector, requiring a roundtrip in the case of remote connectors.) But maybe even better solution would be to
+ *  extend a {@link MatchingRule} contract with a new predicate like `under` that would compare structured data like
+ *  LDAP distinguished names, Internet domain names, IP addresses, and so on.
  */
 class DelineationMatcher {
 

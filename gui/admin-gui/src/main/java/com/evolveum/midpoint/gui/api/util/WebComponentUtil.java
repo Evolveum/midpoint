@@ -22,7 +22,6 @@ import java.net.URI;
 import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -87,7 +86,6 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
@@ -236,6 +234,7 @@ public final class WebComponentUtil {
     /**
      * To be used only for tests when there's no MidpointApplication.
      * (Quite a hack. Replace eventually by a more serious solution.)
+     * TODO: Not used anymore, consider removal? (If not used in 2024, just delete it.)
      */
     private static RelationRegistry staticallyProvidedRelationRegistry;
 
@@ -641,49 +640,6 @@ public final class WebComponentUtil {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
     }
 
-    public static TaskType createIterativeChangeExecutionTask(String taskName, QName applicableType, ObjectQuery query,
-            @Nullable ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, PageBase pageBase) throws SchemaException {
-
-        TaskType task = new TaskType(pageBase.getPrismContext());
-
-        MidPointPrincipal owner = AuthUtil.getPrincipalUser();
-
-        ObjectReferenceType ownerRef = new ObjectReferenceType();
-        ownerRef.setOid(owner.getOid());
-        ownerRef.setType(UserType.COMPLEX_TYPE);
-        task.setOwnerRef(ownerRef);
-
-        task.setBinding(TaskBindingType.LOOSE);
-        task.setExecutionState(TaskExecutionStateType.RUNNABLE);
-        task.setSchedulingState(TaskSchedulingStateType.READY);
-        task.setThreadStopAction(ThreadStopActionType.RESTART);
-
-        ScheduleType schedule = new ScheduleType();
-        schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        task.setSchedule(schedule);
-
-        task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
-
-        IterativeChangeExecutionWorkDefinitionType workDef =
-                new IterativeChangeExecutionWorkDefinitionType(PrismContext.get())
-                        .beginObjects()
-                        .type(applicableType)
-                        .query(pageBase.getQueryConverter().createQueryType(query))
-                        .<IterativeChangeExecutionWorkDefinitionType>end()
-                        .delta(DeltaConvertor.toObjectDeltaType(delta))
-                        .executionOptions(toModelExecutionOptionsBean(options));
-
-        // @formatter:off
-        task.setActivity(
-                new ActivityDefinitionType(PrismContext.get())
-                        .beginWork()
-                        .iterativeChangeExecution(workDef)
-                        .end());
-        // @formatter:on
-
-        return task;
-    }
-
     public static boolean canSuspendTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task.asPrismObject())
                 && (isRunnableTask(task) || isRunningTask(task) || isWaitingTask(task));
@@ -1039,15 +995,6 @@ public final class WebComponentUtil {
 
             return list;
         };
-    }
-
-    // use for small enums only
-    @NotNull
-    public static <T extends Enum> IModel<List<T>> createReadonlyValueModelFromEnum(@NotNull Class<T> type, @NotNull Predicate<T> filter) {
-        return new ReadOnlyValueModel<>(
-                Arrays.stream(type.getEnumConstants())
-                        .filter(filter)
-                        .collect(Collectors.toList()));
     }
 
     /**
@@ -3364,8 +3311,8 @@ public final class WebComponentUtil {
                                 } else {
                                     oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
                                             .stream()
-                                            .filter(o -> o.getOid() != null)
                                             .map(o -> o.getOid())
+                                            .filter(Objects::nonNull)
                                             .collect(Collectors.toSet());
                                 }
                                 if (!oids.isEmpty()) {
@@ -3375,6 +3322,8 @@ public final class WebComponentUtil {
                                     if (principal == null) {
                                         throw new SecurityViolationException("No current user");
                                     }
+                                    // TODO deduplicate with ModelInteractionService.submitTaskFromTemplate
+                                    //  (after improving that method)
                                     TaskType newTask = pageBase.getModelService().getObject(TaskType.class, templateOid,
                                             createCollection(createExecutionPhase()), pageBase.createSimpleTask(operation), result).asObjectable();
                                     newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
@@ -3393,6 +3342,7 @@ public final class WebComponentUtil {
                                     }
                                     objectSet.setQuery(query);
                                     workDef.setObjects(objectSet);
+                                    // TODO consider if the user needs to have authorization to add the task
                                     ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
                                     Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = saveTask(delta, result, pageBase);
                                     String newTaskOid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, newTask.asPrismObject());
