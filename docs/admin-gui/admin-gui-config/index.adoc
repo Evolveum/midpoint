@@ -1543,7 +1543,19 @@ To configure custom actions, please, use the following example
 </adminGuiConfiguration>
 ----
 
-Xml for the task template object you can find by the link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/templates/task-template-change-description.xml[following link]. After custom action is configured in the admin gui configuration section, you can find action link among menu items on the appropriate type object list panel.image::custom_action_screen.png[]
+Xml for the task template object you can find by the link:https://github.com/Evolveum/midpoint-samples/blob/master/samples/tasks/templates/task-template-change-description.xml[following link].
+
+After custom action is configured in the admin gui configuration section, you can find action link among menu items on the appropriate type object list panel.
+
+image::custom_action_screen.png[]
+
+=== Limitations
+
+1. The user must be authorized to get the task template (sufficient in `execution` phase) and to create the new task object.
+2. The user must have all the authorizations required for the task template to execute.
+In particular, if there is a Groovy code there, the `execute-script` authorization must be present.
+See also bug:MID-7831[] and bug:MID-6913[].
+(As this is very strong authorization, be sure to provide it to trustworthy users only!)
 
 == Admin GUI Configuration and Authorizations
 
