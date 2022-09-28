@@ -105,8 +105,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
         WebMarkupContainer individualSystemsContainer = new WebMarkupContainer(ID_INDIVIDUAL_SYSTEMS_CONTAINER);
         individualSystemsContainer.setOutputMarkupId(true);
-        individualSystemsContainer.add(new VisibleBehaviour(() -> propagatePasswordCheckbox.getCheckboxModel().getObject() != null
-                && propagatePasswordCheckbox.getCheckboxModel().getObject() || showResultInTable));
+        individualSystemsContainer.add(new VisibleBehaviour(this::isIndividualSystemsContainerVisible));
         add(individualSystemsContainer);
 
         provider = new ListDataProvider<>(PropagatePasswordPanel.this, getShadowListModel());
@@ -120,6 +119,17 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             }
         };
         individualSystemsContainer.add(provisioningTable);
+    }
+
+    private boolean isIndividualSystemsContainerVisible() {
+        CheckBoxPanel propagateCheckBox = getPropagatePasswordCheckbox();
+        return shouldLoadAccounts() &&
+                (propagateCheckBox.getCheckboxModel().getObject() != null
+                        && propagateCheckBox.getCheckboxModel().getObject() || showResultInTable);
+    }
+
+    private CheckBoxPanel getPropagatePasswordCheckbox() {
+        return (CheckBoxPanel) get(ID_PROPAGATE_PASSWORD_CHECKBOX);
     }
 
     private IModel<List<PasswordAccountDto>> getShadowListModel() {

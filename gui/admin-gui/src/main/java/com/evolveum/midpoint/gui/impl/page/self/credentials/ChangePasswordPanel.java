@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.progress.ProgressDto;
 import com.evolveum.midpoint.web.component.progress.ProgressReporter;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -114,7 +115,19 @@ public class ChangePasswordPanel<F extends FocusType> extends BasePanel<F> {
         PasswordTextField currentPasswordField =
                 new PasswordTextField(ID_CURRENT_PASSWORD_FIELD, currentPasswordModel);
         currentPasswordField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        currentPasswordField.add(new EnableBehaviour(() -> !savedPassword));
+        currentPasswordField.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                return isCheckOldPassword();
+            }
+
+            @Override
+            public boolean isEnabled() {
+                return !savedPassword;
+            }
+        });
         currentPasswordField.setRequired(false);
         currentPasswordField.setResetPassword(false);
         currentPasswordField.setOutputMarkupId(true);
