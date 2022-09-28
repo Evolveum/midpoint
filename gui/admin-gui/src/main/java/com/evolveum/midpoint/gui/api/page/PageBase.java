@@ -357,7 +357,15 @@ public abstract class PageBase extends PageAdminLTE {
 
     private void initLayout() {
         WebMarkupContainer mainHeader = new WebMarkupContainer(ID_MAIN_HEADER);
-        mainHeader.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
+        mainHeader.add(AttributeAppender.append("class", () -> {
+            String skin = WebComponentUtil.getMidPointSkin().getNavbarCss();
+
+            if (skin != null && Arrays.stream(skin.split(" ")).noneMatch(s -> "navbar-light".equals(s))) {
+                return "navbar-dark " + skin;
+            }
+
+            return skin;
+        }));
         mainHeader.setOutputMarkupId(true);
         add(mainHeader);
 

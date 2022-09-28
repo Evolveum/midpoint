@@ -606,7 +606,6 @@ li.dropdown.user.user-menu {
 }
 
 .page-title {
-	color: #fff;
 	background-color: transparent;
 	font-size: 22px;
 }
@@ -624,7 +623,7 @@ li.dropdown.user.user-menu {
   //.border-radius(2px);
 
   > li > a {
-    color: #444;
+    color: inherit;
     text-decoration: none;
     display: inline-block;
 
