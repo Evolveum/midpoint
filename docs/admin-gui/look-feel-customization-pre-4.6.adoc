@@ -1,4 +1,4 @@
-= Look & Feel Customization HOWTO
+= Look & Feel Customization HOWTO before 4.6
 :page-wiki-name: Look & Feel Customization HOWTO
 :page-wiki-id: 21528591
 :page-wiki-metadata-create-user: lazyman
