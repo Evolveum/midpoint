@@ -1,15 +1,39 @@
 /*
- * Copyright (c) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyEnumValuesModel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -26,9 +50,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
-import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
-import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -52,25 +73,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.model.*;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @PageDescriptor(
         urls = {
@@ -106,13 +108,12 @@ public class PageCertCampaigns extends PageAdminCertification {
     private static final String ID_SEARCH_STATE = "state";
     private static final String ID_SEARCH_CLEAR = "searchClear";
 
-
     // campaign on which close-stage/close-campaign/delete/reiterate has to be executed
     // (if chosen directly from row menu)
     private CertCampaignListItemDto relevantCampaign;
-    private String definitionOid;
+    private final String definitionOid;
 
-    private IModel<CertCampaignsSearchDto> searchModel;
+    private final IModel<CertCampaignsSearchDto> searchModel;
 
     public PageCertCampaigns(PageParameters parameters) {
         getPageParameters().overwriteWith(parameters);
@@ -150,31 +151,27 @@ public class PageCertCampaigns extends PageAdminCertification {
         if (definitionOid == null) {
             return super.createPageTitleModel();
         } else {
-            return new IModel<String>() {
+            return () -> {
+                Task task = createSimpleTask("dummy");
+                PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelServiceUtils
+                        .loadObject(AccessCertificationDefinitionType.class, definitionOid,
+                                PageCertCampaigns.this, task, task.getResult());
 
-                @Override
-                public String getObject() {
-                    Task task = createSimpleTask("dummy");
-                    PrismObject<AccessCertificationDefinitionType> definitionPrismObject = WebModelServiceUtils
-                            .loadObject(AccessCertificationDefinitionType.class, definitionOid,
-                                    PageCertCampaigns.this, task, task.getResult());
+                String name = definitionPrismObject == null ? ""
+                        : WebComponentUtil.getName(definitionPrismObject);
 
-                    String name = definitionPrismObject == null ? ""
-                            : WebComponentUtil.getName(definitionPrismObject);
-
-                    return createStringResource("PageCertCampaigns.title", name).getString();
-                }
+                return createStringResource("PageCertCampaigns.title", name).getString();
             };
         }
     }
 
     private void initLayout() {
-        Form mainForm = new MidpointForm(ID_MAIN_FORM);
+        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
         CertCampaignListItemDtoProvider provider = createProvider();
         provider.setQuery(createCampaignsQuery());
-        BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<CertCampaignListItemDto>(ID_CAMPAIGNS_TABLE, provider,
+        BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<>(ID_CAMPAIGNS_TABLE, provider,
                 initColumns(), UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL) {
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
@@ -194,7 +191,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         }
 
         private void initLayout() {
-            final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
+            final Form<?> searchForm = new MidpointForm<>(ID_SEARCH_FORM);
             add(searchForm);
             searchForm.setOutputMarkupId(true);
 
@@ -203,7 +200,7 @@ public class PageCertCampaigns extends PageAdminCertification {
 
             DropDownChoicePanel<CertCampaignStateFilter> listSelect = new DropDownChoicePanel<>(ID_SEARCH_STATE,
                     new PropertyModel<>(searchModel, CertCampaignsSearchDto.F_STATE_FILTER),
-                    new ReadOnlyEnumValuesModel<>(CertCampaignStateFilter.class),
+                    () -> Arrays.asList(CertCampaignStateFilter.class.getEnumConstants()),
                     new EnumChoiceRenderer<>(this));
             listSelect.getBaseFormComponent().add(createFilterAjaxBehaviour());
             listSelect.setOutputMarkupId(true);
@@ -229,7 +226,7 @@ public class PageCertCampaigns extends PageAdminCertification {
                     storage.setCampaignsSearch(cleanSearchDto);
 
                     Table panel = page.getCampaignsTable();
-                    DataTable table = panel.getDataTable();
+                    DataTable<?, ?> table = panel.getDataTable();
                     CertCampaignListItemDtoProvider provider = (CertCampaignListItemDtoProvider) table.getDataProvider();
                     provider.setQuery(page.createCampaignsQuery());
                     panel.setCurrentPage(storage.getPaging());
@@ -254,7 +251,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         CertCampaignsSearchDto dto = searchModel.getObject();
 
         Table panel = getCampaignsTable();
-        DataTable table = panel.getDataTable();
+        DataTable<?, ?> table = panel.getDataTable();
         CertCampaignListItemDtoProvider provider = (CertCampaignListItemDtoProvider) table.getDataProvider();
         provider.setQuery(createCampaignsQuery());
         table.setCurrentPage(0);
@@ -277,52 +274,38 @@ public class PageCertCampaigns extends PageAdminCertification {
     }
 
     private IModel<String> createCloseStageConfirmString() {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-
-                return createStringResource("PageCertCampaigns.message.closeStageConfirmSingle",
-                        relevantCampaign.getName()).getString();
-            }
-        };
+        return () -> createStringResource("PageCertCampaigns.message.closeStageConfirmSingle",
+                relevantCampaign.getName()).getString();
     }
 
     private IModel<String> createCloseCampaignConfirmString() {
-        return new ReadOnlyModel<>(() ->
-                createStringResource("PageCertCampaigns.message.closeCampaignConfirmSingle",
-                        relevantCampaign.getName()).getString());
+        return () -> createStringResource("PageCertCampaigns.message.closeCampaignConfirmSingle",
+                relevantCampaign.getName()).getString();
     }
 
     private IModel<String> createReiterateCampaignConfirmString() {
-        return new ReadOnlyModel<>(() ->
-                createStringResource("PageCertCampaigns.message.reiterateCampaignConfirmSingle",
-                        relevantCampaign.getName()).getString());
+        return () -> createStringResource("PageCertCampaigns.message.reiterateCampaignConfirmSingle",
+                relevantCampaign.getName()).getString();
     }
 
     private IModel<String> createCloseSelectedCampaignsConfirmString() {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-
-                final List<Selectable> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
-                if (selectedData.size() > 1) {
-                    return createStringResource("PageCertCampaigns.message.closeCampaignConfirmMultiple",
-                            selectedData.size()).getString();
-                } else if (selectedData.size() == 1) {
-                    return createStringResource("PageCertCampaigns.message.closeCampaignConfirmSingle",
-                            ((CertCampaignListItemDto) selectedData.get(0)).getName()).getString();
-                } else {
-                    return "EMPTY";
-                }
+        return () -> {
+            final List<Selectable<?>> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
+            if (selectedData.size() > 1) {
+                return createStringResource("PageCertCampaigns.message.closeCampaignConfirmMultiple",
+                        selectedData.size()).getString();
+            } else if (selectedData.size() == 1) {
+                return createStringResource("PageCertCampaigns.message.closeCampaignConfirmSingle",
+                        ((CertCampaignListItemDto) selectedData.get(0)).getName()).getString();
+            } else {
+                return "EMPTY";
             }
         };
     }
 
     private IModel<String> createReiterateSelectedCampaignsConfirmString() {
-        return new ReadOnlyModel<>(() -> {
-            final List<Selectable> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
+        return () -> {
+            final List<Selectable<?>> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
             if (selectedData.size() > 1) {
                 return createStringResource("PageCertCampaigns.message.reiterateCampaignConfirmMultiple",
                         selectedData.size()).getString();
@@ -332,35 +315,25 @@ public class PageCertCampaigns extends PageAdminCertification {
             } else {
                 return "EMPTY";
             }
-        });
-    }
-
-    private IModel<String> createDeleteCampaignConfirmString() {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
-                        relevantCampaign.getName()).getString();
-            }
         };
     }
 
-    private IModel<String> createDeleteSelectedCampaignsConfirmString() {
-        return new IModel<String>() {
+    private IModel<String> createDeleteCampaignConfirmString() {
+        return () -> createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
+                relevantCampaign.getName()).getString();
+    }
 
-            @Override
-            public String getObject() {
-                final List<Selectable> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
-                if (selectedData.size() > 1) {
-                    return createStringResource("PageCertCampaigns.message.deleteCampaignConfirmMultiple",
-                            selectedData.size()).getString();
-                } else if (selectedData.size() == 1) {
-                    return createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
-                            ((CertCampaignListItemDto) selectedData.get(0)).getName()).getString();
-                } else {
-                    return "EMPTY";
-                }
+    private IModel<String> createDeleteSelectedCampaignsConfirmString() {
+        return () -> {
+            final List<Selectable<?>> selectedData = WebComponentUtil.getSelectedData(getCampaignsTable());
+            if (selectedData.size() > 1) {
+                return createStringResource("PageCertCampaigns.message.deleteCampaignConfirmMultiple",
+                        selectedData.size()).getString();
+            } else if (selectedData.size() == 1) {
+                return createStringResource("PageCertCampaigns.message.deleteCampaignConfirmSingle",
+                        ((CertCampaignListItemDto) selectedData.get(0)).getName()).getString();
+            } else {
+                return "EMPTY";
             }
         };
     }
@@ -377,7 +350,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-        column = new AjaxLinkColumn<CertCampaignListItemDto>(createStringResource("PageCertCampaigns.table.name"),
+        column = new AjaxLinkColumn<>(createStringResource("PageCertCampaigns.table.name"),
                 AccessCertificationCampaignType.F_NAME.getLocalPart(), CertCampaignListItemDto.F_NAME) {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<CertCampaignListItemDto> rowModel) {
@@ -394,10 +367,10 @@ public class PageCertCampaigns extends PageAdminCertification {
                 CertCampaignListItemDto.F_ITERATION);
         columns.add(column);
 
-        column = new EnumPropertyColumn<CertCampaignListItemDto>(createStringResource("PageCertCampaigns.table.state"),
+        column = new EnumPropertyColumn<>(createStringResource("PageCertCampaigns.table.state"),
                 CertCampaignListItemDto.F_STATE) {
             @Override
-            protected String translate(Enum en) {
+            protected String translate(Enum<?> en) {
                 return createStringResourceStatic(getPage(), en).getString();
             }
         };
@@ -419,7 +392,7 @@ public class PageCertCampaigns extends PageAdminCertification {
                 CertCampaignListItemDto.F_DEADLINE_AS_STRING);
         columns.add(column);
 
-        column = new SingleButtonColumn<CertCampaignListItemDto>(new Model<>(), null) {
+        column = new SingleButtonColumn<>(new Model<>(), null) {
 
             @Override
             public boolean isButtonEnabled(IModel<CertCampaignListItemDto> model) {
@@ -980,7 +953,6 @@ public class PageCertCampaigns extends PageAdminCertification {
         AccessCertificationService acs = getCertificationService();
         try {
             Task task = createSimpleTask(OPERATION_OPEN_NEXT_STAGE);
-            int currentStage = campaign.getStageNumber();
             acs.openNextStage(campaign.getOid(), task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
@@ -1089,7 +1061,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         }
 
         Table campaignsTable = getCampaignsTable();
-        ObjectDataProvider provider = (ObjectDataProvider) campaignsTable.getDataTable().getDataProvider();
+        ObjectDataProvider<?, ?> provider = (ObjectDataProvider<?, ?>) campaignsTable.getDataTable().getDataProvider();
         provider.clearCache();
         WebComponentUtil.safeResultCleanup(result, LOGGER);
         showResult(result);
