@@ -275,14 +275,14 @@ class CorrelationCaseDescriber<F extends FocusType> {
             }
             ValueNormalizer defaultValueNormalizer = indexing != null ?
                     indexing.getDefaultNormalizer() : IndexingManager.getNormalizerFor(defaultMatchingRule);
-            String preFocusNormalized = IndexingManager.normalizeValue(preFocusRealValue, defaultValueNormalizer, task, result);
+            String preFocusNormalized = defaultValueNormalizer.normalize(preFocusRealValue, task, result);
 
             for (PrismValue primaryValue : primaryValues) {
                 Object primaryRealValue = primaryValue.getRealValue();
                 if (primaryRealValue == null) {
                     continue;
                 }
-                String primaryNormalized = IndexingManager.normalizeValue(primaryRealValue, defaultValueNormalizer, task, result);
+                String primaryNormalized = defaultValueNormalizer.normalize(primaryRealValue, task, result);
                 if (primaryNormalized.equals(preFocusNormalized)) {
                     LOGGER.trace("Match of primary value '{}' (normalized to '{}' using default normalizer '{}') -> FULL",
                             primaryRealValue, primaryNormalized, defaultValueNormalizer);
@@ -328,7 +328,7 @@ class CorrelationCaseDescriber<F extends FocusType> {
                     continue;
                 }
                 for (ValueNormalizer normalizer : normalizers) {
-                    String anyNormalized = IndexingManager.normalizeValue(anyRealValue, normalizer, task, result);
+                    String anyNormalized = normalizer.normalize(anyRealValue, task, result);
                     if (anyNormalized.equals(preFocusNormalized)) {
                         LOGGER.trace("Match of 'any' value '{}' (normalized to '{}' using a normalizer '{}') -> PARTIAL",
                                 anyRealValue, anyNormalized, normalizer);

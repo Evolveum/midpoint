@@ -211,16 +211,6 @@ public class IndexingManager {
         }
     }
 
-    public static @NotNull String normalizeValue(
-            @NotNull Object value,
-            @NotNull ValueNormalizer normalizer,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
-        return normalizer.normalize(value, task, result);
-    }
-
     private Collection<? extends ItemDelta<?, ?>> computeNormalizedDataDeltas(
             @NotNull FocusType expectedNewFocus,
             @NotNull FocusNormalizedDataType newNormalizedData)
