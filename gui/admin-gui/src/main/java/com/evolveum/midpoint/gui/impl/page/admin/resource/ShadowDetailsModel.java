@@ -21,7 +21,8 @@ public class ShadowDetailsModel extends ObjectDetailsModels<ShadowType> {
         super(prismObjectModel, serviceLocator);
     }
 
-    protected GuiObjectDetailsPageType loadDetailsPageConfiguration(PrismObject<ShadowType> prismObject) {
+    @Override
+    protected GuiObjectDetailsPageType loadDetailsPageConfiguration() {
         return getModelServiceLocator().getCompiledGuiProfile().findShadowDetailsConfiguration(createResourceShadowCoordinates(getPrismObject().asObjectable()));
     }
 

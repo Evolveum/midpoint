@@ -503,8 +503,7 @@ public class PageAbout extends PageAdminConfiguration {
             task.setHandlerUri(ModelPublicConstants.REINDEX_TASK_HANDLER_URI);
             task.setName("Reindex repository objects");
             task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
-            taskManager.switchToBackground(task, result);
-            result.setBackgroundTaskOid(task.getOid());
+            getModelInteractionService().switchToBackground(task, result);
         } catch (SecurityViolationException | SchemaException | RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
             result.recordFatalError(e);
         } finally {

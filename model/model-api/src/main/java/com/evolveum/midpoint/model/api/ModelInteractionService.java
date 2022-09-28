@@ -527,4 +527,22 @@ public interface ModelInteractionService {
             @NotNull PrismObject<? extends ObjectType> configurationObject,
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException;
+
+    /**
+     * Executes given task in the background, i.e., adds it to the repository.
+     *
+     * The state before 4.6 was that GUI was responsible for submitting tasks that were needed for execution of long-running
+     * activities (like recomputation of role members).
+     *
+     * The optimal state is that GUI declares the work that should be done (like "recompute members of role X") and the model
+     * will then decide the optimal way of doing that (e.g., on foreground or on background) and executes the action.
+     * When determining the way it needs to consider user preferences and/or authorizations, or the situation, like how many
+     * members are there.
+     *
+     * The goal is to better isolate GUI from the rest of midPoint, and to provide means for 3rd party GUI implementations.
+     * The current method should be seen as a (very rough) placeholder.
+     *
+     * The method does not require any authorizations. This is how it was before 4.6, and it remains so for the near future.
+     */
+    void switchToBackground(Task task, OperationResult result);
 }

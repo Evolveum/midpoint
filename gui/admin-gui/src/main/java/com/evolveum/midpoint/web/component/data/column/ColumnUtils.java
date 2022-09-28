@@ -372,10 +372,11 @@ public class ColumnUtils {
             return null;
         }
         @Nullable ResourceObjectSetType resourceSet = ResourceObjectSetUtil.fromTask(value);
-        if (Objects.isNull(resourceSet)) {
+        if (resourceSet != null) {
             return resourceSet.asPrismContainerValue().findProperty(pathToProperty);
+        } else {
+            return null;
         }
-        return null;
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultRoleColumns() {

@@ -242,30 +242,4 @@
             </owner>
         </object>
     </authorization>
-    <authorization>
-        <name>self-owned-task-add-execute-changes</name>
-        <description>
-            Authorization to create a new 'execute changes' task owned by a currently logged-in user.
-            This is needed to execute asynchronous operations from the GUI.
-        </description>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-        <object>
-            <type>TaskType</type>
-            <filter>
-                <q:or>
-                    <q:equal>
-                        <q:path>handlerUri</q:path>
-                        <q:value>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/execute/handler-3</q:value>
-                    </q:equal>
-                    <q:equal>
-                        <q:path>handlerUri</q:path>
-                        <q:value>http://midpoint.evolveum.com/xml/ns/public/model/iterative-scripting/handler-3</q:value>    <!-- members-related operations -->
-                    </q:equal>
-                </q:or>
-            </filter>
-            <owner>
-                <special>self</special>
-            </owner>
-        </object>
-    </authorization>
 </role>

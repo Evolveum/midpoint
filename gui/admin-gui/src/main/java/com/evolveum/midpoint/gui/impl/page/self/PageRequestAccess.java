@@ -9,6 +9,33 @@ package com.evolveum.midpoint.gui.impl.page.self;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -73,6 +100,51 @@ public class PageRequestAccess extends PageSelf {
         WizardPanel wizard = new WizardPanel(ID_WIZARD, new WizardModel(createSteps()));
         wizard.setOutputMarkupId(true);
         mainForm.add(wizard);
+
+        // todo remove, test to somehow show assignment/extension in form =================
+        add(new WebMarkupContainer("sample"));
+
+//        ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
+//        c.identifier("sample-panel");
+//        c.type(AssignmentType.COMPLEX_TYPE);
+//        c.panelType("formPanel");
+//        VirtualContainersSpecificationType vcs =
+//                c.beginContainer()
+//                        .beginDisplay()
+//                        .label("Exxxxx")
+//                        .end();
+//        vcs.identifier("some-identifier");
+//        vcs.beginItem().path(new ItemPathType(ItemPath.create(AssignmentType.F_EXTENSION))).end();
+//
+//        // fake assignment created for this test.
+//        final AssignmentType assigment = new AssignmentType();
+//
+//        IModel<PrismContainerValueWrapper<AssignmentType>> model = new LoadableModel<>(false) {
+//            @Override
+//            protected PrismContainerValueWrapper load() {
+//                try {
+//                    Task task = PageRequestAccess.this.getPageTask();
+//                    OperationResult result = task.getResult();
+//
+//                    PrismContainerValue value = assigment.asPrismContainerValue();
+//                    PrismContext.get().adopt(value);
+//                    PrismContainerDefinition def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+//                    PrismContainerWrapperFactory factory = PageRequestAccess.this.findContainerWrapperFactory(def);
+//
+//                    WrapperContext context = new WrapperContext(task, result);
+//                    context.setDetailsPageTypeConfiguration(Arrays.asList(c));
+//                    context.setCreateIfEmpty(true);
+//
+//                    return factory.createContainerValueWrapper(null, value, ValueStatus.NOT_CHANGED, context);
+//                } catch (Exception ex) {
+//                    ex.printStackTrace();
+//                }
+//                return null;
+//            }
+//        };
+//
+//        SingleContainerPanel container = new SingleContainerPanel("sample", model, c);
+//        addOrReplace(container);
     }
 
     private List<WizardStep> createSteps() {

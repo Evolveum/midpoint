@@ -640,49 +640,6 @@ public final class WebComponentUtil {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
     }
 
-    public static TaskType createIterativeChangeExecutionTask(String taskName, QName applicableType, ObjectQuery query,
-            @Nullable ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, PageBase pageBase) throws SchemaException {
-
-        TaskType task = new TaskType(pageBase.getPrismContext());
-
-        MidPointPrincipal owner = AuthUtil.getPrincipalUser();
-
-        ObjectReferenceType ownerRef = new ObjectReferenceType();
-        ownerRef.setOid(owner.getOid());
-        ownerRef.setType(UserType.COMPLEX_TYPE);
-        task.setOwnerRef(ownerRef);
-
-        task.setBinding(TaskBindingType.LOOSE);
-        task.setExecutionState(TaskExecutionStateType.RUNNABLE);
-        task.setSchedulingState(TaskSchedulingStateType.READY);
-        task.setThreadStopAction(ThreadStopActionType.RESTART);
-
-        ScheduleType schedule = new ScheduleType();
-        schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
-        task.setSchedule(schedule);
-
-        task.setName(WebComponentUtil.createPolyFromOrigString(taskName));
-
-        IterativeChangeExecutionWorkDefinitionType workDef =
-                new IterativeChangeExecutionWorkDefinitionType(PrismContext.get())
-                        .beginObjects()
-                        .type(applicableType)
-                        .query(pageBase.getQueryConverter().createQueryType(query))
-                        .<IterativeChangeExecutionWorkDefinitionType>end()
-                        .delta(DeltaConvertor.toObjectDeltaType(delta))
-                        .executionOptions(toModelExecutionOptionsBean(options));
-
-        // @formatter:off
-        task.setActivity(
-                new ActivityDefinitionType(PrismContext.get())
-                        .beginWork()
-                        .iterativeChangeExecution(workDef)
-                        .end());
-        // @formatter:on
-
-        return task;
-    }
-
     public static boolean canSuspendTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task.asPrismObject())
                 && (isRunnableTask(task) || isRunningTask(task) || isWaitingTask(task));
@@ -3354,8 +3311,8 @@ public final class WebComponentUtil {
                                 } else {
                                     oids = CollectionUtils.emptyIfNull(selectedObjectsSupplier.get())
                                             .stream()
-                                            .filter(o -> o.getOid() != null)
                                             .map(o -> o.getOid())
+                                            .filter(Objects::nonNull)
                                             .collect(Collectors.toSet());
                                 }
                                 if (!oids.isEmpty()) {
@@ -3365,6 +3322,8 @@ public final class WebComponentUtil {
                                     if (principal == null) {
                                         throw new SecurityViolationException("No current user");
                                     }
+                                    // TODO deduplicate with ModelInteractionService.submitTaskFromTemplate
+                                    //  (after improving that method)
                                     TaskType newTask = pageBase.getModelService().getObject(TaskType.class, templateOid,
                                             createCollection(createExecutionPhase()), pageBase.createSimpleTask(operation), result).asObjectable();
                                     newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
@@ -3383,6 +3342,7 @@ public final class WebComponentUtil {
                                     }
                                     objectSet.setQuery(query);
                                     workDef.setObjects(objectSet);
+                                    // TODO consider if the user needs to have authorization to add the task
                                     ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
                                     Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges = saveTask(delta, result, pageBase);
                                     String newTaskOid = ObjectDeltaOperation.findAddDeltaOid(executedChanges, newTask.asPrismObject());

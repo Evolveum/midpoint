@@ -795,7 +795,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         try {
             // @formatter:off
             task.setRootActivityDefinition(
-                    new ActivityDefinitionType(PrismContext.get())
+                    new ActivityDefinitionType()
                         .beginWork()
                             .beginCleanup()
                                 .beginPolicies()
@@ -814,8 +814,7 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
 
         task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value());
-        getTaskManager().switchToBackground(task, launchResult);
-        launchResult.setBackgroundTaskOid(task.getOid());
+        getPageBase().getModelInteractionService().switchToBackground(task, launchResult);
 
         showResult(launchResult);
         target.add(getFeedbackPanel());
