@@ -18,16 +18,19 @@ import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "shadowBasic", defaultContainerPath = "attributes")
-@PanelInstance(identifier = "shadowBasic",
-                applicableForType = ShadowType.class,
-                defaultPanel = true,
-                display = @PanelDisplay(label = "pageAdminFocus.basic", order = 10))
+@PanelInstance(
+        identifier = "shadowBasic",
+        applicableForType = ShadowType.class,
+        defaultPanel = true,
+        display = @PanelDisplay(
+                label = "pageAdminFocus.basic", order = 10
+        )
+)
 public class ShadowDetailsPanel extends AbstractObjectMainPanel<ShadowType, ShadowDetailsModel> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ACCOUNT = "account";
-
 
     public ShadowDetailsPanel(String id, ShadowDetailsModel objectWrapperModel, ContainerPanelConfigurationType config) {
         super(id, objectWrapperModel, config);
@@ -37,6 +40,4 @@ public class ShadowDetailsPanel extends AbstractObjectMainPanel<ShadowType, Shad
         ShadowPanel shadowPanel = new ShadowPanel(ID_ACCOUNT, (IModel) getObjectWrapperModel(), getPanelConfiguration());
         add(shadowPanel);
     }
-
-
 }

@@ -11,14 +11,20 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "resourceAccounts")
-@PanelInstance(identifier = "resourceAccounts", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageResource.tab.content.account", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT, order = 50))
+@PanelInstance(
+        identifier = "resourceAccounts",
+        applicableForOperation = OperationTypeType.MODIFY,
+        applicableForType = ResourceType.class,
+        display =
+        @PanelDisplay(
+                label = "PageResource.tab.content.account",
+                icon = GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT,
+                order = 50
+        )
+)
 public class ResourceAccountsPanel extends ResourceContentPanel {
 
 

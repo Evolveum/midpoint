@@ -11,14 +11,20 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @PanelType(name = "resourceEntitlements")
-@PanelInstance(identifier = "resourceEntitlements", applicableForOperation = OperationTypeType.MODIFY, applicableForType = ResourceType.class,
-        display = @PanelDisplay(label = "PageResource.tab.content.entitlement", icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT, order = 60))
+@PanelInstance(
+        identifier = "resourceEntitlements",
+        applicableForOperation = OperationTypeType.MODIFY,
+        applicableForType = ResourceType.class,
+        display =
+        @PanelDisplay(
+                label = "PageResource.tab.content.entitlement",
+                icon = GuiStyleConstants.CLASS_SHADOW_ICON_ENTITLEMENT,
+                order = 60
+        )
+)
 public class ResourceEntitlementsPanel extends ResourceContentPanel {
 
     public ResourceEntitlementsPanel(String id, ResourceDetailsModel model, ContainerPanelConfigurationType config) {
