@@ -99,7 +99,7 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> impleme
 
     @Override
     public int getWidth() {
-        return 600;
+        return 50;
     }
 
     @Override
@@ -109,7 +109,7 @@ public class TestConnectionResultPanel extends BasePanel<List<OpResult>> impleme
 
     @Override
     public String getWidthUnit(){
-        return "px";
+        return "%";
     }
 
     @Override

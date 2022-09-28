@@ -187,13 +187,14 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                close(target);
-
+                if(this.getParent() != null){
+                    target.add(this.getParent().setVisible(false));
+                }
             }
         };
         box.add(close);
 
-        DownloadLink downloadXml = new DownloadLink("downloadXml", new IModel<File>() {
+        DownloadLink downloadXml = new DownloadLink("downloadXml", new IModel<>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -402,9 +403,8 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
                 case SUCCESS:
                     return "card-success";
                 case HANDLED_ERROR:
-                    return "card-default";
+                    return "card-secondary";
                 case FATAL_ERROR:
-
                     return "card-danger";
                 case UNKNOWN:
                 case PARTIAL_ERROR:
