@@ -171,29 +171,6 @@ public class WebModelServiceUtils {
         return null;
     }
 
-    public static String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase) {
-        try {
-            ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
-            pageBase.getPrismContext().adopt(delta);
-            Collection<ObjectDeltaOperation<?>> deltaOperationRes = pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null,
-                    operationalTask, parentResult);
-            if (StringUtils.isEmpty(delta.getOid()) && deltaOperationRes != null && !deltaOperationRes.isEmpty()) {
-                ObjectDeltaOperation deltaOperation = deltaOperationRes.iterator().next();
-                delta.setOid(deltaOperation.getObjectDelta().getOid());
-            }
-            parentResult.setInProgress();
-            parentResult.setBackgroundTaskOid(delta.getOid());
-            return delta.getOid();
-        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | PolicyViolationException | SecurityViolationException e) {
-            parentResult.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntRunTask", e.getMessage()).getString(), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't run task " + e.getMessage(), e);
-            return null;
-        }
-
-    }
-
     public static <O extends ObjectType> PrismObject<O> loadObject(PrismReferenceValue objectRef, QName expectedTargetType, PageBase pageBase, Task task, OperationResult result) {
         if (objectRef == null) {
             return null;

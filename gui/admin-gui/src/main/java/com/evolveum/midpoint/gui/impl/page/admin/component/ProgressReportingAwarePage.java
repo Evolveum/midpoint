@@ -7,15 +7,12 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-
-import java.util.Collection;
 
 /**
  * A page that supports progress reporting, e.g. page for editing users, orgs, roles.
@@ -32,5 +29,8 @@ public interface ProgressReportingAwarePage {
     void continueEditing(AjaxRequestTarget target);
 
     TaskManager getTaskManager();
+
+    ModelInteractionService getModelInteractionService();
+
     PrismContext getPrismContext();
 }

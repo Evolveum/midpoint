@@ -199,12 +199,8 @@ public class ProgressAwareChangesExecutorImpl implements ObjectChangeExecutor {
             ModelExecuteOptions options, Task task, OperationResult result, AjaxRequestTarget target) {
 
         try {
-
             configureTask(deltas, options, task);
-
-            TaskManager taskManager = progressAwarePage.getTaskManager();
-            taskManager.switchToBackground(task, result);
-            result.setBackgroundTaskOid(task.getOid());
+            progressAwarePage.getModelInteractionService().switchToBackground(task, result);
         } catch (Exception e) {
             result.recordFatalError(e);
         } finally {

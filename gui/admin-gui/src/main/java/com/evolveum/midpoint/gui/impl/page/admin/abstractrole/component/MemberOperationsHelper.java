@@ -478,7 +478,7 @@ public class MemberOperationsHelper {
             OperationResult taskResult = task.getResult();
             OperationResult result = taskResult.createSubresult(OP_SUBMIT_TASK);
             try {
-                pageBase.getTaskManager().switchToBackground(task, result);
+                pageBase.getModelInteractionService().switchToBackground(task, result);
             } catch (Throwable t) {
                 result.recordFatalError(t);
                 throw t;

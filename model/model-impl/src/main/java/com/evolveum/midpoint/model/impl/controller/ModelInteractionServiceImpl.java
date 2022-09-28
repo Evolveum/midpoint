@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
@@ -165,6 +166,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ClusterwideUserSessionManager clusterwideUserSessionManager;
     @Autowired private ContextLoader contextLoader;
     @Autowired private ModelAuditService modelAuditService;
+    @Autowired private TaskManager taskManager;
 
     private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() + ".generateValue";
     private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() + ".validateValue";
@@ -2143,5 +2145,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             @NotNull Task task,
             @NotNull OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
         provisioning.expandConfigurationObject(configurationObject, task, result);
+    }
+
+    @Override
+    public void switchToBackground(Task task, OperationResult result) {
+        taskManager.switchToBackground(task, result);
+        result.setBackgroundTaskOid(task.getOid());
     }
 }

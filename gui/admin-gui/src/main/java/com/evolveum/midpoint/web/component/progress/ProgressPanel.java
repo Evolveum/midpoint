@@ -470,8 +470,7 @@ public class ProgressPanel extends BasePanel {
             taskType.asObjectable().getArchetypeRef().add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value(),
                     ObjectTypes.ARCHETYPE));
 
-            taskManager.switchToBackground(task, result);
-            result.setBackgroundTaskOid(task.getOid());
+            page.getModelInteractionService().switchToBackground(task, result);
         } catch (Exception e) {
             result.recordFatalError(e);
         } finally {
