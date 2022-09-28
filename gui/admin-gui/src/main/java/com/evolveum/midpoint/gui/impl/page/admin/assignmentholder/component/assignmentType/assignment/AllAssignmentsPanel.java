@@ -16,13 +16,10 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
+
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
@@ -48,12 +45,4 @@ public class AllAssignmentsPanel<AH extends AssignmentHolderType> extends Abstra
         return null;
     }
 
-    @Override
-    protected void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef,
-            List<SearchItemDefinition> defs) {
-        super.addSpecificSearchableItems(containerDef, defs);
-        if (isRepositorySearchEnabled()) {
-            SearchFactory.addSearchPropertyDef(containerDef, TARGET_REF_OBJ.append(AbstractRoleType.F_NAME), defs);
-        }
-    }
 }

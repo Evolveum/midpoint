@@ -633,7 +633,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         if (getAssignmentType() != null) {
             var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(getAssignmentType()), ObjectType.F_EXTENSION);
             var objectExt =  SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase(), targetExtensionPath);
-            LOGGER.info("Adding extension properties from targetRef/@: {}", objectExt);
+            LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
             defs.addAll(objectExt);
         }
         return defs;

@@ -323,7 +323,7 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
 
 
 
-        if (orig != null && orig.getFilter() instanceof FullTextFilter && SearchBoxModeType.FULLTEXT.equals(search.getObject().getSearchType())) {
+        if (orig != null && orig.getFilter() instanceof FullTextFilter && SearchBoxModeType.FULLTEXT.equals(search.getObject().getSearchMode())) {
             // User entered full text filter, lets make sure it is invoked on targetRef
             orig = getPrismContext().queryFor(getType()).exists(TARGET_REF_OBJ)
                     .filter(orig.getFilter())
