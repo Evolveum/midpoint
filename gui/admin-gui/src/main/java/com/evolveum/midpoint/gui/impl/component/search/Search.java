@@ -58,6 +58,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private String fullText;
 
     private SearchConfigurationWrapper searchConfigurationWrapper;
+    private PrismContainerDefinition<C> containerDefinitionOverride;
 
     public Search(SearchConfigurationWrapper searchConfigurationWrapper) {
         this.searchConfigurationWrapper = searchConfigurationWrapper;
@@ -124,8 +125,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             if (StringUtils.isEmpty(dslQuery)) {
                 return null;
             }
-            return ctx.createQueryParser(ctx.getSchemaRegistry().staticNamespaceContext().allPrefixes())
-                    .parseFilter(getTypeClass(), dslQuery);
+            var parser = ctx.createQueryParser(ctx.getSchemaRegistry().staticNamespaceContext().allPrefixes());
+            if (containerDefinitionOverride  == null) {
+                return parser.parseFilter(getTypeClass(), dslQuery);
+            }
+            return parser.parseFilter(containerDefinitionOverride, dslQuery);
         }
 
         return null;
@@ -469,6 +473,14 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return "Search{" +
                 //todo implement
                 '}';
+    }
+
+    public void setContainerDefinition(PrismContainerDefinition<C> typeDefinitionForSearch) {
+        containerDefinitionOverride = typeDefinitionForSearch;
+    }
+
+    public PrismContainerDefinition<C> getContainerDefinitionOverride() {
+        return containerDefinitionOverride;
     }
 
 

@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,6 +38,7 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
     private Class<C> oldType;
     private boolean visible = false;
     private ObjectTypeSearchItemConfigurationType configuration = null;
+    private PrismContainerDefinition<C> containerDef;
 
     public ContainerTypeSearchItem(Class<C> typeClass) {
         this(new SearchValue<>(typeClass, ""), null);
@@ -131,5 +133,13 @@ public class ContainerTypeSearchItem<C extends Containerable> extends SearchItem
 
     public void setConfiguration(ObjectTypeSearchItemConfigurationType configuration) {
         this.configuration = configuration;
+    }
+
+    public PrismContainerDefinition<C> getContainerDefinition() {
+        return containerDef;
+    }
+
+    public void setContainerDefinition(PrismContainerDefinition<C> containerDef) {
+        this.containerDef = containerDef;
     }
 }

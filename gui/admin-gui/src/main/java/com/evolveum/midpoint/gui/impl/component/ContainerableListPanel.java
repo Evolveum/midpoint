@@ -548,11 +548,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return customColumn.getPath() == null && (customColumn.getExport() == null || customColumn.getExport().getExpression() == null);
     }
 
+    protected PrismContainerDefinition<C> getContainerDefinitionForColumns() {
+        return getPageBase().getPrismContext().getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(getType());
+    }
+
     private boolean noItemDefinitionFor(ItemPath columnPath, GuiObjectColumnType customColumn) {
         if (columnPath != null) {
-            ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
-                    .findContainerDefinitionByCompileTimeClass(getType())
-                    .findItemDefinition(columnPath);
+            ItemDefinition itemDefinition = getContainerDefinitionForColumns().findItemDefinition(columnPath);
             if (itemDefinition == null) { // TODO check  && expression == null) {
                 LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
                 return true;
@@ -1187,6 +1190,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         WebComponentUtil.clearProviderCache(getDataProvider());
     }
 
+    @Override
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return PageBase.createStringResourceStatic(resourceKey, objects);
     }
@@ -1220,8 +1224,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private String getItemDisplayName(GuiObjectColumnType column) {
-        ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
-                .findContainerDefinitionByCompileTimeClass(getType()).findItemDefinition(column.getPath().getItemPath());
+        ItemDefinition itemDefinition = getContainerDefinitionForColumns().findItemDefinition(column.getPath().getItemPath());
         return itemDefinition == null ? "" : itemDefinition.getDisplayName();
     }
 

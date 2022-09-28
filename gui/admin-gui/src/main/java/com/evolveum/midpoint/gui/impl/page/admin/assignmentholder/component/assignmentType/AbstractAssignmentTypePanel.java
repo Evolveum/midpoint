@@ -13,7 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-
+import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,8 +41,11 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableReferenceDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -82,12 +85,13 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
     protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
-
     private IModel<PrismContainerWrapper<AssignmentType>> model;
     protected int assignmentsRequestsLimit = -1;
 
     private Class<? extends Objectable> objectType;
     private String objectOid;
+    private PrismContainerDefinition<AssignmentType> searchDefinition;
+
 
     public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends Objectable> type, String oid) {
         super(id, AssignmentType.class, config);
@@ -585,6 +589,13 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected abstract UserProfileStorage.TableId getTableId();
 
     @Override
+    protected Search createSearch(Class<AssignmentType> type) {
+        Search search = super.createSearch(type);
+        search.setContainerDefinition(getTypeDefinitionForSearch());
+        return search;
+    }
+
+    @Override
     protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
         return createSearchableItems(containerDef);
     }
@@ -619,9 +630,46 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
         defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
 
+        if (getAssignmentType() != null) {
+            var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(getAssignmentType()), ObjectType.F_EXTENSION);
+            var objectExt =  SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase(), targetExtensionPath);
+            LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
+            defs.addAll(objectExt);
+        }
         return defs;
 
     }
+
+
+    @Override
+    protected PrismContainerDefinition<AssignmentType> getTypeDefinitionForSearch() {
+        if (searchDefinition != null) {
+            return searchDefinition;
+        }
+        PrismContainerDefinition<AssignmentType> orig = super.getTypeDefinitionForSearch();
+        if (getAssignmentType() == null) {
+            searchDefinition = orig;
+        } else {
+            // We have more concrete assignment type, we should replace targetRef definition
+            // with one with concrete assignment type.
+            var transformed = TransformableContainerDefinition.of(orig);
+            var targetRef = TransformableReferenceDefinition.of(orig.getComplexTypeDefinition().findReferenceDefinition(AssignmentType.F_TARGET_REF));
+            targetRef.setTargetTypeName(getAssignmentType());
+            transformed.getComplexTypeDefinition().replaceDefinition(AssignmentType.F_TARGET_REF, targetRef);
+            searchDefinition = transformed;
+        }
+
+        return searchDefinition;
+    }
+
+
+    @Override
+    protected PrismContainerDefinition<AssignmentType> getContainerDefinitionForColumns() {
+        // In columns model we can benefit for same targetType expansion as in container model.
+        return getTypeDefinitionForSearch();
+    }
+
+
 
     @Deprecated
     protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs);

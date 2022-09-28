@@ -14,9 +14,12 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.test.TestResource;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -933,19 +936,40 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertModifyDenyOptions(type, oid, itemPath, null, newRealValue);
     }
 
-    protected <O extends ObjectType> void assertModifyDenyOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    protected <O extends ObjectType> void assertModifyDenyOptions(
+            Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException {
+        ItemDefinition itemDef =
+                MiscUtil.requireNonNull(
+                        prismContext.getSchemaRegistry()
+                                .findObjectDefinitionByCompileTimeClass(type)
+                                .findItemDefinition(itemPath),
+                        () -> "No definition of item " + itemPath + " in " + type);
+        ItemDelta itemDelta = itemDef.createEmptyDelta(itemPath);
+        itemDelta.setValuesToReplace(
+                PrismValueCollectionsUtil.toPrismValues(newRealValue));
+        assertModifyDenyOptions(type, oid, itemDelta, options);
+    }
+
+    protected <O extends ObjectType> void assertModifyDenyOptions(
+            Class<O> type, String oid, ItemDelta<?, ?> itemDelta, ModelExecuteOptions options)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException {
         Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertModifyDeny");
         OperationResult result = task.getResult();
-        ObjectDelta<O> objectDelta = prismContext.deltaFactory().object()
-                .createModificationReplaceProperty(type, oid, itemPath, newRealValue);
+        ObjectDelta<O> objectDelta =
+                prismContext.deltaFactory().object()
+                        .createModifyDelta(oid, itemDelta, type);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         try {
-            logAttempt("modify", type, oid, itemPath);
+            logAttempt("modify", type, oid, itemDelta.getPath());
             modelService.executeChanges(deltas, options, task, result);
-            failDeny("modify", type, oid, itemPath);
+            failDeny("modify", type, oid, itemDelta.getPath());
         } catch (SecurityViolationException e) {
             // this is expected
-            logDeny("modify", type, oid, itemPath);
+            logDeny("modify", type, oid, itemDelta.getPath());
             result.computeStatus();
             TestUtil.assertFailure(result);
         }
