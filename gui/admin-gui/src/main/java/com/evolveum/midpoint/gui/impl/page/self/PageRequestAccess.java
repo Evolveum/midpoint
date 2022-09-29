@@ -16,9 +16,12 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -101,24 +104,7 @@ public class PageRequestAccess extends PageSelf {
         wizard.setOutputMarkupId(true);
         mainForm.add(wizard);
 
-        // todo remove, test to somehow show assignment/extension in form =================
-        add(new WebMarkupContainer("sample"));
 
-//        ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
-//        c.identifier("sample-panel");
-//        c.type(AssignmentType.COMPLEX_TYPE);
-//        c.panelType("formPanel");
-//        VirtualContainersSpecificationType vcs =
-//                c.beginContainer()
-//                        .beginDisplay()
-//                        .label("Exxxxx")
-//                        .end();
-//        vcs.identifier("some-identifier");
-//        vcs.beginItem().path(new ItemPathType(ItemPath.create(AssignmentType.F_EXTENSION))).end();
-//
-//        // fake assignment created for this test.
-//        final AssignmentType assigment = new AssignmentType();
-//
 //        IModel<PrismContainerValueWrapper<AssignmentType>> model = new LoadableModel<>(false) {
 //            @Override
 //            protected PrismContainerValueWrapper load() {
@@ -126,16 +112,34 @@ public class PageRequestAccess extends PageSelf {
 //                    Task task = PageRequestAccess.this.getPageTask();
 //                    OperationResult result = task.getResult();
 //
-//                    PrismContainerValue value = assigment.asPrismContainerValue();
-//                    PrismContext.get().adopt(value);
-//                    PrismContainerDefinition def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
-//                    PrismContainerWrapperFactory factory = PageRequestAccess.this.findContainerWrapperFactory(def);
+        //virtaul containers are now collected for Objects, not containers, therefore empty user is created here
+//                    UserType user = new UserType();
+//                    final AssignmentType assigment = new AssignmentType();
+//                    user.getAssignment().add(assigment);
+//                    PrismObjectWrapperFactory<UserType> userWrapperFactory = PageRequestAccess.this.findObjectWrapperFactory(user.asPrismObject().getDefinition());
 //
 //                    WrapperContext context = new WrapperContext(task, result);
+//
+//                    ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
+//                    c.identifier("sample-panel");
+//                    c.type(AssignmentType.COMPLEX_TYPE);
+//                    c.panelType("formPanel");
+//                    VirtualContainersSpecificationType vcs =
+//                            c.beginContainer()
+//                                    .beginDisplay()
+//                                    .label("Exxxxx")
+//                                    .end();
+//                    vcs.identifier("some-identifier");
+//                    vcs.beginItem().path(new ItemPathType(ItemPath.create(AssignmentType.F_EXTENSION))).end();
 //                    context.setDetailsPageTypeConfiguration(Arrays.asList(c));
 //                    context.setCreateIfEmpty(true);
+
+        //create whole wrapper, instead of only the concrete container value wrapper
+//                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.NOT_CHANGED, context);
 //
-//                    return factory.createContainerValueWrapper(null, value, ValueStatus.NOT_CHANGED, context);
+//                    PrismContainerWrapper<AssignmentType> assignmentWrapper = userWrapper.findContainer(UserType.F_ASSIGNMENT);
+//                    return assignmentWrapper.getValues().iterator().next();
+//
 //                } catch (Exception ex) {
 //                    ex.printStackTrace();
 //                }
@@ -143,8 +147,9 @@ public class PageRequestAccess extends PageSelf {
 //            }
 //        };
 //
-//        SingleContainerPanel container = new SingleContainerPanel("sample", model, c);
-//        addOrReplace(container);
+        //maybe we can use assignmentDetailsPanel here with some improvemenets, such as hiding condition? so it will be the same as in the admin interface?
+//        AssignmentsDetailsPanel container = new AssignmentsDetailsPanel("sample", model, false, c);
+//        mainForm.add(container);
     }
 
     private List<WizardStep> createSteps() {
