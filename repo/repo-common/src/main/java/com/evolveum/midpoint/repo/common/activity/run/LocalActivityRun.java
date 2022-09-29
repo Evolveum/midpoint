@@ -213,15 +213,11 @@ public abstract class LocalActivityRun<
         setCurrentResultStatus(IN_PROGRESS);
     }
 
-    public @NotNull OperationResultStatus getCurrentResultStatus() {
-        return currentResultStatus;
-    }
-
     public @NotNull OperationResultStatusType getCurrentResultStatusBean() {
         return OperationResultStatus.createStatusType(currentResultStatus);
     }
 
-    public void setCurrentResultStatus(@NotNull OperationResultStatus currentResultStatus) {
+    private void setCurrentResultStatus(@NotNull OperationResultStatus currentResultStatus) {
         this.currentResultStatus = currentResultStatus;
     }
 

@@ -229,7 +229,7 @@ public class TestCryptoUtil extends AbstractUnitTest {
                 .asObjectDelta("some-oid");
 
         task.asObjectable().setActivity(
-                createNonIterativeChangeExecutionDef(List.of(userDelta), null));
+                createExplicitChangeExecutionDef(List.of(userDelta), null));
 
         when();
         CryptoUtil.encryptValues(protector, task);

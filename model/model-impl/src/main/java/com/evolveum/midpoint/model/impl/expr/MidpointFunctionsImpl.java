@@ -1680,7 +1680,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             newTask = modelService.getObject(TaskType.class, templateTaskOid,
                     getDefaultGetOptionCollection(), opTask, result).asObjectable();
         } else {
-            newTask = new TaskType(prismContext);
+            newTask = new TaskType();
             newTask.setName(PolyStringType.fromOrig("Execute changes"));
         }
         newTask.setName(PolyStringType.fromOrig(newTask.getName().getOrig() + " " + (int) (Math.random() * 10000)));
@@ -1690,9 +1690,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         newTask.setExecutionState(RUNNABLE);
         newTask.setSchedulingState(TaskSchedulingStateType.READY);
         newTask.setActivity(null);
-        NonIterativeChangeExecutionWorkDefinitionType workDef = newTask.beginActivity()
+        ExplicitChangeExecutionWorkDefinitionType workDef = newTask.beginActivity()
                 .beginWork()
-                .beginNonIterativeChangeExecution();
+                .beginExplicitChangeExecution();
         workDef.getDelta().addAll(
                 getDeltaBeans(deltas));
         if (options != null) {
