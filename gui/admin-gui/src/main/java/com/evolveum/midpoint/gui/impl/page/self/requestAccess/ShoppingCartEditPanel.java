@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -15,20 +17,34 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -51,6 +67,8 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private IModel<List<QName>> relationChoices;
 
     private IModel<CustomValidity> customValidityModel;
+
+    private IModel<PrismContainerValueWrapper<AssignmentType>> assignmentExtension;
 
     private boolean validitySettingsEnabled;
 
@@ -92,6 +110,46 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 return cv;
             }
         };
+
+        assignmentExtension = new LoadableModel<>(false) {
+            @Override
+            protected PrismContainerValueWrapper load() {
+                try {
+                    Task task = getPageBase().getPageTask();
+                    OperationResult result = task.getResult();
+
+                    AssignmentType assigment = getModelObject().getAssignment();
+                    // virtual containers are now collected for Objects, not containers, therefore empty user is created here
+                    UserType user = new UserType();
+                    user.getAssignment().add(assigment);
+                    PrismObjectWrapperFactory<UserType> userWrapperFactory = getPageBase().findObjectWrapperFactory(user.asPrismObject().getDefinition());
+
+                    WrapperContext context = new WrapperContext(task, result);
+
+                    context.setDetailsPageTypeConfiguration(Arrays.asList(createExtensionPanelConfiguration()));
+                    context.setCreateIfEmpty(true);
+
+                    // create whole wrapper, instead of only the concrete container value wrapper
+                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.NOT_CHANGED, context);
+
+                    PrismContainerWrapper<AssignmentType> assignmentWrapper = userWrapper.findContainer(UserType.F_ASSIGNMENT);
+                    return assignmentWrapper.getValues().iterator().next();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                return null;
+            }
+        };
+    }
+
+    private ContainerPanelConfigurationType createExtensionPanelConfiguration() {
+        ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
+        c.identifier("sample-panel");
+        c.type(AssignmentType.COMPLEX_TYPE);
+        c.panelType("formPanel");
+
+        return c;
     }
 
     private void initLayout() {
@@ -99,6 +157,27 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 WebComponentUtil.getRelationChoicesRenderer());
         relation.add(new EnableBehaviour(() -> false));
         add(relation);
+
+        /*AssignmentsDetailsPanel extension = new AssignmentsDetailsPanel("extension", assignmentExtension, false, createExtensionPanelConfiguration()) {
+
+            @Override
+            protected DisplayNamePanel<AssignmentType> createDisplayNamePanel(String displayNamePanelId) {
+                DisplayNamePanel panel = super.createDisplayNamePanel(displayNamePanelId);
+                panel.add(new VisibleBehaviour(() -> false));
+                return panel;
+            }
+
+            @Override
+            protected @NotNull List<ITab> createTabs() {
+                return new ArrayList<>();
+            }
+
+            @Override
+            protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?> itemWrapper) {
+                return itemWrapper.getPath().startsWith(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_EXTENSION)) ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
+            }
+        };
+        add(extension);*/
 
         IModel<ActivationStatusType> model = new Model<>() {
 
@@ -176,7 +255,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     @Override
     public int getWidth() {
-        return 500;
+        return 1000;
     }
 
     @Override
