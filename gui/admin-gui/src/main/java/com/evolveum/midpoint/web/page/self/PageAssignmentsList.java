@@ -367,7 +367,6 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
     // TODO initial partial processing options - MID-4059 (but it's not so important here, because the task runs on background)
     private void onMultiUserRequestPerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_REQUEST_ASSIGNMENTS);
-        Task operationalTask = createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
         String executionTaskOid = null;
         try {
             TaskType task = WebComponentUtil.createIterativeChangeExecutionTask(
@@ -377,7 +376,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
                     prepareDelta(null, result),
                     createOptions(),
                     PageAssignmentsList.this);
-            executionTaskOid = WebModelServiceUtils.runTask(task, operationalTask, result, PageAssignmentsList.this);
+            executionTaskOid = WebModelServiceUtils.runTask(task, result, PageAssignmentsList.this);
         } catch (SchemaException e) {
             result.recordFatalError(result.getOperation(), e);
             result.setMessage(createStringResource("PageAssignmentsList.requestError").getString());

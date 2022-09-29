@@ -16,6 +16,8 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -229,6 +231,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @SpringBean(name = "modelController")
     private ModelService modelService;
+
+    // Temporary
+    @SpringBean(name = "lightweightIdentifierGeneratorImpl")
+    private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
     @SpringBean(name = "modelInteractionService")
     private ModelInteractionService modelInteractionService;
@@ -467,6 +473,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @Override
     public ModelService getModelService() {
         return modelService;
+    }
+
+    public LightweightIdentifierGenerator getLightweightIdentifierGenerator() {
+        return lightweightIdentifierGenerator;
     }
 
     @Override
