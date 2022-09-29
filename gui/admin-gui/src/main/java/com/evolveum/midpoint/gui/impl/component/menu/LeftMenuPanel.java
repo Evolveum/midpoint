@@ -400,7 +400,6 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private MainMenuItem createResourcesItems() {
         MainMenuItem resourceMenu = createMainMenuItem("PageAdmin.menu.top.resources", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED);
         createBasicAssignmentHolderMenuItems(resourceMenu, PageTypes.RESOURCE);
-        createFocusPageViewMenu(resourceMenu, "PageAdmin.menu.top.resources.view", PageResource.class);
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.resources.import", PageImportResource.class));
         resourceMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.connectorHosts.list", PageConnectorHosts.class));
         return resourceMenu;
@@ -565,12 +564,12 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private void createFocusPageNewEditMenu(MainMenuItem mainMenuItem, String newKey, String editKey,
             final Class<? extends PageBase> newPageClass) {
 
-        boolean addActive = classMatches(newPageClass) && !isEditForAdminObjectDetails() && !isEditForResourceWizzard();
+        boolean addActive = classMatches(newPageClass) && !isEditForAdminObjectDetails();// && !isEditForResourceWizzard();
         MenuItem newMenu = new MenuItem(newKey,
                 GuiStyleConstants.CLASS_PLUS_CIRCLE, newPageClass, null, addActive);
         mainMenuItem.addMenuItem(newMenu);
 
-        boolean editActive = classMatches(newPageClass) && (isEditForAdminObjectDetails() || isEditForResourceWizzard());
+        boolean editActive = classMatches(newPageClass) && (isEditForAdminObjectDetails());// || isEditForResourceWizzard());
         if (editActive) {
             MenuItem edit = new MenuItem(editKey, newPageClass);
             edit.setDynamic(true);

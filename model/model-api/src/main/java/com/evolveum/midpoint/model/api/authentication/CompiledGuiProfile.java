@@ -323,7 +323,8 @@ public class CompiledGuiProfile implements DebugDumpable, Serializable {
                 applicableForAll = resourceDetailsPageType;
                 continue;
             }
-            if (resourceDetailsPageType.getConnectorRef().getOid().equals(connectorOid)) {
+            if (resourceDetailsPageType.getConnectorRef().getOid() != null
+                    && resourceDetailsPageType.getConnectorRef().getOid().equals(connectorOid)) {
                 return resourceDetailsPageType;
             }
         }
