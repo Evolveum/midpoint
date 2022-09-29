@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Evolveum and contributors
+ * Copyright (C) 2017-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,13 +10,13 @@ import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 @DirtiesContext
 public class TestConnectorManager extends AbstractIntegrationTest {
 
-    private static final String CONNID_FRAMEWORK_VERSION = "1.5.1.7";
+    private static final String CONNID_FRAMEWORK_VERSION = "1.5.1.10";
 
     @Autowired private ConnectorManager connectorManager;
 
@@ -44,11 +44,9 @@ public class TestConnectorManager extends AbstractIntegrationTest {
     public void test100ListConnectorFactories() {
         OperationResult result = createOperationResult();
 
-        // WHEN
         when();
         Collection<ConnectorFactory> connectorFactories = connectorManager.getConnectorFactories();
 
-        // THEN
         then();
         assertNotNull("Null connector factories", connectorFactories);
         assertFalse("No connector factories found", connectorFactories.isEmpty());
@@ -71,21 +69,19 @@ public class TestConnectorManager extends AbstractIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         connectorManager.connectorFrameworkSelfTest(result, task);
 
-        // THEN
         then();
         assertSuccess(result);
     }
 
     @Test
     public void test120FrameworkVersion() {
-        // WHEN
+        when();
         String frameworkVersion = connectorManager.getConnIdFrameworkVersion();
 
-        // THEN
+        then();
         assertEquals("Unexpected framework version", CONNID_FRAMEWORK_VERSION, frameworkVersion);
     }
 }
