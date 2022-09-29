@@ -433,7 +433,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             containers.addAll(basicContainers);
         }
 
-        addVirtualContainers(containers);
+        if (!isVirtual()) {
+            addVirtualContainers(containers);
+        }
 
 //        List<PrismContainerWrapper<? extends Containerable>> virtualContainers = collectVirtualContainers();
 //        if (CollectionUtils.isNotEmpty(virtualContainers)) {

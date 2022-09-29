@@ -13,6 +13,15 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ObjectClassWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.BasicSettingResourceObjectTypeStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.DelineationResourceObjectTypeStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.FocusResourceObjectTypeStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeInboundStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeOutboundStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.LimitationsStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.MainConfigurationStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.ReactionMainSettingStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.ReactionOptionalSettingStepPanel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
@@ -221,9 +230,15 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
                             && OperationTypeType.MODIFY.equals(panelConfig.getApplicableForOperation()))
                             || (!pageResource.isEditObject()
                             && OperationTypeType.ADD.equals(panelConfig.getApplicableForOperation()))
-                            || ("delineationResourceObjectTypeWizard".equals(panelConfig.getIdentifier())
-                            || "basicResourceObjectTypeWizard".equals(panelConfig.getIdentifier())
-                            || "focusResourceObjectTypeWizard".equals(panelConfig.getIdentifier()))) { // UGLY HACK we need define visibility of panel in menu
+                            || (DelineationResourceObjectTypeStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || BasicSettingResourceObjectTypeStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || FocusResourceObjectTypeStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || ReactionMainSettingStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || ReactionOptionalSettingStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || AttributeInboundStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || AttributeOutboundStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || MainConfigurationStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || LimitationsStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier()))) { // UGLY HACK we need define visibility of panel in menu
                         virtualContainers.addAll(panelConfig.getContainer());
                         collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
                     }

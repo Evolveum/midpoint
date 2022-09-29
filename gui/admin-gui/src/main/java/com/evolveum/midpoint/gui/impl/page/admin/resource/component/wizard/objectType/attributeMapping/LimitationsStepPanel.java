@@ -33,7 +33,7 @@ import org.apache.wicket.model.IModel;
         expanded = true)
 public class LimitationsStepPanel extends AbstractValueFormResourceWizardStepPanel<PropertyLimitationsType> {
 
-    private static final String PANEL_TYPE = "limitationsMappingWizard";
+    public static final String PANEL_TYPE = "limitationsMappingWizard";
 
     private final IModel<PrismContainerValueWrapper<PropertyLimitationsType>> valueModel;
 

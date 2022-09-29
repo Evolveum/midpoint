@@ -41,7 +41,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjec
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.basicSettings", icon = "fa fa-circle"))
 public class BasicSettingResourceObjectTypeStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDefinitionType> {
 
-    private static final String PANEL_TYPE = "basicResourceObjectTypeWizard";
+    public static final String PANEL_TYPE = "basicResourceObjectTypeWizard";
 
     public BasicSettingResourceObjectTypeStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
         super(model, newValueModel);

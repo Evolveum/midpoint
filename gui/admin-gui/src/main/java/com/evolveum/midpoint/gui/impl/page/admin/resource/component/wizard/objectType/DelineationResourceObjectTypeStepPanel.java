@@ -29,7 +29,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
         expanded = true)
 public class DelineationResourceObjectTypeStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDelineationType> {
 
-    private static final String PANEL_TYPE = "delineationResourceObjectTypeWizard";
+    public static final String PANEL_TYPE = "delineationResourceObjectTypeWizard";
     private IModel<PrismContainerValueWrapper<ResourceObjectTypeDelineationType>> valueModel = null;
 
     public DelineationResourceObjectTypeStepPanel(ResourceDetailsModel model,

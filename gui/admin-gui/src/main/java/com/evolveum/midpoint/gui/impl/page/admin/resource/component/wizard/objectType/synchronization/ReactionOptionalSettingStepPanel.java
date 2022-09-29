@@ -31,7 +31,7 @@ import org.apache.wicket.model.IModel;
         expanded = true)
 public class ReactionOptionalSettingStepPanel extends AbstractValueFormResourceWizardStepPanel<SynchronizationReactionType> {
 
-    private static final String PANEL_TYPE = "reactionOptionalSettingWizard";
+    public static final String PANEL_TYPE = "reactionOptionalSettingWizard";
 
     public ReactionOptionalSettingStepPanel(ResourceDetailsModel model,
             IModel<PrismContainerValueWrapper<SynchronizationReactionType>> newValueModel) {
