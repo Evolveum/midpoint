@@ -98,6 +98,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
                 }
                 saveCustomQuery(ajaxRequestTarget);
                 getPageBase().hideMainPopup(ajaxRequestTarget);
+                saveSearchFilterPerformed(ajaxRequestTarget);
             }
         };
         saveButton.setOutputMarkupId(true);
@@ -111,6 +112,9 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         };
         cancelButton.setOutputMarkupId(true);
         buttonsPanel.add(cancelButton);
+    }
+
+    protected void saveSearchFilterPerformed(AjaxRequestTarget target) {
     }
 
     private void saveCustomQuery(AjaxRequestTarget ajaxRequestTarget) {
