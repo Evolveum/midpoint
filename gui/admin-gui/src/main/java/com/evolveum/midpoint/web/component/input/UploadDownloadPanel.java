@@ -11,6 +11,9 @@ import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import javax.activation.MimeType;
+import javax.activation.MimeTypeParseException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +24,9 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,7 +34,6 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author shood
@@ -49,9 +54,22 @@ public class UploadDownloadPanel extends InputPanel {
     private final String downloadFileName = null;
     private boolean isReadOnly;
 
+    private List<String> allowedUploadContentTypes = new ArrayList<>();
+
     public UploadDownloadPanel(String id, boolean isReadOnly) {
         super(id);
         this.isReadOnly = isReadOnly;
+    }
+
+    public List<String> getAllowedUploadContentTypes() {
+        return allowedUploadContentTypes;
+    }
+
+    public void setAllowedUploadContentTypes(List<String> allowedUploadContentTypes) {
+        if (allowedUploadContentTypes == null) {
+            allowedUploadContentTypes = new ArrayList<>();
+        }
+        this.allowedUploadContentTypes = allowedUploadContentTypes;
     }
 
     @Override
@@ -91,13 +109,55 @@ public class UploadDownloadPanel extends InputPanel {
                 UploadDownloadPanel.this.uploadFilePerformed(target);
             }
         });
-        fileUpload.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
+        fileUpload.add(new VisibleBehaviour(() -> !isReadOnly));
+        fileUpload.add(new IValidator<>() {
 
             @Override
-            public boolean isVisible() {
-                return !isReadOnly;
+            public void validate(IValidatable<List<FileUpload>> validatable) {
+                List<FileUpload> list = validatable.getValue();
+                if (list == null) {
+                    return;
+                }
 
+                if (getAllowedUploadContentTypes().isEmpty()) {
+                    return;
+                }
+
+                String label = fileUpload.getLabel() != null ? fileUpload.getLabel().getObject() : fileUpload.getId();
+
+                try {
+                    List<MimeType> allowedTypes = getAllowedUploadContentTypes().stream()
+                            .map(s -> {
+                                try {
+                                    return new MimeType(s);
+                                } catch (MimeTypeParseException ex) {
+                                    return null;
+                                }
+                            })
+                            .filter(m -> m != null)
+                            .collect(Collectors.toList());
+
+                    for (FileUpload fu : list) {
+                        String contentType = fu.getContentType();
+                        MimeType mime = new MimeType(contentType);
+
+                        boolean matched = false;
+                        for (MimeType allowed : allowedTypes) {
+                            if (allowed.match(mime)) {
+                                matched = true;
+                                break;
+                            }
+                        }
+
+                        if (!matched) {
+                            String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, contentType);
+                            validatable.error(new ValidationError(msg));
+                        }
+                    }
+                } catch (MimeTypeParseException ex) {
+                    String msg = getPageBase().getString("UploadDownloadPanel.validationContentNotAllowed", label, ex.getMessage());
+                    validatable.error(new ValidationError(msg));
+                }
             }
         });
         fileUpload.setOutputMarkupId(true);
@@ -144,16 +204,7 @@ public class UploadDownloadPanel extends InputPanel {
         deleteButton.add(new VisibleBehaviour(() -> !isReadOnly));
         add(deleteButton);
 
-        add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !isReadOnly;
-
-            }
-
-        });
+        add(new VisibleBehaviour(() -> !isReadOnly));
     }
 
     @Override
