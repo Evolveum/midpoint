@@ -570,7 +570,15 @@ public class RequestAccess implements Serializable {
             return null;
         }
 
-        Task task = page.createSimpleTask(usersCount == 1 ? OPERATION_REQUEST_ASSIGNMENTS_SINGLE : OPERATION_REQUEST_ASSIGNMENTS);
+        if (usersCount == 1) {
+            return submitSingleRequest(page);
+        }
+
+        return submitMultiRequest(page);
+    }
+
+    private OperationResult submitMultiRequest(PageBase page) {
+        Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
         OperationResult result = task.getResult();
 
         for (ObjectReferenceType poiRef : requestItems.keySet()) {
@@ -596,6 +604,33 @@ public class RequestAccess implements Serializable {
         }
 
         result.computeStatusIfUnknown();
+
+        return result;
+    }
+
+    private OperationResult submitSingleRequest(PageBase page) {
+        Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS_SINGLE);
+        OperationResult result = task.getResult();
+
+        ObjectReferenceType poiRef = requestItems.keySet().stream().findFirst().orElse(null);
+
+        ObjectDelta<UserType> delta;
+        try {
+            PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
+            delta = createUserDelta(user);
+
+            ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
+            options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
+            page.getModelService().executeChanges(Collections.singletonList(delta), options, task, result);
+
+            result.recordSuccess();
+        } catch (Exception e) {
+            result.recordFatalError(e);
+            result.setMessage(page.createStringResource("PageAssignmentsList.requestError").getString());
+            LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
 
         return result;
     }
