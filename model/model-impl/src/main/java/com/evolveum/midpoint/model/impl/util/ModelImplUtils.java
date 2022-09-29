@@ -506,7 +506,7 @@ public class ModelImplUtils {
         setRequestee(task, (PrismObject) null);
     }
 
-    public static ModelExecuteOptions getModelExecuteOptions(PrismContainerValue<?> taskExtension) {
+    private static ModelExecuteOptionsType getModelExecuteOptionsBean(PrismContainerValue<?> taskExtension) {
         if (taskExtension == null) {
             return null;
         }
@@ -514,23 +514,22 @@ public class ModelImplUtils {
         ModelExecuteOptionsType options1 =
                 taskExtension.getItemRealValue(SchemaConstants.C_MODEL_EXECUTE_OPTIONS, ModelExecuteOptionsType.class);
         if (options1 != null) {
-            return ModelExecuteOptions.fromModelExecutionOptionsType(options1);
+            return options1;
         }
 
         ModelExecuteOptionsType options2 =
                 taskExtension.getItemRealValue(
                         SchemaConstants.MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS, ModelExecuteOptionsType.class);
         if (options2 != null) {
-            return ModelExecuteOptions.fromModelExecutionOptionsType(options2);
+            return options2;
         }
 
-        ModelExecuteOptionsType options3 =
-                taskExtension.getItemRealValue(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS, ModelExecuteOptionsType.class);
-        if (options3 != null) {
-            return ModelExecuteOptions.fromModelExecutionOptionsType(options3);
-        }
+        return taskExtension.getItemRealValue(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS, ModelExecuteOptionsType.class);
+    }
 
-        return null;
+    public static ModelExecuteOptions getModelExecuteOptions(PrismContainerValue<?> taskExtension) {
+        return ModelExecuteOptions.fromModelExecutionOptionsType(
+                getModelExecuteOptionsBean(taskExtension));
     }
 
     public static VariablesMap getDefaultVariablesMap(@NotNull LensContext<?> context,

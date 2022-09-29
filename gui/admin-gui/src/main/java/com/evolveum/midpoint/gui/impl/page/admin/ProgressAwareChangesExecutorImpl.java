@@ -37,7 +37,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -51,7 +50,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.toModelExecutionOptionsBean;
-import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.createNonIterativeChangeExecutionDef;
+import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.createExplicitChangeExecutionDef;
 
 public class ProgressAwareChangesExecutorImpl implements ObjectChangeExecutor {
 
@@ -221,7 +220,7 @@ public class ProgressAwareChangesExecutorImpl implements ObjectChangeExecutor {
         }
 
         task.setRootActivityDefinition(
-                createNonIterativeChangeExecutionDef(deltas, toModelExecutionOptionsBean(options)));
+                createExplicitChangeExecutionDef(deltas, toModelExecutionOptionsBean(options)));
 
         task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         task.setName("Execute changes");

@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        oid="8427d4a9-f0cb-4771-ae51-c6979630068a">
+    <name>execute-changes-multi</name>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+    <executionState>closed</executionState>
+    <activity>
+        <work>
+            <explicitChangeExecution>
+                <request>
+                    <delta>
+                        <t:changeType>add</t:changeType>
+                        <t:objectType>UserType</t:objectType>
+                        <t:objectToAdd xsi:type="UserType">
+                            <name>user-multi-1</name>
+                            <assignment>
+                                <targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType"/>
+                            </assignment>
+                        </t:objectToAdd>
+                    </delta>
+                    <executionOptions>
+                        <raw>true</raw>
+                    </executionOptions>
+                </request>
+                <request>
+                    <name>multi-2</name>
+                    <delta>
+                        <t:changeType>add</t:changeType>
+                        <t:objectType>UserType</t:objectType>
+                        <t:objectToAdd xsi:type="UserType">
+                            <name>user-multi-2</name>
+                            <assignment>
+                                <targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType"/>
+                            </assignment>
+                        </t:objectToAdd>
+                    </delta>
+                </request>
+                <request>
+                    <name>empty</name>
+                </request>
+            </explicitChangeExecution>
+        </work>
+    </activity>
+</task>

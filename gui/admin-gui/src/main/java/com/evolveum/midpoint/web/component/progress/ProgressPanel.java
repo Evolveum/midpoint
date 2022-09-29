@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.component.progress;
 
 import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -67,7 +65,7 @@ import java.util.concurrent.Future;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.toModelExecutionOptionsBean;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.RESOURCE_OBJECT_OPERATION;
-import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.createNonIterativeChangeExecutionDef;
+import static com.evolveum.midpoint.schema.util.task.work.SpecificWorkDefinitionUtil.createExplicitChangeExecutionDef;
 import static com.evolveum.midpoint.web.component.progress.ProgressReportActivityDto.ResourceOperationResult;
 
 public class ProgressPanel extends BasePanel {
@@ -447,7 +445,6 @@ public class ProgressPanel extends BasePanel {
         PageBase page = getPageBase();
         ProgressReporter reporter = reporterModel.getProcessData();
         try {
-            TaskManager taskManager = page.getTaskManager();
             MidPointPrincipal user = AuthUtil.getPrincipalUser();
             if (user == null) {
                 throw new RestartResponseException(PageLogin.class);
@@ -456,7 +453,7 @@ public class ProgressPanel extends BasePanel {
             }
 
             task.setRootActivityDefinition(
-                    createNonIterativeChangeExecutionDef(deltas, toModelExecutionOptionsBean(options)));
+                    createExplicitChangeExecutionDef(deltas, toModelExecutionOptionsBean(options)));
 
             task.setChannel(SchemaConstants.CHANNEL_USER_URI);
             task.setName("Execute changes");

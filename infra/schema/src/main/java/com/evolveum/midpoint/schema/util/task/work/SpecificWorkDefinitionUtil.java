@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.schema.util.task.work;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -21,12 +20,11 @@ import java.util.Collection;
 /** Utils for managing work definition for specific activities. */
 public class SpecificWorkDefinitionUtil {
 
-    public static ActivityDefinitionType createNonIterativeChangeExecutionDef(
+    public static ActivityDefinitionType createExplicitChangeExecutionDef(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @Nullable ModelExecuteOptionsType options) throws SchemaException {
 
-        NonIterativeChangeExecutionWorkDefinitionType workDef =
-                new NonIterativeChangeExecutionWorkDefinitionType(PrismContext.get());
+        ExplicitChangeExecutionWorkDefinitionType workDef = new ExplicitChangeExecutionWorkDefinitionType();
 
         for (ObjectDelta<?> delta : deltas) {
             workDef.getDelta().add(
@@ -35,9 +33,9 @@ public class SpecificWorkDefinitionUtil {
         workDef.setExecutionOptions(options);
 
         // @formatter:off
-        return new ActivityDefinitionType(PrismContext.get())
+        return new ActivityDefinitionType()
                 .beginWork()
-                .nonIterativeChangeExecution(workDef)
+                    .explicitChangeExecution(workDef)
                 .end();
         // @formatter:on
     }

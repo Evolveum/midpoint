@@ -25,6 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -129,7 +130,7 @@ public class TaskActivityManager {
     }
 
     public @NotNull Activity<?, ?> getActivity(Task rootTask, ActivityPath activityPath)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         return ActivityTree.create(rootTask, beans)
                 .getActivity(activityPath);
     }

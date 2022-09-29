@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityTreeRealizationStateType;
@@ -49,7 +50,7 @@ public class ActivityTree implements DebugDumpable {
         this.treeStateOverview = new ActivityTreeStateOverview(rootTask, beans);
     }
 
-    public static ActivityTree create(Task rootTask, CommonTaskBeans beans) throws SchemaException {
+    public static ActivityTree create(Task rootTask, CommonTaskBeans beans) throws SchemaException, ConfigurationException {
         ActivityDefinition<?> rootDefinition = ActivityDefinition.createRoot(rootTask, beans);
         return new ActivityTree(rootDefinition, rootTask, beans);
     }
