@@ -21,6 +21,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -37,9 +38,11 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -49,6 +52,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -578,29 +582,46 @@ public class RequestAccess implements Serializable {
     }
 
     private OperationResult submitMultiRequest(PageBase page) {
-        Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
-        OperationResult result = task.getResult();
+        ExplicitChangeExecutionWorkDefinitionType explicitChangeExecution = new ExplicitChangeExecutionWorkDefinitionType();
 
         for (ObjectReferenceType poiRef : requestItems.keySet()) {
-            OperationResult subresult = result.createSubresult(OPERATION_REQUEST_ASSIGNMENTS_SINGLE);
-
-            ObjectDelta<UserType> delta;
             try {
-                PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
-                delta = createUserDelta(user);
+                ChangeExecutionRequestType request = new ChangeExecutionRequestType();
+                request.setName(page.getString("RequestAccess.changeExecutionRequestName", WebComponentUtil.getOrigStringFromPoly(poiRef.getTargetName())));
 
                 ModelExecuteOptions options = createSubmitModelOptions(page.getPrismContext());
                 options.initialPartialProcessing(new PartialProcessingOptionsType().inbound(SKIP).projection(SKIP));
-                page.getModelService().executeChanges(Collections.singletonList(delta), options, task, subresult);
+                request.setExecutionOptions(options.toModelExecutionOptionsType());
 
-                subresult.recordSuccess();
-            } catch (Exception e) {
-                subresult.recordFatalError(e);
-                subresult.setMessage(page.createStringResource("PageAssignmentsList.requestError").getString());
-                LoggingUtils.logUnexpectedException(LOGGER, "Could not save assignments ", e);
-            } finally {
-                subresult.recomputeStatus();
+                PrismObject<UserType> user = WebModelServiceUtils.loadObject(poiRef, page);
+                ObjectDelta<UserType> delta = createUserDelta(user);
+                ObjectDeltaType deltaType = DeltaConvertor.toObjectDeltaType(delta);
+                request.getDelta().add(deltaType);
+                explicitChangeExecution.getRequest().add(request);
+            } catch (SchemaException ex) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare change execution request with object delta changes for poi "
+                        + WebComponentUtil.getName(poiRef, false) + ". Reason: ", ex);
             }
+        }
+
+        Task task = page.createSimpleTask(OPERATION_REQUEST_ASSIGNMENTS);
+        OperationResult result = task.getResult();
+
+        task.setName(page.getString("RequestAccess.changeExecutionRequestTaskName", explicitChangeExecution.getRequest().size()));
+        MidPointPrincipal owner = AuthUtil.getPrincipalUser();
+        task.setOwner(owner.getFocus().asPrismObject());
+        task.setInitiallyRunnable();
+        task.setThreadStopAction(ThreadStopActionType.RESTART);
+        try {
+            task.setRootActivityDefinition(
+                    new ActivityDefinitionType().work(
+                            new WorkDefinitionsType().explicitChangeExecution(explicitChangeExecution)));
+
+            page.getModelInteractionService().switchToBackground(task, result);
+        } catch (SchemaException ex) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare task wih explicit change execution data. Reason: ", ex);
+
+            result.recordFatalError("Couldn't prepare task wih explicit change execution data", ex);
         }
 
         result.computeStatusIfUnknown();
