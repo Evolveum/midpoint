@@ -16,7 +16,10 @@ import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassicReportImportWorkDefinitionType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -36,6 +39,8 @@ import javax.annotation.PreDestroy;
 @Component
 public class ClassicReportImportActivityHandler
         implements ActivityHandler<ClassicReportImportWorkDefinition, ClassicReportImportActivityHandler> {
+
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value();
 
     @Autowired ActivityHandlerRegistry registry;
     @Autowired ReportServiceImpl reportService;
@@ -68,5 +73,10 @@ public class ClassicReportImportActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "report-import";
+    }
+
+    @Override
+    public @Nullable String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

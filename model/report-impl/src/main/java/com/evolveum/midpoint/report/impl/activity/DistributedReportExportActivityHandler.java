@@ -18,6 +18,7 @@ import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -52,6 +53,8 @@ public class DistributedReportExportActivityHandler
         implements ActivityHandler<DistributedReportExportWorkDefinition, DistributedReportExportActivityHandler> {
 
     private static final Trace LOGGER = TraceManager.getTrace(DistributedReportExportActivityHandler.class);
+
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value();
 
     @Autowired ActivityHandlerRegistry registry;
     @Autowired CommonTaskBeans commonTaskBeans;
@@ -145,5 +148,10 @@ public class DistributedReportExportActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "distributed-report-export";
+    }
+
+    @Override
+    public @Nullable String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }
