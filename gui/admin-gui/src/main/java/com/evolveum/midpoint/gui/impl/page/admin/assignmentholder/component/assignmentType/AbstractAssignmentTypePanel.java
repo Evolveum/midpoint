@@ -41,8 +41,6 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
-import com.evolveum.midpoint.model.impl.schema.transform.TransformableReferenceDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
@@ -652,11 +650,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         } else {
             // We have more concrete assignment type, we should replace targetRef definition
             // with one with concrete assignment type.
-            var transformed = TransformableContainerDefinition.of(orig);
-            var targetRef = TransformableReferenceDefinition.of(orig.getComplexTypeDefinition().findReferenceDefinition(AssignmentType.F_TARGET_REF));
-            targetRef.setTargetTypeName(getAssignmentType());
-            transformed.getComplexTypeDefinition().replaceDefinition(AssignmentType.F_TARGET_REF, targetRef);
-            searchDefinition = transformed;
+            searchDefinition = getPageBase().getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, getAssignmentType());
         }
 
         return searchDefinition;

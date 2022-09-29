@@ -545,4 +545,16 @@ public interface ModelInteractionService {
      * The method does not require any authorizations. This is how it was before 4.6, and it remains so for the near future.
      */
     void switchToBackground(Task task, OperationResult result);
+
+    /**
+     * Returns Container Definition of Assignment Type with target type of assignment replaced by more concrete situation
+     *
+     * This allows for using more specific definition when searching for definitions for dereference, in GUI search or columns
+     * where we are sure (on other criteria) only assignment types we are processing have concrete target type.
+     *
+     * @param orig Original definition of Assignment Type
+     * @param targetType Concrete target type
+     */
+    PrismContainerDefinition<AssignmentType> assignmentTypeDefinitionWithConcreteTargetRefType(
+            PrismContainerDefinition<AssignmentType> orig, QName targetType);
 }

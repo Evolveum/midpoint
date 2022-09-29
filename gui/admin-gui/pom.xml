@@ -266,7 +266,7 @@
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
