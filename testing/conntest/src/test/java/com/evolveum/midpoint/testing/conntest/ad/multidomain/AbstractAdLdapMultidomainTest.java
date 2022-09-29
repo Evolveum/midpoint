@@ -320,7 +320,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
         }
         assertEquals("Unexpected number of schema definitions (limited by generation constraints)", expectedDefinitions, resourceSchema.getDefinitions().size());
 
-        assertLdapConnectorReasonableInstances();
+        // Not checking the number of connector instances: the previous operation might have been "test partial configuration"
+        // that leaves no cached connector instances.
     }
 
     @Test

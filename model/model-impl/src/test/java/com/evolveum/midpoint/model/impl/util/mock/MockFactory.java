@@ -154,35 +154,11 @@ public class MockFactory {
 
             @Override
             public @NotNull OperationResult testResource(
-                    @NotNull String resourceOid,
-                    @NotNull Task task,
-                    @NotNull OperationResult parentResult) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public @NotNull OperationResult testResource(
                     @NotNull PrismObject<ResourceType> resource,
                     @Nullable ResourceTestOptions options,
                     @NotNull Task task,
                     OperationResult parentResult) {
                 return null;
-            }
-
-            @Override
-            public @NotNull OperationResult testResource(
-                    @NotNull PrismObject<ResourceType> resource,
-                    @NotNull Task task,
-                    OperationResult parentResult) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public @NotNull OperationResult testPartialConfiguration(
-                    @NotNull PrismObject<ResourceType> resource,
-                    @NotNull Task task,
-                    @NotNull OperationResult parentResult) {
-                throw new UnsupportedOperationException();
             }
 
             @Override

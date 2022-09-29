@@ -17,7 +17,7 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     /** Full or partial? */
     private final TestMode testMode;
 
-    /** Whether to update cached (in-definition) capabilities and schema. */
+    /** Whether to update repo-cached (in-definition) capabilities and schema. */
     private final ResourceCompletionMode resourceCompletionMode;
 
     /**
@@ -35,21 +35,29 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
      */
     private final Boolean updateInMemory;
 
+    /**
+     * If `true`, the connector is not cached (even if completion is requested). This is to avoid caching resource objects
+     * that have been provided by the client, i.e. that are not fetched right from the repository. See MID-8020.
+     */
+    private final boolean doNotCacheConnector;
+
     public static final ResourceTestOptions DEFAULT = new ResourceTestOptions();
 
     public ResourceTestOptions() {
-        this(null, null, null, null);
+        this(null, null, null, null, false);
     }
 
-    public ResourceTestOptions(
+    private ResourceTestOptions(
             TestMode testMode,
             ResourceCompletionMode resourceCompletionMode,
             Boolean updateInRepository,
-            Boolean updateInMemory) {
+            Boolean updateInMemory,
+            boolean doNotCacheConnector) {
         this.testMode = testMode;
         this.resourceCompletionMode = resourceCompletionMode;
         this.updateInRepository = updateInRepository;
         this.updateInMemory = updateInMemory;
+        this.doNotCacheConnector = doNotCacheConnector;
     }
 
     public TestMode getTestMode() {
@@ -57,7 +65,7 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     }
 
     public ResourceTestOptions testMode(TestMode testMode) {
-        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory);
+        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory, doNotCacheConnector);
     }
 
     public static ResourceTestOptions partial() {
@@ -73,7 +81,7 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     }
 
     public ResourceTestOptions resourceCompletionMode(ResourceCompletionMode resourceCompletionMode) {
-        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory);
+        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory, doNotCacheConnector);
     }
 
     public Boolean isUpdateInRepository() {
@@ -81,7 +89,7 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     }
 
     public ResourceTestOptions updateInRepository(Boolean updateInRepository) {
-        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory);
+        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory, doNotCacheConnector);
     }
 
     public Boolean isUpdateInMemory() {
@@ -89,7 +97,15 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
     }
 
     public ResourceTestOptions updateInMemory(Boolean updateInMemory) {
-        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory);
+        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory, doNotCacheConnector);
+    }
+
+    public boolean isDoNotCacheConnector() {
+        return doNotCacheConnector;
+    }
+
+    public ResourceTestOptions doNotCacheConnector() {
+        return new ResourceTestOptions(testMode, resourceCompletionMode, updateInRepository, updateInMemory, true);
     }
 
     // Note: the object is immutable, so actually there's no need to use this method.
@@ -117,6 +133,7 @@ public class ResourceTestOptions extends AbstractOptions implements Serializable
         appendVal(sb, "resourceCompletionMode", resourceCompletionMode);
         appendFlag(sb, "updateInRepository", updateInRepository);
         appendFlag(sb, "updateInMemory", updateInMemory);
+        appendFlag(sb, "doNotCacheConnector", doNotCacheConnector);
         removeLastComma(sb);
     }
 
