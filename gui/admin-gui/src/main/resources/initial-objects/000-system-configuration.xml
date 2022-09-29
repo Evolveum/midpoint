@@ -185,6 +185,7 @@
                     </icon>
                 </display>
                 <action>
+                    <name>my-history-widget-action</name>
                     <target>
                         <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
                         <panelType>history</panelType>
@@ -208,6 +209,7 @@
                     </icon>
                 </display>
                 <action>
+                    <name>my-accesses-widget-action</name>
                     <target>
                         <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
                         <panelType>allAssignments</panelType>
@@ -231,6 +233,7 @@
                     </icon>
                 </display>
                 <action>
+                    <name>my-requests-widget-action</name>
                     <target>
                         <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
                         <panelType>focusCases</panelType>
@@ -254,6 +257,7 @@
                     </icon>
                 </display>
                 <action>
+                    <name>my-workitems-widget-action</name>
                     <target>
                         <pageClass>com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems</pageClass>
                     </target>
@@ -276,6 +280,7 @@
                     </icon>
                 </display>
                 <action>
+                    <name>my-accounts-widget-action</name>
                     <target>
                         <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
                         <panelType>projections</panelType>
@@ -302,6 +307,7 @@
                 </display>
                 <panelType>statisticWidget</panelType>
                 <action>
+                    <name>profile-widget-action</name>
                     <target>
                         <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
                     </target>
@@ -326,6 +332,7 @@
                 </display>
                 <panelType>statisticWidget</panelType>
                 <action>
+                    <name>credentials-widget-action</name>
                     <target>
                         <pageClass>com.evolveum.midpoint.gui.impl.page.self.credentials.PageSelfCredentials</pageClass>
                     </target>
@@ -349,6 +356,7 @@
                 </display>
                 <panelType>statisticWidget</panelType>
                 <action>
+                    <name>list-users-widget-action</name>
                     <target>
                         <pageClass>com.evolveum.midpoint.web.page.admin.users.PageUsers</pageClass>
                     </target>
@@ -372,6 +380,7 @@
                 </display>
                 <panelType>statisticWidget</panelType>
                 <action>
+                    <name>list-resources-widget-action</name>
                     <target>
                         <pageClass>com.evolveum.midpoint.web.page.admin.resources.PageResources</pageClass>
                     </target>
