@@ -117,6 +117,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private LoadableModel<List<AbstractSearchItemWrapper>> basicSearchItemsModel;
     private LoadableModel<List<AbstractSearchItemWrapper>> morePopupModel;
+    private LoadableDetachableModel<List<AvailableFilterType>> savedSearchListModel;
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
 
     public SearchPanel(String id, IModel<Search<C>> searchModel) {
@@ -221,6 +222,15 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         saveSearchContainer.add(new VisibleBehaviour(() -> !isPopupWindow() && isCollectionInstancePage()));
         saveSearchContainer.setOutputMarkupId(true);
         form.add(saveSearchContainer);
+        savedSearchListModel = new LoadableDetachableModel<List<AvailableFilterType>>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected List<AvailableFilterType> load() {
+                return getSavedFilterList();
+            }
+        };
+
         AjaxButton saveSearchButton = new AjaxButton(ID_SAVE_SEARCH_BUTTON) {
 
             private static final long serialVersionUID = 1L;
@@ -230,22 +240,19 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 SaveSearchPanel<C> panel = new SaveSearchPanel<>(getPageBase().getMainPopupBodyId(),
                         Model.of(SearchPanel.this.getModelObject()),
                         SearchPanel.this.getModelObject().getTypeClass(),
-                        getCollectionInstanceDefaultIdentifier());
+                        getCollectionInstanceDefaultIdentifier()) {
+
+                    @Override
+                    protected void saveSearchFilterPerformed(AjaxRequestTarget target) {
+                        SearchPanel.this.saveSearchFilterPerformed(target);
+                    }
+                };
                 getPageBase().showMainPopup(panel, target);
             }
         };
         saveSearchButton.add(AttributeAppender.append("title", getPageBase().createStringResource("SearchPanel.saveFilterButton.title")));
         saveSearchButton.setOutputMarkupId(true);
         saveSearchContainer.add(saveSearchButton);
-
-        LoadableModel<List<AvailableFilterType>> savedSearchListModel = new LoadableModel<List<AvailableFilterType>>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<AvailableFilterType> load() {
-                return getSavedFilterList();
-            }
-        };
 
         SelectableItemListPopoverPanel<AvailableFilterType> savedFiltersPopover =
                 new SelectableItemListPopoverPanel<>(ID_SAVED_FILTERS_POPOVER, savedSearchListModel) {
@@ -299,6 +306,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         saveSearchContainer.add(savedSearchMenu);
     }
 
+    private void saveSearchFilterPerformed(AjaxRequestTarget target) {
+        savedSearchListModel.detach();
+        target.add(SearchPanel.this.get(ID_FORM));
+    }
+
     private VisibleEnableBehaviour getSearchButtonVisibleEnableBehavior() {
         return new VisibleEnableBehaviour() {
 
@@ -339,6 +351,10 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             applyFilterToFulltextMode(filter.getSearchItem());
         }
         searchPerformed(target);
+    }
+
+    private Component getSavedSearchContainer() {
+        return get(ID_FORM).get(ID_SAVE_SEARCH_CONTAINER);
     }
 
     private Component getSavedSearchMenuButton() {
@@ -541,14 +557,14 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private List<AvailableFilterType> getSavedFilterList() {
         ContainerableListPanel listPanel = findParent(ContainerableListPanel.class);
         List<AvailableFilterType> availableFilterList = null;
-        if (listPanel != null) {
-            CompiledObjectCollectionView view = listPanel.getObjectCollectionView();
-            availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
-        } else {
+//        if (listPanel != null) {
+//            CompiledObjectCollectionView view = listPanel.getObjectCollectionView();
+//            availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
+//        } else {
             FocusType principalFocus = getPageBase().getPrincipalFocus();
             GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, getModelObject().getTypeClass(), false);
             availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
-        }
+//        }
         return availableFilterList;
     }
 
@@ -640,10 +656,15 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private List<AvailableFilterType> getAvailableFilterList(SearchBoxConfigurationType config) {
-        if (config == null) {
+        if (config == null || CollectionUtils.isEmpty(config.getAvailableFilter())) {
             return null;
         }
-        return config.getAvailableFilter();
+        return config.getAvailableFilter().stream().sorted((filter1, filter2) -> {
+            String label1 = WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(filter1.getDisplay()));
+            String label2 = WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(filter2.getDisplay()));
+            return String.CASE_INSENSITIVE_ORDER.compare(label1, label2);
+
+        }).collect(Collectors.toList());
     }
 
     class BasicSearchFragment extends Fragment {
