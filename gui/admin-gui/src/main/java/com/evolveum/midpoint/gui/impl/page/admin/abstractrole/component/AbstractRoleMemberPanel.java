@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.ObjectTypeSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,8 +40,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
@@ -80,7 +78,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -413,6 +410,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (searchConfig.getRelationConfiguration() == null) {
             RelationSearchItemConfigurationType relationConfig = new RelationSearchItemConfigurationType();
             relationConfig.getSupportedRelations().addAll(getSupportedRelations());
+            relationConfig.setDefaultValue(PrismConstants.Q_ANY);
             searchConfig.setRelationConfiguration(relationConfig);
         }
 
@@ -455,32 +453,39 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     private <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search<AH> search) {
-        SearchBoxConfigurationHelper memberPanelStorage = getSearchBoxConfiguration();
-        if (noMemberSearchItemVisible(memberPanelStorage)) {
+        if (noMemberSearchItemVisible(search)) {
             PrismContext prismContext = getPageBase().getPrismContext();
             return prismContext.queryFor(search.getTypeClass())
                     .exists(AssignmentHolderType.F_ASSIGNMENT)
                         .block()
                         .item(AssignmentType.F_TARGET_REF)
-                        .ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), getRelationsForSearch(memberPanelStorage)))
+                        .ref(MemberOperationsHelper.createReferenceValuesList(getModelObject(), getRelationsForSearch(search.getSearchConfigurationWrapper())))
                         .endBlock().build();
         }
         return null;
     }
 
-    private boolean noMemberSearchItemVisible(SearchBoxConfigurationHelper memberPanelStorage) {
-        return !memberPanelStorage.isRelationVisible() && !memberPanelStorage.isIndirectVisible()
-                && (!isOrg() || !memberPanelStorage.isSearchScopeVisible())
-                && (isNotRole() || !memberPanelStorage.isTenantVisible())
-                && (isNotRole() || !memberPanelStorage.isProjectVisible());
+    private <AH extends AssignmentHolderType> boolean noMemberSearchItemVisible(Search<AH> search) {
+        if (!SearchBoxModeType.BASIC.equals(search.getSearchMode())) {
+            return true;
+        }
+        return !isSearchItemVisible(RelationSearchItemWrapper.class, search) && !isSearchItemVisible(IndirectSearchItemWrapper.class, search)
+                && (!isOrg() || !isSearchItemVisible(ScopeSearchItemWrapper.class, search))
+                && (isNotRole() || !isSearchItemVisible(TenantSearchItemWrapper.class, search))
+                && (isNotRole() || !isSearchItemVisible(ProjectSearchItemWrapper.class, search));
     }
 
-    private List<QName> getRelationsForSearch(SearchBoxConfigurationHelper memberPanelStorage) {
+    private <AH extends AssignmentHolderType> boolean isSearchItemVisible(Class<? extends AbstractSearchItemWrapper> searchItemClass, Search<AH> search) {
+        Optional<AbstractSearchItemWrapper> itemWrapper = search.getItems().stream().filter(item -> item.getClass().equals(searchItemClass)).findFirst();
+        return itemWrapper != null && itemWrapper.get() != null && itemWrapper.get().isVisible();
+    }
+
+    private List<QName> getRelationsForSearch(SearchConfigurationWrapper searchConfig) {
         List<QName> relations = new ArrayList<>();
-        if (QNameUtil.match(PrismConstants.Q_ANY, memberPanelStorage.getDefaultRelation())) {
-            relations.addAll(memberPanelStorage.getSupportedRelations());
+        if (QNameUtil.match(PrismConstants.Q_ANY, searchConfig.getDefaultRelation())) {
+            relations.addAll(searchConfig.getSupportedRelations());
         } else {
-            relations.add(memberPanelStorage.getDefaultRelation());
+            relations.add(searchConfig.getDefaultRelation());
         }
         return relations;
     }

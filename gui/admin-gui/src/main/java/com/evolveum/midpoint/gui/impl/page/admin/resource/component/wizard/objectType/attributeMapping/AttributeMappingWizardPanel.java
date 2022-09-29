@@ -97,6 +97,14 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
                 }
                 return getPageBase().createStringResource("WizardPanel.confirm");
             }
+
+            @Override
+            protected String getSubmitIcon() {
+                if (isSavedAfterWizard()) {
+                    return super.getSubmitIcon();
+                }
+                return "fa fa-check";
+            }
         };
         return table;
     }
@@ -136,6 +144,22 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
                         showWizardFragment(
                                 target,
                                 new WizardPanel(getIdOfWizardPanel(), new WizardModel(createNewAttributeOverrideSteps(value))));
+                    }
+
+                    @Override
+                    protected IModel<String> getSubmitLabelModel() {
+                        if (isSavedAfterWizard()) {
+                            return super.getSubmitLabelModel();
+                        }
+                        return getPageBase().createStringResource("WizardPanel.confirm");
+                    }
+
+                    @Override
+                    protected String getSubmitIcon() {
+                        if (isSavedAfterWizard()) {
+                            return super.getSubmitIcon();
+                        }
+                        return "fa fa-check";
                     }
                 });
     }

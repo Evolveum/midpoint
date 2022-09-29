@@ -4,34 +4,27 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author lskublik
  */
-public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
+public class CorrelationWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
 
-    public SynchronizationWizardPanel(String id, ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+    public CorrelationWizardPanel(String id, ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         super(id, model);
         this.valueModel = valueModel;
     }
@@ -40,9 +33,9 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
         add(createChoiceFragment(createTablePanel()));
     }
 
-    protected SynchronizationReactionTableWizardPanel createTablePanel() {
-        SynchronizationReactionTableWizardPanel table
-                = new SynchronizationReactionTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
+    protected CorrelationItemsTableWizardPanel createTablePanel() {
+        CorrelationItemsTableWizardPanel table
+                = new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
 
             @Override
             protected void onSaveResourcePerformed(AjaxRequestTarget target) {
@@ -50,7 +43,7 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
                     onExitPerformed(target);
                     return;
                 }
-                OperationResult result = SynchronizationWizardPanel.this.onSaveResourcePerformed(target);
+                OperationResult result = CorrelationWizardPanel.this.onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
                     new Toast()
                             .success()
@@ -64,15 +57,18 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
             }
 
             @Override
-            protected void inEditNewValue(IModel<PrismContainerValueWrapper<SynchronizationReactionType>> value, AjaxRequestTarget target) {
-                showWizardFragment(target, new WizardPanel(
-                        getIdOfWizardPanel(),
-                        new WizardModel(createSynchronizationConfigSteps(value))));
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                CorrelationWizardPanel.this.onExitPerformed(target);
             }
 
             @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                SynchronizationWizardPanel.this.onExitPerformed(target);
+            protected void showTableForItemRefs(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
+                showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), rowModel) {
+                    @Override
+                    protected void onExitPerformed(AjaxRequestTarget target) {
+                        showChoiceFragment(target, createTablePanel());
+                    }
+                });
             }
 
             @Override
@@ -96,27 +92,6 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
 
     public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
         return valueModel;
-    }
-
-    private List<WizardStep> createSynchronizationConfigSteps(IModel<PrismContainerValueWrapper<SynchronizationReactionType>> valueModel) {
-        List<WizardStep> steps = new ArrayList<>();
-        ReactionMainSettingStepPanel settingPanel = new ReactionMainSettingStepPanel(getResourceModel(), valueModel) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showChoiceFragment(target, createTablePanel());
-            }
-        };
-        settingPanel.setOutputMarkupId(true);
-        steps.add(settingPanel);
-
-        steps.add(new ReactionOptionalSettingStepPanel(getResourceModel(), valueModel) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showChoiceFragment(target, createTablePanel());
-            }
-        });
-
-        return steps;
     }
 
     protected boolean isSavedAfterWizard() {

@@ -81,12 +81,17 @@ public class GuiDisplayNameUtil {
     }
 
     public static String getDisplayName(VariableBindingDefinitionType value) {
-        if (value == null || value.getPath() == null) {
+        if (value == null) {
             return null;
         }
-        ItemPathType path = value.getPath();
+        return getDisplayName(value.getPath());
+    }
 
-        return path.getItemPath().stripVariableSegment().toString();
+    public static String getDisplayName(ItemPathType value) {
+        if (value == null) {
+            return null;
+        }
+        return value.getItemPath().stripVariableSegment().toString();
     }
 
     public static String getDisplayName(ItemConstraintType propertyConstraintType) {
@@ -292,6 +297,22 @@ public class GuiDisplayNameUtil {
 //            }
 //        }
 //        return string;
+        return "";
+    }
+
+    public static String getDisplayName(AbstractCorrelatorType correlator){
+        if (correlator == null) {
+            return "";
+        }
+
+        if (StringUtils.isNotBlank(correlator.getDisplayName())) {
+            return correlator.getDisplayName();
+        }
+
+        if (StringUtils.isNotBlank(correlator.getName())) {
+            return correlator.getName();
+        }
+
         return "";
     }
 }

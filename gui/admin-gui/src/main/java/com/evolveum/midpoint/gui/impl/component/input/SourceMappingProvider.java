@@ -66,12 +66,7 @@ public class SourceMappingProvider extends ChoiceProvider<VariableBindingDefinit
                 .collect(Collectors.toList());
     }
 
-    public List<String> collectAvailableDefinitions(String input) {
-
-        PrismPropertyWrapper<VariableBindingDefinitionType> wrapper = rowModel.getObject();
-
-        ResourceObjectTypeDefinitionType resourceObjectType = getResourceObjectType(wrapper);
-
+    public List<String> collectAvailableDefinitions(String input, ResourceObjectTypeDefinitionType resourceObjectType) {
         ComplexTypeDefinition resourceDef =
                 PrismContext.get().getSchemaRegistry().findComplexTypeDefinitionByType(ResourceType.COMPLEX_TYPE);
 
@@ -114,6 +109,14 @@ public class SourceMappingProvider extends ChoiceProvider<VariableBindingDefinit
         return toSelect;
     }
 
+    public List<String> collectAvailableDefinitions(String input) {
+        PrismPropertyWrapper<VariableBindingDefinitionType> wrapper = rowModel.getObject();
+
+        ResourceObjectTypeDefinitionType resourceObjectType = getResourceObjectType(wrapper);
+
+        return collectAvailableDefinitions(input, resourceObjectType);
+    }
+
     private static void collectItems(
             Collection<? extends ItemDefinition> definitions,
             String input,
@@ -143,7 +146,7 @@ public class SourceMappingProvider extends ChoiceProvider<VariableBindingDefinit
         }
     }
 
-    private static ResourceObjectTypeDefinitionType getResourceObjectType(PrismPropertyWrapper<VariableBindingDefinitionType> propertyWrapper) {
+    private ResourceObjectTypeDefinitionType getResourceObjectType(PrismPropertyWrapper<VariableBindingDefinitionType> propertyWrapper) {
 
         if (propertyWrapper != null
                 && propertyWrapper.getParent() != null

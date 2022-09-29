@@ -365,7 +365,7 @@
                         of confidence value.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>AbstractCorrelatorType.confidence</a:displayName>
+                        <a:displayName>CorrelatorCompositionDefinitionType.weight</a:displayName>
                         <a:displayOrder>70</a:displayOrder>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -469,6 +469,9 @@
                     <xsd:documentation>
                         A reference to focus item that is being correlated (using its path).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>CorrelationItemType.ref</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="search" type="tns:ItemSearchDefinitionType" minOccurs="0">
@@ -1792,6 +1795,9 @@
                         <xsd:documentation>
                             Specification of the fuzzy search to be used.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>ItemSearchDefinitionType.fuzzy</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
@@ -1824,6 +1830,9 @@
                         <xsd:documentation>
                             Search using Levenshtein edit distance.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>FuzzySearchDefinitionType.levenshtein</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="similarity" type="tns:TrigramSimilaritySearchDefinitionType" minOccurs="0">
@@ -1831,6 +1840,9 @@
                         <xsd:documentation>
                             Search using trigram similarity.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:displayName>FuzzySearchDefinitionType.similarity</a:displayName>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
             </xsd:choice>
@@ -1855,6 +1867,9 @@
                     <xsd:documentation>
                         Upper limit on the edit distance to be matched.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>LevenshteinDistanceSearchDefinitionType.threshold</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="inclusive" type="xsd:boolean" minOccurs="0" default="true">
@@ -1862,6 +1877,9 @@
                     <xsd:documentation>
                         Is the value of "threshold" meant to be inclusive?
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>LevenshteinDistanceSearchDefinitionType.inclusive</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

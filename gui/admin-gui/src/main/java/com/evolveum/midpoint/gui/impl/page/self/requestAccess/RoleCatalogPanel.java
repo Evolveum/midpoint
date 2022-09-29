@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -996,6 +997,16 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     private void addItemsPerformed(AjaxRequestTarget target, List<ObjectType> selected) {
+        if (CollectionUtils.isEmpty(selected)) {
+            new Toast()
+                    .info()
+                    .title(getString("RoleCatalogPanel.message.noItemAdded"))
+                    .icon("fas fa-cart-shopping")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(getString("RoleCatalogPanel.message.selectItemToBeAdded")).show(target);
+            return;
+        }
         RequestAccess requestAccess = getModelObject();
         QName relation = requestAccess.getRelation();
 

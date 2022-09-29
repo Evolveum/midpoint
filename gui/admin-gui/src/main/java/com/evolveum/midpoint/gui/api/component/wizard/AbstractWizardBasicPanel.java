@@ -142,11 +142,16 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
             }
         };
         exit.showTitleAsLabel(true);
+        exit.add(new VisibleBehaviour(() -> isExitButtonVisible()));
         exit.add(AttributeAppender.append("class", "btn btn-outline-primary"));
         buttons.add(exit);
 
         addCustomButtons(buttons);
         buttonsContainer.add(buttons);
+    }
+
+    protected boolean isExitButtonVisible() {
+        return true;
     }
 
     protected WebMarkupContainer getButtonsContainer() {

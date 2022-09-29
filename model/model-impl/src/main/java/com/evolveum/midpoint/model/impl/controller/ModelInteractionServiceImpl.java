@@ -73,6 +73,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableContainerDefinition;
 import com.evolveum.midpoint.model.impl.schema.transform.TransformableObjectDefinition;
+import com.evolveum.midpoint.model.impl.schema.transform.TransformableReferenceDefinition;
 import com.evolveum.midpoint.model.impl.security.GuiProfileCompiler;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
@@ -2151,5 +2152,16 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     public void switchToBackground(Task task, OperationResult result) {
         taskManager.switchToBackground(task, result);
         result.setBackgroundTaskOid(task.getOid());
+    }
+
+    @Override
+    public PrismContainerDefinition<AssignmentType> assignmentTypeDefinitionWithConcreteTargetRefType(
+            PrismContainerDefinition<AssignmentType> orig, QName targetType) {
+        var transformed = TransformableContainerDefinition.of(orig);
+        var targetRef = TransformableReferenceDefinition.of(orig.getComplexTypeDefinition().findReferenceDefinition(AssignmentType.F_TARGET_REF));
+        targetRef.setTargetTypeName(targetType);
+        transformed.getComplexTypeDefinition().replaceDefinition(AssignmentType.F_TARGET_REF, targetRef);
+        return transformed;
+
     }
 }

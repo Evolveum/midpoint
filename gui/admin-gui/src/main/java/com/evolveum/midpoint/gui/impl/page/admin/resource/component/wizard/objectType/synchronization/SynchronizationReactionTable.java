@@ -18,8 +18,10 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -66,13 +68,6 @@ public abstract class SynchronizationReactionTable extends MultivalueContainerLi
         super(id, SynchronizationReactionType.class);
         this.valueModel = valueModel;
     }
-
-//    @Override
-//    protected void onBeforeRender() {
-//        super.onBeforeRender();
-//
-//        getTable().setShowAsCard(false);
-//    }
 
     @Override
     protected boolean isHeaderVisible() {
@@ -185,9 +180,14 @@ public abstract class SynchronizationReactionTable extends MultivalueContainerLi
             @Override
             protected <IW extends ItemWrapper> Component createColumnPanel(
                     String componentId, IModel<IW> rowModel) {
-                SynchronizationActionDropDownPanel panel = new SynchronizationActionDropDownPanel(
+                ContainersDropDownPanel<SynchronizationActionsType> panel = new ContainersDropDownPanel(
                         componentId,
-                        (IModel<PrismContainerWrapper<SynchronizationActionsType>>) rowModel);
+                        rowModel) {
+                    @Override
+                    protected boolean validateChildContainer(ItemDefinition definition) {
+                        return AbstractSynchronizationActionType.class.isAssignableFrom(definition.getTypeClass());
+                    }
+                };
                 panel.setOutputMarkupId(true);
                 return panel;
             }
