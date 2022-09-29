@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CompositeCorrelatorType;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -54,6 +56,10 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> extend
      */
     @Override
     public boolean match(ItemDefinition<?> def) {
+        if (def.getTypeClass() != null && def.getTypeClass().isAssignableFrom(CompositeCorrelatorType.class)) {
+            return false;
+        }
+
         QName defName = def.getTypeName();
 
         if (CollectionRefSpecificationType.COMPLEX_TYPE.equals(defName)

@@ -4,17 +4,14 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization;
+package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation;
 
 import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.MappingOverrideTable;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -27,13 +24,13 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class SynchronizationReactionTableWizardPanel extends AbstractWizardBasicPanel {
+public abstract class CorrelationItemsTableWizardPanel extends AbstractWizardBasicPanel {
 
     private static final String ID_TABLE = "table";
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
 
-    public SynchronizationReactionTableWizardPanel(
+    public CorrelationItemsTableWizardPanel(
             String id,
             ResourceDetailsModel model,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
@@ -48,41 +45,30 @@ public abstract class SynchronizationReactionTableWizardPanel extends AbstractWi
     }
 
     private void initLayout() {
-
-        SynchronizationReactionTable table = new SynchronizationReactionTable(ID_TABLE, valueModel) {
+        CorrelationItemsTable table = new CorrelationItemsTable(ID_TABLE, valueModel) {
             @Override
             protected void editItemPerformed(
                     AjaxRequestTarget target,
-                    IModel<PrismContainerValueWrapper<SynchronizationReactionType>> rowModel,
-                    List<PrismContainerValueWrapper<SynchronizationReactionType>> listItems) {
-                inEditNewValue(rowModel, target);
+                    IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel,
+                    List<PrismContainerValueWrapper<ItemsSubCorrelatorType>> listItems) {
+                showTableForItemRefs(target, rowModel);
             }
         };
-
         table.setOutputMarkupId(true);
         add(table);
     }
 
-    public SynchronizationReactionTable getTablePanel() {
+    protected abstract void showTableForItemRefs(
+            AjaxRequestTarget target,
+            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel);
+
+    public CorrelationItemsTable getTablePanel() {
         //noinspection unchecked
-        return (SynchronizationReactionTable) get(ID_TABLE);
+        return (CorrelationItemsTable) get(ID_TABLE);
     }
 
     @Override
     protected void addCustomButtons(RepeatingView buttons) {
-        AjaxIconButton newObjectTypeButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of("fa fa-circle-plus"),
-                getPageBase().createStringResource("SynchronizationReactionTableWizardPanel.addNewReaction")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onAddNewObject(target);
-            }
-        };
-        newObjectTypeButton.showTitleAsLabel(true);
-        newObjectTypeButton.add(AttributeAppender.append("class", "btn btn-primary"));
-        buttons.add(newObjectTypeButton);
-
         AjaxIconButton saveButton = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of(getSubmitIcon()),
@@ -103,30 +89,23 @@ public abstract class SynchronizationReactionTableWizardPanel extends AbstractWi
     }
 
     protected IModel<String> getSubmitLabelModel() {
-        return getPageBase().createStringResource("SynchronizationReactionTableWizardPanel.saveButton");
-    }
-
-    private void onAddNewObject(AjaxRequestTarget target) {
-        SynchronizationReactionTable table = getTablePanel();
-        inEditNewValue(Model.of(table.createNewReaction(target)), target);
+        return getPageBase().createStringResource("CorrelationWizardPanelWizardPanel.saveButton");
     }
 
     protected abstract void onSaveResourcePerformed(AjaxRequestTarget target);
 
-    protected abstract void inEditNewValue(IModel<PrismContainerValueWrapper<SynchronizationReactionType>> value, AjaxRequestTarget target);
-
     @Override
     protected IModel<String> getBreadcrumbLabel() {
-        return getTextModel();
+        return getPageBase().createStringResource("CorrelationWizardPanelWizardPanel.breadcrumb");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("SynchronizationReactionTableWizardPanel.text");
+        return getPageBase().createStringResource("CorrelationWizardPanelWizardPanel.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("SynchronizationReactionTableWizardPanel.subText");
+        return getPageBase().createStringResource("CorrelationWizardPanelWizardPanel.subText");
     }
 }

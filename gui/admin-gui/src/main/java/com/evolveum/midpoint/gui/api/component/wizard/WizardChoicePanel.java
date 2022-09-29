@@ -40,12 +40,12 @@ public abstract class WizardChoicePanel<T extends TileEnum> extends AbstractWiza
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initModels();
+        tiles = initTilesModel();
         initLayout();
     }
 
-    private void initModels() {
-        tiles = new LoadableModel<>(false) {
+    protected LoadableModel<List<Tile<T>>> initTilesModel() {
+        return new LoadableModel<>(false) {
 
             @Override
             protected List<Tile<T>> load() {

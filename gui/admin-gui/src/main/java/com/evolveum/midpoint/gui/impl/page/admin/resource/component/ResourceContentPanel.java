@@ -157,7 +157,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         topButtonsContainer.add(topButtons);
 
         initSychronizationButton(topButtons);
-        initAttributeMappingButton (topButtons);
+        initAttributeMappingButton(topButtons);
+        initCorrelationButton(topButtons);
 
         final Form mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
@@ -342,7 +343,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         attrMappingButton.showTitleAsLabel(true);
-        attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary btn p-3 flex-basis-0 flex-fill"));
+        attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
         topButtons.add(attrMappingButton);
     }
 
@@ -363,8 +364,29 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         synchConfButton.showTitleAsLabel(true);
-        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary btn p-3 flex-fill flex-basis-0 mr-3"));
+        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
         topButtons.add(synchConfButton);
+    }
+
+    private void initCorrelationButton(RepeatingView topButtons) {
+        AjaxIconButton correlationConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.CORRELATION_CONFIG.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.CORRELATION_CONFIG)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showCorrelationWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        correlationConfButton.showTitleAsLabel(true);
+        correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill"));
+        topButtons.add(correlationConfButton);
     }
 
     private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeValue(

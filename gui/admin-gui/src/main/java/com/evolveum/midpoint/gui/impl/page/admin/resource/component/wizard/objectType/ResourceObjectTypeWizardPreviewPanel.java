@@ -35,8 +35,8 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
 
         PREVIEW_DATA("fa fa-magnifying-glass"),
         ATTRIBUTE_MAPPING("fa fa-retweet"),
-        SYNCHRONIZATION_CONFIG("fa fa-arrows-rotate");
-//        CORRELATION_CONFIG("fa fa-code-branch"),
+        SYNCHRONIZATION_CONFIG("fa fa-arrows-rotate"),
+        CORRELATION_CONFIG("fa fa-code-branch");
 //        CAPABILITIES_CONFIG("fab fa-react"),
 //        ACTIVATION("fa fa-toggle-off"),
 //        CREDENTIALS("fa fa-key"),

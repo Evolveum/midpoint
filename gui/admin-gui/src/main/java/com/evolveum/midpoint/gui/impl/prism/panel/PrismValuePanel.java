@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -183,6 +184,9 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     protected FeedbackAlerts createFeedbackPanel(String idFeedback) {
+        if (getSettings() != null && getSettings().isDisplayedInColumn()) {
+            return new FeedbackLabels(idFeedback);
+        }
         return new FeedbackAlerts(idFeedback);
     }
 
@@ -200,13 +204,17 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                target.add(getPageBase().getFeedbackPanel());
+                if (getSettings() == null || !getSettings().isDisplayedInColumn()) {
+                    target.add(getPageBase().getFeedbackPanel());
+                }
                 target.add(getFeedback());
             }
 
             @Override
             protected void onError(AjaxRequestTarget target, RuntimeException e) {
-                target.add(getPageBase().getFeedbackPanel());
+                if (getSettings() == null || !getSettings().isDisplayedInColumn()) {
+                    target.add(getPageBase().getFeedbackPanel());
+                }
                 target.add(getFeedback());
             }
 

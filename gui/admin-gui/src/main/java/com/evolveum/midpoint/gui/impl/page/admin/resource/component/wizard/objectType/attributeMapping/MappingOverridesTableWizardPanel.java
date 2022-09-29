@@ -89,7 +89,7 @@ public abstract class MappingOverridesTableWizardPanel extends AbstractWizardBas
 
         AjaxIconButton saveButton = new AjaxIconButton(
                 buttons.newChildId(),
-                Model.of("fa fa-floppy-disk"),
+                Model.of(getSubmitIcon()),
                 getSubmitLabelModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -100,6 +100,10 @@ public abstract class MappingOverridesTableWizardPanel extends AbstractWizardBas
         saveButton.showTitleAsLabel(true);
         saveButton.add(AttributeAppender.append("class", "btn btn-success"));
         buttons.add(saveButton);
+    }
+
+    protected String getSubmitIcon() {
+        return "fa fa-floppy-disk";
     }
 
     protected IModel<String> getSubmitLabelModel() {
