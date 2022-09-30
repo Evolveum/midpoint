@@ -442,6 +442,8 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
 
             @Override
             protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
+                super.savePerformed(target, model);
+
                 getPageBase().hideMainPopup(target);
             }
 
