@@ -118,7 +118,11 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                     Task task = getPageBase().getPageTask();
                     OperationResult result = task.getResult();
 
-                    AssignmentType assigment = getModelObject().getAssignment();
+                    // we'll clone our assignment for this assignment/extension prism container value wrapper black magic
+                    // hack as not to polute original object with mess from wrappers
+                    // we'll copy new extension container value to original assignment during save operation
+                    AssignmentType assigment = getModelObject().getAssignment().clone();
+
                     // virtual containers are now collected for Objects, not containers, therefore empty user is created here
                     UserType user = new UserType();
                     user.getAssignment().add(assigment);
@@ -158,7 +162,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         relation.add(new EnableBehaviour(() -> false));
         add(relation);
 
-        /*AssignmentsDetailsPanel extension = new AssignmentsDetailsPanel("extension", assignmentExtension, false, createExtensionPanelConfiguration()) {
+        AssignmentsDetailsPanel extension = new AssignmentsDetailsPanel("extension", assignmentExtension, false, createExtensionPanelConfiguration()) {
 
             @Override
             protected DisplayNamePanel<AssignmentType> createDisplayNamePanel(String displayNamePanelId) {
@@ -177,7 +181,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 return itemWrapper.getPath().startsWith(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_EXTENSION)) ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
             }
         };
-        add(extension);*/
+        add(extension);
 
         IModel<ActivationStatusType> model = new Model<>() {
 
@@ -284,7 +288,17 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     }
 
     protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
+        // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
+        PrismObjectWrapper<UserType> wrapper = assignmentExtension.getObject().getParent().findObjectWrapper();
+        List<AssignmentType> modifiedList = wrapper.getObject().asObjectable().getAssignment();
+        if (modifiedList.isEmpty()) {
+            return;
+        }
 
+        AssignmentType newOne = modifiedList.get(0);
+
+        AssignmentType a = getModelObject().getAssignment();
+        a.setExtension(newOne.getExtension());
     }
 
     protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
