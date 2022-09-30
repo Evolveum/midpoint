@@ -55,6 +55,7 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
     private static final String ID_ITEM_NAME = "itemName";
     private static final String ID_ITEM_HELP = "itemHelp";
     private static final String ID_ADD_BUTTON = "addButton";
+    private static final String ID_REMOVE_BUTTON = "removeButton";
     private static final String ID_CLOSE_BUTTON = "closeButton";
 
     public SelectableItemListPopoverPanel(String id, IModel<List<T>> popupItemModel) {
@@ -177,8 +178,20 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
                 addItemsPerformed(getSelectedItemList(), target);
             }
         };
-        addButton.add(new VisibleBehaviour(this::isSelectable));
+        addButton.add(new VisibleBehaviour(this::isAddButtonVisible));
         popover.add(addButton);
+
+        AjaxButton removeButton = new AjaxButton(ID_REMOVE_BUTTON, createStringResource("SearchItemPanel.remove")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                removeItemsPerformed(getSelectedItemList(), target);
+            }
+        };
+        removeButton.add(new VisibleBehaviour(this::isRemoveButtonVisible));
+        popover.add(removeButton);
 
         AjaxButton close = new AjaxButton(ID_CLOSE_BUTTON, createStringResource("SearchPanel.close")) {
 
@@ -193,14 +206,19 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
 
     }
 
-    private boolean isSelectable() {
-        if (getModelObject() == null) {
-            return false;
-        }
-        return CollectionUtils.isNotEmpty(getModelObject().stream().filter(item -> item instanceof SelectableRow).collect(Collectors.toList()));
+    protected boolean isRemoveButtonVisible() {
+        return true;
     }
 
-    protected abstract void addItemsPerformed(List<T> item, AjaxRequestTarget target);
+    protected boolean isAddButtonVisible() {
+        return true;
+    }
+
+    protected void addItemsPerformed(List<T> item, AjaxRequestTarget target){
+    }
+
+    protected void removeItemsPerformed(List<T> item, AjaxRequestTarget target){
+    }
 
     protected abstract Component getPopoverReferenceComponent();
 
