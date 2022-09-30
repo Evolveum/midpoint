@@ -62,8 +62,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                 "adminGuiConfiguration/userDashboardLink",
                 "adminGuiConfiguration/objectCollectionViews",
                 "adminGuiConfiguration/objectDetails",
-                "adminGuiConfiguration/configurableUserDashboard"
+                "adminGuiConfiguration/configurableUserDashboard",
+                "adminGuiConfiguration/accessRequest"
         }
+)
+@PanelInstance(
+        identifier = "accessRequestPanel",
+        applicableForType = AdminGuiConfigurationType.class,
+        display = @PanelDisplay(
+                label = "AdminGuiConfigurationType.accessRequest",
+                icon = GuiStyleConstants.CLASS_CIRCLE_FULL,
+                order = 70
+        ),
+        containerPath = "adminGuiConfiguration/accessRequest",
+        type = "AccessRequestType",
+        expanded = true
 )
 @PanelInstance(
         identifier = "wfConfigurationPanel",
