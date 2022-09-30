@@ -34,15 +34,17 @@
             <div wicket:id="customValidity"/>
         </div>
     </div>
-    <div class="col-12">
-        <div class="form-group">
-            <label class="col-form-label">
-                <wicket:message key="AssignmentType.extension"/>
-                <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
-            </label>
-            <div wicket:id="extension"/>
+    <wicket:enclosure child="extension">
+        <div class="col-12">
+            <div class="form-group">
+                <label class="col-form-label">
+                    <wicket:message key="AssignmentType.extension"/>
+                    <span class="text-gray font-weight-light">- <wicket:message key="ShoppingCartEditPanel.optional"/></span>
+                </label>
+                <div wicket:id="extension"/>
+            </div>
         </div>
-    </div>
+    </wicket:enclosure>
 
     <wicket:fragment wicket:id="buttons">
         <div class="d-flex flex-wrap gap-2 w-100">
