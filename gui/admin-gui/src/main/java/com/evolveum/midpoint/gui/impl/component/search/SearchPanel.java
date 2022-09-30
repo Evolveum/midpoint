@@ -277,7 +277,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                     @Override
                     protected void removeItemsPerformed(List<AvailableFilterWrapper> items, AjaxRequestTarget target){
                         DeleteConfirmationPanel confirmationPanel = new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                                createStringResource("OperationalButtonsPanel.deletePerformed")) {
+                                getDeleteFilterConfirmationMessageModel(items)) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -332,8 +332,20 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private void saveSearchFilterPerformed(AjaxRequestTarget target) {
-        savedSearchListModel.detach();
+        savedSearchListModel.reset();
         target.add(SearchPanel.this.get(ID_FORM));
+    }
+
+    private IModel<String> getDeleteFilterConfirmationMessageModel(List<AvailableFilterWrapper> filters) {
+        if (CollectionUtils.isEmpty(filters)) {
+            return Model.of();
+        }
+        if (filters.size() == 1) {
+            return createStringResource("SearchPanel.removeSingleAvailableFilter",
+                    WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(filters.get(0).getFilter().getDisplay())));
+        } else {
+            return createStringResource("SearchPanel.removeMultipleAvailableFilter", filters.size());
+        }
     }
 
     private void deleteFilterPerformed(List<AvailableFilterWrapper> items, AjaxRequestTarget target) {
@@ -356,6 +368,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
+        savedSearchListModel.reset();
         target.add(getPageBase().getFeedbackPanel());
         target.add(get(ID_FORM));
     }
