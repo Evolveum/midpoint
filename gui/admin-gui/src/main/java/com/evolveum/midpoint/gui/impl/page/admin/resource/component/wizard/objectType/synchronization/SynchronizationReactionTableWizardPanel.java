@@ -8,9 +8,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.MappingOverrideTable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
@@ -18,6 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReact
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -30,6 +34,8 @@ import java.util.List;
 public abstract class SynchronizationReactionTableWizardPanel extends AbstractWizardBasicPanel {
 
     private static final String ID_TABLE = "table";
+
+    private static final String ID_DEPRECATED_CONTAINER_INFO = "deprecatedContainerInfo";
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
 
@@ -61,6 +67,19 @@ public abstract class SynchronizationReactionTableWizardPanel extends AbstractWi
 
         table.setOutputMarkupId(true);
         add(table);
+
+        Label info = new Label(
+                ID_DEPRECATED_CONTAINER_INFO,
+                getPageBase().createStringResource("SynchronizationReactionTableWizardPanel.deprecatedContainer"));
+        info.setOutputMarkupId(true);
+        info.add(new VisibleBehaviour(() -> isDeprecatedContainerInfoVisible()));
+        add(info);
+    }
+
+    private boolean isDeprecatedContainerInfoVisible() {
+        PrismContainerValue depSynch = getResourceModel().getObjectType().getSynchronization().clone().asPrismContainerValue();
+        depSynch = WebPrismUtil.cleanupEmptyContainerValue(depSynch);
+        return depSynch != null && !depSynch.hasNoItems();
     }
 
     public SynchronizationReactionTable getTablePanel() {
