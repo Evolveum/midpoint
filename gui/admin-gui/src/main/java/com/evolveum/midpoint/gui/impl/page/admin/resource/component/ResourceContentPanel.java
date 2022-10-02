@@ -159,6 +159,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         initSychronizationButton(topButtons);
         initAttributeMappingButton(topButtons);
         initCorrelationButton(topButtons);
+        initCredentialsButton(topButtons);
 
         final Form mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
@@ -385,8 +386,29 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         correlationConfButton.showTitleAsLabel(true);
-        correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill"));
+        correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
         topButtons.add(correlationConfButton);
+    }
+
+    private void initCredentialsButton(RepeatingView topButtons) {
+        AjaxIconButton credentialsConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.CREDENTIALS.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.CREDENTIALS)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showCredentialsWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        credentialsConfButton.showTitleAsLabel(true);
+        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill"));
+        topButtons.add(credentialsConfButton);
     }
 
     private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeValue(

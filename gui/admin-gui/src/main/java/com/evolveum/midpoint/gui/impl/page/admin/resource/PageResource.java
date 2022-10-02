@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Resou
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.CredentialsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -204,6 +205,28 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         fragment.setOutputMarkupId(true);
         addOrReplace(fragment);
         CorrelationWizardPanel wizard = new CorrelationWizardPanel(
+                ID_WIZARD, getObjectDetailsModels(), valueModel) {
+
+            @Override
+            protected boolean isSavedAfterWizard() {
+                return false;
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                backToDetailsFromWizard(target);
+            }
+        };
+        wizard.setOutputMarkupId(true);
+        fragment.add(wizard);
+        target.add(fragment);
+    }
+
+    public void showCredentialsWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
+        fragment.setOutputMarkupId(true);
+        addOrReplace(fragment);
+        CredentialsWizardPanel wizard = new CredentialsWizardPanel(
                 ID_WIZARD, getObjectDetailsModels(), valueModel) {
 
             @Override

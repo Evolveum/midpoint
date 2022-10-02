@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -73,5 +75,13 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPan
 
     protected WebMarkupContainer getFeedback() {
         return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
+    }
+
+    @Override
+    public VisibleEnableBehaviour getStepsBehaviour() {
+        if (getWizard().getSteps().size() <= 1) {
+            return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
+        }
+        return super.getHeaderBehaviour();
     }
 }

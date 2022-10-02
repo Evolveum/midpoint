@@ -55,7 +55,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
                 .visibilityHandler(getVisibilityHandler())
                 .mandatoryHandler(w -> checkMandatory(w))
                 .build();
-        VerticalFormPanel form = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
+        VerticalFormPanel panel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
             @Override
             protected String getIcon() {
                 return AbstractFormResourceWizardStepPanel.this.getIcon();
@@ -71,8 +71,8 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
                 return resourceModel.createWrapperContext();
             }
         };
-        form.setOutputMarkupId(true);
-        add(form);
+        panel.setOutputMarkupId(true);
+        add(panel);
     }
 
     protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
