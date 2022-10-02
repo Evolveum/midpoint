@@ -22,17 +22,17 @@ import org.apache.wicket.model.IModel;
  */
 
 @Experimental
-@PanelInstance(identifier = "validToWizard",
+@PanelInstance(identifier = "validFromWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.activation.validTo", icon = "fa fa-toggle-off"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.activation.validFrom", icon = "fa fa-toggle-off"),
         expanded = true)
-public abstract class ValidToStepPanel extends ActivationMappingStepPanel {
+public abstract class ValidFromStepPanel extends ActivationMappingStepPanel {
 
-    public static final String PANEL_TYPE = "validToWizard";
+    public static final String PANEL_TYPE = "validFromWizard";
 
-    public ValidToStepPanel(ResourceDetailsModel model,
-                            IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {
+    public ValidFromStepPanel(ResourceDetailsModel model,
+                              IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {
         super(model, containerModel);
     }
 
@@ -47,16 +47,16 @@ public abstract class ValidToStepPanel extends ActivationMappingStepPanel {
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.activation.validTo");
+        return createStringResource("PageResource.wizard.step.activation.validFrom");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.validTo.text");
+        return createStringResource("PageResource.wizard.step.activation.validFrom.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.validTo.subText");
+        return createStringResource("PageResource.wizard.step.activation.validFrom.subText");
     }
 }

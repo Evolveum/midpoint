@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -23,7 +25,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceCredentialsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 /**
@@ -31,11 +32,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
  */
 
 @Experimental
-public class CredentialsWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
+public class ActivationsWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
 
-    public CredentialsWizardPanel(String id, ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+    public ActivationsWizardPanel(String id, ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         super(id, model);
         this.valueModel = valueModel;
     }
@@ -43,25 +44,85 @@ public class CredentialsWizardPanel extends AbstractResourceWizardPanel<Resource
     protected void initLayout() {
         add(createWizardFragment(new WizardPanel(
                 getIdOfWizardPanel(),
-                new WizardModel(createCredentialsSteps(getValueModel())))));
+                new WizardModel(createActivationsSteps(getValueModel())))));
     }
 
     public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
         return valueModel;
     }
 
-    private List<WizardStep> createCredentialsSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+    private List<WizardStep> createActivationsSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        PasswordStepPanel panel = new PasswordStepPanel(
+        AdministrativeStatusStepPanel adminPanel = new AdministrativeStatusStepPanel(
                 getResourceModel(),
                 PrismContainerWrapperModel.fromContainerValueWrapper(
                         valueModel,
                         ItemPath.create(
-                                ResourceObjectTypeDefinitionType.F_CREDENTIALS,
-                                ResourceCredentialsDefinitionType.F_PASSWORD))) {
+                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
+                                ResourceActivationDefinitionType.F_ADMINISTRATIVE_STATUS))) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                CredentialsWizardPanel.this.onExitPerformed(target);
+                ActivationsWizardPanel.this.onExitPerformed(target);
+            }
+        };
+        adminPanel.setOutputMarkupId(true);
+        steps.add(adminPanel);
+
+        ExistenceStepPanel existencePanel = new ExistenceStepPanel(
+                getResourceModel(),
+                PrismContainerWrapperModel.fromContainerValueWrapper(
+                        valueModel,
+                        ItemPath.create(
+                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
+                                ResourceActivationDefinitionType.F_EXISTENCE))) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ActivationsWizardPanel.this.onExitPerformed(target);
+            }
+        };
+        existencePanel.setOutputMarkupId(true);
+        steps.add(existencePanel);
+
+        ValidFromStepPanel validFromPanel = new ValidFromStepPanel(
+                getResourceModel(),
+                PrismContainerWrapperModel.fromContainerValueWrapper(
+                        valueModel,
+                        ItemPath.create(
+                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
+                                ResourceActivationDefinitionType.F_VALID_FROM))) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ActivationsWizardPanel.this.onExitPerformed(target);
+            }
+        };
+        validFromPanel.setOutputMarkupId(true);
+        steps.add(validFromPanel);
+
+        ValidToStepPanel validToPanel = new ValidToStepPanel(
+                getResourceModel(),
+                PrismContainerWrapperModel.fromContainerValueWrapper(
+                        valueModel,
+                        ItemPath.create(
+                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
+                                ResourceActivationDefinitionType.F_VALID_TO))) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ActivationsWizardPanel.this.onExitPerformed(target);
+            }
+        };
+        validToPanel.setOutputMarkupId(true);
+        steps.add(validToPanel);
+
+        LockoutStatusStepPanel lockPanel = new LockoutStatusStepPanel(
+                getResourceModel(),
+                PrismContainerWrapperModel.fromContainerValueWrapper(
+                        valueModel,
+                        ItemPath.create(
+                                ResourceObjectTypeDefinitionType.F_ACTIVATION,
+                                ResourceActivationDefinitionType.F_LOCKOUT_STATUS))) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                ActivationsWizardPanel.this.onExitPerformed(target);
             }
 
             @Override
@@ -70,7 +131,7 @@ public class CredentialsWizardPanel extends AbstractResourceWizardPanel<Resource
                     onExitPerformed(target);
                     return;
                 }
-                OperationResult result = CredentialsWizardPanel.this.onSaveResourcePerformed(target);
+                OperationResult result = ActivationsWizardPanel.this.onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
                     new Toast()
                             .success()
@@ -91,8 +152,8 @@ public class CredentialsWizardPanel extends AbstractResourceWizardPanel<Resource
                 return getPageBase().createStringResource("WizardPanel.confirm");
             }
         };
-        panel.setOutputMarkupId(true);
-        steps.add(panel);
+        lockPanel.setOutputMarkupId(true);
+        steps.add(lockPanel);
 
         return steps;
     }

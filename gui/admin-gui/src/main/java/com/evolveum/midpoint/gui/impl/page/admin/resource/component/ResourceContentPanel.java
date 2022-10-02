@@ -160,6 +160,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         initAttributeMappingButton(topButtons);
         initCorrelationButton(topButtons);
         initCredentialsButton(topButtons);
+        initActivationsButton(topButtons);
+        initAssociationsButton(topButtons);
 
         final Form mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
@@ -401,6 +403,48 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                         getResourceObjectTypeValue(target);
                 if (valueModel != null) {
                     getObjectDetailsModels().getPageResource().showCredentialsWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        credentialsConfButton.showTitleAsLabel(true);
+        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
+        topButtons.add(credentialsConfButton);
+    }
+
+    private void initActivationsButton(RepeatingView topButtons) {
+        AjaxIconButton credentialsConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.ACTIVATION.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.ACTIVATION)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showActivationsWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        credentialsConfButton.showTitleAsLabel(true);
+        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
+        topButtons.add(credentialsConfButton);
+    }
+
+    private void initAssociationsButton(RepeatingView topButtons) {
+        AjaxIconButton credentialsConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.ASSOCIATIONS.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.ASSOCIATIONS)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showAssociationsWizard(
                             target,
                             valueModel);
                 }

@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -22,17 +24,17 @@ import org.apache.wicket.model.IModel;
  */
 
 @Experimental
-@PanelInstance(identifier = "validToWizard",
+@PanelInstance(identifier = "lockoutStatusWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.activation.validTo", icon = "fa fa-toggle-off"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.activation.lockoutStatus", icon = "fa fa-toggle-off"),
         expanded = true)
-public abstract class ValidToStepPanel extends ActivationMappingStepPanel {
+public abstract class LockoutStatusStepPanel extends ActivationMappingStepPanel {
 
-    public static final String PANEL_TYPE = "validToWizard";
+    public static final String PANEL_TYPE = "lockoutStatusWizard";
 
-    public ValidToStepPanel(ResourceDetailsModel model,
-                            IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {
+    public LockoutStatusStepPanel(ResourceDetailsModel model,
+                                  IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {
         super(model, containerModel);
     }
 
@@ -47,16 +49,21 @@ public abstract class ValidToStepPanel extends ActivationMappingStepPanel {
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.activation.validTo");
+        return createStringResource("PageResource.wizard.step.activation.lockoutStatus");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.validTo.text");
+        return createStringResource("PageResource.wizard.step.activation.lockoutStatus.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.validTo.subText");
+        return createStringResource("PageResource.wizard.step.activation.lockoutStatus.subText");
+    }
+
+    @Override
+    public VisibleEnableBehaviour getBackBehaviour() {
+        return new VisibleBehaviour(() -> false);
     }
 }

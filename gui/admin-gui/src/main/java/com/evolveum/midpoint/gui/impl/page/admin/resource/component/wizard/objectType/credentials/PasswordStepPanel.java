@@ -32,7 +32,7 @@ import org.apache.wicket.model.IModel;
  */
 
 @Experimental
-@PanelInstance(identifier = "credentialsObjectTypeWizard",
+@PanelInstance(identifier = "credentialsWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.credentials", icon = "fa fa-key"),
@@ -43,7 +43,7 @@ public class PasswordStepPanel extends AbstractResourceWizardStepPanel {
 
     protected static final String ID_PANEL = "panel";
 
-    public static final String PANEL_TYPE = "credentialsObjectTypeWizard";
+    public static final String PANEL_TYPE = "credentialsWizard";
 
     private final IModel<PrismContainerWrapper<ResourcePasswordDefinitionType>> containerModel;
     private final ResourceDetailsModel resourceModel;

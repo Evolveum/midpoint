@@ -20,6 +20,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignment
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.ActivationsWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations.AssociationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.CredentialsWizardPanel;
@@ -227,6 +229,50 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         fragment.setOutputMarkupId(true);
         addOrReplace(fragment);
         CredentialsWizardPanel wizard = new CredentialsWizardPanel(
+                ID_WIZARD, getObjectDetailsModels(), valueModel) {
+
+            @Override
+            protected boolean isSavedAfterWizard() {
+                return false;
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                backToDetailsFromWizard(target);
+            }
+        };
+        wizard.setOutputMarkupId(true);
+        fragment.add(wizard);
+        target.add(fragment);
+    }
+
+    public void showActivationsWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
+        fragment.setOutputMarkupId(true);
+        addOrReplace(fragment);
+        ActivationsWizardPanel wizard = new ActivationsWizardPanel(
+                ID_WIZARD, getObjectDetailsModels(), valueModel) {
+
+            @Override
+            protected boolean isSavedAfterWizard() {
+                return false;
+            }
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                backToDetailsFromWizard(target);
+            }
+        };
+        wizard.setOutputMarkupId(true);
+        fragment.add(wizard);
+        target.add(fragment);
+    }
+
+    public void showAssociationsWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
+        fragment.setOutputMarkupId(true);
+        addOrReplace(fragment);
+        AssociationsWizardPanel wizard = new AssociationsWizardPanel(
                 ID_WIZARD, getObjectDetailsModels(), valueModel) {
 
             @Override

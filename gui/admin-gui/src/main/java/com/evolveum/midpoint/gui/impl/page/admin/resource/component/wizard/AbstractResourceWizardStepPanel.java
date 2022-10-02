@@ -82,6 +82,6 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPan
         if (getWizard().getSteps().size() <= 1) {
             return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
         }
-        return super.getHeaderBehaviour();
+        return super.getStepsBehaviour();
     }
 }

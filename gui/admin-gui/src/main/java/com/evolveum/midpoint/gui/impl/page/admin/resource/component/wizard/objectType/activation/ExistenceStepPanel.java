@@ -24,14 +24,14 @@ import org.apache.wicket.model.IModel;
  */
 
 @Experimental
-@PanelInstance(identifier = "administrativeStatusWizard",
+@PanelInstance(identifier = "existenceWizard",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.activation.administrativeStatus", icon = "fa fa-toggle-off"),
+        display = @PanelDisplay(label = "PageResource.wizard.step.activation.existence", icon = "fa fa-toggle-off"),
         expanded = true)
 public abstract class ExistenceStepPanel extends ActivationMappingStepPanel {
 
-    public static final String PANEL_TYPE = "administrativeStatusWizard";
+    public static final String PANEL_TYPE = "existenceWizard";
 
     public ExistenceStepPanel(ResourceDetailsModel model,
                               IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {
@@ -49,21 +49,16 @@ public abstract class ExistenceStepPanel extends ActivationMappingStepPanel {
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.activation.administrativeStatus");
+        return createStringResource("PageResource.wizard.step.activation.existence");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.administrativeStatus.text");
+        return createStringResource("PageResource.wizard.step.activation.existence.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.activation.administrativeStatus.subText");
-    }
-
-    @Override
-    public VisibleEnableBehaviour getBackBehaviour() {
-        return new VisibleBehaviour(() -> false);
+        return createStringResource("PageResource.wizard.step.activation.existence.subText");
     }
 }
