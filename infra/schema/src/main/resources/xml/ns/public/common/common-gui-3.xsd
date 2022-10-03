@@ -3791,68 +3791,52 @@
                 <a:since>3.9</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Action short name (identifier). This element is not displayed to the user. It is used
-                        for identification of the action and referencing (e.g. previous column). The definitions
-                        that have the same name in different layers (global, role, user) will be merged together.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>GuiActionType.name</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Free-form description. It is not displayed to the user. It is supposed to be used by system
-                        administrators to explain the purpose of the configuration.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>GuiActionType.description</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="display" type="tns:DisplayType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Specification of action display properties.
-                        (Only label is implemented in midPoint 3.9)
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>GuiActionType.display</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reference to task template. The template will be used to start a new task
-                        for the selected object or objects.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
-                        <a:since>3.9</a:since>
-                        <a:displayName>GuiActionType.taskTemplateRef</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="target" type="tns:RedirectionTargetType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Specifies the target (page/panel/url) for redirect action.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>GuiActionType.target</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <!-- TODO later: expression, reference to java class, etc. -->
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Action short name (identifier). This element is not displayed to the user. It is used
+                                for identification of the action and referencing (e.g. previous column). The definitions
+                                that have the same name in different layers (global, role, user) will be merged together.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.name</a:displayName>
+                                <a:deprecated>true</a:deprecated>
+                                <a:deprecatedSince>4.6</a:deprecatedSince>
+                                <a:plannedRemoval>4.8</a:plannedRemoval>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="taskTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to task template. The template will be used to start a new task
+                                for the selected object or objects.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                                <a:since>3.9</a:since>
+                                <a:displayName>GuiActionType.taskTemplateRef</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="target" type="tns:RedirectionTargetType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies the target (page/panel/url) for redirect action.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiActionType.target</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <!-- TODO later: expression, reference to java class, etc. -->
+                </xsd:sequence>
+            </xsd:extension>
+            <!--<xsd:attribute name="id" type="xsd:long"/>-->
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="RedirectionTargetType">
@@ -3878,13 +3862,23 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="panelType" type="xsd:string" minOccurs="0">
+                    <xsd:element name="panelIdentifier" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Unique identifier used to reference a panel to be redirected to.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>TargetType.panelType</a:displayName>
+                                <a:displayName>TargetType.panelIdentifier</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="collectionIdentifier" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Unique identifier used to reference a collection to be redirected to.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TargetType.collectionIdentifier</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -4409,11 +4403,32 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="preview" type="xsd:boolean" minOccurs="0">
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PreviewContainerPanelConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Used to define preview panels, for now it is only used on home (dashboard), but maybe later, we will need to
+                    show tables/forms in preview form also at other places.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ContainerPanelConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="previewSize" type="xsd:int" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    If the panel should be shown in preview mode.
+                                    How many entries should be shown in preview.
                                 </p>
                             </xsd:documentation>
                         </xsd:annotation>
@@ -4468,7 +4483,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    Definition for self dashabord. Which links, widgets, panels should be shown
+                    Definition for self dashboard. Which links, widgets, panels should be shown
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
@@ -4491,25 +4506,16 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="widget" type="tns:ContainerPanelConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="widget" type="tns:PreviewContainerPanelConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Sub panel
+                                    Preview widget panels configurations.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:elaborate>true</a:elaborate>
                             </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="default" type="xsd:boolean" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-                                    If the panel is default.
-                                </p>
-                            </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

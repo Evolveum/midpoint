@@ -57,8 +57,8 @@ public abstract class BasicMultivalueContainerListPanel<C extends Containerable>
         DisplayType defaultButtonDisplayType = GuiDisplayTypeUtil.createDisplayType("fa fa-plus", "green", title);
         CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
         CompositedIconBuilder builder = new CompositedIconBuilder();
-        builder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType));
+        builder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(defaultButtonDisplayType));
 
         defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);
         defaultButton.setCompositedIcon(builder.build());

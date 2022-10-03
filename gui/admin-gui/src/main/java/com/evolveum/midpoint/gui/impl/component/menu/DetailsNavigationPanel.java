@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -266,7 +268,7 @@ public class DetailsNavigationPanel<O extends ObjectType> extends BasePanel<List
             if (config == null || config.getDisplay() == null) {
                 return GuiStyleConstants.CLASS_CIRCLE_FULL;
             }
-            String iconCss = WebComponentUtil.getIconCssClass(config.getDisplay());
+            String iconCss = GuiDisplayTypeUtil.getIconCssClass(config.getDisplay());
             return StringUtils.isNoneEmpty(iconCss) ? iconCss : GuiStyleConstants.CLASS_CIRCLE_FULL;
         });
 

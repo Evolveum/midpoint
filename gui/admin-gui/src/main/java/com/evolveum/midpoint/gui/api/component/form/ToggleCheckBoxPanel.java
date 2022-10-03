@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component.form;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -68,7 +69,7 @@ public class ToggleCheckBoxPanel extends InputPanel {
             if (displayModel == null) {
                 return null;
             }
-            return WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(displayModel.getObject()));
+            return WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(displayModel.getObject()));
         };
     }
 
@@ -77,7 +78,7 @@ public class ToggleCheckBoxPanel extends InputPanel {
             if (displayModel == null) {
                 return null;
             }
-            return WebComponentUtil.getHelp(displayModel.getObject());
+            return GuiDisplayTypeUtil.getHelp(displayModel.getObject());
         };
     }
 
@@ -86,7 +87,7 @@ public class ToggleCheckBoxPanel extends InputPanel {
             if (displayModel == null) {
                 return null;
             }
-            return WebComponentUtil.getIconCssClass(displayModel.getObject());
+            return GuiDisplayTypeUtil.getIconCssClass(displayModel.getObject());
         };
     }
 

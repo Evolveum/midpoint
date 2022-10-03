@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.self.dashboard.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
@@ -39,7 +40,7 @@ import java.util.List;
 import java.util.Optional;
 
 @PanelType(name = "statisticWidget")
-public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurationType> {
+public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelConfigurationType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(StatisticDashboardWidget.class);
     private static final String ID_IMAGE = "imageId";
@@ -49,7 +50,7 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
     private static final String ID_STATISTIC_DATA = "statisticData";
     private static final String ICON_DEFAULT_CSS_CLASS = "fa fa-angle-double-right";
 
-    public StatisticDashboardWidget(String id, IModel<ContainerPanelConfigurationType> model) {
+    public StatisticDashboardWidget(String id, IModel<PreviewContainerPanelConfigurationType> model) {
         super(id, model);
     }
 
@@ -59,6 +60,16 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
         initLayout();
     }
 
+    private GuiActionType getDefinedAction() {
+        PreviewContainerPanelConfigurationType previewConfig = getModelObject();
+        List<GuiActionType> actions = previewConfig.getAction();
+        if (actions.size() > 1) {
+            LOGGER.debug("More than one action defined. Check your configuration");
+        }
+
+        return actions.iterator().next();
+    }
+
     private void initLayout() {
         Link<Void> linkItem = new Link<>(ID_LINK) {
 
@@ -66,7 +77,7 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
 
             @Override
             public void onClick() {
-                WebComponentUtil.redirectFromDashboardWidget(StatisticDashboardWidget.this.getModelObject(),
+                WebComponentUtil.redirectFromDashboardWidget(getDefinedAction(),
                         StatisticDashboardWidget.this.getPageBase(), StatisticDashboardWidget.this);
             }
 
@@ -84,7 +95,7 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
 
         Label description = new Label(ID_DESCRIPTION, () -> {
             ContainerPanelConfigurationType panel = StatisticDashboardWidget.this.getModelObject();
-            return WebComponentUtil.getHelp(panel.getDisplay());
+            return GuiDisplayTypeUtil.getHelp(panel.getDisplay());
         });
         description.setEnabled(false);
         linkItem.add(description);
@@ -93,18 +104,11 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
         linkItem.add(statisticData);
     }
 
-    private boolean hasContainerPanelConfigurationField(Class<?> clazz) {
-        return Arrays.stream(clazz.getFields()).anyMatch(this::isContainerPanelConfigurationField);
-    }
-
-    private boolean isContainerPanelConfigurationField(Field f) {
-        return f.getType().equals(ContainerPanelConfigurationType.class);
-    }
 
     private IModel<String> getIconClassModel() {
         return () -> {
             ContainerPanelConfigurationType panel = StatisticDashboardWidget.this.getModelObject();
-            String cssClass = WebComponentUtil.getIconCssClass(panel.getDisplay());
+            String cssClass = GuiDisplayTypeUtil.getIconCssClass(panel.getDisplay());
             if (StringUtils.isEmpty(cssClass)) {
                 cssClass = ICON_DEFAULT_CSS_CLASS;
             }
@@ -143,7 +147,7 @@ public class StatisticDashboardWidget extends BasePanel<ContainerPanelConfigurat
     }
 
     private String getIconColor() {
-        String iconColor = WebComponentUtil.getIconColor(getModelObject().getDisplay());
+        String iconColor = GuiDisplayTypeUtil.getIconColor(getModelObject().getDisplay());
         if (StringUtils.isNotEmpty(iconColor)) {
             return iconColor.startsWith("bg-") ? iconColor : "bg-" + iconColor + " ";
         }

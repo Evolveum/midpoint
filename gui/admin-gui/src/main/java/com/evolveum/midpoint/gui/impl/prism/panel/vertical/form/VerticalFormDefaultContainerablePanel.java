@@ -149,7 +149,7 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
                 VirtualContainersSpecificationType containerConfig = getConfigurationForVirtualContainer();
                 if (containerConfig != null
                         && containerConfig.getDisplay() != null) {
-                    String iconCssClass = WebComponentUtil.getIconCssClass(containerConfig.getDisplay());
+                    String iconCssClass = GuiDisplayTypeUtil.getIconCssClass(containerConfig.getDisplay());
                     if (StringUtils.isNoneEmpty(iconCssClass)) {
                         return iconCssClass;
                     }

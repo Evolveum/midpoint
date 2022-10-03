@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
@@ -342,7 +343,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
         if (filters.size() == 1) {
             return createStringResource("SearchPanel.removeSingleAvailableFilter",
-                    WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(filters.get(0).getFilter().getDisplay())));
+                    WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(filters.get(0).getFilter().getDisplay())));
         } else {
             return createStringResource("SearchPanel.removeMultipleAvailableFilter", filters.size());
         }
@@ -725,8 +726,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             return null;
         }
         return config.getAvailableFilter().stream().sorted((filter1, filter2) -> {
-            String label1 = WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(filter1.getDisplay()));
-            String label2 = WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(filter2.getDisplay()));
+            String label1 = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(filter1.getDisplay()));
+            String label2 = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(filter2.getDisplay()));
             return String.CASE_INSENSITIVE_ORDER.compare(label1, label2);
 
         }).collect(Collectors.toList());

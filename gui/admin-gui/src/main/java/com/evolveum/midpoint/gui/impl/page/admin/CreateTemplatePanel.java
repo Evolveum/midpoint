@@ -111,8 +111,8 @@ public class CreateTemplatePanel<O extends ObjectType> extends BasePanel<PrismOb
         DisplayType additionalButtonDisplayType = GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, getPageBase());
         CompositedIconBuilder builder = new CompositedIconBuilder();
 
-        builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType));
+        builder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(additionalButtonDisplayType));
 
         return builder.build();
     }

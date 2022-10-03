@@ -98,12 +98,12 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private void initStatisticWidgets(Form mainForm) {
-         ListView<ContainerPanelConfigurationType> linksPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
+         ListView<PreviewContainerPanelConfigurationType> linksPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
 
              private static final long serialVersionUID = 1L;
 
              @Override
-             protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
+             protected void populateItem(ListItem<PreviewContainerPanelConfigurationType> item) {
                  StatisticDashboardWidget widget = new StatisticDashboardWidget(ID_STATISTIC_WIDGET, item.getModel());
                  widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
                  item.add(widget);
@@ -118,10 +118,10 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private void initPreviewWidgets(Form mainForm) {
-         ListView<ContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, this::getNonStatisticWidgetList) {
+         ListView<PreviewContainerPanelConfigurationType> viewWidgetsPanel = new ListView<>(ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL, this::getNonStatisticWidgetList) {
 
              @Override
-             protected void populateItem(ListItem<ContainerPanelConfigurationType> item) {
+             protected void populateItem(ListItem<PreviewContainerPanelConfigurationType> item) {
                  Component widget = createWidget(ID_OBJECT_COLLECTION_VIEW_WIDGET, item.getModel());
                  widget.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
                  widget.add(AttributeAppender.append("class", getWidgetCssClassModel(item.getModelObject())));
@@ -136,25 +136,25 @@ public class PageSelfDashboard extends PageSelf {
          mainForm.add(viewWidgetsPanel);
      }
 
-     private IModel<String> getWidgetCssClassModel(ContainerPanelConfigurationType panelConfig) {
+     private IModel<String> getWidgetCssClassModel(PreviewContainerPanelConfigurationType panelConfig) {
         if (panelConfig == null || panelConfig.getDisplay() == null) {
             return Model.of();
         }
         return Model.of(panelConfig.getDisplay().getCssClass());
      }
 
-     private List<ContainerPanelConfigurationType> getStatisticWidgetList() {
+     private List<PreviewContainerPanelConfigurationType> getStatisticWidgetList() {
          HomePageType homePageType = getCompiledGuiProfile().getHomePage();
-         List<ContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
+         List<PreviewContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
          if (allWidgetList == null) {
              return null;
          }
          return allWidgetList.stream().filter(w -> STATISTIC_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
      }
 
-     private List<ContainerPanelConfigurationType> getNonStatisticWidgetList() {
+     private List<PreviewContainerPanelConfigurationType> getNonStatisticWidgetList() {
          HomePageType homePageType = getCompiledGuiProfile().getHomePage();
-         List<ContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
+         List<PreviewContainerPanelConfigurationType> allWidgetList = homePageType != null ? homePageType.getWidget() : null;
          if (allWidgetList == null) {
              return null;
          }
@@ -177,7 +177,7 @@ public class PageSelfDashboard extends PageSelf {
         };
     }
 
-    private Component createWidget(String markupId, IModel<ContainerPanelConfigurationType> model) {
+    private Component createWidget(String markupId, IModel<PreviewContainerPanelConfigurationType> model) {
         ContainerPanelConfigurationType config = model.getObject();
         String panelType = config.getPanelType();
 
@@ -213,7 +213,7 @@ public class PageSelfDashboard extends PageSelf {
             return UserInterfaceElementVisibilityType.VACANT;
         }
         HomePageType homePage = compiledGuiProfile.getHomePage();
-        List<ContainerPanelConfigurationType> containerPanelWidgets = homePage == null ? null : compiledGuiProfile.getHomePage().getWidget();
+        List<PreviewContainerPanelConfigurationType> containerPanelWidgets = homePage == null ? null : compiledGuiProfile.getHomePage().getWidget();
         if (CollectionUtils.isEmpty(containerPanelWidgets)) {
             return UserInterfaceElementVisibilityType.VACANT;
         }

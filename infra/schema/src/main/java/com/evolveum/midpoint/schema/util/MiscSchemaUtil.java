@@ -530,15 +530,6 @@ public class MiscSchemaUtil {
         return customColumnsList;
     }
 
-    public static void sortDetailsPanels(List<ContainerPanelConfigurationType> panels) {
-        panels.sort((p1, p2) -> {
-            int displayOrder1 = (p1 == null || p1.getDisplayOrder() == null) ? Integer.MAX_VALUE : p1.getDisplayOrder();
-            int displayOrder2 = (p2 == null || p2.getDisplayOrder() == null) ? Integer.MAX_VALUE : p2.getDisplayOrder();
-
-            return Integer.compare(displayOrder1, displayOrder2);
-        });
-    }
-
     public static <F extends UserInterfaceFeatureType> void sortFeaturesPanels(List<F> panels) {
         panels.sort((p1, p2) -> {
             int displayOrder1 = (p1 == null || p1.getDisplayOrder() == null) ? Integer.MAX_VALUE : p1.getDisplayOrder();

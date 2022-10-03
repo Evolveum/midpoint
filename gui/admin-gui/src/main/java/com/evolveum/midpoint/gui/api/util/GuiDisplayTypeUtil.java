@@ -221,6 +221,38 @@ public class GuiDisplayTypeUtil {
         return displayType;
     }
 
+    public static String getIconCssClass(DisplayType displayType) {
+        if (displayType == null || displayType.getIcon() == null) {
+            return "";
+        }
+        return displayType.getIcon().getCssClass();
+    }
+
+    public static PolyStringType getLabel(DisplayType displayType) {
+        return displayType == null ? null : displayType.getLabel();
+    }
+
+    public static String getIconColor(DisplayType displayType) {
+        if (displayType == null || displayType.getIcon() == null) {
+            return "";
+        }
+        return displayType.getIcon().getColor();
+    }
+
+    public static String getHelp(DisplayType displayType) {
+        if (displayType == null || displayType.getHelp() == null) {
+            return "";
+        }
+        return WebComponentUtil.getTranslatedPolyString(displayType.getHelp());
+    }
+
+    public static String getDisplayTypeTitle(DisplayType displayType) {
+        if (displayType == null || displayType.getTooltip() == null) {
+            return "";
+        }
+        return displayType.getTooltip().getOrig();
+    }
+
     public static boolean existsIconDisplay(CompiledObjectCollectionView view) {
         if (view == null){
             return false;
