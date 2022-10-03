@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
-import static com.evolveum.midpoint.model.api.ModelExecuteOptions.toModelExecutionOptionsBean;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
@@ -4228,7 +4227,18 @@ public final class WebComponentUtil {
                 return null;
             }
             String sUrl = icon.getImageUrl();
-            if (URI.create(sUrl).isAbsolute()) {
+            URI uri = null;
+            try {
+                uri = URI.create(sUrl);
+            } catch (Exception ex) {
+                LOGGER.debug("Image url '" + sUrl + "' is not proper URI");
+            }
+
+            if (uri == null) {
+                return null;
+            }
+
+            if (uri.isAbsolute()) {
                 return sUrl;
             }
 

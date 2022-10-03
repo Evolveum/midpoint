@@ -49,7 +49,8 @@ public class WorkDefinitionUtil {
         addTypedParameters(values, definitions.getTriggerScan());
         addTypedParameters(values, definitions.getShadowRefresh());
         addTypedParameters(values, definitions.getIterativeChangeExecution());
-        addTypedParameters(values, definitions.getNonIterativeChangeExecution());
+        addTypedParameters(values, definitions.getExplicitChangeExecution());
+        addTypedParameters(values, definitions.getNonIterativeChangeExecution()); // legacy
         addTypedParameters(values, definitions.getReindexing());
         addTypedParameters(values, definitions.getShadowCleanup());
         addTypedParameters(values, definitions.getObjectIntegrityCheck());

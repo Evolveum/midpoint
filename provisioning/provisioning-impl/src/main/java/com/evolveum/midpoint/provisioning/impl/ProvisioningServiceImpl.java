@@ -650,6 +650,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                 options = options.updateInRepository(false);
             }
 
+            options = options.doNotCacheConnector(); // MID-8020
             return testResourceInternal(resource, options, task, result);
         } catch (Throwable t) {
             result.recordFatalError(t);

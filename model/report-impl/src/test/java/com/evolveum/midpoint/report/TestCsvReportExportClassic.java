@@ -212,7 +212,8 @@ public class TestCsvReportExportClassic extends TestCsvReport {
 
         assertTask(TASK_EXPORT_CLASSIC.oid, "after")
                 .assertSuccess()
-                .display();
+                .display()
+                .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value());
 
         PrismObject<ReportType> report = getObject(ReportType.class, reportResource.oid);
         basicCheckOutputFile(report, expectedRows, expectedColumns, lastLine);

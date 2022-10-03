@@ -339,34 +339,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test010PartialConfigurationResourceObject() throws Exception {
-        Task task = getTestTask();
-        OperationResult result = task.getResult();
-        PrismObject<ResourceType> resourceFromRepo = getObject(ResourceType.class, getResourceOid());
-        ResourceType resource = new ResourceType()
-                .name("newResource")
-                .connectorRef(resourceFromRepo.asObjectable().getConnectorRef())
-                .connectorConfiguration(resourceFromRepo.asObjectable().getConnectorConfiguration());
-
-        OperationResult testResult = provisioningService.testPartialConfiguration(resource.asPrismObject(), task, result);
-
-        display("Test partial configuration of resource result", testResult);
-        TestUtil.assertSuccess("Test partial configuration of resource failed", testResult);
-
-        if (isAssertOpenFiles()) {
-            // Set lsof baseline only after the first connection.
-            // We will have more reasonable number here.
-            lsof.rememberBaseline();
-            displayDumpable("lsof baseline", lsof);
-        }
-
-        displayXml("Resource after test connection", resource.asPrismObject());
-
-        assertNull("Resource was saved to repo, during partial configuration test", findObjectByName(ResourceType.class, "newResource"));
-    }
-
-    @Test
-    public void test011Connection() throws Exception {
+    public void test010Connection() throws Exception {
         Task task = getTestTask();
 
         OperationResult testResult = provisioningService.testResource(getResourceOid(), task, task.getResult());
@@ -386,7 +359,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test012ConnectionResourceObject() throws Exception {
+    public void test011ConnectionResourceObject() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<ResourceType> resourceFromRepo = getObject(ResourceType.class, getResourceOid());
@@ -400,6 +373,33 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
         display("Test connection result", testResult);
         TestUtil.assertSuccess("Test connection failed", testResult);
+
+        if (isAssertOpenFiles()) {
+            // Set lsof baseline only after the first connection.
+            // We will have more reasonable number here.
+            lsof.rememberBaseline();
+            displayDumpable("lsof baseline", lsof);
+        }
+
+        displayXml("Resource after test connection", resource.asPrismObject());
+
+        assertNull("Resource was saved to repo, during partial configuration test", findObjectByName(ResourceType.class, "newResource"));
+    }
+
+    @Test
+    public void test012PartialConfigurationResourceObject() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        PrismObject<ResourceType> resourceFromRepo = getObject(ResourceType.class, getResourceOid());
+        ResourceType resource = new ResourceType()
+                .name("newResource")
+                .connectorRef(resourceFromRepo.asObjectable().getConnectorRef())
+                .connectorConfiguration(resourceFromRepo.asObjectable().getConnectorConfiguration());
+
+        OperationResult testResult = provisioningService.testPartialConfiguration(resource.asPrismObject(), task, result);
+
+        display("Test partial configuration of resource result", testResult);
+        TestUtil.assertSuccess("Test partial configuration of resource failed", testResult);
 
         if (isAssertOpenFiles()) {
             // Set lsof baseline only after the first connection.

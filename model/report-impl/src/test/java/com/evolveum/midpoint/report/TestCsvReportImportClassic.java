@@ -99,7 +99,8 @@ public class TestCsvReportImportClassic extends TestCsvReport {
 
         assertTask(TASK_IMPORT_CLASSIC.oid, "after")
                 .assertSuccess()
-                .display();
+                .display()
+                .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_IMPORT_CLASSIC_TASK.value());
 
         PrismObject<UserType> user1 = searchObjectByName(UserType.class, "testUser01");
         assertNotNull("User testUser01 was not created", user1);

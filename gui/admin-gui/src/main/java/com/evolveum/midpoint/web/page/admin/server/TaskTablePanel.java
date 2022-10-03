@@ -443,9 +443,10 @@ public abstract class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                CompositedIconBuilder builder = getDefaultCompositedIconBuilder(icon);
+                String normalizedSizeIcon = icon + " fa-fw";
+                CompositedIconBuilder builder = getDefaultCompositedIconBuilder(normalizedSizeIcon);
                 if (GuiStyleConstants.CLASS_SUSPEND_MENU_ITEM.equals(icon) || GuiStyleConstants.CLASS_START_MENU_ITEM.equals(icon)) {
-                    builder.appendLayerIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON, CompositedIconCssStyle.BOTTOM_RIGHT_STYLE);
+                    builder.appendLayerIcon(GuiStyleConstants.CLASS_OBJECT_TASK_ICON + " fa-fw", CompositedIconCssStyle.BOTTOM_RIGHT_STYLE);
                 }
                 return builder;
             }

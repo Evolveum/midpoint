@@ -22,7 +22,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportExportWorkStat
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -38,7 +41,9 @@ public class ClassicReportExportActivityHandler
         implements ActivityHandler<ClassicReportExportWorkDefinition, ClassicReportExportActivityHandler> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClassicReportExportActivityHandler.class);
+
     private static final String LEGACY_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/report/handler-3";
+    private static final String ARCHETYPE_OID = SystemObjectsType.ARCHETYPE_REPORT_EXPORT_CLASSIC_TASK.value();
 
     @Autowired ActivityHandlerRegistry registry;
     @Autowired ReportServiceImpl reportService;
@@ -94,5 +99,10 @@ public class ClassicReportExportActivityHandler
     @Override
     public String getIdentifierPrefix() {
         return "report-export";
+    }
+
+    @Override
+    public @Nullable String getDefaultArchetypeOid() {
+        return ARCHETYPE_OID;
     }
 }

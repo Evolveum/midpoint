@@ -132,6 +132,8 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
 
     public void replaceFocus(FocusType newFocus) {
         focus = newFocus;
+        // Efective activation status is derived from focus and its cached
+        effectiveActivationStatus = null;
     }
 
     public PolyStringType getName() {

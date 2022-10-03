@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 
@@ -57,7 +58,7 @@ public class WorkDefinitionFactory {
         }
     }
 
-    WorkDefinition getWorkFromBean(WorkDefinitionsType definitions) throws SchemaException {
+    WorkDefinition getWorkFromBean(WorkDefinitionsType definitions) throws SchemaException, ConfigurationException {
         List<WorkDefinitionWrapper> actions = WorkDefinitionUtil.getWorkDefinitions(definitions);
         if (actions.isEmpty()) {
             return null;
@@ -68,7 +69,8 @@ public class WorkDefinitionFactory {
         }
     }
 
-    private WorkDefinition getWorkFromBean(WorkDefinitionWrapper definitionWrapper) throws SchemaException {
+    private WorkDefinition getWorkFromBean(WorkDefinitionWrapper definitionWrapper)
+            throws SchemaException, ConfigurationException {
         QName typeName = definitionWrapper.getBeanTypeName();
         WorkDefinitionSupplier supplier = MiscUtil.requireNonNull(
                 byTypeName.get(typeName),
@@ -76,7 +78,7 @@ public class WorkDefinitionFactory {
         return supplier.provide(definitionWrapper);
     }
 
-    WorkDefinition getWorkFromTaskLegacy(Task task) throws SchemaException {
+    WorkDefinition getWorkFromTaskLegacy(Task task) throws SchemaException, ConfigurationException {
         String handlerUri = task.getHandlerUri();
         if (handlerUri == null) {
             return null;
@@ -94,6 +96,6 @@ public class WorkDefinitionFactory {
 
     @FunctionalInterface
     public interface WorkDefinitionSupplier {
-        WorkDefinition provide(@NotNull WorkDefinitionSource source) throws SchemaException;
+        WorkDefinition provide(@NotNull WorkDefinitionSource source) throws SchemaException, ConfigurationException;
     }
 }

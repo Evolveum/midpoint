@@ -9,14 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
+import java.util.Objects;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -46,14 +47,18 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extends ObjectDetailsModels<O>> extends PageBase {
+
+    public static final String PARAM_PANEL = "panel";
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractPageObjectDetails.class);
 
@@ -93,6 +98,83 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         isAdd = (params == null || params.isEmpty()) && object == null;
         objectDetailsModels = createObjectDetailsModels(object);
         initLayout();
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        // we'll search for panel configuration identifier in URL and match it with available panel configurations
+        // then "select" it - using session storage and storing our config there
+        PageParameters params = getPageParameters();
+        if (params == null) {
+            return;
+        }
+
+        StringValue step = params.get(PARAM_PANEL);
+        String configurationIdentifier = step != null ? step.toString() : null;
+        if (configurationIdentifier == null) {
+            return;
+        }
+
+        ContainerPanelConfigurationType config = getPanelConfigurations().getObject().stream()
+                .filter(c -> Objects.equals(configurationIdentifier, c.getIdentifier()))
+                .findFirst()
+                .orElse(null);
+
+        if (config != null) {
+            getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), config);
+        }
+    }
+
+    /**
+     * TODO not very clean code - state of what's selected is stored in session via *magic* string key => "details" + getType().getSimpleName()
+     * state is updated on multiple places - it should be probably updated where you handle "selection" of new menu - onClickSomewherePerformed()
+     *
+     * This will update:
+     * * browser URL to add/update selected panel (menu) identifier as query parameter
+     * * last breadcrumb page parameters - "panel" parameter
+     */
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        super.renderHead(response);
+
+        updatePanelPageParameterAndUrl(response);
+    }
+
+    private void updatePanelPageParameterAndUrl(IHeaderResponse response) {
+        ContainerPanelConfigurationType config = getActiveContainerPanelConfiguration();
+        String identifier = config != null ? config.getIdentifier() : null;
+
+        // we'll update page parameters for panel identifier to always match what's selected (stored somewhere in sesion)
+        PageParameters params = getPage().getPageParameters();
+        params.set(PARAM_PANEL, identifier);
+
+        // we'll update breadcrumb of this page
+        Breadcrumb item = getLastBreadcrumb();
+        if (item != null) {
+            item.getParameters().set(PARAM_PANEL, identifier);
+        }
+
+        if (response != null) {
+            if (identifier == null) {
+                identifier = "";
+            }
+
+            response.render(OnDomReadyHeaderItem.forScript(
+                    "MidPointTheme.updatePageUrlParameter('" + PARAM_PANEL + "', '" + identifier + "');"));
+        }
+    }
+
+    private ContainerPanelConfigurationType getActiveContainerPanelConfiguration() {
+        if (getType() == null) {
+            return null;
+        }
+
+        String key = "details" + getType().getSimpleName();
+
+        ObjectDetailsStorage storage = getSessionStorage().getObjectDetailsStorage(key);
+        return storage != null ? storage.getDefaultConfiguration() : null;
     }
 
     @Override
@@ -348,15 +430,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
-        //TODO how to do the redirection to concrete panel?
-//        ObjectDetailsStorage storage = getSessionStorage().getObjectDetailsStorage("details" + getType().getSimpleName());
-//        if (storage != null) {
-//            ContainerPanelConfigurationType config = storage.getDefaultConfiguration();
-//            if (config != null) {
-//                return config;
-//            }
-//        }
-        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject());
+        ContainerPanelConfigurationType defaultConfiguration = getActiveContainerPanelConfiguration();
+        if (defaultConfiguration == null) {
+            defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject());
+        }
 
         if (defaultConfiguration != null) {
             return defaultConfiguration;
@@ -473,6 +550,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             initMainPanel(config, form);
             target.add(form);
             target.add(getFeedbackPanel());
+
+            updatePanelPageParameterAndUrl(target.getHeaderResponse());
         } catch (Throwable e) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Can't instantiate panel based on config\n {}", config.debugDump(), e);

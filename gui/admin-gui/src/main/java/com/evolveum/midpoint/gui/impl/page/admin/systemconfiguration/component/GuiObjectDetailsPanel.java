@@ -42,7 +42,7 @@ public class GuiObjectDetailsPanel extends MultivalueContainerDetailsPanel<GuiOb
 
             @Override
             protected IModel<String> getDescriptionLabelModel() {
-                return () -> getModelObject().getType().getLocalPart();
+                return () -> getModelObject().getType() != null ? getModelObject().getType().getLocalPart() : "";
             }
 
             @Override

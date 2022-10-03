@@ -432,7 +432,9 @@ class ResourceTestOperation {
             testConnector(result);
             if (options.isFullMode()) {
                 fetchConnectorCapabilities(result);
-                cacheConfiguredConnector();
+                if (!options.isDoNotCacheConnector()) {
+                    cacheConfiguredConnector();
+                }
             }
         }
 
