@@ -6,23 +6,25 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismValuePanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -37,17 +39,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.associations", icon = "fa fa-shield"),
         expanded = true)
-public class AssociationsStepPanel extends AbstractResourceWizardStepPanel {
+public class AssociationStepPanel extends AbstractResourceWizardStepPanel {
 
     protected static final String ID_PANEL = "panel";
 
     public static final String PANEL_TYPE = "AssociationsWizardPanel";
 
-    private final IModel<PrismContainerWrapper<ResourceObjectAssociationType>> containerModel;
+    private final IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> containerModel;
     private final ResourceDetailsModel resourceModel;
 
-    public AssociationsStepPanel(ResourceDetailsModel model,
-                             IModel<PrismContainerWrapper<ResourceObjectAssociationType>> containerModel) {
+    public AssociationStepPanel(ResourceDetailsModel model,
+            IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> containerModel) {
         super(model);
         this.containerModel = containerModel;
         this.resourceModel = model;
@@ -60,12 +62,12 @@ public class AssociationsStepPanel extends AbstractResourceWizardStepPanel {
     }
 
     private void initLayout() {
-        SingleContainerPanel panel;
-        if (getContainerConfiguration() == null) {
-            panel = new SingleContainerPanel(ID_PANEL, getContainerFormModel(), ResourcePasswordDefinitionType.COMPLEX_TYPE);
-        } else {
-            panel = new SingleContainerPanel(ID_PANEL, getContainerFormModel(), getContainerConfiguration());
-        }
+
+        ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder();
+        builder.panelConfiguration(getContainerConfiguration());
+
+        Panel panel = getPageBase().initContainerValuePanel(ID_PANEL, getContainerFormModel(), builder.build());
+
         panel.setOutputMarkupId(true);
         panel.add(AttributeAppender.append("class", "card col-12"));
         add(panel);
@@ -75,7 +77,7 @@ public class AssociationsStepPanel extends AbstractResourceWizardStepPanel {
         return WebComponentUtil.getContainerConfiguration(resourceModel.getObjectDetailsPageConfiguration().getObject(), getPanelType());
     }
 
-    protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
+    protected IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> getContainerFormModel() {
         return containerModel;
     }
 
@@ -115,5 +117,10 @@ public class AssociationsStepPanel extends AbstractResourceWizardStepPanel {
     @Override
     public VisibleEnableBehaviour getBackBehaviour() {
         return new VisibleBehaviour(() -> false);
+    }
+
+    @Override
+    protected boolean isSubmitVisible() {
+        return false;
     }
 }

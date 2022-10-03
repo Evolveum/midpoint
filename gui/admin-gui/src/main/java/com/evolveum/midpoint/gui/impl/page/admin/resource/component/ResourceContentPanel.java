@@ -346,7 +346,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         attrMappingButton.showTitleAsLabel(true);
-        attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
+        attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1 mr-3 mb-3"));
+        attrMappingButton.add(AttributeAppender.append("style", "width: 30%;"));
         topButtons.add(attrMappingButton);
     }
 
@@ -367,7 +368,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         synchConfButton.showTitleAsLabel(true);
-        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
+        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1 mr-3 mb-3"));
+        synchConfButton.add(AttributeAppender.append("style", "width: 30%;"));
         topButtons.add(synchConfButton);
     }
 
@@ -388,7 +390,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         correlationConfButton.showTitleAsLabel(true);
-        correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
+        correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1 mb-3"));
+        correlationConfButton.add(AttributeAppender.append("style", "width: 30%;"));
         topButtons.add(correlationConfButton);
     }
 
@@ -409,7 +412,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         credentialsConfButton.showTitleAsLabel(true);
-        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
+        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1 mr-3"));
+        credentialsConfButton.add(AttributeAppender.append("style", "width: 30%;"));
         topButtons.add(credentialsConfButton);
     }
 
@@ -430,7 +434,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         credentialsConfButton.showTitleAsLabel(true);
-        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
+        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1 mr-3"));
+        credentialsConfButton.add(AttributeAppender.append("style", "width: 30%;"));
         topButtons.add(credentialsConfButton);
     }
 
@@ -451,7 +456,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         credentialsConfButton.showTitleAsLabel(true);
-        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill"));
+        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1"));
+        credentialsConfButton.add(AttributeAppender.append("style", "width: 30%;"));
         topButtons.add(credentialsConfButton);
     }
 
