@@ -114,7 +114,7 @@ public class AssociationsWizardPanel extends AbstractResourceWizardPanel<Resourc
                 valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                AssociationsWizardPanel.this.onExitPerformed(target);
+                showChoiceFragment(target, createTablePanel());
             }
         };
         panel.setOutputMarkupId(true);

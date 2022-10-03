@@ -218,7 +218,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         namespaceModeContainer.add(namespacePanel);
 
         TextPanel<String> itemPathTextField = new TextPanel<String>(ID_ITEM_PATH_TEXT_FIELD, new PropertyModel<>(getModel(), "pathStringValue"));
-        itemPathTextField.add(new VisibleBehaviour(() -> switchToTextFieldEnabled && ItemPathPanelMode.TEXT_MODE.equals(panelMode)));
+        itemPathTextField.add(new VisibleBehaviour(() -> isTextFieldVisible()));
         itemPathTextField.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         itemPathPanel.add(itemPathTextField);
 
@@ -243,6 +243,10 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
         switchButton.add(new VisibleBehaviour(() -> switchToTextFieldEnabled));
         itemPathPanel.add(switchButton);
 
+    }
+
+    protected boolean isTextFieldVisible() {
+        return switchToTextFieldEnabled && ItemPathPanelMode.TEXT_MODE.equals(panelMode);
     }
 
     private void initItemPathLabel() {

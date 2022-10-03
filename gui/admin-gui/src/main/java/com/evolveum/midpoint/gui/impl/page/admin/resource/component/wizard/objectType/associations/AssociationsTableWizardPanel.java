@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationReactionTable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 /**
  * @author lskublik
  */
+@Experimental
 public abstract class AssociationsTableWizardPanel extends AbstractWizardBasicPanel {
 
     private static final String ID_TABLE = "table";
@@ -117,7 +119,7 @@ public abstract class AssociationsTableWizardPanel extends AbstractWizardBasicPa
 
     @Override
     protected IModel<String> getBreadcrumbLabel() {
-        return getPageBase().createStringResource("AssociationsTableWizardPanel.breadcrumb");
+        return getTextModel();
     }
 
     @Override

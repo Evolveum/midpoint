@@ -16,10 +16,13 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.BasicSettingResourceObjectTypeStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.DelineationResourceObjectTypeStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.FocusResourceObjectTypeStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.*;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations.AssociationStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeInboundStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeOutboundStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.LimitationsStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.MainConfigurationStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.PasswordStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.ReactionMainSettingStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.ReactionOptionalSettingStepPanel;
 import com.evolveum.midpoint.prism.*;
@@ -238,6 +241,13 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
                             || AttributeInboundStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
                             || AttributeOutboundStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
                             || MainConfigurationStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || PasswordStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || AssociationStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || AdministrativeStatusStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || ExistenceStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || ValidFromStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || ValidToStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
+                            || LockoutStatusStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier())
                             || LimitationsStepPanel.PANEL_TYPE.equals(panelConfig.getIdentifier()))) { // UGLY HACK we need define visibility of panel in menu
                         virtualContainers.addAll(panelConfig.getContainer());
                         collectVirtualContainers(panelConfig.getPanel(), virtualContainers);
