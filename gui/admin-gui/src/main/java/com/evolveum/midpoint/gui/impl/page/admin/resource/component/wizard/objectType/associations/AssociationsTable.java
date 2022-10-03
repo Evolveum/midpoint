@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author lskublik
  */
+@Experimental
 public abstract class AssociationsTable extends MultivalueContainerListPanel<ResourceObjectAssociationType> {
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
@@ -137,6 +140,12 @@ public abstract class AssociationsTable extends MultivalueContainerListPanel<Res
         columns.add(new CheckBoxHeaderColumn<>());
 
         IModel<PrismContainerDefinition<ResourceObjectAssociationType>> associationsDef = getAssociationsDefinition();
+        columns.add(new PrismPropertyWrapperColumn<ResourceObjectAssociationType, String>(
+                associationsDef,
+                ResourceObjectAssociationType.F_REF,
+                AbstractItemWrapperColumn.ColumnType.VALUE,
+                getPageBase()));
+
         columns.add(new PrismPropertyWrapperColumn<ResourceObjectAssociationType, String>(
                 associationsDef,
                 ResourceObjectAssociationType.F_DISPLAY_NAME,

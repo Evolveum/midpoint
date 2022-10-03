@@ -1087,6 +1087,68 @@
                     </container>
                     <panelType>mainConfigurationAttributeWizard</panelType>
                 </panel>
+                <panel>
+                    <identifier>associationWizard</identifier>
+                    <container>
+                        <identifier>association</identifier>
+                        <display>
+                            <label>PageResource.wizard.step.associations</label>
+                        </display>
+                        <item>
+                            <path>schemaHandling/objectType/association/ref</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/displayName</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/description</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/auxiliaryObjectClass</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/kind</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/intent</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/direction</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/associationAttribute</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/shortcutAssociationAttribute</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/valueAttribute</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/shortcutValueAttribute</path>
+                            <visibility>visible</visibility>
+                        </item>
+                        <item>
+                            <path>schemaHandling/objectType/association/explicitReferentialIntegrity</path>
+                            <visibility>visible</visibility>
+                        </item>
+                    </container>
+                    <container>
+                        <visibility>hidden</visibility>
+                        <path>schemaHandling/objectType/association</path>
+                    </container>
+                    <panelType>associationWizard</panelType>
+                </panel>
             </resourceDetailsPage>
             <resourceDetailsPage>
                 <panel>
