@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -15,20 +17,37 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -37,12 +56,15 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     private static final long serialVersionUID = 1L;
 
+    private static final Trace LOGGER = TraceManager.getTrace(ShoppingCartEditPanel.class);
+
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_SAVE = "save";
     private static final String ID_CLOSE = "close";
     private static final String ID_RELATION = "relation";
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_CUSTOM_VALIDITY = "customValidity";
+    private static final String ID_EXTENSION = "extension";
 
     private Fragment footer;
 
@@ -51,6 +73,8 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private IModel<List<QName>> relationChoices;
 
     private IModel<CustomValidity> customValidityModel;
+
+    private IModel<PrismContainerValueWrapper<AssignmentType>> assignmentExtension;
 
     private boolean validitySettingsEnabled;
 
@@ -92,6 +116,53 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 return cv;
             }
         };
+
+        assignmentExtension = new LoadableModel<>(false) {
+            @Override
+            protected PrismContainerValueWrapper load() {
+                try {
+                    Task task = getPageBase().getPageTask();
+                    OperationResult result = task.getResult();
+
+                    // we'll clone our assignment for this assignment/extension prism container value wrapper black magic
+                    // hack as not to polute original object with mess from wrappers
+                    // we'll copy new extension container value to original assignment during save operation
+                    AssignmentType assigment = getModelObject().getAssignment().clone();
+
+                    // virtual containers are now collected for Objects, not containers, therefore empty user is created here
+                    UserType user = new UserType();
+                    user.getAssignment().add(assigment);
+                    PrismObjectWrapperFactory<UserType> userWrapperFactory = getPageBase().findObjectWrapperFactory(user.asPrismObject().getDefinition());
+
+                    WrapperContext context = new WrapperContext(task, result);
+
+                    context.setDetailsPageTypeConfiguration(Arrays.asList(createExtensionPanelConfiguration()));
+                    context.setCreateIfEmpty(true);
+
+                    // create whole wrapper, instead of only the concrete container value wrapper
+                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.NOT_CHANGED, context);
+
+                    PrismContainerWrapper<AssignmentType> assignmentWrapper = userWrapper.findContainer(UserType.F_ASSIGNMENT);
+                    PrismContainerValueWrapper<AssignmentType> valueWrapper = assignmentWrapper.getValues().iterator().next();
+                    valueWrapper.setShowEmpty(true);
+
+                    return valueWrapper;
+                } catch (Exception ex) {
+                    LOGGER.debug("Couldn't load extensions", ex);
+                }
+
+                return null;
+            }
+        };
+    }
+
+    private ContainerPanelConfigurationType createExtensionPanelConfiguration() {
+        ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
+        c.identifier("sample-panel");
+        c.type(AssignmentType.COMPLEX_TYPE);
+        c.panelType("formPanel");
+
+        return c;
     }
 
     private void initLayout() {
@@ -99,6 +170,41 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                 WebComponentUtil.getRelationChoicesRenderer());
         relation.add(new EnableBehaviour(() -> false));
         add(relation);
+
+        AssignmentsDetailsPanel extension = new AssignmentsDetailsPanel(ID_EXTENSION, assignmentExtension, false, createExtensionPanelConfiguration()) {
+
+            @Override
+            protected DisplayNamePanel<AssignmentType> createDisplayNamePanel(String displayNamePanelId) {
+                DisplayNamePanel panel = super.createDisplayNamePanel(displayNamePanelId);
+                panel.add(new VisibleBehaviour(() -> false));
+                return panel;
+            }
+
+            @Override
+            protected @NotNull List<ITab> createTabs() {
+                return new ArrayList<>();
+            }
+
+            @Override
+            protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?> itemWrapper) {
+                return itemWrapper.getPath().startsWith(ItemPath.create(AssignmentHolderType.F_ASSIGNMENT, AssignmentType.F_EXTENSION)) ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
+            }
+        };
+        extension.add(new VisibleBehaviour(() -> {
+            try {
+                PrismContainerWrapper cw = assignmentExtension.getObject().findItem(ItemPath.create(AssignmentType.F_EXTENSION));
+                if (cw == null || cw.isEmpty()) {
+                    return false;
+                }
+                PrismContainerValueWrapper pcvw = (PrismContainerValueWrapper) cw.getValue();
+                List items = pcvw.getItems();
+
+                return items != null && !items.isEmpty();
+            } catch (SchemaException ex) {
+                return true;
+            }
+        }));
+        add(extension);
 
         IModel<ActivationStatusType> model = new Model<>() {
 
@@ -176,7 +282,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
     @Override
     public int getWidth() {
-        return 500;
+        return 1000;
     }
 
     @Override
@@ -205,7 +311,17 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     }
 
     protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
+        // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
+        PrismObjectWrapper<UserType> wrapper = assignmentExtension.getObject().getParent().findObjectWrapper();
+        List<AssignmentType> modifiedList = wrapper.getObject().asObjectable().getAssignment();
+        if (modifiedList.isEmpty()) {
+            return;
+        }
 
+        AssignmentType newOne = modifiedList.get(0);
+
+        AssignmentType a = getModelObject().getAssignment();
+        a.setExtension(newOne.getExtension());
     }
 
     protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {

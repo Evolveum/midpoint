@@ -147,6 +147,12 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
     }
 
     private boolean notEquivalentWithValues(PrismPropertyPanelContext<ItemPathType> panelCtx, DisplayableValue<ItemPathType> v) {
+
+        ItemPathType realValue = panelCtx.getRealValueModel().getObject();
+        if (v.getValue().equivalent(realValue)) {
+            return true;
+        }
+
         PrismContainerWrapper<ResourceAttributeDefinitionType> mapping =
                 getAttributeMapping(panelCtx.getValueWrapperModel().getObject());
 
@@ -187,7 +193,7 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
                 List<DisplayableValue<ItemPathType>> choices = getAllAttributes(propertyWrapper, pageBase);
                 if (!choices.isEmpty()) {
                     PrismValueWrapper<ItemPathType> wrapper = propertyWrapper.getObject();
-                    if (wrapper.getParent().isSingleValue()) {
+                    if (wrapper.getParent().getParent().getParent().isSingleValue()) {
                         ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper.getObject());
                         if (objectType != null) {
                             List<ItemPathType> existingPaths = new ArrayList<>();

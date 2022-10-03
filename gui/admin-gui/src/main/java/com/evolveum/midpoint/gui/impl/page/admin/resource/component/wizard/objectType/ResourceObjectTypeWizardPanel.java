@@ -16,8 +16,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.PasswordInboundStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.PasswordOutboundStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.CredentialsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationWizardPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -149,12 +148,39 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                     case CORRELATION_CONFIG:
                         showCorrelationItemsTable(target, getValueModel());
                         break;
+                    case CREDENTIALS:
+                        showCredentialsWizardPanel(target, getValueModel());
+                        break;
                 }
             }
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 ResourceObjectTypeWizardPanel.this.onExitPerformed(target);
+            }
+        });
+    }
+
+    private void showCredentialsWizardPanel(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        showChoiceFragment(target, new CredentialsWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showObjectTypePreviewFragment(getValueModel(), target);
+            }
+
+            @Override
+            protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
+                OperationResult result = ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
+                if (result != null && !result.isError()) {
+                    refreshValueModel();
+                }
+                return result;
+            }
+
+            @Override
+            protected boolean isSavedAfterWizard() {
+                return isSavedAfterDetailsWizard();
             }
         });
     }
@@ -217,29 +243,6 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
 
     private List<WizardStep> createCredentialsSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new PasswordInboundStepPanel(getResourceModel(), valueModel) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showObjectTypePreviewFragment(valueModel, target);
-            }
-        });
-
-        steps.add(new PasswordOutboundStepPanel(getResourceModel(), valueModel) {
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showObjectTypePreviewFragment(valueModel, target);
-            }
-
-            @Override
-            protected void onSubmitPerformed(AjaxRequestTarget target) {
-                OperationResult result = onSaveResourcePerformed(target);
-                if (result != null && !result.isError()) {
-                    onExitPerformed(target);
-                } else {
-                    target.add(getFeedback());
-                }
-            }
-        });
 
         return steps;
     }

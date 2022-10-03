@@ -21,6 +21,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -111,7 +113,7 @@ public class WorkersReconciliation {
         this.activityPath = activityPath;
         this.options = options;
         this.beans = beans;
-        this.reconciliationResult = new WorkersReconciliationResultType(beans.prismContext);
+        this.reconciliationResult = new WorkersReconciliationResultType();
     }
 
     /**
@@ -131,7 +133,7 @@ public class WorkersReconciliation {
      * TODO finish the description
      */
     public @NotNull WorkersReconciliationResultType execute(OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException {
 
         OperationResult result = parentResult.createSubresult(OP_EXECUTE);
         try {
@@ -202,7 +204,7 @@ public class WorkersReconciliation {
         reconciliationResult.setResumed(workersToResume.size());
     }
 
-    private void initialize() throws SchemaException {
+    private void initialize() throws SchemaException, ConfigurationException {
         activity = beans.activityManager.getActivity(rootTask, activityPath);
         ActivityDistributionDefinition distributionDefinition = activity.getDistributionDefinition();
 
@@ -435,7 +437,7 @@ public class WorkersReconciliation {
             Map<WorkerCharacterization, WorkersPerNodeDefinitionType> perNodeDefinitionMap,
             WorkerState workerState, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException {
-        TaskType worker = new TaskType(beans.prismContext);
+        TaskType worker = new TaskType();
         worker.setName(PolyStringType.fromOrig(workerCharacterization.name));
         if (workerCharacterization.group != null) {
             worker.beginExecutionConstraints().group(workerCharacterization.group).end();

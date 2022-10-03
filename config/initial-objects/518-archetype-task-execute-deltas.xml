@@ -7,55 +7,9 @@
 <archetype oid="00000000-0000-0000-0000-000000000518"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
-    <name>Execute deltas task (backgroud processing for chnage execution)</name>
-    <archetypeType>auxiliary</archetypeType>
-    <archetypePolicy>
-        <display>
-            <label>Execute deltas task (backgroud processing for chnage execution)</label>
-            <pluralLabel>
-                <orig>Execute deltas task (backgroud processing for chnage execution)</orig>
-                <translation>
-                    <key>TaskHandlerSelector.model.execute.deltas.handler</key>
-                </translation>
-            </pluralLabel>
-            <icon>
-                <cssClass>fa fa-wrench</cssClass>
-                <color>green</color>
-            </icon>
-        </display>
-        <itemConstraint>
-            <path>extension</path>
-            <visibility>vacant</visibility>
-        </itemConstraint>
-        <itemConstraint>
-            <path>extension/mext:objectDeltas</path>
-            <visibility>visible</visibility>
-        </itemConstraint>
-        <itemConstraint>
-            <path>extension/mext:objectDelta</path>
-            <visibility>visible</visibility>
-        </itemConstraint>
-        <itemConstraint>
-            <path>extension/mext:modelExecuteOptions</path>
-            <visibility>visible</visibility>
-        </itemConstraint>
-        <adminGuiConfiguration>
-            <objectDetails>
-                <type>TaskType</type>
-                <panel>
-                    <identifier>activity</identifier>
-                    <panel>
-                        <identifier>work</identifier>
-                        <container>
-                            <identifier>work-nonIterativeChangeExecution</identifier>
-                            <path>activity/work/nonIterativeChangeExecution</path>
-                        </container>
-                    </panel>
-                </panel>
-            </objectDetails>
-        </adminGuiConfiguration>
-    </archetypePolicy>
+    <name>Execute deltas task (background processing for change execution)</name>
     <assignment>
         <assignmentRelation>
             <holderType>TaskType</holderType>
@@ -110,4 +64,51 @@
             </mapping>
         </focusMappings>
     </inducement>
+    <archetypePolicy>
+        <display>
+            <label>Execute deltas task (background processing for change execution)</label>
+            <pluralLabel>
+                <t:orig>Execute deltas task (background processing for change execution)</t:orig>
+                <t:translation>
+                    <t:key>TaskHandlerSelector.model.execute.deltas.handler</t:key>
+                </t:translation>
+            </pluralLabel>
+            <icon>
+                <cssClass>fa fa-wrench</cssClass>
+                <color>green</color>
+            </icon>
+        </display>
+        <itemConstraint>
+            <path>extension</path>
+            <visibility>vacant</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:objectDeltas</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:objectDelta</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <path>extension/mext:modelExecuteOptions</path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>TaskType</type>
+                <panel>
+                    <identifier>activity</identifier>
+                    <panel>
+                        <identifier>work</identifier>
+                        <container>
+                            <identifier>work-explicitChangeExecution</identifier>
+                            <path>activity/work/explicitChangeExecution</path>
+                        </container>
+                    </panel>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <archetypeType>auxiliary</archetypeType>
 </archetype>

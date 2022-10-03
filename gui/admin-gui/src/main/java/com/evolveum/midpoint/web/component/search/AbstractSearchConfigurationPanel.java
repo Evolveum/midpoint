@@ -30,8 +30,6 @@ public abstract class AbstractSearchConfigurationPanel<F extends SearchFilter, O
     protected static final String ID_CONFIGURATION_PANEL = "configurationPanel";
     private static final String ID_BUTTONS_PANEL = "buttonsPanel";
     private static final String ID_OK_BUTTON = "okButton";
-//    private static final String ID_APPLY_FILTER_BUTTON = "applyFilterButton";
-//    private static final String ID_SAVE_FILTER_BUTTON = "saveFilterButton";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
 
     private LoadableModel<Class<O>> typeModel;

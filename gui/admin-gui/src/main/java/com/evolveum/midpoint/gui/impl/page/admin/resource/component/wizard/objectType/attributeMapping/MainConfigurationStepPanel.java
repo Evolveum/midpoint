@@ -29,7 +29,7 @@ import org.apache.wicket.model.IModel;
         expanded = true)
 public class MainConfigurationStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceAttributeDefinitionType> {
 
-    private static final String PANEL_TYPE = "mainConfigurationAttributeWizard";
+    public static final String PANEL_TYPE = "mainConfigurationAttributeWizard";
 
     public MainConfigurationStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> newValueModel) {
         super(model, newValueModel);

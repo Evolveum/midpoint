@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +70,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
      * 2. handler URI
      */
     public static <WD extends AbstractWorkDefinition> ActivityDefinition<WD> createRoot(Task rootTask, CommonTaskBeans beans)
-            throws SchemaException {
+            throws SchemaException, ConfigurationException {
         WorkDefinitionFactory factory = beans.workDefinitionFactory;
 
         ActivityDefinitionType bean = rootTask.getRootActivityDefinitionOrClone();
@@ -120,14 +122,14 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
                     distributionDefinition,
                     monitoringDefinition,
                     workDefinitionFactory);
-        } catch (SchemaException e) {
+        } catch (SchemaException | ConfigurationException e) {
             throw new IllegalArgumentException("Couldn't create activity definition from a bean: " + e.getMessage(), e);
         }
     }
 
     @NotNull
     private static <WD extends AbstractWorkDefinition> WD createRootWorkDefinition(ActivityDefinitionType activityBean,
-            Task rootTask, WorkDefinitionFactory factory) throws SchemaException {
+            Task rootTask, WorkDefinitionFactory factory) throws SchemaException, ConfigurationException {
 
         if (activityBean != null) {
             WD def = createFromBean(activityBean, factory);
@@ -147,7 +149,7 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     }
 
     private static <WD extends AbstractWorkDefinition> WD createFromBean(ActivityDefinitionType bean,
-            WorkDefinitionFactory factory) throws SchemaException {
+            WorkDefinitionFactory factory) throws SchemaException, ConfigurationException {
         if (bean.getComposition() != null) {
             //noinspection unchecked
             return (WD) new CompositeWorkDefinition(bean.getComposition());

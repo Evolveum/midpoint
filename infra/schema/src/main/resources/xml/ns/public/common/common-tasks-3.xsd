@@ -1915,15 +1915,30 @@
                 <xsd:element name="iterativeChangeExecution" type="tns:IterativeChangeExecutionWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Executes specified changes on specified objects.
+                            Executes given changes on objects match the given query.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="nonIterativeChangeExecution" type="tns:NonIterativeChangeExecutionWorkDefinitionType" minOccurs="0">
+                <xsd:element name="explicitChangeExecution" type="tns:ExplicitChangeExecutionWorkDefinitionType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
-                            Executes specified changes. The changes specify objects on which they are to be executed.
+                            Executes given changes. Each change explicitly specifies the object(s) on which it is to be executed.
                         </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:since>4.6</a:since>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                </xsd:element>
+                <xsd:element name="nonIterativeChangeExecution" type="tns:ExplicitChangeExecutionWorkDefinitionType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Executes given changes. Each change explicitly specifies the object(s) on which it is to be executed.
+                            DEPRECATED: the legacy name.
+                        </xsd:documentation>
+                        <xsd:appinfo>
+                            <a:deprecated>true</a:deprecated>
+                            <a:deprecatedSince>4.6</a:deprecatedSince>
+                        </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
                 <xsd:element name="reindexing" type="tns:ReindexingWorkDefinitionType" minOccurs="0">
@@ -6980,10 +6995,18 @@
     </xsd:complexType>
     <xsd:element name="IterativeChangeExecutionWorkDefinition" type="tns:IterativeChangeExecutionWorkDefinitionType"/>
 
-    <xsd:complexType name="NonIterativeChangeExecutionWorkDefinitionType">
+    <xsd:complexType name="ExplicitChangeExecutionWorkDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Executes specified changes. The changes specify objects on which they are to be executed.
+                Executes given changes. Each change explicitly specifies the object(s) on which it is to be executed.
+
+                There are two options here:
+
+                1) There is a single request, defined by (multivalued) `delta` and `executionOptions`.
+                2) There are multiple independent requests, wrapped in ChangeExecutionRequestType objects.
+
+                Each set of deltas in a single request must pertain to a single clockwork operation; e.g. referring to a user
+                and his accounts.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -6993,13 +7016,59 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkDefinitionType">
                 <xsd:sequence>
-                    <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="unbounded"/>
-                    <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>
+                    <xsd:choice>
+                        <xsd:sequence>
+                            <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="unbounded"/>
+                            <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0"/>
+                        </xsd:sequence>
+                        <xsd:element name="request" type="tns:ChangeExecutionRequestType" minOccurs="0" maxOccurs="unbounded"/>
+                    </xsd:choice>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="nonIterativeChangeExecutionWorkDefinition" type="tns:NonIterativeChangeExecutionWorkDefinitionType"/>
+    <xsd:element name="explicitChangeExecutionWorkDefinition" type="tns:ExplicitChangeExecutionWorkDefinitionType"/>
+
+    <xsd:complexType name="ChangeExecutionRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Batch of changes to be executed.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.6</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractWorkDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Optional name of the request. It will be shown e.g. in GUI that displays the task progress.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delta(s) to be processed. They must pertain to a single clockwork  operation;
+                                e.g. referring to a user and his accounts.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="executionOptions" type="tns:ModelExecuteOptionsType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Execution options to use for this request.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="changeExecutionRequest" type="tns:ChangeExecutionRequestType"/>
 
     <xsd:complexType name="ReindexingWorkDefinitionType">
         <xsd:annotation>

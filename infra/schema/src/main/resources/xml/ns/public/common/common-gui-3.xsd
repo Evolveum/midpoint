@@ -3794,7 +3794,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:UserInterfaceFeatureType">
                 <xsd:sequence>
-                    <xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+                    <xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Action short name (identifier). This element is not displayed to the user. It is used
@@ -3805,6 +3805,7 @@
                                 <a:displayName>GuiActionType.name</a:displayName>
                                 <a:deprecated>true</a:deprecated>
                                 <a:deprecatedSince>4.6</a:deprecatedSince>
+                                <a:plannedRemoval>4.8</a:plannedRemoval>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

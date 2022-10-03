@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="feedbackContainer" class="col-8 feedbackContainer">
+        <div wicket:id="feedback" class="messagePanel"/>
+    </div>
+    <div class="col-12 bg-white rounded p-2 pl-3 pr-3 card mb-0 row">
+        <span>
+            <i class="fa fa-toggle-off"></i>
+            <span style="text-decoration: none;">
+                <wicket:message key="PageResource.wizard.step.activation.validFrom"/>
+            </span>
+        </span>
+    </div>
+    <div class="col-12 card border-top" wicket:id="panel"/>
+</wicket:extend>
+</html>

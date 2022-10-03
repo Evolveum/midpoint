@@ -9,9 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
-import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
+import java.util.Objects;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +47,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
@@ -57,6 +56,8 @@ import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extends ObjectDetailsModels<O>> extends PageBase {
+
+    public static final String PARAM_PANEL_ID = "panelId";
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractPageObjectDetails.class);
 
@@ -352,8 +353,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
 
-
-        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(), getPanelIdetifierFromParams());
+        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(), getPanelIdentifierFromParams());
 
         if (defaultConfiguration != null) {
             return defaultConfiguration;
@@ -365,8 +365,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 .orElseGet(() -> null);
     }
 
-    private String getPanelIdetifierFromParams() {
-        StringValue panelIdentifierParam = getPageParameters().get("panelId");
+    private String getPanelIdentifierFromParams() {
+        StringValue panelIdentifierParam = getPageParameters().get(PARAM_PANEL_ID);
         String panelIdentifier = null;
         if (panelIdentifierParam != null && !panelIdentifierParam.isEmpty()) {
             panelIdentifier = panelIdentifierParam.toString();
@@ -499,7 +499,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private void overwritePageParameters(ContainerPanelConfigurationType config) {
         PageParameters newParams = new PageParameters(getPageParameters());
-        newParams.set("panelId", config.getIdentifier());
+        newParams.set(PARAM_PANEL_ID, config.getIdentifier());
         getPageParameters().overwriteWith(newParams);
     }
 

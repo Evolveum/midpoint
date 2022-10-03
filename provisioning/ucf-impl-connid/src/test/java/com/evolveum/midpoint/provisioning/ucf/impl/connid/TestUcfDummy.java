@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
@@ -16,8 +18,6 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.ucf.api.*;
-
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -334,6 +334,35 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
         Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
         assertNotNull("No attributes in shadow " + shadow, attributes);
         assertFalse("Empty attributes in shadow " + shadow, attributes.isEmpty());
+    }
+
+    /** MID-8145 */
+    @Test
+    public void test060GetByUidWithNameHint() throws Exception {
+        given();
+        UcfExecutionContext ctx = createExecutionContext();
+        OperationResult result = createOperationResult();
+
+        ResourceObjectClassDefinition accountDefinition =
+                resourceSchema.findObjectClassDefinitionRequired(RI_ACCOUNT_OBJECT_CLASS);
+        //noinspection unchecked
+        ResourceAttribute<String> uid =
+                (ResourceAttribute<String>) accountDefinition.getPrimaryIdentifiers().iterator().next().instantiate();
+        uid.setRealValue("jack");
+        //noinspection unchecked
+        ResourceAttribute<String> name =
+                (ResourceAttribute<String>) accountDefinition.getSecondaryIdentifiers().iterator().next().instantiate();
+        name.setRealValue("jack");
+        ResourceObjectIdentification identification =
+                new ResourceObjectIdentification(accountDefinition, List.of(uid), List.of(name));
+
+        when("getting account by UID");
+        PrismObject<ShadowType> shadow = cc.fetchObject(identification, null, ctx, result);
+
+        then("account is retrieved OK");
+        displayDumpable("shadow retrieved", shadow);
+        assertThat(shadow).as("shadow").isNotNull();
+        checkUcfShadow(shadow, accountDefinition);
     }
 
     @Test

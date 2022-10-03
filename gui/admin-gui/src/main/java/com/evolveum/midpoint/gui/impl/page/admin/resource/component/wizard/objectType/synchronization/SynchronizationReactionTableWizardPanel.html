@@ -10,7 +10,13 @@
         xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div class="ml-auto mr-auto col-10" wicket:id="table"/>
+    <wicket:enclosure child="deprecatedContainerInfo">
+        <div class="ml-auto mr-auto col-10 alert alert-info alert-dismissible">
+            <i class="icon fas fa-info"></i>
+            <span wicket:id="deprecatedContainerInfo"/>
+        </div>
+    </wicket:enclosure>
+    <div class="ml-auto mr-auto col-10 p-0" wicket:id="table"/>
 </wicket:extend>
 </body>
 </html>

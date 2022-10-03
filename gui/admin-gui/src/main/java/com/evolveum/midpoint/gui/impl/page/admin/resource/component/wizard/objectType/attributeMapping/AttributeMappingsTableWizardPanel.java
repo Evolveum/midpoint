@@ -38,13 +38,16 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
     private static final String ID_TAB_TABLE = "tabTable";
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
+    private final WrapperContext.AttributeMappingType initialTab;
 
     public AttributeMappingsTableWizardPanel(
             String id,
             ResourceDetailsModel model,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
+            WrapperContext.AttributeMappingType initialTab) {
         super(id, model);
         this.valueModel = valueModel;
+        this.initialTab = initialTab;
     }
 
     @Override
@@ -69,6 +72,14 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
             }
         };
         tabPanel.setOutputMarkupId(true);
+        switch (initialTab) {
+            case INBOUND:
+                tabPanel.setSelectedTab(0);
+                break;
+            case OUTBOUND:
+                tabPanel.setSelectedTab(1);
+                break;
+        }
         add(tabPanel);
     }
 
@@ -160,7 +171,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
                 getPageBase().createStringResource("AttributeMappingsTableWizardPanel.showOverrides")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onShowOverrides(target);
+                onShowOverrides(target, getSelectedMappingType());
             }
         };
         showOverrides.showTitleAsLabel(true);
@@ -186,7 +197,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
         return "fa fa-floppy-disk";
     }
 
-    protected abstract void onShowOverrides(AjaxRequestTarget target);
+    protected abstract void onShowOverrides(AjaxRequestTarget target, WrapperContext.AttributeMappingType selectedMappingType);
 
     protected IModel<String> getSubmitLabelModel() {
         return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.saveButton");

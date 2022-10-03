@@ -159,6 +159,9 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         initSychronizationButton(topButtons);
         initAttributeMappingButton(topButtons);
         initCorrelationButton(topButtons);
+        initCredentialsButton(topButtons);
+        initActivationsButton(topButtons);
+        initAssociationsButton(topButtons);
 
         final Form mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
@@ -343,7 +346,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         attrMappingButton.showTitleAsLabel(true);
-        attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
+        attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1 mr-3 mb-3"));
+        attrMappingButton.add(AttributeAppender.append("style", "width: 30%;"));
         topButtons.add(attrMappingButton);
     }
 
@@ -364,7 +368,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         synchConfButton.showTitleAsLabel(true);
-        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
+        synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1 mr-3 mb-3"));
+        synchConfButton.add(AttributeAppender.append("style", "width: 30%;"));
         topButtons.add(synchConfButton);
     }
 
@@ -385,8 +390,75 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             }
         };
         correlationConfButton.showTitleAsLabel(true);
-        correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill"));
+        correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1 mb-3"));
+        correlationConfButton.add(AttributeAppender.append("style", "width: 30%;"));
         topButtons.add(correlationConfButton);
+    }
+
+    private void initCredentialsButton(RepeatingView topButtons) {
+        AjaxIconButton credentialsConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.CREDENTIALS.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.CREDENTIALS)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showCredentialsWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        credentialsConfButton.showTitleAsLabel(true);
+        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1 mr-3"));
+        credentialsConfButton.add(AttributeAppender.append("style", "width: 30%;"));
+        topButtons.add(credentialsConfButton);
+    }
+
+    private void initActivationsButton(RepeatingView topButtons) {
+        AjaxIconButton credentialsConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.ACTIVATION.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.ACTIVATION)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showActivationsWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        credentialsConfButton.showTitleAsLabel(true);
+        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1 mr-3"));
+        credentialsConfButton.add(AttributeAppender.append("style", "width: 30%;"));
+        topButtons.add(credentialsConfButton);
+    }
+
+    private void initAssociationsButton(RepeatingView topButtons) {
+        AjaxIconButton credentialsConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.ASSOCIATIONS.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.ASSOCIATIONS)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showAssociationsWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        credentialsConfButton.showTitleAsLabel(true);
+        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-grow-1"));
+        credentialsConfButton.add(AttributeAppender.append("style", "width: 30%;"));
+        topButtons.add(credentialsConfButton);
     }
 
     private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeValue(

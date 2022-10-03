@@ -12,6 +12,7 @@ import static java.util.Collections.emptyList;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -76,7 +77,7 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
 
     private static final Trace LOGGER = TraceManager.getTrace(GuiProfiledPrincipalManagerImpl.class);
 
-    private static final Set<ItemPath> ASSIGNMENTS_AND_ADMIN_GUI_PATHS = ImmutableSet.of(FocusType.F_ASSIGNMENT, RoleType.F_ADMIN_GUI_CONFIGURATION);
+    private static final Set<ItemPath> ASSIGNMENTS_AND_ADMIN_GUI_PATHS = ImmutableSet.of(FocusType.F_ASSIGNMENT, RoleType.F_ADMIN_GUI_CONFIGURATION, FocusType.F_ACTIVATION);
     private static final Set<ChangeType> MODIFY_DELETE_CHANGES = CacheInvalidationEventSpecification.MODIFY_DELETE;
 
     private static final Collection<CacheInvalidationEventSpecification> CACHE_EVENT_SPECIFICATION =
@@ -429,6 +430,15 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
         try {
             focus = repositoryService.getObject(principal.getFocus().getClass(), focusOid, null, result);
             principal.replaceFocus(focus.asObjectable());
+            if (!principal.isEnabled()) {
+                // User is disabled
+                var terminate = new TerminateSessionEvent();
+                terminate.setPrincipalOids(Collections.singletonList(principal.getOid()));
+                terminateLocalSessions(terminate);
+                // Do not recompute profile
+                return principal.getCompiledGuiProfile();
+            }
+
         } catch (ObjectNotFoundException e) {
             throw new SystemException("Focus was deleted");
         } catch (SchemaException e) {

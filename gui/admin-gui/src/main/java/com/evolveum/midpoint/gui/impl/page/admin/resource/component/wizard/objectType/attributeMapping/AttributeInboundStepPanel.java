@@ -36,7 +36,7 @@ import org.apache.wicket.model.IModel;
         expanded = true)
 public class AttributeInboundStepPanel extends AbstractValueFormResourceWizardStepPanel<MappingType> {
 
-    private static final String PANEL_TYPE = "attributeInboundWizard";
+    public static final String PANEL_TYPE = "attributeInboundWizard";
 
     public AttributeInboundStepPanel(ResourceDetailsModel model,
                                             IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {

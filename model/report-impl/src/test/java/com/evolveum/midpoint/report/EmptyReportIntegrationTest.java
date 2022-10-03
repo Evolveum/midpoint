@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class EmptyReportIntegrationTest extends AbstractModelIntegrationTest {
 
-    public static final int DONT_COUNT_ROWS = -1;
+    static final int DONT_COUNT_ROWS = -1;
 
     static final File TEST_DIR_REPORTS = new File("src/test/resources/reports");
     static final File TEST_DIR_COMMON = new File("src/test/resources/common");
@@ -147,8 +147,15 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
     static final TestResource<TaskType> TASK_EXPORT_CLASSIC = new TestResource<>(TEST_DIR_REPORTS,
             "task-export.xml", "d3a13f2e-a8c0-4f8c-bbf9-e8996848bddf");
 
-    protected static final File USER_ADMINISTRATOR_FILE = new File(TEST_DIR_COMMON, "user-administrator.xml");
-    protected static final File ROLE_SUPERUSER_FILE = new File(TEST_DIR_COMMON, "role-superuser.xml");
+    private static final TestResource<ArchetypeType> ARCHETYPE_TASK_REPORT_EXPORT_CLASSIC = new TestResource<>(TEST_DIR_COMMON,
+            "archetype-task-report-export-classic.xml", "00000000-0000-0000-0000-000000000511");
+    private static final TestResource<ArchetypeType> ARCHETYPE_TASK_REPORT_EXPORT_DISTRIBUTED = new TestResource<>(TEST_DIR_COMMON,
+            "archetype-task-report-export-distributed.xml", "00000000-0000-0000-0000-000000000512");
+    private static final TestResource<ArchetypeType> ARCHETYPE_TASK_REPORT_IMPORT_CLASSIC = new TestResource<>(TEST_DIR_COMMON,
+            "archetype-task-report-import-classic.xml", "00000000-0000-0000-0000-000000000510");
+
+    private static final File USER_ADMINISTRATOR_FILE = new File(TEST_DIR_COMMON, "user-administrator.xml");
+    private static final File ROLE_SUPERUSER_FILE = new File(TEST_DIR_COMMON, "role-superuser.xml");
     protected static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR_COMMON, "system-configuration.xml");
 
     @Override
@@ -157,7 +164,7 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
         commonInitialization(initResult);
     }
 
-    void commonInitialization(OperationResult initResult)
+    private void commonInitialization(OperationResult initResult)
             throws CommonException, EncryptionException, IOException {
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RepoAddOptions.createOverwrite(), false, initResult);
 
@@ -171,6 +178,12 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
 
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, RepoAddOptions.createOverwrite(), false, initResult);
         login(userAdministrator);
+
+        repoAdd(ARCHETYPE_TASK_REPORT_EXPORT_CLASSIC, initResult);
+        repoAdd(ARCHETYPE_TASK_REPORT_EXPORT_DISTRIBUTED, initResult);
+        repoAdd(ARCHETYPE_TASK_REPORT_IMPORT_CLASSIC, initResult);
+
+        activityBasedTaskHandler.setAvoidAutoAssigningArchetypes(false); // We test auto-assigning of archetypes here
     }
 
     void createUsers(int users, Task initTask, OperationResult initResult) throws CommonException {

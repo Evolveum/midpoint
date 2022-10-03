@@ -333,6 +333,7 @@
                 </display>
                 <panelType>statisticWidget</panelType>
                 <action>
+                    <identifier>profile-widget-action</identifier>
                     <target>
                         <targetUrl>/self/profile/user</targetUrl>
                     </target>
@@ -356,6 +357,7 @@
                 </display>
                 <panelType>statisticWidget</panelType>
                 <action>
+                    <identifier>credentials-widget-action</identifier>
                     <target>
                         <targetUrl>/self/credentials</targetUrl>
                     </target>
@@ -378,6 +380,7 @@
                 </display>
                 <panelType>statisticWidget</panelType>
                 <action>
+                    <identifier>list-resources-widget-action</identifier>
                    <target>
                         <targetUrl>/admin/resources</targetUrl>
                     </target>
@@ -400,6 +403,7 @@
                 </display>
                 <panelType>statisticWidget</panelType>
                 <action>
+                    <identifier>list-resources-widget-action</identifier>
                     <target>
                         <targetUrl>/admin/users</targetUrl>
                     </target>

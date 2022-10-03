@@ -11,6 +11,8 @@ import static org.testng.Assert.assertTrue;
 import java.io.File;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -20,10 +22,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkDefinitionsType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 public class TestCsvReportMultiNode extends TestCsvReport {
@@ -44,7 +42,6 @@ public class TestCsvReportMultiNode extends TestCsvReport {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        commonInitialization(initResult);
 
         repoAdd(TASK_DISTRIBUTED_EXPORT_USERS, initResult);
         repoAdd(TASK_DISTRIBUTED_EXPORT_AUDIT, initResult);
@@ -74,7 +71,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
         assertTask(TASK_DISTRIBUTED_EXPORT_USERS.oid, "after")
                 .assertSuccess()
-                .display();
+                .display()
+                .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value());
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_USERS.oid);
         basicCheckOutputFile(report, 1004, 2, null);
@@ -158,7 +156,8 @@ public class TestCsvReportMultiNode extends TestCsvReport {
 
         assertTask(TASK_DISTRIBUTED_EXPORT_AUDIT.oid, "after")
                 .assertSuccess()
-                .display();
+                .display()
+                .assertHasArchetype(SystemObjectsType.ARCHETYPE_REPORT_EXPORT_DISTRIBUTED_TASK.value());
 
         assertNotificationMessage(REPORT_AUDIT_COLLECTION_WITH_DEFAULT_COLUMN);
     }

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.result.Toast;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -44,12 +45,12 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
     }
 
     protected void initLayout() {
-        add(createChoiceFragment(createTablePanel()));
+        add(createChoiceFragment(createTablePanel(WrapperContext.AttributeMappingType.INBOUND)));
     }
 
-    protected AttributeMappingsTableWizardPanel createTablePanel() {
+    protected AttributeMappingsTableWizardPanel createTablePanel(WrapperContext.AttributeMappingType initialTab) {
         AttributeMappingsTableWizardPanel table
-                = new AttributeMappingsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
+                = new AttributeMappingsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel, initialTab) {
 
             @Override
             protected void onSaveResourcePerformed(AjaxRequestTarget target) {
@@ -86,8 +87,8 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
             }
 
             @Override
-            protected void onShowOverrides(AjaxRequestTarget target) {
-                showAttributeOverrides(target);
+            protected void onShowOverrides(AjaxRequestTarget target, WrapperContext.AttributeMappingType selectedTable) {
+                showAttributeOverrides(target, selectedTable);
             }
 
             @Override
@@ -109,7 +110,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
         return table;
     }
 
-    private void showAttributeOverrides(AjaxRequestTarget target) {
+    private void showAttributeOverrides(AjaxRequestTarget target, WrapperContext.AttributeMappingType selectedTable) {
         showChoiceFragment(
                 target,
                 new MappingOverridesTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), getValueModel()) {
@@ -136,14 +137,14 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
 
                     @Override
                     protected void onExitPerformed(AjaxRequestTarget target) {
-                        showTableFragment(target);
+                        showTableFragment(target, selectedTable);
                     }
 
                     @Override
                     protected void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> value, AjaxRequestTarget target) {
                         showWizardFragment(
                                 target,
-                                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createNewAttributeOverrideSteps(value))));
+                                new WizardPanel(getIdOfWizardPanel(), new WizardModel(createNewAttributeOverrideSteps(value, selectedTable))));
                     }
 
                     @Override
@@ -180,7 +181,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
         steps.add(new AttributeInboundStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showTableFragment(target);
+                showTableFragment(target, WrapperContext.AttributeMappingType.INBOUND);
             }
         });
         return steps;
@@ -199,26 +200,26 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
         steps.add(new AttributeOutboundStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showTableFragment(target);
+                showTableFragment(target, WrapperContext.AttributeMappingType.OUTBOUND);
             }
         });
         return steps;
     }
 
     private List<WizardStep> createNewAttributeOverrideSteps(
-            IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel) {
+            IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel, WrapperContext.AttributeMappingType selectedTable) {
         List<WizardStep> steps = new ArrayList<>();
         steps.add(new MainConfigurationStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showAttributeOverrides(target);
+                showAttributeOverrides(target, selectedTable);
             }
         });
 
         steps.add(new LimitationsStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                showAttributeOverrides(target);
+                showAttributeOverrides(target, selectedTable);
             }
         });
         return steps;
@@ -233,8 +234,8 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
         return valueModel;
     }
 
-    private void showTableFragment(AjaxRequestTarget target) {
-        showChoiceFragment(target, createTablePanel());
+    private void showTableFragment(AjaxRequestTarget target, WrapperContext.AttributeMappingType initialTab) {
+        showChoiceFragment(target, createTablePanel(initialTab));
     }
 
     protected boolean isSavedAfterWizard() {

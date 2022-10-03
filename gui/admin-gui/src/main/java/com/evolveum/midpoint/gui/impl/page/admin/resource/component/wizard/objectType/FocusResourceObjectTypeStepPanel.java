@@ -26,7 +26,7 @@ import org.apache.wicket.model.IModel;
         expanded = true)
 public class FocusResourceObjectTypeStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectFocusSpecificationType> {
 
-    private static final String PANEL_TYPE = "focusResourceObjectTypeWizard";
+    public static final String PANEL_TYPE = "focusResourceObjectTypeWizard";
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> objectTypeValueModel;
     private final IModel<PrismContainerValueWrapper<ResourceObjectFocusSpecificationType>> valueModel;
