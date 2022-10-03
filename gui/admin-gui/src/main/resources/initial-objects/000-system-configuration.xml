@@ -189,7 +189,9 @@
                     <identifier>viewAll</identifier>
                     <display>
                         <label>
-                            <translation>PageSelfDashboard.button.viewAll</translation>
+                            <translation>
+                                <key>PageSelfDashboard.button.viewAll</key>
+                            </translation>
                         </label>
                         <icon>
                             <cssClass>fa fa-search</cssClass>
@@ -204,7 +206,9 @@
                     <identifier>requestAccess</identifier>
                     <display>
                         <label>
-                            <translation>PageRequestAccess.title</translation>
+                            <translation>
+                                <key>PageRequestAccess.title</key>
+                            </translation>
                         </label>
                         <icon>
                             <cssClass>fas fa-plus-circle</cssClass>
@@ -236,7 +240,9 @@
                     <identifier>viewAll</identifier>
                     <display>
                         <label>
-                            <translation>PageSelfDashboard.button.viewAll</translation>
+                            <translation>
+                                <key>PageSelfDashboard.button.viewAll</key>
+                            </translation>
                         </label>
                         <icon>
                             <cssClass>fa fa-search</cssClass>
@@ -269,7 +275,9 @@
                     <identifier>viewAll</identifier>
                     <display>
                         <label>
-                            <translation>PageSelfDashboard.button.viewAll</translation>
+                            <translation>
+                                <key>PageSelfDashboard.button.viewAll</key>
+                            </translation>
                         </label>
                         <icon>
                             <cssClass>fa fa-search</cssClass>
@@ -301,7 +309,9 @@
                     <identifier>viewAll</identifier>
                     <display>
                         <label>
-                            <translation>PageSelfDashboard.button.viewAll</translation>
+                            <translation>
+                                <key>PageSelfDashboard.button.viewAll</key>
+                            </translation>
                         </label>
                         <icon>
                             <cssClass>fa fa-search</cssClass>
