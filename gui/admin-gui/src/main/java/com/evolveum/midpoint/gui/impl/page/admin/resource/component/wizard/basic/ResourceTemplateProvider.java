@@ -129,7 +129,7 @@ public class ResourceTemplateProvider
         DisplayType display =
                 GuiDisplayTypeUtil.getDisplayTypeForObject(obj, result, getPageBase());
         return new TemplateTile(
-                WebComponentUtil.getIconCssClass(display),
+                GuiDisplayTypeUtil.getIconCssClass(display),
                 title,
                 new ResourceTemplate(obj.getOid(), ResourceType.COMPLEX_TYPE))
                 .description(obj.asObjectable().getDescription())

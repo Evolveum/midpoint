@@ -451,7 +451,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             pis.forEach(pi -> addPanelsFor(panels, containerable, clazz, pi));
         }
 
-        MiscSchemaUtil.sortDetailsPanels(panels);
+        MiscSchemaUtil.sortFeaturesPanels(panels);
 
         return panels;
     }
@@ -589,7 +589,7 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             }
         }
 
-        MiscSchemaUtil.sortDetailsPanels(configs);
+        MiscSchemaUtil.sortFeaturesPanels(configs);
 
         return configs;
     }

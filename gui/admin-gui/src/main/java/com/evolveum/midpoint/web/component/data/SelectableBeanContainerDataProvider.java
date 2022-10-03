@@ -71,6 +71,10 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
 
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
+    //This is quick hack how to disable counting for each preview panel on dashboard..
+    // probably the solution will be to work directly with panel configuration
+    private boolean isForPreview;
+
     public SelectableBeanContainerDataProvider(Component component, @NotNull IModel<Search<C>> search, Set<? extends C> selected, boolean useDefaultSortingField) {
         super(component, search, false, useDefaultSortingField);
 
@@ -210,7 +214,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
     @Override
     protected int internalSize() {
         LOGGER.trace("begin::internalSize()");
-        if (!isUseObjectCounting()) {
+        if (!isUseObjectCounting() || isForPreview) {
             return Integer.MAX_VALUE;
         }
         int count = 0;
@@ -310,4 +314,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         return false;
     }
 
+    public void setForPreview(boolean forPreview) {
+        isForPreview = forPreview;
+    }
 }

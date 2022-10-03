@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
@@ -671,7 +672,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 label = WebComponentUtil.getTranslatedPolyString(display);
             }
 
-            String iconClass = WebComponentUtil.getIconCssClass(viewDisplayType);
+            String iconClass = GuiDisplayTypeUtil.getIconCssClass(viewDisplayType);
             MenuItem userViewMenu = new MenuItem(label,
                     StringUtils.isEmpty(iconClass) ? BaseMenuItem.DEFAULT_ICON : iconClass, redirectToPage, pageParameters, isObjectCollectionMenuActive(objectView));
             userViewMenu.setDisplayOrder(objectView.getDisplayOrder());

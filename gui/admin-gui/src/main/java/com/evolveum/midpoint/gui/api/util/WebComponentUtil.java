@@ -28,6 +28,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.application.PageMounter;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -2579,56 +2581,48 @@ public final class WebComponentUtil {
         }
     }
 
-    public static void redirectFromDashboardWidget(ContainerPanelConfigurationType widgetConfig, PageBase pageBase, Component component) {
-        if (widgetConfig == null) {
-            return;
-        }
-        List<GuiActionType> actionList = widgetConfig.getAction();
-        if (CollectionUtils.isEmpty(actionList)) {
-            return;
-        }
-        Optional<GuiActionType> actionWithRedirection = actionList.stream().filter(WebComponentUtil::isRedirectionTargetNotEmpty).findFirst();
-        if (actionWithRedirection.isEmpty()) {
-            return;
-        }
-        RedirectionTargetType redirectionTarget = actionWithRedirection.get().getTarget();
+    public static void redirectFromDashboardWidget(GuiActionType action, PageBase pageBase, Component component) {
+        RedirectionTargetType redirectionTarget = action.getTarget();
         String url = redirectionTarget.getTargetUrl();
         String pageClass = redirectionTarget.getPageClass();
-        String panelType = redirectionTarget.getPanelType();
-        if (StringUtils.isNotEmpty(url) && new UrlValidator().isValid(url)) {
-            throw new RedirectToUrlException(url);
-        } else if (StringUtils.isNotEmpty(pageClass)) {
-            try {
-                Class<?> clazz = Class.forName(pageClass);
-                ContainerPanelConfigurationType config = new ContainerPanelConfigurationType();
-                config.setPanelType(panelType);
 
-                Constructor<?> constructor = clazz.getConstructor();
-                Object pageInstance = constructor.newInstance();
-                if (pageInstance instanceof PageSelfProfile && StringUtils.isNotEmpty(panelType)) {
-                    String storageKey = "details" + ((AbstractPageObjectDetails<?, ?>) pageInstance).getType().getSimpleName();
-                    ObjectDetailsStorage pageStorage = pageBase.getSessionStorage().getObjectDetailsStorage(storageKey);
-                    if (pageStorage == null) {
-                        pageBase.getSessionStorage().setObjectDetailsStorage(storageKey, config);
-                    } else {
-                        pageStorage.setDefaultConfiguration(config);
-                    }
-                    pageBase.navigateToNext(WebComponentUtil.resolveSelfPage());
-                } else if (pageInstance instanceof WebPage) {
-                    pageBase.navigateToNext((Class<? extends WebPage>) clazz);
-                }
-            } catch (Throwable e) {
-                e.printStackTrace();
-                LOGGER.trace("No constructor found for (String, LoadableModel, ContainerPanelConfigurationType). Continue with lookup.", e);
+        Class<? extends WebPage> webPageClass = null;
+        if (StringUtils.isNotEmpty(url)) {
+            if (new UrlValidator().isValid(url)) {
+                throw new RedirectToUrlException(url);
             }
+            webPageClass = PageMounter.getUrlClassMap().get(url);
         }
+
+        try {
+            if (webPageClass == null) {
+                webPageClass = (Class<? extends WebPage>) Class.forName(pageClass);
+            }
+
+            PageParameters params = new PageParameters();
+            String panelType = redirectionTarget.getPanelIdentifier();
+            if (panelType != null) {
+                params.set("panelId", panelType);
+            }
+
+            String collectionIdentifier = redirectionTarget.getCollectionIdentifier();
+            if (collectionIdentifier != null) {
+                params.set(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, collectionIdentifier);
+            }
+            pageBase.navigateToNext(webPageClass, params);
+
+        } catch (Throwable e) {
+            LOGGER.trace("Problem with redirecting to page: {}, reason: {}", webPageClass, e.getMessage(), e);
+        }
+
     }
 
     public static boolean isRedirectionTargetNotEmpty(GuiActionType action) {
         if (action == null || action.getTarget() == null) {
             return false;
         }
-        return !StringUtils.isAllEmpty(action.getTarget().getTargetUrl(), action.getTarget().getPageClass(), action.getTarget().getPanelType());
+        RedirectionTargetType target = action.getTarget();
+        return !StringUtils.isAllEmpty(target.getTargetUrl(), target.getPageClass(), target.getPanelIdentifier(), target.getCollectionIdentifier());
     }
 
     public static boolean hasDetailsPage(PrismObject<?> object) {
@@ -3784,38 +3778,6 @@ public final class WebComponentUtil {
         return spec;
     }
 
-    public static String getIconCssClass(DisplayType displayType) {
-        if (displayType == null || displayType.getIcon() == null) {
-            return "";
-        }
-        return displayType.getIcon().getCssClass();
-    }
-
-    public static PolyStringType getLabel(DisplayType displayType) {
-        return displayType == null ? null : displayType.getLabel();
-    }
-
-    public static String getIconColor(DisplayType displayType) {
-        if (displayType == null || displayType.getIcon() == null) {
-            return "";
-        }
-        return displayType.getIcon().getColor();
-    }
-
-    public static String getHelp(DisplayType displayType) {
-        if (displayType == null || displayType.getHelp() == null) {
-            return "";
-        }
-        return getTranslatedPolyString(displayType.getHelp());
-    }
-
-    public static String getDisplayTypeTitle(DisplayType displayType) {
-        if (displayType == null || displayType.getTooltip() == null) {
-            return "";
-        }
-        return displayType.getTooltip().getOrig();
-    }
-
     //TODO unify createAccountIcon with createCompositeIconForObject
     public static <O extends ObjectType> CompositedIcon createCompositeIconForObject(O obj, OperationResult result, PageBase pageBase) {
         if (obj instanceof ShadowType) {
@@ -3832,10 +3794,10 @@ public final class WebComponentUtil {
         IconType lifecycleStateIcon = getIconForLifecycleState(obj);
         IconType activationStatusIcon = getIconForActivationStatus(obj);
 
-        String iconColor = getIconColor(basicIconDisplayType);
+        String iconColor = GuiDisplayTypeUtil.getIconColor(basicIconDisplayType);
 
         CompositedIconBuilder builder = iconBuilder.setBasicIcon(
-                        getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
+                        GuiDisplayTypeUtil.getIconCssClass(basicIconDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(StringUtils.isNotEmpty(iconColor) ? iconColor : "");
 
         StringBuilder title = new StringBuilder(getOrigStringFromPolyOrEmpty(basicIconDisplayType.getTooltip()));
@@ -4207,12 +4169,12 @@ public final class WebComponentUtil {
             objectTypeDisplay.setIcon(new IconType());
         }
         QName objectType = CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) : null;
-        if (StringUtils.isEmpty(WebComponentUtil.getIconCssClass(objectTypeDisplay)) && objectType != null) {
+        if (StringUtils.isEmpty(GuiDisplayTypeUtil.getIconCssClass(objectTypeDisplay)) && objectType != null) {
             objectTypeDisplay.getIcon().setCssClass(WebComponentUtil.createDefaultBlackIcon(objectType));
         }
-        if (StringUtils.isNotEmpty(WebComponentUtil.getIconCssClass(objectTypeDisplay))) {
+        if (StringUtils.isNotEmpty(GuiDisplayTypeUtil.getIconCssClass(objectTypeDisplay))) {
             builder.setBasicIcon(objectTypeDisplay.getIcon(), IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(WebComponentUtil.getIconColor(objectTypeDisplay))
+                    .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(objectTypeDisplay))
                     .appendLayerIcon(actionButtonIcon, IconCssStyle.BOTTOM_RIGHT_STYLE)
                     .appendLayerIcon(relationIcon, IconCssStyle.TOP_RIGHT_STYLE);
         } else {

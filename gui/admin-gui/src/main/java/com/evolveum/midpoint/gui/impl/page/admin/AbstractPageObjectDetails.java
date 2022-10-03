@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -17,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -348,15 +351,9 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
-        //TODO how to do the redirection to concrete panel?
-//        ObjectDetailsStorage storage = getSessionStorage().getObjectDetailsStorage("details" + getType().getSimpleName());
-//        if (storage != null) {
-//            ContainerPanelConfigurationType config = storage.getDefaultConfiguration();
-//            if (config != null) {
-//                return config;
-//            }
-//        }
-        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject());
+
+
+        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(), getPanelIdetifierFromParams());
 
         if (defaultConfiguration != null) {
             return defaultConfiguration;
@@ -368,18 +365,33 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 .orElseGet(() -> null);
     }
 
-    private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
+    private String getPanelIdetifierFromParams() {
+        StringValue panelIdentifierParam = getPageParameters().get("panelId");
+        String panelIdentifier = null;
+        if (panelIdentifierParam != null && !panelIdentifierParam.isEmpty()) {
+            panelIdentifier = panelIdentifierParam.toString();
+        }
+        return panelIdentifier;
+    }
+
+    private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs, String panelIdentifier) {
         List<ContainerPanelConfigurationType> subConfigs = new ArrayList<>();
         for (ContainerPanelConfigurationType config : configs) {
+            subConfigs.addAll(config.getPanel());
+            if (panelIdentifier != null) {
+                if (config.getIdentifier().equals(panelIdentifier)) {
+                    return config;
+                }
+                continue;
+            }
             if (isApplicable(config)) {
                 return config;
             }
-            subConfigs.addAll(config.getPanel());
         }
         if (subConfigs.isEmpty()) {
             return null;
         }
-        return findDefaultConfiguration(subConfigs);
+        return findDefaultConfiguration(subConfigs, panelIdentifier);
     }
 
     private boolean isApplicable(ContainerPanelConfigurationType config) {
@@ -471,8 +483,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         MidpointForm form = getMainForm();
         try {
             initMainPanel(config, form);
-            target.add(form);
             target.add(getFeedbackPanel());
+
+            overwritePageParameters(config);
+            target.add(AbstractPageObjectDetails.this);
         } catch (Throwable e) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Can't instantiate panel based on config\n {}", config.debugDump(), e);
@@ -481,6 +495,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             error(getString("AbstractPageObjectDetails.replacePanelException", e.getMessage(), e.getClass().getSimpleName()));
             target.add(getFeedbackPanel());
         }
+    }
+
+    private void overwritePageParameters(ContainerPanelConfigurationType config) {
+        PageParameters newParams = new PageParameters(getPageParameters());
+        newParams.set("panelId", config.getIdentifier());
+        getPageParameters().overwriteWith(newParams);
     }
 
     private PrismObject<O> loadPrismObject() {

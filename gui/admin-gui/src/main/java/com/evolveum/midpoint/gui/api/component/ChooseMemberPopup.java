@@ -468,8 +468,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
             compositedIconButtonDto.setCompositedIcon(icon);
         } else {
             CompositedIconBuilder mainButtonIconBuilder = new CompositedIconBuilder();
-            mainButtonIconBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(buttonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(WebComponentUtil.getIconColor(buttonDisplayType));
+            mainButtonIconBuilder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(buttonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                    .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(buttonDisplayType));
             compositedIconButtonDto.setCompositedIcon(mainButtonIconBuilder.build());
         }
         compositedIconButtonDto.setAssignmentObjectRelation(relation);

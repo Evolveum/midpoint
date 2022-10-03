@@ -10,6 +10,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.web.component.data.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -72,10 +75,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -264,11 +263,18 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return new WidgetTableHeader(headerId, new PropertyModel<>(config, "display"));
     }
 
+    private void setUseCounting(ISelectableDataProvider provider) {
+        if (provider instanceof SelectableBeanContainerDataProvider) {
+            ((SelectableBeanContainerDataProvider<?>) provider).setForPreview(isPreview());
+        }
+    }
+
     protected BoxedTablePanel<PO> initItemTable() {
 
         List<IColumn<PO, String>> columns = createColumns();
         ISelectableDataProvider<PO> provider = createProvider();
         setDefaultSorting(provider);
+        setUseCounting(provider);
         BoxedTablePanel<PO> itemTable = new BoxedTablePanel<>(ID_ITEMS_TABLE,
                 provider, columns, getTableId()) {
             private static final long serialVersionUID = 1L;
@@ -332,9 +338,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         };
         itemTable.setOutputMarkupId(true);
 
-        if (getTableId() != null) {
-            itemTable.setItemsPerPage(getSession().getSessionStorage().getUserProfile().getPagingSize(getTableId()));
-        }
+        itemTable.setItemsPerPage(getDefaultPageSize());
 
         if (getPageStorage() != null) {
             ObjectPaging pageStorage = getPageStorage().getPaging();
@@ -342,11 +346,29 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 itemTable.setCurrentPage(pageStorage);
             }
         }
-        if (isDashboard()) {
-            Integer maxSize = getViewPagingMaxSize();
-            itemTable.setItemsPerPage(maxSize != null ? maxSize.intValue() : UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
-        }
+
         return itemTable;
+    }
+
+    private int getDefaultPageSize() {
+        if (isPreview()) {
+            Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();
+            if (previewSize == null) {
+                return UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE;
+            }
+            return previewSize;
+        }
+
+        Integer collectionViewPagingSize = getViewPagingMaxSize();
+        if (collectionViewPagingSize != null) {
+            return collectionViewPagingSize;
+        }
+
+        if (getTableId() != null) {
+           return getSession().getSessionStorage().getUserProfile().getPagingSize(getTableId());
+        }
+
+        return UserProfileStorage.DEFAULT_PAGING_SIZE;
     }
 
     private Integer getViewPagingMaxSize() {
@@ -372,7 +394,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private boolean isPreview() {
-        return config != null && BooleanUtils.isTrue(config.isPreview());
+        return config instanceof PreviewContainerPanelConfigurationType;
     }
 
     protected PageStorage getPageStorage(String storageKey) {
@@ -956,27 +978,33 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     //TODO TODO TODO what about other buttons? e.g. request access?
     private List<Component> createNavigationButtons(String idButton) {
         List<Component> buttonsList = new ArrayList<>();
-        buttonsList.add(createViewAllButton(idButton));
+        PreviewContainerPanelConfigurationType previewConfig = (PreviewContainerPanelConfigurationType) config;
+        for (GuiActionType action : previewConfig.getAction()) {
+            AjaxIconButton button = createViewAllButton(idButton, action);
+            buttonsList.add(button);
+        }
+
         return buttonsList;
     }
 
-    private AjaxIconButton createViewAllButton(String buttonId) {
-        AjaxIconButton viewAll = new AjaxIconButton(buttonId, new Model<>(GuiStyleConstants.CLASS_ICON_SEARCH),
-                createStringResource("AjaxIconButton.viewAll")) {
+    private AjaxIconButton createViewAllButton(String buttonId, GuiActionType action) {
+        DisplayType displayType = action.getDisplay();
+        AjaxIconButton viewAll = new AjaxIconButton(buttonId, new Model<>(GuiDisplayTypeUtil.getIconCssClass(displayType)),
+                () -> WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(displayType))) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                viewAllActionPerformed(target);
+                viewAllActionPerformed(target, action);
             }
         };
-        viewAll.add(new VisibleBehaviour(this::isPreview));
-        viewAll.add(AttributeAppender.append("class", "btn btn-info btn-sm"));
+        viewAll.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(action.getVisibility())));
+        viewAll.add(AttributeAppender.append("class", "btn btn-info btn-sm mr-2"));
         viewAll.showTitleAsLabel(true);
         return viewAll;
     }
 
-    protected void viewAllActionPerformed(AjaxRequestTarget target) {
-        WebComponentUtil.redirectFromDashboardWidget(config, getPageBase(), ContainerableListPanel.this);
+    protected void viewAllActionPerformed(AjaxRequestTarget target, GuiActionType action) {
+        WebComponentUtil.redirectFromDashboardWidget(action, getPageBase(), ContainerableListPanel.this);
     }
 
     protected String getStorageKey() {
