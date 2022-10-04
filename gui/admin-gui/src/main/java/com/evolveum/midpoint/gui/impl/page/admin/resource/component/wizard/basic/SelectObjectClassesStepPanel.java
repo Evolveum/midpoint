@@ -98,6 +98,10 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't find property for schema generation constraints", e);
                 }
+                if (map.isEmpty() && getResourceModel().getObjectClassesModel().getObject().size() == 1) {
+                    ObjectClassWrapper value = getResourceModel().getObjectClassesModel().getObject().iterator().next();
+                    map.put(value.getObjectClassName(), true);
+                }
                 return map;
             }
         };

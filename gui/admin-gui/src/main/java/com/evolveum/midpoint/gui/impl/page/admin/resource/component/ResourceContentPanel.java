@@ -118,9 +118,15 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             @Override
             protected ResourceContentSearchDto load() {
                 isRepoSearch = isRepoSearch();
-                return getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
+                ResourceContentSearchDto contentSearch = getContentStorage(kind, isRepoSearch ? SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT :
                         SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT).getContentSearch();
-
+                if (contentSearch.isUseObjectClass() && contentSearch.getObjectClass() == null){
+                    List<QName> choices = createObjectClassChoices(getObjectWrapperModel());
+                    if (choices.size() == 1) {
+                        contentSearch.setObjectClass(choices.iterator().next());
+                    }
+                }
+                return contentSearch;
             }
 
         };
