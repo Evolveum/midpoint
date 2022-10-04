@@ -80,12 +80,9 @@ public class TestScriptCaching extends AbstractUnitTest
         Clock clock = new Clock();
         Collection<FunctionLibrary> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
-        scriptExpressionfactory = new ScriptExpressionFactory(prismContext, null);
-        scriptExpressionfactory.setObjectResolver(resolver);
-        scriptExpressionfactory.setFunctions(functions);
+        scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);
         evaluator = new Jsr223ScriptEvaluator("groovy", prismContext, protector, LocalizationTestUtil.getLocalizationService());
-        String languageUrl = evaluator.getLanguageUrl();
-        scriptExpressionfactory.registerEvaluator(languageUrl, evaluator);
+        scriptExpressionfactory.registerEvaluator(evaluator);
     }
 
     @Test
@@ -171,7 +168,7 @@ public class TestScriptCaching extends AbstractUnitTest
         ScriptExpression expression = new ScriptExpression(scriptExpressionfactory.getEvaluators().get(expressionType.getLanguage()), expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
-        expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getFunctions()));
+        expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getStandardFunctionLibraries()));
         return expression;
     }
 

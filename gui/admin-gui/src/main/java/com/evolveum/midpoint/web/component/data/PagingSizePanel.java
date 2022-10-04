@@ -48,7 +48,8 @@ public class PagingSizePanel extends BasePanel<Integer> {
         setRenderBodyOnly(false);
         add(AttributeAppender.append("class", "d-flex flex-nowrap align-items-center paging-size"));
 
-        DropDownChoice size = new DropDownChoice(ID_SIZE, createModel(), Model.ofList(Arrays.asList(10, 25, 50, 100)));
+        DropDownChoice size = new DropDownChoice(ID_SIZE, createModel(),
+                Model.ofList(Arrays.asList(UserProfileStorage.DEFAULT_PAGING_SIZES)));
         size.add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override

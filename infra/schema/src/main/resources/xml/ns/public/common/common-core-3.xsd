@@ -13883,10 +13883,15 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Reference to the root object of the role catalog.
+
+                        DEPRECATED: Configuration was moved to adminGuiConfiguration/accessRequest/roleCatalog
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
                         <a:displayName>RoleManagementConfigurationType.roleCatalogRef</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13897,10 +13902,15 @@
                         catalog. If this element is not specified then the default (hardcoded) collections
                         will be displayed. If this element is specified then only those collections specified
                         in this element are displayed.
+
+                        DEPRECATED: Configuration was moved to adminGuiConfiguration/accessRequest/roleCatalog
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:displayName>RoleManagementConfigurationType.roleCatalogCollections</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13909,10 +13919,15 @@
                     <xsd:documentation>
                         Specifies the default object collections ("role catalog view") to display in role
                         catalog.
+
+                        DEPRECATED: Configuration was moved to adminGuiConfiguration/accessRequest/roleCatalog
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:displayName>RoleManagementConfigurationType.defaultCollection</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -13930,6 +13945,9 @@
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:displayName>RoleManagementConfigurationType.defaultAssignmentConstraints</a:displayName>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

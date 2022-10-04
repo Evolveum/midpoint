@@ -107,8 +107,7 @@ public class TestExpression extends AbstractModelCommonTest {
         Protector protector = ExpressionTestUtil.createInitializedProtector(prismContext);
         Clock clock = new Clock();
         constantsManager = new ConstantsManager();
-        expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(
-                resolver, protector, prismContext, clock, null, null);
+        expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock);
 
         expressionProfile = compileExpressionProfile(getExpressionProfileName());
         System.out.println("Using expression profile: " + expressionProfile);
