@@ -22,7 +22,10 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class UserProfileStorage implements Serializable, DebugDumpable {
 
     private static final long serialVersionUID = 1L;
-    public static final int DEFAULT_PAGING_SIZE = 25;
+
+    public static final int DEFAULT_PAGING_SIZE = 20;
+
+    public static final Integer[] DEFAULT_PAGING_SIZES = new Integer[] { 10, DEFAULT_PAGING_SIZE, 50, 100 };
     public static final int DEFAULT_DASHBOARD_PAGING_SIZE = 5;
 
     /*
