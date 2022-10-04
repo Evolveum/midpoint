@@ -28,12 +28,10 @@ import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
 /**
@@ -41,7 +39,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
  */
 public class ExpressionTestUtil {
 
-    public static final String CONST_FOO_NAME = "foo";
+    private static final String CONST_FOO_NAME = "foo";
     public static final String CONST_FOO_VALUE = "foobar";
 
     public static Protector createInitializedProtector(PrismContext prismContext) {
@@ -52,10 +50,9 @@ public class ExpressionTestUtil {
     }
 
     public static ExpressionFactory createInitializedExpressionFactory(
-            ObjectResolver resolver, Protector protector, PrismContext prismContext, Clock clock,
-            SecurityContextManager securityContextManager, RepositoryService repositoryService) {
+            ObjectResolver resolver, Protector protector, PrismContext prismContext, Clock clock) {
         ExpressionFactory expressionFactory = new ExpressionFactory(
-                securityContextManager, prismContext, LocalizationTestUtil.getLocalizationService());
+                null, prismContext, LocalizationTestUtil.getLocalizationService());
         expressionFactory.setObjectResolver(resolver);
 
         // NOTE: we need to register the evaluator factories to expressionFactory manually here
@@ -97,24 +94,21 @@ public class ExpressionTestUtil {
         Collection<FunctionLibrary> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
         functions.add(FunctionLibraryUtil.createLogFunctionLibrary(prismContext));
-        ScriptExpressionFactory scriptExpressionFactory =
-                new ScriptExpressionFactory(prismContext, repositoryService);
-        scriptExpressionFactory.setObjectResolver(resolver);
-        scriptExpressionFactory.setFunctions(functions);
+        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(functions, resolver);
 
         GroovyScriptEvaluator groovyEvaluator = new GroovyScriptEvaluator(
                 prismContext, protector, LocalizationTestUtil.getLocalizationService());
-        scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
+        scriptExpressionFactory.registerEvaluator(groovyEvaluator);
 
         Jsr223ScriptEvaluator jsEvaluator = new Jsr223ScriptEvaluator(
                 "ECMAScript", prismContext, protector, LocalizationTestUtil.getLocalizationService());
         if (jsEvaluator.isInitialized()) {
-            scriptExpressionFactory.registerEvaluator(jsEvaluator.getLanguageUrl(), jsEvaluator);
+            scriptExpressionFactory.registerEvaluator(jsEvaluator);
         }
 
         ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory =
                 new ScriptExpressionEvaluatorFactory(
-                        scriptExpressionFactory, securityContextManager, prismContext);
+                        scriptExpressionFactory, null, prismContext);
         expressionFactory.registerEvaluatorFactory(scriptExpressionEvaluatorFactory);
 
         return expressionFactory;
