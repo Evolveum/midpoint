@@ -289,7 +289,7 @@ EOF
                     ])
 
                     if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
-                        sh "find . -wholename '*/target/test.log' -print0 | tar -czf test-logs.tgz --null -T -"
+                        sh "find . -wholename '*/target/test.log' -print0 | tar cfvz test-logs.tgz --null -T -"
                         archiveArtifacts allowEmptyArchive: true, artifacts: "test-logs.tgz", followSymlinks: false
                     }
                 }
@@ -313,15 +313,16 @@ kubectl logs -n jenkins \$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod) -c ora
 kubectl delete -n jenkins \\
     \$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod) \\
     \$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc)
-
-echo "Preparing the archive with the logs..."
-tar -cvzf logs.tgz ../logs-${JOB_NAME}-${BUILD_NUMBER}
                         """
-                    } catch (err) {
-                        echo "Caught: ${err}"
+
+                        if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
+                            sh "tar cfvz oracle-logs.tgz ../logs-${JOB_NAME}-${BUILD_NUMBER}"
+                            archiveArtifacts allowEmptyArchive: true, artifacts: 'oracle-logs.tgz', followSymlinks: false
+                        }
+                    } catch (e) {
+                        echo "Error during Oracle pod cleanup: ${e}"
                     }
                 }
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'logs.tgz', followSymlinks: false
             }
 
             try {
