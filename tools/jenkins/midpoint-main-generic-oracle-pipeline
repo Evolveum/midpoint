@@ -5,6 +5,17 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
+/*
+ * NOTES:
+ * Oracle XE 21 must be used, older versions fail with:
+ * [WARNING] ORA-00821: Specified value of sga_target 1536M is too small, needs to be at least 2416M
+ * The container probably "sees" too many processors: https://github.com/oracle/docker-images/issues/1522
+ *
+ * Oracle container is run in a separate pod controlled by kubectl container, because:
+ * - When run inside Jenkins job pod without runAsUser the job got stuck.
+ * - When run with runAsUser=0, the DB was not initialized properly.
+ */
+
 def verbose = params.VERBOSE ?: '0'
 
 // We will share logs (and other info) in /home/jenkins/agent/workspace (using ..).
