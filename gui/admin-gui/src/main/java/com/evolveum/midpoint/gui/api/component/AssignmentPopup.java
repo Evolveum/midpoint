@@ -112,8 +112,8 @@ public class AssignmentPopup extends BasePanel<AssignmentPopupDto> implements Po
                     createStringResource("AssignmentPanel.newAssignmentTitle", "", "").getString());
             CompositedIconButtonDto defaultButton = new CompositedIconButtonDto();
             CompositedIconBuilder builder = new CompositedIconBuilder();
-            builder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultButtonDisplayType))
+            builder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(defaultButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                    .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(defaultButtonDisplayType))
                     .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
             defaultButton.setAdditionalButtonDisplayType(defaultButtonDisplayType);

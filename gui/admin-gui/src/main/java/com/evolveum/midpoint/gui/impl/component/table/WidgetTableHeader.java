@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.gui.impl.component.table;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
@@ -33,12 +34,12 @@ public class WidgetTableHeader extends BasePanel<DisplayType> {
     }
 
     private void initLayout() {
-        Label label = new Label(ID_TITLE, Model.of(WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(getModelObject()))));
+        Label label = new Label(ID_TITLE, Model.of(WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(getModelObject()))));
         label.setRenderBodyOnly(true);
         add(label);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeAppender.append("class", Model.of(WebComponentUtil.getIconCssClass(getModelObject()))));
+        icon.add(AttributeAppender.append("class", Model.of(GuiDisplayTypeUtil.getIconCssClass(getModelObject()))));
         add(icon);
     }
 }

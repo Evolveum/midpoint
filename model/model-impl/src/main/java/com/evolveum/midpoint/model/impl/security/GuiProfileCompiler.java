@@ -344,7 +344,7 @@ public class GuiProfileCompiler {
             }
         }
         if (composite.getHomePage() != null && composite.getHomePage().getWidget() != null) {
-            List<ContainerPanelConfigurationType> sorted = new ArrayList<>(composite.getHomePage().getWidget());
+            List<PreviewContainerPanelConfigurationType> sorted = new ArrayList<>(composite.getHomePage().getWidget());
             MiscSchemaUtil.sortFeaturesPanels(sorted);
             composite.getHomePage().getWidget().clear();
             composite.getHomePage().getWidget().addAll(sorted);
@@ -397,8 +397,8 @@ public class GuiProfileCompiler {
             if (compositeHomePage.getWidget() == null) {
                 compositeHomePage.createWidgetList();
             }
-            List<ContainerPanelConfigurationType> mergedWidgets = adminGuiConfigurationMergeManager.mergeContainerPanelConfigurationType(
-                    compositeHomePage.getWidget(), homePage.getWidget());
+            List<PreviewContainerPanelConfigurationType> mergedWidgets =
+                    adminGuiConfigurationMergeManager.mergePreviewContainerPanelConfigurationType(compositeHomePage.getWidget(), homePage.getWidget());
             compositeHomePage.getWidget().clear();
             compositeHomePage.getWidget().addAll(mergedWidgets);
         }

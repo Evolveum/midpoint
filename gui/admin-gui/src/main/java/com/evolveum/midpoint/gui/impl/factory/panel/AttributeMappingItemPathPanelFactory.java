@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPane
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.input.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
@@ -234,42 +235,8 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
         }
 
         ResourceObjectTypeDefinitionType objectType = getResourceObjectType(propertyWrapper);
-        if (objectType != null) {
-            @Nullable ResourceObjectTypeDefinition objectTypeDef = null;
-            if (objectType.getKind() != null && objectType.getIntent() != null) {
-
-                @NotNull ResourceObjectTypeIdentification identifier =
-                        ResourceObjectTypeIdentification.of(objectType.getKind(), objectType.getIntent());
-                objectTypeDef = schema.getObjectTypeDefinition(identifier);
-
-                if (objectTypeDef != null) {
-                    objectTypeDef.getAttributeDefinitions()
-                            .forEach(attr -> allAttributes.add(new AttributeDisplayableValue(attr)));
-                }
-            }
-            if (objectTypeDef == null && objectType.getDelineation() != null && objectType.getDelineation().getObjectClass() != null) {
-
-                @NotNull Collection<ResourceObjectClassDefinition> defs = schema.getObjectClassDefinitions();
-                Optional<ResourceObjectClassDefinition> objectClassDef = defs.stream()
-                        .filter(d -> QNameUtil.match(d.getTypeName(), objectType.getDelineation().getObjectClass()))
-                        .findFirst();
-
-                if (!objectClassDef.isEmpty()) {
-                    objectClassDef.get().getAttributeDefinitions().forEach(attr -> allAttributes.add(new AttributeDisplayableValue(attr)));
-                    defs.stream()
-                            .filter(d -> {
-                                for (QName auxClass : objectType.getDelineation().getAuxiliaryObjectClass()) {
-                                    if (QNameUtil.match(d.getTypeName(), auxClass)) {
-                                        return true;
-                                    }
-                                }
-                                return false;
-                            })
-                            .forEach(d -> d.getAttributeDefinitions()
-                                    .forEach(attr -> allAttributes.add(new AttributeDisplayableValue(attr))));
-                }
-            }
-        }
+        WebPrismUtil.searchAttributeDefinitions(schema, objectType)
+                .forEach(attr -> allAttributes.add(new AttributeDisplayableValue(attr)));
         return allAttributes;
     }
 

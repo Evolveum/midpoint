@@ -3,47 +3,39 @@
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
- *
- * TODO: work in progress, it doesn't wait yet for Oracle being completely up.
  */
 
 def verbose = params.VERBOSE ?: '0'
 
-def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:oracle:thin:@localhost:1521:XE' +
-    ' -Dmidpoint.repository.jdbcPassword=password' +
-    ' -Dmidpoint.repository.jdbcUsername=midtest' +
-    ' -Dmidpoint.repository.database=oracle' +
-    ' -Dmidpoint.repository.hibernateHbm2ddl=validate'
+// We will share logs (and other info) in /home/jenkins/agent/workspace (using ..).
+// /tmp is NOT shared and /home/jenkins/agent/workspace/experimental-test-pipeline (which
+// is the current dir for the stages) is cleared by checkout, so we need to go above it.
+def dbprops = '-Dmidpoint.repository.jdbcUrl=jdbc:oracle:thin:@$(cat ../logs-' +
+        JOB_NAME + '-' + BUILD_NUMBER + '/dbpod-ip):1521/xepdb1' +
+        ' -Dmidpoint.repository.jdbcPassword=password' +
+        ' -Dmidpoint.repository.jdbcUsername=midpoint' +
+        ' -Dmidpoint.repository.database=oracle' +
+        ' -Dmidpoint.repository.hibernateHbm2ddl=validate'
 
 podTemplate(
-        activeDeadlineSeconds: 21600, // 6h total build limit
-        idleMinutes: 10,
-        // No need for secret volume, no mvn deploy done here.
+        activeDeadlineSeconds: 28800, // 8h total build limit
+        idleMinutes: 1,
         workspaceVolume: dynamicPVC(requestsSize: "20Gi"),
         containers: [
-                containerTemplate(name: 'jnlp',
+                containerTemplate(name: "jnlp",
                         image: 'jenkins/inbound-agent:4.13-2-alpine',
                         runAsUser: '0',
                         resourceRequestCpu: '1',
                         resourceLimitCpu: '1',
                         resourceRequestMemory: '1Gi',
                         resourceLimitMemory: '1Gi'),
-                containerTemplate(name: 'db',
-                        image: params.DB_IMAGE ?: 'container-registry.oracle.com/database/express:21.3.0-xe',
+                // kubectl container for controlling "side-car" Oracle pod
+                containerTemplate(
+                        name: "kubectl",
+                        image: "bitnami/kubectl:1.19.4",
+                        command: 'cat',
                         runAsUser: '0',
-                        ttyEnabled: true,
-                        resourceRequestCpu: '2',
-                        resourceLimitCpu: '2',
-                        resourceRequestMemory: '4Gi',
-                        resourceLimitMemory: '4Gi',
-                        envVars: [
-                                envVar(key: 'ORACLE_CHARACTERSET', value: 'AL32UTF8'),
-                                envVar(key: 'ORACLE_PWD', value: 'password'),
-                                // TODO is separate mount for data necessary?
-                        ],
-                        // TODO needed? ports: [portMapping(name: 'oracle', containerPort: 1521)]
-                ),
-                /*
+                        ttyEnabled: true),
                 containerTemplate(name: 'maven',
                         image: params.BUILDER_IMAGE ?: 'maven:3.8.5-openjdk-17',
                         runAsUser: '0',
@@ -53,81 +45,237 @@ podTemplate(
                         resourceLimitCpu: params.BUILDER_CPU ?: '4',
                         resourceRequestMemory: '8Gi',
                         resourceLimitMemory: '8Gi') // see also -Xmx flag lower
-                */
         ]
 ) {
     node(POD_LABEL) {
-        //try {
-            /*
+        try {
+            stage ("create-db") {
+                container ("kubectl") {
+                    withKubeConfig([credentialsId: '6a647093-716e-4e8f-90bd-a8007be37f0e',
+                                    serverUrl: 'https://10.100.1.42:6443',
+                                    contextName: 'jenkins',
+                                    clusterName: 'kubernetes',
+                                    namespace: 'jenkins'
+                    ]) {
+                        sh """#!/bin/bash
+mkdir ../logs-${JOB_NAME}-${BUILD_NUMBER}
+
+function createPVC {
+    cat <<EOF | kubectl apply -f - | grep created | sed "s|\\([^[:space:]]*\\) created|\\1|"
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: \${2}
+  namespace: \${1}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: \${3:-5}\${4:-G}i
+  storageClassName: csi-rbd-ssd
+  volumeMode: Filesystem
+EOF
+}
+
+function createDBPod {
+    cat <<EOF | kubectl apply -f - | grep created | sed "s|\\([^[:space:]]*\\) created|\\1|"
+apiVersion: v1
+kind: Pod
+metadata:
+  name: \${2}-\${3}
+  namespace: \${1}
+  labels:
+    app: \${2}-\${3}
+    type: test
+spec:
+  volumes:
+    - name: pvc
+      persistentVolumeClaim:
+        claimName: \${4}
+  containers:
+    - name: oracle
+      image: "${params.DB_IMAGE ?: 'container-registry.oracle.com/database/express:21.3.0-xe'}"
+      ports:
+        - name: oracle
+          containerPort: 1521
+          protocol: TCP
+        - name: netservice
+          containerPort: 5500
+          protocol: TCP
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "2"
+        limits:
+          memory: "4Gi"
+          cpu: "2"
+      env:
+        - name: ORACLE_CHARACTERSET
+          value: 'AL32UTF8'
+        - name: ORACLE_PWD
+          value: Heslo123
+      volumeMounts:
+        - name: pvc
+          mountPath: /opt/oracle/oradata
+          subPath: oradata
+        - name: pvc
+          mountPath: /opt/oracle/scripts
+          subPath: scripts
+      imagePullPolicy: IfNotPresent
+  restartPolicy: Always
+EOF
+}
+
+echo
+# 10 => 10Gi space, 5 is not enough for our tests and causes errors:
+# ORA-01691: unable to extend lob segment MIDPOINT.SYS_LOB... by 1024 in tablespace USERS
+createPVC jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} 10 | tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc
+createDBPod jenkins test-db ${JOB_NAME}-${BUILD_NUMBER} test-db-${JOB_NAME}-${BUILD_NUMBER} |
+    tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod
+pvcdbname="\$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc)"
+poddbname="\$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod)"
+
+podIPs="\$(kubectl get -n jenkins \${poddbname} -o=jsonpath="{.status.podIP}{':'}{.status.hostIP}")"
+while [ "\${podIPs:0:1}" == ":" ]
+do
+    sleep 5
+    podIPs="\$(kubectl get -n jenkins \${poddbname} -o=jsonpath="{.status.podIP}{':'}{.status.hostIP}")"
+done
+poddbIP="\$(echo -n \${podIPs} | cut -d : -f 1)"
+hostdbIP="\$(echo -n \${podIPs} | cut -d : -f 2)"
+
+echo "\${poddbIP}" > ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod-ip
+
+echo
+
+kubectl get -n jenkins \${poddbname} -o=jsonpath="{range .status.conditions[*]}{.type}{': '}{.status}{'\\n'}{end}"
+
+echo -e  "\\nPod IP: \${poddbIP}\\nHost IP: \${hostdbIP}\\n"
+                        """
+                    }
+                }
+            }
+            // We will use the time Oracle container needs to be up and ready (~10 minutes) to do the Git/Maven
+            // stuff we need to do anyway.
+            // After that we will wait for DB container (if still necessary) and run the tests.
             stage("checkout") {
                 git branch: params.BRANCH ?: 'master',
                         url: 'https://github.com/Evolveum/midpoint.git'
             }
-            */
-            stage("db-init") {
-                container('db') {
+            stage("compile") {
+                container('maven') {
                     sh """#!/bin/bash -ex
-                        id
-                        ps xau
-                        printenv | grep -i ora | sort
+                            if [ "${verbose}" -ge 1 ]
+                            then
+                                env | sort
+                                mvn --version
+                                df -h
+                            fi
 
-                        ls -l "\$ORACLE_HOME"
-                        cat "\$ORACLE_HOME/network/admin/tnsnames.ora"
-
-                        su oracle << EOF_SU
-#sqlplus /nolog << EOF
-#conn sys/oracle as sysdba
-sqlplus -S system/password@localhost << EOF
-SELECT SYS_CONTEXT('USERENV','SERVER_HOST') FROM dual;
-SELECT SYS_CONTEXT('USERENV','CURRENT_SCHEMA') FROM dual;
-select * from dual;
-EOF
-
-#sqlplus -S midpoint/password@localhost/XEPDB1 <<< "@/vagrant/tmp/oracle-4.5-all.sql"
-# importing midPoint cleanup procedure for tests
-#sqlplus -S midpoint/password@localhost/XEPDB1 <<< "@/vagrant/tmp/oracle.sql"
-
-EOF_SU
-                    """
+                            mvn -B -ntp -DskipTests -P -dist clean package
+                        """
                 }
             }
-            /*
+            // This waits for the DB container and when ready initializes midpoint DB.
+            stage("init-db") {
+                container ("kubectl") {
+                    withKubeConfig([credentialsId: '6a647093-716e-4e8f-90bd-a8007be37f0e',
+                                    serverUrl: 'https://10.100.1.42:6443',
+                                    contextName: 'jenkins',
+                                    clusterName: 'kubernetes',
+                                    namespace: 'jenkins'
+                    ]) {
+                        sh """#!/bin/bash
+# max attempts * sleep lower (5s by default => 1200 s => 20m)
+waitCycle=240
+
+function checkDB {
+    iteration=0
+    logItemFound=0
+
+    lastState=""
+
+    date
+    while [ \${iteration} -le \${waitCycle} -a \${logItemFound} -eq 0 ]
+    do
+        sleep 5
+        kubectl logs -n \${1} \${2} > \${3}/pod-db.log 2>\${3}/pod-db.errlog
+        currentState="\$(grep "% complete" \${3}/pod-db.log | tail -1)"
+        if [ "\${lastState}" != "\${currentState}" ]
+        then
+            lastState="\${currentState}"
+            echo "\$(date) : \${lastState}"
+        fi
+        [ \$(grep -c "DATABASE IS READY TO USE!" \${3}/pod-db.log) -gt \${4} ] && logItemFound=1
+        iteration=\$(( \${iteration} + 1 ))
+    done
+    date
+    echo
+
+    case \${logItemFound} in
+        0)
+            echo "-- : Time out happen..."
+            return 1
+            ;;
+        1)
+            echo "OK : DB is UP"
+            ;;
+        *)
+            echo "ER : Something is wrong..."
+            return 1
+            ;;
+    esac
+    return 0
+}
+
+echo -e "\\nWait to DB get up..."
+checkDB jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} ../logs-${JOB_NAME}-${BUILD_NUMBER} 0
+
+# dd of=... is used because cat > redirect would require some quoting to work on the remote side.
+cat config/sql/generic-old/oracle-*-all.sql repo/repo-sql-impl-test/sql-procedures/oracle.sql |
+    kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- dd of=ora-mp-init.sql
+
+# Inside Oracle container sys/Heslo123@xepdb1 works the same as sys/Heslo123@//localhost:1521/xepdb1
+cat <<EOF | kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- sqlplus sys/Heslo123@xepdb1 as sysdba
+CREATE USER midpoint IDENTIFIED BY password;
+GRANT connect,resource TO midpoint;
+ALTER USER midpoint quota 10G on users;
+-- Without ALTER above you'll get ORA-01950: no privileges on tablespace 'USERS'
+EOF
+
+# midpoint/password@//localhost:1521/xepdb1 would also work, but not necessary inside Oracle container:
+cat <<EOF | kubectl exec -i -n jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} -c oracle -- sqlplus midpoint/password@xepdb1
+@ora-mp-init.sql
+EOF
+                    """
+                    }
+                }
+            }
             stage("build-with-tests") {
                 container('maven') {
                     sh """#!/bin/bash -ex
-                        if [ "${verbose}" -ge 1 ]
-                        then
-                            env | sort
-                            mvn --version
-                            df -h
-                        fi
+                            mvn -B -ntp -Dmaven.test.failure.ignore -P dbtest,-dist verify ${dbprops}
 
-                        mvn -B -ntp -Dmaven.test.failure.ignore -P dbtest,-dist clean install ${dbprops}
-
-                        if [ "${verbose}" -ge 1 ]
-                        then
-                            df -h
-                        fi
-                    """
+                            if [ "${verbose}" -ge 1 ]
+                            then
+                                df -h
+                            fi
+                        """
                 }
             }
             stage("tests-extra") {
                 container('maven') {
                     // -Xmx6g should fit into 8GB of RAM, 4g is on the edge for some tests
                     sh """#!/bin/bash -ex
-                        if [ "${verbose}" -ge 1 ]
-                        then
-                            df -h
-                        fi
+                            mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,dbtest,-dist verify -rf testing ${dbprops} \
+                                -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
 
-                        mvn -B -ntp -Dmaven.test.failure.ignore -P extratest,dbtest,-dist verify -rf testing ${dbprops} \
-                            -Dfailsafe.args="-Xms2g -Xmx6g -Duser.language=en --add-exports java.management/sun.management=ALL-UNNAMED"
-
-                        if [ "${verbose}" -ge 1 ]
-                        then
-                            df -h
-                        fi
-                    """
+                            if [ "${verbose}" -ge 1 ]
+                            then
+                                df -h
+                            fi
+                        """
                 }
             }
             stage("collect-test-results") {
@@ -142,36 +290,54 @@ EOF_SU
 
                     if (currentBuild.result == 'UNSTABLE' || params.ARCHIVE_LOGS) {
                         sh "find . -wholename '*/target/test.log' -print0 | tar -czf test-logs.tgz --null -T -"
-	                    archiveArtifacts allowEmptyArchive: true, artifacts: "test-logs.tgz", followSymlinks: false
+                        archiveArtifacts allowEmptyArchive: true, artifacts: "test-logs.tgz", followSymlinks: false
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (e) {
             currentBuild.result = 'FAILURE' // error below will not set result for mailer!
-            error "Marking build as FAILURE because of: ${e}"
+            error 'Marking build as FAILURE because of: ' + e
         } finally {
-            if (verbose > '0') {
-                echo "Build: ${currentBuild}"
-                echo "Result: ${currentBuild.currentResult}"
+            // Cleanup the kube stuff and collect kube logs.
+            container ("kubectl") {
+                withKubeConfig([credentialsId: '6a647093-716e-4e8f-90bd-a8007be37f0e',
+                                serverUrl: 'https://10.100.1.42:6443',
+                                contextName: 'jenkins',
+                                clusterName: 'kubernetes',
+                                namespace: 'jenkins'
+                ]) {
+                    try {
+                        sh """#!/bin/bash
+kubectl logs -n jenkins \$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod) -c oracle > ../logs-${JOB_NAME}-${BUILD_NUMBER}/pod-db-oracle-full.log
+
+kubectl delete -n jenkins \\
+    \$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod) \\
+    \$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc)
+
+echo "Preparing the archive with the logs..."
+tar -cvzf logs.tgz ../logs-${JOB_NAME}-${BUILD_NUMBER}
+                        """
+                    } catch (err) {
+                        echo "Caught: ${err}"
+                    }
+                }
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'logs.tgz', followSymlinks: false
             }
 
             try {
-                // Very basic mails, later we can use https://plugins.jenkins.io/email-ext/
                 step([$class: 'Mailer',
-                    notifyEveryUnstableBuild: true,
-                    recipients: env.DEFAULT_MAIL_RECIPIENT,
-                    sendToIndividuals: false])
+                      notifyEveryUnstableBuild: true,
+                      recipients: env.DEFAULT_MAIL_RECIPIENT,
+                      sendToIndividuals: false])
 
                 sh """#!/bin/bash -ex
-                    if [ "${verbose}" -ge 1 ]
-                    then
+                    if [ "${verbose}" -ge 1 ]; then
                         df -h
                     fi
                 """
             } catch (Exception e) {
                 println 'Could not send email: ' + e
             }
-            */
-        //}
+        }
     }
 }

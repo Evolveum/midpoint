@@ -331,7 +331,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     private String getArchetypePolicyAdditionalCssClass() {
         if (getModelObject() instanceof AssignmentHolderType) {
             DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
-            return WebComponentUtil.getIconColor(displayType);
+            return GuiDisplayTypeUtil.getIconColor(displayType);
         }
         return "";
     }
@@ -347,7 +347,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     private String getArchetypeIconCssClass() {
         if (getModelObject() instanceof AssignmentHolderType) {
             DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType((AssignmentHolderType) getModelObject(), getPageBase());
-            return WebComponentUtil.getIconCssClass(displayType);
+            return GuiDisplayTypeUtil.getIconCssClass(displayType);
         }
         return "";
     }

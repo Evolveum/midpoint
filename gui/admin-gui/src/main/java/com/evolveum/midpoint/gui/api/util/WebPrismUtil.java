@@ -6,13 +6,17 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.gui.impl.factory.panel.AttributeMappingItemPathPanelFactory;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -33,6 +37,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author katka
@@ -322,5 +331,47 @@ public class WebPrismUtil {
             }
         }
         return false;
+    }
+
+    public static List<ResourceAttributeDefinition> searchAttributeDefinitions(
+            ResourceSchema schema, ResourceObjectTypeDefinitionType objectType) {
+        List<ResourceAttributeDefinition> allAttributes = new ArrayList<>();
+        if (objectType != null) {
+            @Nullable ResourceObjectTypeDefinition objectTypeDef = null;
+            if (objectType.getKind() != null && objectType.getIntent() != null) {
+
+                @NotNull ResourceObjectTypeIdentification identifier =
+                        ResourceObjectTypeIdentification.of(objectType.getKind(), objectType.getIntent());
+                objectTypeDef = schema.getObjectTypeDefinition(identifier);
+
+                if (objectTypeDef != null) {
+                    objectTypeDef.getAttributeDefinitions()
+                            .forEach(attr -> allAttributes.add(attr));
+                }
+            }
+            if (objectTypeDef == null && objectType.getDelineation() != null && objectType.getDelineation().getObjectClass() != null) {
+
+                @NotNull Collection<ResourceObjectClassDefinition> defs = schema.getObjectClassDefinitions();
+                Optional<ResourceObjectClassDefinition> objectClassDef = defs.stream()
+                        .filter(d -> QNameUtil.match(d.getTypeName(), objectType.getDelineation().getObjectClass()))
+                        .findFirst();
+
+                if (!objectClassDef.isEmpty()) {
+                    objectClassDef.get().getAttributeDefinitions().forEach(attr -> allAttributes.add(attr));
+                    defs.stream()
+                            .filter(d -> {
+                                for (QName auxClass : objectType.getDelineation().getAuxiliaryObjectClass()) {
+                                    if (QNameUtil.match(d.getTypeName(), auxClass)) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            })
+                            .forEach(d -> d.getAttributeDefinitions()
+                                    .forEach(attr -> allAttributes.add(attr)));
+                }
+            }
+        }
+        return allAttributes;
     }
 }

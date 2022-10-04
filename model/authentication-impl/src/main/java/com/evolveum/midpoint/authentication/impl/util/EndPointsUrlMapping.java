@@ -9,8 +9,10 @@ package com.evolveum.midpoint.authentication.impl.util;
 
 import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 
+import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.impl.authorization.AuthorizationActionValue;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 
 /**
  * @author lazyman
@@ -170,6 +172,17 @@ public enum EndPointsUrlMapping {
                     "PageReport.auth.report.label", "PageReport.auth.report.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "PageCaseWorkItems.authUri.guiAll.label", "PageAdminRoles.authUri.guiAll.description")),
+    CAMPAIGN_DETAILS("/admin/certification/campaigns/**",
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_ALL_URL,
+                    "PageAdminCertification.auth.certificationAll.label",
+                    "PageAdminCertification.auth.certificationAll.description"),
+            new AuthorizationActionValue(AUTZ_UI_CERTIFICATION_CAMPAIGN_URL,
+                    "PageAdminCertification.auth.certificationAll.label",
+                    "PageAdminCertification.auth.certificationAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageAdminCertification.auth.certificationCampaigns.label",
+                    "PageAdminCertification.auth.certificationCampaigns.description")),
+
     ACTUATOR("/actuator/**",
             new AuthorizationActionValue(AUTZ_ACTUATOR_ALL_URL,
                     "ActuatorEndpoint.authActuator.all.label", "ActuatorEndpoint.authActuator.all.description")),
@@ -211,6 +224,7 @@ public enum EndPointsUrlMapping {
     WICKET_PAGE("/wicket/**",
             new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
                     "WicketDebugInfo.authUri.guiAll.label", "WicketDebugInfo.authUri.guiAll.description"));
+
 
     private final String url;
 

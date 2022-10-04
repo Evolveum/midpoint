@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -63,7 +65,7 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
                 return title.getObject();
             }
 
-            return isNotEmptyModel() ? WebComponentUtil.getDisplayTypeTitle(buttonModel.getObject().getAdditionalButtonDisplayType()) : "";
+            return isNotEmptyModel() ? GuiDisplayTypeUtil.getDisplayTypeTitle(buttonModel.getObject().getAdditionalButtonDisplayType()) : "";
         }));
     }
 

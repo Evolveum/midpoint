@@ -14,12 +14,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.DefaultGuiConfigurationCompiler;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -96,7 +95,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private static final String ID_FORM = "form";
     private static final String ID_SEARCH_ITEMS_PANEL = "searchItemsPanel";
-    private static final String ID_SEARCH_CONTAINER = "searchContainer";
     private static final String ID_SEARCH_BUTTON_PANEL = "searchButtonPanel";
     private static final String ID_SAVE_SEARCH_CONTAINER = "saveSearchContainer";
     private static final String ID_SAVE_SEARCH_BUTTON = "saveSearchButton";
@@ -266,6 +264,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
                     @Override
                     protected void addItemsPerformed(List<AvailableFilterWrapper> itemList, AjaxRequestTarget target) {
+                        savedSearchListModel.reset();
                         selectSavedFilterPerformed(itemList.stream().map(AvailableFilterWrapper::getFilter).collect(Collectors.toList()), target);
                     }
 
@@ -342,7 +341,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
         if (filters.size() == 1) {
             return createStringResource("SearchPanel.removeSingleAvailableFilter",
-                    WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(filters.get(0).getFilter().getDisplay())));
+                    WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(filters.get(0).getFilter().getDisplay())));
         } else {
             return createStringResource("SearchPanel.removeMultipleAvailableFilter", filters.size());
         }
@@ -407,11 +406,15 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
         if (SearchBoxModeType.BASIC.equals(filter.getSearchMode())) {
             applyFilterToBasicMode(filter.getSearchItem());
-        } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())) {
-            applyFilterToAxiomMode(filter.getSearchItem());
+        } else if (SearchBoxModeType.AXIOM_QUERY.equals(filter.getSearchMode())
+                || SearchBoxModeType.ADVANCED.equals(filter.getSearchMode())) {
+            applyFilterToAxiomOrAdvancedMode(filter.getSearchItem(), filter.getSearchMode());
         } else if (SearchBoxModeType.FULLTEXT.equals(filter.getSearchMode())) {
             applyFilterToFulltextMode(filter.getSearchItem());
         }
+        SearchButtonWithDropdownMenu searchButton = getSearchButton();
+        searchButton.setSelectedValue(filter.getSearchMode());
+        target.add(searchButton);
         searchPerformed(target);
     }
 
@@ -421,6 +424,10 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private Component getSavedSearchMenuButton() {
         return get(ID_FORM).get(ID_SAVE_SEARCH_CONTAINER).get(ID_SAVED_SEARCH_MENU);
+    }
+
+    private SearchButtonWithDropdownMenu getSearchButton() {
+        return (SearchButtonWithDropdownMenu) get(ID_FORM).get(ID_SEARCH_BUTTON_PANEL);
     }
 
     private boolean isCollectionInstancePage() {
@@ -639,8 +646,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         items.forEach(this::applyBasicModeSearchItem);
     }
 
-    private void applyFilterToAxiomMode(List<SearchItemType> items) {
-        getModelObject().setSearchMode(SearchBoxModeType.AXIOM_QUERY);
+    private void applyFilterToAxiomOrAdvancedMode(List<SearchItemType> items, SearchBoxModeType mode) {
+        getModelObject().setSearchMode(mode);
         if (CollectionUtils.isEmpty(items)) {
             return;
         }
@@ -725,8 +732,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             return null;
         }
         return config.getAvailableFilter().stream().sorted((filter1, filter2) -> {
-            String label1 = WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(filter1.getDisplay()));
-            String label2 = WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(filter2.getDisplay()));
+            String label1 = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(filter1.getDisplay()));
+            String label2 = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(filter2.getDisplay()));
             return String.CASE_INSENSITIVE_ORDER.compare(label1, label2);
 
         }).collect(Collectors.toList());

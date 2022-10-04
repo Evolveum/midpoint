@@ -150,8 +150,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
         PolyStringType tooltip = display != null ? display.getTooltip() : null;
 
-        builder.setBasicIcon(WebComponentUtil.getIconCssClass(display), IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(WebComponentUtil.getIconColor(display))
+        builder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(display), IconCssStyle.IN_ROW_STYLE)
+                    .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(display))
                     .setTitle(WebComponentUtil.getTranslatedPolyString(tooltip));
 //                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
@@ -181,8 +181,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     private Component createNewObjectButton(String buttonId) {
         DisplayType newObjectButtonDisplayType = getNewObjectButtonStandardDisplayType();
         CompositedIconBuilder builder = new CompositedIconBuilder();
-        builder.setBasicIcon(WebComponentUtil.getIconCssClass(newObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                .appendColorHtmlValue(WebComponentUtil.getIconColor(newObjectButtonDisplayType));
+        builder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(newObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+                .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(newObjectButtonDisplayType));
         CompiledObjectCollectionView view = getObjectCollectionView();
         if (isCollectionViewPanelForCompiledView() && GuiDisplayTypeUtil.existsIconDisplay(view)
                 && GuiDisplayTypeUtil.containsDifferentIcon(newObjectButtonDisplayType, GuiStyleConstants.CLASS_ADD_NEW_OBJECT)) {
@@ -191,7 +191,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             plusIcon.setColor("green");
             builder.appendLayerIcon(plusIcon, LayeredIconCssStyle.BOTTOM_RIGHT_STYLE);
         }
-        String iconTitle = WebComponentUtil.getDisplayTypeTitle(newObjectButtonDisplayType);
+        String iconTitle = GuiDisplayTypeUtil.getDisplayTypeTitle(newObjectButtonDisplayType);
         AjaxCompositedIconButton createNewObjectButton = new AjaxCompositedIconButton(buttonId, builder.build(),
                 createStringResource(StringUtils.isEmpty(iconTitle) ? "MainObjectListPanel.newObject" : iconTitle)) {
 

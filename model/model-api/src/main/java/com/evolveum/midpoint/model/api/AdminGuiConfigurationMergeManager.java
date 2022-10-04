@@ -22,6 +22,7 @@ public interface AdminGuiConfigurationMergeManager {
 
     List<ContainerPanelConfigurationType> mergeContainerPanelConfigurationType(List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> configuredPanels);
 
+    List<PreviewContainerPanelConfigurationType> mergePreviewContainerPanelConfigurationType(List<PreviewContainerPanelConfigurationType> defaultPanels, List<PreviewContainerPanelConfigurationType> configuredPanels);
     GuiObjectDetailsPageType mergeObjectDetailsPageConfiguration(GuiObjectDetailsPageType defaultPageConfiguration, ArchetypePolicyType archetypePolicyType, OperationResult result) throws SchemaException, ConfigurationException;
 
     <DP extends GuiObjectDetailsPageType> DP mergeObjectDetailsPageConfiguration(DP defaultPageConfiguration, DP compiledPageType);

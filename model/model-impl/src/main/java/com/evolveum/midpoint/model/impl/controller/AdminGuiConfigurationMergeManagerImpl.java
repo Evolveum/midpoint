@@ -43,12 +43,28 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
 
     @Override
     public List<ContainerPanelConfigurationType> mergeContainerPanelConfigurationType(List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> configuredPanels) {
+//        return mergeContainers(configuredPanels, defaultPanels, this::containerPanelConfigurationMatches, this::mergePanels);
         List<ContainerPanelConfigurationType> mergedPanels = new ArrayList<>(defaultPanels);
         for (ContainerPanelConfigurationType configuredPanel : configuredPanels) {
             mergePanelConfigurations(configuredPanel, defaultPanels, mergedPanels);
         }
-        MiscSchemaUtil.sortDetailsPanels(mergedPanels);
+        MiscSchemaUtil.sortFeaturesPanels(mergedPanels);
         return mergedPanels;
+    }
+
+    @Override
+    public List<PreviewContainerPanelConfigurationType> mergePreviewContainerPanelConfigurationType(List<PreviewContainerPanelConfigurationType> defaultPanels, List<PreviewContainerPanelConfigurationType> configuredPanels) {
+//        return mergeContainers(configuredPanels, defaultPanels, this::containerPanelConfigurationMatches, this::mergePreviewPanels);
+        List<PreviewContainerPanelConfigurationType> mergedPanels = new ArrayList<>(defaultPanels);
+        for (PreviewContainerPanelConfigurationType configuredPanel : configuredPanels) {
+            mergePanelConfigurations(configuredPanel, defaultPanels, mergedPanels);
+        }
+        MiscSchemaUtil.sortFeaturesPanels(mergedPanels);
+        return mergedPanels;
+    }
+
+    private <PC extends ContainerPanelConfigurationType> Predicate<PC> containerPanelConfigurationMatches(PC defaultIdentifier) {
+        return c -> identifiersMatch(c.getIdentifier(), defaultIdentifier.getIdentifier());
     }
 
     @Override
@@ -226,13 +242,17 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
                 .isPresent();
     }
 
-    private void mergePanelConfigurations(ContainerPanelConfigurationType configuredPanel, List<ContainerPanelConfigurationType> defaultPanels, List<ContainerPanelConfigurationType> mergedPanels) {
-        for (ContainerPanelConfigurationType defaultPanel : defaultPanels) {
+    private <PC extends ContainerPanelConfigurationType> void mergePanelConfigurations(PC configuredPanel, List<PC> defaultPanels, List<PC> mergedPanels) {
+        for (PC defaultPanel : defaultPanels) {
             if (StringUtils.isEmpty(defaultPanel.getIdentifier())) {
                 LOGGER.trace("Unable to merge container panel configuration, identifier shouldn't be empty, {}", defaultPanel);
                 continue;
             }
             if (defaultPanel.getIdentifier().equals(configuredPanel.getIdentifier())) {
+                if (configuredPanel instanceof PreviewContainerPanelConfigurationType) {
+                    mergePreviewPanels((PreviewContainerPanelConfigurationType) defaultPanel, (PreviewContainerPanelConfigurationType) configuredPanel);
+                    return;
+                }
                 mergePanels(defaultPanel, configuredPanel);
                 return;
             }
@@ -241,7 +261,15 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         mergedPanels.add(configuredPanel.cloneWithoutId());
     }
 
-    private void mergePanels(ContainerPanelConfigurationType mergedPanel, ContainerPanelConfigurationType configuredPanel) {
+    private PreviewContainerPanelConfigurationType mergePreviewPanels(PreviewContainerPanelConfigurationType mergedPanel, PreviewContainerPanelConfigurationType configuredPanel) {
+        List<GuiActionType> mergedActions = mergeContainers(configuredPanel.getAction(), mergedPanel.getAction(), this::actionMatches, this::mergeGuiAction);
+        PreviewContainerPanelConfigurationType afterMerge = mergePanels(mergedPanel, configuredPanel);
+        afterMerge.getAction().clear();
+        afterMerge.getAction().addAll(mergedActions);
+        return afterMerge;
+    }
+
+    private <PC extends ContainerPanelConfigurationType> PC mergePanels(PC mergedPanel, PC configuredPanel) {
         if (configuredPanel.getPanelType() != null) {
             mergedPanel.setPanelType(configuredPanel.getPanelType());
         }
@@ -284,45 +312,20 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
             mergedPanel.getPanel().clear();
             mergedPanel.getPanel().addAll(mergedConfigs);
         }
-        if (CollectionUtils.isNotEmpty(configuredPanel.getAction())) {
-            if (mergedPanel.getAction() == null) {
-                mergedPanel.createActionList().addAll(configuredPanel.getAction());
-            } else if (mergedPanel.getAction().isEmpty()) {
-                mergedPanel.getAction().addAll(configuredPanel.getAction());
-            } else {
-                List<GuiActionType> mergedActions = mergeGuiActions(mergedPanel.getAction(), configuredPanel.getAction());
-                mergedPanel.getAction().clear();
-                mergedPanel.getAction().addAll(mergedActions);
-            }
-        }
+
+        return mergedPanel;
     }
 
-    private List<GuiActionType> mergeGuiActions(List<GuiActionType> composited, List<GuiActionType> actionList) {
-        List<GuiActionType> mergedList = new ArrayList<>();
-        for (GuiActionType action : actionList) {
-            GuiActionType actionInList = findAction(composited, action.getName());
-            if (actionInList == null) {
-                mergedList.add(actionInList);
-            } else {
-                mergeGuiAction(actionInList, action);
-            }
-        }
-        return mergedList;
+    private Predicate<GuiActionType> actionMatches(GuiActionType mergedAction) {
+        return c -> StringUtils.isNotEmpty(c.getIdentifier()) && c.getIdentifier().equals(mergedAction.getIdentifier());
     }
 
-    private GuiActionType findAction(List<GuiActionType> actionList, String actionName) {
-        if (StringUtils.isEmpty(actionName)) {
-            return null;
-        }
-        return actionList.stream().filter(action -> actionName.equals(action.getName())).findFirst().orElse(null);
-    }
-
-    private void mergeGuiAction(GuiActionType composited, GuiActionType action) {
+    private GuiActionType mergeGuiAction(GuiActionType composited, GuiActionType action) {
         if (action == null) {
-            return;
+            return composited;
         }
         if (composited == null) {
-            return;
+            return action;
         }
         if (StringUtils.isEmpty(composited.getName()) || StringUtils.isEmpty(action.getName())) {
             LOGGER.trace("Unable to merge gui action without name, action 1: {}, action 2: {}", composited, action);
@@ -340,6 +343,7 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
             composited.setTaskTemplateRef(action.getTaskTemplateRef());
         }
         mergeRedirectionTargetType(composited.getTarget(), action.getTarget().clone());
+        return composited;
     }
 
     private void mergeRedirectionTargetType(RedirectionTargetType composited, RedirectionTargetType redirectionTarget) {
@@ -353,8 +357,11 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         if (StringUtils.isNotEmpty(redirectionTarget.getTargetUrl())) {
             composited.setTargetUrl(redirectionTarget.getTargetUrl());
         }
-        if (StringUtils.isNotEmpty(redirectionTarget.getPanelType())) {
-            composited.setPanelType(redirectionTarget.getPanelType());
+        if (StringUtils.isNotEmpty(redirectionTarget.getPanelIdentifier())) {
+            composited.setPanelIdentifier(redirectionTarget.getPanelIdentifier());
+        }
+        if (StringUtils.isNotEmpty(redirectionTarget.getCollectionIdentifier())) {
+            composited.setCollectionIdentifier(redirectionTarget.getCollectionIdentifier());
         }
         if (StringUtils.isNotEmpty(redirectionTarget.getPageClass())) {
             composited.setPageClass(redirectionTarget.getPageClass());

@@ -51,14 +51,13 @@ import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extends ObjectDetailsModels<O>> extends PageBase {
 
-    public static final String PARAM_PANEL = "panel";
+    public static final String PARAM_PANEL_ID = "panelId";
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractPageObjectDetails.class);
 
@@ -98,83 +97,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         isAdd = (params == null || params.isEmpty()) && object == null;
         objectDetailsModels = createObjectDetailsModels(object);
         initLayout();
-    }
-
-    @Override
-    protected void onInitialize() {
-        super.onInitialize();
-
-        // we'll search for panel configuration identifier in URL and match it with available panel configurations
-        // then "select" it - using session storage and storing our config there
-        PageParameters params = getPageParameters();
-        if (params == null) {
-            return;
-        }
-
-        StringValue step = params.get(PARAM_PANEL);
-        String configurationIdentifier = step != null ? step.toString() : null;
-        if (configurationIdentifier == null) {
-            return;
-        }
-
-        ContainerPanelConfigurationType config = getPanelConfigurations().getObject().stream()
-                .filter(c -> Objects.equals(configurationIdentifier, c.getIdentifier()))
-                .findFirst()
-                .orElse(null);
-
-        if (config != null) {
-            getSessionStorage().setObjectDetailsStorage("details" + getType().getSimpleName(), config);
-        }
-    }
-
-    /**
-     * TODO not very clean code - state of what's selected is stored in session via *magic* string key => "details" + getType().getSimpleName()
-     * state is updated on multiple places - it should be probably updated where you handle "selection" of new menu - onClickSomewherePerformed()
-     *
-     * This will update:
-     * * browser URL to add/update selected panel (menu) identifier as query parameter
-     * * last breadcrumb page parameters - "panel" parameter
-     */
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        updatePanelPageParameterAndUrl(response);
-    }
-
-    private void updatePanelPageParameterAndUrl(IHeaderResponse response) {
-        ContainerPanelConfigurationType config = getActiveContainerPanelConfiguration();
-        String identifier = config != null ? config.getIdentifier() : null;
-
-        // we'll update page parameters for panel identifier to always match what's selected (stored somewhere in sesion)
-        PageParameters params = getPage().getPageParameters();
-        params.set(PARAM_PANEL, identifier);
-
-        // we'll update breadcrumb of this page
-        Breadcrumb item = getLastBreadcrumb();
-        if (item != null) {
-            item.getParameters().set(PARAM_PANEL, identifier);
-        }
-
-        if (response != null) {
-            if (identifier == null) {
-                identifier = "";
-            }
-
-            response.render(OnDomReadyHeaderItem.forScript(
-                    "MidPointTheme.updatePageUrlParameter('" + PARAM_PANEL + "', '" + identifier + "');"));
-        }
-    }
-
-    private ContainerPanelConfigurationType getActiveContainerPanelConfiguration() {
-        if (getType() == null) {
-            return null;
-        }
-
-        String key = "details" + getType().getSimpleName();
-
-        ObjectDetailsStorage storage = getSessionStorage().getObjectDetailsStorage(key);
-        return storage != null ? storage.getDefaultConfiguration() : null;
     }
 
     @Override
@@ -430,10 +352,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
-        ContainerPanelConfigurationType defaultConfiguration = getActiveContainerPanelConfiguration();
-        if (defaultConfiguration == null) {
-            defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject());
-        }
+
+        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(), getPanelIdentifierFromParams());
 
         if (defaultConfiguration != null) {
             return defaultConfiguration;
@@ -445,18 +365,33 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 .orElseGet(() -> null);
     }
 
-    private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs) {
+    private String getPanelIdentifierFromParams() {
+        StringValue panelIdentifierParam = getPageParameters().get(PARAM_PANEL_ID);
+        String panelIdentifier = null;
+        if (panelIdentifierParam != null && !panelIdentifierParam.isEmpty()) {
+            panelIdentifier = panelIdentifierParam.toString();
+        }
+        return panelIdentifier;
+    }
+
+    private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs, String panelIdentifier) {
         List<ContainerPanelConfigurationType> subConfigs = new ArrayList<>();
         for (ContainerPanelConfigurationType config : configs) {
+            subConfigs.addAll(config.getPanel());
+            if (panelIdentifier != null) {
+                if (config.getIdentifier().equals(panelIdentifier)) {
+                    return config;
+                }
+                continue;
+            }
             if (isApplicable(config)) {
                 return config;
             }
-            subConfigs.addAll(config.getPanel());
         }
         if (subConfigs.isEmpty()) {
             return null;
         }
-        return findDefaultConfiguration(subConfigs);
+        return findDefaultConfiguration(subConfigs, panelIdentifier);
     }
 
     private boolean isApplicable(ContainerPanelConfigurationType config) {
@@ -548,10 +483,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         MidpointForm form = getMainForm();
         try {
             initMainPanel(config, form);
-            target.add(form);
             target.add(getFeedbackPanel());
 
-            updatePanelPageParameterAndUrl(target.getHeaderResponse());
+            overwritePageParameters(config);
+            target.add(AbstractPageObjectDetails.this);
         } catch (Throwable e) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Can't instantiate panel based on config\n {}", config.debugDump(), e);
@@ -560,6 +495,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             error(getString("AbstractPageObjectDetails.replacePanelException", e.getMessage(), e.getClass().getSimpleName()));
             target.add(getFeedbackPanel());
         }
+    }
+
+    private void overwritePageParameters(ContainerPanelConfigurationType config) {
+        PageParameters newParams = new PageParameters(getPageParameters());
+        newParams.set(PARAM_PANEL_ID, config.getIdentifier());
+        getPageParameters().overwriteWith(newParams);
     }
 
     private PrismObject<O> loadPrismObject() {

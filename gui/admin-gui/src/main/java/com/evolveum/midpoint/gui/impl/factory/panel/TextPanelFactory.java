@@ -16,8 +16,10 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.util.convert.IConverter;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
@@ -85,6 +87,12 @@ public class TextPanelFactory<T> extends AbstractInputGuiComponentFactory<T> imp
             return new AutoCompleteTextPanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false) {
                 @Override
                 public Iterator<T> getIterator(String input) {
+                    if (StringUtils.isNotEmpty(input)) {
+                        IConverter<T> converter = getConverter(panelCtx.getTypeClass());
+                        return choices.stream()
+                                .filter(choice -> converter.convertToString(choice, getLocale()).contains(input))
+                                .collect(Collectors.toList()).iterator();
+                    }
                     return choices.iterator();
                 }
             };

@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
@@ -493,7 +494,7 @@ public class SearchFactory {
         if (StringUtils.isNotEmpty(name)) {
             return name;
         }
-        name = WebComponentUtil.getTranslatedPolyString(WebComponentUtil.getLabel(searchItem.getDisplay()));
+        name = WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(searchItem.getDisplay()));
         if (StringUtils.isNotEmpty(name)) {
             return name;
         }
@@ -505,7 +506,7 @@ public class SearchFactory {
     }
 
     private static String getSearchItemHelp(SearchItemType searchItem, ItemDefinition<?> itemDef) {
-        String help = WebComponentUtil.getHelp(searchItem.getDisplay());
+        String help = GuiDisplayTypeUtil.getHelp(searchItem.getDisplay());
         if (StringUtils.isNotEmpty(help)) {
             return help;
         }
@@ -520,7 +521,7 @@ public class SearchFactory {
                 return help;
             }
         }
-        return hasParameter(searchItem) ? WebComponentUtil.getHelp(searchItem.getParameter().getDisplay()) : "";
+        return hasParameter(searchItem) ? GuiDisplayTypeUtil.getHelp(searchItem.getParameter().getDisplay()) : "";
     }
 
     private static boolean hasParameter(SearchItemType searchItem) {
