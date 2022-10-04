@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,6 +25,7 @@ import org.apache.wicket.model.IModel;
 
 public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePanel<T> {
 
+    private final static String INVALID_FIELD_CLASS = "is-invalid";
 
     public VerticalFormPrismPropertyValuePanel(String id, IModel<PrismPropertyValueWrapper<T>> model, ItemPanelSettings settings) {
         super(id, model, settings);
@@ -37,7 +39,7 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
             FormComponent baseFormComponent = ((InputPanel) valuePanel).getBaseFormComponent();
             baseFormComponent.add(AttributeAppender.append("class", () -> {
                 if (baseFormComponent.hasErrorMessage()) {
-                    return "is-invalid";
+                    return INVALID_FIELD_CLASS;
                 }
                 return "";
             }));
@@ -72,7 +74,10 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                updateFeedbackPanel(target);
+                String cssClass = getCssClassForValueContainer();
+                if (StringUtils.isNotEmpty(cssClass) && cssClass.contains(INVALID_FIELD_CLASS)) {
+                    updateFeedbackPanel(target);
+                }
             }
 
             @Override
