@@ -95,7 +95,7 @@ spec:
         claimName: \${4}
   containers:
     - name: oracle
-      image: '\${5:-container-registry.oracle.com/database/express:21.3.0-xe}'
+      image: "${params.DB_IMAGE ?: 'container-registry.oracle.com/database/express:21.3.0-xe'}"
       ports:
         - name: oracle
           containerPort: 1521
@@ -131,8 +131,8 @@ echo
 # 10 => 10Gi space, 5 is not enough for our tests and causes errors:
 # ORA-01691: unable to extend lob segment MIDPOINT.SYS_LOB... by 1024 in tablespace USERS
 createPVC jenkins test-db-${JOB_NAME}-${BUILD_NUMBER} 10 | tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc
-createDBPod jenkins test-db ${JOB_NAME}-${BUILD_NUMBER} test-db-${JOB_NAME}-${BUILD_NUMBER} \
-    container-registry.oracle.com/database/express:21.3.0-xe | tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod
+createDBPod jenkins test-db ${JOB_NAME}-${BUILD_NUMBER} test-db-${JOB_NAME}-${BUILD_NUMBER} |
+    tee ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod
 pvcdbname="\$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpvc)"
 poddbname="\$(cat ../logs-${JOB_NAME}-${BUILD_NUMBER}/dbpod)"
 
