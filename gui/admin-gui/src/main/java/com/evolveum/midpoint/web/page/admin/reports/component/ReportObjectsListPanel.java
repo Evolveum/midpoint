@@ -280,7 +280,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected Search createSearch(Class<C> type) {
-        return SearchFactory.createSearch(createSearchConfigurationWrapper(type), getPageBase());
+        return SearchFactory.createSearch(createSearchConfigurationWrapper(type), false, getPageBase());
     }
 
     private SearchConfigurationWrapper<C> createSearchConfigurationWrapper(Class<C> type) {
