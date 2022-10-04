@@ -13,7 +13,6 @@
     <name>task-310</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-    <recurrence>single</recurrence>
     <activity>
         <work>
             <extension>
@@ -47,11 +46,15 @@
                         <position>2</position>
                         <characters>0-9</characters>
                     </boundary>
+                    <boundary>
+                        <position>3</position>
+                        <characters>036</characters>
+                    </boundary>
                 </stringSegmentation>
             </buckets>
             <workers>
                 <workersPerNode>
-                    <count>4</count>
+                    <count>2</count>
                 </workersPerNode>
             </workers>
         </distribution>
