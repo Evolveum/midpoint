@@ -483,5 +483,15 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return containerDefinitionOverride;
     }
 
+    public boolean searchByNameEquals(String nameValueToCompare) {
+        String nameValue = null;
+        if (SearchBoxModeType.BASIC.equals(getSearchMode())) {
+            PropertySearchItemWrapper nameItem = findPropertySearchItem(ObjectType.F_NAME);
+            nameValue = nameItem != null && nameItem.getValue() != null ? (String) nameItem.getValue().getValue() : null;
+        } else if (SearchBoxModeType.FULLTEXT.equals(getSearchMode())) {
+            nameValue = getFullText();
+        }
+        return nameValueToCompare != null && nameValueToCompare.equals(nameValue);
+    }
 
 }
