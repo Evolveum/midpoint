@@ -170,7 +170,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 Search<C> search = null;
                 PageStorage storage = getPageStorage();
                 String searchByName = getSearchByNameParameterValue();
-                if (storage != null && storage.getSearch() != null && storage.getSearch().searchByNameEquals(searchByName)) {  // do NOT use storage when using name search (e.g. from dashboard)
+                if (storage != null && storage.getSearch() != null && (searchByName == null || storage.getSearch().searchByNameEquals(searchByName))) {  // do NOT use storage when using name search (e.g. from dashboard)
                     search = storage.getSearch();
                 }
 
