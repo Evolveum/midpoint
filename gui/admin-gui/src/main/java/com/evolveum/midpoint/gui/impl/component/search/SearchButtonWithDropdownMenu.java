@@ -106,6 +106,10 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
 
     }
 
+    public void setSelectedValue(E newValue) {
+        selectedValue = newValue;
+    }
+
     protected VisibleEnableBehaviour getSearchButtonVisibleEnableBehavior() {
         return new VisibleEnableBehaviour();
     }
