@@ -98,7 +98,8 @@ public class MappingTestEvaluator {
         ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
         protector = ExpressionTestUtil.createInitializedProtector(prismContext);
         Clock clock = new Clock();
-        ExpressionFactory expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock, null, null);
+        ExpressionFactory expressionFactory =
+                ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock);
 
         // We need only selected beans for the mapping factory
         ModelCommonBeans beans = new ModelCommonBeans();

@@ -83,24 +83,23 @@
             class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory">
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="repositoryService" ref="repositoryService"/>
-        <property name="functions">
+        <constructor-arg name="standardFunctionLibraries">
             <list>
                 <ref bean="basicFunctionLibrary"/>
                 <ref bean="logFunctionLibrary"/>
                 <ref bean="midpointFunctionLibrary"/>
             </list>
-        </property>
-        <property name="evaluators">
+        </constructor-arg>
+        <constructor-arg name="evaluators">
             <list>
                 <ref bean="javascriptScriptEvaluator"/>
                 <ref bean="groovyScriptEvaluator"/>
                 <ref bean="pythonScriptEvaluator"/>
                 <ref bean="velocityScriptEvaluator"/>
             </list>
-        </property>
-        <property name="cacheRegistry" ref="cacheRegistry"/>
-
-        <property name="objectResolver" ref="modelObjectResolver"/>
+        </constructor-arg>
+        <constructor-arg name="cacheRegistry" ref="cacheRegistry"/>
+        <constructor-arg name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="functionExpressionEvaluatorFactory"

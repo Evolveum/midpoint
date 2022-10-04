@@ -86,9 +86,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
         Clock clock = new Clock();
         Collection<FunctionLibrary> functions = new ArrayList<>();
         functions.add(FunctionLibraryUtil.createBasicFunctionLibrary(prismContext, protector, clock));
-        scriptExpressionfactory = new ScriptExpressionFactory(prismContext, null);
-        scriptExpressionfactory.setObjectResolver(resolver);
-        scriptExpressionfactory.setFunctions(functions);
+        scriptExpressionfactory = new ScriptExpressionFactory(functions, resolver);
         localizationService = LocalizationTestUtil.getLocalizationService();
         evaluator = createEvaluator(prismContext, protector);
         if (!evaluator.isInitialized()) {
@@ -98,7 +96,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
 
         String languageUrl = evaluator.getLanguageUrl();
         display("Expression test for " + evaluator.getLanguageName() + ": registering " + evaluator + " with URL " + languageUrl);
-        scriptExpressionfactory.registerEvaluator(languageUrl, evaluator);
+        scriptExpressionfactory.registerEvaluator(evaluator);
     }
 
     protected abstract ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector);
@@ -321,7 +319,7 @@ public abstract class AbstractScriptTest extends AbstractUnitTest
                 scriptExpressionfactory.getEvaluators().get(language), expressionType);
         expression.setOutputDefinition(outputDefinition);
         expression.setObjectResolver(scriptExpressionfactory.getObjectResolver());
-        expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getFunctions()));
+        expression.setFunctions(new ArrayList<>(scriptExpressionfactory.getStandardFunctionLibraries()));
         ScriptExpressionProfile scriptExpressionProfile = getScriptExpressionProfile(language);
         expression.setScriptExpressionProfile(scriptExpressionProfile);
         expression.setExpressionProfile(getExpressionProfile(scriptExpressionProfile));

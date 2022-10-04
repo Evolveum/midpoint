@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInfo
  */
 public class ExpressionFactory implements Cache {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ExpressionFactory.class);
     private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
     private final PrismContext prismContext;
@@ -212,6 +213,7 @@ public class ExpressionFactory implements Cache {
     @Override
     public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(FunctionLibraryType.class)) {
+            LOGGER.trace("Invalidating expression factory cache");
             // Currently we don't attempt to select entries to be cleared based on function library OID
             cache.clear();
         }

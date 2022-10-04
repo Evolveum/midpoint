@@ -367,6 +367,7 @@ public class ObjectImporter {
                 }
 
                 String deletedOid = deleteObject(foundObject, repository, result);
+                LOGGER.debug("Deleted the object, going to re-add it: {}", foundObject);
                 if (deletedOid != null) {
                     if (isTrue(options.isKeepOid())) {
                         object.setOid(deletedOid);

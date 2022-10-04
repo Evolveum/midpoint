@@ -150,7 +150,9 @@ public class Invalidator {
         // TODO implement more efficiently
 
         // Safe invalidation means we evict queries without looking at details of the change.
-        boolean safeIfUnknown = !context.isFromRemoteNode() || globalQueryCache.shouldDoSafeRemoteInvalidationFor(type);
+        boolean safeIfUnknown =
+                context != null && !context.isFromRemoteNode()
+                        || globalQueryCache.shouldDoSafeRemoteInvalidationFor(type);
         ChangeDescription change = ChangeDescription.getFrom(type, oid, context, safeIfUnknown);
 
         long start = System.currentTimeMillis();
