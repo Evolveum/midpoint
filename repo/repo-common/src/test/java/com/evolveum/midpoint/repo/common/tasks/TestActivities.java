@@ -2637,9 +2637,18 @@ public class TestActivities extends AbstractRepoCommonTest {
      * When the scavenger (or any worker) is not finished, the realization state
      * in the distributed activity must be "in progress".
      *
-     * Here we start 4 workers, one of which (the scavenger in this case) takes too long to finish.
+     * Here we start 2 workers, one of which (the scavenger in this case) takes too long to finish.
      *
      * We check that the state is "in progress".
+     *
+     * TODO see MID-8153
+     *    This test is flawed subtly: it is set up so that the scavenger worker task (#1) freezes, so the overall multi-node
+     *  task is never finished. Usually, this works well. But there are situations when the scavenger task does not freeze.
+     *  It is when all buckets are processed by the other tasks. (Because the freezing is implemented during the processing
+     *  of items in a bucket.)
+     *    We have increased the number of buckets (11->31) and decreased the number of workers (4->2) to lower the chance
+     *  of the above occurring. If that would not help (it is not 100% solution), we should implement freezing of the
+     *  scavenger in a more intelligent way (but how?)
      */
     @Test
     public void test310WorkersScavengerFrozen() throws Exception {
@@ -2648,15 +2657,19 @@ public class TestActivities extends AbstractRepoCommonTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        int workers = 2;
+
         recorder.reset();
 
         Task root = taskAdd(TASK_310_WORKERS_SCAVENGING, result);
 
-        when();
-
-        // We wait until all non-scavengers are done.
-        waitForTaskTreeCloseOrCondition(root.getOid(), result, 10000, 200,
-                tasksClosedPredicate(3));
+        when("All workers except the scavenger are done");
+        waitForTaskTreeCloseOrCondition(
+                root.getOid(),
+                result,
+                10000,
+                200,
+                tasksClosedPredicate(workers - 1)); // all non-scavengers are closed
         stabilize();
 
         then();
@@ -2674,7 +2687,6 @@ public class TestActivities extends AbstractRepoCommonTest {
                     .assertStatusInProgress()
                 .end();
     }
-
 
     /**
      * The performance information of running tasks should be measured in a reasonable way.
