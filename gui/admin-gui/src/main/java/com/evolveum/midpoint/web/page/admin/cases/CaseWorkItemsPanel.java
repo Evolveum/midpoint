@@ -89,12 +89,12 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
-        return ColumnUtils.getDefaultWorkItemColumns(getPageBase(), !isDashboard());
+        return ColumnUtils.getDefaultWorkItemColumns(getPageBase(), !isPreview());
     }
 
     @Override
     protected List<InlineMenuItem> createInlineMenu() {
-        if (!isDashboard()) {
+        if (!isPreview()) {
             return createRowActions();
         }
         return null;
@@ -117,7 +117,7 @@ public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType,
 
     @Override
     protected IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createCheckboxColumn(){
-        if (!isDashboard()) {
+        if (!isPreview()) {
             return  new CheckBoxHeaderColumn<>();
         }
         return null;

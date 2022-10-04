@@ -221,10 +221,6 @@ public class PageSelfDashboard extends PageSelf {
                                         .buildFilter();
                             }
 
-                            @Override
-                            protected boolean isDashboard() {
-                                return true;
-                            }
 
                             @Override
                             protected UserProfileStorage.TableId getTableId() {

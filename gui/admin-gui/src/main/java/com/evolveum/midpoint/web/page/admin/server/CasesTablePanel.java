@@ -54,7 +54,7 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     @Override
     protected List<IColumn<SelectableBean<CaseType>, String>> createDefaultColumns() {
-        return ColumnUtils.getDefaultCaseColumns(getPageBase(), isDashboard());
+        return ColumnUtils.getDefaultCaseColumns(getPageBase(), isPreview());
     }
 
     @Override
@@ -83,7 +83,7 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     @Override
     protected IColumn<SelectableBean<CaseType>, String> createCheckboxColumn() {
-        if (isDashboard()){
+        if (isPreview()){
             return null;
         } else {
             return super.createCheckboxColumn();
@@ -92,14 +92,11 @@ public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     @Override
     protected boolean isHeaderVisible() {
-        return !isDashboard();
+        return !isPreview();
     }
 
     protected ObjectFilter getCasesFilter(){
         return null;
     }
 
-    protected boolean isDashboard(){
-        return false;
-    }
 }
