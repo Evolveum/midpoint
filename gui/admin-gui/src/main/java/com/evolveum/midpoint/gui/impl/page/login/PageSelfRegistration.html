@@ -13,13 +13,13 @@
 
     <wicket:fragment wicket:id="staticContent">
         <div wicket:id="staticForm">
-            <p class="login-box-msg" wicket:id="welcome" />
+            <p class="login-box-msg" wicket:id="welcome"/>
             <div>
                 <label wicket:id="additionalText"></label>
             </div>
 
             <div class="input-group mb-3">
-                <div wicket:id="firstName" />
+                <div wicket:id="firstName"/>
                 <div class="input-group-append">
                     <div class="input-group-text">
                         <span class="fas fa-user"></span>
@@ -28,7 +28,7 @@
             </div>
 
             <div class="input-group mb-3">
-                <div wicket:id="lastName" />
+                <div wicket:id="lastName"/>
                 <div class="input-group-append">
                     <div class="input-group-text">
                         <span class="fas fa-user"></span>
@@ -37,7 +37,7 @@
             </div>
 
             <div class="input-group mb-3">
-                <div wicket:id="email" />
+                <div wicket:id="email"/>
                 <div class="input-group-append">
                     <div class="input-group-text">
                         <span class="fas fa-user"></span>
@@ -46,14 +46,10 @@
             </div>
 
             <div class="input-group mb-3">
-                <!--                            <wicket:message key="PageLogin.password"/>-->
-                <!--                            <span style="color: #f00; font-weight: bold;"-->
-                <!--                                    wicket:message="title:prismPropertyPanel.required">*</span>-->
-                <!--                            <i wicket:id="tooltip"/>-->
-                <div class="col-md-12" wicket:id="password"/>
+                <div class="col-md-12 px-0" wicket:id="password"/>
             </div>
 
-            <div wicket:id="componentFeedback" />
+            <div wicket:id="componentFeedback"/>
 
         </div>
         <div class="col-md-offset-6">
@@ -71,30 +67,27 @@
         </div>
     </wicket:fragment>
 
-                <wicket:fragment wicket:id="dynamicContent">
-                      <div wicket:id="dynamicForm">
-                    </div>
-                    <div class="col-md-offset-6">
-                        <div wicket:id="captcha"/>
-                    </div>
-                    <div class="row">
-                        <div class="col-8">
-                            <a class="btn btn-default" wicket:id="back"/>
-                        </div>
+    <wicket:fragment wicket:id="dynamicContent">
+        <div wicket:id="dynamicForm"/>
+        <div class="col-md-offset-6">
+            <div wicket:id="captcha"/>
+        </div>
+        <div class="row">
+            <div class="col-8">
+                <a class="btn btn-default" wicket:id="back"/>
+            </div>
 
-                        <div class="col-4">
-                            <a class="btn btn-primary btn-block" wicket:id="submitRegistration"/>
-                        </div>
+            <div class="col-4">
+                <a class="btn btn-primary btn-block" wicket:id="submitRegistration"/>
+            </div>
+        </div>
+    </wicket:fragment>
 
-                    </div>
-                </wicket:fragment>
-
-                <wicket:fragment wicket:id="messageContent">
-                    <div style="text-align: center">
-                        <h2 wicket:id="registrationInfo"></h2>
-                    </div>
-                </wicket:fragment>
-
+    <wicket:fragment wicket:id="messageContent">
+        <div style="text-align: center">
+            <h2 wicket:id="registrationInfo"></h2>
+        </div>
+    </wicket:fragment>
 
 </wicket:extend>
 

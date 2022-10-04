@@ -95,7 +95,7 @@
 
                             String name = source.name
 
-                            String description = midpoint.describeResourceObjectSet(task?.activity?.work?.shadowCleanup?.resourceObjects)
+                            String description = midpoint.describeResourceObjectSet(task?.activity?.work?.shadowCleanup?.shadows)
                             if(StringUtils.isNotEmpty(description)) {
                                 return name + ': ' + description
                             }
