@@ -10,9 +10,8 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectFocusSpecificationType;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.Model;
 import org.springframework.stereotype.Component;
@@ -24,8 +23,6 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 
 /**
  * @author katkav
@@ -47,7 +44,12 @@ public class DropDownChoicePanelFactory extends AbstractInputGuiComponentFactory
     protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
         List<QName> typesList;
         if (AssignmentType.F_FOCUS_TYPE.equals(panelCtx.getDefinitionName())
-                || ResourceObjectFocusSpecificationType.F_TYPE.equals(panelCtx.getDefinitionName())) {
+                || ItemPath.create(
+                        ResourceType.F_SCHEMA_HANDLING,
+                        SchemaHandlingType.F_OBJECT_TYPE,
+                        ResourceObjectTypeDefinitionType.F_FOCUS,
+                        ResourceObjectFocusSpecificationType.F_TYPE)
+                .equivalent(panelCtx.unwrapWrapperModel().getPath().namedSegmentsOnly())) {
             typesList = WebComponentUtil.createFocusTypeList();
         } else if ((ObjectCollectionType.F_TYPE.equals(panelCtx.getDefinitionName()) || GuiObjectListViewType.F_TYPE.equals(panelCtx.getDefinitionName()))
                 && panelCtx.unwrapWrapperModel().getParent().getDefinition() != null &&
