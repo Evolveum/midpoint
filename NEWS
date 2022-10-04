@@ -1,12 +1,11 @@
-midPoint 4.5 "Nightingale"
---------------------------
+midPoint 4.6 "Baumgarten"
+-------------------------
 
-Release 4.5 is a fortieth midPoint release code-named Nightingale.
-The 4.5 release brings identity matching capabilities, support for OpenID Connect, notification, user interface and other improvements.
+Release 4.6 is the prepared midPoint release code-named Baumgarten.
 
-Release date: 11th April 2022
-Release type: Feature release
-End of support: 11th April 2023
+Release date: TBD
+Release type: Planned release
+End of support: TBD
 
 Please see the release notes for detailed list of changes:
-https://docs.evolveum.com/midpoint/release/4.5/
+https://docs.evolveum.com/midpoint/release/4.6/

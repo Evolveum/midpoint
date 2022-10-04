@@ -1,5 +1,5 @@
-MidPoint 4.6 Development Branch
--------------------------------
+midPoint 4.6 Release Candidate 2
+--------------------------------
 
 General information:
 
