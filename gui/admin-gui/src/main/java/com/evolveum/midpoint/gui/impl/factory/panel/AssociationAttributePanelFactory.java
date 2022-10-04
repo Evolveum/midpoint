@@ -57,11 +57,11 @@ public class AssociationAttributePanelFactory extends DropDownChoicePanelFactory
 
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
-        return ResourceObjectAssociationType.F_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())
+        return (ResourceObjectAssociationType.F_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_VALUE_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_SHORTCUT_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())
-                || ResourceObjectAssociationType.F_SHORTCUT_VALUE_ATTRIBUTE.equals(wrapper.getItemName())
-                || DOMUtil.XSD_QNAME.equals(wrapper.getTypeName());
+                || ResourceObjectAssociationType.F_SHORTCUT_VALUE_ATTRIBUTE.equals(wrapper.getItemName()))
+                && DOMUtil.XSD_QNAME.equals(wrapper.getTypeName());
     }
 
     @Override
@@ -128,7 +128,7 @@ public class AssociationAttributePanelFactory extends DropDownChoicePanelFactory
 
                             @Override
                             protected String keyToString(QName key) {
-                                return key.getPrefix() != null ? key.getPrefix() + ":" + key.getLocalPart() : key.getLocalPart();
+                                return StringUtils.isNotEmpty(key.getPrefix()) ? key.getPrefix() + ":" + key.getLocalPart() : key.getLocalPart();
                             }
                         };
                     }
