@@ -47,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * @author Radovan Semancik
@@ -309,7 +310,7 @@ public class ScriptExpressionFactory implements Cache {
     public Collection<SingleCacheStateInformationType> getStateInformation() {
         return Collections.singleton(new SingleCacheStateInformationType()
                 .name(ScriptExpressionFactory.class.getName())
-                .size(cachedCustomFunctionLibraries.size()));
+                .size(emptyIfNull(cachedCustomFunctionLibraries).size()));
     }
 
     @Override
