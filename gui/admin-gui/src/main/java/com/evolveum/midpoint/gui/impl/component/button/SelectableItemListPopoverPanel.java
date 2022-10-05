@@ -187,9 +187,6 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                String popoverId = SelectableItemListPopoverPanel.this.get(ID_POPOVER).getMarkupId();
-                target.appendJavaScript("$('#" + popoverId + "').toggle();");
-
                 removeItemsPerformed(getSelectedItemList(), target);
             }
         };

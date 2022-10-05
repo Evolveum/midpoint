@@ -276,7 +276,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                     @Override
                     protected void removeItemsPerformed(List<AvailableFilterWrapper> items, AjaxRequestTarget target){
                         DeleteConfirmationPanel confirmationPanel = new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                                getDeleteFilterConfirmationMessageModel(items)) {
+                                createStringResource("OperationalButtonsPanel.deletePerformed")) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -331,7 +331,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private void saveSearchFilterPerformed(AjaxRequestTarget target) {
-        savedSearchListModel.reset();
+        savedSearchListModel.detach();
         target.add(SearchPanel.this.get(ID_FORM));
     }
 
@@ -367,7 +367,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
-        savedSearchListModel.reset();
         target.add(getPageBase().getFeedbackPanel());
         target.add(get(ID_FORM));
     }
