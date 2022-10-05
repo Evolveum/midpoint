@@ -185,7 +185,6 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onSaveResourcePerformed(target);
-                onExitPerformed(target);
             }
         };
         saveButton.showTitleAsLabel(true);

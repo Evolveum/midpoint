@@ -307,7 +307,7 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
 
             @Override
             public String getCssClass() {
-                return "col-lg-3 col-md-3";
+                return "col-xl-3 col-lg-3 col-md-3";
             }
         });
 

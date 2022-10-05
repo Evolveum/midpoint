@@ -78,6 +78,11 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPan
     }
 
     @Override
+    protected void updateFeedbackPanels(AjaxRequestTarget target) {
+        target.add(getFeedback());
+    }
+
+    @Override
     public VisibleEnableBehaviour getStepsBehaviour() {
         if (getWizard().getSteps().size() <= 1) {
             return VisibleEnableBehaviour.ALWAYS_INVISIBLE;

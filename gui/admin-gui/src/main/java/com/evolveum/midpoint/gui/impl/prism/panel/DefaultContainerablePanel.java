@@ -32,9 +32,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfig
 
 public class DefaultContainerablePanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>> extends BasePanel<CVW> {
 
-    protected static final String ID_PROPERTIES_LABEL = "propertiesLabel";
+    public static final String ID_PROPERTIES_LABEL = "propertiesLabel";
     protected static final String ID_CONTAINERS_LABEL = "containersLabel";
-    private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
+    protected static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
 
     private ItemPanelSettings settings;
 
@@ -55,7 +55,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         setOutputMarkupId(true);
     }
 
-    private void createNonContainersPanel() {
+    protected void createNonContainersPanel() {
         WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
         propertiesLabel.setOutputMarkupId(true);
 

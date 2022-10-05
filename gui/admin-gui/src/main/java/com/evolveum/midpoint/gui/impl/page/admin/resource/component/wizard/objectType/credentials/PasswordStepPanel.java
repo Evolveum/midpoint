@@ -108,11 +108,6 @@ public class PasswordStepPanel extends AbstractResourceWizardStepPanel {
         return containerModel;
     }
 
-    @Override
-    protected void updateFeedbackPanels(AjaxRequestTarget target) {
-        target.add(getPageBase().getFeedbackPanel());
-    }
-
     protected String getPanelType() {
         return PANEL_TYPE;
     }

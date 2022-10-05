@@ -109,7 +109,6 @@ public abstract class SynchronizationReactionTableWizardPanel extends AbstractWi
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onSaveResourcePerformed(target);
-                onExitPerformed(target);
             }
         };
         saveButton.showTitleAsLabel(true);

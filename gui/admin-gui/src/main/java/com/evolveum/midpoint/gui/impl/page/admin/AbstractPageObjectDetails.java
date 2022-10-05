@@ -266,7 +266,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         if (noChangesToExecute(deltas, options)) {
             recordNoChangesWarning(result);
 
-            showResult(result);
+            showResultNoChangesWarning(result);
             return null;
         }
         //TODO force
@@ -285,6 +285,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         showResultAfterExecuteChanges(changeExecutor, result);
 
         return executedDeltas;
+    }
+
+    protected void showResultNoChangesWarning(OperationResult result) {
+        showResult(result);
     }
 
     protected void showResultAfterExecuteChanges(ObjectChangeExecutor changeExecutor, OperationResult result) {

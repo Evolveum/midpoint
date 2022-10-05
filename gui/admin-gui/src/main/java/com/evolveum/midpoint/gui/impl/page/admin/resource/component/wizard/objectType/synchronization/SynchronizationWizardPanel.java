@@ -14,6 +14,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
@@ -60,6 +61,8 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
                             .delay(5_000)
                             .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
                     onExitPerformed(target);
+                } else {
+                    target.add(getFeedback());
                 }
             }
 
@@ -72,6 +75,7 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
                 SynchronizationWizardPanel.this.onExitPerformed(target);
             }
 
@@ -100,14 +104,21 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
 
     private List<WizardStep> createSynchronizationConfigSteps(IModel<PrismContainerValueWrapper<SynchronizationReactionType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        ReactionMainSettingStepPanel settingPanel = new ReactionMainSettingStepPanel(getResourceModel(), valueModel) {
+        steps.add( new ReactionMainSettingStepPanel(getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTablePanel());
             }
-        };
-        settingPanel.setOutputMarkupId(true);
-        steps.add(settingPanel);
+        });
+
+        steps.add( new ActionStepPanel(
+                getResourceModel(),
+                PrismContainerWrapperModel.fromContainerValueWrapper(valueModel, SynchronizationReactionType.F_ACTIONS)) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showChoiceFragment(target, createTablePanel());
+            }
+        });
 
         steps.add(new ReactionOptionalSettingStepPanel(getResourceModel(), valueModel) {
             @Override

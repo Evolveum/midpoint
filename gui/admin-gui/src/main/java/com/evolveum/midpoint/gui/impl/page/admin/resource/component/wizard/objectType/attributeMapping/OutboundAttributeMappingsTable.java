@@ -152,7 +152,7 @@ public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTa
 
             @Override
             public String getCssClass() {
-                return "col-lg-4 col-md-4";
+                return "col-xl-4 col-lg-4 col-md-4";
             }
         });
 
@@ -191,7 +191,7 @@ public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTa
 
             @Override
             public String getCssClass() {
-                return "col-lg-2 col-md-3";
+                return "col-xl-2 col-lg-2 col-md-3";
             }
 
         });

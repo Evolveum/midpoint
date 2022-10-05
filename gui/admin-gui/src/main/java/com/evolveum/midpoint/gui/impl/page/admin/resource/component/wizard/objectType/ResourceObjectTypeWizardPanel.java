@@ -156,6 +156,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
                 ResourceObjectTypeWizardPanel.this.onExitPerformed(target);
             }
         });
@@ -282,6 +283,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                     valueModel) {
                 @Override
                 protected void onExitPerformed(AjaxRequestTarget target) {
+                    super.onExitPerformed(target);
                     showObjectTypePreviewFragment(getResourceObjectType(), target);
                 }
             });

@@ -83,6 +83,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
                 AttributeMappingWizardPanel.this.onExitPerformed(target);
             }
 
@@ -137,6 +138,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
 
                     @Override
                     protected void onExitPerformed(AjaxRequestTarget target) {
+                        super.onExitPerformed(target);
                         showTableFragment(target, selectedTable);
                     }
 

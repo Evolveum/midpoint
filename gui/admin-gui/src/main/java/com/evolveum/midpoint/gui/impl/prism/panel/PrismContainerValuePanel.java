@@ -261,7 +261,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return (ToggleIconButton) get(createComponentPath(ID_VALUE_FORM, ID_HEADER_CONTAINER, ID_SORT_PROPERTIES));
     }
 
-    protected void refreshPanel(AjaxRequestTarget target) {
+    public void refreshPanel(AjaxRequestTarget target) {
         target.add(PrismContainerValuePanel.this);
         target.add(getPageBase().getFeedbackPanel());
     }

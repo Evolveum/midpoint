@@ -74,6 +74,7 @@ public class AssociationsWizardPanel extends AbstractResourceWizardPanel<Resourc
 
                     @Override
                     protected void onExitPerformed(AjaxRequestTarget target) {
+                        super.onExitPerformed(target);
                         AssociationsWizardPanel.this.onExitPerformed(target);
                     }
 

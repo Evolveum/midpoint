@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Resou
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -29,6 +30,12 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         super(id, resourceModel, ResourceObjectTypePreviewTileType.class);
         this.valueModel = valueModel;
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        add(AttributeAppender.append("class", "col-xxl-10 col-12 gap-3 m-auto"));
     }
 
     public enum ResourceObjectTypePreviewTileType implements TileEnum {
