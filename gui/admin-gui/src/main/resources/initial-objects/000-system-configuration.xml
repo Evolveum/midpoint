@@ -189,6 +189,7 @@
                     <identifier>viewAll</identifier>
                     <display>
                         <label>
+                            <orig>View all</orig>
                             <translation>
                                 <key>PageSelfDashboard.button.viewAll</key>
                             </translation>
@@ -206,6 +207,7 @@
                     <identifier>requestAccess</identifier>
                     <display>
                         <label>
+                            <orig>Request access</orig>
                             <translation>
                                 <key>PageRequestAccess.title</key>
                             </translation>
@@ -240,6 +242,7 @@
                     <identifier>viewAll</identifier>
                     <display>
                         <label>
+                            <orig>View all</orig>
                             <translation>
                                 <key>PageSelfDashboard.button.viewAll</key>
                             </translation>
@@ -275,6 +278,7 @@
                     <identifier>viewAll</identifier>
                     <display>
                         <label>
+                            <orig>View all</orig>
                             <translation>
                                 <key>PageSelfDashboard.button.viewAll</key>
                             </translation>
@@ -309,6 +313,7 @@
                     <identifier>viewAll</identifier>
                     <display>
                         <label>
+                            <orig>View all</orig>
                             <translation>
                                 <key>PageSelfDashboard.button.viewAll</key>
                             </translation>

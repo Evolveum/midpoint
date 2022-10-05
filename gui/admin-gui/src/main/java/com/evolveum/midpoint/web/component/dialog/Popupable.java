@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.web.component.dialog;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 public interface Popupable {
 
@@ -22,7 +24,8 @@ public interface Popupable {
     IModel<String> getTitle();
     Component getContent();
 
+    @NotNull
     default Component getFooter() {
-        return null;
+        return new WebMarkupContainer(ID_FOOTER);
     }
 }

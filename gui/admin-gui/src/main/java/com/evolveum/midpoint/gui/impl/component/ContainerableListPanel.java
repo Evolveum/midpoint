@@ -37,7 +37,6 @@ import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisitor;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
@@ -125,7 +124,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private CompiledObjectCollectionView compiledCollectionViewFromPanelConfiguration;
 
     private ContainerPanelConfigurationType config;
-    private boolean dashboard;
 
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
@@ -145,10 +143,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         this.defaultType = defaultType;
         this.options = options;
         this.config = configurationType;
-    }
-
-    public void setDashboard(boolean dashboard) {
-        this.dashboard = dashboard;
     }
 
     @Override
@@ -176,7 +170,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 Search<C> search = null;
                 PageStorage storage = getPageStorage();
                 String searchByName = getSearchByNameParameterValue();
-                if (storage != null && searchByName == null) {  // do NOT use storage when using name search (e.g. from dashboard)
+                if (storage != null && storage.getSearch() != null && (searchByName == null || storage.getSearch().searchByNameEquals(searchByName))) {  // do NOT use storage when using name search (e.g. from dashboard)
                     search = storage.getSearch();
                 }
 
@@ -186,7 +180,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 //                    search.searchWasReload();
                 }
 
-                if (searchByName != null) {
+                if (searchByName != null && !search.searchByNameEquals(searchByName)) {
                     if (SearchBoxModeType.FULLTEXT.equals(search.getSearchMode())) {
                         search.setFullText(searchByName);
                     } else {
@@ -281,7 +275,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected Component createHeader(String headerId) {
-                if (isDashboard()) {
+                if (isPreview()) {
                     return createWidgetHeader(headerId);
                 }
                 Component header = ContainerableListPanel.this.createHeader(headerId);
@@ -300,7 +294,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
-                if (isDashboard()) {
+                if (isPreview()) {
                     return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createNavigationButtons(ID_BUTTON));
                 }
                 return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
@@ -380,7 +374,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isPagingVisible() {
-        return !isDashboard();
+        return !isPreview();
     }
 
     protected abstract UserProfileStorage.TableId getTableId();
@@ -389,11 +383,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return true;
     }
 
-    protected boolean isDashboard() {
-        return dashboard || isPreview();
-    }
-
-    private boolean isPreview() {
+    protected boolean isPreview() {
         return config instanceof PreviewContainerPanelConfigurationType;
     }
 
@@ -452,7 +442,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private List<IColumn<PO, String>> createColumns() {
         List<IColumn<PO, String>> columns = collectColumns();
 
-        if (!isDashboard()) {
+        if (!isPreview()) {
             List<InlineMenuItem> menuItems = createInlineMenu();
             if (menuItems == null) {
                 menuItems = new ArrayList<>();
@@ -517,7 +507,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private void addingCheckAndIconColumnIfExists(List<IColumn<PO, String>> columns) {
-        if (!isDashboard()) {
+        if (!isPreview()) {
             IColumn<PO, String> checkboxColumn = createCheckboxColumn();
             if (checkboxColumn != null) {
                 columns.add(checkboxColumn);
@@ -1015,7 +1005,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         } else if (isCollectionViewPanelForWidget()) {
             String widgetName = getWidgetNameOfCollection();
             return WebComponentUtil.getObjectListPageStorageKey(widgetName);
-        } else if (isDashboard()) {
+        } else if (isPreview()) {
             return WebComponentUtil.getObjectListPageStorageKey(config.getIdentifier());
         }
 

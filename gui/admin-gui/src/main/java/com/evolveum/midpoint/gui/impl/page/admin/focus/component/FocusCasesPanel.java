@@ -49,11 +49,6 @@ public class FocusCasesPanel<F extends FocusType>
             }
 
             @Override
-            protected boolean isDashboard() {
-                return true;
-            }
-
-            @Override
             protected UserProfileStorage.TableId getTableId() {
                 return UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB;
             }
