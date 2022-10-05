@@ -184,7 +184,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 }
 
                 if (search == null ||
-                        (!SearchBoxModeType.ADVANCED.equals(search.getSearchType()) && !search.hasAllDefinitions(newSearch.getAllDefinitions()))
+                        (SearchBoxModeType.BASIC.equals(search.getSearchType()) && !search.hasAllDefinitions(newSearch.getAllDefinitions()))
                         || search.isTypeChanged()) {
                     search = newSearch;
                     search.searchWasReload();
