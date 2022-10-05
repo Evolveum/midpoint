@@ -128,7 +128,7 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         if (getPredefinedFilter() != null) {
-            if (!isApplyFilter(SearchBoxModeType.BASIC)) {
+            if (!applyPredefinedFilter()) {
                 return null;
             }
             SearchFilterType filter = getPredefinedFilter();

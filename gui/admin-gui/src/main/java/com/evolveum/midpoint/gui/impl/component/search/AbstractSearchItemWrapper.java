@@ -104,7 +104,7 @@ public abstract class AbstractSearchItemWrapper<T extends Serializable> implemen
         return applyPredefinedFilter() || isVisible();
     }
 
-    private boolean applyPredefinedFilter() {
+    public boolean applyPredefinedFilter() {
         return getPredefinedFilter() != null && applyFilter;
     }
 
