@@ -22,10 +22,15 @@ import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopover
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.CollectionInstance;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 
@@ -35,9 +40,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxChannel;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
@@ -84,6 +90,9 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private static final long serialVersionUID = 1L;
 
+    private static final String DOT_CLASS = SearchPanel.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(SearchPanel.class);
+    private static final String OPERATION_REMOVE_AVAILABLE_FILTER = DOT_CLASS + "removeAvailableFilterFromUserAdminGuiConfiguration";
     private static final String ID_FORM = "form";
     private static final String ID_SEARCH_ITEMS_PANEL = "searchItemsPanel";
     private static final String ID_SEARCH_BUTTON_PANEL = "searchButtonPanel";
@@ -94,6 +103,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_SAVE_SEARCH_CONTAINER = "saveSearchContainer";
     private static final String ID_SAVE_SEARCH_BUTTON = "saveSearchButton";
     private static final String ID_SAVED_SEARCH_MENU = "savedSearchMenu";
+    private static final String ID_SAVED_FILTER_MENU = "savedFilterMenu";
+    private static final String ID_SAVED_FILTER_ITEM = "savedFilterItem";
+    private static final String ID_SAVED_FILTER_NAME = "savedFilterName";
+    private static final String ID_SAVED_FILTER_NAME_LABEL = "savedFilterNameLabel";
+    private static final String ID_SAVED_FILTER_REMOVE_BUTTON = "savedFilterRemoveButton";
     private static final String ID_BASIC_SEARCH_FRAGMENT = "basicSearchFragment";
     private static final String ID_ADVANCED_SEARCH_FRAGMENT = "advancedSearchFragment";
     private static final String ID_FULLTEXT_SEARCH_FRAGMENT = "fulltextSearchFragment";
@@ -116,7 +130,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private LoadableModel<List<AbstractSearchItemWrapper>> basicSearchItemsModel;
     private LoadableModel<List<AbstractSearchItemWrapper>> morePopupModel;
-    private LoadableDetachableModel<List<AvailableFilterType>> savedSearchListModel;
+    private LoadableDetachableModel<List<InlineMenuItem>> savedSearchListModel;
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
 
     public SearchPanel(String id, IModel<Search<C>> searchModel) {
@@ -217,16 +231,46 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 //        };
 //        submitSearchButton.add(AttributeAppender.append("style", buttonRightPaddingModel));
 
+        initSavedFiltersContainer(form);
+    }
+
+    private void initSavedFiltersContainer(MidpointForm form) {
         WebMarkupContainer saveSearchContainer = new WebMarkupContainer(ID_SAVE_SEARCH_CONTAINER);
         saveSearchContainer.add(new VisibleBehaviour(() -> !isPopupWindow() && isCollectionInstancePage()));
         saveSearchContainer.setOutputMarkupId(true);
         form.add(saveSearchContainer);
-        savedSearchListModel = new LoadableDetachableModel<List<AvailableFilterType>>() {
+        savedSearchListModel = new LoadableDetachableModel<List<InlineMenuItem>>() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<AvailableFilterType> load() {
-                return getSavedFilterList();
+            protected List<InlineMenuItem> load() {
+                List<InlineMenuItem> menuItemList = new ArrayList<>();
+                List<AvailableFilterType> availableFilters = getSavedFilterList();
+                if (CollectionUtils.isEmpty(availableFilters)) {
+                    return menuItemList;
+                }
+                availableFilters.forEach(filter -> {
+                    PolyStringType filterLabel = filter.getDisplay() != null ? filter.getDisplay().getLabel() : null;
+                    InlineMenuItem item = new InlineMenuItem(Model.of(filterLabel == null ? "" : WebComponentUtil.getTranslatedPolyString(filterLabel))) {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public InlineMenuItemAction initAction() {
+                            return new InlineMenuItemAction() {
+
+                                private static final long serialVersionUID = 1L;
+
+                                @Override
+                                public void onClick(AjaxRequestTarget target) {
+                                }
+                            };
+                        }
+
+                    };
+                    item.setId(Integer.parseInt("" + filter.getId()));
+                    menuItemList.add(item);
+                });
+                return menuItemList;
             }
         };
 
@@ -253,49 +297,12 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         saveSearchButton.setOutputMarkupId(true);
         saveSearchContainer.add(saveSearchButton);
 
-        SelectableItemListPopoverPanel<AvailableFilterType> savedFiltersPopover =
-                new SelectableItemListPopoverPanel<>(ID_SAVED_FILTERS_POPOVER, savedSearchListModel) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void addItemsPerformed(List<AvailableFilterType> itemList, AjaxRequestTarget target) {
-                        selectSavedFilterPerformed(itemList, target);
-                    }
-
-                    @Override
-                    protected Component getPopoverReferenceComponent() {
-                        return SearchPanel.this.getSavedSearchMenuButton();
-                    }
-
-                    @Override
-                    protected String getItemName(AvailableFilterType item) {
-                        PolyStringType filterLabel = item.getDisplay() != null ? item.getDisplay().getLabel() : null;
-                        return filterLabel == null ? "" : WebComponentUtil.getTranslatedPolyString(filterLabel);
-                    }
-
-                    @Override
-                    protected String getItemHelp(AvailableFilterType item) {
-                        return "";
-                    }
-
-                    @Override
-                    protected IModel<String> getPopoverTitleModel() {
-                        return createStringResource("SearchPanel.availableFilters");
-                    }
-
-                    @Override
-                    protected String getPopoverCustomArrowStyle() {
-                        return "padding-left: 40px;";
-                    }
-                };
-        saveSearchContainer.add(savedFiltersPopover);
-
         AjaxLink<Void> savedSearchMenu = new AjaxLink<Void>(ID_SAVED_SEARCH_MENU) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                savedFiltersPopover.togglePopover(target);
+//                savedFiltersPopover.togglePopover(target);
             }
         };
         savedSearchMenu.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(savedSearchListModel.getObject())));
@@ -303,6 +310,86 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         savedSearchMenu.add(AttributeAppender.append("title",
                 getPageBase().createStringResource("SearchPanel.savedFiltersListButton.title")));
         saveSearchContainer.add(savedSearchMenu);
+
+        WebMarkupContainer savedFilterMenuContainer = new WebMarkupContainer(ID_SAVED_FILTER_MENU);
+        savedFilterMenuContainer.setOutputMarkupId(true);
+//        savedFilterMenuContainer.add(AttributeAppender.append("class", ""));
+        saveSearchContainer.add(savedFilterMenuContainer);
+
+        ListView<InlineMenuItem> li = new ListView<>(ID_SAVED_FILTER_ITEM, savedSearchListModel) {
+
+            @Override
+            protected void populateItem(ListItem<InlineMenuItem> item) {
+                AjaxLink<String> itemLabel = new AjaxLink<>(ID_SAVED_FILTER_NAME) {
+                    private static final long serialVersionUID = 1L;
+                    public void onClick(AjaxRequestTarget target) {
+                        selectSavedFilterPerformed(findFilterById(item.getModelObject().getId()), target);
+                    }
+                };
+                itemLabel.add(new Label(ID_SAVED_FILTER_NAME_LABEL, item.getModelObject().getLabel()));
+                item.add(itemLabel);
+
+                AjaxLink removeButton = new AjaxLink<>(ID_SAVED_FILTER_REMOVE_BUTTON) {
+                    private static final long serialVersionUID = 1L;
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        removeFilterButtonClicked(findFilterById(item.getModelObject().getId()), ajaxRequestTarget);
+                    }
+                };
+                final String mouseOverStyle = "color: red;";
+                final String mouseLeaveStyle = "color: red; display: none;";
+                removeButton.add(AttributeAppender.append("style", mouseLeaveStyle));
+                item.add(removeButton);
+
+                item.add(new AjaxEventBehavior("mouseenter") {
+                    @Override
+                    public void onEvent(AjaxRequestTarget target) {
+                        removeButton.add(AttributeModifier.remove("style"));
+                        removeButton.add(AttributeAppender.append("style", mouseOverStyle));
+                        target.add(removeButton);
+                    }
+                });
+                item.add(new AjaxEventBehavior("mouseleave") {
+                    @Override
+                    public void onEvent(AjaxRequestTarget target) {
+                        removeButton.add(AttributeAppender.append("style", mouseLeaveStyle));
+                        target.add(removeButton);
+                    }
+                });
+
+            }
+        };
+
+        savedFilterMenuContainer.add(li);
+    }
+
+    private AvailableFilterType findFilterById(int id) {
+        List<AvailableFilterType> availableFilters = getSavedFilterList();
+        if (CollectionUtils.isEmpty(availableFilters)) {
+            return null;
+        }
+        for (AvailableFilterType availableFilter : availableFilters) {
+            if (availableFilter.getId().toString().equals("" + id)) {
+                return availableFilter;
+            }
+        }
+        return null;
+    }
+
+    private void removeFilterButtonClicked(AvailableFilterType filter, AjaxRequestTarget target) {
+        if (filter == null) {
+            return;
+        }
+        DeleteConfirmationPanel confirmationPanel = new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(),
+                createStringResource("OperationalButtonsPanel.deletePerformed")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                deleteFilterPerformed(filter, target);
+            }
+        };
+        getPageBase().showMainPopup(confirmationPanel, target);
     }
 
     private void saveSearchFilterPerformed(AjaxRequestTarget target) {
@@ -310,41 +397,30 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         target.add(SearchPanel.this.get(ID_FORM));
     }
 
-//    private IModel<String> getDeleteFilterConfirmationMessageModel(List<AvailableFilterWrapper> filters) {
-//        if (CollectionUtils.isEmpty(filters)) {
-//            return Model.of();
-//        }
-//        if (filters.size() == 1) {
-//            return createStringResource("SearchPanel.removeSingleAvailableFilter",
-//                    WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(filters.get(0).getFilter().getDisplay())));
-//        } else {
-//            return createStringResource("SearchPanel.removeMultipleAvailableFilter", filters.size());
-//        }
-//    }
-//
-//    private void deleteFilterPerformed(List<AvailableFilterWrapper> items, AjaxRequestTarget target) {
-//        if (CollectionUtils.isEmpty(items)) {
-//            return;
-//        }
-//        Task task = getPageBase().createSimpleTask(OPERATION_REMOVE_AVAILABLE_FILTER);
-//        OperationResult result = task.getResult();
-//        try {
-//            List<AvailableFilterType> filtersToDelete = items.stream().map(AvailableFilterWrapper::getFilter).collect(Collectors.toList());
-//            ObjectDelta<UserType> delta = getPageBase().getPrismContext().deltaFactory().object().createModificationDeleteContainer
-//                    (UserType.class, getPageBase().getPrincipalFocus().getOid(),
-//                            filtersToDelete.get(0).asPrismContainerValue().getPath().allExceptLast(),
-//                            filtersToDelete.stream().map(filter -> filter.asPrismContainerValue().clone()).collect(Collectors.toList()).toArray(new PrismContainerValue[filtersToDelete.size()]));
-//            getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
-//        } catch (Exception e) {
-//            LOGGER.error("Cannot remove filter from user admin gui configuration: {}", e.getMessage(), e);
-//            result.recordPartialError("Cannot remove filter from user admin gui configuration: {}", e);
-//
-//        }
-//        result.computeStatusIfUnknown();
-//        getPageBase().showResult(result);
-//        target.add(getPageBase().getFeedbackPanel());
-//        target.add(get(ID_FORM));
-//    }
+    private IModel<String> getDeleteFilterConfirmationMessageModel(AvailableFilterType filter) {
+        return createStringResource("SearchPanel.removeSingleAvailableFilter",
+                    WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(filter.getDisplay())));
+    }
+
+    private void deleteFilterPerformed(AvailableFilterType filter, AjaxRequestTarget target) {
+        Task task = getPageBase().createSimpleTask(OPERATION_REMOVE_AVAILABLE_FILTER);
+        OperationResult result = task.getResult();
+        try {
+            ObjectDelta<UserType> delta = getPageBase().getPrismContext().deltaFactory().object().createModificationDeleteContainer
+                    (UserType.class, getPageBase().getPrincipalFocus().getOid(),
+                            filter.asPrismContainerValue().getPath().allExceptLast(),
+                            filter.asPrismContainerValue().clone());
+            getPageBase().getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
+        } catch (Exception e) {
+            LOGGER.error("Cannot remove filter from user admin gui configuration: {}", e.getMessage(), e);
+            result.recordPartialError("Cannot remove filter from user admin gui configuration: {}", e);
+
+        }
+        result.computeStatusIfUnknown();
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
+        target.add(get(ID_FORM));
+    }
 
     private VisibleEnableBehaviour getSearchButtonVisibleEnableBehavior() {
         return new VisibleEnableBehaviour() {
@@ -370,11 +446,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         };
     }
 
-    private void selectSavedFilterPerformed(List<AvailableFilterType> filterList, AjaxRequestTarget target) {
-        if (CollectionUtils.isEmpty(filterList)) {
-            return;
-        }
-        AvailableFilterType filter = filterList.get(0);
+    private void selectSavedFilterPerformed(AvailableFilterType filter, AjaxRequestTarget target) {
         if (filter == null) {
             return;
         }
