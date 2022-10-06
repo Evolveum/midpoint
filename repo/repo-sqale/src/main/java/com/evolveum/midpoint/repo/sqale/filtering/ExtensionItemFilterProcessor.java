@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.JSONB_POLY_NORM_
 import static com.evolveum.midpoint.repo.sqale.jsonb.JsonbUtils.JSONB_POLY_ORIG_KEY;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.ARRAY;
 import static com.evolveum.midpoint.repo.sqale.qmodel.ext.MExtItemCardinality.SCALAR;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.ValueFilterValues.convertPolyValuesToString;
 import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.*;
 
 import java.util.HashMap;
@@ -324,8 +325,10 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         return equalPredicate(extItem, values);
     }
 
-    // filter should be PropertyValueFilter<PolyString>, but pure Strings are handled fine
-
+    /**
+     * Filter should be PropertyValueFilter<PolyString>, but pure Strings are handled fine
+     * for orig/norm cases (but not for default/strict).
+     */
     private Predicate processPolyString(MExtItem extItem, ValueFilterValues<?, ?> values,
             FilterOperation operation, PropertyValueFilter<?> filter)
             throws QueryException {
@@ -333,8 +336,7 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
                 ? filter.getMatchingRule().getLocalPart() : null;
 
         if (extItem.cardinality == ARRAY && !operation.isEqualOperation()) {
-            throw new QueryException("Only equals is supported for"
-                    + " multi-value poly-string extensions; used filter: " + filter);
+            return processComplexCases(filter, extItem, operation, matchingRule);
         }
 
         if (Strings.isNullOrEmpty(matchingRule) || DEFAULT.equals(matchingRule)
@@ -352,6 +354,38 @@ public class ExtensionItemFilterProcessor extends ItemValueFilterProcessor<Value
         } else {
             throw new QueryException("Unknown matching rule '" + matchingRule + "'.");
         }
+    }
+
+    @SuppressWarnings("DuplicatedCode") // see JsonbPolysPathItemFilterProcessor
+    private BooleanExpression processComplexCases(
+            PropertyValueFilter<?> filter, MExtItem extItem, FilterOperation operation, String matchingRule)
+            throws QueryException {
+        ValueFilterValues<?, ?> values = ValueFilterValues.from(filter);
+        // e.g. for substring: WHERE ... exists (select 1
+        //     from jsonb_to_recordset(ext->'1') as (o text, n text) where n like '%substring%')
+        // Optional AND o like '%substring%' is also possible for strict/default matching rule.
+        // This can't use index, but it works.
+        SQLQuery<?> subselect = new SQLQuery<>().select(QuerydslUtils.EXPRESSION_ONE)
+                .from(stringTemplate("jsonb_to_recordset({0}->'{1s}') as (" + JSONB_POLY_ORIG_KEY
+                        + " text, " + JSONB_POLY_NORM_KEY + " text)", path, extItem.id));
+
+        if (Strings.isNullOrEmpty(matchingRule) || DEFAULT.equals(matchingRule)
+                || STRICT.equals(matchingRule) || STRICT_IGNORE_CASE.equals(matchingRule)) {
+            // The value here should be poly-string, otherwise it never matches both orig and norm.
+            PolyString polyString = values.singleValuePolyString();
+            subselect.where(singleValuePredicate(stringTemplate(JSONB_POLY_ORIG_KEY), operation, polyString.getOrig()))
+                    .where(singleValuePredicate(stringTemplate(JSONB_POLY_NORM_KEY), operation, polyString.getNorm()));
+        } else if (ORIG.equals(matchingRule) || ORIG_IGNORE_CASE.equals(matchingRule)) {
+            subselect.where(singleValuePredicate(stringTemplate(JSONB_POLY_ORIG_KEY), operation,
+                    convertPolyValuesToString(values, filter, p -> p.getOrig()).singleValue()));
+        } else if (NORM.equals(matchingRule) || NORM_IGNORE_CASE.equals(matchingRule)) {
+            subselect.where(singleValuePredicate(stringTemplate(JSONB_POLY_NORM_KEY), operation,
+                    convertPolyValuesToString(values, filter, p -> p.getNorm()).singleValue()));
+        } else {
+            throw new QueryException("Unknown matching rule '" + matchingRule + "'. Filter: " + filter);
+        }
+
+        return subselect.exists();
     }
 
     private Predicate processPolyStringBoth(
