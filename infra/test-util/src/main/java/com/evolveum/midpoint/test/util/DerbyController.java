@@ -72,8 +72,8 @@ public class DerbyController {
             return DriverManager.getConnection(jdbcUrl, "", "");
         } catch (SQLTransientException e) {
             try {
-                // Let's try one more time after a second.
-                Thread.sleep(1000L);
+                // Let's try one more time after a longer time (virtual infra troubles?).
+                Thread.sleep(20_000L);
             } catch (InterruptedException ex) {
                 throw new RuntimeException(ex);
             }
