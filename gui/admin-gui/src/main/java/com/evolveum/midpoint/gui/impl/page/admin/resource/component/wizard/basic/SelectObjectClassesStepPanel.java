@@ -257,7 +257,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
             protected IModel<Boolean> getEnabled(IModel<SelectableBean<ObjectClassWrapper>> rowModel) {
                 if (rowModel == null) {
                     if (selectedItems.getObject().size() == getResourceModel().getObjectClassesModel().getObject().size()) {
-                       return Model.of(selectedItems.getObject().values().stream().allMatch(enabled -> !enabled));
+                       return Model.of(!selectedItems.getObject().values().stream().allMatch(enabled -> !enabled));
                     }
                     return super.getEnabled(rowModel);
                 }
