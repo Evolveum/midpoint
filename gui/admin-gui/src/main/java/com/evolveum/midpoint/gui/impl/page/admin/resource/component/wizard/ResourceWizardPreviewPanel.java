@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -48,5 +50,10 @@ public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePan
     @Override
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("ResourceWizardPreviewPanel.text");
+    }
+
+    @Override
+    protected void onExitPerformed(AjaxRequestTarget target) {
+        getPageBase().navigateToNext(PageResources.class);
     }
 }
