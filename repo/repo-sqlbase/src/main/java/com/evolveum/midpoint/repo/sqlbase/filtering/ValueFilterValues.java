@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sqlbase.QueryException;
@@ -94,6 +95,31 @@ public abstract class ValueFilterValues<T, V> {
 
     public boolean isMultiValue() {
         return false;
+    }
+
+    @NotNull
+    public PolyString singleValuePolyString() throws QueryException {
+        Object value = singleValueRaw();
+        assert value != null; // empty values treated in main process()
+        if (!(value instanceof PolyString)) {
+            throw new QueryException(
+                    "PolyString value must be provided to match both orig and norm values, was: "
+                            + value + " (type " + value.getClass() + "), filter: " + filter);
+        }
+
+        return (PolyString) value;
+    }
+
+    @NotNull
+    public static ValueFilterValues<?, ?> convertPolyValuesToString(ValueFilterValues<?, ?> values,
+            PropertyValueFilter<?> filter, Function<PolyString, String> extractor) {
+        // In case it is string already we don't need to do anything.
+        if (values.singleValueRaw() instanceof String) {
+            return values;
+        }
+
+        //noinspection unchecked
+        return ValueFilterValues.from((PropertyValueFilter<PolyString>) filter, extractor);
     }
 
     private static class Constant<T, V> extends ValueFilterValues<T, V> {

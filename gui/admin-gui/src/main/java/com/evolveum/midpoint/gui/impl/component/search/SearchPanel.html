@@ -14,10 +14,22 @@
             <button type="button" class="btn btn-default" wicket:id="saveSearchButton">
                 <i class="fa fa-save"></i>
             </button>
-            <button wicket:id="savedSearchMenu" class="btn btn-default dropdown-toggle">
+            <button wicket:id="savedSearchMenu" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                 <span class="caret"></span>
             </button>
-            <div wicket:id="savedFiltersPopover"/>
+            <div class="dropdown-menu dropdown-menu-left" role="menu" wicket:id="savedFilterMenu">
+                <label><wicket:message key="SearchPanel.savedFilters" /></label>
+                <div wicket:id="savedFilterItem">
+                    <div class="d-flex dropdown-item">
+                        <a wicket:id="savedFilterName">
+                            <wicket:container wicket:id="savedFilterNameLabel" />
+                        </a>
+                        <a type="button" class="btn btn-xs" style="pointer-events: none !important;" wicket:id="savedFilterRemoveButton">
+                            <i class="fa fa-trash" style="color: red;"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
     <wicket:fragment wicket:id="basicSearchFragment">

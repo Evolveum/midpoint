@@ -85,6 +85,13 @@ public class PolyStringItemFilterProcessor<T>
 
     @Override
     protected boolean isIgnoreCaseFilter(ValueFilter<?, ?> filter) {
+        return isIgnoreCasePolyStringFilter(filter);
+    }
+
+    /**
+     * Extracted for other poly-string filters in other parts of the filter processor hierarchy.
+     */
+    public static boolean isIgnoreCasePolyStringFilter(ValueFilter<?, ?> filter) {
         String matchingRule = filter.getMatchingRule() != null
                 ? filter.getMatchingRule().getLocalPart() : null;
 
