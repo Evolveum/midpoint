@@ -92,7 +92,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private static final String DOT_CLASS = SearchPanel.class.getName() + ".";
     private static final Trace LOGGER = TraceManager.getTrace(SearchPanel.class);
-    private static final String OPERATION_REMOVE_AVAILABLE_FILTER = DOT_CLASS + "removeAvailableFilterFromUserAdminGuiConfiguration";
+    private static final String OPERATION_REMOVE_SAVED_FILTER = DOT_CLASS + "removeSavedFilterFromUserAdminGuiConfiguration";
     private static final String ID_FORM = "form";
     private static final String ID_SEARCH_ITEMS_PANEL = "searchItemsPanel";
     private static final String ID_SEARCH_BUTTON_PANEL = "searchButtonPanel";
@@ -333,7 +333,9 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                     private static final long serialVersionUID = 1L;
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        removeFilterButtonClicked(findFilterById(item.getModelObject().getId()), ajaxRequestTarget);
+                        removeFilterButtonClicked(findFilterById(item.getModelObject().getId()),
+                                item.getModelObject().getLabel() != null ? item.getModelObject().getLabel().getObject() : "",
+                                ajaxRequestTarget);
                     }
                 };
                 final String mouseOverStyle = "color: red;";
@@ -376,12 +378,12 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         return null;
     }
 
-    private void removeFilterButtonClicked(AvailableFilterType filter, AjaxRequestTarget target) {
+    private void removeFilterButtonClicked(AvailableFilterType filter, String filterName, AjaxRequestTarget target) {
         if (filter == null) {
             return;
         }
         DeleteConfirmationPanel confirmationPanel = new DeleteConfirmationPanel(getPageBase().getMainPopupBodyId(),
-                createStringResource("OperationalButtonsPanel.deletePerformed")) {
+                createStringResource("OperationalButtonsPanel.deletePerformed", filterName)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -403,7 +405,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private void deleteFilterPerformed(AvailableFilterType filter, AjaxRequestTarget target) {
-        Task task = getPageBase().createSimpleTask(OPERATION_REMOVE_AVAILABLE_FILTER);
+        Task task = getPageBase().createSimpleTask(OPERATION_REMOVE_SAVED_FILTER);
         OperationResult result = task.getResult();
         try {
             ObjectDelta<UserType> delta = getPageBase().getPrismContext().deltaFactory().object().createModificationDeleteContainer

@@ -233,7 +233,7 @@ public abstract class PageBase extends PageAdminLTE {
 
         AjaxIconButton mode = new AjaxIconButton(ID_MODE,
                 () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "fas fa-sun" : "fas fa-moon",
-                () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? "Switch to light mode" : "Switch to dark mode") {
+                () -> getSessionStorage().getMode() == SessionStorage.Mode.DARK ? getString("PageBase.switchToLight") : getString("PageBase.switchToDark")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 SessionStorage.Mode mode = getSessionStorage().getMode();
@@ -248,6 +248,7 @@ public abstract class PageBase extends PageAdminLTE {
                 target.add(PageBase.this);
             }
         };
+        mode.add(new VisibleBehaviour(() -> WebModelServiceUtils.isEnableExperimentalFeature(this)));
         container.add(mode);
 
         MidpointForm<?> form = new MidpointForm<>(ID_LOGOUT_FORM);
