@@ -230,7 +230,11 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                PageParameters params = getPageBase().getPageParameters();
+                PageParameters params = new PageParameters();
+                // we have to copy params, not use current directly otherwise we'll end up with one PageParameters object in multiple breadcrumbs
+                PageParameters current = getPageBase().getPageParameters();
+                params.mergeWith(current);
+
                 PrismContainerValueWrapper<CaseWorkItemType> rowObject = rowModel.getObject();
                 if (rowObject != null) {
                     CaseWorkItemType workItem = rowObject.getRealValue();
