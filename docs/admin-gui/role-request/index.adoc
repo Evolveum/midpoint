@@ -10,7 +10,8 @@
 :page-midpoint-feature: true
 :page-alias: [ { "parent" : "/midpoint/features/current/" }, { "parent" : "/midpoint/reference/cases/" } ]
 :page-upkeep-status: yellow
-
+:page-deprecated-since: "4.6"
+:page-replaced-by: ../request-access
 
 == Selecting Roles
 
