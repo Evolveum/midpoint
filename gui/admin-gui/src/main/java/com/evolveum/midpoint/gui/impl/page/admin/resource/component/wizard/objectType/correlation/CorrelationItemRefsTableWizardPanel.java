@@ -57,14 +57,17 @@ public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizard
                 getPageBase().createStringResource("CorrelationItemRefTableWizardPanel.confirmSettings")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (getTable().validateFormComponents()) {
-                    onExitPerformed(target);
-                }
+                onExitPerformed(target);
             }
         };
         saveButton.showTitleAsLabel(true);
         saveButton.add(AttributeAppender.append("class", "btn btn-success"));
         buttons.add(saveButton);
+    }
+
+    @Override
+    protected void onExitPerformed(AjaxRequestTarget target) {
+        super.onExitPerformed(target);
     }
 
     @Override
@@ -86,7 +89,7 @@ public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizard
         return getPageBase().createStringResource("CorrelationItemRefTableWizardPanel.subText");
     }
 
-    private CorrelationItemRefsTable getTable() {
+    protected CorrelationItemRefsTable getTable() {
         return (CorrelationItemRefsTable) get(ID_TABLE);
     }
 

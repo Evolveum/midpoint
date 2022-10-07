@@ -20,16 +20,23 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AbstractAutoCompleteRenderer;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.util.convert.IConverter;
@@ -301,4 +308,28 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
             return help;
         }
     }
+
+    @Override
+    public void configure(PrismPropertyPanelContext<ItemPathType> panelCtx, org.apache.wicket.Component component) {
+        if (!(component instanceof InputPanel)) {
+            panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(component));
+            return;
+        }
+        InputPanel panel = (InputPanel) component;
+        final List<FormComponent> formComponents = panel.getFormComponents();
+        for (FormComponent<ItemPathType> formComponent : formComponents) {
+            PrismPropertyWrapper<ItemPathType> propertyWrapper = panelCtx.unwrapWrapperModel();
+            IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
+            formComponent.setLabel(label);
+            if (panelCtx.isMandatory()) {
+                formComponent.add(new NotNullValidator<>("Required"));
+            }
+            formComponent.add(panelCtx.getAjaxEventBehavior());
+            formComponent.add(panelCtx.getVisibleEnableBehavior());
+        }
+
+        panel.getValidatableComponent().add(panelCtx.getExpressionValidator());
+        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getValidatableComponent()));
+    }
+
 }

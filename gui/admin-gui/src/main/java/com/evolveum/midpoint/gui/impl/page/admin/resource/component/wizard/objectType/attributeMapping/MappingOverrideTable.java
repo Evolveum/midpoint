@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
@@ -26,11 +27,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.input.TwoStateBooleanPanel;
+import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -45,12 +49,15 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.validation.ValidatorAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -350,5 +357,30 @@ public abstract class MappingOverrideTable extends MultivalueContainerListPanel<
     @Override
     protected String getKeyOfTitleForNewObjectButton() {
         return "MappingOverrideTable.newObject";
+    }
+
+    public boolean isValidFormComponents(AjaxRequestTarget target) {
+        AtomicReference<Boolean> valid = new AtomicReference<>(true);
+        getTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (row, object) -> {
+            ((SelectableDataTable.SelectableRowItem) row).visitChildren(FormComponent.class, (baseFormComponent, object2) -> {
+                baseFormComponent.getBehaviors().stream()
+                        .filter(behaviour -> behaviour instanceof ValidatorAdapter
+                                && ((ValidatorAdapter)behaviour).getValidator() instanceof NotNullValidator)
+                        .map(adapter -> ((ValidatorAdapter)adapter).getValidator())
+                        .forEach(validator -> ((NotNullValidator)validator).setUseModel(true));
+                ((FormComponent)baseFormComponent).validate();
+                if (baseFormComponent.hasErrorMessage()) {
+                    valid.set(false);
+                    if (target != null) {
+                        target.add(baseFormComponent);
+                        InputPanel inputParent = baseFormComponent.findParent(InputPanel.class);
+                        if (inputParent != null && inputParent.getParent() != null) {
+                            target.addChildren(inputParent.getParent(), FeedbackLabels.class);
+                        }
+                    }
+                }
+            });
+        });
+        return valid.get();
     }
 }

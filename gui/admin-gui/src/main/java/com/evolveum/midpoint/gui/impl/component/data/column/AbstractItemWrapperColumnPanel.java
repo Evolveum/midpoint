@@ -108,4 +108,8 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
     protected ItemPanelSettings createPanelSettings() {
         return new ItemPanelSettingsBuilder().displayedInColumn(true).build();
     }
+
+    protected ColumnType getColumnType() {
+        return columnType;
+    }
 }

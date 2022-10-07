@@ -19,7 +19,6 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -34,10 +33,8 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -46,13 +43,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -243,24 +237,7 @@ public class CorrelationItemRefsTable extends MultivalueContainerListPanel<Corre
                     return null;
                 };
 
-                Panel panel = new PrismPropertyWrapperColumnPanel<>(
-                        componentId, model, getColumnType()) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onBeforeRender() {
-                        super.onBeforeRender();
-                        visitChildren(FormComponent.class, (formComponent, object) -> {
-                            formComponent.add(AttributeAppender.append("class", () -> {
-                                if (formComponent.hasErrorMessage()) {
-                                    return "is-invalid";
-                                }
-                                return "";
-                            }));
-                        });
-                    }
-                };
+                Component panel = createColumnPanel(componentId, model);
                 panel.add(new VisibleBehaviour(() -> model.getObject() != null));
                 cellItem.add(panel);
             }
@@ -272,11 +249,10 @@ public class CorrelationItemRefsTable extends MultivalueContainerListPanel<Corre
         };
     }
 
-    public boolean validateFormComponents() {
+    public boolean isValidFormComponents() {
         AtomicReference<Boolean> valid = new AtomicReference<>(true);
         getTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (row, object) -> {
             ((SelectableDataTable.SelectableRowItem) row).visitChildren(FormComponent.class, (baseFormComponent, object2) -> {
-//                ((FormComponent)baseFormComponent).validate();
                 if (baseFormComponent.hasErrorMessage()) {
                     valid.set(false);
                 }

@@ -64,16 +64,20 @@ public class AjaxTabbedPanel<T extends ITab> extends TabbedPanel<T> {
 
             @Override
             public void onClick(final Optional<AjaxRequestTarget> target) {
-                setSelectedTab(index);
-                onTabChange(index);
-
-                if (target != null && target.isPresent()) {
-                    target.get().add(AjaxTabbedPanel.this);
-                }
-
-                onAjaxUpdate(target);
+                onClickTabPerformed(index, target);
             }
         };
+    }
+
+    protected void onClickTabPerformed(int index, Optional<AjaxRequestTarget> target) {
+        setSelectedTab(index);
+        onTabChange(index);
+
+        if (target != null && target.isPresent()) {
+            target.get().add(AjaxTabbedPanel.this);
+        }
+
+        onAjaxUpdate(target);
     }
 
     /**

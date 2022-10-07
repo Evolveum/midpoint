@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -51,7 +53,9 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             PrismPropertyWrapper<T> propertyWrapper = panelCtx.unwrapWrapperModel();
             IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
             formComponent.setLabel(label);
-            formComponent.setRequired(panelCtx.isMandatory());
+            if (panelCtx.isMandatory()) {
+                formComponent.add(new NotNullValidator<>("Required"));
+            }
 
             if (formComponent instanceof TextField) {
                 formComponent.add(new AttributeModifier("size", "42"));

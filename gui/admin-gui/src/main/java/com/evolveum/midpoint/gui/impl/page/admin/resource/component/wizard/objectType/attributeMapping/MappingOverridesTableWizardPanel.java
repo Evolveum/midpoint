@@ -93,12 +93,18 @@ public abstract class MappingOverridesTableWizardPanel extends AbstractWizardBas
                 getSubmitLabelModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onSaveResourcePerformed(target);
+                if (getTable().isValidFormComponents(target)) {
+                    onSaveResourcePerformed(target);
+                }
             }
         };
         saveButton.showTitleAsLabel(true);
         saveButton.add(AttributeAppender.append("class", "btn btn-success"));
         buttons.add(saveButton);
+    }
+
+    protected MappingOverrideTable getTable() {
+        return (MappingOverrideTable) get(ID_TABLE);
     }
 
     protected String getSubmitIcon() {

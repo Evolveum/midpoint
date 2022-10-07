@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -70,6 +69,24 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
                     target.add(getButtonsContainer());
                 }
             }
+
+            @Override
+            protected String getIcon(int index) {
+                switch (index){
+                    case 0 :
+                        return "fa fa-arrow-right-to-bracket";
+                    case 1 :
+                        return "fa fa-arrow-right-from-bracket";
+                }
+                return super.getIcon(index);
+            }
+
+            @Override
+            protected void onClickTabPerformed(int index, Optional<AjaxRequestTarget> target) {
+                if (getTable().isValidFormComponents(target.get())) {
+                    super.onClickTabPerformed(index, target);
+                }
+            }
         };
         tabPanel.setOutputMarkupId(true);
         switch (initialTab) {
@@ -126,9 +143,13 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
         return ((TabbedPanel<ITab>) get(ID_TAB_TABLE));
     }
 
-    public WrapperContext.AttributeMappingType getSelectedMappingType() {
+    protected AttributeMappingsTable getTable() {
         TabbedPanel<ITab> tabPanel = getTabPanel();
-        Component table = tabPanel.get(TabbedPanel.TAB_PANEL_ID);
+        return (AttributeMappingsTable) tabPanel.get(TabbedPanel.TAB_PANEL_ID);
+    }
+
+    public WrapperContext.AttributeMappingType getSelectedMappingType() {
+        AttributeMappingsTable table = getTable();
         if (table instanceof InboundAttributeMappingsTable) {
             return WrapperContext.AttributeMappingType.INBOUND;
         } else if (table instanceof OutboundAttributeMappingsTable) {
@@ -171,7 +192,9 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
                 getPageBase().createStringResource("AttributeMappingsTableWizardPanel.showOverrides")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onShowOverrides(target, getSelectedMappingType());
+                if (getTable().isValidFormComponents(target)) {
+                    onShowOverrides(target, getSelectedMappingType());
+                }
             }
         };
         showOverrides.showTitleAsLabel(true);
@@ -184,7 +207,9 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
                 getSubmitLabelModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onSaveResourcePerformed(target);
+                if (getTable().isValidFormComponents(target)) {
+                    onSaveResourcePerformed(target);
+                }
             }
         };
         saveButton.showTitleAsLabel(true);

@@ -69,8 +69,10 @@ public class CorrelationWizardPanel extends AbstractResourceWizardPanel<Resource
                 showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), rowModel) {
                     @Override
                     protected void onExitPerformed(AjaxRequestTarget target) {
-                        super.onExitPerformed(target);
-                        showChoiceFragment(target, createTablePanel());
+                        if (getTable().isValidFormComponents()) {
+                            super.onExitPerformed(target);
+                            showChoiceFragment(target, createTablePanel());
+                        }
                     }
                 });
             }

@@ -49,7 +49,7 @@ public class TableTabbedPanel<T extends ITab> extends AjaxTabbedPanel<T> {
         icon.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(iconClass)));
     }
 
-    private String getIcon(int index) {
+    protected String getIcon(int index) {
         return null;
     }
 }
