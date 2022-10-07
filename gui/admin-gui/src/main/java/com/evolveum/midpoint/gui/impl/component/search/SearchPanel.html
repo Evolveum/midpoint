@@ -10,6 +10,7 @@
         <div wicket:id="searchItemsPanel"/>
 
         <div wicket:id="searchButtonPanel" />
+
         <div class="btn-group btn-group-sm" wicket:id="saveSearchContainer">
             <button type="button" class="btn btn-default" wicket:id="saveSearchButton">
                 <i class="fa fa-save"></i>
@@ -17,21 +18,20 @@
             <button wicket:id="savedSearchMenu" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                 <span class="caret"></span>
             </button>
-            <div class="dropdown-menu dropdown-menu-left" role="menu" wicket:id="savedFilterMenu">
-                <label><wicket:message key="SearchPanel.savedFilters" /></label>
-                <div wicket:id="savedFilterItem">
-                    <div class="d-flex dropdown-item">
-                        <a wicket:id="savedFilterName">
-                            <wicket:container wicket:id="savedFilterNameLabel" />
-                        </a>
-                        <a type="button" class="btn btn-xs" style="pointer-events: none !important;" wicket:id="savedFilterRemoveButton">
-                            <i class="fa fa-trash" style="color: red;"></i>
-                        </a>
-                    </div>
+            <div class="dropdown-menu dropdown-menu-right" role="menu" wicket:id="savedFilterMenu">
+                <label class="px-2 w-100 text-center"><wicket:message key="SearchPanel.savedFilters" /></label>
+                <div class="dropdown-item d-flex justify-content-between align-items-center" wicket:id="savedFilterItem">
+                    <a wicket:id="savedFilterName">
+                        <wicket:container wicket:id="savedFilterNameLabel" />
+                    </a>
+                    <a type="button" class="btn btn-xs" style="pointer-events: none !important;" wicket:id="savedFilterRemoveButton">
+                        <i class="fa fa-trash text-danger"></i>
+                    </a>
                 </div>
             </div>
         </div>
     </form>
+
     <wicket:fragment wicket:id="basicSearchFragment">
         <wicket:container wicket:id="items">
             <div wicket:id="item"/>
