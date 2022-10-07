@@ -41,7 +41,7 @@ public class LabelWithHelpPanel extends BasePanel<String>{
 
         Label help = new Label(ID_HELP);
         IModel<String> helpModel = getHelpModel();
-        help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
+        help.add(AttributeModifier.replace("data-original-title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpModel.getObject())));
         help.setOutputMarkupId(true);
         add(help);

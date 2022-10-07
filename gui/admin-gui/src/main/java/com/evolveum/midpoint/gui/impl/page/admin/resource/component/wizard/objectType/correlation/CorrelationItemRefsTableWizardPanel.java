@@ -54,7 +54,7 @@ public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizard
         AjaxIconButton saveButton = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-check"),
-                getPageBase().createStringResource("CorrelationItemRefTableWizardPanel.confirmSettings")) {
+                getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.confirmSettings")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onExitPerformed(target);
@@ -76,17 +76,17 @@ public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizard
         if (StringUtils.isNotBlank(name)) {
             return Model.of(name);
         }
-        return getPageBase().createStringResource("CorrelationItemRefTableWizardPanel.breadcrumb");
+        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.breadcrumb");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("CorrelationItemRefTableWizardPanel.text");
+        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("CorrelationItemRefTableWizardPanel.subText");
+        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.subText");
     }
 
     protected CorrelationItemRefsTable getTable() {

@@ -266,6 +266,9 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         PreviewContainerPanelConfigurationType afterMerge = mergePanels(mergedPanel, configuredPanel);
         afterMerge.getAction().clear();
         afterMerge.getAction().addAll(mergedActions);
+        if (configuredPanel.getPreviewSize() != null) {
+            mergedPanel.setPreviewSize(configuredPanel.getPreviewSize());
+        }
         return afterMerge;
     }
 
