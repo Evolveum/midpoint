@@ -6,9 +6,11 @@
 :page-wiki-metadata-create-date: 2011-04-29T12:34:21.434+02:00
 :page-wiki-metadata-modify-user: semancik
 :page-wiki-metadata-modify-date: 2014-01-07T15:56:54.069+01:00
+:page-toc: top
 
-When midPoint detects a synchronization event it  is categorized into one of the _situations_. The _situation_ describes how the change relates to the midPoint state regarding the changed resource object (account), user and the midPoint policies.
-
+When midPoint detects a synchronization event it  is categorized into one of the _situations_.
+The _situation_ describes how the change relates to the midPoint state regarding the changed
+resource object (account), user and the midPoint policies.
 
 == Situations
 
@@ -19,16 +21,20 @@ The situations are described in the following table.
 | Situation | Description | Examples | Usualreactions
 
 | `linked`
-| The resource object is linked to an appropriate focal object. +
+| The resource object is linked to an appropriate focal object.
+
 E.g. the account is linked to a user.
-| Change in account attributes only. +
- Redelivery of a change notification that was already delivered and processed. +
- Reconciliation found not mismatch for this account.
+| Change in account attributes only.
+
+Redelivery of a change notification that was already delivered and processed.
+
+Reconciliation found not mismatch for this account.
 |
 
 
 | `collision`
-| The resource object is linked to two or more focal objects. +
+| The resource object is linked to two or more focal objects.
+
 E.g. The account is linked to two or more IDM users.
 | Error in IDM business logic or inconsistent database.
 Should not happen.
@@ -37,30 +43,36 @@ Should not happen.
 
 
 | `deleted`
-| The resource object has been deleted. +
+| The resource object has been deleted.
+
 E.g. The account existed on the resource, but it has been deleted.
 | A legal account is manually deleted on the Resource.
 | `unlink` +
-`deleteFocus +
-inactivateFocus` +
+`deleteFocus` +
+`inactivateFocus` +
 `addShadow`
 
 
 | `unlinked`
-| A resource object is found on the resource (it exists), midPoint determines exactly one owner for that resource object and that owner does not have the resource object linked (yet). +
+| A resource object is found on the resource (it exists), midPoint determines exactly one owner
+for that resource object and that owner does not have the resource object linked (yet).
+
 E.g. New account is found on the resource, an owner (midPoint user) is found by using a correlation expression.
 | The account was created on the resource using native administration tools.
 Initial (incremental) import.
-| `link`` +
-deleteShadow` +
+| `link` +
+`deleteShadow` +
 `inactivateShadow`
 
 
 | `unmatched`
-| A resource object is found on the resource (it exists) and midPoint cannot determine any owner for the object. +
+| A resource object is found on the resource (it exists) and midPoint cannot determine any owner for the object.
+
 E.g. New account is found on the resource, it is (obviosly) not linked to any user and correlation expression returns no candidate owners.
-| New account was created on the resource using native administration tools and the account has wrong username. +
-Initial import. +
+| New account was created on the resource using native administration tools and the account has wrong username.
+
+Initial import.
+
 New account created on an authoritative resource (e.g. HR system)
 | `addFocus` +
 `deleteShadow` +
@@ -68,11 +80,12 @@ New account created on an authoritative resource (e.g. HR system)
 
 
 | `disputed`
-| Two or more owners are determined for a single resource object. +
-E.g. New account is found on the resource and two or more users are returned
-| An ambiguous account is created manually on the resource, e.g. using a username `smith` that matches surname of several users
-| ``deleteShadow` +
-`inactivateShadow``
+| Two or more owners are determined for a single resource object.
+
+E.g. new account is found on the resource and two or more users are returned.
+| An ambiguous account is created manually on the resource, e.g. using a username `smith` that matches surname of several users.
+| `deleteShadow` +
+`inactivateShadow`
 
 
 |===
@@ -82,7 +95,6 @@ In other words it deals only with "links".
 It does *not* deal with the legality of the account (whether the user should have the account).
 See xref:/midpoint/reference/roles-policies/assignment/assigning-vs-linking/[Assigning vs Linking] page for a more detailed explanation.
 The situations also does *not* deal with change in account attributes.
-
 
 == The Algorithm
 
@@ -99,7 +111,6 @@ If any potential owners are found the situation is *unlinked* or *disputed*.
 
 . The situation is *unmatched*.
 
-
 == Situation Overview
 
 Following table summarizes the differences among situations from the point of view of detected account operation and the number of owners (or potential owners).
@@ -108,7 +119,7 @@ Following table summarizes the differences among situations from the point of vi
 |===
 h| Detected operation on account
 h| Link exists (user has account)
-3+h| Link does not exists, correlation&confirmation found users
+3+h| Link does not exist, correlation&confirmation found users
 
 h|
 h|
@@ -139,7 +150,6 @@ h| 2 or more
 
 
 |===
-
 
 == See Also
 
