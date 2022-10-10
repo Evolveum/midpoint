@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -67,6 +68,7 @@ public class RequestAccess implements Serializable {
     private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
     private static final String OPERATION_REQUEST_ASSIGNMENTS_SINGLE = DOT_CLASS + "requestAssignmentsSingle";
     private static final String OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST = DOT_CLASS + "loadAssignableRelationsList";
+    private static final String OPERATION_LOAD_ASSIGNABLE_ROLES = DOT_CLASS + "loadAssignableRoles";
 
     public static final List<ValidityPredefinedValueType> DEFAULT_VALIDITY_PERIODS = Arrays.asList(
             new ValidityPredefinedValueType()
@@ -717,34 +719,57 @@ public class RequestAccess implements Serializable {
         markConflictsDirty();
     }
 
-    private List<QName> getAssignableRelationList(PageBase page, ObjectReferenceType ref) {
-        if (ref == null) {
-            return new ArrayList<>();
+    private PrismObject<UserType> resolveFirstPoiReference(PageBase page) {
+        List<ObjectReferenceType> personsOfInterest = getPersonOfInterest();
+        ObjectReferenceType ref;
+        if (personsOfInterest.isEmpty()) {
+            return null;
         }
 
-        FocusType focus;
+        ref = personsOfInterest.get(0);
         try {
-            PrismObject<UserType> prismFocus = WebModelServiceUtils.loadObject(ref, page);
-            focus = prismFocus.asObjectable();
+            return WebModelServiceUtils.loadObject(ref, page);
         } catch (Exception ex) {
-            page.error(page.getString("RelationPanel.loadRelationsError", ref.getTargetName(), ref.getOid()));
+            page.error(page.getString("RequestAccess.resolveFirstPersonOfInterest", ref.getTargetName(), ref.getOid()));
+        }
+
+        return null;
+    }
+
+    private List<QName> getAssignableRelationList(PageBase page) {
+        PrismObject<UserType> focus = resolveFirstPoiReference(page);
+        if (focus == null) {
             return new ArrayList<>();
         }
 
         Task task = page.createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
         OperationResult result = task.getResult();
+
         return WebComponentUtil.getAssignableRelationsList(
-                focus.asPrismObject(), RoleType.class, WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, page);
+                focus, RoleType.class, WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, page);
+    }
+
+    public ObjectFilter getAssignableRolesFilter(PageBase page, Class<? extends AbstractRoleType> targetType) {
+        if (targetType == null) {
+            return null;
+        }
+
+        PrismObject<UserType> focus = resolveFirstPoiReference(page);
+        if (focus == null) {
+            return null;
+        }
+
+        QName relation = getRelation();
+
+        Task task = page.createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
+        OperationResult result = task.getResult();
+
+        return WebComponentUtil.getAssignableRolesFilter(focus, targetType, relation,
+                WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, page);
     }
 
     public List<QName> getAvailableRelations(PageBase page) {
-        List<ObjectReferenceType> personsOfInterest = getPersonOfInterest();
-        ObjectReferenceType ref = null;
-        if (!personsOfInterest.isEmpty()) {
-            ref = personsOfInterest.get(0);
-        }
-
-        List<QName> relations = getAssignableRelationList(page, ref);
+        List<QName> relations = getAssignableRelationList(page);
 
         if (CollectionUtils.isEmpty(relations)) {
             relations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, page);
