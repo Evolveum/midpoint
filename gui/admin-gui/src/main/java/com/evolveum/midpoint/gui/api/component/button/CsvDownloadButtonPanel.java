@@ -84,6 +84,12 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
             }
 
             @Override
+            protected String quoteValue(String value) {
+                value = value.replaceAll("^\\[|\\]$", "");
+                return super.quoteValue(value);
+            }
+
+            @Override
             protected <T> IModel<T> wrapModel(IModel<T> model) {
                 if (model.getObject() == null) {
                     return () -> (T) "";
