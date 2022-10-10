@@ -245,6 +245,10 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 return super.getObjectCollectionView();
             }
 
+            protected ModelExecuteOptions createModelExecuteOptions() {
+                return createModelOptions();
+            }
+
         };
         shadowListPanel.setOutputMarkupId(true);
         shadowListPanel.add(new VisibleEnableBehaviour() {

@@ -2,6 +2,8 @@ package com.evolveum.midpoint.web.page.admin.shadows;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -330,7 +332,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
 
     private void shadowDetailsPerformed(AjaxRequestTarget target, String accountName, String accountOid) {
         if (StringUtils.isEmpty(accountOid)) {
-            error(getPageBase().getString("pageContentAccounts.message.cantShowAccountDetails", accountName,
+            error(getString("pageContentAccounts.message.cantShowAccountDetails", accountName,
                     accountOid));
             target.add(getPageBase().getFeedbackPanel());
             return;
@@ -365,10 +367,10 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                 return (F) prismOwner.asObjectable();
             }
         } catch (ObjectNotFoundException exception) {
-            // owner was not found, it's possible and it's ok on unlinked
+            // owner was not found, it's possible, and it's ok on unlinked
             // accounts
         } catch (Exception ex) {
-            result.recordFatalError(getPageBase().getString("PageAccounts.message.ownerNotFound", shadowOid), ex);
+            result.recordFatalError(getString("PageAccounts.message.ownerNotFound", shadowOid), ex);
             LoggingUtils.logUnexpectedException(LOGGER,
                     "Could not load owner of account with oid: " + shadowOid, ex);
         } finally {
@@ -413,7 +415,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             try {
                 getPageBase().getModelService().importFromResource(shadow.getOid(), task, result);
             } catch (Exception e) {
-                result.recordPartialError(getPageBase().createStringResource("ResourceContentPanel.message.importResourceObject.partialError", shadow).getString(), e);
+                result.recordPartialError(createStringResource("ResourceContentPanel.message.importResourceObject.partialError", shadow).getString(), e);
                 LOGGER.error("Could not import account {} ", shadow, e);
             }
         }
@@ -453,7 +455,7 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError(
-                        getPageBase().createStringResource(
+                        createStringResource(
                                         "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
                                 .getString(),
                         e);
@@ -481,15 +483,13 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             return;
         }
 
-        ConfirmationPanel dialog = new DeleteConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(),
-                createDeleteConfirmString(selectedShadows
-                )) {
+        ConfirmationPanel dialog = new DeleteConfirmationPanel(((PageBase) getPage()).getMainPopupBodyId(), createDeleteConfirmString(selectedShadows)) {
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 deleteAccountConfirmedPerformed(target, result, selectedShadows);
             }
         };
-        ((PageBase) getPage()).showMainPopup(dialog, target);
+        getPageBase().showMainPopup(dialog, target);
 
     }
 
@@ -501,8 +501,9 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             try {
                 ObjectDelta<ShadowType> deleteDelta = PrismContext.get().deltaFactory().object().createDeleteDelta(ShadowType.class,
                         shadow.getValue().getOid());
+
                 getPageBase().getModelService().executeChanges(
-                        MiscUtil.createCollection(deleteDelta), null, task, result);
+                        MiscUtil.createCollection(deleteDelta), createModelExecuteOptions(), task, result);
             } catch (Throwable e) {
                 result.recordPartialError("Could not delete " + shadow + ", reason: " + e.getMessage(), e);
                 LOGGER.error("Could not delete {}, using option {}", shadow, null, e);
@@ -527,9 +528,9 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
             if (selectedShadow.size() == 1) {
                 ShadowType first = selectedShadow.get(0).getValue();
                 String name = WebComponentUtil.getName(first);
-                return getPageBase().createStringResource("pageContentAccounts.message.deleteConfirmationSingle" + deleteIndication, name).getString();
+                return createStringResource("pageContentAccounts.message.deleteConfirmationSingle" + deleteIndication, name).getString();
             }
-            return getPageBase().createStringResource("pageContentAccounts.message.deleteConfirmation" + deleteIndication, selectedShadow.size())
+            return createStringResource("pageContentAccounts.message.deleteConfirmation" + deleteIndication, selectedShadow.size())
                     .getString();
         };
     }
@@ -625,6 +626,10 @@ public abstract class ShadowTablePanel extends MainObjectListPanel<ShadowType> {
     private PrismObjectDefinition<FocusType> getFocusDefinition() {
         return getPageBase().getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(FocusType.class);
+    }
+
+    protected ModelExecuteOptions createModelExecuteOptions() {
+        return null;
     }
 
 }
