@@ -99,7 +99,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     private static final String ID_ADD_SELECTED = "addSelected";
     private static final String ID_ADD_ALL = "addAll";
 
-    private PageBase page;
+    private final PageBase page;
 
     private IModel<Search<? extends ObjectType>> searchModel;
 
@@ -238,7 +238,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             String[] oids = user.asObjectable().getAssignment().stream()
                     .filter(a -> a.getTargetRef() != null)
                     .map(a -> a.getTargetRef().getOid())
-                    .toArray((count) -> new String[count]);
+                    .toArray(String[]::new);
 
             ObjectQuery oq = getPrismContext().queryFor(AbstractRoleType.class)
                     .id(oids)
@@ -263,6 +263,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
         }
 
         PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(collectionRef, page);
+        if (collection == null) {
+            page.error(page.getString("RoleCatalogPanel.message.loadObjectCollectionError", WebComponentUtil.getName(collectionRef)));
+            updateFalseQuery(query);
+            return;
+        }
+
         ObjectCollectionType objectCollection = collection.asObjectable();
 
         try {
@@ -283,7 +289,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             query.setType(ot.getClassDefinition());
         } catch (Exception ex) {
             LOGGER.debug("Couldn't create search filter", ex);
-            page.error("Couldn't create search filter, reason: " + ex.getMessage());
+            page.error(page.getString("RoleCatalogPanel.message.searchFilterError", ex.getMessage()));
 
             updateFalseQuery(query);
         }
@@ -302,7 +308,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                 .build();
 
         query.setQuery(oq);
-        query.setType(collection.getType());
+        query.setType((Class<? extends AbstractRoleType>) collection.getType());
     }
 
     private void initModels() {
@@ -352,7 +358,17 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
-                return queryModel.getObject().getQuery();
+                RoleCatalogQuery catalogQuery = queryModel.getObject();
+                ObjectQuery query = catalogQuery.getQuery();
+
+                Class<? extends AbstractRoleType> type = catalogQuery.getType();
+
+                ObjectFilter assignableRolesFilter = getModelObject().getAssignableRolesFilter(page, type);
+                if (assignableRolesFilter != null) {
+                    query.addFilter(assignableRolesFilter);
+                }
+
+                return query;
             }
         };
         Collection<SelectorOptions<GetOperationOptions>> options = getPageBase().getOperationOptionsBuilder()

@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import java.io.Serializable;
+
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -20,15 +20,15 @@ public class RoleCatalogQuery implements Serializable {
     public RoleCatalogQuery() {
     }
 
-    private Class<? extends ObjectType> type;
+    private Class<? extends AbstractRoleType> type;
 
     private ObjectQuery query;
 
-    public Class<? extends ObjectType> getType() {
+    public Class<? extends AbstractRoleType> getType() {
         return type;
     }
 
-    public void setType(Class<? extends ObjectType> type) {
+    public void setType(Class<? extends AbstractRoleType> type) {
         this.type = type;
     }
 
