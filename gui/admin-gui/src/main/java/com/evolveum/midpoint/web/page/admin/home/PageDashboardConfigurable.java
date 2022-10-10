@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.home;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -87,7 +89,7 @@ public class PageDashboardConfigurable extends PageDashboard {
         map.put(TaskType.COMPLEX_TYPE.getLocalPart(), PageTasks.class);
         map.put(UserType.COMPLEX_TYPE.getLocalPart(), PageUsers.class);
         map.put(RoleType.COMPLEX_TYPE.getLocalPart(), PageRoles.class);
-        map.put(OrgType.COMPLEX_TYPE.getLocalPart(), PageOrgTree.class);
+        map.put(OrgType.COMPLEX_TYPE.getLocalPart(), PageOrgs.class);
         map.put(ServiceType.COMPLEX_TYPE.getLocalPart(), PageServices.class);
 
         LINKS_REF_COLLECTIONS = map;
@@ -201,7 +203,7 @@ public class PageDashboardConfigurable extends PageDashboard {
                 result.computeStatusIfUnknown();
                 showResult(result);
 
-                return null;
+                return new DashboardWidgetDto(null, PageDashboardConfigurable.this);
             }
         };
     }
@@ -354,17 +356,6 @@ public class PageDashboardConfigurable extends PageDashboard {
             PageParameters parameters = new PageParameters();
             if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
                 pageType = PageShadows.class;
-//                pageType = PageResource.class;
-//                String oid = getResourceOid(collection.getFilter());
-//                if (oid != null) {
-//                    parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-//                    Integer tab = getResourceTab(collection.getFilter());
-//                    if (tab != null) {
-//                        parameters.add(PageResource.PARAMETER_SELECTED_TAB, tab);
-//                    } else {
-//                        parameters.add(PageResource.PARAMETER_SELECTED_TAB, 2);
-//                    }
-//                }
             }
             if (pageType == null) {
                 return;
