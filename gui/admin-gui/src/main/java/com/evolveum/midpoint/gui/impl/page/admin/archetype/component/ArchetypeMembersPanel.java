@@ -12,19 +12,19 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsGuiHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
 @PanelType(name = "archetypeMembers")
 @PanelInstance(identifier = "archetypeMembers",
@@ -49,13 +49,6 @@ public class ArchetypeMembersPanel extends AbstractRoleMemberPanel<ArchetypeType
     @Override
     protected List<QName> getDefaultSupportedObjectTypes(boolean includeAbstractTypes) {
         return WebComponentUtil.createAssignmentHolderTypeQnamesList();
-    }
-
-    @Override
-    protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig, List objectTypes, List archetypeRefList, boolean isOrgTreePanelVisible) {
-        //noinspection unchecked
-        MemberOperationsGuiHelper.assignArchetypeMembers(getPageBase(), getModelObject(), target, relationConfig,
-                objectTypes, archetypeRefList);
     }
 
     @Override
