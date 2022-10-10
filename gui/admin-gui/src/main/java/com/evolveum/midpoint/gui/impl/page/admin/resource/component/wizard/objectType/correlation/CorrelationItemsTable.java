@@ -192,7 +192,9 @@ public abstract class CorrelationItemsTable extends MultivalueContainerListPanel
                 StringBuilder items = new StringBuilder();
                 String prefix = "";
                 for (CorrelationItemType item : realValue.getItem()){
-                    items.append(prefix).append(item.getRef().toString());
+                    if (item != null && item.getRef() != null) {
+                        items.append(prefix).append(item.getRef().toString());
+                    }
                     prefix = ", ";
                 }
 
