@@ -9,15 +9,19 @@
 <head/>
 <body>
 <wicket:panel>
-    <div wicket:id="feedbackMessage"/>
-    <div class="form-group">
-        <label class="col-form-label"><wicket:message key="SaveSearchPanel.enterSearchNameLabel"/></label>
-        <input type="text" class="pull-right form-control form-control-sm" wicket:id="searchName"/>
-    </div>
-    <div wicket:id="buttonsPanel" class="main-button-bar justify-content-end">
-        <a wicket:id="saveButton" class="btn btn-group btn-sm btn-default"/>
-        <a wicket:id="cancelButton" class="btn btn-group btn-sm btn-default"/>
-    </div>
+    <form wicket:id="saveSearchForm">
+        <div wicket:id="feedbackMessage"/>
+        <div class="form-group">
+            <label class="col-form-label">
+                <wicket:message key="SaveSearchPanel.enterSearchNameLabel"/>
+            </label>
+            <input type="text" class="pull-right form-control form-control-sm" wicket:id="searchName"/>
+        </div>
+        <div wicket:id="buttonsPanel" class="main-button-bar justify-content-end">
+            <a wicket:id="saveButton" class="btn btn-group btn-sm btn-default"/>
+            <a wicket:id="cancelButton" class="btn btn-group btn-sm btn-default"/>
+        </div>
+    </form>
 </wicket:panel>
 </body>
 </html>
