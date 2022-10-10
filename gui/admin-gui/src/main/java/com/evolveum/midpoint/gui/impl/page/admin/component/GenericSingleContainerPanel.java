@@ -6,6 +6,25 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.component;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
+
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.component.ButtonBar;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
+
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -20,6 +39,13 @@ import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @PanelType(name = "formPanel")
 @PanelInstance(
@@ -168,6 +194,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class GenericSingleContainerPanel<C extends Containerable, O extends ObjectType> extends AbstractObjectMainPanel<O, ObjectDetailsModels<O>> {
 
     private static final String ID_DETAILS = "details";
+    private static final String ID_CONTAINER_DETAILS = "containerDetails";
+    private static final String ID_FOOTER = "footer";
+    private static final String ID_PREVIEW_DETAILS = "previewDetails";
+    private static final String ID_HEADER = "header";
+    private static final String ID_BUTTON_BAR = "buttonBar";
+    private static final String ID_SINGLE_CONTAINER_DETAILS = "singleContainerDetails";
 
     public GenericSingleContainerPanel(String id, ObjectDetailsModels<O> model, ContainerPanelConfigurationType config) {
         super(id, model, config);
@@ -175,7 +207,28 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
 
     @Override
     protected void initLayout() {
-        add(new SingleContainerPanel<C>(ID_DETAILS, (IModel) getObjectWrapperModel(), getPanelConfiguration()) {
+        ContainerPanelConfigurationType panelConfig = getPanelConfiguration();
+
+        if (panelConfig instanceof PreviewContainerPanelConfigurationType) {
+            add(createPreviewDetailsFragment());
+            return;
+        }
+
+        Fragment previewFragment = new Fragment(ID_DETAILS, ID_SINGLE_CONTAINER_DETAILS, this);
+        previewFragment.add(createSingleContainerPanel());
+        add(previewFragment);
+    }
+
+    private Fragment createPreviewDetailsFragment() {
+        Fragment previewFragment = new Fragment(ID_DETAILS, ID_PREVIEW_DETAILS, this);
+        previewFragment.add(new WidgetTableHeader(ID_HEADER, new PropertyModel<>(getPanelConfiguration(), PreviewContainerPanelConfigurationType.F_DISPLAY.getLocalPart())));
+        previewFragment.add(createSingleContainerPanel());
+        previewFragment.add(new ButtonBar(ID_FOOTER, ID_BUTTON_BAR, GenericSingleContainerPanel.this, (PreviewContainerPanelConfigurationType) getPanelConfiguration()));
+        return previewFragment;
+    }
+
+    private SingleContainerPanel createSingleContainerPanel() {
+        return new SingleContainerPanel<C>(ID_CONTAINER_DETAILS, (IModel) getObjectWrapperModel(), getPanelConfiguration()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -192,6 +245,16 @@ public class GenericSingleContainerPanel<C extends Containerable, O extends Obje
                 }
                 return ItemVisibility.AUTO;
             }
-        });
+
+            @Override
+            protected ItemEditabilityHandler getEditabilityHandler() {
+                ContainerPanelConfigurationType config = getPanelConfiguration();
+                if (!(config instanceof PreviewContainerPanelConfigurationType)) {
+                    return super.getEditabilityHandler();
+                }
+
+                return wrapper -> false;
+            }
+        };
     }
 }

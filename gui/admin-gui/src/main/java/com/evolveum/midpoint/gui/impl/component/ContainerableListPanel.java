@@ -107,7 +107,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
-    private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
+//    private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
     private static final String ID_BUTTON = "button";
 
     private final Class<C> defaultType;
@@ -295,7 +295,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             @Override
             protected WebMarkupContainer createButtonToolbar(String id) {
                 if (isPreview()) {
-                    return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createNavigationButtons(ID_BUTTON));
+                    return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, (PreviewContainerPanelConfigurationType) config);
                 }
                 return new ButtonBar(id, ID_BUTTON_BAR, ContainerableListPanel.this, createToolbarButtonsList(ID_BUTTON));
             }
@@ -965,38 +965,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return new ArrayList<>();
     }
 
-    //TODO TODO TODO what about other buttons? e.g. request access?
-    private List<Component> createNavigationButtons(String idButton) {
-        List<Component> buttonsList = new ArrayList<>();
-        PreviewContainerPanelConfigurationType previewConfig = (PreviewContainerPanelConfigurationType) config;
-        for (GuiActionType action : previewConfig.getAction()) {
-            AjaxIconButton button = createViewAllButton(idButton, action);
-            buttonsList.add(button);
-        }
-
-        return buttonsList;
-    }
-
-    private AjaxIconButton createViewAllButton(String buttonId, GuiActionType action) {
-        DisplayType displayType = action.getDisplay();
-        AjaxIconButton viewAll = new AjaxIconButton(buttonId, new Model<>(GuiDisplayTypeUtil.getIconCssClass(displayType)),
-                () -> WebComponentUtil.getTranslatedPolyString(GuiDisplayTypeUtil.getLabel(displayType))) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                viewAllActionPerformed(target, action);
-            }
-        };
-        viewAll.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(action.getVisibility())));
-        viewAll.add(AttributeAppender.append("class", "btn btn-info btn-sm mr-2"));
-        viewAll.showTitleAsLabel(true);
-        return viewAll;
-    }
-
-    protected void viewAllActionPerformed(AjaxRequestTarget target, GuiActionType action) {
-        WebComponentUtil.redirectFromDashboardWidget(action, getPageBase(), ContainerableListPanel.this);
-    }
-
     protected String getStorageKey() {
         if (isCollectionViewPanelForCompiledView()) {
             StringValue collectionName = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
@@ -1264,27 +1232,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public LoadableDetachableModel<Search<C>> getSearchModel() {
         return searchModel;
-    }
-
-    private static class ButtonBar extends Fragment {
-
-        private static final long serialVersionUID = 1L;
-
-        public ButtonBar(String id, String markupId, ContainerableListPanel markupProvider, List<Component> buttonsList) {
-            super(id, markupId, markupProvider);
-
-            initLayout(buttonsList);
-        }
-
-        private void initLayout(final List<Component> buttonsList) {
-            ListView<Component> buttonsView = new ListView<>(ID_BUTTON_REPEATER, Model.ofList(buttonsList)) {
-                @Override
-                protected void populateItem(ListItem<Component> listItem) {
-                    listItem.add(listItem.getModelObject());
-                }
-            };
-            add(buttonsView);
-        }
     }
 
     protected void createReportPerformed(AjaxRequestTarget target) {

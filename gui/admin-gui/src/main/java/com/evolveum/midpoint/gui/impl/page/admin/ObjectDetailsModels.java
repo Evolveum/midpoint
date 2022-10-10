@@ -80,7 +80,6 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
                     result.recordFatalError("Cannot create wrapper for " + prismObject + ", because: " + e.getMessage(), e);
                     getPageBase().showResult(result);
                     throw getPageBase().redirectBackViaRestartResponseException();
-//                    return null;
                 }
 
             }
@@ -116,7 +115,7 @@ public class ObjectDetailsModels<O extends ObjectType> implements Serializable, 
         return ctx;
     }
 
-    public List<ContainerPanelConfigurationType> getPanelConfigurations() {
+    public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
         GuiObjectDetailsPageType detailsPage = detailsPageConfigurationModel.getObject();
         if (detailsPage == null) {
             return Collections.emptyList();

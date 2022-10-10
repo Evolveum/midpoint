@@ -137,10 +137,13 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private IModel<String> getWidgetCssClassModel(PreviewContainerPanelConfigurationType panelConfig) {
-        if (panelConfig == null || panelConfig.getDisplay() == null) {
-            return Model.of();
-        }
-        return Model.of(panelConfig.getDisplay().getCssClass());
+        return () -> {
+            if (panelConfig == null || panelConfig.getDisplay() == null) {
+                return "col-6"; //default 6
+            }
+            String displayType = panelConfig.getDisplay().getCssClass();
+            return displayType == null ? "col-6" : displayType;
+        };
      }
 
      private List<PreviewContainerPanelConfigurationType> getStatisticWidgetList() {
@@ -193,7 +196,13 @@ public class PageSelfDashboard extends PageSelf {
             return createMessagePanel(markupId, MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", config.getIdentifier());
         }
 
-        UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this);
+        UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this) {
+
+            @Override
+            public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
+                return getCompiledGuiProfile().getHomePage().getWidget();
+            }
+        };
 
         Component panel = WebComponentUtil.createPanel(panelClass, markupId, userDetailsModel, config);
         if (panel == null) {

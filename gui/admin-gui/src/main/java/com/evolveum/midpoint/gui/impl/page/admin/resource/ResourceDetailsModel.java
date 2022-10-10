@@ -221,7 +221,7 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
     protected WrapperContext createWrapperContext(Task task, OperationResult result) {
         WrapperContext ctx = new WrapperContext(task, result) {
             @Override
-            protected void collectVirtualContainers(@NotNull Collection<ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
+            protected void collectVirtualContainers(@NotNull Collection<? extends ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
                 if (!(getModelServiceLocator() instanceof PageResource)) {
                     super.collectVirtualContainers(panelConfigs, virtualContainers);
                     return;
