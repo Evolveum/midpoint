@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.data.column;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -411,6 +412,16 @@ public class ColumnUtils {
             public void onClick(IModel<SelectableBean<T>> rowModel) {
                 super.onClick(rowModel);
             }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<T>> rowModel) {
+                List<ObjectReferenceType> parentOrgRefs = getParentOrgRefs(rowModel);
+                return () ->
+                    parentOrgRefs.stream()
+                            .map(parentRef -> WebModelServiceUtils.resolveReferenceName(parentRef, pageBase, true))
+                            .collect(Collectors.joining(", "));
+            }
+
         });
 
         columns.add((IColumn) getAbstractRoleColumnForProjection());
