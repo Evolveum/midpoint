@@ -9,18 +9,18 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 
 /**
  * @author bpowers
@@ -29,7 +29,6 @@ import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
         urls = {
                 @Url(mountUrl = "/admin/workItems")
         },
-        encoder = PageParametersEncoder.class,
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL,
                         label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
@@ -39,6 +38,7 @@ import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
                         description = "PageWorkItems.auth.WorkItems.description")
         })
 public class PageCaseWorkItems extends PageAdminCaseWorkItems {
+
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItems.class);
@@ -48,7 +48,6 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private static final String PARAMETER_CASE_WORK_ITEM_ID = "caseWorkItemId";
 
     private static final String ID_CASE_WORK_ITEMS_TABLE = "caseWorkItemsTable";
-    private PageParameters pageParameters = null;
 
     public PageCaseWorkItems() {
         super(null);
@@ -66,6 +65,7 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
     private void initLayout() {
         CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, null) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -99,5 +99,4 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
     protected CaseWorkItemsPanel getCaseWorkItemsTable() {
         return (CaseWorkItemsPanel) get(createComponentPath(ID_CASE_WORK_ITEMS_TABLE));
     }
-
 }

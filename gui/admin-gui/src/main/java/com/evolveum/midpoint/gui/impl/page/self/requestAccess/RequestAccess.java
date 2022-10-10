@@ -228,11 +228,14 @@ public class RequestAccess implements Serializable {
         for (AssignmentType a : assignments) {
             this.selectedAssignments.remove(a);
 
-            for (List<AssignmentType> list : requestItems.values()) {
-                list.remove(a);
+            for (ObjectReferenceType ref : requestItems.keySet()) {
+                List<AssignmentType> assignmentList = requestItems.get(ref);
+                assignmentList.remove(a);
+                if (CollectionUtils.isEmpty(assignmentList)) {
+                    requestItems.remove(ref);
+                }
             }
         }
-
         markConflictsDirty();
     }
 

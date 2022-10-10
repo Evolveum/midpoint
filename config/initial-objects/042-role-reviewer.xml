@@ -69,7 +69,7 @@
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>RoleType</type>
+            <type>OrgType</type>
         </object>
         <item>name</item>
         <item>displayName</item>
