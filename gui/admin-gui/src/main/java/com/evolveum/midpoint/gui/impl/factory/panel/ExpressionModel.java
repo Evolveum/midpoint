@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ThreadContext;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -50,16 +52,16 @@ public class ExpressionModel implements IModel<String> {
                     return null;
                 }
 
-                List<JAXBElement<?>> evaluatros = value.getExpressionEvaluator();
+                List<JAXBElement<?>> evaluators = value.getExpressionEvaluator();
                 //should be one
-                if (CollectionUtils.isEmpty(evaluatros)) {
+                if (CollectionUtils.isEmpty(evaluators)) {
                     return null;
                 }
-                if (evaluatros.size() > 1) {
+                if (evaluators.size() > 1) {
                     LOGGER.warn("More than one evaluator found. getting first of them");
                 }
 
-                JAXBElement<?> evaluator = evaluatros.get(0);
+                JAXBElement<?> evaluator = evaluators.get(0);
                 if (evaluator == null) {
                     return null;
                 }
@@ -67,9 +69,8 @@ public class ExpressionModel implements IModel<String> {
                 return ExpressionUtil.serialize(evaluator, pageBase.getPrismContext());
 
             } catch (SchemaException e) {
-                // TODO handle!!!!
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
-//                getSession().error("Cannot serialize filter");
+                LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize expression", e);
+                ThreadContext.getSession().error("Cannot serialize expression: " + e.getMessage());
             }
             return null;
         }
@@ -84,12 +85,10 @@ public class ExpressionModel implements IModel<String> {
             try {
                 ExpressionType condition = new ExpressionType();
                 ExpressionUtil.parseExpressionEvaluators(object, condition, pageBase.getPrismContext());
-//                ExpressionType condition = pageBase.getPrismContext().parserFor(object).parseRealValue();
                 baseModel.setObject(condition);
             } catch (Exception e) {
-                // TODO handle!!!!
                 LoggingUtils.logUnexpectedException(LOGGER, "Cannot parse filter", e);
-//                getSession().error("Cannot parse filter");
+                ThreadContext.getSession().error("Cannot parse expression: " + e.getMessage());
             }
 
         }
