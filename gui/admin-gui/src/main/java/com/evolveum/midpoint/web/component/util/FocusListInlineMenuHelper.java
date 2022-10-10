@@ -86,21 +86,26 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public boolean showConfirmationDialog() {
+                return isShowConfirmationDialog((ColumnMenuAction) getAction());
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(getEnableActionDefaultIcon(objectType));
             }
 
             @Override
-            public IModel<String> getConfirmationMessageModel(){
+            public IModel<String> getConfirmationMessageModel() {
                 String actionName = parentPage.createStringResource("pageUsers.message.enableAction").getString();
                 return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
-
         };
         enableItem.setVisibilityChecker(FocusListInlineMenuHelper::isObjectDisabled);
         menu.add(enableItem);
 
         ButtonInlineMenuItem disableItem = new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.disable")) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -115,22 +120,29 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             }
 
             @Override
-            public IModel<String> getConfirmationMessageModel(){
+            public boolean showConfirmationDialog() {
+                return isShowConfirmationDialog((ColumnMenuAction) getAction());
+            }
+
+            @Override
+            public IModel<String> getConfirmationMessageModel() {
                 String actionName = parentPage.createStringResource("pageUsers.message.disableAction").getString();
                 return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 CompositedIconBuilder builder = getDefaultCompositedIconBuilder(getEnableActionDefaultIcon(objectType));
                 builder.appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_BAN), IconCssStyle.BOTTOM_RIGHT_STYLE);
-                return builder;            }
+                return builder;
+            }
 
         };
         disableItem.setVisibilityChecker(FocusListInlineMenuHelper::isObjectEnabled);
         menu.add(disableItem);
 
         menu.add(new ButtonInlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.reconcile")) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -145,12 +157,17 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public boolean showConfirmationDialog() {
+                return isShowConfirmationDialog((ColumnMenuAction) getAction());
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM);
             }
 
             @Override
-            public IModel<String> getConfirmationMessageModel(){
+            public IModel<String> getConfirmationMessageModel() {
                 String actionName = parentPage.createStringResource("pageUsers.message.reconcileAction").getString();
                 return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
@@ -158,6 +175,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         });
 
         menu.add(new InlineMenuItem(parentPage.createStringResource("FocusListInlineMenuHelper.menu.delete")) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -172,7 +190,12 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             }
 
             @Override
-            public IModel<String> getConfirmationMessageModel(){
+            public boolean showConfirmationDialog() {
+                return isShowConfirmationDialog((ColumnMenuAction) getAction());
+            }
+
+            @Override
+            public IModel<String> getConfirmationMessageModel() {
                 String actionName = parentPage.createStringResource("pageUsers.message.deleteAction").getString();
                 return FocusListInlineMenuHelper.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
@@ -180,13 +203,15 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         return menu;
     }
 
-    private String getEnableActionDefaultIcon(Class<F> type){
+    private String getEnableActionDefaultIcon(Class<F> type) {
         String iconClass = "";
-        if (type.equals(RoleType.class)) {
+        if (type.equals(UserType.class)) {
+            iconClass = GuiStyleConstants.CLASS_OBJECT_USER_ICON;
+        } else if (type.equals(RoleType.class)) {
             iconClass = GuiStyleConstants.CLASS_OBJECT_ROLE_ICON;
-        } else if (type.equals(ServiceType.class)){
+        } else if (type.equals(ServiceType.class)) {
             iconClass = GuiStyleConstants.CLASS_OBJECT_SERVICE_ICON;
-        } else if (type.equals(OrgType.class)){
+        } else if (type.equals(OrgType.class)) {
             iconClass = GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
         }
         return iconClass;
@@ -245,7 +270,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
                         objectClass, object.getValue().getOid(), enabling, parentPage.getPrismContext());
                 parentPage.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, subResult);
                 subResult.recordSuccess();
-            } catch (CommonException|RuntimeException ex) {
+            } catch (CommonException | RuntimeException ex) {
                 subResult.recomputeStatus();
                 if (enabling) {
                     subResult.recordFatalError("FocusListInlineMenuHelper.message.enable.fatalError", ex);
@@ -282,7 +307,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
                 Collection<ObjectDelta<? extends ObjectType>> deltas = MiscUtil.createCollection(delta);
                 parentPage.getModelService().executeChanges(deltas, parentPage.executeOptions().reconcile(), task, opResult);
                 opResult.computeStatusIfUnknown();
-            } catch (CommonException|RuntimeException ex) {
+            } catch (CommonException | RuntimeException ex) {
                 opResult.recomputeStatus();
                 opResult.recordFatalError(
                         parentPage.createStringResource("FocusListInlineMenuHelper.message.reconcile.fatalError", focus).getString(), ex);
@@ -298,7 +323,6 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
         focusListComponent.clearCache();
     }
 
-
     private String getOperationName(String suffix) {
         return parentPage.getClass().getName() + "." + suffix;
     }
@@ -306,6 +330,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
     /**
      * This method check selection in table. If selectedObject != null than it
      * returns only this object.
+     *
      * @return list of selected objects
      */
     private List<SelectableBean<F>> getObjectsToActOn(AjaxRequestTarget target, IModel<SelectableBean<F>> selectedObject) {
@@ -354,11 +379,12 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 
         return ActivationStatusType.DISABLED == focusObject.getActivation().getEffectiveStatus();
     }
-    protected boolean isShowConfirmationDialog(ColumnMenuAction action){
+
+    protected boolean isShowConfirmationDialog(ColumnMenuAction action) {
         return false;
     }
 
-    protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+    protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName) {
         return null;
     }
 }

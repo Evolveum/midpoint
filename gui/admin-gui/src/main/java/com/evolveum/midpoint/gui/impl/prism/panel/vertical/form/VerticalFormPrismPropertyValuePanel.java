@@ -20,6 +20,7 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 
@@ -43,6 +44,33 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
                 }
                 return "";
             }));
+            baseFormComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+                private boolean lastValidationWasError = false;
+
+                @Override
+                protected void onComponentTag(ComponentTag tag) {
+                    super.onComponentTag(tag);
+                    if (tag.getAttribute("class").contains(INVALID_FIELD_CLASS)) {
+                        lastValidationWasError = true;
+                    }
+                }
+
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                    if (lastValidationWasError) {
+                        lastValidationWasError = false;
+                        updateFeedbackPanel(target);
+                    }
+                }
+
+                @Override
+                protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                    updateFeedbackPanel(target);
+                }
+            });
         }
     }
 
@@ -65,26 +93,6 @@ public class VerticalFormPrismPropertyValuePanel<T> extends PrismPropertyValuePa
 
     protected FeedbackAlerts createFeedbackPanel(String idFeedback) {
         return new FeedbackLabels(idFeedback);
-    }
-
-    protected AjaxEventBehavior createEventBehavior() {
-        return new AjaxFormComponentUpdatingBehavior("change") {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                String cssClass = getCssClassForValueContainer();
-                if (StringUtils.isNotEmpty(cssClass) && cssClass.contains(INVALID_FIELD_CLASS)) {
-                    updateFeedbackPanel(target);
-                }
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, RuntimeException e) {
-                updateFeedbackPanel(target);
-            }
-        };
     }
 
     protected String getCssClassForValueContainer() {

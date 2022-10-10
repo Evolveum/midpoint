@@ -10,6 +10,10 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
@@ -24,19 +28,60 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
-import org.apache.wicket.model.PropertyModel;
-
 /**
  * @author katka
- *
  */
 public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColumnPanel<PrismPropertyWrapper<T>, PrismPropertyValueWrapper<T>> {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperColumnPanel.class);
+    private static final CharSequence INVALID_FIELD_CLASS = "is-invalid";
 
     public PrismPropertyWrapperColumnPanel(String id, IModel<PrismPropertyWrapper<T>> model, ColumnType columnType) {
         super(id, model, columnType);
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+        if (ColumnType.VALUE == getColumnType()) {
+            visitChildren(FormComponent.class, (formComponent, object) -> {
+                formComponent.add(AttributeAppender.append("class", () -> {
+                    if (formComponent.hasErrorMessage()) {
+                        return INVALID_FIELD_CLASS;
+                    }
+                    return "";
+                }));
+                formComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
+
+                    private boolean lastValidationWasError = false;
+
+                    @Override
+                    protected void onComponentTag(ComponentTag tag) {
+                        super.onComponentTag(tag);
+                        if (tag.getAttribute("class").contains(INVALID_FIELD_CLASS)) {
+                            lastValidationWasError = true;
+                        }
+                    }
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        if (lastValidationWasError) {
+                            lastValidationWasError = false;
+                            target.add(getComponent());
+                        }
+                    }
+
+                    @Override
+                    protected void onError(AjaxRequestTarget target, RuntimeException e) {
+                        target.add(getComponent());
+                    }
+                });
+
+            });
+        }
     }
 
     @Override
@@ -46,7 +91,8 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
     }
 
     @Override
-    protected Panel createValuePanel(String id, IModel<PrismPropertyWrapper<T>> model, PrismPropertyValueWrapper<T> object) {
+    protected Panel createValuePanel(String
+            id, IModel<PrismPropertyWrapper<T>> model, PrismPropertyValueWrapper<T> object) {
 
         Panel panel;
         try {
@@ -64,7 +110,7 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
     protected Panel createLink(String id, IModel<PrismPropertyValueWrapper<T>> object) {
         String humanReadableLinkName = getHumanReadableLinkName(object);
         IModel labelModel;
-        if (StringUtils.isEmpty(humanReadableLinkName)){
+        if (StringUtils.isEmpty(humanReadableLinkName)) {
             labelModel = getPageBase().createStringResource("feedbackMessagePanel.message.undefined");
         } else {
             labelModel = new ReadOnlyModel(() -> humanReadableLinkName);

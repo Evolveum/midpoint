@@ -54,12 +54,10 @@ public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizard
         AjaxIconButton saveButton = new AjaxIconButton(
                 buttons.newChildId(),
                 Model.of("fa fa-check"),
-                getPageBase().createStringResource("CorrelationItemRefTableWizardPanel.confirmSettings")) {
+                getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.confirmSettings")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (getTable().validateFormComponents()) {
-                    onExitPerformed(target);
-                }
+                onExitPerformed(target);
             }
         };
         saveButton.showTitleAsLabel(true);
@@ -68,25 +66,30 @@ public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizard
     }
 
     @Override
+    protected void onExitPerformed(AjaxRequestTarget target) {
+        super.onExitPerformed(target);
+    }
+
+    @Override
     protected IModel<String> getBreadcrumbLabel() {
         String name = GuiDisplayNameUtil.getDisplayName(valueModel.getObject().getRealValue());
         if (StringUtils.isNotBlank(name)) {
             return Model.of(name);
         }
-        return getPageBase().createStringResource("CorrelationItemRefTableWizardPanel.breadcrumb");
+        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.breadcrumb");
     }
 
     @Override
     protected IModel<String> getTextModel() {
-        return getPageBase().createStringResource("CorrelationItemRefTableWizardPanel.text");
+        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.text");
     }
 
     @Override
     protected IModel<String> getSubTextModel() {
-        return getPageBase().createStringResource("CorrelationItemRefTableWizardPanel.subText");
+        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.subText");
     }
 
-    private CorrelationItemRefsTable getTable() {
+    protected CorrelationItemRefsTable getTable() {
         return (CorrelationItemRefsTable) get(ID_TABLE);
     }
 

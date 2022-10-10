@@ -7,10 +7,16 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePanel<ResourceWizardPreviewPanel.PreviewTileType> {
 
@@ -37,7 +43,11 @@ public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePan
 
     @Override
     protected IModel<String> getBreadcrumbLabel() {
-        return getPageBase().createStringResource("ResourceWizardPreviewPanel.title");
+        String name = WebComponentUtil.getDisplayNameOrName(getResourceModel().getObjectWrapper().getObject());
+        if (StringUtils.isEmpty(name)) {
+            return getPageBase().createStringResource("ResourceWizardPreviewPanel.title");
+        }
+        return Model.of(name);
     }
 
     @Override
@@ -48,5 +58,10 @@ public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePan
     @Override
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("ResourceWizardPreviewPanel.text");
+    }
+
+    @Override
+    protected void onExitPerformed(AjaxRequestTarget target) {
+        getPageBase().navigateToNext(PageResources.class);
     }
 }

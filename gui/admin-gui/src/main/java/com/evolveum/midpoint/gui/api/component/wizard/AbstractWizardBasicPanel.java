@@ -137,7 +137,6 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
                 getExitLabel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                removeLastBreadcrumb();
                 onExitPerformed(target);
             }
         };
@@ -171,7 +170,7 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
     }
 
     protected void onExitPerformed(AjaxRequestTarget target) {
-        getPageBase().navigateToNext(PageResources.class);
+        removeLastBreadcrumb();
     }
 
     protected void addCustomButtons(RepeatingView buttons) {

@@ -420,7 +420,8 @@ public class ResourceAttributeMappingWrapper extends PrismContainerWrapperImpl<R
                         continue;
                     }
 
-                    if (ref.getValue().getRealValue().equivalent(virtualRef.getItem().getRealValue())) {
+                    if (ref.getValue().getRealValue() != null
+                            && ref.getValue().getRealValue().equivalent(virtualRef.getItem().getRealValue())) {
                         continue;
                     }
                     searchInDeltaWrappers(

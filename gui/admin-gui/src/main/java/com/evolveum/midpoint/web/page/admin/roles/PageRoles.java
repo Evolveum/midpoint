@@ -80,7 +80,7 @@ public class PageRoles extends PageAdmin {
         Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
-        MainObjectListPanel<RoleType> table = new MainObjectListPanel<RoleType>(ID_TABLE, RoleType.class) {
+        MainObjectListPanel<RoleType> table = new MainObjectListPanel<>(ID_TABLE, RoleType.class) {
 
             @Override
             protected UserProfileStorage.TableId getTableId() {
@@ -90,10 +90,11 @@ public class PageRoles extends PageAdmin {
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 FocusListInlineMenuHelper<RoleType> listInlineMenuHelper = new FocusListInlineMenuHelper<RoleType>(RoleType.class, PageRoles.this, this){
+
                     private static final long serialVersionUID = 1L;
 
                     protected boolean isShowConfirmationDialog(ColumnMenuAction action){
-                        return PageRoles.this.isShowConfirmationDialog(action);
+                        return PageRoles.this.getObjectListPanel().getSelectedObjectsCount() > 0;
                     }
 
                     protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
@@ -103,28 +104,16 @@ public class PageRoles extends PageAdmin {
                 };
                 return listInlineMenuHelper.createRowActions(getType());
             }
-
-//            @Override
-//            protected List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumns() {
-//                return ColumnUtils.getDefaultRoleColumns();
-//            }
-
         };
         table.setOutputMarkupId(true);
         mainForm.add(table);
     }
 
-    private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+    private IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName) {
         return WebComponentUtil.createAbstractRoleConfirmationMessage(actionName, action, getObjectListPanel(), this);
-
     }
 
     private MainObjectListPanel<RoleType> getObjectListPanel() {
         return (MainObjectListPanel<RoleType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
-    }
-
-    private boolean isShowConfirmationDialog(ColumnMenuAction action){
-        return action.getRowModel() != null ||
-                getObjectListPanel().getSelectedObjectsCount() > 0;
     }
 }

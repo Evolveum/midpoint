@@ -55,7 +55,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
             @Override
             protected void onSaveResourcePerformed(AjaxRequestTarget target) {
                 if (!isSavedAfterWizard()) {
-                    onExitPerformed(target);
+                    onExitPerformedAfterValidate(target);
                     return;
                 }
                 OperationResult result = AttributeMappingWizardPanel.this.onSaveResourcePerformed(target);
@@ -67,7 +67,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
                             .autohide(true)
                             .delay(5_000)
                             .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
-                    onExitPerformed(target);
+                    onExitPerformedAfterValidate(target);
                 }
             }
 
@@ -83,6 +83,13 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                if (getTable().isValidFormComponents(target)) {
+                    onExitPerformedAfterValidate(target);
+                }
+            }
+
+            private void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
                 AttributeMappingWizardPanel.this.onExitPerformed(target);
             }
 
@@ -117,7 +124,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
                     @Override
                     protected void onSaveResourcePerformed(AjaxRequestTarget target) {
                         if (!isSavedAfterWizard()) {
-                            onExitPerformed(target);
+                            onExitPerformedAfterValidate(target);
                             return;
                         }
                         OperationResult result = AttributeMappingWizardPanel.this.onSaveResourcePerformed(target);
@@ -129,15 +136,22 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
                                     .autohide(true)
                                     .delay(5_000)
                                     .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
-                            onExitPerformed(target);
+                            onExitPerformedAfterValidate(target);
                         } else {
                             target.add(getFeedback());
                         }
                     }
 
+                    private void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+                        super.onExitPerformed(target);
+                        AttributeMappingWizardPanel.this.onExitPerformed(target);
+                    }
+
                     @Override
                     protected void onExitPerformed(AjaxRequestTarget target) {
-                        showTableFragment(target, selectedTable);
+                        if (getTable().isValidFormComponents(target)) {
+                            onExitPerformedAfterValidate(target);
+                        }
                     }
 
                     @Override

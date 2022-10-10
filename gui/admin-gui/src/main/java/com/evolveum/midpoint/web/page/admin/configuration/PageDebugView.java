@@ -375,10 +375,10 @@ public class PageDebugView extends PageAdminConfiguration {
         private static final String ID_VALIDATE_SCHEMA = "validateSchema";
         private static final String ID_SWITCH_TO_PLAINTEXT = "switchToPlainText";
 
-        private final boolean encrypt = true;
-        private final boolean saveAsRaw = true;
-        private final boolean reevaluateSearchFilters = false;
-        private final boolean validateSchema = false;
-        private final boolean switchToPlainText = false;
+        private boolean encrypt = true;
+        private boolean saveAsRaw = true;
+        private boolean reevaluateSearchFilters = false;
+        private boolean validateSchema = false;
+        private boolean switchToPlainText = false;
     }
 }

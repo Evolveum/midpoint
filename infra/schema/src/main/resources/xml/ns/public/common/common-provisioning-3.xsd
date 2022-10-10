@@ -5108,6 +5108,9 @@
                     <xsd:documentation>
                         Action or actions to be executed in the given situation.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationReactionType.actions</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -5124,15 +5127,69 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="synchronize" type="tns:SynchronizeSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="link" type="tns:LinkSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="unlink" type="tns:UnlinkSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="addFocus" type="tns:AddFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="deleteFocus" type="tns:DeleteFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="inactivateFocus" type="tns:InactivateFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="deleteResourceObject" type="tns:DeleteResourceObjectSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="inactivateResourceObject" type="tns:InactivateResourceObjectSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="createCorrelationCase" type="tns:CreateCorrelationCaseSynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="synchronize" type="tns:SynchronizeSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationActionsType.synchronize</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="link" type="tns:LinkSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationActionsType.link</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="unlink" type="tns:UnlinkSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationActionsType.unlink</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="addFocus" type="tns:AddFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationActionsType.addFocus</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deleteFocus" type="tns:DeleteFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationActionsType.deleteFocus</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inactivateFocus" type="tns:InactivateFocusSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationActionsType.inactivateFocus</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="deleteResourceObject" type="tns:DeleteResourceObjectSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationActionsType.deleteResourceObject</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="inactivateResourceObject" type="tns:InactivateResourceObjectSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationActionsType.inactivateResourceObject</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createCorrelationCase" type="tns:CreateCorrelationCaseSynchronizationActionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationActionsType.createCorrelationCase</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

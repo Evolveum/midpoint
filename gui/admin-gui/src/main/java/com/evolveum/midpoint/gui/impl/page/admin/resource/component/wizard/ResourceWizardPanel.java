@@ -88,6 +88,7 @@ public class ResourceWizardPanel extends BasePanel {
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
                 exitToPreview(target);
             }
         };
@@ -116,6 +117,7 @@ public class ResourceWizardPanel extends BasePanel {
         return new PreviewResourceDataWizardPanel(ID_WIZARD_PANEL, getResourceModel()) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
                 exitToPreview(target);
             }
         };

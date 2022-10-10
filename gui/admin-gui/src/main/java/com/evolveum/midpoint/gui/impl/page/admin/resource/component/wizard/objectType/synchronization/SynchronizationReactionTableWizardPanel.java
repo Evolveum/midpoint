@@ -108,8 +108,9 @@ public abstract class SynchronizationReactionTableWizardPanel extends AbstractWi
                 getSubmitLabelModel()) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                onSaveResourcePerformed(target);
-                onExitPerformed(target);
+                if (getTablePanel().isValidFormComponents(target)) {
+                    onSaveResourcePerformed(target);
+                }
             }
         };
         saveButton.showTitleAsLabel(true);

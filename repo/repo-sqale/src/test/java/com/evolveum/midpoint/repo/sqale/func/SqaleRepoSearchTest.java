@@ -11,6 +11,7 @@ import static org.testng.Assert.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.*;
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
+import static com.evolveum.midpoint.repo.sqlbase.filtering.item.PolyStringItemFilterProcessor.STRICT_IGNORE_CASE;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ORG_DEFAULT;
 import static com.evolveum.midpoint.util.MiscUtil.asXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType.F_VALID_FROM;
@@ -333,6 +334,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .taskRef(task1Oid, TaskType.COMPLEX_TYPE)
                         .status(OperationResultStatusType.WARNING)
                         .timestamp("2021-08-01T00:00:00Z"))
+                .organization("org-33")
                 .extension(new ExtensionType());
         ExtensionType user3Extension = user3.getExtension();
         addExtensionValue(user3Extension, "int", 10);
@@ -682,16 +684,32 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test150SearchUserByOrganizations() throws Exception {
-        searchUsersTest("having organization equal to value",
+    public void test150SearchUserByOrganizationsPolystringInJsonbEq() throws Exception {
+        searchUsersTest("having organization (polys in JSONB) equal to value",
                 f -> f.item(UserType.F_ORGANIZATION).eq("org-1").matchingOrig(),
                 user4Oid);
     }
 
     @Test
-    public void test151SearchUserByOrganizationUnits() throws Exception {
-        searchUsersTest("having organization equal to value",
+    public void test151SearchUserByOrganizationUnitsPolystringInJsonbEq() throws Exception {
+        searchUsersTest("having organizationUnit (polys in JSONB) equal to value",
                 f -> f.item(UserType.F_ORGANIZATIONAL_UNIT).eq(new PolyString("ou-1")),
+                user4Oid);
+    }
+
+    @Test
+    public void test152SearchByPolystringInJsonbUsingNonEqualsOperationStrict() throws Exception {
+        // support added in 4.6 as part of MID-8140
+        searchUsersTest("having organizationUnit (polys in JSONB) contains value (non-eq operation)",
+                f -> f.item(UserType.F_ORGANIZATION).startsWith(new PolyString("org-")),
+                user3Oid, user4Oid);
+    }
+
+    @Test
+    public void test153SearchByPolystringInJsonbUsingNonEqualsOperationOrig() throws Exception {
+        // support added in 4.6 as part of MID-8140
+        searchUsersTest("having organizationUnit (polys in JSONB) contains value (non-eq operation)",
+                f -> f.item(UserType.F_ORGANIZATIONAL_UNIT).contains("ou").matchingOrig(),
                 user4Oid);
     }
 
@@ -784,8 +802,8 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     /**
-     * Searching by assigneeRef in workitem in a case.
-     * The reference is multi-valued, it has a special table.
+     * Searching by assigneeRef in work item in a case.
+     * The reference is multivalued, it has a special table.
      */
     @Test
     public void test182SearchCaseWorkItemByAssignee() throws Exception {
@@ -1900,18 +1918,12 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     }
 
     @Test
-    public void test571SearchObjectWithExtensionMultiValuePolyStringCaseIgnoreFails() {
-        given("query for poly-string multi-value extension item matching ignore-case");
-        OperationResult operationResult = createOperationResult();
-        ObjectQuery query = prismContext.queryFor(UserType.class)
-                .item(UserType.F_EXTENSION, new QName("poly-mv"))
-                .eq(new PolyString("poly-value1")).matchingCaseIgnore()
-                .build();
-
-        expect("searchObjects throws exception because of unsupported filter");
-        assertThatThrownBy(() -> searchObjects(UserType.class, query, operationResult))
-                .isInstanceOf(SystemException.class)
-                .hasMessageContaining("supported");
+    public void test571SearchObjectWithExtensionMultiValuePolyStringCaseIgnoreFails() throws SchemaException {
+        // support added in 4.6 as part of MID-8140
+        searchUsersTest("with extension poly-string multi-value item contains matching ignore-case",
+                f -> f.item(UserType.F_EXTENSION, new QName("poly-mv"))
+                        .contains(new PolyString("LY-VAL")).matching(STRICT_IGNORE_CASE),
+                user2Oid);
     }
 
     @Test

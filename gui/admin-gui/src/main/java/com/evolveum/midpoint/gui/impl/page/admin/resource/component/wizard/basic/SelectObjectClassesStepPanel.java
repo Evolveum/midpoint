@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 
+import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -46,6 +47,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -211,6 +213,16 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
         List<IColumn<SelectableBean<ObjectClassWrapper>, String>> columns = new ArrayList<>();
 
         columns.add(new CheckBoxHeaderColumn<>() {
+
+            @Override
+            public Component getHeader(String componentId) {
+                IsolatedCheckBoxPanel header = (IsolatedCheckBoxPanel) super.getHeader(componentId);
+                if (selectedItems.getObject().size() == getResourceModel().getObjectClassesModel().getObject().size()) {
+                    header.getPanelComponent().setModelObject(true);
+                }
+                return header;
+            }
+
             @Override
             protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<SelectableBean<ObjectClassWrapper>> rowModel, IModel<Boolean> selected) {
                 super.onUpdateRow(target, table, rowModel, selected);
@@ -244,6 +256,9 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
             @Override
             protected IModel<Boolean> getEnabled(IModel<SelectableBean<ObjectClassWrapper>> rowModel) {
                 if (rowModel == null) {
+                    if (selectedItems.getObject().size() == getResourceModel().getObjectClassesModel().getObject().size()) {
+                       return Model.of(!selectedItems.getObject().values().stream().allMatch(enabled -> !enabled));
+                    }
                     return super.getEnabled(rowModel);
                 }
                 return new PropertyModel<>(rowModel, "value.enabled");

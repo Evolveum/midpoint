@@ -25,11 +25,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpe
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -41,7 +45,7 @@ import java.util.List;
 public class VerticalFormDefaultContainerablePanel<C extends Containerable> extends DefaultContainerablePanel<C, PrismContainerValueWrapper<C>> {
 
     private static final String ID_PROPERTY = "property";
-
+    public static final String ID_FORM_CONTAINER = "formContainer";
     private static final String ID_SHOW_EMPTY_BUTTON_CONTAINER = "showEmptyButtonContainer";
 
     public VerticalFormDefaultContainerablePanel(String id, IModel<PrismContainerValueWrapper<C>> model, ItemPanelSettings settings) {
@@ -52,6 +56,34 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
     protected void onInitialize() {
         super.onInitialize();
         get(ID_PROPERTIES_LABEL).add(new VisibleBehaviour(this::isVisibleVirtualValueWrapper));
+    }
+
+    protected void createNonContainersPanel() {
+        WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
+        propertiesLabel.setOutputMarkupId(true);
+        add(propertiesLabel);
+
+        IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers = new PropertyModel<>(getModel(), "nonContainers");
+
+        WebMarkupContainer formContainer = new WebMarkupContainer(ID_FORM_CONTAINER);
+        formContainer.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
+        propertiesLabel.setOutputMarkupId(true);
+        propertiesLabel.add(formContainer);
+        ListView<ItemWrapper<?, ?>> properties = new ListView<>("properties", nonContainerWrappers) {
+
+            @Override
+            protected void populateItem(ListItem<ItemWrapper<?, ?>> item) {
+                populateNonContainer(item);
+            }
+        };
+        properties.setOutputMarkupId(true);
+        formContainer.add(properties);
+
+        AjaxButton labelShowEmpty = createShowEmptyButton(ID_SHOW_EMPTY_BUTTON);
+        labelShowEmpty.setOutputMarkupId(true);
+        labelShowEmpty.add(AttributeAppender.append("style", "cursor: pointer;"));
+        labelShowEmpty.add(new VisibleBehaviour(() -> isShowMoreButtonVisible(nonContainerWrappers)));
+        formContainer.add(labelShowEmpty);
     }
 
     protected void populateNonContainer(ListItem<? extends ItemWrapper<?, ?>> item) {

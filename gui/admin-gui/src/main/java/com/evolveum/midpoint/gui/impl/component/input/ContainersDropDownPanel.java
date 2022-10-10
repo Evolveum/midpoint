@@ -212,7 +212,7 @@ public class ContainersDropDownPanel<C extends Containerable> extends BasePanel<
 
         private ContainerDisplayableValue(ItemDefinition itemDefinition) {
             this.displayName = itemDefinition.getDisplayName() == null ?
-                    itemDefinition.getItemName().getLocalPart() : itemDefinition.getDisplayName();
+                    itemDefinition.getItemName().getLocalPart() : getPageBase().createStringResource(itemDefinition.getDisplayName()).getString();
             this.help = itemDefinition.getHelp();
             this.value = itemDefinition.getItemName();
         }

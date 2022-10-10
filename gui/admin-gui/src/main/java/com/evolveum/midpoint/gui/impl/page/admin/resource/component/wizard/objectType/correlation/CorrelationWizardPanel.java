@@ -53,11 +53,14 @@ public class CorrelationWizardPanel extends AbstractResourceWizardPanel<Resource
                             .delay(5_000)
                             .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
                     onExitPerformed(target);
+                } else {
+                    target.add(getFeedback());
                 }
             }
 
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
                 CorrelationWizardPanel.this.onExitPerformed(target);
             }
 
@@ -66,7 +69,10 @@ public class CorrelationWizardPanel extends AbstractResourceWizardPanel<Resource
                 showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), rowModel) {
                     @Override
                     protected void onExitPerformed(AjaxRequestTarget target) {
-                        showChoiceFragment(target, createTablePanel());
+                        if (getTable().isValidFormComponents()) {
+                            super.onExitPerformed(target);
+                            showChoiceFragment(target, createTablePanel());
+                        }
                     }
                 });
             }

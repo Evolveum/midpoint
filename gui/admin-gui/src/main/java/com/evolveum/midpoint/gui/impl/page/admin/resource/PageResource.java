@@ -352,4 +352,20 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     public List<Breadcrumb> getWizardBreadcrumbs() {
         return wizardBreadcrumbs;
     }
+
+    @Override
+    protected void recordNoChangesWarning(OperationResult result) {
+        if (isEditObject()) {
+            super.recordNoChangesWarning(result);
+        } else {
+            result.recordSuccess();
+        }
+    }
+
+    @Override
+    protected void showResultNoChangesWarning(OperationResult result) {
+        if (isEditObject()) {
+            super.showResultNoChangesWarning(result);
+        }
+    }
 }

@@ -96,6 +96,9 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
             }
         });
         header.add(new VisibleBehaviour(() -> {
+            if (getSettings() != null && !getSettings().isHeaderVisible()) {
+                return false;
+            }
             String panelPath = getPageBase().createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER, ID_INPUT);
             VerticalFormDefaultContainerablePanel valueContainer =
                     (VerticalFormDefaultContainerablePanel) VerticalFormPrismContainerValuePanel.this.get(panelPath);

@@ -78,6 +78,12 @@ public abstract class ItemValueFilterProcessor<O extends ValueFilter<?, ?>>
 
     private static final String STRING_IGNORE_CASE = STRING_IGNORE_CASE_MATCHING_RULE_NAME.getLocalPart();
 
+    /**
+     * Returns true, if the filter implies ignore-case behavior.
+     * Used when filter is transformed to SQL operation, or to determine whether operands
+     * need some treatment (e.g. `lower()` function).
+     * Can be overridden to cover other matching rules, e.g. for poly-strings.
+     */
     protected boolean isIgnoreCaseFilter(ValueFilter<?, ?> filter) {
         return filter.getMatchingRule() != null
                 && filter.getMatchingRule().getLocalPart().equals(STRING_IGNORE_CASE);
