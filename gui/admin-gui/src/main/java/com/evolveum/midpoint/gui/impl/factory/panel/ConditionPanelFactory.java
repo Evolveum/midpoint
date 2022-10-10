@@ -34,8 +34,6 @@ public class ConditionPanelFactory extends AbstractGuiComponentFactory<Expressio
                 new ExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200);
 
         conditionPanel.getEditor().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        conditionPanel.getEditor().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-
         return conditionPanel;
     }
 
