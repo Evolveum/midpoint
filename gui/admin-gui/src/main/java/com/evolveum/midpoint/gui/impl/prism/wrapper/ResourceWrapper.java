@@ -22,7 +22,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -116,7 +116,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
                 List<PrismValue> valuesFromTemplate = new ArrayList<>();
                 delta.getValuesToDelete().forEach(v -> {
                     if (WebPrismUtil.isValueFromResourceTemplate(v, getItem())
-                            || WebPrismUtil.isValueFromResourceTemplate(v.getParentContainerValue(), getItem())) {
+                            || WebPrismUtil.isValueFromResourceTemplate(getParentContainerValue(v), getItem())) {
                         LOGGER.warn("Couldn't remove value, because is merged from resource template, value: " + v);
                         valuesFromTemplate.add(v);
                     }
@@ -195,7 +195,7 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
 
     private PrismContainerValue<?> createParentValueForAddDelta(
             PrismContainerValue<?> origParentValue, Item newChildItem, PrismContainerValue<?> valueOfExistingDelta) throws SchemaException {
-        PrismContainerValue<?> parentValue = origParentValue.getParentContainerValue();
+        PrismContainerValue<?> parentValue = getParentContainerValue(origParentValue);
 
         PrismContainer newContainer = null;
         PrismContainerValue newValue = null;
@@ -330,5 +330,20 @@ public class ResourceWrapper extends PrismObjectWrapperImpl<ResourceType> {
             deltas.addAll(delta);
         }
         return deltas;
+    }
+
+    private PrismContainerValue getParentContainerValue(PrismValue v) {
+        PrismContainerValue<?> valueContainer = v.getParentContainerValue();
+        if (valueContainer != null) {
+            return valueContainer;
+        }
+        if (v.getParent() instanceof ItemDelta) {
+            @NotNull ItemPath path = ((ItemDelta) v.getParent()).getPath();
+            Item prismParent = getObject().findItem(path);
+            if (prismParent != null) {
+                return prismParent.getParent();
+            }
+        }
+        return null;
     }
 }

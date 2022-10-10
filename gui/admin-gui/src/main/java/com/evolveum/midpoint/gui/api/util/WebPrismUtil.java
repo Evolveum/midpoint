@@ -316,6 +316,10 @@ public class WebPrismUtil {
     }
 
     private static boolean hasValueMetadata(PrismValue value) {
+        if (value == null) {
+            return false;
+        }
+
         if (value.hasValueMetadata()) {
             List<PrismContainerValue<Containerable>> metadataValues = value.getValueMetadata().getValues();
 
