@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -127,7 +128,25 @@ public class PageUsers extends PageAdmin {
 
             @Override
             protected List<InlineMenuItem> createInlineMenu() {
-                return createRowActions();
+                FocusListInlineMenuHelper helper = new FocusListInlineMenuHelper(UserType.class, PageUsers.this, this) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected boolean isShowConfirmationDialog(ColumnMenuAction action) {
+                        return PageUsers.this.getTable().getSelectedObjectsCount() > 0;
+                    }
+
+                    @Override
+                    protected IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName) {
+                        return PageUsers.this.getTable().getConfirmationMessageModel(action, actionName);
+                    }
+                };
+
+                List<InlineMenuItem> items = helper.createRowActions(UserType.class);
+                items.addAll(createRowActions());
+
+                return items;
             }
 
             @Override
@@ -151,93 +170,8 @@ public class PageUsers extends PageAdmin {
 
     private List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
-        ButtonInlineMenuItem enableItem = new ButtonInlineMenuItem(createStringResource("pageUsers.menu.enable")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<UserType>>() {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        updateActivationPerformed(target, true, getRowModel());
-                    }
-                };
-            }
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_OBJECT_USER_ICON);
-            }
-
-            @Override
-            public IModel<String> getConfirmationMessageModel(){
-                String actionName = createStringResource("pageUsers.message.enableAction").getString();
-                return getTable().getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-            }
-        };
-        enableItem.setVisibilityChecker(FocusListInlineMenuHelper::isObjectDisabled);
-        menu.add(enableItem);
-
-        ButtonInlineMenuItem disableItem = new ButtonInlineMenuItem(createStringResource("pageUsers.menu.disable")) {
-                     private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<UserType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        updateActivationPerformed(target, false, getRowModel());
-                    }
-                };
-            }
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
-                CompositedIconBuilder builder = getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_OBJECT_USER_ICON);
-                builder.appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_BAN), IconCssStyle.BOTTOM_RIGHT_STYLE);
-                return builder;
-            }
-
-            @Override
-            public IModel<String> getConfirmationMessageModel() {
-                String actionName = createStringResource("pageUsers.message.disableAction").getString();
-                return getTable().getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-            }
-        };
-        disableItem.setVisibilityChecker(FocusListInlineMenuHelper::isObjectEnabled);
-        menu.add(disableItem);
-
-        menu.add(new ButtonInlineMenuItem(createStringResource("pageUsers.menu.reconcile")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new ColumnMenuAction<SelectableBean<UserType>>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        reconcilePerformed(target, getRowModel());
-                    }
-                };
-            }
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM);
-            }
-
-            @Override
-            public IModel<String> getConfirmationMessageModel() {
-                String actionName = createStringResource("pageUsers.message.reconcileAction").getString();
-                return getTable().getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
-            }
-        });
-
         menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.unlock")) {
+
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -253,13 +187,16 @@ public class PageUsers extends PageAdmin {
             }
 
             @Override
+            public boolean showConfirmationDialog() {
+                return getTable().getSelectedObjectsCount() > 0;
+            }
+
+            @Override
             public IModel<String> getConfirmationMessageModel(){
                 String actionName = createStringResource("pageUsers.message.unlockAction").getString();
                 return getTable().getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }
         });
-
-        menu.add(getTable().createDeleteInlineMenu());
 
         //TODO: shouldn't  be visible only if supported?
         menu.add(new InlineMenuItem(createStringResource("pageUsers.menu.merge")) {
@@ -306,7 +243,6 @@ public class PageUsers extends PageAdmin {
         return menu;
     }
 
-
     private MainObjectListPanel<UserType> getTable() {
         return (MainObjectListPanel<UserType>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
@@ -344,8 +280,11 @@ public class PageUsers extends PageAdmin {
     private void unlockPerformed(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedUser) {
         List<SelectableBean<UserType>> users = getTable().isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
+            warn(getString("PageUsers.message.nothingSelected"));
+            target.add(getFeedbackPanel());
             return;
         }
+
         OperationResult result = new OperationResult(OPERATION_UNLOCK_USERS);
         for (SelectableBean<UserType> user : users) {
             OperationResult opResult = result.createSubresult(getString(OPERATION_UNLOCK_USER, user));

@@ -159,19 +159,24 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         if (id >= buttonMenuItems.size()){
             return;
         }
+
         ButtonInlineMenuItem menuItem = buttonMenuItems.get(id);
-        if (menuItem.getAction() != null) {
-            // TODO: getConfirmationMessageModel is called here and again in showConfirmationPopup, but these are not getters,
-            //  but both create model (perhaps not very expensive, but it still seems like waste.
-            if (menuItem.showConfirmationDialog() && menuItem.getConfirmationMessageModel() != null) {
-                showConfirmationPopup(menuItem, target);
-            } else {
-                if (menuItem.isSubmit()){
-                    menuItem.getAction().onSubmit(target);
-                } else {
-                    menuItem.getAction().onClick(target);
-                }
-            }
+        InlineMenuItemAction action = menuItem.getAction();
+        if (action == null) {
+            return;
+        }
+
+        // TODO: getConfirmationMessageModel is called here and again in showConfirmationPopup, but these are not getters,
+        //  but both create model (perhaps not very expensive, but it still seems like waste.
+        if (menuItem.showConfirmationDialog() && menuItem.getConfirmationMessageModel() != null) {
+            showConfirmationPopup(menuItem, target);
+            return;
+        }
+
+        if (menuItem.isSubmit()){
+            action.onSubmit(target);
+        } else {
+            action.onClick(target);
         }
     }
 
