@@ -1,0 +1,295 @@
+= The `items` Correlator
+:page-toc: top
+:page-since: "4.6"
+
+== Introduction
+
+In earlier versions of midPoint, the only correlation mechanism available was the filter-based one.
+The administrator had to specify a query based (typically) on the values of the resource object and executed it in order to find its owner.
+
+The newly-introduced `items` correlator makes this process much easier by constructing the filter(s) automatically from the correlator configuration.
+
+== Simple Examples
+
+Here is the simplest configuration.
+It matches users based on the value of `employeeNumber` property.
+(We assume that the value of the property for accounts being correlated is determined by xref:/midpoint/projects/idmatch/implementation/correlation-time-mappings/[correlation-time evaluation of inbound mappings], as described in the xref:/midpoint/reference/correlation/[overview document].)
+
+.Listing 1. Matching on `employeeNumber`
+[source,xml]
+----
+<correlators>
+    <items>
+        <item>
+            <ref>employeeNumber</ref>
+        </item>
+    </items>
+</correlators>
+----
+
+The following configuration matches on both `givenName` and `familyName` values, requiring that both do match.
+
+.Listing 2. Matching on both given and family name
+[source,xml]
+----
+<correlators>
+    <items>
+        <item>
+            <ref>givenName</ref>
+        </item>
+        <item>
+            <ref>familyName</ref>
+        </item>
+    </items>
+</correlators>
+----
+
+== Customizing the Search
+
+Sometimes, we need to fine-tune the search based on individual items.
+There are the following configuration options available:
+
+.Configuration options for search fine-tuning
+[%header]
+[%autowidth]
+|===
+| Option | Meaning | Default
+
+| `index`
+| What index (normalization) to use when matching this item?
+| Default index (for indexed items) or original value (otherwise).
+
+| `matchingRule`
+| What matching rule to use? (For non-fuzzy search.)
+.2+| Rule of `mr:default` (for indexed items; note they are normalized using `polyStringNorm` algorithm by default); or the rule specified in the object template for given item (for non-indexed items).
+
+| `fuzzy`
+| Specification of the fuzzy search to be used.
+
+.3+| `confidence`
+.3+| Expression for computing the resulting confidence value.
+The confidence values for individual items are multiplied to provide the overall value for given candidate.
+| 1 for non-fuzzy search
+| `1/(d+1)` for Levenshtein distance of `d`
+| `s` for trigram similarity of `s`
+|===
+
+The `matchingRule` and `fuzzy` elements are mutually exclusive.
+
+=== Specifying the Index to Use
+
+It is possible to provide the name of the normalization (index) to be used when correlating by the specified item by the `index` option.
+(Usually, it is not necessary: either there is only one normalization defined for the particular item, or there is one marked as the default.
+But there are cases when it is needed.)
+
+An example:
+
+.Listing 3. Specifying the normalization and then using it for correlation
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <item>
+        <ref>extension/nationalId</ref>
+        <indexing>
+            <normalization>
+                <default>true</default>
+                ... (a normalization) ...
+            </normalization>
+            <normalization>
+                <name>digits</name> <!--1-->
+                <steps>
+                    <custom>
+                        <expression>
+                            <script>
+                                <code>
+                                    basic.stringify(input).replaceAll("[^\\d]", "")
+                                </code>
+                            </script>
+                        </expression>
+                    </custom>
+                </steps>
+            </normalization>
+        </indexing>
+    </item>
+    ...
+    <correlation>
+        <correlators>
+            <items>
+                <item>
+                    <ref>extension/nationalId</ref>
+                    <search>
+                        <index>digits</index> <!--2-->
+                    </search>
+                </item>
+            </items>
+        </correlators>
+    </correlation>
+</objectTemplate>
+----
+<1> Declares the name of `digits` for the particular normalization.
+<2> Specifies that the `digits` normalization should be used in this correlation.
+
+=== Specifying Matching Rule
+
+It may be useful to specify the matching rule to be applied when searching for the item value.
+This is especially true when dealing with values that are not indexed.
+(Although it is possible to specify matching rules also for indexed items.)
+
+For example, we may want to specify that when correlating on `employeeNumber` we want to use `mr:polyStringNorm` matching rule:
+
+.Listing 4. Specifying the matching rule used when correlating
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <correlation>
+        <correlators>
+            <items>
+                <item>
+                    <ref>employeeNumber</ref>
+                    <matchingRule>mr:polyStringNorm</matchingRule>
+                </item>
+            </items>
+        </correlators>
+    </correlation>
+</objectTemplate>
+----
+
+NOTE: It is possible to define a default matching rule attached to a focus item as such - by providing `matchingRule` property right on the definition of the item.
+However, this definition is currently _not used_ for correlation search. It may change in the future.
+
+=== Specifying Fuzzy Search
+
+The fuzzy search can be specified for both custom-indexed and regular items.
+
+An example:
+
+.Listing 4. Specifying the fuzzy search used when correlating
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <correlation>
+        <correlators>
+            <items>
+                <item>
+                    <ref>familyName</ref>
+                    <search>
+                        <fuzzy>
+                            <levenshtein>
+                                <threshold>3</threshold>
+                            </levenshtein>
+                        </fuzzy>
+                    </search>
+                </item>
+            </items>
+        </correlators>
+    </correlation>
+</objectTemplate>
+----
+
+For more information please see xref:/midpoint/reference/correlation/fuzzy-searching/[fuzzy searching] document.
+It contains also information on specifying custom confidence values, as these are the most useful with the connection with the fuzzy search logic.
+
+== Default Search Options for an Item
+
+It is also possible to specify correlation search options that are to be applied when given item is used in any `items` correlator.
+
+For example, let us specify the default search options used when correlating by `givenName`.
+
+.Listing 5. Specifying the fuzzy search used when correlating
+[source,xml]
+----
+<objectTemplate>
+    ...
+    <item>
+        <ref>givenName</ref>
+        <indexing> ... </indexing>
+        <correlation>
+            <search> <!--1-->
+                <index>name-normalization</index>
+                <fuzzy>
+                    <levenshtein>
+                        <threshold>3</threshold>
+                    </levenshtein>
+                </fuzzy>
+            </search>
+        </correlation>
+    </item>
+    ...
+    <correlation>
+        <correlators>
+            <items>
+                ...
+                <item>
+                    <ref>givenName</ref> <!--2-->
+                </item>
+                ...
+            </items>
+            <items>
+                ...
+                <item>
+                    <ref>givenName</ref> <!--2-->
+                </item>
+                ...
+            </items>
+        </correlators>
+    </correlation>
+</objectTemplate>
+----
+<1> These search options are specified at one place only.
+<2> Item `givenName` can be now used in various correlation rules.
+
+NOTE: These search options are completely overridden when `search` element is present in a correlator.
+(Meaning there is no partial override.)
+
+== Short (Attribute-Bound) Form
+
+In simple scenarios, it is possible to define single-item correlator right on the resource object attribute.
+An example:
+
+.Listing 6. `ri:employeeNumber` serving as a correlation attribute
+[source,xml]
+----
+<schemaHandling>
+    <objectType>
+        ...
+        <attribute>
+            <ref>ri:employeeNumber</ref>
+            <correlator>
+                <search> ... </search> <!-- optional -->
+            </correlator>
+            <inbound>
+                <target>
+                    <path>employeeNumber</path>
+                </target>
+            </inbound>
+        </attribute>
+        ...
+    </objectType>
+</schemaHandling>
+----
+
+The `correlator` element may be empty.
+Its mere existence is sufficient to enable correlation based on that attribute and its corresponding focus item.
+
+The `correlator` element is translated into single-item `items` correlator, just like the one described in Listing 1.
+It is added to other correlators defined for the object type - either attribute-bound or object-type-bound.
+
+=== Requirements
+
+In order for the attribute-bound correlator be used, the following conditions must be fulfilled:
+
+. There must be at least one inbound mapping defined for the attribute.
+. Corresponding focus item path must be determinable.
+.. Either it is specified explicitly (using `focusItem` property of the attribute-bound `correlator`);
+.. or there is _exactly one_ inbound mapping, and it has a target path that points to the focal object.
+
+The correlator created has no customizations (like weight, ordering, tier number, and so on).
+It contains only the reference to the focus item and the (optional) search parameters.
+
+== Limitations
+
+- Matching rules defined at the level of focus items in the object template are ignored during the correlation search. (See a note in <<Specifying Matching Rule>> section.)
+- When using attribute-bound form, the <<Requirements>> described above must be met.

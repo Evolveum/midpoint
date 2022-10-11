@@ -13,6 +13,8 @@ New UI takes form of proper wizard with up to four steps:
 
 First two steps may be hidden, or skipped based on configuration or authorizations of user that is currently logged in.
 
+Configuration and some examples can be found xref:configuration.adoc[here].
+
 == Person of interest
 
 .Person of interest
@@ -52,6 +54,14 @@ Default set of relations is:
 Set of relations, their label and icon can be configured, see xref:../../concepts/relation/index.adoc[Relations] and xref:./configuration.adoc[Configuration].
 
 If there's only one relation to be selected, then this step is not visible (and skipped).
+
+[NOTE]
+====
+If relations are handled only implicitly via authorizations, then relation step will be visible at least when wizard is initialized.
+Reason for this is that until user selects at least one user (person of interest), midpoint is not able to compute available relation list and therefore can't decide whether relation step can be hidden.
+
+In case relation step should be hidden at all times, please configure `defaultRelation` and `allowOtherRelations=false` in request access configuration.
+====
 
 == Role catalog
 

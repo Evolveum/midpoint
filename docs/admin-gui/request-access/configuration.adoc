@@ -1,26 +1,237 @@
 = Request access configuration
 :page-toc: top
 :page-since: "4.6"
-:page-visibility: draft
 
 Following document describes different options and configuration possibilities for request access UI.
 
+Configuration can be placed in admin gui configuration element - globally set is system configuration or in all roles.
+See xref:../admin-gui-config/index.adoc#how-it-works[Admin GUI configuration] on how configuration is compiled when user logs in.
+
+As for request access UI, configuration is merged on level of wizard steps, e.g.:
+
+* Person of interest: `targetSelection`
+* Relations: `relationSelection`
+* Role catalog: `roleCatalog`
+* Shopping cart: `checkout`
+
 == Person of interest
 
-[options="header", cols=3]
+NOTE: If user can request role only for him/herself, this step will be hidden and user will be automatically selected.
+If there's only one group for users to be selected, step will not be hidden and group will be automatically preselected and user will see autocomplete/manual user search.
+
+
+[options="header", cols=4]
 |===
-|as
+|Element
+|Type
+|Default value
+|Description
+
+|defaultSelection
+|boolean
 |
+|Identifier of group that should be preselected or constant "myself" to preselect option which represents user currently logged in.
+
+|allowRequestForMyself
+|boolean
+|`true`
+|This is simple override if currently authenticated user has authorization to request for him/herself assign other relations, but we don't want them to do it via shopping cart.
+
+|allowRequestForOthers
+|boolean
+|`true`
+|This is simple override if currently authenticated user has authorization to assign other relations, but we don't want them to do it via shopping cart.
+
+|group
+|GroupSelectionType
 |
+|Group selection structure creates new tile in first step of request access wizard UI (person of interest).
+Tile button will allow user requesting access to select other users from collections specified by collectionRef or filter.
+Identifier and display elements are mandatory.
 |===
 
 == Relations
 
+NOTE: If there's only one relation available, this step will be hidden and relation will be selected automatically.
+
+[options="header", cols=4]
+|===
+|Element
+|Type
+|Default value
+|Description
+
+|defaultRelation
+|QName
+|
+|QName of preselected relation.
+
+|allowOtherRelations
+|boolean
+|`true`
+|Whether to allow other relations than defaultRelation.
+Relations are computed as combination of predefined ones (`#default`, `#member`, `#owner`,...) and configured in system configuration.
+|===
 
 == Role catalog
 
+[options="header", cols=4]
+|===
+|Element
+|Type
+|Default value
+|Description
 
-== Shopping cart (checkout)
+|defaultView
+|RoleCatalogViewType
+|`tile`
+|Default view of role catalog that should be presented to users.
 
-== Examples
+|allowedViews
+|RoleCatalogViewType
+|`tile`, `table`
+|Allowed values `tile`\|`table`.
+Which types of views of role catalog are allowed to be shown to user.
 
+|showRolesOfTeammate
+|boolean
+|`true`
+|If true, menu item will be created. It will allow user to request roles based on other user assigned roles.
+
+|roleCatalogRef
+|ObjectReferenceType
+|
+|Reference to the root object of the role catalog (org. structure).
+Up to 3 levels of org. structure will be shown as menus/submenus.
+
+|collection
+|RoleCollectionViewType
+|
+|Role collection view defines structure that should be shown in request access UI wizard - in role catalog step.
+It will represent new menu item with list of roles defined by collectionRef or collection identifier (e.g. allOrgs, allServices).
+|===
+
+== Shopping cart
+
+[options="header", cols=4]
+|===
+|Element
+|Type
+|Default value
+|Description
+
+|comment
+|CheckoutCommentType
+|
+|Configuration of comment text field in last step (checkout) of request access UI wizard.
+
+|validityConfiguration
+|CheckoutValidityConfigurationType
+|
+|Configuration of validity (assignment validity) for requested roles in last step (checkout) of request access UI wizard.
+|===
+
+== Example
+
+[source, xml]
+----
+<accessRequest>
+    <targetSelection>
+        <group>
+            <!-- group collection defined directly via object filter -->
+            <identifier>b-users</identifier>
+            <display>
+                <label>Users with name containing b</label>
+                <icon>
+                    <cssClass>fa fa-pencil</cssClass>
+                </icon>
+            </display>
+            <collection>
+                <filter>
+                    <q:substring>
+                        <q:path>name</q:path>
+                        <q:value>b</q:value>
+                    </q:substring>
+                </filter>
+            </collection>
+        </group>
+        <group>
+            <!-- group collection defined via reference to ObjectCollectionType -->
+            <identifier>collection-users</identifier>
+            <display>
+                <label>Users from collection</label>
+                <icon>
+                    <cssClass>fa fa-building</cssClass>
+                </icon>
+            </display>
+            <collection>
+                <collectionRef oid="82a2e4be-4042-42f6-8b06-02f1ebffda48" relation="org:default" type="c:ObjectCollectionType"/>
+            </collection>
+        </group>
+    </targetSelection>
+    <relationSelection>
+        <!-- relation will be preselected and whole step hidden, since there's only one relation to be selected -->
+        <defaultRelation>org:default</defaultRelation>
+        <allowOtherRelations>false</allowOtherRelations>
+    </relationSelection>
+    <roleCatalog>
+        <!-- we'll hide menu that allows user to search for roles in catalog based on roles of teammate -->
+        <showRolesOfTeammate>false</showRolesOfTeammate>
+        <!-- Org. unit structure to build menu for role catalog (up to 3 levels) -->
+        <roleCatalogRef oid="8d4670a8-17db-4330-a753-8d3492b19ff8" relation="org:default" type="c:OrgType"/>
+        <!-- Another menu item created using reference to ObjectCollectionType -->
+        <collection id="233">
+            <identifier>example-collection</identifier>
+            <collectionRef oid="d4f124ed-9694-4a97-8e18-f9fc45563003" relation="org:default" type="c:ObjectCollectionType"/>
+        </collection>
+        <!--
+            Menu create using default collection (in this case reference by short identifier `allRoles`,
+            which is equivalent to `http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allRoles`).
+            Also custom details panel was defined for popup.
+        -->
+        <collection>
+            <identifier>all roles</identifier>
+            <collectionIdentifier>allRoles</collectionIdentifier>
+            <details>
+                <identifier>some panel</identifier>
+                <container>
+                    <identifier>container-identifier</identifier>
+                    <display>
+                        <label>Custom description</label>
+                    </display>
+                    <item>
+                        <path>description</path>
+                    </item>
+                </container>
+                <panelType>formPanel</panelType>
+                <type>RoleType</type>
+            </details>
+        </collection>
+        <collection>
+            <identifier>all orgs</identifier>
+            <collectionIdentifier>allOrgs</collectionIdentifier>
+            <default>true</default>
+        </collection>
+        <collection>
+            <identifier>all services</identifier>
+            <collectionIdentifier>http://midpoint.evolveum.com/xml/ns/public/common/object-collections-3#allServices</collectionIdentifier>
+        </collection>
+        <collection>
+            <identifier>mid roles</identifier>
+            <collectionRef oid="5c12258a-7f1d-43bc-8f40-9993df476bb5" type="c:ObjectCollectionType"/>
+        </collection>
+    </roleCatalog>
+    <checkout>
+        <!-- custom validity duration was created -->
+        <validityConfiguration>
+            <mandatory>true</mandatory>
+            <predefinedValue>
+                <display>
+                    <label>10 years</label>
+                </display>
+                <duration>P10Y</duration>
+            </predefinedValue>
+        </validityConfiguration>
+    </checkout>
+</accessRequest>
+----
