@@ -6,6 +6,7 @@
 :page-wiki-metadata-modify-user: lskublik
 :page-wiki-metadata-modify-date: 2021-02-26T14:36:14.168+01:00
 :page-upkeep-status: orange
+:page-toc: top
 
 To make midPoint GUI more user-friendly, especially for usual (not administrator) users, a separate section of Self Services was created.
 We want the users of midPoint not to be confused about some complicated functionality of IDM system, that is why GUI for self services is simple, understandable and demonstrative.

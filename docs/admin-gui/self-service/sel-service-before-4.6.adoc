@@ -1,4 +1,4 @@
-= Self-Service
+= Self-Service Before 4.6
 :page-wiki-name: Self Services
 :page-wiki-id: 22741839
 :page-wiki-metadata-create-user: honchar
