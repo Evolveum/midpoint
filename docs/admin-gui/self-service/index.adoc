@@ -162,7 +162,7 @@ There is also action button which will take user to their profile (basic tab).
 </widget>
 ----
 
-=== Profile Page
+== Profile Page
 
 it is understandable from the name of the page that it displays user's profile data.
 Also, you can see user's projections, assignments and tasks there.
@@ -171,7 +171,7 @@ Profile page is also fully configurable, menu items shown after opening profile 
 
 
 
-=== Credentials Page
+== Credentials Page
 
 Changing password functionality is located on the separate page to make this process easy and fast.
 
@@ -202,7 +202,7 @@ user. E.g. if user can choose where the password change will be propagated.
 |===
 
 
-=== Request access
+== Request access
 
 Request a role page gives you the opportunity to assign multiple roles to user at once specifying at the same time tenant and organization for the assigned roles. This page has the following look
 
