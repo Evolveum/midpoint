@@ -22,7 +22,7 @@ Link widgets can be configured and used for better and quicker navigation to des
 Preview widgets show concrete data, and it is also possible to define custom navigation actions.
 The example of such action is _Request access_ button in _My accesses_ preview widget, which will take a user to the xref:/midpoint/reference/admin-gui/request-access[access request] process.
 
-image::dasboard-home.png[]
+image::dasboard-home.png[Home dashboard,100%]
 
 === Configuration
 
