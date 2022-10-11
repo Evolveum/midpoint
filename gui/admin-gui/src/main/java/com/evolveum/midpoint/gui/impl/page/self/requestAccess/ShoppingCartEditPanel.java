@@ -15,12 +15,17 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Containerable;
 
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -68,6 +73,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_CUSTOM_VALIDITY = "customValidity";
     private static final String ID_EXTENSION = "extension";
+    private static final String ID_MESSAGE = "message";
 
     private Fragment footer;
 
@@ -164,6 +170,16 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         };
     }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        FeedbackAlerts message = new FeedbackAlerts(ID_MESSAGE);
+        message.setOutputMarkupId(true);
+        message.setFilter(new ContainerFeedbackMessageFilter(findParent(Form.class)));
+        add(message);
+    }
+
     private ContainerPanelConfigurationType createExtensionPanelConfiguration() {
         ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
         c.identifier("sample-panel");
@@ -174,6 +190,8 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     }
 
     private void initLayout() {
+
+
         DropDownChoice relation = new DropDownChoice(ID_RELATION, () -> requestAccess.getObject().getRelation(), relationChoices,
                 WebComponentUtil.getRelationChoicesRenderer());
         relation.add(new EnableBehaviour(() -> false));
@@ -263,6 +281,11 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private void initFooter() {
         footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
         footer.add(new AjaxSubmitLink(ID_SAVE) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(ShoppingCartEditPanel.this.get(ID_MESSAGE));
+            }
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
