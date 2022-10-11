@@ -32,8 +32,6 @@ public class ConditionPanelFactory extends AbstractGuiComponentFactory<Expressio
     protected Panel getPanel(PrismPropertyPanelContext<ExpressionType> panelCtx) {
         SimpleAceEditorPanel conditionPanel = new SimpleAceEditorPanel(panelCtx.getComponentId(),
                 new ExpressionModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 200);
-
-        conditionPanel.getEditor().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         return conditionPanel;
     }
 
