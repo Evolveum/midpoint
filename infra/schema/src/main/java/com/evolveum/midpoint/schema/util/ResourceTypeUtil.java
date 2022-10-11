@@ -209,10 +209,9 @@ public class ResourceTypeUtil {
         return isEnabled(activationCap);
     }
 
-    // FIXME why is typeDefinition bean unused?
     public static boolean isActivationLockoutStatusCapabilityEnabled(
             ResourceType resource, ResourceObjectTypeDefinitionType typeDefinitionBean) {
-        ActivationLockoutStatusCapabilityType lockoutCap = getEffectiveActivationLockoutStatusCapability(resource);
+        ActivationLockoutStatusCapabilityType lockoutCap = getEffectiveActivationLockoutStatusCapability(resource, typeDefinitionBean);
         return isEnabled(lockoutCap);
     }
 
@@ -221,8 +220,9 @@ public class ResourceTypeUtil {
                 && BooleanUtils.isNotFalse(capability.isEnabled());
     }
 
-    private static ActivationLockoutStatusCapabilityType getEffectiveActivationLockoutStatusCapability(ResourceType resource) {
-        ActivationCapabilityType act = getEnabledCapability(resource, ActivationCapabilityType.class);
+    private static ActivationLockoutStatusCapabilityType getEffectiveActivationLockoutStatusCapability(
+            ResourceType resource, ResourceObjectTypeDefinitionType typeDefinitionBean) {
+        ActivationCapabilityType act = getEnabledCapability(resource, typeDefinitionBean, ActivationCapabilityType.class);
         if (act == null || act.getLockoutStatus() == null || Boolean.FALSE.equals(act.getLockoutStatus().isEnabled())) {
             return null;
         } else {

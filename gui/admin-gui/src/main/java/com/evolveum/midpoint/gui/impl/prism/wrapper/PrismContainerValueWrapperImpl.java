@@ -696,4 +696,24 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             this.panelIdentifier = panelIdentifier;
         }
     }
+
+    @Override
+    public PrismContainerValue<C> getContainerValueApplyDelta() throws SchemaException {
+        PrismContainerValue<C> oldValue = getOldValue().clone();
+
+        Collection<ItemDelta> deltas = new ArrayList<>();
+        for (ItemWrapper<?, ?> itemWrapper : getItems()) {
+            Collection<ItemDelta> delta = itemWrapper.getDelta();
+            if (delta == null || delta.isEmpty()) {
+                continue;
+            }
+            deltas.addAll(delta);
+        }
+
+        for (ItemDelta delta : deltas) {
+            delta.applyTo(oldValue);
+        }
+
+        return oldValue;
+    }
 }

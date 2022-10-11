@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="card-header">
+        <h3 class="card-title"><wicket:message key="CapabilitiesPanel.title"/></h3>
+    </div>
+    <div class="card-body px-0 ml-n2 d-flex flex-wrap justify-content-center">
+        <div wicket:id="capabilities" class="ml-2 mb-2 d-flex justify-content-center" style="flex:8%">
+            <a wicket:id="capabilityButton"
+                    class="btn btn-app m-0 w-100 d-flex flex-column"
+                    style="aspect-ratio: 4/3!important; height: auto; max-height:100px">
+                <i wicket:id="icon" class="pt-2"/>
+                <span wicket:id="label" class="mb-auto"/>
+            </a>
+        </div>
+    </div>
+</wicket:panel>
+</html>
