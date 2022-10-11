@@ -443,16 +443,16 @@ public class SearchFactory {
         if (item.getPath() != null) {
             itemPath = item.getPath().getItemPath();
         }
-        PropertySearchItemWrapper searchItemWrapper = null;
         if (itemDef == null && !hasParameter(item) && item.getFilter() == null) {
-            return searchItemWrapper;
+            return null;
         }
         List<DisplayableValue<?>> availableValues = getSearchItemAvailableValues(item, itemDef, modelServiceLocator);
         QName valueTypeName = getSearchItemValueTypeName(item, itemDef);
         LookupTableType lookupTable = getSearchItemLookupTable(item, itemDef, modelServiceLocator);
 
-        searchItemWrapper = createPropertySearchItemWrapper(type, itemDef, itemPath, valueTypeName,
-                availableValues, lookupTable, item.getFilter());
+        PropertySearchItemWrapper<?> searchItemWrapper =
+                createPropertySearchItemWrapper(
+                        type, itemDef, itemPath, valueTypeName, availableValues, lookupTable, item.getFilter());
 
         boolean isFixedItem = false;
         if (itemPath != null) {
@@ -570,7 +570,7 @@ public class SearchFactory {
         return null;
     }
 
-    private static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
+    private static <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
             ItemDefinition<?> itemDef, ItemPath path, QName valueTypeName, List<DisplayableValue<?>> availableValues,
             LookupTableType lookupTable, SearchFilterType predefinedFilter) {
 
@@ -598,7 +598,11 @@ public class SearchFactory {
             }
         }
         if (itemDef != null && itemDef.getValueEnumerationRef() != null) {
-            return new TextSearchItemWrapper(path, itemDef.getValueEnumerationRef().getOid(), itemDef.getValueEnumerationRef().getTargetType());
+            return new TextSearchItemWrapper(
+                    path,
+                    itemDef,
+                    itemDef.getValueEnumerationRef().getOid(),
+                    itemDef.getValueEnumerationRef().getTargetType());
         }
         if (path != null) {
             if (ShadowType.F_OBJECT_CLASS.equivalent(path)) {
@@ -606,7 +610,7 @@ public class SearchFactory {
             } else if (ShadowType.F_DEAD.equivalent(path)) {
                 return new DeadShadowSearchItemWrapper(Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
             } else {
-                return new TextSearchItemWrapper(path);
+                return new TextSearchItemWrapper(path, itemDef);
             }
         }
         return new TextSearchItemWrapper();
