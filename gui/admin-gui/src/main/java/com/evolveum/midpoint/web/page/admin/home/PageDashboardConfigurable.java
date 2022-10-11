@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.page.admin.home;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
 
 import org.apache.commons.lang3.StringUtils;
@@ -46,6 +45,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
@@ -78,8 +78,6 @@ public class PageDashboardConfigurable extends PageDashboard {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboardConfigurable.class);
-    private static final String DOT_CLASS = PageDashboardConfigurable.class.getName();
-    private static final String OPERATION_CREATE_DASHBOARD_WIDGET = DOT_CLASS + "createDashboardWidget";
 
     private static final Map<String, Class<? extends WebPage>> LINKS_REF_COLLECTIONS;
 
@@ -150,14 +148,7 @@ public class PageDashboardConfigurable extends PageDashboard {
         add(new ListView<DashboardWidgetType>(ID_WIDGETS, new PropertyModel<>(dashboardModel, "widget")) {
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
-                Task task = createSimpleTask(OPERATION_CREATE_DASHBOARD_WIDGET);
-                OperationResult result = task.getResult();
-                IModel<DashboardWidgetDto> widgetModel = loadWidgetData(item.getModel(), task, result);
-
-                if (widgetModel.getObject() == null) {
-                    item.add(createMessagePanel(ID_WIDGET, MessagePanel.MessagePanelType.ERROR,"PageDashboardConfigurable.message.couldntCreateDashboardWidget", item.getModelObject().getIdentifier(), result.getMessage()));
-                    return;
-                }
+                IModel<DashboardWidgetDto> widgetModel = loadWidgetData(item.getModel());
 
                 SmallBox box = new SmallBox(ID_WIDGET, () -> {
                     DashboardWidgetDto widget = widgetModel.getObject();
@@ -180,7 +171,7 @@ public class PageDashboardConfigurable extends PageDashboard {
                         navigateToPage(item.getModelObject());
                     }
                 };
-                box.add(new VisibleBehaviour(() -> widgetModel.getObject() != null && WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
+                box.add(new VisibleBehaviour(() -> WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility())));
                 box.add(AttributeAppender.append("style", () -> StringUtils.join(
                         widgetModel.getObject().getStyleColor(),
                         " ",
@@ -191,11 +182,13 @@ public class PageDashboardConfigurable extends PageDashboard {
         });
     }
 
-    private IModel<DashboardWidgetDto> loadWidgetData(IModel<DashboardWidgetType> model, Task task, OperationResult result) {
+    private IModel<DashboardWidgetDto> loadWidgetData(IModel<DashboardWidgetType> model) {
         return new LoadableModel<>(false) {
             @Override
             protected DashboardWidgetDto load() {
-                 try {
+                Task task = createSimpleTask("Get DashboardWidget");
+                OperationResult result = task.getResult();
+                try {
                     getPrismContext().adopt(model.getObject());
 
                     DashboardWidget dashboardWidget = getDashboardService().createWidgetData(model.getObject(), true, task, result);
@@ -205,9 +198,12 @@ public class PageDashboardConfigurable extends PageDashboard {
                 } catch (Exception e) {
                     LOGGER.error("Couldn't get DashboardWidget with widget " + model.getObject().getIdentifier(), e);
                     result.recordFatalError("Couldn't get widget, reason: " + e.getMessage(), e);
-                    result.computeStatusIfUnknown();
-                    return null;
                 }
+
+                result.computeStatusIfUnknown();
+                showResult(result);
+
+                return new DashboardWidgetDto(null, PageDashboardConfigurable.this);
             }
         };
     }
