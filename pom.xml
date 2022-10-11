@@ -241,7 +241,6 @@
         <connid.version>1.5.1.10</connid.version>
         <derby.version>10.15.2.0</derby.version>
         <poi.version>5.2.2</poi.version>
-        <wro4j.version>1.10.1</wro4j.version>
         <!-- Version for classgraph must the one declared in Prism -->
         <classgraph.version>4.8.146</classgraph.version>
         <guava.version>31.1-jre</guava.version>
@@ -1266,11 +1265,6 @@
                 <groupId>javax.el</groupId>
                 <artifactId>javax.el-api</artifactId>
                 <version>3.0.1-b06</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.protobuf</groupId>
-                <artifactId>protobuf-java</artifactId>
-                <version>3.19.3</version>
             </dependency>
 
             <!-- Maven plugins -->
