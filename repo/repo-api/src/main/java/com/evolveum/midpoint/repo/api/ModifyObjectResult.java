@@ -33,6 +33,7 @@ public class ModifyObjectResult<T extends ObjectType> implements RepositoryOpera
     private final PrismObject<T> objectBefore;
     private final PrismObject<T> objectAfter;
     private final Collection<? extends ItemDelta<?, ?>> modifications;
+    private final boolean overwrite;
 
     /**
      * Performance record for the current operation.
@@ -41,14 +42,20 @@ public class ModifyObjectResult<T extends ObjectType> implements RepositoryOpera
     private OperationRecord performanceRecord;
 
     public ModifyObjectResult(Collection<? extends ItemDelta<?, ?>> modifications) {
-        this(null, null, modifications);
+        this(null, null, modifications, false);
     }
 
     public ModifyObjectResult(PrismObject<T> objectBefore, PrismObject<T> objectAfter,
             Collection<? extends ItemDelta<?, ?>> modifications) {
+        this(objectBefore, objectAfter, modifications, false);
+    }
+
+    public ModifyObjectResult(PrismObject<T> objectBefore, PrismObject<T> objectAfter,
+            Collection<? extends ItemDelta<?, ?>> modifications, boolean overwrite) {
         this.objectBefore = objectBefore;
         this.objectAfter = objectAfter;
         this.modifications = modifications;
+        this.overwrite = false;
     }
 
     public PrismObject<T> getObjectBefore() {
@@ -77,6 +84,10 @@ public class ModifyObjectResult<T extends ObjectType> implements RepositoryOpera
 
     public long getWastedTime() {
         return performanceRecord != null ? performanceRecord.getWastedTime() : 0;
+    }
+
+    public boolean isOverwrite() {
+        return overwrite;
     }
 
     @Override

@@ -407,7 +407,7 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
             LOGGER.trace("      is actually derived from {}", compiledProfile.getDependencies());
 
             if (oid == null || compiledProfile.derivedFrom(oid)) {
-                LOGGER.info("Markin profile invalid for {} because of change in {}:{}", midPointPrincipal, type, oid);
+                LOGGER.debug("Markin profile invalid for {} because of change in {}:{}", midPointPrincipal, type, oid);
                 compiledProfile.markInvalid();
             }
 

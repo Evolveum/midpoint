@@ -80,7 +80,7 @@ public class ModificationOpHandler extends BaseOpHandler {
             if (options != null && options.isOverwrite()) {
                 invalidator.invalidateCacheEntries(object.getCompileTimeClass(), oid,
                         new ModifyObjectResult<>(object.getUserData(RepositoryService.KEY_ORIGINAL_OBJECT), object,
-                                Collections.emptyList()), result);
+                                Collections.emptyList(), options.isOverwrite()), result);
             } else {
                 // just for sure (the object should not be there but ...)
                 invalidator.invalidateCacheEntries(object.getCompileTimeClass(), oid, new AddObjectResult<>(object), result);
