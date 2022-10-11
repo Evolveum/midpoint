@@ -475,7 +475,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return getAllApplicableArchetypeViews();
     }
 
-    private void deleteConfirmedPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> objectToDelete) {
+    public void deleteConfirmedPerformed(AjaxRequestTarget target, IModel<SelectableBean<O>> objectToDelete) {
         List<SelectableBean<O>> objects = isAnythingSelected(target, objectToDelete);
 
         if (objects.isEmpty()) {
@@ -528,26 +528,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             selectedObjects.add(selectedObject.getObject());
         } else {
             selectedObjects = TableUtil.getSelectedModels(getTable().getDataTable());
-//            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
-//                warn(getNothingSelectedMessage());
-//                target.add(getFeedbackPanel());
-//            }
         }
         return selectedObjects;
-//        List<SelectableObjectModel<UserType>>  users;
-//        if (selectedObject != null) {
-//            users = new ArrayList<>();
-//            users.add(selectedObject);
-//        } else {
-//            users = (List<SelectableObjectModel<UserType>>) TableUtil.getSelectedModels(getTable().getDataTable());
-//            if (users.isEmpty() && StringUtils.isNotEmpty(getNothingSelectedMessage())) {
-//                warn(getNothingSelectedMessage());
-//                target.add(getFeedbackPanel());
-//            }
-//        }
-//
-//        return users;
-//        return new ArrayList<>();
     }
 
     protected String getNothingSelectedMessage() {
