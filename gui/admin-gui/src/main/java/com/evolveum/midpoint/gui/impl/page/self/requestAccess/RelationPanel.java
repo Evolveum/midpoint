@@ -89,7 +89,7 @@ public class RelationPanel extends BasicWizardStepPanel<RequestAccess> implement
             PageParameters params = new PageParameters();
             params.set(WizardModel.PARAM_STEP, PersonOfInterestPanel.STEP_ID);
 
-            throw new RestartResponseException(new PageRequestAccess(params));
+            throw new RestartResponseException(new PageRequestAccess(params, getWizard()));
         }
 
         super.onBeforeRender();

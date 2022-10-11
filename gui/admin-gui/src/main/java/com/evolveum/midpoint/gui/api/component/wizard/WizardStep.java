@@ -77,7 +77,7 @@ public interface WizardStep extends Serializable {
 
     /**
      * @return flag whether default "next" button action should be executed.
-     * If true, default behaviour of back button will be executed as well
+     * If true, default behaviour of next button will be executed as well
      * If false, only code in this method will be executed
      */
     default boolean onNextPerformed(AjaxRequestTarget target) {

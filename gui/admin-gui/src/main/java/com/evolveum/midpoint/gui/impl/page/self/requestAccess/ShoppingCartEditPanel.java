@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -143,6 +145,10 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                     // create whole wrapper, instead of only the concrete container value wrapper
                     PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.ADDED, context);
                     PrismContainerWrapper<AssignmentType> assignmentWrapper = userWrapper.findContainer(UserType.F_ASSIGNMENT);
+                    if (assignmentWrapper == null) {
+                        return null;
+                    }
+
                     PrismContainerValueWrapper<AssignmentType> valueWrapper = assignmentWrapper.getValues().iterator().next();
                     // todo this should be done automatically by wrappers - if parent ADDED child should probably have ADDED status as well...
                     valueWrapper.setStatus(ValueStatus.ADDED);
@@ -177,7 +183,12 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
             @Override
             protected DisplayNamePanel<AssignmentType> createDisplayNamePanel(String displayNamePanelId) {
-                DisplayNamePanel panel = super.createDisplayNamePanel(displayNamePanelId);
+                DisplayNamePanel panel;
+                if (getModelObject() == null) {
+                    panel = new DisplayNamePanel(displayNamePanelId, Model.of((Containerable) null));
+                } else {
+                    panel = super.createDisplayNamePanel(displayNamePanelId);
+                }
                 panel.add(new VisibleBehaviour(() -> false));
                 return panel;
             }
@@ -194,7 +205,11 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         };
         extension.add(new VisibleBehaviour(() -> {
             try {
-                PrismContainerWrapper cw = assignmentExtension.getObject().findItem(ItemPath.create(AssignmentType.F_EXTENSION));
+                PrismContainerValueWrapper<AssignmentType> wrapper = assignmentExtension.getObject();
+                if (wrapper == null) {
+                    return false;
+                }
+                PrismContainerWrapper cw = wrapper.findItem(ItemPath.create(AssignmentType.F_EXTENSION));
                 if (cw == null || cw.isEmpty()) {
                     return false;
                 }
@@ -315,7 +330,12 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
         try {
             // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
-            PrismObjectWrapper<UserType> wrapper = assignmentExtension.getObject().getParent().findObjectWrapper();
+            PrismContainerValueWrapper<AssignmentType> containerValueWrapper = assignmentExtension.getObject();
+            if (containerValueWrapper == null){
+                return;
+            }
+
+            PrismObjectWrapper<UserType> wrapper = containerValueWrapper.getParent().findObjectWrapper();
             if (wrapper.getObjectDelta().isEmpty()) {
                 return;
             }
