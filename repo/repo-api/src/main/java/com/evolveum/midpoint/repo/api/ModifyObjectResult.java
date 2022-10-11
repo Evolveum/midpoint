@@ -55,7 +55,7 @@ public class ModifyObjectResult<T extends ObjectType> implements RepositoryOpera
         this.objectBefore = objectBefore;
         this.objectAfter = objectAfter;
         this.modifications = modifications;
-        this.overwrite = false;
+        this.overwrite = overwrite;
     }
 
     public PrismObject<T> getObjectBefore() {
