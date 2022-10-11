@@ -55,6 +55,14 @@ Set of relations, their label and icon can be configured, see xref:../../concept
 
 If there's only one relation to be selected, then this step is not visible (and skipped).
 
+[NOTE]
+====
+If relations are handled only implicitly via authorizations, then relation step will be visible at least when wizard is initialized.
+Reason for this is that until user selects at least one user (person of interest), midpoint is not able to compute available relation list and therefore can't decide whether relation step can be hidden.
+
+In case relation step should be hidden at all times, please configure `defaultRelation` and `allowOtherRelations=false` in request access configuration.
+====
+
 == Role catalog
 
 .Role catalog
