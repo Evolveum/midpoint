@@ -60,7 +60,7 @@ public class WrapperContext {
      @Experimental
     private Map<String, LookupTableType> lookupTableCache = new HashMap();
 
-     private List<ContainerPanelConfigurationType> detailsPageTypeConfiguration;
+     private List<? extends ContainerPanelConfigurationType> detailsPageTypeConfiguration;
     private Collection<VirtualContainersSpecificationType> virtualContainers = new ArrayList<>();
 
     //Attribute mapping related attributes
@@ -221,7 +221,7 @@ public class WrapperContext {
         if (detailsPageTypeConfiguration == null) {
             return virtualContainers;
         }
-        List<ContainerPanelConfigurationType> containerPanelConfigurationTypes = detailsPageTypeConfiguration;
+        List<? extends ContainerPanelConfigurationType> containerPanelConfigurationTypes = detailsPageTypeConfiguration;
         if (containerPanelConfigurationTypes.isEmpty()) {
             return virtualContainers;
         }
@@ -230,7 +230,7 @@ public class WrapperContext {
         return virtualContainers;
     }
 
-    protected void collectVirtualContainers(@NotNull Collection<ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
+    protected void collectVirtualContainers(@NotNull Collection<? extends ContainerPanelConfigurationType> panelConfigs, Collection<VirtualContainersSpecificationType> virtualContainers) {
         for (ContainerPanelConfigurationType panelConfig : panelConfigs) {
             if (objectStatus == null || panelConfig.getApplicableForOperation() == null
                     || (ItemStatus.NOT_CHANGED.equals(objectStatus)
@@ -252,7 +252,7 @@ public class WrapperContext {
         return null;
     }
 
-    public void setDetailsPageTypeConfiguration(List<ContainerPanelConfigurationType> detailsPageTypeConfiguration) {
+    public void setDetailsPageTypeConfiguration(List<? extends ContainerPanelConfigurationType> detailsPageTypeConfiguration) {
         this.detailsPageTypeConfiguration = detailsPageTypeConfiguration;
     }
 

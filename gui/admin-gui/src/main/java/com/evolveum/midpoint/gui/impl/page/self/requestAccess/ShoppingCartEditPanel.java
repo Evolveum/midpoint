@@ -13,12 +13,19 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -45,6 +52,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -65,6 +73,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private static final String ID_ADMINISTRATIVE_STATUS = "administrativeStatus";
     private static final String ID_CUSTOM_VALIDITY = "customValidity";
     private static final String ID_EXTENSION = "extension";
+    private static final String ID_MESSAGE = "message";
 
     private Fragment footer;
 
@@ -140,10 +149,15 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                     context.setCreateIfEmpty(true);
 
                     // create whole wrapper, instead of only the concrete container value wrapper
-                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.NOT_CHANGED, context);
-
+                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.ADDED, context);
                     PrismContainerWrapper<AssignmentType> assignmentWrapper = userWrapper.findContainer(UserType.F_ASSIGNMENT);
+                    if (assignmentWrapper == null) {
+                        return null;
+                    }
+
                     PrismContainerValueWrapper<AssignmentType> valueWrapper = assignmentWrapper.getValues().iterator().next();
+                    // todo this should be done automatically by wrappers - if parent ADDED child should probably have ADDED status as well...
+                    valueWrapper.setStatus(ValueStatus.ADDED);
                     valueWrapper.setShowEmpty(true);
 
                     return valueWrapper;
@@ -156,6 +170,16 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         };
     }
 
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+
+        FeedbackAlerts message = new FeedbackAlerts(ID_MESSAGE);
+        message.setOutputMarkupId(true);
+        message.setFilter(new ContainerFeedbackMessageFilter(findParent(Form.class)));
+        add(message);
+    }
+
     private ContainerPanelConfigurationType createExtensionPanelConfiguration() {
         ContainerPanelConfigurationType c = new ContainerPanelConfigurationType();
         c.identifier("sample-panel");
@@ -166,6 +190,8 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     }
 
     private void initLayout() {
+
+
         DropDownChoice relation = new DropDownChoice(ID_RELATION, () -> requestAccess.getObject().getRelation(), relationChoices,
                 WebComponentUtil.getRelationChoicesRenderer());
         relation.add(new EnableBehaviour(() -> false));
@@ -175,7 +201,12 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
             @Override
             protected DisplayNamePanel<AssignmentType> createDisplayNamePanel(String displayNamePanelId) {
-                DisplayNamePanel panel = super.createDisplayNamePanel(displayNamePanelId);
+                DisplayNamePanel panel;
+                if (getModelObject() == null) {
+                    panel = new DisplayNamePanel(displayNamePanelId, Model.of((Containerable) null));
+                } else {
+                    panel = super.createDisplayNamePanel(displayNamePanelId);
+                }
                 panel.add(new VisibleBehaviour(() -> false));
                 return panel;
             }
@@ -192,7 +223,11 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         };
         extension.add(new VisibleBehaviour(() -> {
             try {
-                PrismContainerWrapper cw = assignmentExtension.getObject().findItem(ItemPath.create(AssignmentType.F_EXTENSION));
+                PrismContainerValueWrapper<AssignmentType> wrapper = assignmentExtension.getObject();
+                if (wrapper == null) {
+                    return false;
+                }
+                PrismContainerWrapper cw = wrapper.findItem(ItemPath.create(AssignmentType.F_EXTENSION));
                 if (cw == null || cw.isEmpty()) {
                     return false;
                 }
@@ -246,6 +281,11 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     private void initFooter() {
         footer = new Fragment(Popupable.ID_FOOTER, ID_BUTTONS, this);
         footer.add(new AjaxSubmitLink(ID_SAVE) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target) {
+                target.add(ShoppingCartEditPanel.this.get(ID_MESSAGE));
+            }
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -311,17 +351,29 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     }
 
     protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
-        // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
-        PrismObjectWrapper<UserType> wrapper = assignmentExtension.getObject().getParent().findObjectWrapper();
-        List<AssignmentType> modifiedList = wrapper.getObject().asObjectable().getAssignment();
-        if (modifiedList.isEmpty()) {
-            return;
+        try {
+            // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
+            PrismContainerValueWrapper<AssignmentType> containerValueWrapper = assignmentExtension.getObject();
+            if (containerValueWrapper == null){
+                return;
+            }
+
+            PrismObjectWrapper<UserType> wrapper = containerValueWrapper.getParent().findObjectWrapper();
+            if (wrapper.getObjectDelta().isEmpty()) {
+                return;
+            }
+
+            UserType user = wrapper.getObjectApplyDelta().asObjectable();
+            // TODO wrappers for some reason create second assignment with (first one was passed from this shopping cart to fake user)
+            // that second assignment contains modified extension...very nasty hack
+            AssignmentType modified = user.getAssignment().get(1);
+
+            AssignmentType a = getModelObject().getAssignment();
+            a.setExtension(modified.getExtension());
+        } catch (SchemaException ex) {
+            getPageBase().error(getString("ShoppingCartEditPanel.message.couldntProcessExtension", ex.getMessage()));
+            LOGGER.debug("Couldn't process extension attributes", ex);
         }
-
-        AssignmentType newOne = modifiedList.get(0);
-
-        AssignmentType a = getModelObject().getAssignment();
-        a.setExtension(newOne.getExtension());
     }
 
     protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {

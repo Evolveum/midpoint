@@ -8,8 +8,32 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml"
     xmlns:wicket="http://wicket.apache.org">
-    <wicket:panel>
-        <div wicket:id="details"/>
+<wicket:panel>
+<div wicket:id="details"></div>
+
+<wicket:fragment wicket:id="previewDetails">
+    <div class="card">
+        <div class="card-header" wicket:id="header">
+        </div>
+        <div class="card-body">
+            <div wicket:id="containerDetails"/>
+        </div>
+        <div class="card-footer">
+            <div wicket:id="footer"></div>
+        </div>
+    </div>
+</wicket:fragment>
+
+<wicket:fragment wicket:id="singleContainerDetails">
+    <div wicket:id="containerDetails"/>
+</wicket:fragment>
+
+    <wicket:fragment wicket:id="buttonBar">
+        <div class="btn-group" wicket:id="buttonsRepeater">
+            <a wicket:id="button"></a>
+        </div>
+    </wicket:fragment>
+
     </wicket:panel>
 </html>
 

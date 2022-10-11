@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.user.UserDetailsModel;
 
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.DashboardSearchPanel;
@@ -23,6 +24,8 @@ import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.LinksPanel;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -98,7 +101,7 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private void initStatisticWidgets(Form mainForm) {
-         ListView<PreviewContainerPanelConfigurationType> linksPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
+         ListView<PreviewContainerPanelConfigurationType> statisticWidgetsPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
 
              private static final long serialVersionUID = 1L;
 
@@ -109,12 +112,13 @@ public class PageSelfDashboard extends PageSelf {
                  item.add(widget);
              }
          };
-         linksPanel.setOutputMarkupId(true);
-         linksPanel.add(new VisibleBehaviour(() -> {
+         statisticWidgetsPanel.setOutputMarkupId(true);
+         statisticWidgetsPanel.add(new VisibleBehaviour(() -> {
              UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
              return WebComponentUtil.getElementVisibility(visibility);
          }));
-         mainForm.add(linksPanel);
+         mainForm.add(statisticWidgetsPanel);
+
      }
 
      private void initPreviewWidgets(Form mainForm) {
@@ -137,10 +141,13 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private IModel<String> getWidgetCssClassModel(PreviewContainerPanelConfigurationType panelConfig) {
-        if (panelConfig == null || panelConfig.getDisplay() == null) {
-            return Model.of();
-        }
-        return Model.of(panelConfig.getDisplay().getCssClass());
+        return () -> {
+            if (panelConfig == null || panelConfig.getDisplay() == null) {
+                return "col-6"; //default 6
+            }
+            String displayType = panelConfig.getDisplay().getCssClass();
+            return displayType == null ? "col-6" : displayType;
+        };
      }
 
      private List<PreviewContainerPanelConfigurationType> getStatisticWidgetList() {
@@ -193,7 +200,13 @@ public class PageSelfDashboard extends PageSelf {
             return createMessagePanel(markupId, MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", config.getIdentifier());
         }
 
-        UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this);
+        UserDetailsModel userDetailsModel = new UserDetailsModel(createSelfModel(), PageSelfDashboard.this) {
+
+            @Override
+            public List<? extends ContainerPanelConfigurationType> getPanelConfigurations() {
+                return getCompiledGuiProfile().getHomePage().getWidget();
+            }
+        };
 
         Component panel = WebComponentUtil.createPanel(panelClass, markupId, userDetailsModel, config);
         if (panel == null) {
@@ -223,6 +236,10 @@ public class PageSelfDashboard extends PageSelf {
         } else {
             return widget.getVisibility();
         }
+    }
+
+    private List<RichHyperlinkType> loadLinksList() {
+        return ((PageBase) getPage()).getCompiledGuiProfile().getUserDashboardLink();
     }
 
 }

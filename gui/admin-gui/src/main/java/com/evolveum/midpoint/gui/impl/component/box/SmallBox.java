@@ -40,6 +40,8 @@ public class SmallBox extends BasePanel<SmallBoxData> {
     private static final String ID_LINK_ICON = "linkIcon";
     private static final String ID_LINK_TEXT = "linkText";
 
+    private static final String ICON_SMALL_FONT_STYLE = "small-box-default-icon";
+
     public SmallBox(String id, @NotNull IModel<SmallBoxData> model) {
         super(id, model);
 
@@ -63,7 +65,7 @@ public class SmallBox extends BasePanel<SmallBoxData> {
         addLabel(ID_DESCRIPTION, () -> getModelObject().getDescription());
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeAppender.append("class", () -> getModelObject().getIcon()));
+        icon.add(AttributeAppender.append("class", () -> getIconStyle(getModelObject().getIcon())));
         add(icon);
 
         AjaxLink link = new AjaxLink<>(ID_LINK) {
@@ -104,5 +106,9 @@ public class SmallBox extends BasePanel<SmallBoxData> {
 
     protected boolean isLinkVisible() {
         return getModelObject().getLink() != null;
+    }
+
+    private String getIconStyle(String iconClass) {
+        return isLinkVisible() ? iconClass : iconClass + " " + ICON_SMALL_FONT_STYLE;
     }
 }

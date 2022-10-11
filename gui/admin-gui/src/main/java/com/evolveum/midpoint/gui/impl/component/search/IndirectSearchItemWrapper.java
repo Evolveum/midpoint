@@ -40,6 +40,10 @@ public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
         return new SearchValue<>(Boolean.FALSE);
     }
 
+    @Override
+    public DisplayableValue<Boolean> getValue() {
+        return new SearchValue<>(getSearchConfig().isIndirect());
+    }
 
     @Override
     protected String getNameResourceKey() {

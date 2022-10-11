@@ -23,7 +23,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -42,16 +41,32 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
 
     public static final Trace LOGGER = TraceManager.getTrace(PropertySearchItemWrapper.class);
 
+    // TODO consider making these final
+
     private ItemPath path;
+
+    /**
+     * The definition for given item. Usually needed e.g. for account attributes.
+     * In other cases not systematically filled-in (yet).
+     */
+    private final ItemDefinition<?> itemDef;
+
     private QName valueTypeName;
     private String name;
     private String help;
 
     public PropertySearchItemWrapper () {
+        this.itemDef = null;
     }
 
-    public PropertySearchItemWrapper (ItemPath path) {
+    public PropertySearchItemWrapper(ItemPath path) {
         this.path = path;
+        this.itemDef = null;
+    }
+
+    public PropertySearchItemWrapper(ItemPath path, ItemDefinition<?> itemDef) {
+        this.path = path;
+        this.itemDef = itemDef;
     }
 
     @Override
@@ -135,22 +150,24 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
             ExpressionType filterExpression = getFilterExpression();
             if (isEnabled()) {
                 if (filter == null && filterExpression != null) {
-                    ItemDefinition outputDefinition = pageBase.getPrismContext().definitionFactory().createPropertyDefinition(
+                    ItemDefinition<?> outputDefinition = pageBase.getPrismContext().definitionFactory().createPropertyDefinition(
                             ExpressionConstants.OUTPUT_ELEMENT_NAME, SearchFilterType.COMPLEX_TYPE);
                     Task task = pageBase.createSimpleTask("evaluate filter expression");
                     try {
                         PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, filterExpression,
                                 MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "", task, task.getResult());
                         if (filterValue == null || filterValue.getRealValue() == null) {
-                            LOGGER.error("FilterExpression return null, ", filterExpression);
+                            LOGGER.error("FilterExpression returned null: {}", filterExpression);
+                        } else {
+                            filter = filterValue.getRealValue();
                         }
-                        filter = filterValue.getRealValue();
                     } catch (Exception e) {
                         LOGGER.error("Unable to evaluate filter expression, {} ", filterExpression);
                     }
                 }
                 if (filter != null) {
                     try {
+                        //noinspection unchecked
                         ObjectFilter convertedFilter = pageBase.getPrismContext().getQueryConverter().parseFilter(filter, type);
                         convertedFilter = WebComponentUtil.evaluateExpressionsInFilter(convertedFilter, variables, new OperationResult("evaluated filter"), pageBase);
                         if (convertedFilter != null) {
@@ -174,16 +191,18 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
 
             String text = (String) getValue().getValue();
             if (!StringUtils.isNumeric(text) && (getValue() instanceof SearchValue)) {
-                ((SearchValue) getValue()).clear();
+                ((SearchValue<?>) getValue()).clear();
                 return null;
             }
             Object parsedValue = Long.parseLong((String) getValue().getValue());
+            //noinspection unchecked
             return ctx.queryFor(type)
-                    .item(path).eq(parsedValue).buildFilter();
+                    .item(path, itemDef).eq(parsedValue).buildFilter();
         } else if (DOMUtil.XSD_STRING.equals(valueTypeName)) {
             String text = (String) getValue().getValue();
+            //noinspection unchecked
             return ctx.queryFor(type)
-                    .item(path).contains(text).matchingCaseIgnore().buildFilter();
+                    .item(path, itemDef).contains(text).matchingCaseIgnore().buildFilter();
         } else if (DOMUtil.XSD_QNAME.equals(valueTypeName)) {
             Object qnameValue = getValue().getValue();
             QName qName;
@@ -192,14 +211,16 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
             } else {
                 qName = new QName((String) qnameValue);
             }
+            //noinspection unchecked
             return ctx.queryFor(type)
-                    .item(path).eq(qName).buildFilter();
+                    .item(path, itemDef).eq(qName).buildFilter();
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueTypeName)) {
                 //we're looking for string value, therefore substring filter should be used
                 String text = (String) getValue().getValue();
-                return ctx.queryFor(type)
-                        .item(path).contains(text).matchingNorm().buildFilter();
-            }
+            //noinspection unchecked
+            return ctx.queryFor(type)
+                    .item(path, itemDef).contains(text).matchingNorm().buildFilter();
+        }
         return null;
     }
 }

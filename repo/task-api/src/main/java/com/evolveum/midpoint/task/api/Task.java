@@ -396,6 +396,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
      */
     void setCategory(String category);
 
+    // TODO Rework all three following archetype-setting methods
+
     /**
      * Adds an archetype for the task. Assumes that the task will NOT undergo full model processing,
      * so this method will do everything by itself: creates an assignment, roleMembershipRef and archetypeRef.
@@ -406,13 +408,20 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
      * (although it should work also for them).
      */
     @Experimental
-    void addArchetypeInformation(String archetypeOid);
+    void addArchetypeInformation(@NotNull String archetypeOid);
 
     /**
      * As {@link #addArchetypeInformation(String)} but executed only if there's no archetype currently set.
      */
     @Experimental
-    void addArchetypeInformationIfMissing(String archetypeOid);
+    void addArchetypeInformationIfMissing(@NotNull String archetypeOid);
+
+    /**
+     * As {@link #addArchetypeInformation(String)} but assumes that the archetype is auxiliary one, so does not check if
+     * another archetype (with a different OID) is already there. I.e., checks only the presence of the OID in question.
+     */
+    @Experimental
+    void addAuxiliaryArchetypeInformation(@NotNull String archetypeOid);
     //endregion
 
     //region Task extension "get" operations + also arbitrary "get" operations

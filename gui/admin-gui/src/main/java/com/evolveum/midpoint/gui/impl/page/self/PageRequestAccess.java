@@ -48,11 +48,20 @@ public class PageRequestAccess extends PageSelf {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WIZARD = "wizard";
 
+    private WizardModel model;
+
     public PageRequestAccess() {
+        this(new PageParameters());
     }
 
     public PageRequestAccess(PageParameters parameters) {
+        this(parameters,null);
+    }
+
+    public PageRequestAccess(PageParameters parameters, WizardModel model) {
         super(parameters);
+
+        this.model = model;
     }
 
     @Override
@@ -62,15 +71,14 @@ public class PageRequestAccess extends PageSelf {
         initLayout();
     }
 
-    private WizardPanel getWizard() {
-        return (WizardPanel) get(createComponentPath(ID_MAIN_FORM, ID_WIZARD));
-    }
-
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        WizardPanel wizard = new WizardPanel(ID_WIZARD, new WizardModel(createSteps()));
+        if (model == null) {
+            model = new WizardModel(createSteps());
+        }
+        WizardPanel wizard = new WizardPanel(ID_WIZARD, model);
         wizard.setOutputMarkupId(true);
         mainForm.add(wizard);
     }

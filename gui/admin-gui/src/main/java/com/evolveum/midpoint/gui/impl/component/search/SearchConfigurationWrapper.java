@@ -83,8 +83,9 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
         }
         if (searchBoxConfig.getSearchItems() != null && CollectionUtils.isNotEmpty(searchBoxConfig.getSearchItems().getSearchItem())) {
             searchBoxConfig.getSearchItems().getSearchItem().forEach(item -> {
-                PropertySearchItemWrapper itemWrapper = SearchFactory.createPropertySearchItemWrapper(typeClass, item, null, null,
-                        modelServiceLocator);
+                PropertySearchItemWrapper<?> itemWrapper =
+                        SearchFactory.createPropertySearchItemWrapper(
+                                typeClass, item, null, null, modelServiceLocator);
                 if (itemWrapper != null) {
                     itemsList.add(itemWrapper);
                 }

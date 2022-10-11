@@ -11,27 +11,23 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsGuiHelper;
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-
 import org.apache.cxf.common.util.CollectionUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.AbstractRoleMemberPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
 
 @PanelType(name = "orgMembers")
 @PanelInstance(identifier = "orgMembers", applicableForType = OrgType.class,
@@ -80,12 +76,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     @Override
     protected Class<? extends ObjectType> getChoiceForAllTypes() {
         return AssignmentHolderType.class;
-    }
-
-    @Override
-    protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig,
-            List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
-        MemberOperationsGuiHelper.assignOrgMembers(getPageBase(), getModelObject(), target, relationConfig, objectTypes, archetypeRefList);
     }
 
     @Override

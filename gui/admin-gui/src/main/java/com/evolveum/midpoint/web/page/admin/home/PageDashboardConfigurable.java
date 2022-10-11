@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.home;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.web.page.admin.orgs.PageOrgs;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -43,7 +45,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
@@ -76,6 +77,8 @@ public class PageDashboardConfigurable extends PageDashboard {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboardConfigurable.class);
+    private static final String DOT_CLASS = PageDashboardConfigurable.class.getName() + ".";
+    private static final String OPERATION_COMPILE_DASHBOARD_COLLECTION = DOT_CLASS + "compileDashboardCollection";
 
     private static final Map<String, Class<? extends WebPage>> LINKS_REF_COLLECTIONS;
 
@@ -87,7 +90,7 @@ public class PageDashboardConfigurable extends PageDashboard {
         map.put(TaskType.COMPLEX_TYPE.getLocalPart(), PageTasks.class);
         map.put(UserType.COMPLEX_TYPE.getLocalPart(), PageUsers.class);
         map.put(RoleType.COMPLEX_TYPE.getLocalPart(), PageRoles.class);
-        map.put(OrgType.COMPLEX_TYPE.getLocalPart(), PageOrgTree.class);
+        map.put(OrgType.COMPLEX_TYPE.getLocalPart(), PageOrgs.class);
         map.put(ServiceType.COMPLEX_TYPE.getLocalPart(), PageServices.class);
 
         LINKS_REF_COLLECTIONS = map;
@@ -201,9 +204,20 @@ public class PageDashboardConfigurable extends PageDashboard {
                 result.computeStatusIfUnknown();
                 showResult(result);
 
-                return null;
+                return new DashboardWidgetDto(null, PageDashboardConfigurable.this);
             }
         };
+    }
+
+    private boolean isCollectionLoadable(DashboardWidgetType widget) {
+        Task task = createSimpleTask(OPERATION_COMPILE_DASHBOARD_COLLECTION);
+        OperationResult result = new OperationResult(OPERATION_COMPILE_DASHBOARD_COLLECTION);
+        try {
+            return getModelInteractionService().compileObjectCollectionView(getDashboardService()
+                    .getCollectionRefSpecificationType(widget, task, result), null, task, result) != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private boolean existLinkRef(DashboardWidgetType widget) {
@@ -222,7 +236,7 @@ public class PageDashboardConfigurable extends PageDashboard {
                         String oid = getResourceOid(collection.getFilter());
                         return StringUtils.isNotBlank(oid);
                     }
-                    return LINKS_REF_COLLECTIONS.containsKey(collection.getType().getLocalPart());
+                    return LINKS_REF_COLLECTIONS.containsKey(collection.getType().getLocalPart()) && isCollectionLoadable(widget);
                 } else {
                     return false;
                 }
@@ -354,17 +368,6 @@ public class PageDashboardConfigurable extends PageDashboard {
             PageParameters parameters = new PageParameters();
             if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
                 pageType = PageShadows.class;
-//                pageType = PageResource.class;
-//                String oid = getResourceOid(collection.getFilter());
-//                if (oid != null) {
-//                    parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-//                    Integer tab = getResourceTab(collection.getFilter());
-//                    if (tab != null) {
-//                        parameters.add(PageResource.PARAMETER_SELECTED_TAB, tab);
-//                    } else {
-//                        parameters.add(PageResource.PARAMETER_SELECTED_TAB, 2);
-//                    }
-//                }
             }
             if (pageType == null) {
                 return;

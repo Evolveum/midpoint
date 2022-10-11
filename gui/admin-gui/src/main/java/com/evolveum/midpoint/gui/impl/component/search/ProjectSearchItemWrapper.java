@@ -15,9 +15,11 @@ import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
 
 public class ProjectSearchItemWrapper extends AbstractRoleSearchItemWrapper{
 
@@ -42,7 +44,17 @@ public class ProjectSearchItemWrapper extends AbstractRoleSearchItemWrapper{
 
     @Override
     public DisplayableValue<ObjectReferenceType> getDefaultValue() {
-        return new SearchValue<>(new ObjectReferenceType());
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setType(OrgType.COMPLEX_TYPE);
+        return new SearchValue<>(ref);
+    }
+
+    @Override
+    public DisplayableValue<ObjectReferenceType> getValue() {
+        if (getSearchConfig().getProjectRef() == null) {
+            return getDefaultValue();
+        }
+        return new SearchValue<>(getSearchConfig().getProjectRef());
     }
 
     @Override

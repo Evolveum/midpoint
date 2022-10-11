@@ -60,7 +60,8 @@ public class PageAdminConfiguration extends PageAdmin {
 
         task.setName(taskName);
         task.setRootActivityDefinition(definition);
-        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
+        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
+        task.addAuxiliaryArchetypeInformation(SystemObjectsType.ARCHETYPE_OBJECTS_DELETE_TASK.value());
 
         getModelInteractionService().switchToBackground(task, result);
         return task.getOid();

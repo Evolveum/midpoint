@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
@@ -39,6 +40,14 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     @Override
     public DisplayableValue<QName> getDefaultValue() {
         return new SearchValue<>();
+    }
+
+    @Override
+    public DisplayableValue<QName> getValue() {
+        if (getSearchConfig().getDefaultRelation() == null) {
+            return getDefaultValue();
+        }
+        return new SearchValue<>(getSearchConfig().getDefaultRelation());
     }
 
     @Override

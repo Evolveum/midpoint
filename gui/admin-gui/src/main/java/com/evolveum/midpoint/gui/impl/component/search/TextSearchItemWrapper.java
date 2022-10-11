@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
@@ -22,12 +22,13 @@ public class TextSearchItemWrapper extends PropertySearchItemWrapper<String> {
         super();
     }
 
-    public TextSearchItemWrapper(ItemPath path) {
-        super(path);
+    TextSearchItemWrapper(ItemPath path, ItemDefinition<?> itemDef) {
+        super(path, itemDef);
     }
 
-    public TextSearchItemWrapper(ItemPath path, String valueEnumerationRefOid, QName valueEnumerationRefType) {
-        super(path);
+    TextSearchItemWrapper(
+            ItemPath path, ItemDefinition<?> itemDef, String valueEnumerationRefOid, QName valueEnumerationRefType) {
+        super(path, itemDef);
         this.valueEnumerationRefOid = valueEnumerationRefOid;
         this.valueEnumerationRefType = valueEnumerationRefType;
     }

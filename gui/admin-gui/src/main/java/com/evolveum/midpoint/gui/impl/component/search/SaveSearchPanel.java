@@ -9,6 +9,9 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -47,6 +50,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
 
     private static final Trace LOGGER = TraceManager.getTrace(SaveSearchPanel.class);
     private static final String ID_FEEDBACK_MESSAGE = "feedbackMessage";
+    private static final String ID_SAVE_SEARCH_FORM = "saveSearchForm";
     private static final String ID_SEARCH_NAME = "searchName";
     private static final String ID_BUTTONS_PANEL = "buttonsPanel";
     private static final String ID_SAVE_BUTTON = "saveButton";
@@ -72,25 +76,29 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
     private void initLayout() {
         setOutputMarkupId(true);
 
+        MidpointForm form = new MidpointForm(ID_SAVE_SEARCH_FORM);
+        form.setOutputMarkupId(true);
+        add(form);
+
         MessagePanel<?> feedbackMessage = new MessagePanel<>(ID_FEEDBACK_MESSAGE, MessagePanel.MessagePanelType.WARN, feedbackMessageModel);
         feedbackMessage.add(new VisibleBehaviour(() -> feedbackMessageModel.getObject() != null && StringUtils.isNotEmpty(feedbackMessageModel.getObject())));
         feedbackMessage.setOutputMarkupId(true);
-        add(feedbackMessage);
+        form.add(feedbackMessage);
 
         TextField<String> nameField = new TextField<>(ID_SEARCH_NAME, queryNameModel);
         nameField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         nameField.setOutputMarkupId(true);
-        add(nameField);
+        form.add(nameField);
 
         WebMarkupContainer buttonsPanel = new WebMarkupContainer(ID_BUTTONS_PANEL);
         buttonsPanel.setOutputMarkupId(true);
-        add(buttonsPanel);
+        form.add(buttonsPanel);
 
-        AjaxButton saveButton = new AjaxButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {
+        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+            public void onSubmit(AjaxRequestTarget ajaxRequestTarget) {
                 if (StringUtils.isEmpty(queryNameModel.getObject())) {
                     feedbackMessageModel = createStringResource("SaveSearchPanel.enterQueryNameWarning");
                     ajaxRequestTarget.add(feedbackMessage);
@@ -103,6 +111,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         };
         saveButton.setOutputMarkupId(true);
         buttonsPanel.add(saveButton);
+        form.setDefaultButton(saveButton);
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON, createStringResource("Button.cancel")) {
             @Override
