@@ -69,7 +69,6 @@ public class PageSelfDashboard extends PageSelf {
     private static final Trace LOGGER = TraceManager.getTrace(PageSelfDashboard.class);
     private static final String ID_SEARCH_PANEL = "searchPanel";
     private static final String ID_STATISTIC_WIDGETS_PANEL = "statisticWidgetsPanel";
-    private static final String ID_LINKS_PANEL = "linksPanel";
     private static final String ID_STATISTIC_WIDGET = "statisticWidget";
     private static final String ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL = "objectCollectionViewWidgetsPanel";
     private static final String ID_OBJECT_COLLECTION_VIEW_WIDGET = "objectCollectionViewWidget";
@@ -102,7 +101,7 @@ public class PageSelfDashboard extends PageSelf {
      }
 
      private void initStatisticWidgets(Form mainForm) {
-         ListView<PreviewContainerPanelConfigurationType> statisticWidgetsPAnel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
+         ListView<PreviewContainerPanelConfigurationType> statisticWidgetsPanel = new ListView<>(ID_STATISTIC_WIDGETS_PANEL, this::getStatisticWidgetList) {
 
              private static final long serialVersionUID = 1L;
 
@@ -113,17 +112,13 @@ public class PageSelfDashboard extends PageSelf {
                  item.add(widget);
              }
          };
-         statisticWidgetsPAnel.setOutputMarkupId(true);
-         statisticWidgetsPAnel.add(new VisibleBehaviour(() -> {
+         statisticWidgetsPanel.setOutputMarkupId(true);
+         statisticWidgetsPanel.add(new VisibleBehaviour(() -> {
              UserInterfaceElementVisibilityType visibility = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
              return WebComponentUtil.getElementVisibility(visibility);
          }));
-         mainForm.add(statisticWidgetsPAnel);
+         mainForm.add(statisticWidgetsPanel);
 
-         List<RichHyperlinkType> linksList = loadLinksList();
-         LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, Model.ofList(linksList));
-         linksPanel.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(linksList)));
-         mainForm.add(linksPanel);
      }
 
      private void initPreviewWidgets(Form mainForm) {

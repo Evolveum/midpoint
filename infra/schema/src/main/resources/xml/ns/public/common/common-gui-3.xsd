@@ -66,6 +66,8 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AdminGuiConfigurationType.userDashboardLink</a:displayName>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                        <a:deprecated/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

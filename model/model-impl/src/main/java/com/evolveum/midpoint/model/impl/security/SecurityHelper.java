@@ -10,6 +10,9 @@ import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +40,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.List;
 
 /**
  * @author semancik
@@ -293,4 +298,20 @@ public class SecurityHelper implements ModelAuditRecorder {
     public SecurityEnforcer getSecurityEnforcer() {
         return securityEnforcer;
     }
+
+    public boolean isAuthorized(List<String> actions, Task task, OperationResult result) {
+        try {
+            for (String action : actions) {
+                boolean isAuthorized = securityEnforcer.isAuthorized(action,
+                        null, AuthorizationParameters.EMPTY, null, task, result);
+                if (!isAuthorized) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }
