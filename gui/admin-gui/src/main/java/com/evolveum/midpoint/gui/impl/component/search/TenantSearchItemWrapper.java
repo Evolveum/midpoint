@@ -11,9 +11,14 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import org.apache.commons.lang3.StringUtils;
+
+import javax.xml.namespace.QName;
+import java.util.List;
 
 public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
@@ -37,8 +42,18 @@ public class TenantSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     }
 
     @Override
-    public DisplayableValue<SearchBoxScopeType> getDefaultValue() {
-        return new SearchValue<>(SearchBoxScopeType.ONE_LEVEL);
+    public DisplayableValue<ObjectReferenceType> getDefaultValue() {
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setType(OrgType.COMPLEX_TYPE);
+        return new SearchValue<>(ref);
+    }
+
+    @Override
+    public DisplayableValue<ObjectReferenceType> getValue() {
+        if (getSearchConfig().getTenantRef() == null) {
+            return getDefaultValue();
+        }
+        return new SearchValue<>(getSearchConfig().getTenantRef());
     }
 
     @Override
