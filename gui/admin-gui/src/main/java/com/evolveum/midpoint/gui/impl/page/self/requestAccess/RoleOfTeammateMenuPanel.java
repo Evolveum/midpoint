@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -132,6 +133,22 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
 
         @Override
         public String getDisplayValue(ObjectReferenceType ref) {
+            if (ref == null) {
+                return null;
+            }
+
+            if (ref.getTargetName() != null) {
+                return ref.getTargetName().getOrig();
+            }
+
+            PrismObject obj = WebModelServiceUtils.loadObject(ref, panel.getPageBase());
+            if (obj != null) {
+                String name = WebComponentUtil.getDisplayNameOrName(obj);
+                if (name != null) {
+                    ref.setTargetName(new PolyStringType(name));
+                }
+            }
+
             return WebComponentUtil.getDisplayNameOrName(ref);
         }
 
