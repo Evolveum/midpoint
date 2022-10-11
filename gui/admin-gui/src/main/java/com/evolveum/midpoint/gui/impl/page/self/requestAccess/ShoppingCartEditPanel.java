@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -140,10 +141,11 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
                     context.setCreateIfEmpty(true);
 
                     // create whole wrapper, instead of only the concrete container value wrapper
-                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.NOT_CHANGED, context);
-
+                    PrismObjectWrapper<UserType> userWrapper = userWrapperFactory.createObjectWrapper(user.asPrismObject(), ItemStatus.ADDED, context);
                     PrismContainerWrapper<AssignmentType> assignmentWrapper = userWrapper.findContainer(UserType.F_ASSIGNMENT);
                     PrismContainerValueWrapper<AssignmentType> valueWrapper = assignmentWrapper.getValues().iterator().next();
+                    // todo this should be done automatically by wrappers - if parent ADDED child should probably have ADDED status as well...
+                    valueWrapper.setStatus(ValueStatus.ADDED);
                     valueWrapper.setShowEmpty(true);
 
                     return valueWrapper;
@@ -311,17 +313,24 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     }
 
     protected void savePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
-        // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
-        PrismObjectWrapper<UserType> wrapper = assignmentExtension.getObject().getParent().findObjectWrapper();
-        List<AssignmentType> modifiedList = wrapper.getObject().asObjectable().getAssignment();
-        if (modifiedList.isEmpty()) {
-            return;
+        try {
+            // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
+            PrismObjectWrapper<UserType> wrapper = assignmentExtension.getObject().getParent().findObjectWrapper();
+            if (wrapper.getObjectDelta().isEmpty()) {
+                return;
+            }
+
+            UserType user = wrapper.getObjectApplyDelta().asObjectable();
+            // TODO wrappers for some reason create second assignment with (first one was passed from this shopping cart to fake user)
+            // that second assignment contains modified extension...very nasty hack
+            AssignmentType modified = user.getAssignment().get(1);
+
+            AssignmentType a = getModelObject().getAssignment();
+            a.setExtension(modified.getExtension());
+        } catch (SchemaException ex) {
+            getPageBase().error(getString("ShoppingCartEditPanel.message.couldntProcessExtension", ex.getMessage()));
+            LOGGER.debug("Couldn't process extension attributes", ex);
         }
-
-        AssignmentType newOne = modifiedList.get(0);
-
-        AssignmentType a = getModelObject().getAssignment();
-        a.setExtension(newOne.getExtension());
     }
 
     protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
