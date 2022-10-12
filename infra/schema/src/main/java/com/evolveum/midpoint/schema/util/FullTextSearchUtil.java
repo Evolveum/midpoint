@@ -46,6 +46,11 @@ public class FullTextSearchUtil {
                 && !getFullTextSearchItemPaths(config, clazz).isEmpty();
     }
 
+    public static boolean isEnabledFor(FullTextSearchConfigurationType config, List<QName> types) {
+        return isEnabled(config)
+                && !getFullTextSearchItemPaths(config, types).isEmpty();
+    }
+
     @NotNull
     public static Set<ItemPath> getFullTextSearchItemPaths(
             @NotNull FullTextSearchConfigurationType config, Class<? extends ObjectType> clazz) {
@@ -54,6 +59,12 @@ public class FullTextSearchUtil {
                 .stream()
                 .map(ot -> ot.getTypeQName())
                 .collect(Collectors.toList());
+        return getFullTextSearchItemPaths(config, types);
+    }
+
+    @NotNull
+    public static Set<ItemPath> getFullTextSearchItemPaths(
+            @NotNull FullTextSearchConfigurationType config, List<QName> types) {
         Set<ItemPath> paths = new HashSet<>();
         for (FullTextSearchIndexedItemsConfigurationType indexed : config.getIndexed()) {
             if (isApplicable(indexed, types)) {

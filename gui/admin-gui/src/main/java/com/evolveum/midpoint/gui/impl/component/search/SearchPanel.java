@@ -221,17 +221,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         form.add(searchButtonPanel);
         form.setDefaultButton(searchButtonPanel.getSearchButton());
 
-//        IModel<String> buttonRightPaddingModel = () -> {
-//            boolean isLongButton = SearchBoxModeType.BASIC.equals(getSearchConfigurationWrapper().getDefaultSearchBoxMode())
-//                    || SearchBoxModeType.AXIOM_QUERY.equals(getSearchConfigurationWrapper().getDefaultSearchBoxMode());
-//            String style = "padding-right: " + (isLongButton ? "23" : "16") + "px;";
-//            if (getSearchConfigurationWrapper().getAllowedModeList().size() == 1) {
-//                style = style + "border-top-right-radius: 3px; border-bottom-right-radius: 3px;";
-//            }
-//            return style;
-//        };
-//        submitSearchButton.add(AttributeAppender.append("style", buttonRightPaddingModel));
-
         initSavedFiltersContainer(form);
     }
 
@@ -944,7 +933,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                     || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode());
         }
         private boolean isQueryPlaygroundAccessible() {
-            return SecurityUtils.isPageAuthorized(PageRepositoryQuery.class);
+            return SecurityUtils.isPageAuthorized(PageRepositoryQuery.class) && SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
+                    && ObjectType.class.isAssignableFrom(getModelObject().getTypeClass());
         }
 
         private void debugPerformed() {
