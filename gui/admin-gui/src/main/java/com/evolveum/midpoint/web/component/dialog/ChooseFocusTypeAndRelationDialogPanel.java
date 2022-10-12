@@ -63,14 +63,14 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
     }
 
     private void initLayout(){
-        MessagePanel warningMessage = new MessagePanel(ID_WARNING_FEEDBACK, MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
+        MessagePanel<?> warningMessage = new MessagePanel<>(ID_WARNING_FEEDBACK, MessagePanel.MessagePanelType.WARN, getWarningMessageModel()){};
         warningMessage.setOutputMarkupId(true);
         warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
         add(warningMessage);
 
         DropDownFormGroup<QName> type = new DropDownFormGroup<>(ID_OBJECT_TYPE, Model.of(getDefaultObjectType()), Model.ofList(getSupportedObjectTypes()),
                 new QNameObjectTypeChoiceRenderer(), createStringResource("chooseFocusTypeAndRelationDialogPanel.type"),
-                "chooseFocusTypeAndRelationDialogPanel.tooltip.type", "col-md-4", "col-md-8", true);
+                createStringResource("chooseFocusTypeAndRelationDialogPanel.tooltip.type"), "col-md-4", "col-md-8", true);
         type.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         type.setOutputMarkupId(true);
         type.add(new VisibleBehaviour(this::isFocusTypeSelectorVisible));

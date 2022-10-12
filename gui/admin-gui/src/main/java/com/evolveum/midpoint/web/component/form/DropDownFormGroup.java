@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.component.form;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -24,7 +23,6 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 /**
@@ -54,8 +52,8 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
-            IModel<String> label, String tooltipKey, String labelCssClass, String textCssClass, boolean required) {
-        this(id, value, choices, renderer, label, Model.of(tooltipKey), labelCssClass, textCssClass, required, false);
+            IModel<String> label, IModel<String> tooltipKey, String labelCssClass, String textCssClass, boolean required) {
+        this(id, value, choices, renderer, label, tooltipKey, labelCssClass, textCssClass, required, false);
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, IModel<String> tooltipModel,
