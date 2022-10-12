@@ -27,7 +27,10 @@ public class DeadShadowSearchItemWrapper<T> extends ChoicesSearchItemWrapper<T> 
         }
         Boolean value = selectedValue.getValue();
         if (BooleanUtils.isTrue(value)) {
-            return null; // let the default behavior to take their chance
+            return PrismContext.get().queryFor(ShadowType.class)
+                    .item(ShadowType.F_DEAD)
+                    .eq(true)
+                    .buildFilter();
         }
 
         return PrismContext.get().queryFor(ShadowType.class)

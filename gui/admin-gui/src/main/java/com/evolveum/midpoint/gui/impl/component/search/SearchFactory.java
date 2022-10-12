@@ -585,6 +585,17 @@ public class SearchFactory {
             itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null));
             return itemWrapper;
         }
+        if (path != null) {
+            if (ShadowType.F_OBJECT_CLASS.equivalent(path)) {
+                return new ObjectClassSearchItemWrapper();
+            } else if (ShadowType.F_DEAD.equivalent(path)) {
+                DeadShadowSearchItemWrapper deadWrapper = new DeadShadowSearchItemWrapper(Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
+                deadWrapper.setValue(new SearchValue(false));
+                return deadWrapper;
+            } else {
+                return new TextSearchItemWrapper(path, itemDef);
+            }
+        }
         if (valueTypeName != null) {
             if (DOMUtil.XSD_BOOLEAN.equals(valueTypeName)) {
                 List<DisplayableValue<Boolean>> list = new ArrayList<>();
@@ -604,15 +615,7 @@ public class SearchFactory {
                     itemDef.getValueEnumerationRef().getOid(),
                     itemDef.getValueEnumerationRef().getTargetType());
         }
-        if (path != null) {
-            if (ShadowType.F_OBJECT_CLASS.equivalent(path)) {
-                return new ObjectClassSearchItemWrapper();
-            } else if (ShadowType.F_DEAD.equivalent(path)) {
-                return new DeadShadowSearchItemWrapper(Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-            } else {
-                return new TextSearchItemWrapper(path, itemDef);
-            }
-        }
+
         return new TextSearchItemWrapper();
     }
 
