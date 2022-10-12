@@ -45,7 +45,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.orgs.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
@@ -78,6 +77,8 @@ public class PageDashboardConfigurable extends PageDashboard {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboardConfigurable.class);
+    private static final String DOT_CLASS = PageDashboardConfigurable.class.getName() + ".";
+    private static final String OPERATION_COMPILE_DASHBOARD_COLLECTION = DOT_CLASS + "compileDashboardCollection";
 
     private static final Map<String, Class<? extends WebPage>> LINKS_REF_COLLECTIONS;
 
@@ -208,6 +209,17 @@ public class PageDashboardConfigurable extends PageDashboard {
         };
     }
 
+    private boolean isCollectionLoadable(DashboardWidgetType widget) {
+        Task task = createSimpleTask(OPERATION_COMPILE_DASHBOARD_COLLECTION);
+        OperationResult result = new OperationResult(OPERATION_COMPILE_DASHBOARD_COLLECTION);
+        try {
+            return getModelInteractionService().compileObjectCollectionView(getDashboardService()
+                    .getCollectionRefSpecificationType(widget, task, result), null, task, result) != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private boolean existLinkRef(DashboardWidgetType widget) {
         if (widget == null) {
             return false;
@@ -224,7 +236,7 @@ public class PageDashboardConfigurable extends PageDashboard {
                         String oid = getResourceOid(collection.getFilter());
                         return StringUtils.isNotBlank(oid);
                     }
-                    return LINKS_REF_COLLECTIONS.containsKey(collection.getType().getLocalPart());
+                    return LINKS_REF_COLLECTIONS.containsKey(collection.getType().getLocalPart()) && isCollectionLoadable(widget);
                 } else {
                     return false;
                 }

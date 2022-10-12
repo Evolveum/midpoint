@@ -266,6 +266,8 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
         PrismPropertyDefinition<Object> propertyDef = container.getDefinition().findPropertyDefinition(
                 ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF));
 
+        propertyDef.toMutable().setDisplayOrder(1);
+
         createVirtualItemInMapping(mapping, null, propertyDef);
     }
 

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -432,11 +433,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             @Override
             public boolean isEnabled() {
                 Search search = getModelObject();
-                if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
-                        || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())) {
-                    PrismContext ctx = getPageBase().getPrismContext();
-                    return search.isAdvancedQueryValid(ctx);
-                }
                 if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
                     return search.isFullTextSearchEnabled();
                 }
@@ -896,43 +892,14 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             advancedGroup.add(advancedCheck);
 
             TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_QUERY));
-            advancedArea.add(new AjaxFormComponentUpdatingBehavior("keyup") {
-
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    updateAdvancedArea(advancedArea, target);
-                }
-
-                @Override
-                protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                    super.updateAjaxAttributes(attributes);
-
-                    attributes.setThrottlingSettings(
-                            new ThrottlingSettings(ID_ADVANCED_AREA, Duration.ofMillis(500), true));
-                }
-            });
+            advancedArea.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
             advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
             advancedGroup.add(advancedArea);
 
             TextField<String> queryDslField = new TextField<>(ID_AXIOM_QUERY_FIELD,
                     new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_DSL_QUERY));
-            queryDslField.add(new AjaxFormComponentUpdatingBehavior("keyup") {
-
-                @Override
-                protected void onUpdate(AjaxRequestTarget target) {
-                    updateQueryDSLArea(advancedCheck, advancedGroup, target);
-                }
-
-                @Override
-                protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
-                    super.updateAjaxAttributes(attributes);
-
-                    attributes.setThrottlingSettings(
-                            new ThrottlingSettings(ID_AXIOM_QUERY_FIELD, Duration.ofMillis(500), true));
-                    attributes.setChannel(new AjaxChannel("Drop", AjaxChannel.Type.DROP));
-                }
-            });
+            queryDslField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
             queryDslField.add(createVisibleBehaviour(SearchBoxModeType.AXIOM_QUERY));
             advancedGroup.add(queryDslField);

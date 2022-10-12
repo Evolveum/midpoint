@@ -241,7 +241,6 @@
         <connid.version>1.5.1.10</connid.version>
         <derby.version>10.15.2.0</derby.version>
         <poi.version>5.2.2</poi.version>
-        <wro4j.version>1.10.1</wro4j.version>
         <!-- Version for classgraph must the one declared in Prism -->
         <classgraph.version>4.8.146</classgraph.version>
         <guava.version>31.1-jre</guava.version>
@@ -252,7 +251,6 @@
         <geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
         <jetty.version>11.0.11</jetty.version>
         <checkstyle.version>3.1.2</checkstyle.version>
-        <xalan.version>2.7.2</xalan.version>
         <xerces.version>2.12.2</xerces.version>
         <commons.csv.version>1.9.0</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
@@ -521,27 +519,6 @@
                         <artifactId>xml-apis</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>xalan</groupId>
-                <artifactId>serializer</artifactId>
-                <version>${xalan.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>xml-apis</groupId>
-                        <artifactId>xml-apis</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <!--
-            TODO: we should get rid of xalan/xerces if possible.
-            More (from 2015): http://www.odi.ch/weblog/posting.php?posting=689
-            ForgeRock got rid of it: https://bugster.forgerock.org/jira/browse/OPENAM-7320
-            -->
-            <dependency>
-                <groupId>xalan</groupId>
-                <artifactId>xalan</artifactId>
-                <version>${xalan.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.staxmate</groupId>
@@ -1267,11 +1244,6 @@
                 <artifactId>javax.el-api</artifactId>
                 <version>3.0.1-b06</version>
             </dependency>
-            <dependency>
-                <groupId>com.google.protobuf</groupId>
-                <artifactId>protobuf-java</artifactId>
-                <version>3.19.3</version>
-            </dependency>
 
             <!-- Maven plugins -->
             <dependency>
@@ -1390,10 +1362,6 @@
                     <exclusion>
                         <artifactId>slf4j-api</artifactId>
                         <groupId>org.slf4j</groupId>
-                    </exclusion>
-                    <exclusion> <!-- Version conflict with xalan -->
-                        <groupId>xml-apis</groupId>
-                        <artifactId>xml-apis</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

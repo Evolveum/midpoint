@@ -18,6 +18,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Abstr
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.ActivationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations.AssociationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.*;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.capabilities.CapabilitiesWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials.CredentialsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationWizardPanel;
@@ -161,6 +162,9 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                     case ACTIVATION:
                         showActivationsWizard(target, getValueModel());
                         break;
+                    case CAPABILITIES_CONFIG:
+                        showCapabilitiesConfigWizard(target, getValueModel());
+                        break;
                 }
             }
 
@@ -199,6 +203,30 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
     private void showCorrelationItemsTable(
             AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         showChoiceFragment(target, new CorrelationWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                showObjectTypePreviewFragment(getValueModel(), target);
+            }
+
+            @Override
+            protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
+                OperationResult result = ResourceObjectTypeWizardPanel.this.onSaveResourcePerformed(target);
+                if (result != null && !result.isError()) {
+                    refreshValueModel();
+                }
+                return result;
+            }
+
+            @Override
+            protected boolean isSavedAfterWizard() {
+                return isSavedAfterDetailsWizard();
+            }
+        });
+    }
+
+    private void showCapabilitiesConfigWizard(
+            AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        showChoiceFragment(target, new CapabilitiesWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showObjectTypePreviewFragment(getValueModel(), target);

@@ -209,7 +209,7 @@ public class TaskQuartzImpl implements Task {
      * @param operationName if null, default op. name will be used
      */
     public static TaskQuartzImpl createNew(@NotNull TaskManagerQuartzImpl taskManager, String operationName) {
-        TaskType taskBean = new TaskType(taskManager.getPrismContext())
+        TaskType taskBean = new TaskType()
                 .taskIdentifier(taskManager.getBeans().taskPersister.generateTaskIdentifier().toString())
                 .executionState(TaskExecutionStateType.RUNNABLE)
                 .schedulingState(TaskSchedulingStateType.READY)
@@ -1768,12 +1768,25 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void addArchetypeInformation(String archetypeOid) {
+    public void addArchetypeInformation(@NotNull String archetypeOid) {
+        addArchetypeInformationInternal(archetypeOid, true);
+    }
+
+    private void addArchetypeInformationInternal(@NotNull String archetypeOid, boolean assertNoExistingArchetypes) {
         synchronized (prismAccess) {
             List<ObjectReferenceType> existingArchetypes = taskPrism.asObjectable().getArchetypeRef();
-            if (!existingArchetypes.isEmpty()) {
-                throw new IllegalStateException("Couldn't add archetype " + archetypeOid + " because there is already one: "
-                        + existingArchetypes + "; in " + this);
+            if (assertNoExistingArchetypes) {
+                if (!existingArchetypes.isEmpty()) {
+                    throw new IllegalStateException("Couldn't add archetype " + archetypeOid + " because there is already one: "
+                            + existingArchetypes + "; in " + this);
+                }
+            } else {
+                // We only check that this particular archetype is not already present.
+                if (existingArchetypes.stream()
+                        .anyMatch(ref -> archetypeOid.equals(Referencable.getOid(ref)))) {
+                    LOGGER.trace("Archetype {} is already set in {}", archetypeOid, this);
+                    return;
+                }
             }
             addContainerable(TaskType.F_ASSIGNMENT,
                     ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, beans.prismContext));
@@ -1785,13 +1798,18 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void addArchetypeInformationIfMissing(String archetypeOid) {
+    public void addArchetypeInformationIfMissing(@NotNull String archetypeOid) {
         synchronized (prismAccess) {
             List<ObjectReferenceType> existingArchetypes = taskPrism.asObjectable().getArchetypeRef();
             if (existingArchetypes.isEmpty()) {
-                addArchetypeInformation(archetypeOid);
+                addArchetypeInformationInternal(archetypeOid, false);
             }
         }
+    }
+
+    @Override
+    public void addAuxiliaryArchetypeInformation(@NotNull String archetypeOid) {
+        addArchetypeInformationInternal(archetypeOid, false);
     }
 
     // todo thread safety (creating a clone?)

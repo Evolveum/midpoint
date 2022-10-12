@@ -586,6 +586,9 @@
                         For object class refinements, it must not be specified
                         (and the default does not apply there as well).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceObjectTypeDefinitionType.kind</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="intent" type="xsd:string" minOccurs="0" default="default">
@@ -596,10 +599,25 @@
                         For object class refinements, it must not be specified
                         (and the default does not apply there as well).
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceObjectTypeDefinitionType.intent</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:displayName" minOccurs="0"/>
-            <xsd:element ref="tns:description" minOccurs="0"/>
+            <xsd:element ref="tns:displayName" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceObjectTypeDefinitionType.displayName</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element ref="tns:description" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceObjectTypeDefinitionType.description</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="abstract" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
@@ -629,6 +647,9 @@
                         Technically, setting a value for this property is propagated to both "defaultForKind"
                         and "defaultForObjectClass" ones. See their documentation for more information.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceObjectTypeDefinitionType.default</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="defaultForKind" type="xsd:boolean" minOccurs="0">
@@ -1984,6 +2005,9 @@
                         Defines how the password value is constructed in case of information flow from IDM to the
                         resource, e.g. in case of provisioning.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourcePasswordDefinitionType.outbound</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
@@ -1993,6 +2017,9 @@
                         The "target" part of the assignment is implicitly set to user's password, therefore it may be
                         omitted.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourcePasswordDefinitionType.inbound</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="caching" type="tns:CachingPolicyType" minOccurs="0">
@@ -2114,6 +2141,9 @@
                     <xsd:documentation>
                         Maps information outbound from midpoint to the resource.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceBidirectionalMappingType.outbound</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
@@ -2121,6 +2151,9 @@
                     <xsd:documentation>
                         Maps information inbound to midpoint from the resource.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ResourceBidirectionalMappingType.inbound</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -5069,7 +5102,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationReactionType.name</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element name="order" type="xsd:int" minOccurs="0">
@@ -5085,6 +5124,9 @@
                     <xsd:documentation>
                         Defines a particular synchronization situation or situations.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>SynchronizationReactionType.situation</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">

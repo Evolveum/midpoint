@@ -97,5 +97,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     void clearItems();
     void addItems(Collection<ItemWrapper<?, ?>> items);
     int size();
+
+    PrismContainerValue<C> getContainerValueApplyDelta() throws SchemaException;
 }
 

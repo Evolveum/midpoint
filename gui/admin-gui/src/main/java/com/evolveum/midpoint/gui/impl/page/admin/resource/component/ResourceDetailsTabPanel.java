@@ -60,7 +60,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.resources.CapabilitiesDto;
-import com.evolveum.midpoint.web.page.admin.resources.CapabilitiesPanel;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -110,7 +109,8 @@ public class ResourceDetailsTabPanel extends AbstractObjectMainPanel<ResourceTyp
 
         add(createSchemaStatusInfo());
 
-        CapabilitiesPanel capabilities = new CapabilitiesPanel(PANEL_CAPABILITIES, capabilitiesModel);
+//        CapabilitiesPanel capabilities = new CapabilitiesPanel(PANEL_CAPABILITIES, capabilitiesModel);
+        CapabilitiesPanel capabilities = new CapabilitiesPanel(PANEL_CAPABILITIES, getObjectDetailsModels());
         add(capabilities);
 
         ListDataProvider<ResourceConfigurationDto> resourceConfigProvider = new ListDataProvider<>(

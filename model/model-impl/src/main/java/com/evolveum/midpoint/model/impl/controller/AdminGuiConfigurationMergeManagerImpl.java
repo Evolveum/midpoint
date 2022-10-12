@@ -265,7 +265,7 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         List<GuiActionType> mergedActions = mergeContainers(configuredPanel.getAction(), mergedPanel.getAction(), this::actionMatches, this::mergeGuiAction);
         PreviewContainerPanelConfigurationType afterMerge = mergePanels(mergedPanel, configuredPanel);
         afterMerge.getAction().clear();
-        afterMerge.getAction().addAll(mergedActions);
+        mergedActions.forEach(action -> afterMerge.getAction().add(action.clone()));
         if (configuredPanel.getPreviewSize() != null) {
             mergedPanel.setPreviewSize(configuredPanel.getPreviewSize());
         }
@@ -330,7 +330,7 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         if (composited == null) {
             return action;
         }
-        if (StringUtils.isEmpty(composited.getName()) || StringUtils.isEmpty(action.getName())) {
+        if (StringUtils.isEmpty(composited.getIdentifier()) || StringUtils.isEmpty(action.getIdentifier())) {
             LOGGER.trace("Unable to merge gui action without name, action 1: {}, action 2: {}", composited, action);
         }
         if (StringUtils.isNotEmpty(action.getDescription())) {
@@ -344,6 +344,9 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         }
         if (action.getTaskTemplateRef() != null) {
             composited.setTaskTemplateRef(action.getTaskTemplateRef());
+        }
+        if (action.getVisibility() != null) {
+            composited.setVisibility(action.getVisibility());
         }
         mergeRedirectionTargetType(composited.getTarget(), action.getTarget().clone());
         return composited;
@@ -368,6 +371,9 @@ public class AdminGuiConfigurationMergeManagerImpl implements AdminGuiConfigurat
         }
         if (StringUtils.isNotEmpty(redirectionTarget.getPageClass())) {
             composited.setPageClass(redirectionTarget.getPageClass());
+        }
+        if (redirectionTarget.getVisibility() != null) {
+            composited.setVisibility(redirectionTarget.getVisibility());
         }
     }
 

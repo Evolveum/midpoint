@@ -134,7 +134,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             PageParameters params = new PageParameters();
             params.set(WizardModel.PARAM_STEP, RelationPanel.STEP_ID);
 
-            throw new RestartResponseException(new PageRequestAccess(params));
+            throw new RestartResponseException(new PageRequestAccess(params, getWizard()));
         }
 
         ListGroupMenu menu = menuModel.getObject();
