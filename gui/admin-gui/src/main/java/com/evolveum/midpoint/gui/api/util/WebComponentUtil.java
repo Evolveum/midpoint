@@ -5163,12 +5163,12 @@ public final class WebComponentUtil {
     }
 
     public static <C extends Containerable> GuiObjectListViewType getPrincipalUserObjectListView(PageBase pageBase,
-            FocusType principalFocus, @NotNull Class<C> viewType, boolean createIfNotExist) {
+            FocusType principalFocus, @NotNull Class<C> viewType, boolean createIfNotExist, String defaultIdentifier) {
         if (!(principalFocus instanceof UserType)) {
             return null;
         }
         StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(pageBase);
-        String viewName = collectionViewParameter != null ? collectionViewParameter.toString() : null;
+        String viewName = !collectionViewParameter.isNull() && !collectionViewParameter.isEmpty() ? collectionViewParameter.toString() : defaultIdentifier;
         AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
         if (adminGui == null) {
             if (!createIfNotExist) {

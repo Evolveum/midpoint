@@ -48,6 +48,8 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
 
     private static final long serialVersionUID = 1L;
 
+    private static final String DOT_CLASS = SaveSearchPanel.class.getName() + ".";
+    private static final String OPERATION_SAVE_FILTER = DOT_CLASS + "saveFilter";
     private static final Trace LOGGER = TraceManager.getTrace(SaveSearchPanel.class);
     private static final String ID_FEEDBACK_MESSAGE = "feedbackMessage";
     private static final String ID_SAVE_SEARCH_FORM = "saveSearchForm";
@@ -317,7 +319,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             searchConfig.beginAvailableFilter();
         }
 
-        OperationResult result = new OperationResult("save search to user");
+        OperationResult result = new OperationResult(OPERATION_SAVE_FILTER);
         try {
             ObjectDelta<UserType> userDelta;
             if (!viewExists) {

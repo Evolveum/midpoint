@@ -281,6 +281,18 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                boolean containesCollectionFilter = false;
+                for (AbstractSearchItemWrapper item : SearchPanel.this.getModelObject().getItems()) {
+                    if (item instanceof ObjectCollectionListSearchItemWrapper && item.getValue() != null && item.getValue().getValue() != null) {
+                        containesCollectionFilter = true;
+                        break;
+                    }
+                }
+                if (containesCollectionFilter) {
+                    warn(getString("SaveSearchPanel.cannot.save.objectCollection.filter"));
+                    target.add(getPageBase().getFeedbackPanel());
+                    return;
+                }
                 SaveSearchPanel<C> panel = new SaveSearchPanel<>(getPageBase().getMainPopupBodyId(),
                         Model.of(SearchPanel.this.getModelObject()),
                         SearchPanel.this.getModelObject().getTypeClass(),
@@ -675,7 +687,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 //            availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
 //        } else {
             FocusType principalFocus = getPageBase().getPrincipalFocus();
-            GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, getModelObject().getTypeClass(), false);
+            GuiObjectListViewType view = WebComponentUtil.getPrincipalUserObjectListView(getPageBase(), principalFocus, getModelObject().getTypeClass(), false, getCollectionInstanceDefaultIdentifier());
             availableFilterList = view != null ? getAvailableFilterList(view.getSearchBoxConfiguration()) : null;
 //        }
         return availableFilterList;
