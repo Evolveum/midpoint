@@ -91,9 +91,9 @@ However, it is gradually replaced by xref:axiom-query-language/[Axiom query lang
         <q:value>FTE</q:value>
     </q:equal>
     <q:org>
-        <q:ref>
+        <q:orgRef>
             <q:oid>ef2bc900-76e0-59e2-86d6-004f02d30000</q:oid>
-        </q:ref>
+        </q:orgRef>
         <q:maxDepth>unbounded</q:maxDepth>
     </q:org>
 </q:and>
