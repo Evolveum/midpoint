@@ -29,7 +29,9 @@ public class RelationSearchItemWrapper extends AbstractRoleSearchItemWrapper {
     }
 
     public boolean isVisible() {
-        return true;
+        return CollectionUtils.isEmpty(getSearchConfig().getSupportedRelations())
+                || getSearchConfig().getDefaultScope() == null
+                || !SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
     }
 
     @Override

@@ -179,7 +179,7 @@
                             <key>PageSelfDashboard.myAccesses</key>
                         </translation>
                     </label>
-                    <cssClass>col-md-6</cssClass>
+                    <cssClass>col-12 col-xxl-6</cssClass>
                     <icon>
                         <cssClass>fe fe-assignment</cssClass>
                     </icon>
@@ -232,7 +232,7 @@
                             <key>PageSelfDashboard.myRequests</key>
                         </translation>
                     </label>
-                    <cssClass>col-md-6</cssClass>
+                    <cssClass>col-12 col-xxl-6</cssClass>
                     <icon>
                         <cssClass>fe fe-case</cssClass>
                     </icon>
@@ -268,7 +268,7 @@
                             <key>PageSelfDashboard.workItems</key>
                         </translation>
                     </label>
-                    <cssClass>col-md-6</cssClass>
+                    <cssClass>col-12 col-xxl-6</cssClass>
                     <icon>
                         <cssClass>fa fa-inbox</cssClass>
                     </icon>
@@ -303,7 +303,7 @@
                             <key>PageDashboard.accounts</key>
                         </translation>
                     </label>
-                    <cssClass>col-md-6</cssClass>
+                    <cssClass>col-12 col-xxl-6</cssClass>
                     <icon>
                         <cssClass>fa fa-male</cssClass>
                     </icon>

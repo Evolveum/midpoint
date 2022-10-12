@@ -1627,6 +1627,10 @@ div.search-popover > dl {
 /* table panel sorting */
 th.sortable {
 
+  &:not(.asc):not(.desc) > a > .icon {
+    display: none;
+  }
+
   &.asc > a > .icon:before {
     content: "\f077";
     color: $dark;

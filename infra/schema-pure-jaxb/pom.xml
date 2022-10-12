@@ -120,7 +120,8 @@
                     <dependency>
                         <groupId>xalan</groupId>
                         <artifactId>xalan</artifactId>
-                        <version>${xalan.version}</version>
+                        <!-- Latest version, only used here, no security risk (as of 4.6). -->
+                        <version>2.7.2</version>
                     </dependency>
                     <!-- Added after MID-7937, fix based on https://stackoverflow.com/a/71979169/658826 -->
                     <dependency>
