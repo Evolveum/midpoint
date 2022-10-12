@@ -270,6 +270,9 @@ public class CapabilitiesPanel extends BasePanel<PrismContainerValueWrapper<Reso
         if (AsyncUpdateCapabilityType.class.isAssignableFrom(capability)) {
             return "fa fa-arrows-turn-to-dots";
         }
+        if (SchemaCapabilityType.class.isAssignableFrom(capability)) {
+            return "fa fa-table-cells";
+        }
         return "fa fa-circle";
     }
 
