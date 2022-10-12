@@ -511,21 +511,20 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
         PrismObject<O> prismObject;
-        if (!isEditObject()) {
-            try {
+        try {
+            if (!isEditObject()) {
                 prismObject = getPrismContext().createObject(getType());
-            } catch (Exception ex) {
-                result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
-                throw redirectBackViaRestartResponseException();
+            } else {
+                String focusOid = getObjectOidParameter();
+                prismObject = WebModelServiceUtils.loadObject(getType(), focusOid, getOperationOptions(), false, this, task, result);
+                LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, prismObject);
             }
-        } else {
-            String focusOid = getObjectOidParameter();
-            prismObject = WebModelServiceUtils.loadObject(getType(), focusOid, getOperationOptions(), false, this, task, result);
-            LOGGER.trace("Loading object: Existing object (loadled): {} -> {}", focusOid, prismObject);
+        } catch (Exception ex) {
+            result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
+            throw redirectBackViaRestartResponseException();
         }
-        result.recordSuccess();
-
+        result.computeStatusIfUnknown();
         showResult(result, false);
         return prismObject;
     }

@@ -611,7 +611,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
     @Override
     public boolean isVirtual() {
-        return virtualItems != null;
+        return virtualItems != null && !virtualItems.isEmpty();
     }
 
     @Override
