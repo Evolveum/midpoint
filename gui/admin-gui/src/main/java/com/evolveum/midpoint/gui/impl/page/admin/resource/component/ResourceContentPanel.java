@@ -165,6 +165,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         initSychronizationButton(topButtons);
         initAttributeMappingButton(topButtons);
         initCorrelationButton(topButtons);
+        initCapabilitiesButton(topButtons);
         initCredentialsButton(topButtons);
         initActivationsButton(topButtons);
         initAssociationsButton(topButtons);
@@ -396,6 +397,27 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         correlationConfButton.showTitleAsLabel(true);
         correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
         topButtons.add(correlationConfButton);
+    }
+
+    private void initCapabilitiesButton(RepeatingView topButtons) {
+        AjaxIconButton capabilitiesConfButton = new AjaxIconButton(
+                topButtons.newChildId(),
+                Model.of(ResourceObjectTypePreviewTileType.CAPABILITIES_CONFIG.getIcon()),
+                getPageBase().createStringResource(ResourceObjectTypePreviewTileType.CAPABILITIES_CONFIG)) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel =
+                        getResourceObjectTypeValue(target);
+                if (valueModel != null) {
+                    getObjectDetailsModels().getPageResource().showCapabilitiesWizard(
+                            target,
+                            valueModel);
+                }
+            }
+        };
+        capabilitiesConfButton.showTitleAsLabel(true);
+        capabilitiesConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
+        topButtons.add(capabilitiesConfButton);
     }
 
     private void initCredentialsButton(RepeatingView topButtons) {

@@ -79,6 +79,8 @@ public class GuiProfileCompiler {
 
     @Autowired private AdminGuiConfigurationMergeManager adminGuiConfigurationMergeManager;
 
+    private static final String STATISTIC_WIDGET_PANEL_TYPE = "statisticWidget";
+
     public void compileFocusProfile(GuiProfiledPrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
             ExpressionEvaluationException, ObjectNotFoundException {
@@ -378,7 +380,7 @@ public class GuiProfileCompiler {
         }
 
         PreviewContainerPanelConfigurationType widget = new PreviewContainerPanelConfigurationType();
-        widget.setPanelType("statisticWidget"); //panel type is used for statistic widget creation
+        widget.setPanelType(STATISTIC_WIDGET_PANEL_TYPE); //panel type is used for statistic widget creation
         DisplayType displayType = new DisplayType()
                 .label(link.getLabel())
                 .color(link.getColor())

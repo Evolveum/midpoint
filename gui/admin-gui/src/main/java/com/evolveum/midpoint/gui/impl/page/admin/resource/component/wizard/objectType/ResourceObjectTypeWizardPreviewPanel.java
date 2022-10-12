@@ -44,7 +44,7 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
         ATTRIBUTE_MAPPING("fa fa-retweet"),
         SYNCHRONIZATION_CONFIG("fa fa-arrows-rotate"),
         CORRELATION_CONFIG("fa fa-code-branch"),
-//        CAPABILITIES_CONFIG("fab fa-react"),
+        CAPABILITIES_CONFIG("fab fa-react"),
         ACTIVATION("fa fa-toggle-off"),
         CREDENTIALS("fa fa-key"),
         ASSOCIATIONS("fa fa-shield");
