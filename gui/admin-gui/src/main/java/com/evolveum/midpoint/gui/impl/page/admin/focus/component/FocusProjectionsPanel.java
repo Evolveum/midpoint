@@ -400,7 +400,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     }
 
     public void loadFullShadow(PrismObjectValueWrapper<ShadowType> shadowWrapperValue, AjaxRequestTarget target) {
-        LOGGER.trace("Loading full shadow");
         long start = System.currentTimeMillis();
         if (shadowWrapperValue.getRealValue() == null) {
             error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
@@ -410,12 +409,10 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         String oid = shadowWrapperValue.getRealValue().getOid();
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_SHADOW);
         OperationResult result = task.getResult();
-        long loadStart = System.currentTimeMillis();
+
         PrismObject<ShadowType> projection = getPrismObjectForShadowWrapper(oid, false, task,
                 result, createLoadOptionForShadowWrapper());
 
-        long loadEnd = System.currentTimeMillis();
-        LOGGER.trace("Load projection in {} ms", loadEnd - loadStart);
         if (projection == null) {
             result.recordFatalError(getString("PageAdminFocus.message.loadFullShadow.fatalError", shadowWrapperValue.getRealValue()));
             getPageBase().showResult(result);
@@ -423,7 +420,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             return;
         }
 
-        long wrapperStart = System.currentTimeMillis();
         ShadowWrapper shadowWrapperNew;
         try {
             shadowWrapperNew = loadShadowWrapper(projection, task, result);
@@ -434,10 +430,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
             LOGGER.error("Couldn't create shadow wrapper", e);
         }
-        long wrapperEnd = System.currentTimeMillis();
-        LOGGER.trace("Wrapper loaded in {} ms", wrapperEnd - wrapperStart);
-        long end = System.currentTimeMillis();
-        LOGGER.trace("Got full shadow in {} ms", end - start);
     }
 
     private MultivalueContainerDetailsPanel<ShadowType> getMultivalueContainerDetailsPanel(

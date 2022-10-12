@@ -16,6 +16,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author skublik
  *
@@ -26,6 +28,8 @@ public class ShadowWrapperImpl extends PrismObjectWrapperImpl<ShadowType> implem
 
     UserDtoStatus status;
     boolean noFetch = false;
+
+    private QName relation;
 
     public ShadowWrapperImpl(PrismObject<ShadowType> item, ItemStatus status) {
         super(item, status);
@@ -70,5 +74,15 @@ public class ShadowWrapperImpl extends PrismObjectWrapperImpl<ShadowType> implem
         }
 
         return ShadowUtil.isDead(shadow);
+    }
+
+    @Override
+    public void setRelation(QName relation) {
+        this.relation = relation;
+    }
+
+    @Override
+    public QName getRelation() {
+        return relation;
     }
 }

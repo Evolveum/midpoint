@@ -169,6 +169,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
 
                 ShadowWrapper wrapper = loadShadowWrapper(projection, true, task, subResult);
                 wrapper.setLoadWithNoFetch(true);
+                wrapper.setRelation(reference.getRelation());
                 list.add(wrapper);
 
             } catch (Throwable e) {
@@ -308,6 +309,7 @@ public class FocusDetailsModels<F extends FocusType> extends AssignmentHolderDet
             accountWrapper.revive(getPrismContext());
             ObjectDelta delta = accountWrapper.getObjectDelta();
             PrismReferenceValue refValue = getPrismContext().itemFactory().createReferenceValue(null, OriginType.USER_ACTION, null);
+            refValue.setRelation(accountWrapper.getRelation());
 
             PrismObject<ShadowType> account;
             switch (accountWrapper.getProjectionStatus()) {
