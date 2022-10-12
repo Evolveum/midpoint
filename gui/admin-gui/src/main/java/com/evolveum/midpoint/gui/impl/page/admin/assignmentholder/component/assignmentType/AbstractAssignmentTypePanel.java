@@ -14,6 +14,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -83,6 +84,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
     protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
+    protected static final String OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION = DOT_CLASS + "loadFullTextSearchConfiguration";
     private IModel<PrismContainerWrapper<AssignmentType>> model;
     protected int assignmentsRequestsLimit = -1;
 
@@ -590,6 +592,18 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected Search createSearch(Class<AssignmentType> type) {
         Search search = super.createSearch(type);
         search.setContainerDefinition(getTypeDefinitionForSearch());
+        if (isRepositorySearchEnabled()) {
+            OperationResult result = new OperationResult(OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION);
+            try {
+                FullTextSearchConfigurationType config = getPageBase().getModelInteractionService().getSystemConfiguration(result).getFullTextSearch();
+                if (config != null && FullTextSearchUtil.isEnabledFor(config, Collections.singletonList(getAssignmentType() == null ? AbstractRoleType.COMPLEX_TYPE : getAssignmentType()))) {
+                    search.getSearchConfigurationWrapper().addAllowedMode(SearchBoxModeType.FULLTEXT);
+                    search.setSearchMode(SearchBoxModeType.FULLTEXT);
+                }
+            } catch (Exception e) {
+                LOGGER.debug("Unable to load full text search configuration from system configuration, {}", e.getMessage());
+            }
+        }
         return search;
     }
 
