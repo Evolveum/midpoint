@@ -45,20 +45,11 @@
     </wicket:fragment>
 
     <wicket:fragment wicket:id="advancedSearchFragment">
-        <div class="d-flex">
-            <a class="btn btn-sm btn-link" wicket:id="debug" />
-        </div>
-        <div class="has-feedback col-lg-11 col-sm-10 col-xs-9" wicket:id="advancedGroup" style="float:right; padding-right: 5px; text-align-last: left;">
-            <textarea class="form-control form-control-sm" rows="2" wicket:id="advancedArea"
-                    style="width: 220px; height: 60px; overflow: hidden;"></textarea>
-            <input wicket:id="axiomQueryField" type="text" class="form-control form-control-sm"
-                    style="width: 91.6666667%; min-width: 300px; float:right;">
-            <label class="control-label col-lg-1" style="vertical-align: top; float:right; padding-right: 5px;">
-                <i id="advancedCheck" class="fa fa-lg" wicket:id="advancedCheck"/>
-            </label>
-            <div wicket:id="advancedErrorGroup" style="float:right">
-                <span id="advancedError" class="help-block" wicket:id="advancedError" style="float:right"/>
-            </div>
+        <a class="btn btn-sm btn-link" wicket:id="debug" />
+        <div class="d-flex flex-column flex-grow-1 align-items-end has-feedback" wicket:id="advancedGroup">
+            <textarea class="form-control form-control-sm mp-w-12" rows="2" wicket:id="advancedArea"></textarea>
+            <input wicket:id="axiomQueryField" type="text" class="form-control form-control-sm mp-w-12"/>
+            <span class="text-wrap" wicket:id="advancedError"/>
         </div>
     </wicket:fragment>
 

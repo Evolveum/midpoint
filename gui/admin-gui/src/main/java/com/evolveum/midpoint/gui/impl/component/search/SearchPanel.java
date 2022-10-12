@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
@@ -43,11 +42,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
-import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -122,8 +118,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_ADVANCED_GROUP = "advancedGroup";
     private static final String ID_ADVANCED_AREA = "advancedArea";
     private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
-    private static final String ID_ADVANCED_CHECK = "advancedCheck";
-    private static final String ID_ADVANCED_ERROR_GROUP = "advancedErrorGroup";
     private static final String ID_ADVANCED_ERROR = "advancedError";
     private static final String ID_FULL_TEXT_CONTAINER = "fullTextContainer";
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
@@ -517,7 +511,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         advancedSearchFragment.setOutputMarkupId(true);
         advancedSearchFragment.add(new VisibleBehaviour(() -> SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode()) ||
                 SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())));
-        advancedSearchFragment.add(AttributeAppender.append("style", "display: flex;"));
+        advancedSearchFragment.add(AttributeAppender.append("class", "d-flex justify-content-end mp-w-8 mp-w-xxl-6"));
         searchItemsRepeatingView.add(advancedSearchFragment);
 
         FulltextSearchFragment fulltextSearchFragment = new FulltextSearchFragment(searchItemsRepeatingView.newChildId(), ID_FULLTEXT_SEARCH_FRAGMENT,
@@ -883,19 +877,14 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
             WebMarkupContainer advancedGroup = new WebMarkupContainer(ID_ADVANCED_GROUP);
             advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
-            advancedGroup.add(AttributeAppender.append("class", createAdvancedGroupStyle()));
             advancedGroup.setOutputMarkupId(true);
             add(advancedGroup);
-
-            Label advancedCheck = new Label(ID_ADVANCED_CHECK);
-            advancedCheck.add(AttributeAppender.append("class", createAdvancedGroupLabelStyle()));
-            advancedCheck.setOutputMarkupId(true);
-            advancedGroup.add(advancedCheck);
 
             TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_QUERY));
             advancedArea.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
             advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
+            advancedArea.add(AttributeAppender.append("class", createValidityStyle()));
             advancedGroup.add(advancedArea);
 
             TextField<String> queryDslField = new TextField<>(ID_AXIOM_QUERY_FIELD,
@@ -903,29 +892,24 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             queryDslField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
             queryDslField.add(createVisibleBehaviour(SearchBoxModeType.AXIOM_QUERY));
+            queryDslField.add(AttributeAppender.append("class", createValidityStyle()));
             advancedGroup.add(queryDslField);
 
-            WebMarkupContainer advancedErrorGroup = new WebMarkupContainer(ID_ADVANCED_ERROR_GROUP);
-            advancedErrorGroup.setOutputMarkupId(true);
-            advancedGroup.add(advancedErrorGroup);
             Label advancedError = new Label(ID_ADVANCED_ERROR,
                     new PropertyModel<String>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_ERROR));
-            advancedError.add(new VisibleEnableBehaviour() {
+            advancedError.setOutputMarkupId(true);
+            advancedError.add(AttributeAppender.append("class",
+                    () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "valid-feedback" : "invalid-feedback"));
+            advancedError.add(new VisibleBehaviour(() -> {
+                Search search = getModelObject();
 
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isVisible() {
-                    Search search = getModelObject();
-
-                    if (!isAdvancedMode()) {
-                        return false;
-                    }
-
-                    return StringUtils.isNotEmpty(search.getAdvancedError());
+                if (!isAdvancedMode()) {
+                    return false;
                 }
-            });
-            advancedErrorGroup.add(advancedError);
+
+                return StringUtils.isNotEmpty(search.getAdvancedError());
+            }));
+            advancedGroup.add(advancedError);
         }
 
         private boolean isAdvancedMode() {
@@ -956,31 +940,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             SearchPanel.this.setResponsePage(pageQuery);
         }
 
-        private IModel<String> createAdvancedGroupLabelStyle() {
-            return new IModel<String>() {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public String getObject() {
-                    Search search = getModelObject();
-
-                    return StringUtils.isEmpty(search.getAdvancedError()) ? "fa-check-circle-o" : "fa-exclamation-triangle";
-                }
-            };
-        }
-
-        private IModel<String> createAdvancedGroupStyle() {
-            return new IModel<String>() {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public String getObject() {
-                    Search search = getModelObject();
-                    return StringUtils.isEmpty(search.getAdvancedError()) ? "has-success" : "has-error";
-                }
-            };
+        private IModel<String> createValidityStyle() {
+            return () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "is-valid" : "is-invalid";
         }
 
         private void updateAdvancedArea(Component area, AjaxRequestTarget target) {
@@ -1007,8 +968,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                     + " '" + parent.getMarkupId() + "', 'fa-exclamation-triangle', 'has-error');");
 
             target.add(
-                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP, ID_ADVANCED_CHECK)),
-                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP, ID_ADVANCED_ERROR_GROUP)),
+                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP, ID_ADVANCED_ERROR)),
                     SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_BUTTON_PANEL)));
         }
 
