@@ -262,7 +262,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
             return basicContainers;
         }
 
-        List<PrismContainerWrapper<? extends Containerable>> virtualContainers = new ArrayList<>(getContainers());
+        List<PrismContainerWrapper<? extends Containerable>> virtualContainers = new ArrayList<>();
         if (this.virtualContainers != null && this.virtualContainers.panelIdentifier.equals(config.getIdentifier())) {
             virtualContainers = this.virtualContainers.virtualContainers;
         } else {
