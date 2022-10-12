@@ -124,6 +124,12 @@ public class CacheDispatcherImpl implements CacheDispatcher {
         if (CacheInvalidationEventSpecification.ALL_PATHS == eventSpec.getPaths()) {
             return true;
         }
+        if (result.isOverwrite()) {
+            // MID-8167: Object was overwritten - in case of sqale or other repositories this is delete + add
+            // so list of modifications paths may be incorrect or empty
+            // we would rather assume that paths changed and emit event.
+            return true;
+        }
         for (ItemPath path : eventSpec.getPaths()) {
             for (ItemDelta<?, ?> modification : result.getModifications()) {
                 if (modification.getPath().startsWith(path)) {
