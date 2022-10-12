@@ -115,9 +115,13 @@ public class MessagePanel<T extends Serializable> extends BasePanel<T> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                close(target);
+                if (this.getParent() != null) {
+                    target.add(this.getParent().setVisible(false));
+                }
+                // close(target);
             }
         };
+        close.setOutputMarkupId(true);
         close.setVisible(closeVisible);
 
         box.add(close);

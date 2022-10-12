@@ -25,7 +25,6 @@ import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
-
 /**
  * Created by honchar
  *
@@ -60,7 +59,7 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
             defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
         }
         DropDownFormGroup<QName> input = new DropDownFormGroup<>(ID_INPUT, createValueModel(defaultRelation), supportedRelationsModel, getRenderer(),
-                getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", null, null, !allowNull) {
+                getRelationLabelModel(), createStringResource("relationDropDownChoicePanel.tooltip.relation"), null, null, !allowNull) {
             private static final long serialVersionUID = 1L;
 
             @Override
