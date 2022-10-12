@@ -921,7 +921,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                     || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode());
         }
         private boolean isQueryPlaygroundAccessible() {
-            return SecurityUtils.isPageAuthorized(PageRepositoryQuery.class) && SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode());
+            return SecurityUtils.isPageAuthorized(PageRepositoryQuery.class) && SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
+                    && ObjectType.class.isAssignableFrom(getModelObject().getTypeClass());
         }
 
         private void debugPerformed() {
