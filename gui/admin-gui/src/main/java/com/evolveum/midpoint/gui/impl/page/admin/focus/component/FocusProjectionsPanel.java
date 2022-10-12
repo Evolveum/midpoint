@@ -818,6 +818,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return true;
     }
 
+//TODO this is probably whole wrong .. we should not rely that the activation will be available. it is available only after full load..
     private void updateShadowActivation(AjaxRequestTarget target,
             List<PrismContainerValueWrapper<ShadowType>> accounts, boolean enabled) {
 
@@ -825,17 +826,18 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             return;
         }
 
+        int markedToChangeActivation = 0;
         for (PrismContainerValueWrapper<ShadowType> account : accounts) {
-//            if (!account.isLoadedOK()) {
-//                continue;
-//            }
             try {
-//                ObjectWrapperOld<ShadowType> wrapper = account.getObjectOld();
-//                PrismObjectWrapper<ShadowType> wrapper = account.getObject();
                 PrismContainerWrapper<ActivationType> activation = account
                         .findContainer(ShadowType.F_ACTIVATION);
                 if (activation == null) {
-                    warn(getString("pageAdminFocus.message.noActivationFound"));
+                    warn(getString("pageAdminFocus.message.noActivationFound", WebComponentUtil.getName(account.getRealValue())));
+                    continue;
+                }
+
+                if (CollectionUtils.isEmpty(activation.getValues())) {
+                    warn(getString("pageAdminFocus.message.noActivationFound", WebComponentUtil.getName(account.getRealValue())));
                     continue;
                 }
 
@@ -849,15 +851,16 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                 ActivationStatusType status = enabled ? ActivationStatusType.ENABLED
                         : ActivationStatusType.DISABLED;
                 ((PrismPropertyValue) value.getNewValue()).setValue(status);
+                markedToChangeActivation++;
 
             } catch (SchemaException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-
-//            wrapper.setSelected(false);
         }
-        info(getString("pageAdminFocus.message.updated." + enabled));
+        if (markedToChangeActivation > 0) {
+            info(getString("pageAdminFocus.message.updated." + enabled));
+        }
         target.add(getPageBase().getFeedbackPanel(), getMultivalueContainerListPanel());
     }
 
