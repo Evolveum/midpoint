@@ -211,12 +211,17 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        assignments.stream()
-                .filter(a -> !selectedAssignments.contains(a))
-                .forEach(a -> selectedAssignments.add(a.clone()));
+        List<AssignmentType> filterNotYetSelected = assignments.stream()
+                .filter(a -> !selectedAssignments.contains(a)).collect(Collectors.toList());
+
+        if (filterNotYetSelected.isEmpty()) {
+            return;
+        }
+
+        filterNotYetSelected.forEach(a -> selectedAssignments.add(a.clone()));
 
         for (List<AssignmentType> list : requestItems.values()) {
-            assignments.forEach(a -> list.add(a.clone()));
+            filterNotYetSelected.forEach(a -> list.add(a.clone()));
         }
 
         markConflictsDirty();
