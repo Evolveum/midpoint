@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.prism.wrapper;
 import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -43,5 +44,7 @@ public interface PrismValueWrapper<T> extends Serializable, DebugDumpable {
     void setShowMetadata(boolean showMetadata);
 
     String toShortString();
+
+    <C extends Containerable> PrismContainerValueWrapper<C> getParentContainerValue(Class<? extends C> parentClass);
 
 }

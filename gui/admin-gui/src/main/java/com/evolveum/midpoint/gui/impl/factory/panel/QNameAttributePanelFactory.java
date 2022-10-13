@@ -9,39 +9,32 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.input.AutoCompleteDisplayableValueConverter;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 
-import org.apache.commons.collections4.CollectionUtils;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AbstractAutoCompleteRenderer;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.util.convert.IConverter;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -53,21 +46,22 @@ import java.util.stream.Collectors;
  * @author katkav
  */
 @Component
-public class AssociationAttributePanelFactory extends DropDownChoicePanelFactory implements Serializable{
+public class QNameAttributePanelFactory extends DropDownChoicePanelFactory implements Serializable{
 
     @Override
     public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return (ResourceObjectAssociationType.F_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_VALUE_ATTRIBUTE.equals(wrapper.getItemName())
                 || ResourceObjectAssociationType.F_SHORTCUT_ASSOCIATION_ATTRIBUTE.equals(wrapper.getItemName())
-                || ResourceObjectAssociationType.F_SHORTCUT_VALUE_ATTRIBUTE.equals(wrapper.getItemName()))
+                || ResourceObjectAssociationType.F_SHORTCUT_VALUE_ATTRIBUTE.equals(wrapper.getItemName())
+                || ActivationStatusCapabilityType.F_ATTRIBUTE.equivalent(wrapper.getItemName()))
                 && DOMUtil.XSD_QNAME.equals(wrapper.getTypeName());
     }
 
     @Override
     protected InputPanel getPanel(PrismPropertyPanelContext<QName> panelCtx) {
-        PrismObjectWrapper<ResourceType> objectWrapper = panelCtx.unwrapWrapperModel().findObjectWrapper();
-        if (objectWrapper != null) {
+        PrismObjectWrapper<ObjectType> objectWrapper = panelCtx.unwrapWrapperModel().findObjectWrapper();
+        if (objectWrapper != null && ResourceType.class.isAssignableFrom(objectWrapper.getTypeClass())) {
 
             IModel<List<DisplayableValue<QName>>> values = new LoadableDetachableModel<>() {
                 @Override
@@ -215,6 +209,12 @@ public class AssociationAttributePanelFactory extends DropDownChoicePanelFactory
                 }
             }
             return resourceObjectType;
+        }
+
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> parentValue =
+                propertyWrapper.getParentContainerValue(ResourceObjectTypeDefinitionType.class);
+        if (parentValue != null) {
+            return parentValue.getRealValue();
         }
         return null;
     }
