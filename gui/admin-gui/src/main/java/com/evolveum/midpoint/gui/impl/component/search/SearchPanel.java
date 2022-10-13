@@ -46,6 +46,7 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -316,9 +317,10 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
             @Override
             protected void populateItem(ListItem<InlineMenuItem> item) {
-                AjaxLink<String> itemLabel = new AjaxLink<>(ID_SAVED_FILTER_NAME) {
+                AjaxSubmitLink itemLabel = new AjaxSubmitLink(ID_SAVED_FILTER_NAME) {
                     private static final long serialVersionUID = 1L;
-                    public void onClick(AjaxRequestTarget target) {
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target) {
                         selectSavedFilterPerformed(findFilterById(item.getModelObject().getId()), target);
                     }
                 };
