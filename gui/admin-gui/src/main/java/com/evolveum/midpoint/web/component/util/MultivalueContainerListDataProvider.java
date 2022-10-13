@@ -7,19 +7,22 @@
 package com.evolveum.midpoint.web.component.util;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.web.component.data.BaseSearchDataProvider;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 
@@ -27,8 +30,12 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -38,8 +45,10 @@ import org.jetbrains.annotations.NotNull;
 public class MultivalueContainerListDataProvider<C extends Containerable> extends BaseSearchDataProvider<C, PrismContainerValueWrapper<C>>
         implements ISelectableDataProvider<PrismContainerValueWrapper<C>> {
 
+    private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListDataProvider.class);
     private final IModel<List<PrismContainerValueWrapper<C>>> model;
     private final boolean sortable; // just to ensure backward compatibility with existing usages
+    private static final String OPERATION_INTERNAL_ITERATOR = MultivalueContainerListDataProvider.class.getName() + ".internalIterator";
 
     public MultivalueContainerListDataProvider(
             Component component, @NotNull IModel<Search<C>> search, IModel<List<PrismContainerValueWrapper<C>>> model) {
@@ -59,24 +68,40 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
     public Iterator<? extends PrismContainerValueWrapper<C>> internalIterator(long first, long count) {
         getAvailableData().clear();
 
-        List<PrismContainerValueWrapper<C>> list = searchThroughList();
+        OperationResult result = new OperationResult(OPERATION_INTERNAL_ITERATOR );
 
-        if (sortable && getSort() != null) {
-            sort(list);
-        }
-        if (list != null) {
-            for (long i = first; i < first + count; i++) {
-                if (i < 0 || i >= list.size()) {
-                    throw new ArrayIndexOutOfBoundsException("Trying to get item on index " + i
-                            + " but list size is " + list.size());
-                }
-                PrismContainerValueWrapper<C> valueWrapper = list.get(WebComponentUtil.safeLongToInteger(i));
-                postProcessWrapper(valueWrapper);
-                getAvailableData().add(valueWrapper);
+        try {
+            List<PrismContainerValueWrapper<C>> list = searchThroughList();
+
+            if (sortable && getSort() != null) {
+                sort(list);
             }
+            if (list != null) {
+                for (long i = first; i < first + count; i++) {
+                    if (i < 0 || i >= list.size()) {
+                        throw new ArrayIndexOutOfBoundsException("Trying to get item on index " + i
+                                + " but list size is " + list.size());
+                    }
+                    PrismContainerValueWrapper<C> valueWrapper = list.get(WebComponentUtil.safeLongToInteger(i));
+                    postProcessWrapper(valueWrapper);
+                    getAvailableData().add(valueWrapper);
+                }
+            }
+
+        } catch (Exception e) {
+            result.recordFatalError(e.getMessage(),e);
+            return handleNotSuccessOrHandledErrorInIterator(result);
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
         return getAvailableData().iterator();
+    }
+
+    protected Iterator<PrismContainerValueWrapper<C>> handleNotSuccessOrHandledErrorInIterator(OperationResult result) {
+        List<PrismContainerValueWrapper<C>> errorList = new ArrayList<>(1);
+        getPageBase().showResult(result);
+        return errorList.iterator();
     }
 
     protected void postProcessWrapper(PrismContainerValueWrapper<C> valueWrapper) {
@@ -106,12 +131,20 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
 
     @Override
     protected int internalSize() {
-        List<PrismContainerValueWrapper<C>> list = searchThroughList();
-        if (list == null) {
+        OperationResult result = new OperationResult(OPERATION_INTERNAL_ITERATOR );
+        try {
+            List<PrismContainerValueWrapper<C>> list = searchThroughList();
+            if (list == null) {
+                return 0;
+            }
+            return list.size();
+        } catch (Exception e) {
+            result.recordFatalError(e.getMessage(),e);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", e);
+            handleNotSuccessOrHandledErrorInIterator(result);
             return 0;
         }
 
-        return list.size();
     }
 
 
