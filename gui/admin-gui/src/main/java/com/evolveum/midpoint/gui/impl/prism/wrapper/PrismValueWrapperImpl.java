@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
@@ -21,6 +19,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -191,5 +191,17 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
             return "";
         }
         return getRealValue().toString();
+    }
+
+    @Override
+    public <C extends Containerable> PrismContainerValueWrapper<C> getParentContainerValue(@NotNull Class<? extends C> parentClass) {
+        ItemWrapper parent = getParent();
+        if (parent == null || parent instanceof PrismObjectWrapper) {
+            return null;
+        }
+        if (parent instanceof PrismContainerWrapper && parentClass.equals(parent.getTypeClass())) {
+            return (PrismContainerValueWrapper<C>) this;
+        }
+        return parent.getParentContainerValue(parentClass);
     }
 }
