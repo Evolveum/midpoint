@@ -92,6 +92,8 @@ public abstract class SchemaConstants {
     public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
     public static final ItemName C_SECURITY_POLICY = new ItemName(NS_C, "securityPolicy");
     public static final ItemName C_MODEL_EXECUTE_OPTIONS = new ItemName(NS_C, "modelExecuteOptions");
+    public static final ItemName C_CONFLICT_RESOLUTION_ACTION_TYPE = new ItemName(NS_C, "ConflictResolutionActionType");
+    public final static ItemName F_EXECUTION_OPTIONS = new ItemName(NS_C, "executionOptions");
 
     public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES,
             "PolyStringType");

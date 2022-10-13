@@ -13,12 +13,16 @@ import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.task.TaskDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 @PanelType(name = "work")
 @PanelInstance(identifier = "work", applicableForType = TaskType.class, childOf = TaskActivityPanel.class, defaultPanel = true,
@@ -49,13 +53,30 @@ public class TaskWorkPanel extends AbstractObjectMainPanel<TaskType, TaskDetails
     }
 
     private boolean getMandatoryOverrideFor(ItemWrapper<?, ?> itemWrapper) {
-        ItemPath conflictResolutionPath = ItemPath.create(TaskType.F_ACTIVITY, ActivityDefinitionType.F_WORK,
-                WorkDefinitionsType.F_RECOMPUTATION, RecomputationWorkDefinitionType.F_EXECUTION_OPTIONS,
-                ModelExecuteOptionsType.F_FOCUS_CONFLICT_RESOLUTION, ConflictResolutionType.F_ACTION);
-        if (conflictResolutionPath.equivalent(itemWrapper.getPath().namedSegmentsOnly())) {
+        if (isFocusConflictResolutionActionPath(itemWrapper)) {
             return false;
         }
 
         return itemWrapper.isMandatory();
+    }
+
+    private boolean isFocusConflictResolutionActionPath(ItemWrapper<?, ?> itemWrapper) {
+        if (!SchemaConstants.C_CONFLICT_RESOLUTION_ACTION_TYPE.equals(itemWrapper.getTypeName())) {
+            return false;
+        }
+
+        ItemPath namedPath = itemWrapper.getPath().namedSegmentsOnly();
+        if (namedPath.size() < 3) {
+            return false;
+        }
+
+        ItemPath validatedPathPart = namedPath.subPath(namedPath.size() - 3, namedPath.size());
+
+        ItemPath validated = ItemPath.create(
+                SchemaConstants.F_EXECUTION_OPTIONS,
+                ModelExecuteOptionsType.F_FOCUS_CONFLICT_RESOLUTION,
+                ConflictResolutionType.F_ACTION);
+
+        return validatedPathPart.equivalent(validated);
     }
 }
