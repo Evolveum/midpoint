@@ -25,8 +25,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 
-import com.evolveum.midpoint.gui.impl.page.self.dashboard.component.LinksPanel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -49,7 +47,6 @@ import com.evolveum.midpoint.web.page.self.PageSelf;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 
 @PageDescriptor(
         urls = {
@@ -73,7 +70,7 @@ public class PageSelfDashboard extends PageSelf {
     private static final String ID_OBJECT_COLLECTION_VIEW_WIDGETS_PANEL = "objectCollectionViewWidgetsPanel";
     private static final String ID_OBJECT_COLLECTION_VIEW_WIDGET = "objectCollectionViewWidget";
 
-    private static final String STATISTIC_WIDGET_IDENTIFIER = "statisticWidget";
+    private static final String LINK_WIDGET_IDENTIFIER = "linkWidget";
 
 
     public PageSelfDashboard() {
@@ -156,7 +153,7 @@ public class PageSelfDashboard extends PageSelf {
          if (allWidgetList == null) {
              return null;
          }
-         return allWidgetList.stream().filter(w -> STATISTIC_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
+         return allWidgetList.stream().filter(w -> LINK_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
      }
 
      private List<PreviewContainerPanelConfigurationType> getNonStatisticWidgetList() {
@@ -165,7 +162,7 @@ public class PageSelfDashboard extends PageSelf {
          if (allWidgetList == null) {
              return null;
          }
-         return allWidgetList.stream().filter(w -> !STATISTIC_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
+         return allWidgetList.stream().filter(w -> !LINK_WIDGET_IDENTIFIER.equals(w.getPanelType())).collect(Collectors.toList());
      }
 
     private LoadableDetachableModel<PrismObject<UserType>> createSelfModel() {
