@@ -28,7 +28,7 @@ If there's only one group for users to be selected, step will not be hidden and 
 |Description
 
 |defaultSelection
-|boolean
+|String
 |
 |Identifier of group that should be preselected or constant "myself" to preselect option which represents user currently logged in.
 
