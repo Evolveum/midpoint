@@ -101,7 +101,7 @@ class CorrelationProcessing<F extends FocusType> {
         OperationResult result = parentResult.subresult(OP_CORRELATE)
                 .build();
         try {
-            clearExistingCorrelationState();
+            clearExistingCorrelationState(result);
             CompleteCorrelationResult correlationResult = correlateInRootCorrelator(result);
             applyCorrelationResultToShadow(correlationResult);
 
@@ -196,7 +196,7 @@ class CorrelationProcessing<F extends FocusType> {
         // TODO record case close if needed
     }
 
-    private void clearExistingCorrelationState() throws SchemaException {
+    private void clearExistingCorrelationState(OperationResult result) throws SchemaException {
         if (syncCtx.getShadowedResourceObject().getCorrelation() == null) {
             return; // nothing to clear
         }
@@ -205,6 +205,8 @@ class CorrelationProcessing<F extends FocusType> {
                         .item(ShadowType.F_CORRELATION)
                         .replace()
                         .asItemDeltas());
+        // We commit this delta now to avoid overlapping with the follow-up correlation state deltas that will be added later.
+        syncCtx.getUpdater().commit(result);
     }
 
     private void applyCorrelationResultToShadow(CompleteCorrelationResult correlationResult) throws SchemaException {
