@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.panel.*;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ProtectedStringTypeWrapperImpl;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.prism.Containerable;
 
@@ -22,6 +23,8 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -91,7 +94,10 @@ public class VerticalFormDefaultContainerablePanel<C extends Containerable> exte
 
         ItemPanel propertyPanel;
         ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
-        if (item.getModelObject() instanceof PrismPropertyWrapper) {
+        if (item.getModelObject() instanceof ProtectedStringTypeWrapperImpl) {
+            propertyPanel = new VerticalFormPasswordPropertyPanel(
+                    ID_PROPERTY, (IModel<PrismPropertyWrapper<ProtectedStringType>>) item.getModel(), settings);
+        } else if (item.getModelObject() instanceof PrismPropertyWrapper) {
             propertyPanel = new VerticalFormPrismPropertyPanel(ID_PROPERTY, item.getModel(), settings);
         } else {
             propertyPanel = new VerticalFormPrismReferencePanel(ID_PROPERTY, item.getModel(), settings);

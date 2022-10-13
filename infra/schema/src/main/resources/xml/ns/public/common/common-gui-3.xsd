@@ -62,12 +62,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Application or shortcut links placed on end-user dashboard.
-                        TODO: align with userDashboard
+
+                        DEPRECATED use homePage instead
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>AdminGuiConfigurationType.userDashboardLink</a:displayName>
                         <a:deprecatedSince>4.6</a:deprecatedSince>
                         <a:deprecated/>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -113,6 +115,7 @@
                         <a:displayName>AdminGuiConfigurationType.objectForms</a:displayName>
                         <a:deprecated/>
                         <a:deprecatedSince>4.4</a:deprecatedSince>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -136,11 +139,16 @@
                         <p>
                             Specifies the layout of the user dashboard (home screen):
                             it defines which boxes should be visible, which should be hidden, etc.
+
+                            DEPRECATED, use homePage configuration instead
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
                         <a:displayName>AdminGuiConfigurationType.userDashboard</a:displayName>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.6</a:deprecatedSince>
+                        <a:plannedRemoval>4.8</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

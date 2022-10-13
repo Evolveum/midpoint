@@ -535,6 +535,14 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public <C extends Containerable> PrismContainerValueWrapper<C> getParentContainerValue(Class<? extends C> parentClass) {
+        if (metadataValueWrapper.getParent() != null) {
+            return metadataValueWrapper.getParent().getParentContainerValue(parentClass);
+        }
+        return null;
+    }
+
+    @Override
     public String debugDump(int indent) {
         return metadataValueWrapper.debugDump(indent);
     }
