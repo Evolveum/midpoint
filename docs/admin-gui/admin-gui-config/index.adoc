@@ -19,9 +19,7 @@ The admin GUI configuration structure contains:
 * `*additionalMenuLink*`: Links that will be displayed as an additional items in the user interface menu.
 It can be used to point the user to other services in your deployment.
 
-* `*userDashboardLink*`: DEPRECATED (since 4.6 , DO NOT USE ANYMORE, see `homePage` configuration),Application or shortcut links placed on end-user dashboard.
-Note: this configuration will be most likely placed inside the `userDashborad` in the future.
-However the compatibility will be maintained and this setting will also remain here.
+* `*userDashboardLink*`: DEPRECATED (since 4.6 , DO NOT USE ANYMORE, see `homePage` configuration)
 
 * `*objectCollectionViews*`: Specifies the set of pages that are used for displaying lists of objects such as Users, Roles, Orgs, ... Influences a list of links in sidebar menu for particular object. E.g. defining objectCollection for _Employees_ will create new link in sidebar menu under the _Users_, after clicking on the link, filtered list of the _Employees_ is shown
 
@@ -33,7 +31,7 @@ However the compatibility will be maintained and this setting will also remain h
 
 * `*selfProfilePage*`: Specifies customizations for xref:/midpoint/reference/admin-gui/self-service/[Self-service Profile], which panels are shown, which attributes, collections, virtual sections, ...
 
-* `*userDashboard*`: (since midPoint 3.6) This setting controls which widgets are displayed on user dashboard (home screen).
+* `*userDashboard*`: DEPRECATED (since 4.6, DO NOT USE ANYMORE, see `homePage`)
 
 * `*defaultTimezone*`: Defines the timezone that will be used by the user interface to display date and time information.
 
@@ -81,7 +79,7 @@ If users are placed to organizational units according to their physical location
 The step that applies admin GUI configuration from the user object is meant to store and re-apply user's own preferences about user interface look and feel.
 It is only partially implemented.
 
-=== Widgets
+=== Widgets before 4.6
 
 The merged configurations for widgets have one quite specific characteristic.
 If no configuration is present at all, then a default configuration will be used (all default widgets).
@@ -798,7 +796,7 @@ Panels applicable only for system configuration:
 WARNING: This feature is available since midPoint 4.6
 
 It is possible to switch implementation of data provider (search engine) in
-assignment panels. Currently we support two implementations:
+assignment panels. Currently, we support two implementations:
 
 
 `InMemoryAssignmentDataProviderType`::
@@ -1447,14 +1445,14 @@ But there are subtle differences.
 * The authorization mechanism is designed to answer one very specific question: _can subject S do action A with object O?_ However, in user interface it is often desired to hide information that the user is entitled to see.
 E.g. maybe we do not want to display the default _assignments_ tab (even though the user can read assignments) because we want to replace it with a simplified custom tab.
 Maybe we do not want to display some dashboard widgets to keep the dashboard simple.
-There may be many use cases when authorizations allow something but we still do not want to display it.
+There may be many use cases when authorizations allow something, but we still do not want to display it.
 
 * The authorizations are designed for very easy, efficient and unambiguous merging.
 The authorizations defined by many roles are all executed together.
 It is not good if one authorization allows something (e.g. read access to `assignment` container in the user object) but other authorization subtly influences the decision (e.g. do not display the default assignments tab).
 It is best if all authorizations in midPoint remain "positive" (`allow` authorizations).
 If we want to follow that principle then we would need special authorization for every little GUI element and typical end user will need to have them all.
-This is very likely to multiply the number of required authorization and it might easily make the system unmaintainable.
+This is very likely to multiply the number of required authorizations, and it might easily make the system unmaintainable.
 
 * The authorizations are designed to be very efficient.
 They are evaluated for every operation (even several times in some cases).
@@ -1464,25 +1462,8 @@ On the other hand, look and feel of user interface is not critical.
 We can afford to pre-process the settings and keep a cached copy of the results.
 We do not need to re-evaluate it every time.
 
-However, the autorizations and the admin GUI configuration work together in several cases.
-
-Firstly, shortcuts and menu links may explicitly specify an authorization (action) that is required for this shortcut/link to be displayed:
-
-[source,xml]
-----
-    <adminGuiConfiguration>
-        <userDashboardLink>
-            <targetUrl>http://example.com/swashbuckle</targetUrl>
-            <label>Swashbuckle</label>
-            <authorization>http://example.com/xml/ns/autz-1#swashbuckle</authorization>
-        </userDashboardLink>
-    </adminGuiConfiguration>
-----
-
-This link will be displayed only if the user has authorization that allow the action specified in the link.
-
-Secondly, inclusion of default forms and the `automatic` visibility mode of widgets are authorization-sensitive.
-This means that form or widget will be displayed only if the user has access to the data that are displayed.
+However, the authorizations and the admin GUI configuration work together in several cases.
+E.g. end-users and administrators, both have the `basic` panel in the profile visible, but the attributes which are seen by end-users or administrators might differ.
 
 == Feedback Messages Hook
 
