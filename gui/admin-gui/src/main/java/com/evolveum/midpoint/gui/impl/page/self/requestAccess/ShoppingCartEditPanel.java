@@ -13,10 +13,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Containerable;
-
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -25,7 +21,6 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -43,14 +38,17 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -140,6 +138,10 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
                     // virtual containers are now collected for Objects, not containers, therefore empty user is created here
                     UserType user = new UserType();
+                    // we'll set user principal oid to our fake user to get object wrapper with properties/containers
+                    // that were filters through authorization against "self".
+                    // TODO this should be improved
+                    user.setOid(SecurityUtil.getPrincipalOidIfAuthenticated());
                     user.getAssignment().add(assigment);
                     PrismObjectWrapperFactory<UserType> userWrapperFactory = getPageBase().findObjectWrapperFactory(user.asPrismObject().getDefinition());
 
@@ -190,7 +192,6 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
     }
 
     private void initLayout() {
-
 
         DropDownChoice relation = new DropDownChoice(ID_RELATION, () -> requestAccess.getObject().getRelation(), relationChoices,
                 WebComponentUtil.getRelationChoicesRenderer());
@@ -354,7 +355,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
         try {
             // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
             PrismContainerValueWrapper<AssignmentType> containerValueWrapper = assignmentExtension.getObject();
-            if (containerValueWrapper == null){
+            if (containerValueWrapper == null) {
                 return;
             }
 
