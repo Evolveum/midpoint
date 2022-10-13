@@ -348,7 +348,7 @@ public class RequestAccess implements Serializable {
     }
 
     public boolean canSubmit() {
-        return getErrorCount() == 0 && !requestItems.isEmpty();
+        return getErrorCount() == 0 && !requestItems.isEmpty() && requestItems.values().stream().anyMatch(c -> !c.isEmpty());
     }
 
     private void markConflictsDirty() {
@@ -409,23 +409,13 @@ public class RequestAccess implements Serializable {
             ModelContext<UserType> ctx = mp.getModelInteractionService()
                     .previewChanges(MiscUtil.createCollection(delta), options, task, result);
 
-            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ctx.getEvaluatedAssignmentTriple();
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedTriple = ctx.getEvaluatedAssignmentTriple();
 
             Map<String, Conflict> conflicts = new HashMap<>();
-            if (evaluatedAssignmentTriple != null) {
-                Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
-                for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
-                    for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
-                        if (!policyRule.containsEnabledAction()) {
-                            continue;
-                        }
-
-                        // everything other than 'enforce' is a warning
-                        boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
-
-                        createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
-                    }
-                }
+            if (evaluatedTriple != null) {
+                processEvaluatedAssignments(userRef, conflicts, evaluatedTriple.getPlusSet());
+                processEvaluatedAssignments(userRef, conflicts, evaluatedTriple.getZeroSet());
+                processEvaluatedAssignments(userRef, conflicts, evaluatedTriple.getMinusSet());
             } else if (!result.isSuccess() && StringUtils.isNotEmpty(getSubresultWarningMessages(result))) {
                 String msg = page.getString("PageAssignmentsList.conflictsWarning", getSubresultWarningMessages(result));
                 page.warn(msg);
@@ -440,6 +430,26 @@ public class RequestAccess implements Serializable {
         }
 
         return new ArrayList<>();
+    }
+
+    private void processEvaluatedAssignments(ObjectReferenceType userRef, Map<String, Conflict> conflicts,
+            Collection<? extends EvaluatedAssignment> assignments) {
+        if (assignments == null) {
+            return;
+        }
+
+        for (EvaluatedAssignment<UserType> evaluatedAssignment : assignments) {
+            for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
+                if (!policyRule.containsEnabledAction()) {
+                    continue;
+                }
+
+                // everything other than 'enforce' is a warning
+                boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
+
+                createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
+            }
+        }
     }
 
     private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
