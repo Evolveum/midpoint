@@ -513,9 +513,7 @@ public class AssignmentsUtil {
             if (StringUtils.isNotEmpty(targetRefObject.getIdentifier())) {
                 return Model.of(targetRefObject.getIdentifier());
             }
-            if (targetRefObject.getDisplayName() != null && !targetRefObject.getName().getOrig().equals(targetRefObject.getDisplayName().getOrig())) {
-                return Model.of(targetRefObject.getName().getOrig());
-            }
+            return Model.of(targetRefObject.getName().getOrig());
         }
         return Model.of("");
     }
