@@ -407,8 +407,8 @@ public abstract class SynchronizationContext<F extends FocusType>
         return SynchronizationContext.skipMaintenanceCheck;
     }
 
-    void addShadowDeltas(@NotNull Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
-        updater.addShadowDeltas(deltas);
+    void applyShadowDeltas(@NotNull Collection<ItemDelta<?, ?>> deltas) throws SchemaException {
+        updater.applyShadowDeltas(deltas);
     }
 
     /**

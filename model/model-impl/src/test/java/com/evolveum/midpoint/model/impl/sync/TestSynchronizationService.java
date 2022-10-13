@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.*;
 import java.io.File;
 
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.test.DummyTestResource;
 
@@ -56,9 +57,13 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     public static final File TEST_DIR = new File("src/test/resources/sync");
 
-    private static final File RESOURCE_DUMMY_LIMITED_FILE = new File(TEST_DIR, "resource-dummy-limited.xml");
-    private static final String RESOURCE_DUMMY_LIMITED_OID = "cbe8baa0-64dd-11e8-9760-076bd690e1c4";
-    private static final String RESOURCE_DUMMY_LIMITED_NAME = "limited";
+    private static final DummyTestResource RESOURCE_DUMMY_LIMITED =
+            new DummyTestResource(
+                    TEST_DIR,
+                    "resource-dummy-limited.xml",
+                    "cbe8baa0-64dd-11e8-9760-076bd690e1c4",
+                    "limited",
+                    controller -> controller.extendSchemaPirate());
 
     private static final File SHADOW_PIRATES_DUMMY_FILE = new File(TEST_DIR, "shadow-pirates-dummy.xml");
     private static final String GROUP_PIRATES_DUMMY_NAME = "pirates";
@@ -81,15 +86,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     private MockLensDebugListener mockListener;
 
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
-        initDummyResourcePirate(RESOURCE_DUMMY_LIMITED_NAME,
-                RESOURCE_DUMMY_LIMITED_FILE, RESOURCE_DUMMY_LIMITED_OID, initTask, initResult);
-
+        initAndTestDummyResource(RESOURCE_DUMMY_LIMITED, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_BROKEN, initTask, initResult);
     }
 
@@ -834,7 +836,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         // WHEN
         when();
-        assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_LIMITED_OID, null, task, result);
+        assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_LIMITED.oid, null, task, result);
 
         // THEN
         then();
@@ -860,7 +862,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         assertLiveLinks(userAfter, 2);
-        accountShadowJackDummyLimitedOid = assertAccount(userAfter, RESOURCE_DUMMY_LIMITED_OID);
+        accountShadowJackDummyLimitedOid = assertAccount(userAfter, RESOURCE_DUMMY_LIMITED.oid);
 
         PrismObject<ShadowType> shadowDummyAfter = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertSituation(shadowDummyAfter, SynchronizationSituationType.LINKED);
@@ -891,16 +893,16 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         setDebugListener();
 
         getDummyResource().getAccountByUsername(USER_JACK_USERNAME)
-            .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Dummyland");
-        getDummyResource(RESOURCE_DUMMY_LIMITED_NAME).getAccountByUsername(USER_JACK_USERNAME)
-        .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Limitistan");
+                .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Dummyland");
+        RESOURCE_DUMMY_LIMITED.controller.getDummyResource().getAccountByUsername(USER_JACK_USERNAME)
+                .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Limitistan");
 
         displayDumpable("Dummy resource before", getDummyResource());
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         PrismObject<ShadowType> accountShadowLimitedJackBefore = getShadowModelNoFetch(accountShadowJackDummyLimitedOid);
         change.setShadowedResourceObject(accountShadowLimitedJackBefore);
-        change.setResource(getDummyResourceObject(RESOURCE_DUMMY_LIMITED_NAME));
+        change.setResource(getDummyResourceObject(RESOURCE_DUMMY_LIMITED.name));
         change.setSourceChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
@@ -935,7 +937,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         ProjectionContextKey keyDummyLimited =
                 ProjectionContextKey.classified(
-                        RESOURCE_DUMMY_LIMITED_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, null);
+                        RESOURCE_DUMMY_LIMITED.oid, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, null);
         LensProjectionContext accCtxDummyLimited = context.findProjectionContextByKeyExact(keyDummyLimited);
         assertNotNull("No account sync context for "+keyDummyLimited, accCtxDummyLimited);
         assertTrue("Wrong fullShadow for " + keyDummyLimited, accCtxDummyLimited.isFullShadow());
@@ -961,7 +963,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         assertDummyAccountAttribute(null, USER_JACK_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Dummyland");
-        assertDummyAccountAttribute(RESOURCE_DUMMY_LIMITED_NAME, USER_JACK_USERNAME,
+        assertDummyAccountAttribute(RESOURCE_DUMMY_LIMITED.name, USER_JACK_USERNAME,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Caribbean");
     }
 
@@ -1054,6 +1056,81 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertShadowAfter(shadow)
                 .assertCorrelationSituation(CorrelationSituationType.ERROR)
                 .assertHasComplexOperationExecutionFailureWithMessage(TASK_IMPORT_DUMMY_BROKEN.oid, expectedMessage);
+    }
+
+    /**
+     * Checks that the correlation is repeatable, i.e. that the (previous) correlation does not prevent the current one
+     * from proceeding correctly - typically, when the situation or configuration changes.
+     *
+     * MID-8223
+     */
+    @Test
+    public void test410RepeatedCorrelation() throws Exception {
+        given("dummy account exists");
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        String accountName = "test410";
+        RESOURCE_DUMMY_LIMITED.controller.addAccount(accountName);
+
+        when("account is imported (the first time)");
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_DUMMY_LIMITED.oid)
+                .withNameValue(accountName)
+                .execute(result);
+
+        then("user and the shadow is there, shadow has 'no owner' correlation state");
+        // @formatter:on
+        var userOid = assertUserAfterByUsername(accountName)
+                .assertLiveLinks(1)
+                .singleLink()
+                    .resolveTarget()
+                        .display()
+                        .assertValues(
+                                ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION),
+                                CorrelationSituationType.NO_OWNER)
+                    .end()
+                .end()
+                .getObjectable().getOid();
+        // @formatter:off
+
+        // This simulates the situation that the correlation rule is fixed, so instead of "no owner" it should produce "unlinked"
+        when("user->shadow link disappears (this simulates fixing the correlation rule)");
+        repositoryService.modifyObject(
+                UserType.class,
+                userOid,
+                deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .replace()
+                        .asItemDeltas(),
+                result);
+
+        and("account is re-imported");
+        var taskOid = importSingleAccountRequest()
+                .withResourceOid(RESOURCE_DUMMY_LIMITED.oid)
+                .withNameValue(accountName)
+                .execute(result);
+
+        then("task is OK");
+        assertTask(taskOid, "after reimport")
+                .display()
+                .assertSuccess()
+                .rootActivityState()
+                    .progress()
+                        .assertCommitted(1, 0, 0);
+
+        // @formatter:on
+        assertUser(userOid, "after reimport")
+                .assertLiveLinks(1)
+                .singleLink()
+                    .resolveTarget()
+                        .display()
+                        .assertValues(
+                                ItemPath.create(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION),
+                                CorrelationSituationType.EXISTING_OWNER)
+                    .end()
+                .end();
+        // @formatter:off
     }
 
     private void setDebugListener() {

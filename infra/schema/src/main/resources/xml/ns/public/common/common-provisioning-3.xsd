@@ -4053,8 +4053,14 @@
                             <xsd:documentation>
                                 State of the shadow correlation process. It contains statistical data (e.g. start/end timestamps),
                                 result of the (last) correlation - determined situation, candidate owner(s), performer OIDs
-                                and their comments - as well as correlator-specific data, like ID Match request
-                                and reference IDs.
+                                and their comments - as well as correlator-specific data, like ID Match request and reference IDs.
+
+                                Relevance of the data: The data are deleted when the new correlation process starts after the
+                                previous one ended. This fact is determined by checking that the correlationEndTimestamp (set
+                                by the previous correlation process) has a non-null value. However, until that time,
+                                we must keep the data intact. For example, ID Match correlation typically uses
+                                correlatorState/referenceId property as a kind of unique user identifier that is
+                                to be used in an inbound mapping.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.5</a:since>
