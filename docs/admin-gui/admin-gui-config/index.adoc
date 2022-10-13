@@ -19,13 +19,19 @@ The admin GUI configuration structure contains:
 * `*additionalMenuLink*`: Links that will be displayed as an additional items in the user interface menu.
 It can be used to point the user to other services in your deployment.
 
-* `*userDashboardLink*`: Application or shortcut links placed on end-user dashboard.
+* `*userDashboardLink*`: DEPRECATED (since 4.6 , DO NOT USE ANYMORE, see `homePage` configuration),Application or shortcut links placed on end-user dashboard.
 Note: this configuration will be most likely placed inside the `userDashborad` in the future.
 However the compatibility will be maintained and this setting will also remain here.
 
 * `*objectCollectionViews*`: Specifies the set of pages that are used for displaying lists of objects such as Users, Roles, Orgs, ... Influences a list of links in sidebar menu for particular object. E.g. defining objectCollection for _Employees_ will create new link in sidebar menu under the _Users_, after clicking on the link, filtered list of the _Employees_ is shown
 
 * `*objectDetails*`: Specifies the look and feel of the pages for displaying object details and editing of objects such as User, Role, Org,...
+
+* `*homePage*`: Defines how the xref:/midpoint/reference/admin-gui/self-service/#home-page[Home dashboard] (Self-service) looks, which widgets are shown, which links, etc.
+
+* `*accessRequest*`: Specifies customizations for xref:/midpoint/reference/admin-gui/request-access/[Request access] process, which steps are visible, which not, how the role catalog looks, ...
+
+* `*selfProfilePage*`: Specifies customizations for xref:/midpoint/reference/admin-gui/self-service/[Self-service Profile], which panels are shown, which attributes, collections, virtual sections, ...
 
 * `*userDashboard*`: (since midPoint 3.6) This setting controls which widgets are displayed on user dashboard (home screen).
 
@@ -1236,132 +1242,7 @@ Set another panel as `basic` panel to be shown as a default panel after opening 
 
 TODO:
 
-=== Hiding User Dashboard Widgets
 
-Following example can be used to customize the look of the user dashboard (home screen).
-
-[source,xml]
-----
-<role>
-     <name>Common User</name>
-     ...
-     <adminGuiConfiguration>
-        <userDashboard>
-            <widget>
-                <identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#shortcuts</identifier> <!-- before 4.6 -->
-                <visibility>automatic</visibility>
-            </widget>
-            <widget>
-                <identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#myRequests</identifier> <!-- before 4.6 -->
-                <visibility>automatic</visibility>
-            </widget>
-        </userDashboard>
-    </adminGuiConfiguration>
-</role>
-----
-
-The users that have this role will see only a very limited dashboard.
-They will see only the shortcuts and "my requests" box.
-There will be no search, no work items, not anything else.
-
-Let's have another role:
-
-[source,xml]
-----
-<role>
-     <name>Approver</name>
-     ...
-     <adminGuiConfiguration>
-        <userDashboard>
-            <widget>
-                <identifier>http://midpoint.evolveum.com/xml/ns/public/gui/component-3/dashboard/widget#myWorkItems</identifier>
-                <visibility>automatic</visibility>
-            </widget>
-        </userDashboard>
-    </adminGuiConfiguration>
-</role>
-----
-
-This role defines just one widget.
-Therefore if a user has just this one role then he will see only the workitems widget.
-But if the user has both roles then the configuration will be merged and he will see all three widgets.
-
-Since midPoint 4.6 the configuration of the user dashboard (home screen) becomes more flexible. All the panels on the page can be configured.
-
-e.g. the configuration for user's assignment panel on the dashboard page
-[source,xml]
-----
-<role>
-     <name>Approver</name>
-     ...
-     <adminGuiConfiguration>
-        <homePage>
-            <type>UserType</type>
-            <widget>
-                <identifier>myAccesses</identifier>
-                <display>
-                    <label>
-                        <orig>My accesses</orig>
-                        <translation>
-                            <key>PageSelfDashboard.myAccesses</key>
-                        </translation>
-                    </label>
-                    <cssClass>col-md-6</cssClass>
-                    <icon>
-                        <cssClass>fe fe-assignment</cssClass>
-                    </icon>
-                </display>
-                <action>
-                    <target>
-                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.PageUserSelfProfile</pageClass>
-                        <panelType>allAssignments</panelType>
-                    </target>
-                </action>
-                <panelType>allAssignments</panelType>
-                <preview>true</preview>
-            </widget>
-        </homePage>
-    </adminGuiConfiguration>
-</role>
-----
-
-configuration for shortcup Credentials widget on the user's dashboard page:
-[source,xml]
-----
-<role>
-     <name>Approver</name>
-     ...
-     <adminGuiConfiguration>
-        <homePage>
-            <type>UserType</type>
-            <widget>
-                <identifier>credentialsWidget</identifier>
-                <display>
-                    <label>
-                        <orig>Credentials</orig>
-                        <translation>
-                            <key>PageSelfDashboard.credentials</key>
-                        </translation>
-                    </label>
-                    <help>PageSelfDashboard.credentials.description</help>
-                    <cssClass>col-md-3</cssClass>
-                    <icon>
-                        <cssClass>fa fa-shield-alt</cssClass>
-                        <color>blue</color>
-                    </icon>
-                </display>
-                <panelType>statisticWidget</panelType>
-                <action>
-                    <target>
-                        <pageClass>com.evolveum.midpoint.gui.impl.page.self.credentials.PageSelfCredentials</pageClass>
-                    </target>
-                </action>
-                <preview>true</preview>
-            </widget>
-        </homePage>
-    </adminGuiConfiguration>
-</role>
-----
 
 Possible visibility values are:
 
@@ -1426,7 +1307,7 @@ Possible widget identifiers on the self dashboard page:
 
 === Custom columns configuration
 
-To customize columns in the object list table, please, see use the following example
+To customize columns in the object list table, please, see the following example
 
 [source,xml]
 ----

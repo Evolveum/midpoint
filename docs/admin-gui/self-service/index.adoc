@@ -28,7 +28,7 @@ image::dasboard-home.png[Home dashboard,100%]
 
 All widgets shown on Home dashboard are configurable.
 Configuration is based on `PreviewContainerPanelConfigurationType` type allowing to configure widget name, icon used for the widget, the size of the widget, data shown for the widget and more.
-It is also possible to use midPoint's standard xref:midpoint/reference/admin-gui/admin-gui-config/#how-it-works[merging mechanism] to override widgets visibility, actions, etc. with configuration in roles, archetypes or user's profile.
+It is also possible to use midPoint's standard xref:/midpoint/reference/admin-gui/admin-gui-config/#how-it-works[merging mechanism] to override widgets visibility, actions, etc. with configuration in roles, archetypes or user's profile.
 Therefore, be aware to fill in `identifier` attribute all the time, so it can be correctly used by the merging mechanism.
 The configuration details are explained using the following example of the preview widget used to show _My accesses_ on Home dashboard with default midPoint installation.
 
@@ -161,6 +161,29 @@ There is also action button which will take user to their profile (basic tab).
     </action>
 </widget>
 ----
+
+. Hiding User Dashboard Widgets
+
+Following example can be used to customize the look of the user dashboard (home screen).
+
+[source,xml]
+----
+<role>
+     <name>Common User</name>
+     ...
+     <adminGuiConfiguration>
+        <homePage>
+            <widget>
+                <identifier>myWorkItems</identifier>
+                <visibility>hidden</visibility>
+            </widget>
+
+        </homePage>
+    </adminGuiConfiguration>
+</role>
+----
+
+The users that have this role won't see widget with _My work items_.
 
 == Profile Page
 
