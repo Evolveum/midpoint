@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -46,6 +48,14 @@ public class IndirectSearchItemPanel extends AbstractSearchItemPanel<IndirectSea
             }
         }, false);
         inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> getModelObject().getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE)));
+        inputPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                searchPerformed(target);
+            }
+        });
         return inputPanel;
     }
 
