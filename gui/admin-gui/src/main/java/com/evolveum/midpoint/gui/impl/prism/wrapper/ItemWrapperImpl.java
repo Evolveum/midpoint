@@ -796,4 +796,13 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     public Optional<ComplexTypeDefinition> structuredType() {
         return getItemDefinition().structuredType();
     }
+
+    @Override
+    public <C extends Containerable> PrismContainerValueWrapper<C> getParentContainerValue(Class<? extends C> parentClass) {
+        PrismContainerValueWrapper<?> parent = getParent();
+        if (parent == null) {
+            return null;
+        }
+        return parent.getParentContainerValue(parentClass);
+    }
 }
