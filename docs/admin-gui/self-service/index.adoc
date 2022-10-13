@@ -164,12 +164,32 @@ There is also action button which will take user to their profile (basic tab).
 
 == Profile Page
 
-it is understandable from the name of the page that it displays user's profile data.
-Also, you can see user's projections, assignments and tasks there.
-If user has enough rights, he can also edit these data.
-Profile page is also fully configurable, menu items shown after opening profile can be added, removed, renamed, moved, etc., similarly as with the xref:/midpoint/reference/admin-gui/admin-gui-config/#object-details[object details] configuration.
+On the Profile page, all the necessary information about the logged-in user (or service) are shown.
+Information that are shown are influenced by the authorizations and GUI customizations.
+With combining these two mechanisms, it is possible to define what kind of information will be shown to concrete (logged-in user).
+It is important to have this possibility to define these restrictions, because there might be different users with different rights, e.g. end users, administrators, operators.
+End user can be restricted to perform some actions, but administrator can do anything.
 
+Since 4.6, new configuration option to customize self-service profile was introduced.
+Although, it was possible to define the customization is previous version, it was configurable globally for the type (e.g. UserType), and such customizations were applied on both, self-service and administration user's details pages.
+However, there might be situations when the information presented to the logged-in users can be different when looking and themselves and other users.
+This was the main motivation to separate customization of self-service profile and user's details.
+For example, since 4.6 it is possible to set, that the logged-in user when looking into their profile they will see theirs assignments, but after opening details of another user, no assignments will be shown.
 
+To configure self-service profile, the same rules and same panels can be used as described in xref:/midpoint/reference/admin-gui/admin-gui-config/#object-details[object details] page.
+The only different is the place, where it is configured. So it is not configured in `adminGuiConfiguration/objectDetails/*DetailsPage`, but in `adminGuiConfiguration/selfProfilePage`. The example of the configuration is listed bellow:
+
+----
+<adminGuiConfiguration>
+    <selfProfilePage>
+        <type>UserType</type>
+        <panel>
+            <identifier>history</identifier>
+            <visibility>hidden</visibility>
+        </panel>
+    </selfProfilePage>
+</adminGuiConfiguration>
+----
 
 == Credentials Page
 
