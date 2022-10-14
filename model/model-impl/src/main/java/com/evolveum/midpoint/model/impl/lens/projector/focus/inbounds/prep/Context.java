@@ -52,7 +52,7 @@ abstract class Context {
      * Returns paths of focus items mentioned in the "items" correlators.
      * They should have their inbound mappings evaluated in beforeCorrelation state (by default).
      *
-     * Should return empty set for clockwork processing.
+     * Should return empty set during clockwork-time processing.
      */
     public abstract @NotNull PathSet getCorrelationItemPaths();
 }

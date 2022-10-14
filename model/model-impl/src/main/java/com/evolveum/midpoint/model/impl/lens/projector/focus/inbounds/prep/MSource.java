@@ -220,16 +220,18 @@ abstract class MSource implements DebugDumpable {
      * Selects mappings appropriate for the current evaluation phase.
      * (The method is in this class, because here we have {@link #resourceObjectDefinition} where defaults are defined.)
      *
-     * @param resourceItemCorrelatorDefined Is the correlator defined for particular resource object item (currently attribute)?
+     * @param resourceItemLocalCorrelatorDefined Is the correlator defined "locally" for particular resource object item
+     * (currently attribute)?
+     * @param correlationItemPaths What (focus) items are referenced by `items` correlators?
      */
-    @NotNull List<InboundMappingType> filterApplicableMappingBeans(
+    @NotNull List<InboundMappingType> selectMappingBeansForEvaluationPhase(
             @NotNull List<InboundMappingType> beans,
-            boolean resourceItemCorrelatorDefined,
+            boolean resourceItemLocalCorrelatorDefined,
             @NotNull Collection<ItemPath> correlationItemPaths) {
         InboundMappingEvaluationPhaseType currentPhase = getCurrentEvaluationPhase();
         List<InboundMappingType> filtered =
                 new ApplicabilityEvaluator(
-                        getDefaultEvaluationPhases(), resourceItemCorrelatorDefined, correlationItemPaths, currentPhase)
+                        getDefaultEvaluationPhases(), resourceItemLocalCorrelatorDefined, correlationItemPaths, currentPhase)
                         .filterApplicableMappingBeans(beans);
         if (filtered.size() < beans.size()) {
             LOGGER.trace("{} out of {} mapping(s) for this item were filtered out because of evaluation phase '{}'",

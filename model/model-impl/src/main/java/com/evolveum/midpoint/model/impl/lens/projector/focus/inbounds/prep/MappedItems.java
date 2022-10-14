@@ -77,7 +77,7 @@ class MappedItems<F extends FocusType> {
      */
     void createMappedItems() throws SchemaException, ConfigurationException {
         for (QName attributeName : source.resourceObjectDefinition.getNamesOfAttributesWithInboundExpressions()) {
-            createAttributeMappingCreationRequest(attributeName);
+            createMappedItemForAttribute(attributeName);
         }
 
         // FIXME Remove this temporary check
@@ -87,11 +87,11 @@ class MappedItems<F extends FocusType> {
         }
 
         for (QName associationName : source.resourceObjectDefinition.getNamesOfAssociationsWithInboundExpressions()) {
-            createAssociationMappingCreationRequest(associationName);
+            createMappedItemForAssociation(associationName);
         }
 
         if (!source.isProjectionBeingDeleted()) {
-            createAuxObjClassesMappingCreationRequest();
+            createMappedItemForAuxObjectClasses();
         } else {
             // TODO why we are skipping evaluation of aux OCs below?
             LOGGER.trace("Skipping application of aux object class mappings because of projection DELETE delta");
@@ -102,10 +102,10 @@ class MappedItems<F extends FocusType> {
      * Creates a mapping creation request for mapping(s) for given attribute.
      *
      * @param <T> type of the attribute
-     * @see #createAssociationMappingCreationRequest(QName)
-     * @see #createAuxObjClassesMappingCreationRequest()
+     * @see #createMappedItemForAssociation(QName)
+     * @see #createMappedItemForAuxObjectClasses()
      */
-    private <T> void createAttributeMappingCreationRequest(QName attributeName) throws SchemaException, ConfigurationException {
+    private <T> void createMappedItemForAttribute(QName attributeName) throws SchemaException, ConfigurationException {
 
         // 1. Definitions and mapping beans
 
@@ -116,7 +116,7 @@ class MappedItems<F extends FocusType> {
                         () -> "No definition for attribute " + attributeName);
 
         List<InboundMappingType> mappingBeans =
-                source.filterApplicableMappingBeans(
+                source.selectMappingBeansForEvaluationPhase(
                         attributeDefinition.getInboundMappingBeans(),
                         attributeDefinition.getCorrelatorDefinition() != null,
                         context.getCorrelationItemPaths());
@@ -146,7 +146,7 @@ class MappedItems<F extends FocusType> {
             return;
         }
 
-        // 4. Mapping creation request
+        // 4. Mapped item
 
         mappedItems.add(
                 new MappedItem<>(
@@ -165,14 +165,14 @@ class MappedItems<F extends FocusType> {
     }
 
     /**
-     * Creates a mapping creation request for mapping(s) for given association.
+     * Creates a {@link MappedItem} for given association.
      *
      * The situation is complicated by the fact that all associations are mixed up in `shadow.association` container.
      *
-     * @see #createAttributeMappingCreationRequest(QName)
-     * @see #createAuxObjClassesMappingCreationRequest()
+     * @see #createMappedItemForAttribute(QName)
+     * @see #createMappedItemForAuxObjectClasses()
      */
-    private void createAssociationMappingCreationRequest(QName associationName) throws SchemaException, ConfigurationException {
+    private void createMappedItemForAssociation(QName associationName) throws SchemaException, ConfigurationException {
 
         // 1. Definitions
 
@@ -183,7 +183,7 @@ class MappedItems<F extends FocusType> {
         ItemName itemPath = ShadowType.F_ASSOCIATION;
         String itemDescription = "association " + associationName;
         List<InboundMappingType> mappingBeans =
-                source.filterApplicableMappingBeans(
+                source.selectMappingBeansForEvaluationPhase(
                         associationDefinition.getInboundMappingTypes(),
                         false,
                         Set.of()); // Associations are not evaluated before clockwork anyway
@@ -212,7 +212,7 @@ class MappedItems<F extends FocusType> {
             return;
         }
 
-        // 4. Mapping creation request
+        // 4. Mapped item
 
         mappedItems.add(
                 new MappedItem<>(
@@ -231,12 +231,12 @@ class MappedItems<F extends FocusType> {
     }
 
     /**
-     * Creates a mapping creation request for mapping(s) for auxiliary object classes.
+     * Creates a {@link MappedItem} for "auxiliary object classes" property.
      *
-     * @see #createAttributeMappingCreationRequest(QName)
-     * @see #createAttributeMappingCreationRequest(QName)
+     * @see #createMappedItemForAttribute(QName)
+     * @see #createMappedItemForAssociation(QName)
      */
-    private void createAuxObjClassesMappingCreationRequest() throws SchemaException, ConfigurationException {
+    private void createMappedItemForAuxObjectClasses() throws SchemaException, ConfigurationException {
 
         // 1. Definitions
 
@@ -272,7 +272,7 @@ class MappedItems<F extends FocusType> {
             return;
         }
 
-        // 4. Mapping creation request
+        // 4. Mapped item
 
         // Note that we intentionally ignore a-priori delta for aux OCs. The reason is unknown for me, but
         // this is how it was done before 4.5.

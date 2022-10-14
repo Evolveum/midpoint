@@ -38,6 +38,11 @@ import static com.evolveum.midpoint.common.SynchronizationUtils.*;
 
 /**
  * Offloads {@link SynchronizationServiceImpl} from duties related to updating synchronization/correlation metadata.
+ *
+ * Accumulates deltas in {@link #deltas} list (along with applying them to the current shadow) and writes them into
+ * repository when the {@link #commit(OperationResult)} method is called.
+ *
+ * Besides that, provides the business methods that update the operational data in the shadow.
  */
 public class ShadowUpdater {
 
@@ -67,14 +72,14 @@ public class ShadowUpdater {
     }
 
     private void updateSyncSituation() throws SchemaException {
-        addShadowDelta(
+        applyShadowDelta(
                 createSynchronizationSituationDelta(
                         syncCtx.getShadowedResourceObject().asPrismObject(),
                         syncCtx.getSituation()));
     }
 
     private void updateSyncSituationDescription(XMLGregorianCalendar now) throws SchemaException {
-        addShadowDelta(
+        applyShadowDelta(
                 createSynchronizationSituationDescriptionDelta(
                         syncCtx.getShadowedResourceObject().asPrismObject(),
                         syncCtx.getSituation(),
@@ -84,7 +89,7 @@ public class ShadowUpdater {
     }
 
     private ShadowUpdater updateSyncTimestamps(XMLGregorianCalendar now, boolean full) throws SchemaException {
-        addShadowDeltas(
+        applyShadowDeltas(
                 SynchronizationUtils.createSynchronizationTimestampsDeltas(
                         syncCtx.getShadowedResourceObject().asPrismObject(),
                         now,
@@ -169,13 +174,13 @@ public class ShadowUpdater {
         return deltas;
     }
 
-    void addShadowDeltas(@NotNull Collection<? extends ItemDelta<?, ?>> deltas) throws SchemaException {
+    void applyShadowDeltas(@NotNull Collection<? extends ItemDelta<?, ?>> deltas) throws SchemaException {
         for (ItemDelta<?, ?> delta : deltas) {
-            addShadowDelta(delta);
+            applyShadowDelta(delta);
         }
     }
 
-    private void addShadowDelta(ItemDelta<?, ?> delta) throws SchemaException {
+    private void applyShadowDelta(ItemDelta<?, ?> delta) throws SchemaException {
         deltas.add(delta);
         delta.applyTo(syncCtx.getShadowedResourceObject().asPrismObject());
     }

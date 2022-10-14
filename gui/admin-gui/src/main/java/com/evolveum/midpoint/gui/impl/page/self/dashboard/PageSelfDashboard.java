@@ -176,7 +176,7 @@ public class PageSelfDashboard extends PageSelf {
                     LOGGER.error("Cannot load logged in focus");
                     return null;
                 }
-                return (PrismObject<UserType>) principal.getFocus().asPrismObject();
+                return (PrismObject<UserType>) principal.getFocus().asPrismObject().clone();
             }
         };
     }

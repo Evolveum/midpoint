@@ -91,7 +91,9 @@ class ApplicabilityEvaluator {
         if (target == null) {
             return false;
         }
+        // Note that we ignore the variable in the path. Currently, it must point to the focus anyway.
         ItemPathType path = target.getPath();
-        return path != null && correlationItemPaths.contains(path.getItemPath());
+        return path != null
+                && correlationItemPaths.contains(path.getItemPath().stripVariableSegment());
     }
 }

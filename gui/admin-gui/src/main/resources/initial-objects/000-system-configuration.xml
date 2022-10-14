@@ -1247,6 +1247,9 @@
                         <item>
                             <path>connectorConfiguration/configurationProperties/port</path>
                         </item>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/connectionSecurity</path>
+                        </item>
                     </container>
                     <container>
                         <visibility>hidden</visibility>
@@ -1283,6 +1286,9 @@
                         </item>
                         <item>
                             <path>connectorConfiguration/configurationProperties/port</path>
+                        </item>
+                        <item>
+                            <path>connectorConfiguration/configurationProperties/connectionSecurity</path>
                         </item>
                     </container>
                     <container>

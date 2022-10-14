@@ -18,7 +18,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.cases.api.CaseEngine;
 import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.cases.api.util.PerformerCommentsFormatter;
-import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -43,14 +42,12 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -289,7 +286,7 @@ public class CorrelationCaseManager {
         }
 
         recordCaseCompletionInShadow(aCase, task, result);
-        caseCloser.closeCaseInRepository(result);
+        caseCloser.closeCase(result);
         correlationService.resolve(aCase, task, result);
 
         // As a convenience, we try to re-import the object. Technically this is not a part of the correlation case processing.
@@ -322,14 +319,10 @@ public class CorrelationCaseManager {
                     prismContext.deltaFor(ShadowType.class)
                             .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_CASE_CLOSE_TIMESTAMP)
                             .replace(now)
-                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
-                            .replace(now)
                             .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_REF)
                             .replaceRealValues(getPerformerRefs(aCase))
                             .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_PERFORMER_COMMENT)
                             .replaceRealValues(getPerformerComments(aCase, task, result))
-                            .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_OWNER_OPTIONS)
-                            .replace() // This might be reconsidered
                             .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_RESULTING_OWNER)
                             .replace(resultingOwnerRef)
                             .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)

@@ -24,6 +24,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
@@ -236,6 +237,7 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         FeedbackPanel messages = new FeedbackPanel(ID_MESSAGES);
         messages.setOutputMarkupId(true);
         messages.setOutputMarkupPlaceholderTag(true);
+        messages.setFilter(new ContainerFeedbackMessageFilter(form));
         form.add(messages);
 
         AjaxSubmitLink submit = new AjaxSubmitLink(ID_SUBMIT) {
