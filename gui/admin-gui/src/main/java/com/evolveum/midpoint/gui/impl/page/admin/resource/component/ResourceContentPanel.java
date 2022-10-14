@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperMod
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -154,13 +155,11 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         setOutputMarkupId(true);
 
         WebMarkupContainer topButtonsContainer = new WebMarkupContainer(ID_TOP_TABLE_BUTTONS_CONTAINER);
-        add(topButtonsContainer);
         topButtonsContainer.setOutputMarkupId(true);
-        topButtonsContainer.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
+        add(topButtonsContainer);
 
         RepeatingView topButtons = new RepeatingView(ID_TOP_TABLE_BUTTONS);
         topButtons.setOutputMarkupId(true);
-        topButtonsContainer.add(topButtons);
 
         initSychronizationButton(topButtons);
         initAttributeMappingButton(topButtons);
@@ -169,6 +168,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
         initCredentialsButton(topButtons);
         initActivationsButton(topButtons);
         initAssociationsButton(topButtons);
+
+        topButtonsContainer.add(topButtons);
 
         final Form mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
@@ -183,7 +184,7 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
             public Iterator<String> getIterator(String input) {
                 ResourceSchema refinedSchema;
                 try {
-                    refinedSchema = ResourceSchemaFactory.getCompleteSchema(getObjectWrapper().getObject());
+                    refinedSchema = ResourceSchemaFactory.getCompleteSchema(getObjectWrapper().getObjectApplyDelta());
                     if (refinedSchema != null) {
                         return refinedSchema.getIntentsForKind(getKind()).iterator();
                     } else {
@@ -264,8 +265,8 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 LOGGER.trace("Object class panel update: {}", isUseObjectClass());
                 updateResourceContentSearch();
                 mainForm.addOrReplace(initTable(getObjectWrapperModel()));
-                target.add(ResourceContentPanel.this.get(ID_TOP_TABLE_BUTTONS_CONTAINER));
                 target.add(mainForm);
+                target.add(ResourceContentPanel.this.get(ID_TOP_TABLE_BUTTONS_CONTAINER));
             }
 
         };
@@ -356,8 +357,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 }
             }
         };
+        attrMappingButton.setOutputMarkupId(true);
         attrMappingButton.showTitleAsLabel(true);
         attrMappingButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
+        attrMappingButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(attrMappingButton);
     }
 
@@ -377,8 +380,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 }
             }
         };
+        synchConfButton.setOutputMarkupId(true);
         synchConfButton.showTitleAsLabel(true);
         synchConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
+        synchConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(synchConfButton);
     }
 
@@ -398,8 +403,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 }
             }
         };
+        correlationConfButton.setOutputMarkupId(true);
         correlationConfButton.showTitleAsLabel(true);
         correlationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
+        correlationConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(correlationConfButton);
     }
 
@@ -419,8 +426,10 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 }
             }
         };
+        capabilitiesConfButton.setOutputMarkupId(true);
         capabilitiesConfButton.showTitleAsLabel(true);
         capabilitiesConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-fill flex-basis-0 mr-3"));
+        capabilitiesConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(capabilitiesConfButton);
     }
 
@@ -440,13 +449,15 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 }
             }
         };
+        credentialsConfButton.setOutputMarkupId(true);
         credentialsConfButton.showTitleAsLabel(true);
         credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
+        credentialsConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
         topButtons.add(credentialsConfButton);
     }
 
     private void initActivationsButton(RepeatingView topButtons) {
-        AjaxIconButton credentialsConfButton = new AjaxIconButton(
+        AjaxIconButton activationButton = new AjaxIconButton(
                 topButtons.newChildId(),
                 Model.of(ResourceObjectTypePreviewTileType.ACTIVATION.getIcon()),
                 getPageBase().createStringResource(ResourceObjectTypePreviewTileType.ACTIVATION)) {
@@ -461,13 +472,15 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 }
             }
         };
-        credentialsConfButton.showTitleAsLabel(true);
-        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
-        topButtons.add(credentialsConfButton);
+        activationButton.setOutputMarkupId(true);
+        activationButton.showTitleAsLabel(true);
+        activationButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill mr-3"));
+        activationButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
+        topButtons.add(activationButton);
     }
 
     private void initAssociationsButton(RepeatingView topButtons) {
-        AjaxIconButton credentialsConfButton = new AjaxIconButton(
+        AjaxIconButton associationConfButton = new AjaxIconButton(
                 topButtons.newChildId(),
                 Model.of(ResourceObjectTypePreviewTileType.ASSOCIATIONS.getIcon()),
                 getPageBase().createStringResource(ResourceObjectTypePreviewTileType.ASSOCIATIONS)) {
@@ -482,9 +495,11 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
                 }
             }
         };
-        credentialsConfButton.showTitleAsLabel(true);
-        credentialsConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill"));
-        topButtons.add(credentialsConfButton);
+        associationConfButton.setOutputMarkupId(true);
+        associationConfButton.showTitleAsLabel(true);
+        associationConfButton.add(AttributeAppender.append("class", "btn btn-primary p-3 flex-basis-0 flex-fill"));
+        associationConfButton.add(new VisibleBehaviour(() -> isTopTableButtonsVisible()));
+        topButtons.add(associationConfButton);
     }
 
     private IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectTypeValue(

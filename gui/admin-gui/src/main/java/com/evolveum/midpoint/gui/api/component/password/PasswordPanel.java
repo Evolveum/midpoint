@@ -13,6 +13,8 @@ import java.util.Objects;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -53,10 +55,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -124,7 +122,11 @@ public class PasswordPanel extends InputPanel {
         LoadableDetachableModel<List<StringLimitationResult>> limitationsModel = new LoadableDetachableModel<>() {
             @Override
             protected List<StringLimitationResult> load() {
-                ValuePolicyType valuePolicy = getValuePolicy(object);
+                ValuePolicyType valuePolicy = null;
+                if (!object.canRepresent(ResourceType.class)) {
+                    //we skip getting value policy for ResourceType because it is some protected string from connector configuration
+                    valuePolicy = getValuePolicy(object);
+                }
                 return getLimitationsForActualPassword(valuePolicy, object);
             }
         };
