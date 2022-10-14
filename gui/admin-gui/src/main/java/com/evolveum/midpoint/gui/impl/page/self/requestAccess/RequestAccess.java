@@ -99,8 +99,7 @@ public class RequestAccess implements Serializable {
 
     private final Map<ObjectReferenceType, List<ObjectReferenceType>> existingPoiRoleMemberships = new HashMap<>();
 
-    // should contain only assignments with targetRef (without any activation, extension, etc.)
-    private final Set<AssignmentType> selectedAssignments = new HashSet<>();
+    private final Set<AssignmentType> templateAssignments = new HashSet<>();
 
     private QName relation;
 
@@ -134,8 +133,8 @@ public class RequestAccess implements Serializable {
         this.selectedValidity = selectedValidity;
     }
 
-    public Set<AssignmentType> getSelectedAssignments() {
-        return Collections.unmodifiableSet(selectedAssignments);
+    public Set<AssignmentType> getTemplateAssignments() {
+        return Collections.unmodifiableSet(templateAssignments);
     }
 
     public List<Conflict> getConflicts() {
@@ -179,7 +178,7 @@ public class RequestAccess implements Serializable {
                 continue;
             }
 
-            List<AssignmentType> assignments = this.selectedAssignments.stream().map(AssignmentType::clone).collect(Collectors.toList());
+            List<AssignmentType> assignments = this.templateAssignments.stream().map(AssignmentType::clone).collect(Collectors.toList());
             requestItems.put(ref, assignments);
 
             List<ObjectReferenceType> memberships = existingMemberships.get(ref);
@@ -249,13 +248,13 @@ public class RequestAccess implements Serializable {
 
         // we can't use selectedAssignments.contains(a) here because selectedAssignments can contain items other than targetRef
         List<AssignmentType> filterNotYetSelected = assignments.stream()
-                .filter(a -> findMatchingAssignment(selectedAssignments, a) == null).collect(Collectors.toList());
+                .filter(a -> findMatchingAssignment(templateAssignments, a) == null).collect(Collectors.toList());
 
         if (filterNotYetSelected.isEmpty()) {
             return;
         }
 
-        filterNotYetSelected.forEach(a -> selectedAssignments.add(a.clone()));
+        filterNotYetSelected.forEach(a -> templateAssignments.add(a.clone()));
 
         for (List<AssignmentType> list : requestItems.values()) {
             filterNotYetSelected.forEach(a -> list.add(a.clone()));
@@ -274,8 +273,8 @@ public class RequestAccess implements Serializable {
         }
 
         for (AssignmentType a : assignments) {
-            AssignmentType matching = findMatchingAssignment(selectedAssignments, a);
-            this.selectedAssignments.remove(matching);
+            AssignmentType matching = findMatchingAssignment(templateAssignments, a);
+            this.templateAssignments.remove(matching);
 
             for (ObjectReferenceType ref : requestItems.keySet()) {
                 List<AssignmentType> assignmentList = requestItems.get(ref);
@@ -324,7 +323,7 @@ public class RequestAccess implements Serializable {
     private Map<AssignmentType, Integer> getShoppingCartAssignmentCounts() {
         Map<AssignmentType, Integer> counts = new HashMap<>();
 
-        selectedAssignments.forEach(a -> counts.put(a.clone(), 0));
+        templateAssignments.forEach(a -> counts.put(a.clone(), 0));
 
         for (List<AssignmentType> list : requestItems.values()) {
             for (AssignmentType real : list) {
@@ -346,7 +345,7 @@ public class RequestAccess implements Serializable {
         }
         this.relation = relation;
 
-        selectedAssignments.forEach(a -> a.getTargetRef().setRelation(this.relation));
+        templateAssignments.forEach(a -> a.getTargetRef().setRelation(this.relation));
         for (List<AssignmentType> list : requestItems.values()) {
             list.forEach(a -> a.getTargetRef().setRelation(this.relation));
         }
@@ -374,7 +373,7 @@ public class RequestAccess implements Serializable {
         requestItemsExistingToRemove.clear();
         existingPoiRoleMemberships.clear();
 
-        selectedAssignments.clear();
+        templateAssignments.clear();
         relation = null;
 
         selectedValidity = null;
@@ -623,7 +622,7 @@ public class RequestAccess implements Serializable {
 
         // check if we didn't remove last instance of assignment for specific role from requestedItems
         // if so we have to remove it from selectedAssignments as well
-        AssignmentType selected = findMatchingAssignment(selectedAssignments, toRemove.getAssignment());    // selected from role catalog
+        AssignmentType selected = findMatchingAssignment(templateAssignments, toRemove.getAssignment());    // selected from role catalog
         boolean found = false;
         for (List<AssignmentType> list : requestItems.values()) {
             if (list.stream().anyMatch(a -> matchAssignments(a, selected))) {
@@ -633,7 +632,7 @@ public class RequestAccess implements Serializable {
         }
 
         if (!found) {
-            selectedAssignments.remove(selected);
+            templateAssignments.remove(selected);
         }
     }
 
@@ -912,13 +911,13 @@ public class RequestAccess implements Serializable {
     }
 
     public void updateSelectedAssignment(AssignmentType updated) {
-        AssignmentType matching = findMatchingAssignment(selectedAssignments, updated);
+        AssignmentType matching = findMatchingAssignment(templateAssignments, updated);
         if (matching == null) {
             return;
         }
 
-        selectedAssignments.remove(matching);
-        selectedAssignments.add(updated.clone());
+        templateAssignments.remove(matching);
+        templateAssignments.add(updated.clone());
 
         // we'll find existing assignments for this role and replace them with updated one
         for (List<AssignmentType> list : requestItems.values()) {
