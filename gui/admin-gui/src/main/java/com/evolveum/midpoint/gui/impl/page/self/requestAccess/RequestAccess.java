@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -89,16 +90,16 @@ public class RequestAccess implements Serializable {
 
     public static final String DEFAULT_MYSELF_IDENTIFIER = "myself";
 
-    private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
+    private final Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
     /**
      * This map contains existing assignments from users that have to be removed to avoid conflicts when requesting
      */
-    private Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
+    private final Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
 
-    private Map<ObjectReferenceType, List<ObjectReferenceType>> existingPoiRoleMemberships = new HashMap<>();
+    private final Map<ObjectReferenceType, List<ObjectReferenceType>> existingPoiRoleMemberships = new HashMap<>();
 
-    private Set<AssignmentType> selectedAssignments = new HashSet<>();
+    private final Set<AssignmentType> selectedAssignments = new HashSet<>();
 
     private QName relation;
 
@@ -164,10 +165,10 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        Set<String> newOids = refs.stream().map(o -> o.getOid()).collect(Collectors.toSet());
+        Set<String> newOids = refs.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
         Set<ObjectReferenceType> existing = new HashSet<>(requestItems.keySet());
-        Set<String> existingOids = existing.stream().map(o -> o.getOid()).collect(Collectors.toSet());
+        Set<String> existingOids = existing.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
         boolean changed = false;
 
@@ -177,7 +178,7 @@ public class RequestAccess implements Serializable {
                 continue;
             }
 
-            List<AssignmentType> assignments = this.selectedAssignments.stream().map(a -> a.clone()).collect(Collectors.toList());
+            List<AssignmentType> assignments = this.selectedAssignments.stream().map(AssignmentType::clone).collect(Collectors.toList());
             requestItems.put(ref, assignments);
 
             List<ObjectReferenceType> memberships = existingMemberships.get(ref);
@@ -249,7 +250,7 @@ public class RequestAccess implements Serializable {
     public List<AssignmentType> getShoppingCartAssignments() {
         Set<AssignmentType> assignments = new HashSet<>();
 
-        requestItems.values().forEach(list -> assignments.addAll(list));
+        requestItems.values().forEach(assignments::addAll);
 
         return List.copyOf(assignments);
     }
@@ -378,17 +379,17 @@ public class RequestAccess implements Serializable {
         conflictsDirty = false;
     }
 
-    private ObjectReferenceType createRef(PrismObject object) {
+    private ObjectReferenceType createRef(PrismObject<UserType> object) {
         if (object == null) {
             return null;
         }
 
-        ObjectType obj = (ObjectType) object.asObjectable();
+        UserType user = object.asObjectable();
 
         return new ObjectReferenceType()
                 .oid(object.getOid())
-                .type(ObjectTypes.getObjectType(obj.getClass()).getTypeQName())
-                .targetName(obj.getName());
+                .type(ObjectTypes.getObjectType(user.getClass()).getTypeQName())
+                .targetName(user.getName());
     }
 
     public List<Conflict> computeConflictsForOnePerson(ObjectReferenceType ref, Task task, PageBase page) {
@@ -420,7 +421,7 @@ public class RequestAccess implements Serializable {
                 String msg = page.getString("PageAssignmentsList.conflictsWarning", getSubresultWarningMessages(result));
                 page.warn(msg);
             }
-            return new ArrayList(conflicts.values());
+            return new ArrayList<>(conflicts.values());
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", ex);
 
@@ -509,9 +510,10 @@ public class RequestAccess implements Serializable {
     }
 
     private String getSubresultWarningMessages(OperationResult result) {
-        if (result == null || result.getSubresults() == null) {
+        if (result == null) {
             return "";
         }
+
         StringBuilder sb = new StringBuilder();
         result.getSubresults().forEach(subresult -> {
             if (subresult.isWarning()) {
@@ -530,7 +532,7 @@ public class RequestAccess implements Serializable {
 
         ObjectDelta<UserType> delta = user.createModifyDelta();
 
-        PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+        PrismContainerDefinition<AssignmentType> def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 
         addAssignmentDeltas(delta, assignmentsToAdd, def, true);
         addAssignmentDeltas(delta, assignmentsToRemove, def, false);
@@ -538,14 +540,14 @@ public class RequestAccess implements Serializable {
         return delta;
     }
 
-    private ContainerDelta addAssignmentDeltas(ObjectDelta<UserType> focusDelta, List<AssignmentType> assignments,
-            PrismContainerDefinition def, boolean addAssignments) throws SchemaException {
+    private void addAssignmentDeltas(ObjectDelta<UserType> focusDelta, List<AssignmentType> assignments,
+            PrismContainerDefinition<AssignmentType> def, boolean addAssignments) throws SchemaException {
 
         PrismContext ctx = def.getPrismContext();
-        ContainerDelta delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);
+        ContainerDelta<AssignmentType> delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);
 
         for (AssignmentType a : assignments) {
-            PrismContainerValue newValue = a.asPrismContainerValue();
+            PrismContainerValue<AssignmentType> newValue = a.asPrismContainerValue();
 
             newValue.applyDefinition(def, false);
             if (addAssignments) {
@@ -556,10 +558,8 @@ public class RequestAccess implements Serializable {
         }
 
         if (!delta.isEmpty()) {
-            delta = focusDelta.addModification(delta);
+            focusDelta.addModification(delta);
         }
-
-        return delta;
     }
 
     private void addExistingToBeRemoved(ObjectReferenceType ref, AssignmentType assignment) {
