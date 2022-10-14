@@ -60,7 +60,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * . completing a correlation case;
  *
  * and further auxiliary methods.
- *
  */
 @Component
 public class CorrelationServiceImpl implements CorrelationService {
