@@ -367,6 +367,10 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             UserType user = wrapper.getObjectApplyDelta().asObjectable();
             // TODO wrappers for some reason create second assignment with (first one was passed from this shopping cart to fake user)
             // that second assignment contains modified extension...very nasty hack
+            List<AssignmentType> assignments = user.getAssignment();
+            if (assignments.size() < 2) {
+                return;
+            }
             AssignmentType modified = user.getAssignment().get(1);
 
             AssignmentType a = getModelObject().getAssignment();
