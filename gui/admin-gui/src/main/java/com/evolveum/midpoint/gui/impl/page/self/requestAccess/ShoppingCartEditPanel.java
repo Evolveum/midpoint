@@ -375,6 +375,8 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
             AssignmentType a = getModelObject().getAssignment();
             a.setExtension(modified.getExtension());
+
+            requestAccess.getObject().updateSelectedAssignment(a);
         } catch (SchemaException ex) {
             getPageBase().error(getString("ShoppingCartEditPanel.message.couldntProcessExtension", ex.getMessage()));
             LOGGER.debug("Couldn't process extension attributes", ex);

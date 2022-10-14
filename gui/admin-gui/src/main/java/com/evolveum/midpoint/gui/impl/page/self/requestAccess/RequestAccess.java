@@ -99,6 +99,7 @@ public class RequestAccess implements Serializable {
 
     private final Map<ObjectReferenceType, List<ObjectReferenceType>> existingPoiRoleMemberships = new HashMap<>();
 
+    // should contain only assignments with targetRef (without any activation, extension, etc.)
     private final Set<AssignmentType> selectedAssignments = new HashSet<>();
 
     private QName relation;
@@ -197,6 +198,7 @@ public class RequestAccess implements Serializable {
             }
 
             requestItems.remove(ref);
+            requestItemsExistingToRemove.remove(ref);
             existingOids.remove(ref.getOid());
 
             changed = true;
@@ -207,13 +209,47 @@ public class RequestAccess implements Serializable {
         }
     }
 
+    /**
+     * Matching will be done only based on targetRef
+     */
+
+    private boolean matchAssignments(AssignmentType one, AssignmentType two) {
+        if (one == null && two == null) {
+            return true;
+        }
+
+        if (one == null || two == null) {
+            return false;
+        }
+
+        ObjectReferenceType oneTarget = one.getTargetRef();
+        ObjectReferenceType twoTarget = two.getTargetRef();
+
+        return Objects.equals(oneTarget, twoTarget);
+    }
+
+    /**
+     * Matching will be done only based on targetRef
+     */
+    private AssignmentType findMatchingAssignment(Collection<AssignmentType> assignments, AssignmentType assignment) {
+        if (assignments == null || assignment == null) {
+            return null;
+        }
+
+        return assignments.stream().filter(a -> matchAssignments(a, assignment)).findFirst().orElse(null);
+    }
+
+    /**
+     * @param assignments list of assignments containing only targetRef and nothing else (without any activation, extension, etc.)
+     */
     public void addAssignments(List<AssignmentType> assignments) {
         if (assignments == null || assignments.isEmpty()) {
             return;
         }
 
+        // we can't use selectedAssignments.contains(a) here because selectedAssignments can contain items other than targetRef
         List<AssignmentType> filterNotYetSelected = assignments.stream()
-                .filter(a -> !selectedAssignments.contains(a)).collect(Collectors.toList());
+                .filter(a -> findMatchingAssignment(selectedAssignments, a) == null).collect(Collectors.toList());
 
         if (filterNotYetSelected.isEmpty()) {
             return;
@@ -228,17 +264,23 @@ public class RequestAccess implements Serializable {
         markConflictsDirty();
     }
 
+    /**
+     * @param assignments list of assignments that may contain items other than targetRef (activation, extension, etc.)
+     */
     public void removeAssignments(List<AssignmentType> assignments) {
         if (assignments == null || assignments.isEmpty()) {
             return;
 
         }
+
         for (AssignmentType a : assignments) {
-            this.selectedAssignments.remove(a);
+            AssignmentType matching = findMatchingAssignment(selectedAssignments, a);
+            this.selectedAssignments.remove(matching);
 
             for (ObjectReferenceType ref : requestItems.keySet()) {
                 List<AssignmentType> assignmentList = requestItems.get(ref);
                 assignmentList.remove(a);
+
                 if (CollectionUtils.isEmpty(assignmentList)) {
                     requestItems.remove(ref);
                 }
@@ -282,16 +324,12 @@ public class RequestAccess implements Serializable {
     private Map<AssignmentType, Integer> getShoppingCartAssignmentCounts() {
         Map<AssignmentType, Integer> counts = new HashMap<>();
 
-        for (ObjectReferenceType ref : requestItems.keySet()) {
-            List<AssignmentType> assignments = requestItems.get(ref);
-            for (AssignmentType a : assignments) {
-                Integer count = counts.get(a);
-                if (count == null) {
-                    count = 0;
-                    counts.put(a, count);
-                }
+        selectedAssignments.forEach(a -> counts.put(a.clone(), 0));
 
-                counts.replace(a, count + 1);
+        for (List<AssignmentType> list : requestItems.values()) {
+            for (AssignmentType real : list) {
+                Integer count = counts.get(real);
+                counts.replace(real, count + 1);
             }
         }
 
@@ -582,6 +620,21 @@ public class RequestAccess implements Serializable {
 
         conflict.setState(ConflictState.SOLVED);
         conflict.setToBeRemoved(toRemove);
+
+        // check if we didn't remove last instance of assignment for specific role from requestedItems
+        // if so we have to remove it from selectedAssignments as well
+        AssignmentType selected = findMatchingAssignment(selectedAssignments, toRemove.getAssignment());    // selected from role catalog
+        boolean found = false;
+        for (List<AssignmentType> list : requestItems.values()) {
+            if (list.stream().anyMatch(a -> matchAssignments(a, selected))) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            selectedAssignments.remove(selected);
+        }
     }
 
     public boolean isAllConflictsSolved() {
@@ -856,5 +909,26 @@ public class RequestAccess implements Serializable {
         }
 
         return count;
+    }
+
+    public void updateSelectedAssignment(AssignmentType updated) {
+        AssignmentType matching = findMatchingAssignment(selectedAssignments, updated);
+        if (matching == null) {
+            return;
+        }
+
+        selectedAssignments.remove(matching);
+        selectedAssignments.add(updated.clone());
+
+        // we'll find existing assignments for this role and replace them with updated one
+        for (List<AssignmentType> list : requestItems.values()) {
+            AssignmentType real = list.stream().filter(a -> matchAssignments(a, matching)).findFirst().orElse(null);
+            if (real == null) {
+                continue;
+            }
+
+            list.remove(real);
+            list.add(updated.clone());
+        }
     }
 }
