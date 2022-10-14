@@ -75,8 +75,17 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
         // We don't need these now.
     }
 
-    // Owner OID may be different from the identifier in URI.
     void resolveCase(@NotNull CaseType aCase, @Nullable String ownerOid, Task task, OperationResult result)
+            throws CommonException {
+        resolveCase(aCase, ownerOid, null, task, result);
+    }
+
+    void resolveCase(
+            @NotNull CaseType aCase,
+            @Nullable String ownerOid, // Owner OID may be different from the value in the identifier in URI (in the case)
+            @Nullable String comment,
+            Task task,
+            OperationResult result)
             throws CommonException {
         List<CaseWorkItemType> workItems = CaseRelatedUtils.getOpenWorkItems(aCase);
         assertThat(workItems).as("work items in " + aCase).isNotEmpty();
@@ -84,7 +93,8 @@ public abstract class AbstractCorrelationTest extends AbstractStoryTest {
         caseService.completeWorkItem(
                 WorkItemId.of(workItems.get(0)),
                 CorrelationCaseUtil.createDefaultOutput(
-                        determineOwnerOptionIdentifier(aCase, ownerOid)),
+                                determineOwnerOptionIdentifier(aCase, ownerOid))
+                        .comment(comment),
                 task,
                 result);
     }

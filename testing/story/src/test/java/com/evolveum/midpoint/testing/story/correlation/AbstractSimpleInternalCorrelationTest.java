@@ -240,7 +240,7 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
         when("case for Alice is resolved");
 
         long aliceCaseResolutionStart = System.currentTimeMillis();
-        resolveCase(ag3case, aliceOid, task, result);
+        resolveCase(ag3case, aliceOid, "she is the one", task, result);
         long aliceCaseResolutionEnd = System.currentTimeMillis();
 
         and("case for Bob is resolved");
@@ -260,7 +260,10 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
                 .assertCorrelationStartTimestampBetween(firstTargetImportStart, aliceCaseResolutionStart)
                 .assertCorrelationCaseOpenTimestampBetween(firstTargetImportStart, aliceCaseResolutionStart)
                 .assertCorrelationCaseCloseTimestampBetween(aliceCaseResolutionStart, aliceCaseResolutionEnd)
-                .assertCorrelationEndTimestampBetween(aliceCaseResolutionStart, aliceCaseResolutionEnd);
+                .assertCorrelationEndTimestampBetween(aliceCaseResolutionStart, aliceCaseResolutionEnd)
+                .assertCorrelationPerformers(USER_ADMINISTRATOR_OID)
+                .assertCorrelationComments("she is the one")
+                .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER);
     }
 
     private @NotNull PrismObject<ShadowType> getTargetShadow(String name, OperationResult result) throws SchemaException {

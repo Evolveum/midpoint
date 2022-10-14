@@ -16,6 +16,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -25,8 +26,10 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @SuppressWarnings("UnusedReturnValue")
 public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
@@ -461,5 +464,33 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return correlationState != null ?
                 XmlTypeConverter.toMillisNullable(correlationState.getCorrelationEndTimestamp()) :
                 null;
+    }
+
+    public ShadowAsserter<RA> assertCorrelationPerformers(String... oids) {
+        assertThat(getCorrelationPerformers())
+                .as("correlation performers OIDs")
+                .containsExactlyInAnyOrder(oids);
+        return this;
+    }
+
+    private Collection<String> getCorrelationPerformers() {
+        ShadowCorrelationStateType correlation = getObjectable().getCorrelation();
+        return correlation != null ?
+                ObjectTypeUtil.getOidsFromRefs(correlation.getPerformerRef()) :
+                Set.of();
+    }
+
+    public ShadowAsserter<RA> assertCorrelationComments(String... comments) {
+        assertThat(getCorrelationComments())
+                .as("correlation-related comments")
+                .containsExactlyInAnyOrder(comments);
+        return this;
+    }
+
+    private Collection<String> getCorrelationComments() {
+        ShadowCorrelationStateType correlation = getObjectable().getCorrelation();
+        return correlation != null ?
+                correlation.getPerformerComment() :
+                Set.of();
     }
 }
