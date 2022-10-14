@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -89,16 +90,16 @@ public class RequestAccess implements Serializable {
 
     public static final String DEFAULT_MYSELF_IDENTIFIER = "myself";
 
-    private Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
+    private final Map<ObjectReferenceType, List<AssignmentType>> requestItems = new HashMap<>();
 
     /**
      * This map contains existing assignments from users that have to be removed to avoid conflicts when requesting
      */
-    private Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
+    private final Map<ObjectReferenceType, List<AssignmentType>> requestItemsExistingToRemove = new HashMap<>();
 
-    private Map<ObjectReferenceType, List<ObjectReferenceType>> existingPoiRoleMemberships = new HashMap<>();
+    private final Map<ObjectReferenceType, List<ObjectReferenceType>> existingPoiRoleMemberships = new HashMap<>();
 
-    private Set<AssignmentType> selectedAssignments = new HashSet<>();
+    private final Set<AssignmentType> templateAssignments = new HashSet<>();
 
     private QName relation;
 
@@ -132,8 +133,8 @@ public class RequestAccess implements Serializable {
         this.selectedValidity = selectedValidity;
     }
 
-    public Set<AssignmentType> getSelectedAssignments() {
-        return Collections.unmodifiableSet(selectedAssignments);
+    public Set<AssignmentType> getTemplateAssignments() {
+        return Collections.unmodifiableSet(templateAssignments);
     }
 
     public List<Conflict> getConflicts() {
@@ -164,10 +165,10 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        Set<String> newOids = refs.stream().map(o -> o.getOid()).collect(Collectors.toSet());
+        Set<String> newOids = refs.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
         Set<ObjectReferenceType> existing = new HashSet<>(requestItems.keySet());
-        Set<String> existingOids = existing.stream().map(o -> o.getOid()).collect(Collectors.toSet());
+        Set<String> existingOids = existing.stream().map(AbstractReferencable::getOid).collect(Collectors.toSet());
 
         boolean changed = false;
 
@@ -177,7 +178,7 @@ public class RequestAccess implements Serializable {
                 continue;
             }
 
-            List<AssignmentType> assignments = this.selectedAssignments.stream().map(a -> a.clone()).collect(Collectors.toList());
+            List<AssignmentType> assignments = this.templateAssignments.stream().map(AssignmentType::clone).collect(Collectors.toList());
             requestItems.put(ref, assignments);
 
             List<ObjectReferenceType> memberships = existingMemberships.get(ref);
@@ -196,6 +197,7 @@ public class RequestAccess implements Serializable {
             }
 
             requestItems.remove(ref);
+            requestItemsExistingToRemove.remove(ref);
             existingOids.remove(ref.getOid());
 
             changed = true;
@@ -206,33 +208,78 @@ public class RequestAccess implements Serializable {
         }
     }
 
+    /**
+     * Matching will be done only based on targetRef
+     */
+
+    private boolean matchAssignments(AssignmentType one, AssignmentType two) {
+        if (one == null && two == null) {
+            return true;
+        }
+
+        if (one == null || two == null) {
+            return false;
+        }
+
+        ObjectReferenceType oneTarget = one.getTargetRef();
+        ObjectReferenceType twoTarget = two.getTargetRef();
+
+        return Objects.equals(oneTarget, twoTarget);
+    }
+
+    /**
+     * Matching will be done only based on targetRef
+     */
+    private AssignmentType findMatchingAssignment(Collection<AssignmentType> assignments, AssignmentType assignment) {
+        if (assignments == null || assignment == null) {
+            return null;
+        }
+
+        return assignments.stream().filter(a -> matchAssignments(a, assignment)).findFirst().orElse(null);
+    }
+
+    /**
+     * @param assignments list of assignments containing only targetRef and nothing else (without any activation, extension, etc.)
+     */
     public void addAssignments(List<AssignmentType> assignments) {
         if (assignments == null || assignments.isEmpty()) {
             return;
         }
 
-        assignments.stream()
-                .filter(a -> !selectedAssignments.contains(a))
-                .forEach(a -> selectedAssignments.add(a.clone()));
+        // we can't use selectedAssignments.contains(a) here because selectedAssignments can contain items other than targetRef
+        List<AssignmentType> filterNotYetSelected = assignments.stream()
+                .filter(a -> findMatchingAssignment(templateAssignments, a) == null).collect(Collectors.toList());
+
+        if (filterNotYetSelected.isEmpty()) {
+            return;
+        }
+
+        filterNotYetSelected.forEach(a -> templateAssignments.add(a.clone()));
 
         for (List<AssignmentType> list : requestItems.values()) {
-            assignments.forEach(a -> list.add(a.clone()));
+            filterNotYetSelected.forEach(a -> list.add(a.clone()));
         }
 
         markConflictsDirty();
     }
 
+    /**
+     * @param assignments list of assignments that may contain items other than targetRef (activation, extension, etc.)
+     */
     public void removeAssignments(List<AssignmentType> assignments) {
         if (assignments == null || assignments.isEmpty()) {
             return;
 
         }
+
         for (AssignmentType a : assignments) {
-            this.selectedAssignments.remove(a);
+            AssignmentType matching = findMatchingAssignment(templateAssignments, a);
+            this.templateAssignments.remove(matching);
 
             for (ObjectReferenceType ref : requestItems.keySet()) {
                 List<AssignmentType> assignmentList = requestItems.get(ref);
                 assignmentList.remove(a);
+
                 if (CollectionUtils.isEmpty(assignmentList)) {
                     requestItems.remove(ref);
                 }
@@ -244,7 +291,7 @@ public class RequestAccess implements Serializable {
     public List<AssignmentType> getShoppingCartAssignments() {
         Set<AssignmentType> assignments = new HashSet<>();
 
-        requestItems.values().forEach(list -> assignments.addAll(list));
+        requestItems.values().forEach(assignments::addAll);
 
         return List.copyOf(assignments);
     }
@@ -276,16 +323,12 @@ public class RequestAccess implements Serializable {
     private Map<AssignmentType, Integer> getShoppingCartAssignmentCounts() {
         Map<AssignmentType, Integer> counts = new HashMap<>();
 
-        for (ObjectReferenceType ref : requestItems.keySet()) {
-            List<AssignmentType> assignments = requestItems.get(ref);
-            for (AssignmentType a : assignments) {
-                Integer count = counts.get(a);
-                if (count == null) {
-                    count = 0;
-                    counts.put(a, count);
-                }
+        templateAssignments.forEach(a -> counts.put(a.clone(), 0));
 
-                counts.replace(a, count + 1);
+        for (List<AssignmentType> list : requestItems.values()) {
+            for (AssignmentType real : list) {
+                Integer count = counts.get(real);
+                counts.replace(real, count + 1);
             }
         }
 
@@ -302,7 +345,7 @@ public class RequestAccess implements Serializable {
         }
         this.relation = relation;
 
-        selectedAssignments.forEach(a -> a.getTargetRef().setRelation(this.relation));
+        templateAssignments.forEach(a -> a.getTargetRef().setRelation(this.relation));
         for (List<AssignmentType> list : requestItems.values()) {
             list.forEach(a -> a.getTargetRef().setRelation(this.relation));
         }
@@ -330,7 +373,7 @@ public class RequestAccess implements Serializable {
         requestItemsExistingToRemove.clear();
         existingPoiRoleMemberships.clear();
 
-        selectedAssignments.clear();
+        templateAssignments.clear();
         relation = null;
 
         selectedValidity = null;
@@ -343,7 +386,7 @@ public class RequestAccess implements Serializable {
     }
 
     public boolean canSubmit() {
-        return getErrorCount() == 0 && !requestItems.isEmpty();
+        return getErrorCount() == 0 && !requestItems.isEmpty() && requestItems.values().stream().anyMatch(c -> !c.isEmpty());
     }
 
     private void markConflictsDirty() {
@@ -373,17 +416,17 @@ public class RequestAccess implements Serializable {
         conflictsDirty = false;
     }
 
-    private ObjectReferenceType createRef(PrismObject object) {
+    private ObjectReferenceType createRef(PrismObject<UserType> object) {
         if (object == null) {
             return null;
         }
 
-        ObjectType obj = (ObjectType) object.asObjectable();
+        UserType user = object.asObjectable();
 
         return new ObjectReferenceType()
                 .oid(object.getOid())
-                .type(ObjectTypes.getObjectType(obj.getClass()).getTypeQName())
-                .targetName(obj.getName());
+                .type(ObjectTypes.getObjectType(user.getClass()).getTypeQName())
+                .targetName(user.getName());
     }
 
     public List<Conflict> computeConflictsForOnePerson(ObjectReferenceType ref, Task task, PageBase page) {
@@ -404,28 +447,18 @@ public class RequestAccess implements Serializable {
             ModelContext<UserType> ctx = mp.getModelInteractionService()
                     .previewChanges(MiscUtil.createCollection(delta), options, task, result);
 
-            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ctx.getEvaluatedAssignmentTriple();
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedTriple = ctx.getEvaluatedAssignmentTriple();
 
             Map<String, Conflict> conflicts = new HashMap<>();
-            if (evaluatedAssignmentTriple != null) {
-                Collection<? extends EvaluatedAssignment> addedAssignments = evaluatedAssignmentTriple.getPlusSet();
-                for (EvaluatedAssignment<UserType> evaluatedAssignment : addedAssignments) {
-                    for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
-                        if (!policyRule.containsEnabledAction()) {
-                            continue;
-                        }
-
-                        // everything other than 'enforce' is a warning
-                        boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
-
-                        createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
-                    }
-                }
+            if (evaluatedTriple != null) {
+                processEvaluatedAssignments(userRef, conflicts, evaluatedTriple.getPlusSet());
+                processEvaluatedAssignments(userRef, conflicts, evaluatedTriple.getZeroSet());
+                processEvaluatedAssignments(userRef, conflicts, evaluatedTriple.getMinusSet());
             } else if (!result.isSuccess() && StringUtils.isNotEmpty(getSubresultWarningMessages(result))) {
                 String msg = page.getString("PageAssignmentsList.conflictsWarning", getSubresultWarningMessages(result));
                 page.warn(msg);
             }
-            return new ArrayList(conflicts.values());
+            return new ArrayList<>(conflicts.values());
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get assignments conflicts. Reason: ", ex);
 
@@ -435,6 +468,26 @@ public class RequestAccess implements Serializable {
         }
 
         return new ArrayList<>();
+    }
+
+    private void processEvaluatedAssignments(ObjectReferenceType userRef, Map<String, Conflict> conflicts,
+            Collection<? extends EvaluatedAssignment> assignments) {
+        if (assignments == null) {
+            return;
+        }
+
+        for (EvaluatedAssignment<UserType> evaluatedAssignment : assignments) {
+            for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
+                if (!policyRule.containsEnabledAction()) {
+                    continue;
+                }
+
+                // everything other than 'enforce' is a warning
+                boolean warning = !policyRule.containsEnabledAction(EnforcementPolicyActionType.class);
+
+                createConflicts(userRef, conflicts, evaluatedAssignment, policyRule.getAllTriggers(), warning);
+            }
+        }
     }
 
     private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
@@ -494,9 +547,10 @@ public class RequestAccess implements Serializable {
     }
 
     private String getSubresultWarningMessages(OperationResult result) {
-        if (result == null || result.getSubresults() == null) {
+        if (result == null) {
             return "";
         }
+
         StringBuilder sb = new StringBuilder();
         result.getSubresults().forEach(subresult -> {
             if (subresult.isWarning()) {
@@ -515,7 +569,7 @@ public class RequestAccess implements Serializable {
 
         ObjectDelta<UserType> delta = user.createModifyDelta();
 
-        PrismContainerDefinition def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+        PrismContainerDefinition<AssignmentType> def = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 
         addAssignmentDeltas(delta, assignmentsToAdd, def, true);
         addAssignmentDeltas(delta, assignmentsToRemove, def, false);
@@ -523,14 +577,14 @@ public class RequestAccess implements Serializable {
         return delta;
     }
 
-    private ContainerDelta addAssignmentDeltas(ObjectDelta<UserType> focusDelta, List<AssignmentType> assignments,
-            PrismContainerDefinition def, boolean addAssignments) throws SchemaException {
+    private void addAssignmentDeltas(ObjectDelta<UserType> focusDelta, List<AssignmentType> assignments,
+            PrismContainerDefinition<AssignmentType> def, boolean addAssignments) throws SchemaException {
 
         PrismContext ctx = def.getPrismContext();
-        ContainerDelta delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);
+        ContainerDelta<AssignmentType> delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);
 
         for (AssignmentType a : assignments) {
-            PrismContainerValue newValue = a.asPrismContainerValue();
+            PrismContainerValue<AssignmentType> newValue = a.asPrismContainerValue();
 
             newValue.applyDefinition(def, false);
             if (addAssignments) {
@@ -541,10 +595,8 @@ public class RequestAccess implements Serializable {
         }
 
         if (!delta.isEmpty()) {
-            delta = focusDelta.addModification(delta);
+            focusDelta.addModification(delta);
         }
-
-        return delta;
     }
 
     private void addExistingToBeRemoved(ObjectReferenceType ref, AssignmentType assignment) {
@@ -567,6 +619,21 @@ public class RequestAccess implements Serializable {
 
         conflict.setState(ConflictState.SOLVED);
         conflict.setToBeRemoved(toRemove);
+
+        // check if we didn't remove last instance of assignment for specific role from requestedItems
+        // if so we have to remove it from selectedAssignments as well
+        AssignmentType selected = findMatchingAssignment(templateAssignments, toRemove.getAssignment());    // selected from role catalog
+        boolean found = false;
+        for (List<AssignmentType> list : requestItems.values()) {
+            if (list.stream().anyMatch(a -> matchAssignments(a, selected))) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            templateAssignments.remove(selected);
+        }
     }
 
     public boolean isAllConflictsSolved() {
@@ -841,5 +908,26 @@ public class RequestAccess implements Serializable {
         }
 
         return count;
+    }
+
+    public void updateSelectedAssignment(AssignmentType updated) {
+        AssignmentType matching = findMatchingAssignment(templateAssignments, updated);
+        if (matching == null) {
+            return;
+        }
+
+        templateAssignments.remove(matching);
+        templateAssignments.add(updated.clone());
+
+        // we'll find existing assignments for this role and replace them with updated one
+        for (List<AssignmentType> list : requestItems.values()) {
+            AssignmentType real = list.stream().filter(a -> matchAssignments(a, matching)).findFirst().orElse(null);
+            if (real == null) {
+                continue;
+            }
+
+            list.remove(real);
+            list.add(updated.clone());
+        }
     }
 }

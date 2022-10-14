@@ -352,18 +352,7 @@ public class GuiProfileCompiler {
             composite.getHomePage().getWidget().clear();
             composite.getHomePage().getWidget().addAll(sorted);
         }
-        if (CollectionUtils.isNotEmpty(adminGuiConfiguration.getUserDashboardLink())) {
-            if (composite.getHomePage() == null) {
-                composite.setHomePage(new HomePageType());
-            }
-            adminGuiConfiguration.getUserDashboardLink().forEach(link -> {
-                List<String> authorizations = link.getAuthorization();
-                boolean addLink = CollectionUtils.isEmpty(authorizations) || securityHelper.isAuthorized(authorizations, task, result);
-                if (addLink) {
-                    composite.getHomePage().getWidget().add(transformUserDashboardLinkToWidget(link));
-                }
-            });
-        }
+
         if (composite.getSelfProfilePage() == null) {
             QName principalType = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(principal.getFocus().getClass()).getTypeName();
             composite.setSelfProfilePage(new GuiObjectDetailsPageType().type(principalType));
@@ -372,26 +361,6 @@ public class GuiProfileCompiler {
             composite.setSelfProfilePage(adminGuiConfigurationMergeManager.mergeObjectDetailsPageConfiguration(
                     adminGuiConfiguration.getSelfProfilePage(), composite.getSelfProfilePage()));
         }
-    }
-
-    private PreviewContainerPanelConfigurationType transformUserDashboardLinkToWidget(RichHyperlinkType link) {
-        if (link == null) {
-            return null;
-        }
-
-        PreviewContainerPanelConfigurationType widget = new PreviewContainerPanelConfigurationType();
-        widget.setPanelType(STATISTIC_WIDGET_PANEL_TYPE); //panel type is used for statistic widget creation
-        DisplayType displayType = new DisplayType()
-                .label(link.getLabel())
-                .color(link.getColor())
-                .help(link.getDescription())
-                .icon(link.getIcon());
-        widget.setDisplay(displayType);
-
-        GuiActionType action = new GuiActionType();
-        action.setTarget(new RedirectionTargetType().targetUrl(link.getTargetUrl()));
-        widget.createActionList().add(action);
-        return widget;
     }
 
     private HomePageType getHomePageByFocusType(List<HomePageType> homePageList, QName type) {

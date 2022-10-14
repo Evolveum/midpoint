@@ -51,10 +51,12 @@ public interface CorrelationService {
      *
      * - case is freshly fetched,
      * - case is a correlation one
+     *
+     * @param caseCloser Makes the case definitely closed. (This functionality must be provided by the caller.)
      */
     void completeCorrelationCase(
             @NotNull CaseType currentCase,
-            @NotNull CaseCloser closeCaseInRepository,
+            @NotNull CaseCloser caseCloser,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
@@ -62,8 +64,8 @@ public interface CorrelationService {
 
     @FunctionalInterface
     interface CaseCloser {
-        /** Closes the case in repository. */
-        void closeCaseInRepository(OperationResult result) throws ObjectNotFoundException;
+        /** Does everything needed to (definitely) close the case. */
+        void closeCase(OperationResult result) throws ObjectNotFoundException;
     }
 
     /**

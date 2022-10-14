@@ -1149,6 +1149,37 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                 shadow1Oid);
     }
 
+    // TODO MID-8235
+    @Test(enabled = false)
+    public void test330AxiomItemExistsIsTranslatedAsNotNull() throws SchemaException {
+        OperationResult operationResult = createOperationResult();
+
+        given("Axiom exists query for nested item (not null)");
+        SearchResultList<FocusType> result = searchObjects(FocusType.class,
+                "name exists",
+                operationResult);
+
+        /* TODO expect
+        expect("TODO");
+        assertThat(result)
+                .extracting(f -> f.getOid())
+                .containsExactlyInAnyOrder(user3Oid, user4Oid);
+         */
+    }
+
+    // TODO MID-8235
+    @Test(enabled = false)
+    public void test331AxiomExistsForNestedItem() throws SchemaException {
+        OperationResult operationResult = createOperationResult();
+
+        given("Axiom exists query for nested item (not null)");
+        SearchResultList<FocusType> result = searchObjects(FocusType.class,
+                "assignment/activation/validTo exists",
+                operationResult);
+
+        // TODO expect
+    }
+
     @Test
     public void test350ExistsWithEmbeddedContainer() throws SchemaException {
         searchUsersTest("matching the exists filter for metadata (embedded mapping)",

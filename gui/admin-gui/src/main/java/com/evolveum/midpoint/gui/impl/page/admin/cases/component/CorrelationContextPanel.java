@@ -16,6 +16,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -231,25 +232,28 @@ public class CorrelationContextPanel extends AbstractObjectMainPanel<CaseType, C
     }
 
     private IModel<CorrelationContextDto> createCorrelationContextModel() {
-        return new ReadOnlyModel<>(() -> {
-            CaseType aCase = getObjectDetailsModels().getObjectType();
-            CaseCorrelationContextType correlationContext = aCase.getCorrelationContext();
-            if (correlationContext == null || CorrelationCaseUtil.getOwnerOptions(aCase) == null) {
-                return null;
-            }
+        return new LoadableDetachableModel<>() {
+            @Override
+            protected CorrelationContextDto load() {
+                CaseType aCase = getObjectDetailsModels().getObjectType();
+                CaseCorrelationContextType correlationContext = aCase.getCorrelationContext();
+                if (correlationContext == null || CorrelationCaseUtil.getOwnerOptions(aCase) == null) {
+                    return null;
+                }
 
-            Task task = getPageBase().createSimpleTask(OP_LOAD);
-            OperationResult result = task.getResult();
-            try {
-                return new CorrelationContextDto(aCase, getPageBase(), task, result);
-            } catch (Throwable t) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load correlation context for {}", t, aCase);
-                return null;
-            } finally {
-                result.computeStatusIfUnknown();
-                getPageBase().showResult(result, false);
+                Task task = getPageBase().createSimpleTask(OP_LOAD);
+                OperationResult result = task.getResult();
+                try {
+                    return new CorrelationContextDto(aCase, getPageBase(), task, result);
+                } catch (Throwable t) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load correlation context for {}", t, aCase);
+                    return null;
+                } finally {
+                    result.computeStatusIfUnknown();
+                    getPageBase().showResult(result, false);
+                }
             }
-        });
+        };
     }
 
     private ListView<CorrelationOptionDto> createColumnsForPropertyRow(

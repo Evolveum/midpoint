@@ -592,8 +592,6 @@ public class SearchFactory {
                 DeadShadowSearchItemWrapper deadWrapper = new DeadShadowSearchItemWrapper(Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
                 deadWrapper.setValue(new SearchValue(false));
                 return deadWrapper;
-            } else {
-                return new TextSearchItemWrapper(path, itemDef);
             }
         }
         if (valueTypeName != null) {
@@ -616,6 +614,9 @@ public class SearchFactory {
                     itemDef.getValueEnumerationRef().getTargetType());
         }
 
+        if (path != null) {
+            return new TextSearchItemWrapper(path, itemDef);
+        }
         return new TextSearchItemWrapper();
     }
 

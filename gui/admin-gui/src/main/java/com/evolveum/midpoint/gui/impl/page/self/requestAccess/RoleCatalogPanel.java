@@ -465,7 +465,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                                     ObjectType object = model.getObject().getValue().getValue();
 
                                     RequestAccess access = RoleCatalogPanel.this.getModelObject();
-                                    return access.getSelectedAssignments().stream()
+                                    return access.getTemplateAssignments().stream()
                                             .noneMatch(a -> Objects.equals(object.getOid(), a.getTargetRef().getOid()));
                                 }));
                                 return details;
