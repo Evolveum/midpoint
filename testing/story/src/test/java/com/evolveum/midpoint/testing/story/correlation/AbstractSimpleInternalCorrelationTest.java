@@ -71,6 +71,8 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
     private static final int HR_ACCOUNTS = 5;
     private static final int TARGET_ACCOUNTS = 6;
 
+    private long firstTargetImportStart;
+
     abstract CsvResource getTargetResource();
 
     @Override
@@ -133,7 +135,9 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
         OperationResult result = task.getResult();
 
         when("import task (dry run) from target is run");
+        firstTargetImportStart = System.currentTimeMillis();
         TASK_IMPORT_TARGET.rerun(result);
+        long firstTargetImportEnd = System.currentTimeMillis();
 
         then("task is OK, all accounts are processed");
 
@@ -156,7 +160,11 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
         PrismObject<ShadowType> ag3 = getTargetShadow("ag3", result);
         assertShadowAfter(ag3)
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN)
-                .assertSynchronizationSituation(SynchronizationSituationType.DISPUTED);
+                .assertSynchronizationSituation(SynchronizationSituationType.DISPUTED)
+                .assertCorrelationStartTimestampBetween(firstTargetImportStart, firstTargetImportEnd)
+                .assertCorrelationCaseOpenTimestampBetween(firstTargetImportStart, firstTargetImportEnd)
+                .assertNoCorrelationCaseCloseTimestamp()
+                .assertNoCorrelationEndTimestamp();
 
         assertUserAfterByUsername("green1")
                 .assertLinks(1, 0);
@@ -183,7 +191,11 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
         assertShadowAfter(rb5)
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN)
                 .assertPotentialOwnerOptions(3) // 2 existing + 1 new
-                .assertSynchronizationSituation(SynchronizationSituationType.DISPUTED);
+                .assertSynchronizationSituation(SynchronizationSituationType.DISPUTED)
+                .assertCorrelationStartTimestampBetween(firstTargetImportStart, firstTargetImportEnd)
+                .assertCorrelationCaseOpenTimestampBetween(firstTargetImportStart, firstTargetImportEnd)
+                .assertNoCorrelationCaseCloseTimestamp()
+                .assertNoCorrelationEndTimestamp();
 
         assertUserAfterByUsername("black2")
                 .assertLinks(1, 0);
@@ -194,7 +206,11 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
         assertShadowAfter(nn6)
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN)
                 .assertPotentialOwnerOptions(2)
-                .assertSynchronizationSituation(SynchronizationSituationType.DISPUTED);
+                .assertSynchronizationSituation(SynchronizationSituationType.DISPUTED)
+                .assertCorrelationStartTimestampBetween(firstTargetImportStart, firstTargetImportEnd)
+                .assertCorrelationCaseOpenTimestampBetween(firstTargetImportStart, firstTargetImportEnd)
+                .assertNoCorrelationCaseCloseTimestamp()
+                .assertNoCorrelationEndTimestamp();
     }
 
     private void assertTargetLinked(String userName, String accountName, OperationResult result) throws CommonException {
@@ -221,15 +237,30 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
         String aliceOid = findUserByUsername("green1").getOid();
         String bobOid = findUserByUsername("black1").getOid();
 
-        when("cases for Alice and Bob are resolved");
+        when("case for Alice is resolved");
 
+        long aliceCaseResolutionStart = System.currentTimeMillis();
         resolveCase(ag3case, aliceOid, task, result);
+        long aliceCaseResolutionEnd = System.currentTimeMillis();
+
+        and("case for Bob is resolved");
         resolveCase(bb4case, bobOid, task, result);
 
         then("shadows are linked to the users");
 
         assertTargetLinked("green1", "ag3", result);
         assertTargetLinked("black1", "bb4", result);
+
+        and("alice's case is OK");
+        assertCaseAfter(ag3case.getOid())
+                .assertClosed();
+
+        and("alice's shadow is OK");
+        assertShadowAfter(getTargetShadow("ag3", result))
+                .assertCorrelationStartTimestampBetween(firstTargetImportStart, aliceCaseResolutionStart)
+                .assertCorrelationCaseOpenTimestampBetween(firstTargetImportStart, aliceCaseResolutionStart)
+                .assertCorrelationCaseCloseTimestampBetween(aliceCaseResolutionStart, aliceCaseResolutionEnd)
+                .assertCorrelationEndTimestampBetween(aliceCaseResolutionStart, aliceCaseResolutionEnd);
     }
 
     private @NotNull PrismObject<ShadowType> getTargetShadow(String name, OperationResult result) throws SchemaException {

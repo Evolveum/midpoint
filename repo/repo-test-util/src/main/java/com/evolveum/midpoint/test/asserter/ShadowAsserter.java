@@ -14,8 +14,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -397,5 +399,67 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         } else {
             return state.getOwnerOptions().getOption();
         }
+    }
+
+    public ShadowAsserter<RA> assertCorrelationCaseOpenTimestampBetween(long start, long end) {
+        TestUtil.assertBetween(
+                "correlation case open timestamp", start, end, getCorrelationCaseOpenTimestamp());
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertCorrelationCaseCloseTimestampBetween(long start, long end) {
+        TestUtil.assertBetween(
+                "correlation case close timestamp", start, end, getCorrelationCaseCloseTimestamp());
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertCorrelationStartTimestampBetween(long start, long end) {
+        TestUtil.assertBetween(
+                "correlation start timestamp", start, end, getCorrelationStartTimestamp());
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertCorrelationEndTimestampBetween(long start, long end) {
+        TestUtil.assertBetween(
+                "correlation end timestamp", start, end, getCorrelationEndTimestamp());
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertNoCorrelationCaseCloseTimestamp() {
+        assertThat(getCorrelationCaseCloseTimestamp()).as("correlation case close timestamp").isNull();
+        return this;
+    }
+
+    public ShadowAsserter<RA> assertNoCorrelationEndTimestamp() {
+        assertThat(getCorrelationEndTimestamp()).as("correlation case end timestamp").isNull();
+        return this;
+    }
+
+    private Long getCorrelationCaseOpenTimestamp() {
+        ShadowCorrelationStateType correlationState = getObjectable().getCorrelation();
+        return correlationState != null ?
+                XmlTypeConverter.toMillisNullable(correlationState.getCorrelationCaseOpenTimestamp()) :
+                null;
+    }
+
+    private Long getCorrelationCaseCloseTimestamp() {
+        ShadowCorrelationStateType correlationState = getObjectable().getCorrelation();
+        return correlationState != null ?
+                XmlTypeConverter.toMillisNullable(correlationState.getCorrelationCaseCloseTimestamp()) :
+                null;
+    }
+
+    private Long getCorrelationStartTimestamp() {
+        ShadowCorrelationStateType correlationState = getObjectable().getCorrelation();
+        return correlationState != null ?
+                XmlTypeConverter.toMillisNullable(correlationState.getCorrelationStartTimestamp()) :
+                null;
+    }
+
+    private Long getCorrelationEndTimestamp() {
+        ShadowCorrelationStateType correlationState = getObjectable().getCorrelation();
+        return correlationState != null ?
+                XmlTypeConverter.toMillisNullable(correlationState.getCorrelationEndTimestamp()) :
+                null;
     }
 }

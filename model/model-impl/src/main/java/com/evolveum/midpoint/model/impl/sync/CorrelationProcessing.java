@@ -7,12 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.api.correlation.CorrelationContext;
 import com.evolveum.midpoint.model.api.correlator.Correlator;
 import com.evolveum.midpoint.model.api.correlator.CorrelatorContext;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -27,19 +33,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
 /**
  * Manages correlation that occurs _during synchronization pre-processing_.
  *
- * The correlation itself is delegated to appropriate {@link Correlator} instance.
+ * The correlation itself is delegated to appropriate {@link Correlator} instance via {@link CorrelationServiceImpl}.
  *
  * Specific responsibilities:
  *
- * 1. updating shadow with the result of the correlation
+ * 1. updating shadow with the status (e.g. all the timestamps) and the result of the correlation
+ * (although the {@link CorrelationCaseManager} and some other classes manipulate the state as well);
  * 2. calls {@link CorrelationCaseManager} to open, update, or cancel cases (if needed)
  */
 class CorrelationProcessing<F extends FocusType> {
@@ -95,6 +97,7 @@ class CorrelationProcessing<F extends FocusType> {
         CompleteCorrelationResult existing = getResultFromExistingCorrelationState(parentResult);
         if (existing != null) {
             LOGGER.debug("Result determined from existing correlation state in shadow: {}", existing.getSituation());
+            markShadowCorrelationFinished();
             return existing;
         }
 
@@ -225,12 +228,6 @@ class CorrelationProcessing<F extends FocusType> {
                         .replace(CorrelationSituationType.ERROR);
             }
         } else {
-            if (correlationResult.isDone()) {
-                builder = builder
-                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
-                        .replace(
-                                XmlTypeConverter.createXMLGregorianCalendar());
-            }
             // @formatter:off
             builder = builder
                     .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_SITUATION)
@@ -247,6 +244,19 @@ class CorrelationProcessing<F extends FocusType> {
 
         syncCtx.applyShadowDeltas(
                 builder.asItemDeltas());
+
+        if (correlationResult.isDone()) {
+            markShadowCorrelationFinished();
+        }
+    }
+
+    private void markShadowCorrelationFinished() throws SchemaException {
+        syncCtx.applyShadowDeltas(
+                PrismContext.get().deltaFor(ShadowType.class)
+                        .item(ShadowType.F_CORRELATION, ShadowCorrelationStateType.F_CORRELATION_END_TIMESTAMP)
+                        .replace(
+                                XmlTypeConverter.createXMLGregorianCalendar())
+                        .asItemDeltas());
     }
 
     private @NotNull ShadowType getShadow() {
