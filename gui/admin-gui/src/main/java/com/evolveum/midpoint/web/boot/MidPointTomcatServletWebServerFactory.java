@@ -11,10 +11,13 @@ import java.io.File;
 import com.google.common.base.Strings;
 import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
+import org.apache.catalina.Host;
 import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.connector.Response;
+import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.valves.ErrorReportValve;
 import org.apache.catalina.webresources.ExtractingRoot;
 import org.apache.coyote.ajp.AbstractAjpProtocol;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -101,7 +104,15 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
         tomcat.getService().addConnector(connector);
         customizeConnector(connector);
         tomcat.setConnector(connector);
-        tomcat.getHost().setAutoDeploy(false);
+        Host host = tomcat.getHost();
+        host.setAutoDeploy(false);
+        // Removing info/stack from low-level Tomcat error page: https://stackoverflow.com/a/70196883/658826
+        if (host instanceof StandardHost) {
+            ErrorReportValve errorReportValve = new ErrorReportValve();
+            errorReportValve.setShowReport(false);
+            errorReportValve.setShowServerInfo(false);
+            ((StandardHost) host).addValve(errorReportValve);
+        }
         Engine engine = tomcat.getEngine();
         if (!Strings.isNullOrEmpty(jvmRoute)) {
             engine.setJvmRoute(jvmRoute);
