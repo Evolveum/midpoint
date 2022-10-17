@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.testing.story.correlation;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.CsvResource;
@@ -20,8 +21,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
 
+import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
+
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests internal correlation in the most basic case:
@@ -324,5 +331,76 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
         assertShadowAfter(getTargetShadow("nn6", result))
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
                 .assertSynchronizationSituation(SynchronizationSituationType.UNMATCHED);
+    }
+
+    /**
+     * Check that the case is updated when import is repeated.
+     */
+    @Test
+    public void test240ReimportingAccount() throws CommonException, IOException, PreconditionViolationException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("new account is added and imported");
+        getTargetResource().append("mx1,Martin,Black,,,,");
+        importSingleAccountRequest()
+                .withResourceOid(getTargetResource().oid)
+                .withNamingAttribute("login")
+                .withNameValue("mx1")
+                .execute(result);
+
+        PrismObject<ShadowType> firstShadow = findShadowByPrismName("mx1", getTargetResource().getObject(), result);
+        assertShadow(firstShadow, "first")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN)
+                .assertPotentialOwnerOptions(3); // 2 existing ones (surname black) + 1 new
+
+        CaseType firstCase = getOpenCaseForAccount("mx1", result);
+        assertCase(firstCase, "first")
+                .display()
+                .assertTargetRef(firstShadow.getOid(), ShadowType.COMPLEX_TYPE);
+
+        //noinspection unchecked
+        PrismObject<ShadowType> embeddedFirstShadow =
+                (PrismObject<ShadowType>) firstCase.getTargetRef().asReferenceValue().getObject();
+        assertThat(embeddedFirstShadow).as("embedded shadow").isNotNull();
+        assertShadow(embeddedFirstShadow, "first (embedded)")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN)
+                .assertPotentialOwnerOptions(3) // 2 existing ones (surname black) + 1 new
+                .attributes()
+                .assertValueRaw(new QName(NS_RI, "sn"), "Black");
+
+        when("account is updated and re-imported");
+        getTargetResource().replaceLine("mx1,.*", "mx1,Martin,Green,,,,");
+        importSingleAccountRequest()
+                .withResourceOid(getTargetResource().oid)
+                .withNamingAttribute("login")
+                .withNameValue("mx1")
+                .execute(result);
+
+        then("case is updated");
+
+        PrismObject<ShadowType> secondShadow = findShadowByPrismName("mx1", getTargetResource().getObject(), result);
+        assertShadow(secondShadow, "second")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN)
+                .assertPotentialOwnerOptions(2); // 1 existing one (surname green) + 1 new
+
+        CaseType secondCase = getOpenCaseForAccount("mx1", result);
+        assertCase(secondCase, "second")
+                .display()
+                .assertTargetRef(secondShadow.getOid(), ShadowType.COMPLEX_TYPE); // most probably the same OID as the 1st one
+
+        //noinspection unchecked
+        PrismObject<ShadowType> embeddedSecondShadow =
+                (PrismObject<ShadowType>) secondCase.getTargetRef().asReferenceValue().getObject();
+        assertThat(embeddedSecondShadow).as("embedded shadow").isNotNull();
+        assertShadow(embeddedSecondShadow, "second (embedded)")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN)
+                .assertPotentialOwnerOptions(2) // 1 existing ones (surname green) + 1 new
+                .attributes()
+                .assertValueRaw(new QName(NS_RI, "sn"), "Green");
     }
 }
