@@ -630,13 +630,24 @@ public class SearchFactory {
     }
     public static void createAbstractRoleSearchItemWrapperList(SearchConfigurationWrapper searchConfigWrapper, SearchBoxConfigurationType config) {
         if (config.getObjectTypeConfiguration() != null) {
-            searchConfigWrapper.getItemsList().add(new ObjectTypeSearchItemWrapper(config.getObjectTypeConfiguration()));
+            ObjectTypeSearchItemWrapper objectTypeSearchItemWrapper = new ObjectTypeSearchItemWrapper(config.getObjectTypeConfiguration());
+            if (config.getObjectTypeConfiguration().getDisplay() != null) {
+                objectTypeSearchItemWrapper.setName(WebComponentUtil.getTranslatedPolyString(config.getObjectTypeConfiguration().getDisplay().getLabel()));
+                objectTypeSearchItemWrapper.setHelp(WebComponentUtil.getTranslatedPolyString(config.getObjectTypeConfiguration().getDisplay().getHelp()));
+            }
+            if (config.getObjectTypeConfiguration().getVisibility() != null) {
+                objectTypeSearchItemWrapper.setVisible(WebComponentUtil.getElementVisibility(config.getObjectTypeConfiguration().getVisibility()));
+            }
+            searchConfigWrapper.getItemsList().add(objectTypeSearchItemWrapper);
         }
         if (config.getRelationConfiguration() != null) {
             RelationSearchItemWrapper relation = new RelationSearchItemWrapper(searchConfigWrapper);
             if (config.getRelationConfiguration().getDisplay() != null) {
                 relation.setName(WebComponentUtil.getTranslatedPolyString(config.getRelationConfiguration().getDisplay().getLabel()));
                 relation.setHelp(WebComponentUtil.getTranslatedPolyString(config.getRelationConfiguration().getDisplay().getHelp()));
+            }
+            if (config.getRelationConfiguration().getVisibility() != null) {
+                relation.setVisible(WebComponentUtil.getElementVisibility(config.getRelationConfiguration().getVisibility()));
             }
             searchConfigWrapper.getItemsList().add(relation);
         }
@@ -647,6 +658,9 @@ public class SearchFactory {
                 indirect.setName(WebComponentUtil.getTranslatedPolyString(config.getIndirectConfiguration().getDisplay().getLabel()));
                 indirect.setHelp(WebComponentUtil.getTranslatedPolyString(config.getIndirectConfiguration().getDisplay().getHelp()));
             }
+            if (config.getIndirectConfiguration().getVisibility() != null) {
+                indirect.setVisible(WebComponentUtil.getElementVisibility(config.getIndirectConfiguration().getVisibility()));
+            }
             searchConfigWrapper.getItemsList().add(indirect);
         }
 
@@ -656,6 +670,9 @@ public class SearchFactory {
                 scope.setName(WebComponentUtil.getTranslatedPolyString(config.getScopeConfiguration().getDisplay().getLabel()));
                 scope.setHelp(WebComponentUtil.getTranslatedPolyString(config.getScopeConfiguration().getDisplay().getHelp()));
             }
+            if (config.getScopeConfiguration().getVisibility() != null) {
+                scope.setVisible(WebComponentUtil.getElementVisibility(config.getScopeConfiguration().getVisibility()));
+            }
             searchConfigWrapper.getItemsList().add(scope);
         }
         if (config.getProjectConfiguration() != null) {
@@ -664,6 +681,9 @@ public class SearchFactory {
                 project.setName(WebComponentUtil.getTranslatedPolyString(config.getProjectConfiguration().getDisplay().getLabel()));
                 project.setHelp(WebComponentUtil.getTranslatedPolyString(config.getProjectConfiguration().getDisplay().getHelp()));
             }
+            if (config.getProjectConfiguration().getVisibility() != null) {
+                project.setVisible(WebComponentUtil.getElementVisibility(config.getProjectConfiguration().getVisibility()));
+            }
             searchConfigWrapper.getItemsList().add(project);
         }
         if (config.getTenantConfiguration() != null) {
@@ -671,6 +691,9 @@ public class SearchFactory {
             if (config.getTenantConfiguration().getDisplay() != null) {
                 tenant.setName(WebComponentUtil.getTranslatedPolyString(config.getTenantConfiguration().getDisplay().getLabel()));
                 tenant.setHelp(WebComponentUtil.getTranslatedPolyString(config.getTenantConfiguration().getDisplay().getHelp()));
+            }
+            if (config.getTenantConfiguration().getVisibility() != null) {
+                tenant.setVisible(WebComponentUtil.getElementVisibility(config.getTenantConfiguration().getVisibility()));
             }
             searchConfigWrapper.getItemsList().add(tenant);
         }
