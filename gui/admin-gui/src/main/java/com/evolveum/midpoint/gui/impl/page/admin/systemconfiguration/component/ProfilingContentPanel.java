@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.component;
 
+import org.apache.wicket.markup.html.panel.Panel;
+
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.impl.factory.wrapper.ProfilingClassLoggerWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
@@ -22,13 +24,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.markup.html.panel.Panel;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 @PanelType(name = "profilingPanel")
 @PanelInstance(
@@ -60,7 +60,13 @@ public class ProfilingContentPanel extends AbstractObjectMainPanel<SystemConfigu
 
         SingleContainerPanel panel = new SingleContainerPanel(ID_MAIN_PANEL,
                 PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(SystemConfigurationType.F_PROFILING_CONFIGURATION)),
-                ProfilingConfigurationType.COMPLEX_TYPE);
+                ProfilingConfigurationType.COMPLEX_TYPE) {
+
+            @Override
+            protected ItemMandatoryHandler getMandatoryHandler() {
+                return (itemWrapper -> false);
+            }
+        };
         add(panel);
 
         PrismContainerWrapperModel<SystemConfigurationType, ClassLoggerConfigurationType> profilingLogger =
