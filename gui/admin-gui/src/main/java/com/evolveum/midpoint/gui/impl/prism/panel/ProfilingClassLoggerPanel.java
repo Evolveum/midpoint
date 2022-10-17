@@ -22,7 +22,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
 public class ProfilingClassLoggerPanel extends PrismContainerPanel<ClassLoggerConfigurationType, PrismContainerWrapper<ClassLoggerConfigurationType>> {
 
     public ProfilingClassLoggerPanel(String id, IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> model, ItemPanelSettings settings) {
-        super(id, model, new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkVisibility(itemWrapper, settings.getVisibilityHandler())).build());
+        super(id, model,
+                new ItemPanelSettingsBuilder()
+                        .visibilityHandler(itemWrapper -> checkVisibility(itemWrapper, settings.getVisibilityHandler()))
+                        .mandatoryHandler(itemWrapper -> false)
+                        .build());
     }
 
     private static ItemVisibility checkVisibility(ItemWrapper itemWrapper, ItemVisibilityHandler visibilitytHandler) {
