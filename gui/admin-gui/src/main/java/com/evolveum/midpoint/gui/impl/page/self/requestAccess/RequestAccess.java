@@ -278,11 +278,7 @@ public class RequestAccess implements Serializable {
 
             for (ObjectReferenceType ref : requestItems.keySet()) {
                 List<AssignmentType> assignmentList = requestItems.get(ref);
-                assignmentList.remove(a);
-
-                if (CollectionUtils.isEmpty(assignmentList)) {
-                    requestItems.remove(ref);
-                }
+                assignmentList.removeIf(item -> matchAssignments(item, a));
             }
         }
         markConflictsDirty();
@@ -328,6 +324,9 @@ public class RequestAccess implements Serializable {
         for (List<AssignmentType> list : requestItems.values()) {
             for (AssignmentType real : list) {
                 Integer count = counts.get(real);
+                if (count == null) {
+                    count = 0;
+                }
                 counts.replace(real, count + 1);
             }
         }
@@ -579,6 +578,10 @@ public class RequestAccess implements Serializable {
 
     private void addAssignmentDeltas(ObjectDelta<UserType> focusDelta, List<AssignmentType> assignments,
             PrismContainerDefinition<AssignmentType> def, boolean addAssignments) throws SchemaException {
+
+        if (assignments.isEmpty()) {
+            return;
+        }
 
         PrismContext ctx = def.getPrismContext();
         ContainerDelta<AssignmentType> delta = ctx.deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);

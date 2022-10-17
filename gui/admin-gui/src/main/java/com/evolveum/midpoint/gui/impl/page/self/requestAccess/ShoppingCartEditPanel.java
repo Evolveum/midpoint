@@ -259,7 +259,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             public void setObject(ActivationStatusType status) {
                 AssignmentType assignment = getModelObject().getAssignment();
                 ActivationType activation = assignment.getActivation();
-                if (activation == null) {
+                if (activation == null && status != null) {
                     activation = new ActivationType();
                     assignment.setActivation(activation);
                 }
@@ -290,19 +290,22 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                ShoppingCartItem item = getModelObject();
-                AssignmentType assignment = item.getAssignment();
-                ActivationType activation = assignment.getActivation();
-                if (activation == null) {
-                    activation = new ActivationType();
-                    assignment.setActivation(activation);
-                }
-
                 CustomValidity cv = customValidityModel.getObject();
                 XMLGregorianCalendar from = XmlTypeConverter.createXMLGregorianCalendar(cv.getFrom());
                 XMLGregorianCalendar to = XmlTypeConverter.createXMLGregorianCalendar(cv.getTo());
 
-                activation.validFrom(from).validTo(to);
+                ShoppingCartItem item = getModelObject();
+                AssignmentType assignment = item.getAssignment();
+                ActivationType activation = assignment.getActivation();
+
+                if (from != null || to != null) {
+                    if (activation == null) {
+                        activation = new ActivationType();
+                        assignment.setActivation(activation);
+                    }
+
+                    activation.validFrom(from).validTo(to);
+                }
 
                 savePerformed(target, ShoppingCartEditPanel.this.getModel());
             }
