@@ -107,7 +107,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
-//    private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
+    //    private static final String ID_BUTTON_REPEATER = "buttonsRepeater";
     private static final String ID_BUTTON = "button";
 
     private final Class<C> defaultType;
@@ -359,7 +359,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
 
         if (getTableId() != null) {
-           return getSession().getSessionStorage().getUserProfile().getPagingSize(getTableId());
+            return getSession().getSessionStorage().getUserProfile().getPagingSize(getTableId());
         }
 
         return UserProfileStorage.DEFAULT_PAGING_SIZE;
@@ -453,7 +453,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 InlineMenuButtonColumn<PO> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase()) {
                     @Override
                     public String getCssClass() {
-                        return "inline-menu-column";
+                        return "inline-menu-column ";
                     }
 
                     @Override
