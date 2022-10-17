@@ -92,7 +92,7 @@ public class CorrelationCaseManager {
             createCase(resourceObject, resource, preFocus, now, task, result);
             recordCaseCreationInShadow(resourceObject, now, result);
         } else {
-            updateCase(aCase, preFocus, result);
+            updateCase(aCase, resourceObject, preFocus, result);
         }
     }
 
@@ -184,20 +184,24 @@ public class CorrelationCaseManager {
     }
 
     private void updateCase(
-            CaseType aCase, FocusType preFocus, OperationResult result)
+            CaseType aCase, @NotNull ShadowType resourceObject, FocusType preFocus, OperationResult result)
             throws SchemaException {
-        CaseCorrelationContextType ctx = aCase.getCorrelationContext();
         ObjectReferenceType preFocusRef = createObjectRefWithFullObject(preFocus);
-        if (ctx != null
-                && java.util.Objects.equals(ctx.getPreFocusRef(), preFocusRef)) { // TODO is this comparison correct?
-            LOGGER.trace("No need to update the case {}", aCase);
-            return;
-        }
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
                 .item(CaseType.F_CORRELATION_CONTEXT, CaseCorrelationContextType.F_PRE_FOCUS_REF)
                 .replace(preFocusRef)
+                .item(CaseType.F_TARGET_REF)
+                .replace() // The replacement of embedded object does not work right now ... so delete + add is used
                 .asItemDeltas();
         modifyCase(aCase, itemDeltas, result);
+
+        List<ItemDelta<?, ?>> itemDeltas2 = prismContext.deltaFor(CaseType.class)
+                .item(CaseType.F_TARGET_REF)
+                .replace(createObjectRefWithFullObject(resourceObject))
+                .asItemDeltas();
+        modifyCase(aCase, itemDeltas2, result);
+
+        // TODO what about e.g. the correlation schema and other aspects?
     }
 
     private void modifyCase(CaseType aCase, List<ItemDelta<?, ?>> itemDeltas, OperationResult result) throws SchemaException {

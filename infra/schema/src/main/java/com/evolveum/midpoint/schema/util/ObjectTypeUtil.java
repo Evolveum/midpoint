@@ -1231,15 +1231,23 @@ public class ObjectTypeUtil {
         }
     }
 
+    // TODO it would be better to return Set<String>
     public static List<String> getOids(List<? extends Objectable> objectables) {
         return objectables.stream()
                 .map(Objectable::getOid)
                 .collect(Collectors.toList());
     }
 
+    // TODO it would be better to return Set<String>
     public static List<String> getOidsFromPrismObjects(List<? extends PrismObject<?>> prismObjects) {
         return prismObjects.stream()
                 .map(PrismObject::getOid)
                 .collect(Collectors.toList());
+    }
+
+    public static Set<String> getOidsFromRefs(Collection<? extends Referencable> refs) {
+        return refs.stream()
+                .map(ref -> ref.getOid())
+                .collect(Collectors.toSet());
     }
 }

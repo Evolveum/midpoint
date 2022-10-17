@@ -17,6 +17,8 @@ import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeSearchItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,9 @@ public class ObjectTypeSearchItemWrapper<C extends Containerable> extends Abstra
     private boolean allowAllTypesSearch;
 
     private List<Class<C>> supportedTypeList = new ArrayList<>();
+    private String name;
+    private String help;
+    private boolean visible = true;
 
     private QName defaultObjectType;
     public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config) {
@@ -88,18 +93,20 @@ public class ObjectTypeSearchItemWrapper<C extends Containerable> extends Abstra
 
     @Override
     public String getName() {
-//        if (config != null && config.getDisplay() != null && config.getDisplay().getLabel() != null){
-//            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getLabel());
-//        }
-        return PageBase.createStringResourceStatic("ContainerTypeSearchItem.name").getString();
+        return StringUtils.isNotEmpty(name) ? name : PageBase.createStringResourceStatic("ContainerTypeSearchItem.name").getString();
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
     public String getHelp() {
-//        if (config != null && config.getDisplay() != null && config.getDisplay().getHelp() != null){
-//            return WebComponentUtil.getTranslatedPolyString(config.getDisplay().getHelp());
-//        }
-        return "";
+        return StringUtils.isNotEmpty(help) ? help :  "";
+    }
+
+    public void setHelp(String help) {
+        this.help = help;
     }
 
     @Override
@@ -119,7 +126,11 @@ public class ObjectTypeSearchItemWrapper<C extends Containerable> extends Abstra
 
     @Override
     public boolean isVisible() {
-        return true;
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
 
     @Override

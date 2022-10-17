@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.Resource;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
@@ -134,6 +135,10 @@ public class ImportSingleAccountRequest {
         public ImportSingleAccountRequestBuilder withTypeIdentification(ResourceObjectTypeIdentification typeIdentification) {
             this.typeIdentification = typeIdentification;
             return this;
+        }
+
+        public ImportSingleAccountRequestBuilder withNamingAttribute(String localName) {
+            return withNamingAttribute(new QName(MidPointConstants.NS_RI, localName));
         }
 
         public ImportSingleAccountRequestBuilder withNamingAttribute(QName namingAttribute) {

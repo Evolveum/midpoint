@@ -10,7 +10,6 @@ package com.evolveum.midpoint.schema.util.cases;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
