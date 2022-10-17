@@ -123,7 +123,7 @@ public class PasswordPanel extends InputPanel {
             @Override
             protected List<StringLimitationResult> load() {
                 ValuePolicyType valuePolicy = null;
-                if (!object.canRepresent(ResourceType.class)) {
+                if (object == null || !object.canRepresent(ResourceType.class)) {
                     //we skip getting value policy for ResourceType because it is some protected string from connector configuration
                     valuePolicy = getValuePolicy(object);
                 }
