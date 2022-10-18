@@ -9,27 +9,31 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
 
     <div class="row" style="display:-webkit-box; display:-webkit-flex; display:-ms-flexbox; display:flex;">
-        <div class="col-md-4">
+        <div class="col-12 col-xl-4">
             <div style="height: 100%; max-height:800px; padding-bottom:20px;" wicket:id="treePanel"/>
         </div>
-        <div class="col-md-8">
+        <div class="col-12 col-xl-8">
             <div class="card object-user-box" wicket:id="managerContainer">
-                 <div class="card-header">
-                     <h3 class="card-title"><wicket:message key="TreeTablePanel.managers"/></h3>
-                 </div>
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <wicket:message key="TreeTablePanel.managers"/>
+                    </h3>
+                </div>
                 <div class="card-body">
                     <div wicket:id="managerTable">
-                        <div wicket:id="managerSummary" />
+                        <div wicket:id="managerSummary"/>
                     </div>
                 </div>
             </div>
 
             <div class="card card-primary">
                 <div class="card-header">
-                    <h3 class="card-title"><wicket:message key="TreeTablePanel.members"/></h3>
+                    <h3 class="card-title">
+                        <wicket:message key="TreeTablePanel.members"/>
+                    </h3>
                 </div>
                 <div class="card-body">
-                    <div wicket:id="memberPanel" />
+                    <div wicket:id="memberPanel"/>
                 </div>
             </div>
         </div>

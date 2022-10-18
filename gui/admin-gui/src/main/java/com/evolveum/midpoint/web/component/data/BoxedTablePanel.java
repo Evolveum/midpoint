@@ -9,14 +9,14 @@ package com.evolveum.midpoint.web.component.data;
 
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.form.MidpointForm;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -94,6 +95,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     public void setShowAsCard(boolean showAsCard) {
         this.showAsCard = showAsCard;
+    }
+
+    @Override
+    public void renderHead(IHeaderResponse response) {
+        response.render(OnDomReadyHeaderItem.forScript("MidPointTheme.initResponsiveTable();"));
     }
 
     private void initLayout(List<IColumn<T, String>> columns, ISortableDataProvider provider) {

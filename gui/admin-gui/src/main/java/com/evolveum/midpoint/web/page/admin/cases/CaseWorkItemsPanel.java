@@ -61,7 +61,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 /**
  * Created by honchar
  */
-@PanelType(name = "myWorkItems")
 public class CaseWorkItemsPanel extends ContainerableListPanel<CaseWorkItemType, PrismContainerValueWrapper<CaseWorkItemType>> {
 
     private static final long serialVersionUID = 1L;

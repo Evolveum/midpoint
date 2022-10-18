@@ -10,13 +10,13 @@ export default class MidPointTheme {
     constructor() {
         const self = this;
 
-        $(window).on('load', function() {
+        $(window).on('load', function () {
             //dom not only ready, but everything is loaded MID-3668
             $("body").removeClass("custom-hold-transition");
 
-           self.initAjaxStatusSigns();
+            self.initAjaxStatusSigns();
 
-            Wicket.Event.subscribe('/ajax/call/failure', function( attrs, jqXHR, textStatus, jqEvent, errorThrown ) {
+            Wicket.Event.subscribe('/ajax/call/failure', function (attrs, jqXHR, textStatus, jqEvent, errorThrown) {
                 console.error("Ajax call failure:\n" + JSON.stringify(attrs.target.location)
                     + "\nStatus:\n" + JSON.stringify(textStatus));
             });
@@ -33,8 +33,7 @@ export default class MidPointTheme {
                     // expand the panel
                     $(this).nextUntil('.nav-header').slideDown();
                     $(this).removeClass('closed');
-                }
-                else {
+                } else {
                     // collapse the panel
                     $(this).nextUntil('.nav-header').slideUp();
                     $(this).addClass('closed');
@@ -42,58 +41,62 @@ export default class MidPointTheme {
             });
         });
 
-        !function($) {
-            $.fn.passwordFieldValidatorPopover = function(inputId, popover) {
-                return this.each(function() {
+        !function ($) {
+            $.fn.passwordFieldValidatorPopover = function (inputId, popover) {
+                return this.each(function () {
 
                     var parent = $(this).parent();
 
-                    var showPopover=function(){
-                        parent.find(inputId).each(function() {
-                            var itemH=$(this).innerHeight() + 27;
-                            parent.find(popover).fadeIn(300).css({top:itemH, left:0}).css("display", "block");
+                    var showPopover = function () {
+                        parent.find(inputId).each(function () {
+                            var itemH = $(this).innerHeight() + 27;
+                            parent.find(popover).fadeIn(300).css({top: itemH, left: 0}).css("display", "block");
                         });
                     }
 
                     showPopover();
-                    $(this).on("focus", function(){showPopover();});
+                    $(this).on("focus", function () {
+                        showPopover();
+                    });
 
-                    var deletePopover=function(){
+                    var deletePopover = function () {
                         parent.find(popover).fadeIn(300).css("display", "none");
                     };
 
-                    $(this).on("blur", function(){
+                    $(this).on("blur", function () {
                         deletePopover();
                     });
                 });
             };
 
-            $.fn.passwordValidatorPopover = function(inputId, popover) {
-                return this.each(function() {
+            $.fn.passwordValidatorPopover = function (inputId, popover) {
+                return this.each(function () {
 
                     var parent = $(this).parent();
 
-                    var showPopover=function(){
+                    var showPopover = function () {
                         if (parent.find(inputId + ":hover").length != 0) {
-                            parent.find(inputId).each(function() {
-                                var itemH=$(this).innerHeight() + 9;
-                                parent.find(popover).fadeIn(300).css({top:itemH, left:0}).css("display", "block");
+                            parent.find(inputId).each(function () {
+                                var itemH = $(this).innerHeight() + 9;
+                                parent.find(popover).fadeIn(300).css({top: itemH, left: 0}).css("display", "block");
                             });
                         }
                     }
 
-                    $(this).on("mouseenter", function(){showPopover();});
+                    $(this).on("mouseenter", function () {
+                        showPopover();
+                    });
 
-                    var deletePopover=function(){
+                    var deletePopover = function () {
                         parent.find(popover).fadeIn(300).css("display", "none");
                     };
 
-                    $(this).on("mouseleave", function(){
+                    $(this).on("mouseleave", function () {
                         if (parent.find(popover + ":hover").length == 0) {
                             deletePopover();
                         }
                     });
-                    parent.find(popover).on("mouseleave", function(){
+                    parent.find(popover).on("mouseleave", function () {
                         if (parent.find(inputId + ":hover").length == 0) {
                             deletePopover();
                         }
@@ -102,19 +105,19 @@ export default class MidPointTheme {
             };
         }(window.jQuery);
 
-        (function($) {
-            $.fn.updateParentClass = function(successClass, parentSuccessClass, parentId, failClass, parentFailClass) {
+        (function ($) {
+            $.fn.updateParentClass = function (successClass, parentSuccessClass, parentId, failClass, parentFailClass) {
                 var child = this;
                 var parent = $("#" + parentId);
 
-                if (child.hasClass(successClass)){
+                if (child.hasClass(successClass)) {
                     if (parent.hasClass(parentFailClass)) {
                         parent.removeClass(parentFailClass);
                     }
                     if (!parent.hasClass(parentSuccessClass)) {
                         parent.addClass(parentSuccessClass);
                     }
-                } else if (child.hasClass(failClass)){
+                } else if (child.hasClass(failClass)) {
                     if (parent.hasClass(parentSuccessClass)) {
                         parent.removeClass(parentSuccessClass);
                     }
@@ -137,14 +140,15 @@ export default class MidPointTheme {
                     }
                     $(this).tooltip({html: true, whiteList: wl, 'container': container});
                     $(this).tooltip("show");
-                };
+                }
+                ;
             });
         });
 
         jQuery(function ($) {
-            $(".word-break-longer-text").css("word-break", function(index, origValue){
+            $(".word-break-longer-text").css("word-break", function (index, origValue) {
 
-                var textOfColumn =  $(".word-break-longer-text")[index].innerText;
+                var textOfColumn = $(".word-break-longer-text")[index].innerText;
                 if (textOfColumn != '' && textOfColumn != ' ') {
                     var numberOfChars = 15;
                     var controlValue = numberOfChars;
@@ -190,11 +194,11 @@ export default class MidPointTheme {
     clickFuncWicket6(eventData) {
         var clickedElement = (window.event) ? event.srcElement : eventData.target;
         if ((clickedElement.tagName.toUpperCase() == 'BUTTON'
-            || clickedElement.tagName.toUpperCase() == 'A'
-            || clickedElement.parentNode.tagName.toUpperCase() == 'A'
-            || (clickedElement.tagName.toUpperCase() == 'INPUT'
-            && (clickedElement.type.toUpperCase() == 'BUTTON'
-            || clickedElement.type.toUpperCase() == 'SUBMIT')))
+                || clickedElement.tagName.toUpperCase() == 'A'
+                || clickedElement.parentNode.tagName.toUpperCase() == 'A'
+                || (clickedElement.tagName.toUpperCase() == 'INPUT'
+                    && (clickedElement.type.toUpperCase() == 'BUTTON'
+                        || clickedElement.type.toUpperCase() == 'SUBMIT')))
             && clickedElement.parentNode.id.toUpperCase() != 'NOBUSY'
             && clickedElement.disabled == 'false') {
             showAjaxStatusSign();
@@ -208,11 +212,11 @@ export default class MidPointTheme {
 
         const self = this;
 
-        Wicket.Event.subscribe('/ajax/call/beforeSend', function( attributes, jqXHR, settings ) {
+        Wicket.Event.subscribe('/ajax/call/beforeSend', function (attributes, jqXHR, settings) {
             self.showAjaxStatusSign();
         });
 
-        Wicket.Event.subscribe('/ajax/call/complete', function( attributes, jqXHR, textStatus) {
+        Wicket.Event.subscribe('/ajax/call/complete', function (attributes, jqXHR, textStatus) {
             self.hideAjaxStatusSign();
         });
     }
@@ -235,7 +239,8 @@ export default class MidPointTheme {
             for (i = 0; i < tooltips.length; ++i) {
                 tooltips[i].style.display = 'none';
             }
-        };
+        }
+        ;
     }
 
     /**
@@ -277,13 +282,13 @@ export default class MidPointTheme {
 
     updateHeight(elementId, add, substract) {
         updateHeightReal(elementId, add, substract);
-        $(window).resize(function() {
+        $(window).resize(function () {
             updateHeightReal(elementId, add, substract);
         });
     }
 
     updateHeightReal(elementId, add, substract) {
-        $('#' + elementId).css("height","0px");
+        $('#' + elementId).css("height", "0px");
 
         var documentHeight = $(document).innerHeight();
         var elementHeight = $('#' + elementId).outerHeight(true);
@@ -320,7 +325,7 @@ export default class MidPointTheme {
      * @param positionId
      */
     initPageSizePopover(buttonId, popoverId, positionId) {
-        console.log("initPageSizePopover('" + buttonId + "','" + popoverId + "','" + positionId +"')");
+        console.log("initPageSizePopover('" + buttonId + "','" + popoverId + "','" + positionId + "')");
 
         var button = $('#' + buttonId);
         button.click(function () {
@@ -426,7 +431,7 @@ export default class MidPointTheme {
         popover.find('input[type=text],textarea,select').filter(':visible:first').focus();
 
         //this will catch ESC or ENTER and fake close or update button click
-        popover.find('input[type=text],textarea,select').off('keyup.search').on('keyup.search', function(e) {
+        popover.find('input[type=text],textarea,select').off('keyup.search').on('keyup.search', function (e) {
             if (e.keyCode == 27) {
                 popover.find('[data-type="close"]').click();
             } else if (e.keyCode == 13) {
@@ -526,5 +531,19 @@ export default class MidPointTheme {
         }
 
         input.val(value);
+    }
+
+    initResponsiveTable() {
+        $('.table-responsive').on('show.bs.dropdown', function (e) {
+            const $dropdownMenu = $(e.target).find('.dropdown-menu'),
+                menuHeight = $dropdownMenu.outerHeight(true);
+            const extraHeight = 20;
+
+            $('.table-responsive').css("min-height", menuHeight + extraHeight + "px");
+        });
+
+        $('.table-responsive').on('hide.bs.dropdown', function () {
+            $('.table-responsive').css("min-height", "auto");
+        })
     }
 }
