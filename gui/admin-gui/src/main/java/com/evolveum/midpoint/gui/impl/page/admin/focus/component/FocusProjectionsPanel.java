@@ -557,7 +557,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
             if (triggers != null && !triggers.isEmpty()) {
                 for (PrismContainerValueWrapper<TriggerType> trigger : triggers.getValues()) {
                     if (trigger != null) {
-                        shadow.getTrigger().add(trigger.getRealValue().clone());
+                        shadow.getTrigger().add(trigger.getRealValue().cloneWithoutId());
                     }
                 }
             }
