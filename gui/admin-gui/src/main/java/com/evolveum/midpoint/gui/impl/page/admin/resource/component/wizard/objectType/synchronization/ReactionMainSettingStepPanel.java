@@ -24,14 +24,14 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "reactionMainSettingWizard",
+@PanelInstance(identifier = "rw-synchronization-reaction-main",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.synchronization.reaction.mainSettings", icon = "fa fa-wrench"),
         expanded = true)
 public class ReactionMainSettingStepPanel extends AbstractValueFormResourceWizardStepPanel<SynchronizationReactionType> {
 
-    public static final String PANEL_TYPE = "reactionMainSettingWizard";
+    public static final String PANEL_TYPE = "rw-synchronization-reaction-main";
 
     public ReactionMainSettingStepPanel(ResourceDetailsModel model,
                                    IModel<PrismContainerValueWrapper<SynchronizationReactionType>> newValueModel) {

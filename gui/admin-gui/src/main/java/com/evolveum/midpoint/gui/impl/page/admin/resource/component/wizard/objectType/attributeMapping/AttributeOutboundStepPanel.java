@@ -31,14 +31,14 @@ import org.apache.wicket.model.Model;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "attributeOutboundWizard",
+@PanelInstance(identifier = "rw-attribute-outbound",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound", icon = "fa fa-circle"),
         expanded = true)
 public class AttributeOutboundStepPanel extends AbstractValueFormResourceWizardStepPanel<MappingType> {
 
-    public static final String PANEL_TYPE = "attributeOutboundWizard";
+    public static final String PANEL_TYPE = "rw-attribute-outbound";
 
     public AttributeOutboundStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<MappingType>> newValueModel) {
         super(model, newValueModel);

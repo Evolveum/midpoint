@@ -22,14 +22,14 @@ import org.apache.wicket.model.IModel;
  */
 
 @Experimental
-@PanelInstance(identifier = "validToWizard",
+@PanelInstance(identifier = "rw-activation-validTo",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.activation.validTo", icon = "fa fa-toggle-off"),
         expanded = true)
 public abstract class ValidToStepPanel extends ActivationMappingStepPanel {
 
-    public static final String PANEL_TYPE = "validToWizard";
+    public static final String PANEL_TYPE = "rw-activation-validTo";
 
     public ValidToStepPanel(ResourceDetailsModel model,
                             IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {

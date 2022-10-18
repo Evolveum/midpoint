@@ -32,14 +32,14 @@ import org.apache.wicket.model.IModel;
  */
 
 @Experimental
-@PanelInstance(identifier = "administrativeStatusWizard",
+@PanelInstance(identifier = "rw-activation-administrativeStatus",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.activation.administrativeStatus", icon = "fa fa-toggle-off"),
         expanded = true)
 public abstract class AdministrativeStatusStepPanel extends ActivationMappingStepPanel {
 
-    public static final String PANEL_TYPE = "administrativeStatusWizard";
+    public static final String PANEL_TYPE = "rw-activation-administrativeStatus";
 
     public AdministrativeStatusStepPanel(ResourceDetailsModel model,
                                          IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {

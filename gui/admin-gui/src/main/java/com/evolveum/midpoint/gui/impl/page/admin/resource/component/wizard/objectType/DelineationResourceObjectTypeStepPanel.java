@@ -22,14 +22,14 @@ import org.apache.wicket.model.LoadableDetachableModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "delineationResourceObjectTypeWizard",
+@PanelInstance(identifier = "rw-type-delineation",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.delineation", icon = "fa fa-circle"),
         expanded = true)
 public class DelineationResourceObjectTypeStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDelineationType> {
 
-    public static final String PANEL_TYPE = "delineationResourceObjectTypeWizard";
+    public static final String PANEL_TYPE = "rw-type-delineation";
     private IModel<PrismContainerValueWrapper<ResourceObjectTypeDelineationType>> valueModel = null;
 
     public DelineationResourceObjectTypeStepPanel(ResourceDetailsModel model,

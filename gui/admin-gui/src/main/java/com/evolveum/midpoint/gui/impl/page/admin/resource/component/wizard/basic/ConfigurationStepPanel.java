@@ -19,8 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 /**
  * @author lskublik
  */
-@PanelType(name = "connectorConfigurationWizard")
-@PanelInstance(identifier = "connectorConfigurationWizard",
+@PanelType(name = "rw-connectorConfiguration")
+@PanelInstance(identifier = "rw-connectorConfiguration",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(
@@ -32,7 +32,7 @@ public class ConfigurationStepPanel extends AbstractConfigurationStepPanel {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConfigurationStepPanel.class);
 
-    private static final String PANEL_TYPE = "connectorConfigurationWizard";
+    private static final String PANEL_TYPE = "rw-connectorConfiguration";
 
     public ConfigurationStepPanel(ResourceDetailsModel model) {
         super(model);

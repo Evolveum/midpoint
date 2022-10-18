@@ -34,8 +34,8 @@ import java.util.Collection;
 /**
  * @author lskublik
  */
-@PanelType(name = "discoverConnectorConfigurationWizard")
-@PanelInstance(identifier = "discoverConnectorConfigurationWizard",
+@PanelType(name = "rw-connectorConfiguration-discovery")
+@PanelInstance(identifier = "rw-connectorConfiguration-discovery",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.discovery", icon = "fa fa-list-check"),
@@ -44,7 +44,7 @@ import java.util.Collection;
 public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
 
     private static final String OPERATION_DISCOVER_CONFIGURATION = DiscoveryStepPanel.class.getName() + ".discoverConfiguration";
-    private static final String PANEL_TYPE = "discoverConnectorConfigurationWizard";
+    private static final String PANEL_TYPE = "rw-connectorConfiguration-discovery";
 
     public DiscoveryStepPanel(ResourceDetailsModel model) {
         super(model);

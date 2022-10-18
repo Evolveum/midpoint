@@ -22,15 +22,15 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelType(name = "basicInformationWizard")
-@PanelInstance(identifier = "basicInformationWizard",
+@PanelType(name = "rw-basic")
+@PanelInstance(identifier = "rw-basic",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
 public class BasicInformationStepPanel extends AbstractFormResourceWizardStepPanel {
 
-    private static final String PANEL_TYPE = "basicInformationWizard";
+    private static final String PANEL_TYPE = "rw-basic";
 
     public BasicInformationStepPanel(ResourceDetailsModel model) {
         super(model);

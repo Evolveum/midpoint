@@ -24,14 +24,14 @@ import org.apache.wicket.model.IModel;
  */
 
 @Experimental
-@PanelInstance(identifier = "existenceWizard",
+@PanelInstance(identifier = "rw-activation-existence",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.activation.existence", icon = "fa fa-toggle-off"),
         expanded = true)
 public abstract class ExistenceStepPanel extends ActivationMappingStepPanel {
 
-    public static final String PANEL_TYPE = "existenceWizard";
+    public static final String PANEL_TYPE = "rw-activation-existence";
 
     public ExistenceStepPanel(ResourceDetailsModel model,
                               IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {

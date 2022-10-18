@@ -26,14 +26,14 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "limitationsMappingWizard",
+@PanelInstance(identifier = "rw-attribute-limitations",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.limitation", icon = "fa fa-circle"),
         expanded = true)
 public class LimitationsStepPanel extends AbstractValueFormResourceWizardStepPanel<PropertyLimitationsType> {
 
-    public static final String PANEL_TYPE = "limitationsMappingWizard";
+    public static final String PANEL_TYPE = "rw-attribute-limitations";
 
     private final IModel<PrismContainerValueWrapper<PropertyLimitationsType>> valueModel;
 

@@ -19,14 +19,14 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "focusResourceObjectTypeWizard",
+@PanelInstance(identifier = "rw-type-focus",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.focus", icon = "fa fa-circle"),
         expanded = true)
 public class FocusResourceObjectTypeStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectFocusSpecificationType> {
 
-    public static final String PANEL_TYPE = "focusResourceObjectTypeWizard";
+    public static final String PANEL_TYPE = "rw-type-focus";
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> objectTypeValueModel;
     private final IModel<PrismContainerValueWrapper<ResourceObjectFocusSpecificationType>> valueModel;

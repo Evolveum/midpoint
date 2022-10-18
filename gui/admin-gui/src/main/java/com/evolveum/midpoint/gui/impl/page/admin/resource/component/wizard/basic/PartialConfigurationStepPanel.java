@@ -27,8 +27,8 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-@PanelType(name = "connectorPartialConfigurationWizard")
-@PanelInstance(identifier = "connectorPartialConfigurationWizard",
+@PanelType(name = "rw-connectorConfiguration-partial")
+@PanelInstance(identifier = "rw-connectorConfiguration-partial",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(
@@ -41,7 +41,7 @@ public class PartialConfigurationStepPanel extends AbstractFormResourceWizardSte
     private static final String DOT_CLASS = PartialConfigurationStepPanel.class.getName() + ".";
     private static final String OPERATION_PARTIAL_CONFIGURATION_TEST = DOT_CLASS + "partialConfigurationTest";
 
-    private static final String PANEL_TYPE = "connectorPartialConfigurationWizard";
+    private static final String PANEL_TYPE = "rw-connectorConfiguration-partial";
 
     public PartialConfigurationStepPanel(ResourceDetailsModel model) {
         super(model);

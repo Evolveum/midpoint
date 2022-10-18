@@ -25,14 +25,14 @@ import org.apache.wicket.model.IModel;
  * @author lskublik
  */
 @Experimental
-@PanelInstance(identifier = "associationWizard",
+@PanelInstance(identifier = "rw-association",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.associations", icon = "fa fa-shield"),
         expanded = true)
 public class AssociationStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectAssociationType> {
 
-    public static final String PANEL_TYPE = "associationWizard";
+    public static final String PANEL_TYPE = "rw-association";
 
     public AssociationStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> newValueModel) {
         super(model, newValueModel);

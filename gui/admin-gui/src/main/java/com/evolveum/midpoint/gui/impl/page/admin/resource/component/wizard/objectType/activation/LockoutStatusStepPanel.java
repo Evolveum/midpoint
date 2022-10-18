@@ -24,14 +24,14 @@ import org.apache.wicket.model.IModel;
  */
 
 @Experimental
-@PanelInstance(identifier = "lockoutStatusWizard",
+@PanelInstance(identifier = "rw-activation-lockoutStatus",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.activation.lockoutStatus", icon = "fa fa-toggle-off"),
         expanded = true)
 public abstract class LockoutStatusStepPanel extends ActivationMappingStepPanel {
 
-    public static final String PANEL_TYPE = "lockoutStatusWizard";
+    public static final String PANEL_TYPE = "rw-activation-lockoutStatus";
 
     public LockoutStatusStepPanel(ResourceDetailsModel model,
                                   IModel<PrismContainerWrapper<ResourceBidirectionalMappingType>> containerModel) {

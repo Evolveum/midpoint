@@ -913,7 +913,7 @@
             </objectDetailsPage>
             <resourceDetailsPage>
                 <panel>
-                    <identifier>basicResourceObjectTypeWizard</identifier>
+                    <identifier>rw-type-basic</identifier>
                     <container>
                         <identifier>basic</identifier>
                         <display>
@@ -948,10 +948,10 @@
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType</path>
                     </container>
-                    <panelType>basicResourceObjectTypeWizard</panelType>
+                    <panelType>rw-type-basic</panelType>
                 </panel>
                 <panel>
-                    <identifier>delineationResourceObjectTypeWizard</identifier>
+                    <identifier>rw-type-delineation</identifier>
                     <container>
                         <identifier>delineation</identifier>
                         <display>
@@ -982,10 +982,10 @@
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/delineation</path>
                     </container>
-                    <panelType>delineationResourceObjectTypeWizard</panelType>
+                    <panelType>rw-type-delineation</panelType>
                 </panel>
                 <panel>
-                    <identifier>limitationsMappingWizard</identifier>
+                    <identifier>rw-attribute-limitations</identifier>
                     <container>
                         <identifier>limitationsMapping</identifier>
                         <display>
@@ -1020,10 +1020,10 @@
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/attribute/limitations</path>
                     </container>
-                    <panelType>limitationsMappingWizard</panelType>
+                    <panelType>rw-attribute-limitations</panelType>
                 </panel>
                 <panel>
-                    <identifier>reactionMainSettingWizard</identifier>
+                    <identifier>rw-synchronization-reaction-main</identifier>
                     <container>
                         <identifier>reactionMainSetting</identifier>
                         <display>
@@ -1046,10 +1046,10 @@
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/synchronization/reaction</path>
                     </container>
-                    <panelType>reactionMainSettingWizard</panelType>
+                    <panelType>rw-synchronization-reaction-main</panelType>
                 </panel>
                 <panel>
-                    <identifier>reactionOptionalSettingWizard</identifier>
+                    <identifier>rw-synchronization-reaction-optional</identifier>
                     <container>
                         <identifier>reactionOptionalSetting</identifier>
                         <display>
@@ -1072,10 +1072,10 @@
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/synchronization/reaction</path>
                     </container>
-                    <panelType>reactionOptionalSettingWizard</panelType>
+                    <panelType>rw-synchronization-reaction-optional</panelType>
                 </panel>
                 <panel>
-                    <identifier>mainConfigurationAttributeWizard</identifier>
+                    <identifier>rw-attribute</identifier>
                     <container>
                         <identifier>mainConfigurationAttribute</identifier>
                         <display>
@@ -1122,10 +1122,10 @@
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/attribute</path>
                     </container>
-                    <panelType>mainConfigurationAttributeWizard</panelType>
+                    <panelType>rw-attribute</panelType>
                 </panel>
                 <panel>
-                    <identifier>associationWizard</identifier>
+                    <identifier>rw-association</identifier>
                     <container>
                         <identifier>association</identifier>
                         <display>
@@ -1184,12 +1184,12 @@
                         <visibility>hidden</visibility>
                         <path>schemaHandling/objectType/association</path>
                     </container>
-                    <panelType>associationWizard</panelType>
+                    <panelType>rw-association</panelType>
                 </panel>
             </resourceDetailsPage>
             <resourceDetailsPage>
                 <panel>
-                    <identifier>connectorPartialConfigurationWizard</identifier>
+                    <identifier>rw-connectorConfiguration-partial</identifier>
                     <container>
                         <identifier>required</identifier>
                         <display>
@@ -1215,7 +1215,7 @@
                         <visibility>hidden</visibility>
                         <path>connectorConfiguration/configurationProperties</path>
                     </container>
-                    <panelType>connectorPartialConfigurationWizard</panelType>
+                    <panelType>rw-connectorConfiguration-partial</panelType>
                 </panel>
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
@@ -1235,7 +1235,7 @@
             </resourceDetailsPage>
             <resourceDetailsPage>
                 <panel>
-                    <identifier>connectorPartialConfigurationWizard</identifier>
+                    <identifier>rw-connectorConfiguration-partial</identifier>
                     <container>
                         <identifier>required</identifier>
                         <display>
@@ -1255,7 +1255,7 @@
                         <visibility>hidden</visibility>
                         <path>connectorConfiguration/configurationProperties</path>
                     </container>
-                    <panelType>connectorPartialConfigurationWizard</panelType>
+                    <panelType>rw-connectorConfiguration-partial</panelType>
                 </panel>
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>
@@ -1275,7 +1275,7 @@
             </resourceDetailsPage>
             <resourceDetailsPage>
                 <panel>
-                    <identifier>connectorPartialConfigurationWizard</identifier>
+                    <identifier>rw-connectorConfiguration-partial</identifier>
                     <container>
                         <identifier>required</identifier>
                         <display>
@@ -1295,7 +1295,7 @@
                         <visibility>hidden</visibility>
                         <path>connectorConfiguration/configurationProperties</path>
                     </container>
-                    <panelType>connectorPartialConfigurationWizard</panelType>
+                    <panelType>rw-connectorConfiguration-partial</panelType>
                 </panel>
                 <connectorRef type="ConnectorType">
                     <resolutionTime>run</resolutionTime>

@@ -35,13 +35,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjec
 /**
  * @author lskublik
  */
-@PanelInstance(identifier = "basicResourceObjectTypeWizard",
+@PanelInstance(identifier = "rw-type-basic",
         applicableForType = ResourceType.class,
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.basicSettings", icon = "fa fa-circle"))
 public class BasicSettingResourceObjectTypeStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDefinitionType> {
 
-    public static final String PANEL_TYPE = "basicResourceObjectTypeWizard";
+    public static final String PANEL_TYPE = "rw-type-basic";
 
     public BasicSettingResourceObjectTypeStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
         super(model, newValueModel);
