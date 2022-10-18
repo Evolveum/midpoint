@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 /**
 * @author lskublik
  */
-@PanelType(name = "myRequests")
 public abstract class CasesTablePanel extends MainObjectListPanel<CaseType> {
 
     private static final long serialVersionUID = 1L;

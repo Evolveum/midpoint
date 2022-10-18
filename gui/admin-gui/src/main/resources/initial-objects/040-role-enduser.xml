@@ -261,6 +261,13 @@
                 <identifier>listResourcesWidget</identifier>
                 <visibility>hidden</visibility>
             </widget>
+            <widget>
+                <identifier>myRequests</identifier>
+                <action>
+                    <identifier>viewAll</identifier>
+                    <visibility>hidden</visibility>
+                </action>
+            </widget>
         </homePage>
         <selfProfilePage>
             <type>UserType</type>

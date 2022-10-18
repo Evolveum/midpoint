@@ -252,11 +252,11 @@
                         </icon>
                     </display>
                     <target>
-                        <targetUrl>/self/profile/user</targetUrl>
-                        <panelIdentifier>focusCases</panelIdentifier>
+                        <targetUrl>/admin/casesAll</targetUrl>
+                        <collectionIdentifier>my-cases</collectionIdentifier>
                     </target>
                 </action>
-                <panelType>focusCases</panelType>
+                <panelType>myRequests</panelType>
                 <previewSize>5</previewSize>
             </widget>
             <widget>
