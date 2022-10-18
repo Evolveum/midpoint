@@ -100,6 +100,7 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
             }
 
         };
+        propagatePasswordCheckbox.add(new VisibleBehaviour(this::shouldLoadAccounts));
         propagatePasswordCheckbox.setOutputMarkupId(true);
         add(propagatePasswordCheckbox);
 
@@ -123,9 +124,8 @@ public class PropagatePasswordPanel<F extends FocusType> extends ChangePasswordP
 
     private boolean isIndividualSystemsContainerVisible() {
         CheckBoxPanel propagateCheckBox = getPropagatePasswordCheckbox();
-        return shouldLoadAccounts() &&
-                (propagateCheckBox.getCheckboxModel().getObject() != null
-                        && propagateCheckBox.getCheckboxModel().getObject() || showResultInTable);
+        return propagateCheckBox.getCheckboxModel().getObject() != null
+                        && propagateCheckBox.getCheckboxModel().getObject() || showResultInTable;
     }
 
     private CheckBoxPanel getPropagatePasswordCheckbox() {
