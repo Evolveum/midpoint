@@ -575,43 +575,6 @@ Panels applicable only for reports:
 | 80
 |===
 
-Panels applicable only for resources:
-[%autowidth]
-
-|===
-| Panel | Identifier | Description | Default order
-
-| Resource accounts
-| `resourceAccounts`
-|
-| 30
-
-| Connector
-| `resourceConnector`
-|
-| 70
-
-| Resource details
-| `resourceDetails`
-|
-| 10
-
-| Resource entitlements
-| `resourceEntitlement`
-|
-| 40
-
-| Resource generics
-| `resourceGenerics`
-|
-| 50
-
-| Resource tasks
-| `resourceTasks`
-|
-| 20
-|===
-
 Panels applicable only for tasks:
 
 [%autowidth]
@@ -791,6 +754,180 @@ Panels applicable only for system configuration:
 | 30
 |===
 
+==== Object details for resource
+
+For configuration of object details for resource (ResourceType) use tag `resourceDetailsPage` insteadof `objectDetailsPage`. Configuration contains all attribute as configuration for `objectDetailsPage` and additionally contains attribute `connectorRef` that define connector of resource fow which configuration of admin gui applies. We can use classic reference, or we can use filter in reference that will be resolved during processing of configuration.
+
+.Example with oid for connectorType
+[source, xml]
+----
+<systemConfiguration>
+   ...
+    <adminGuiConfiguration>
+        <objectDetails>
+            <resourceDetailsPage>
+                ...
+                <connectorRef type="ConnectorType" oid="OID_OF_CONNECTOR_TYPE"/>
+            </resourceDetailsPage>
+        </objectDetails>
+    </adminGuiConfiguration>
+    ...
+<systemConfiguration>
+----
+
+.Example with filter
+[source, xml]
+----
+<systemConfiguration>
+   ...
+    <adminGuiConfiguration>
+        <objectDetails>
+            <resourceDetailsPage>
+                ...
+                <connectorRef type="ConnectorType">
+                    <resolutionTime>run</resolutionTime>
+                    <filter>
+                        <q:and>
+                            <q:equal>
+                                <q:path>connectorType</q:path>
+                                <q:value>com.evolveum.polygon.connector.ldap.ad.AdLdapConnector</q:value>
+                            </q:equal>
+                            <q:equal>
+                                <q:path>available</q:path>
+                                <q:value>true</q:value>
+                            </q:equal>
+                        </q:and>
+                    </filter>
+                </connectorRef>
+            </resourceDetailsPage>
+        </objectDetails>
+    </adminGuiConfiguration>
+    ...
+<systemConfiguration>
+----
+You can use in filter attribute `available`, that can help you during updating of connector version, because only newest version of connector and connector added to directory in midPoint home directory contain value true.
+
+We can omit attribute `connectorRef` and we write configuration for all resources. When system configuration contains configurations for specific resource and for all resources, then final configuration will be merged of these two configurations.
+
+Panels applicable only for resources (detail page):
+[%autowidth]
+
+|===
+| Panel | Identifier
+
+| Resource accounts
+| `resourceAccounts`
+
+
+| Connector
+| `resourceConnector`
+
+
+| Resource details
+| `resourceDetails`
+
+
+| Resource entitlements
+| `resourceEntitlement`
+
+
+| Resource generics
+| `resourceGenerics`
+
+
+| Resource tasks
+| `resourceTasks`
+
+|===
+
+Panels applicable for resource wizard:
+[%autowidth]
+
+|===
+| Panel | Identifier | Description
+
+| Basic information
+| `rw-basic`
+| Basic information about your resource
+
+| Connector configuration
+| `rw-connectorConfiguration`
+| Configuration for connector
+
+| Connector configuration for discovery
+| `rw-connectorConfiguration-discovery`
+| Necessary configuration for discovery of next possible configuration by connector
+
+| Connector configuration after discovering
+| `rw-connectorConfiguration-partial`
+| Configuration after discovering that can contains suggestions for configuration attributes
+
+| Basic information about the object type
+| `rw-type-basic`
+| Basic configuration of resource object type
+
+| Resource object type data
+| `rw-type-delineation`
+| Panel for delineate the boundary of objects that belong to resource object type and contains supporting instructions regarding classification of objects into types
+
+| Midpoint object type data
+| `rw-type-focus`
+| Panel for the necessary fields to specify focus objects corresponding to given resource object type
+
+| Administrative status configuration
+| `rw-activation-administrativeStatus`
+| Defines the "administrative state" of the object
+
+| Existence configuration
+| `rw-activation-existence`
+| Determines whether the resource object should exist or not
+
+| Lockout status configuration
+| `rw-activation-lockoutStatus`
+| Lock-out means that the account was temporarily disabled
+
+| Valid from configuration
+| `rw-activation-validFrom`
+| Definition of the circumstances for the start of the object's validity
+
+| Valid to configuration
+| `rw-activation-validTo`
+| Definition of the circumstances for the end of the object's validity
+
+| Configuration of the association
+| `rw-association`
+| Configuration of the settings for association
+
+| Configuration of inbound mapping
+| `rw-attribute-inbound`
+| Definition of the resource attribute from which the data wil be provisioned, and midPoint attribute which they will be provisioned to
+
+| Configuration of outbound mapping
+| `rw-attribute-outbound`
+| Definition of from which attribute(s) in midPoint the data will be provisioned to which attribute on resource
+
+| Limitations of the override
+| `rw-attribute-limitations`
+| Configuration of the limitations, that are used to restrict some properties of an attribute
+
+| Configuration of the override
+| `rw-attribute`
+| Configuration of the basic settings for override attribute
+
+| Credentials configuration
+| `rw-credentials`
+| Configuration of the credentials that defines how account credentials are synchronized for current object type
+
+| Main settings of reaction
+| `rw-synchronization-reaction-main`
+| Basic main configuration about the reaction
+
+| Optional reaction configuration
+| `rw-synchronization-reaction-optional`
+| Panel contains more advanced optional configuration for enrichment of the synchronization reaction
+|===
+
+
 ==== Assignment Panels: Switching Data Provider
 
 WARNING: This feature is available since midPoint 4.6
@@ -845,8 +982,6 @@ The configuration is done by setting `xsi:type` of `panel -> listView -> dataPro
     ...
 <systemConfiguration>
 ----
-
-
 
 == Examples
 
