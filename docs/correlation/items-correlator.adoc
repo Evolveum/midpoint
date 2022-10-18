@@ -148,7 +148,9 @@ For example, we may want to specify that when correlating on `employeeNumber` we
             <items>
                 <item>
                     <ref>employeeNumber</ref>
-                    <matchingRule>mr:polyStringNorm</matchingRule>
+                    <search>
+                        <matchingRule>mr:polyStringNorm</matchingRule>
+                    </search>
                 </item>
             </items>
         </correlators>
