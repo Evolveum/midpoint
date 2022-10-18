@@ -115,7 +115,7 @@ public class GuiDisplayNameUtil {
         }
         StringBuilder sb = new StringBuilder();
         if (objectType.getKind() != null) {
-            sb.append(PageBase.createStringResourceStatic(null, objectType.getKind()));
+            sb.append(PageBase.createStringResourceStatic(null, objectType.getKind()).getString());
         }
         if (StringUtils.isNotEmpty(objectType.getIntent())) {
             if (StringUtils.isNotEmpty(sb.toString())) {
