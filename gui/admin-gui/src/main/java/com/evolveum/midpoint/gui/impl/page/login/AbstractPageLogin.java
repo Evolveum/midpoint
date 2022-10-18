@@ -12,7 +12,7 @@ import javax.servlet.http.HttpSession;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -21,7 +21,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -75,7 +74,6 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     }
 
     private void initLayout() {
-
         String sequenceName = getSequenceName();
         Label sequence = new Label(ID_SEQUENCE, createStringResource("AbstractPageLogin.authenticationSequence", sequenceName));
         sequence.add(new VisibleBehaviour(() -> !StringUtils.isEmpty(sequenceName)));
@@ -93,6 +91,8 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         initCustomLayout();
 
         addFeedbackPanel();
+
+        add(new LocaleTextPanel("locale"));
     }
 
     private String getSequenceName() {

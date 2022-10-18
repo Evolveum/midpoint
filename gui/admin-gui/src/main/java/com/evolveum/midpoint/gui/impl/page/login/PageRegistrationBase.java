@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.login;
 
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
+import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
@@ -48,6 +50,8 @@ public class PageRegistrationBase extends PageAdminLTE {
         super(null);
 
         addFeedbackPanel();
+
+        add(new LocaleTextPanel("locale"));
     }
 
     @Override

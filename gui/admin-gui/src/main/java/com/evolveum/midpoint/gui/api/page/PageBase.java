@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.page;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.menu.top.LocaleTopMenuPanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -71,7 +73,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.BaseMenuItem;
 import com.evolveum.midpoint.web.component.menu.SideBarMenuItem;
-import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -228,7 +229,7 @@ public abstract class PageBase extends PageAdminLTE {
         menuToggle.add(createUserStatusBehaviour());
         container.add(menuToggle);
 
-        LocalePanel locale = new LocalePanel(ID_LOCALE);
+        LocaleTopMenuPanel locale = new LocaleTopMenuPanel(ID_LOCALE);
         container.add(locale);
 
         AjaxIconButton mode = new AjaxIconButton(ID_MODE,
