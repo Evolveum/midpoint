@@ -14,6 +14,7 @@
     <wicket:fragment wicket:id="staticContent">
         <div wicket:id="staticForm">
             <p class="login-box-msg" wicket:id="welcome"/>
+            
             <div>
                 <label wicket:id="additionalText"></label>
             </div>
@@ -52,18 +53,10 @@
             <div wicket:id="componentFeedback"/>
 
         </div>
-        <div class="col-md-offset-6">
-            <div wicket:id="captcha"/>
-        </div>
-        <div class="row">
-            <div class="col-8">
-                <a class="btn btn-default" wicket:id="back"/>
-            </div>
-
-            <div class="col-4">
-                <a class="btn btn-primary btn-block" wicket:id="submitRegistration"/>
-            </div>
-
+        <div wicket:id="captcha"/>
+        <div class="d-flex flex-row justify-content-between gap-2">
+            <a class="btn btn-default" wicket:id="back"/>
+            <a class="btn btn-primary" wicket:id="submitRegistration"/>
         </div>
     </wicket:fragment>
 

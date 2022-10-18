@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.login;
 
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -24,6 +23,7 @@ import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -166,8 +167,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
         staticRegistrationForm.setOutputMarkupId(true);
         add(staticRegistrationForm);
 
-        addMultilineLable(ID_WELCOME, createStringResource("PageSelfRegistration.welcome.message"), staticRegistrationForm);
-        addMultilineLable(ID_ADDITIONAL_TEXT, createStringResource("PageSelfRegistration.additional.message",
+        addMultilineLabel(ID_WELCOME, createStringResource("PageSelfRegistration.welcome.message"), staticRegistrationForm);
+        addMultilineLabel(ID_ADDITIONAL_TEXT, createStringResource("PageSelfRegistration.additional.message",
                 WebComponentUtil.getMidpointCustomSystemName(PageSelfRegistration.this, "MidPoint")), staticRegistrationForm);
 
         FeedbackPanel feedback = new FeedbackPanel(ID_COMPONENT_FEEDBACK,
@@ -211,11 +212,11 @@ public class PageSelfRegistration extends PageAbstractFlow {
         return staticRegistrationForm;
     }
 
-    private void addMultilineLable(String id, StringResourceModel messageModel, WebMarkupContainer mainForm) {
-        MultiLineLabel welcome = new MultiLineLabel(id, messageModel);
-        welcome.setOutputMarkupId(true);
-        mainForm.add(welcome);
-
+    private void addMultilineLabel(String id, StringResourceModel messageModel, WebMarkupContainer mainForm) {
+        MultiLineLabel label = new MultiLineLabel(id, messageModel);
+        label.setOutputMarkupId(true);
+        label.add(new VisibleBehaviour(() -> messageModel != null && StringUtils.isNotEmpty(messageModel.getString())));
+        mainForm.add(label);
     }
 
     private void initInputProperties(FeedbackPanel feedback, String placeholderKey, TextPanel<String> input) {

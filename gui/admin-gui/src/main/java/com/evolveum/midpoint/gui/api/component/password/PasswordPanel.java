@@ -304,7 +304,7 @@ public class PasswordPanel extends InputPanel {
         ValuePolicyType valuePolicyType = null;
         try {
             MidPointPrincipal user = AuthUtil.getPrincipalUser();
-            if (getPageBase() != null) {
+            if (getPage() instanceof PageBase && getPageBase() != null) {
                 if (user != null) {
                     Task task = getPageBase().createSimpleTask("load value policy");
                     valuePolicyType = searchValuePolicy(object, task);
