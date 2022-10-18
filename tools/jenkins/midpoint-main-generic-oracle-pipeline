@@ -184,7 +184,7 @@ echo -e  "\\nPod IP: \${poddbIP}\\nHost IP: \${hostdbIP}\\n"
                                 df -h
                             fi
 
-                            mvn -B -ntp -DskipTests -P -dist clean package
+                            mvn -B -ntp -DskipTests -P -dist clean install
                         """
                 }
             }
