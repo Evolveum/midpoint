@@ -202,6 +202,7 @@ For example, since 4.6 it is possible to set, that the logged-in user when looki
 To configure self-service profile, the same rules and same panels can be used as described in xref:/midpoint/reference/admin-gui/admin-gui-config/#object-details[object details] page.
 The only different is the place, where it is configured. So it is not configured in `adminGuiConfiguration/objectDetails/*DetailsPage`, but in `adminGuiConfiguration/selfProfilePage`. The example of the configuration is listed bellow:
 
+[source,xml]
 ----
 <adminGuiConfiguration>
     <selfProfilePage>
