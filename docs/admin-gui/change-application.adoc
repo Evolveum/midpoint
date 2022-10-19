@@ -7,8 +7,20 @@ This means that on the very next access that follows after the change, the sessi
 
 The following changes are applied in this way:
 
-- ...
+* any changes to assignments and Admin GUI section in roles assigned to user
+* changes of archetypes and/or Admin GUI configuration in these archetypes
+* changes of role assignments and/or Admin GUI configuration in these roles
+* changes of Admin GUI configuration in system configuration
+* changes of administrative status section of users
+* activation / deactivation of roles and users based on validFrom / validTo
 
-The following changes are not guaranteed to be applied in this way:
+[NOTE]
+====
+Automatic Changes Applications is currently based and evaluated
+on actual changes to underlying objects, which were used to compute session.
 
-- ...
+Time-based activations (`validFrom`/`validTo` in user or assignments) are supported
+via `Validity Scanner` task which updates these objects.
+Time-based activations are not applied immediately on `validFrom`/`validTo` times,
+but after next scheduled run of *Validity Scanner* (default is every 15 minutes).
+====
