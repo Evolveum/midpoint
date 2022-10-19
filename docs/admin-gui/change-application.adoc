@@ -1,0 +1,14 @@
+= Application of GUI Configuration and Authorization Changes
+:page-since: 4.6
+
+Before midPoint 4.6, any changes in GUI configuration and user authorizations required a logout and re-login to be applied.
+Starting with the version 4.6, selected changes cause the user session or sessions to be automatically refreshed.
+This means that on the very next access that follows after the change, the session (technically speaking, the compiled user profile) is refreshed.
+
+The following changes are applied in this way:
+
+- ...
+
+The following changes are not guaranteed to be applied in this way:
+
+- ...
