@@ -83,6 +83,14 @@ If both repository and audit is in the same database, use both scripts on the sa
 
 The scripts do not contain any version number and are safe to run repeatedly - only the missing changes are applied.
 
+[IMPORTANT]
+====
+If you created the schema objects as non-superuser as described xref:/midpoint/reference/repository/native-postgresql/usage/#installing-as-non-superuser[here],
+be sure to run all the missing `CREATE EXTENSION` commands as a superuser first!
+This is also a good reason to use `-v ON_ERROR_STOP=1` flag with the `psql` - as shown below.
+This stops the upgrade when the first such problem occurs, but works fine if the extension already exists.
+====
+
 To upgrade the main repository run this command:
 [source,bash]
 ----
