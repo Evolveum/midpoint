@@ -771,6 +771,12 @@ This can be utilized to have a last resort value for the "fullName" attribute if
 
 ----
 
+==== Resource and Object Type Inheritance (Since 4.6)
+
+When configuring resources before 4.6, some amount of copy-and-paste work was inevitable: either when dealing with multiple object types in a resource, or across similar resources.
+Since 4.6, this should be no longer the case.
+MidPoint provides the feature of xref:/midpoint/reference/resources/resource-configuration/inheritance/[inheritance between resources as well as between individual object types].
+
 == Samples
 
 The best repository of fresh samples is the link:https://github.com/Evolveum/midpoint/tree/master/samples[samples directory in current development trunk]. There is a lot of examples for various resource types.
