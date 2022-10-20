@@ -59,16 +59,23 @@ public class CatalogTilePanel<T extends Serializable> extends BasePanel<CatalogT
         add(check);
 
         Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
+        description.add(AttributeAppender.replace("title", () -> getModelObject().getDescription()));
+        description.add(new TooltipBehavior());
         add(description);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeAppender.append("class", () -> getModelObject().getIcon()));
         add(icon);
 
-        add(new Label(ID_TITLE, () -> {
+        IModel<String> titleModel = () -> {
             String title = getModelObject().getTitle();
             return title != null ? getString(title, null, title) : null;
-        }));
+        };
+
+        Label title = new Label(ID_TITLE, titleModel);
+        title.add(AttributeAppender.replace("title", titleModel));
+        title.add(new TooltipBehavior());
+        add(title);
 
         Label info = new Label(ID_INFO);
         info.add(AttributeAppender.append("title", () -> getModelObject().getInfo()));

@@ -29,7 +29,7 @@
     // Negative margins (e.g., where `.mb-n1` is negative version of `.mb-1`)
     @each $size, $length in $spacers {
       .space#{$infix}-#{$size} > * + *,
-      .space-x#{$infix}-#{$size} > * + *{
+      .space-x#{$infix}-#{$size} > * + * {
         margin-left: $length !important;
         margin-right: $length !important;
       }
@@ -46,5 +46,3 @@
     }
   }
 }
-
-

@@ -9,12 +9,12 @@
 <wicket:panel>
     <div class="logo mt-3" wicket:id="logo"/>
     <span wicket:id="check" class="rounded-icon-success"/>
-    <span class="title mt-4">
+    <div class="mt-4 gap-1 d-flex align-items-center justify-content-center w-100">
         <i wicket:id="icon"></i>
-        <span class="font-weight-bold mx-1" wicket:id="title"/>
+        <div class="font-weight-bold text-truncate" wicket:id="title"/>
         <i class="fas fa-info-circle fa-xs text-primary" wicket:id="info"></i>
-    </span>
-    <span class="mt-2 text-center text-secondary text-wrap text-truncate flex-grow-1 d-inline-block" wicket:id="description"/>
+    </div>
+    <div class="tile-description mt-2 text-center text-secondary flex-grow-1" style="display: -webkit-box; text-overflow: ellipsis;" wicket:id="description"/>
     <a class="btn btn-lightblue mt-3" wicket:id="add">
         <i class="fas fa-cart-plus mr-2"></i>
         <wicket:message key="CatalogTilePanel.add"/>
