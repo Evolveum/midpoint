@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -1119,6 +1120,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 protected IModel<String> getWarningMessageModel() {
                     if (isSubtreeScope()) {
                         return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
+                    } else if (isIndirect()) {
+                        return getPageBase().createStringResource("abstractRoleMemberPanel.unassign.warning.indirect");
                     }
                     return null;
                 }
@@ -1184,8 +1187,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             protected IModel<String> getWarningMessageModel() {
-                if (isSubtreeScope()) {
+                if (isSubtreeScope() && rowModel == null) {
                     return createStringResource("abstractRoleMemberPanel.unassign.warning.subtree");
+                } else if (isIndirect() && rowModel == null) {
+                    return createStringResource("abstractRoleMemberPanel.unassign.warning.indirect");
                 }
                 return null;
             }
@@ -1477,8 +1482,23 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return SearchBoxScopeType.SUBTREE == getScopeValue();
     }
 
+    protected IndirectSearchItemWrapper getSearchIndirect() {
+        List<AbstractSearchItemWrapper<?>> items = getMemberPanelStorage().getSearch().getItems();
+        for (AbstractSearchItemWrapper<?> item : items) {
+            if (item instanceof IndirectSearchItemWrapper) {
+                return (IndirectSearchItemWrapper) item;
+            }
+        }
+        return null;
+    }
+
     private boolean isIndirect() {
-        return getSearchBoxConfiguration().isIndirect();
+        if (getSearchIndirect() != null) {
+            if (getSearchIndirect().getValue() != null) {
+                return BooleanUtils.isTrue(getSearchIndirect().getValue().getValue());
+            }
+        }
+        return false;
     }
 
     protected @NotNull QName getSearchType() {
@@ -1488,8 +1508,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected ScopeSearchItemWrapper getSearchScope() {
-        List<AbstractSearchItemWrapper> items = getMemberPanelStorage().getSearch().getItems();
-        for (AbstractSearchItemWrapper item : items) {
+        List<AbstractSearchItemWrapper<?>> items = getMemberPanelStorage().getSearch().getItems();
+        for (AbstractSearchItemWrapper<?> item : items) {
             if (item instanceof ScopeSearchItemWrapper) {
                 return (ScopeSearchItemWrapper) item;
             }
@@ -1505,8 +1525,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected RelationSearchItemWrapper getSearchRelation() {
-        List<AbstractSearchItemWrapper> items = getMemberPanelStorage().getSearch().getItems();
-        for (AbstractSearchItemWrapper item : items) {
+        List<AbstractSearchItemWrapper<?>> items = getMemberPanelStorage().getSearch().getItems();
+        for (AbstractSearchItemWrapper<?> item : items) {
             if (item instanceof RelationSearchItemWrapper) {
                 return (RelationSearchItemWrapper) item;
             }
