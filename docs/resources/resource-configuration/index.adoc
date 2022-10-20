@@ -771,7 +771,7 @@ This can be utilized to have a last resort value for the "fullName" attribute if
 
 ----
 
-==== Resource and Object Type Inheritance (Since 4.6)
+=== Resource and Object Type Inheritance (Since 4.6)
 
 When configuring resources before 4.6, some amount of copy-and-paste work was inevitable: either when dealing with multiple object types in a resource, or across similar resources.
 Since 4.6, this should be no longer the case.
