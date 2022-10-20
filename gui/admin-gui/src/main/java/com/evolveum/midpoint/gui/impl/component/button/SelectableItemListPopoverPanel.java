@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.button;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Popover;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -157,7 +158,9 @@ public abstract class SelectableItemListPopoverPanel<T extends AbstractSearchIte
                 help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpText)));
                 item.add(help);
 
-                item.add(new VisibleBehaviour(() -> !item.getModelObject().isVisible() && isPropertyItemVisible(getItemName(item.getModelObject()), searchTextModel.getObject())));
+                item.add(new VisibleBehaviour(() -> !(item.getModelObject() instanceof AbstractRoleSearchItemWrapper)
+                        && !item.getModelObject().isVisible()
+                        && isPropertyItemVisible(getItemName(item.getModelObject()), searchTextModel.getObject())));
             }
 
             private boolean isPropertyItemVisible(String itemName, String propertySearchText) {

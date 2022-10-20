@@ -35,6 +35,8 @@ public class ObjectTypeSearchItemWrapper<C extends Containerable> extends Abstra
     private boolean visible = true;
 
     private QName defaultObjectType;
+    private QName valueForNull;
+
     public ObjectTypeSearchItemWrapper(ObjectTypeSearchItemConfigurationType config) {
         convertSupportedTypeList(config.getSupportedTypes());
         this.defaultObjectType = config.getDefaultValue();
@@ -137,6 +139,14 @@ public class ObjectTypeSearchItemWrapper<C extends Containerable> extends Abstra
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
         return PrismContext.get().queryFor(type)
                 .buildFilter();
+    }
+
+    public QName getValueForNull() {
+        return valueForNull;
+    }
+
+    public void setValueForNull(QName valueForNull) {
+        this.valueForNull = valueForNull;
     }
 
     public boolean isAllowAllTypesSearch() {

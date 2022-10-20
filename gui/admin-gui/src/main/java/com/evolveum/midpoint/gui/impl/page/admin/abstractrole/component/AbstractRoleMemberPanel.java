@@ -439,6 +439,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         searchConfigWrapper.getItemsList().forEach(item -> {
             if (item instanceof ObjectTypeSearchItemWrapper) {
                 ((ObjectTypeSearchItemWrapper) item).setAllowAllTypesSearch(true);
+                ((ObjectTypeSearchItemWrapper) item).setValueForNull(
+                        WebComponentUtil.classToQName(getPageBase().getPrismContext(), getChoiceForAllTypes()));
             }
         });
         return searchConfigWrapper;
