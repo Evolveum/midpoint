@@ -48,14 +48,6 @@ public class IndirectSearchItemPanel extends AbstractSearchItemPanel<IndirectSea
             }
         }, false);
         inputPanel.getBaseFormComponent().add(new EnableBehaviour(() -> getModelObject().getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE)));
-        inputPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                searchPerformed(target);
-            }
-        });
         return inputPanel;
     }
 

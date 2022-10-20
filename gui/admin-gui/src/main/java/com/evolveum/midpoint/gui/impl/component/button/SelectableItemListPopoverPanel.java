@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * Popupable panel with listed items which can be searched and selected
  * The component can be used as More button popup or saved searches popup on search panel
  */
-public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T>> {
+public abstract class SelectableItemListPopoverPanel<T extends AbstractSearchItemWrapper> extends BasePanel<List<T>> {
 
     private static final long serialVersionUID = 1L;
     private static final String ID_POPOVER = "popover";
@@ -157,7 +157,7 @@ public abstract class SelectableItemListPopoverPanel<T> extends BasePanel<List<T
                 help.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(helpText)));
                 item.add(help);
 
-                item.add(new VisibleBehaviour(() -> isPropertyItemVisible(getItemName(item.getModelObject()), searchTextModel.getObject())));
+                item.add(new VisibleBehaviour(() -> !item.getModelObject().isVisible() && isPropertyItemVisible(getItemName(item.getModelObject()), searchTextModel.getObject())));
             }
 
             private boolean isPropertyItemVisible(String itemName, String propertySearchText) {
