@@ -8,10 +8,12 @@ In midPoint 4.6, the configuration of schema handling and synchronization was gr
 These parts are now merged together and restructured for easier comprehensibility and maintainability.
 The ability to adapt object class definitions was added as well.
 
-== Combined Object Type Definitions
+== Changes in Object Type Definitions
 
-For a long time, the synchronization-related settings were separated from the definition of the respective object type.
-Since 4.6, it is possible - and recommended, in fact - to merge the two.
+=== Integration of Synchronization-Related Settings
+
+Since the beginning of midPoint, the synchronization-related settings were separated from the definitions of the respective object types.
+Starting with 4.6, they are finally merged into one configuration entity.
 
 .Listing 1. Sample combined object type definition
 [source,xml]
@@ -25,10 +27,11 @@ Since 4.6, it is possible - and recommended, in fact - to merge the two.
             <default>true</default>
             <delineation>
                 <objectClass>ri:user</objectClass>
+                <classificationCondition>...</classificationCondition> <!--1-->
                 <!-- ... -->
             </delineation>
             <focus>
-                <type>UserType</type>
+                <type>UserType</type> <!--1-->
                 <!-- ... -->
             </focus>
             <attribute>
@@ -36,21 +39,20 @@ Since 4.6, it is possible - and recommended, in fact - to merge the two.
                 <!-- ... -->
             </attribute>
             <!-- ... -->
-            <correlation>...</correlation>
-            <synchronization>...</synchronization>
+            <correlation>...</correlation> <!--1-->
+            <synchronization>...</synchronization> <!--1-->
         </objectType>
         <!-- ... -->
     </schemaHandling>
 </resource>
 ----
+<1> All this information was originally part of the separate `objectSynchronization` configuration.
 
-NOTE: The original `synchronization` section is marked as deprecated.
-
-== Changes in Object Type Definitions
+NOTE: The original `synchronization/objectSynchronization` item is marked as deprecated.
 
 === Resource Object Type Delineation
 
-A new section, called `delineation`, is used to specify the set of resource objects that comprise the given object type.
+A new section, called `delineation`, is used to specify the set of resource objects that comprise the given resource object type.
 
 The following basic example defines the type of `entitlement/unixGroup` that consists of all objects having the class of `groupOfNames` on a given resource.
 
@@ -66,8 +68,9 @@ The following basic example defines the type of `entitlement/unixGroup` that con
 </objectType>
 ----
 
-We may extend the definition to include the base context.
-The following sample restricts the `entitlement/unixGroup` type to objects of `groupOfNames` class but only under `ou=unixgroups,dc=example,dc=com` organizational unit.
+Now let us extend the definition to include the base context.
+
+The following configuration restricts the `entitlement/unixGroup` type to objects of `groupOfNames` class that reside within `ou=unixgroups,dc=example,dc=com` organizational unit.
 
 .Listing 3. Object type delineation with a base context restriction
 [source,xml]
@@ -92,14 +95,18 @@ The following sample restricts the `entitlement/unixGroup` type to objects of `g
 
 The base context is used to search for objects of `entitlement/unixGroup` type by adding the base context condition to the search query.
 However, it can be used also as a _classification rule_ that helps to determine whether an incoming object of `groupOfNames` class belongs to the `entitlement/unixGroup` type or not.
-This feature is new in 4.6.
+
+[NOTE]
+====
+The use of the base context for classification is new in 4.6.
 It has some restrictions, namely:
 
-. Base context must be specified by "equals" filter with a single value of the type of "LDAP distinguished name".
-. The attribute specifying base context top must have `distinguishedName` matching rule (that is used as a flag that it's a DN).
-. The shadow being classified must have an identifier (primary or secondary) with the `distinguishedName` matching rule.
+. The base context root must be specified by `equal` filter with a single value of the type of "LDAP distinguished name".
+The fact that it is a distinguished name is determined by the presence of `distinguishedName` matching rule for it.
+. The shadow being classified must have a primary or secondary identifier, again with the `distinguishedName` matching rule set.
 
 See link:https://github.com/Evolveum/midpoint/blob/4c96aac35f54cfd656f14ef574d753fbce73f7bf/provisioning/provisioning-impl/src/main/java/com/evolveum/midpoint/provisioning/impl/shadows/classification/DelineationMatcher.java[DelineationMatcher] for more information.
+====
 
 All delineation configuration items are summarized in the following table.
 
@@ -114,10 +121,10 @@ All delineation configuration items are summarized in the following table.
 
 | `auxiliaryObjectClass` (multivalued)
 | The reference to additional object classes for this object.
-The reference should point to object class definition (complex type definition in resource schema) and this definition should be marked as auxiliary.
+The reference should point to object class definition and this definition should be marked as auxiliary.
 
 Definitions of attributes from these classes are "imported" to the object type.
-However, currently this auxiliary object classes are not used for classification; i.e. the classification decision is not based on their presence in the specific resource object.
+However, currently these auxiliary object classes are _not_ used for classification; i.e. the classification decision is not based on their presence in the specific resource object.
 
 | `baseContext`
 | The definition of base context (resource object container).
@@ -192,12 +199,152 @@ NOTE: The original items `auxiliaryObjectClass`, `baseContext`, `searchHierarchy
 The `objectClass` property has a mixed meaning (the delineation in object type definition and the identifier in object class definition - see below), so it is formally not deprecated here.
 But in object type definitions it should be specified with the `delineation` item.
 
+Here is an (artificial) example of using advanced resource object type delineation.
+
+.Listing 4. Example of resource object type delineation
+[source,xml]
+----
+<schemaHandling>
+
+    <objectType>
+        <kind>account</kind>
+        <intent>employee</intent>
+        <documentation>
+            Standard employee account. Resides in `employees` OU. Representative: `alice-employee.ldif`.
+        </documentation>
+        <delineation>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <baseContext>
+                <objectClass>ri:organizationalUnit</objectClass>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/dn</q:path>
+                        <q:value>ou=employees,dc=example,dc=com</q:value>
+                    </q:equal>
+                </filter>
+            </baseContext>
+        </delineation>
+    </objectType>
+
+    <objectType>
+        <kind>account</kind>
+        <intent>special</intent>
+        <documentation>
+            An account devoted to special duties. It resides in `special` OU.
+            This type is abstract, and has two subtypes: `admin` and `tester`.
+        </documentation>
+        <abstract>true</abstract>
+        <delineation>
+            <objectClass>ri:inetOrgPerson</objectClass>
+            <baseContext>
+                <objectClass>ri:organizationalUnit</objectClass>
+                <filter>
+                    <q:equal>
+                        <q:path>attributes/dn</q:path>
+                        <q:value>ou=special,dc=example,dc=com</q:value>
+                    </q:equal>
+                </filter>
+            </baseContext>
+        </delineation>
+    </objectType>
+
+    <objectType>
+        <kind>account</kind>
+        <intent>admin</intent>
+        <documentation>
+            Account used for administration. Resides in `special` OU (defined in the supertype).
+            Additional filtering condition: `businessCategory` is `admin`. Representative: `jim-admin.ldif`.
+        </documentation>
+        <super>
+            <kind>account</kind>
+            <intent>special</intent>
+        </super>
+        <delineation>
+            <!-- baseContext is inherited -->
+            <filter>
+                <q:equal>
+                    <q:path>attributes/businessCategory</q:path>
+                    <q:value>admin</q:value>
+                </q:equal>
+            </filter>
+        </delineation>
+    </objectType>
+
+    <objectType>
+        <kind>account</kind>
+        <intent>tester</intent>
+        <documentation>
+            Account used for testing. Resides in `special` OU (defined in the supertype).
+            Additional filtering condition: `businessCategory` is `tester`. Representative: `ann-tester.ldif`.
+        </documentation>
+        <super>
+            <kind>account</kind>
+            <intent>special</intent>
+        </super>
+        <delineation>
+            <!-- baseContext is inherited -->
+            <filter>
+                <q:equal>
+                    <q:path>attributes/businessCategory</q:path>
+                    <q:value>tester</q:value>
+                </q:equal>
+            </filter>
+        </delineation>
+    </objectType>
+
+</schemaHandling>
+----
+
+.Listing 5. Alice, an employee
+[source]
+----
+dn: uid=alice,ou=employees,dc=example,dc=com
+uid: alice
+cn: Alice Green
+sn: Green
+givenName: Alice
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+----
+
+.Listing 6. Jim, an admin
+[source]
+----
+dn: uid=jim,ou=special,dc=example,dc=com
+uid: jim
+cn: Jim Admin
+sn: Admin
+givenName: Jim
+businessCategory: admin
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+----
+
+.Listing 7. Ann, a tester
+[source]
+----
+dn: uid=ann,ou=special,dc=example,dc=com
+uid: ann
+cn: Ann the Tester
+sn: Tester
+givenName: Ann
+businessCategory: tester
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+----
+
 === Focus Objects For Given Resource Object Type
 
 Before 4.6, the connection to focus objects was specified in the `synchronization` section.
 Now it is pulled up into a distinct place withing the object type definition.
 
-.Listing 4. Specifying focus objects
+.Listing 8. Specifying focus objects
 [source,xml]
 ----
 <objectType>
@@ -276,7 +423,7 @@ It is on by default.
 
 An example:
 
-.Listing 5. Sample synchronization reactions
+.Listing 9. Sample synchronization reactions
 [source,xml]
 ----
 <objectType>
