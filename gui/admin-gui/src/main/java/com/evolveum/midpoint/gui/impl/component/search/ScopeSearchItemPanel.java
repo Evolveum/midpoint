@@ -32,18 +32,6 @@ public class ScopeSearchItemPanel extends AbstractSearchItemPanel<ScopeSearchIte
         DropDownChoicePanel inputPanel = new DropDownChoicePanel(ID_SEARCH_ITEM_FIELD,
                 new PropertyModel(getModel(), ScopeSearchItemWrapper.F_SEARCH_CONFIG + "." + SearchConfigurationWrapper.F_SCOPE),
                 Model.of(Arrays.asList(SearchBoxScopeType.values())), new EnumChoiceRenderer(), false);
-        inputPanel.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                SearchPanel panel = findParent(SearchPanel.class);
-                panel.searchPerformed(target);
-            }
-        });
-//        inputPanel.getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-//        inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 88px; max-width: 400px !important;"));
         inputPanel.setOutputMarkupId(true);
         return inputPanel;
     }

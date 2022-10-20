@@ -171,7 +171,7 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends Popove
         if (ref == null) {
             return;
         }
-        if (getModelObject().getOid() != null && PolyStringUtils.isEmpty(ref.getTargetName()) && ref.getObject() == null){
+        if (getModelObject() != null && getModelObject().getOid() != null && PolyStringUtils.isEmpty(ref.getTargetName()) && ref.getObject() == null){
             ref.setOid(getModelObject().getOid());
         }
         if (PolyStringUtils.isEmpty(ref.getTargetName())) {

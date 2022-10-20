@@ -388,11 +388,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             return SearchFactory.createMemberPanelSearch(new SearchConfigurationWrapper<>(type, getPageBase()), getPageBase());
         }
 
-        if (memberPanelStorage.getSearch() != null) {
+        if (memberPanelStorage.getSearch() != null && type.equals(memberPanelStorage.getSearch().getSearchConfigurationWrapper().getTypeClass())) {
             return memberPanelStorage.getSearch();
         }
 
-        Search<AH> search = SearchFactory.createMemberPanelSearch(createSearchConfigWrapper(getDefaultObjectType()), getPageBase());
+        Search<AH> search = SearchFactory.createMemberPanelSearch(createSearchConfigWrapper(type), getPageBase());
         memberPanelStorage.setSearch(search);
         return search;
     }
