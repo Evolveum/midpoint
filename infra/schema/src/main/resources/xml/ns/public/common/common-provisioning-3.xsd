@@ -810,7 +810,7 @@
                         into the object hierarchy. It is only applicable to resources that support hierarchical
                         organization of objects (e.g. LDAP resources).
 
-                        DEPRECATED: set the value in objectSetDelineation instead
+                        DEPRECATED: set the value in delineation instead
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
@@ -5306,10 +5306,6 @@
                                 If set to true, applicable synchronization reactions will attempt to reconcile the real attributes
                                 from all resources with the state of the midPoint repository. This may require additional read and
                                 recompute, therefore may be slightly less efficient.
-
-                                If set to false, attribute values will not be reconciled.
-
-                                If set to true, the full user reconciliation will be done.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

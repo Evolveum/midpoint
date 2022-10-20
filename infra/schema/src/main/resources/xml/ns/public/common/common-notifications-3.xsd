@@ -268,7 +268,7 @@
             <xsd:appinfo>
                 <a:deprecated>true</a:deprecated>
                 <a:deprecatedSince>4.5</a:deprecatedSince>
-                <a:plannedRemoval>4.6</a:plannedRemoval>
+                <a:plannedRemoval>4.7</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -370,7 +370,7 @@
                 <a:displayName>MailConfigurationType.details</a:displayName>
                 <a:deprecated>true</a:deprecated>
                 <a:deprecatedSince>4.5</a:deprecatedSince>
-                <a:plannedRemoval>4.6</a:plannedRemoval>
+                <a:plannedRemoval>4.7</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -536,7 +536,7 @@
             <xsd:appinfo>
                 <a:deprecated>true</a:deprecated>
                 <a:deprecatedSince>4.5</a:deprecatedSince>
-                <a:plannedRemoval>4.6</a:plannedRemoval>
+                <a:plannedRemoval>4.7</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -571,7 +571,7 @@
                 <a:displayName>FileConfigurationType.details</a:displayName>
                 <a:deprecated>true</a:deprecated>
                 <a:deprecatedSince>4.5</a:deprecatedSince>
-                <a:plannedRemoval>4.6</a:plannedRemoval>
+                <a:plannedRemoval>4.7</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -600,7 +600,7 @@
             <xsd:appinfo>
                 <a:deprecated>true</a:deprecated>
                 <a:deprecatedSince>4.5</a:deprecatedSince>
-                <a:plannedRemoval>4.6</a:plannedRemoval>
+                <a:plannedRemoval>4.7</a:plannedRemoval>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -799,7 +799,7 @@
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.5</a:deprecatedSince>
-                        <a:plannedRemoval>4.6</a:plannedRemoval>
+                        <a:plannedRemoval>4.7</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -818,7 +818,7 @@
                     <xsd:appinfo>
                         <a:deprecated>true</a:deprecated>
                         <a:deprecatedSince>4.5</a:deprecatedSince>
-                        <a:plannedRemoval>4.6</a:plannedRemoval>
+                        <a:plannedRemoval>4.7</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

@@ -77,6 +77,7 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
 
     private static final Trace LOGGER = TraceManager.getTrace(GuiProfiledPrincipalManagerImpl.class);
 
+    // TODO consider also roleMembershipRef
     private static final Set<ItemPath> ASSIGNMENTS_AND_ADMIN_GUI_PATHS = ImmutableSet.of(FocusType.F_ASSIGNMENT, RoleType.F_ADMIN_GUI_CONFIGURATION, FocusType.F_ACTIVATION);
     private static final Set<ChangeType> MODIFY_DELETE_CHANGES = CacheInvalidationEventSpecification.MODIFY_DELETE;
 
@@ -422,7 +423,7 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
         // Maybe focus was also changed, we should probably reload it
         // TODO: Should recompute / compute be synchronized on principal?
 
-
+        // TODO check also if authorization list is empty (beware, this maybe should be done after principal is fully initialized)
 
         LOGGER.debug("Recomputing GUI profile for {}", principal);
         var focusOid = principal.getFocus().getOid();
