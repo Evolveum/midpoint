@@ -1,5 +1,5 @@
-MidPoint 4.6 "Baumgarten"
--------------------------
+MidPoint 4.7 Development Branch
+-------------------------------
 
 General information:
 
