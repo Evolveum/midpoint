@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,8 +11,6 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.*;
 import javax.xml.datatype.Duration;
-
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -28,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -49,6 +48,10 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
     private static DummyAuditService instance = null;
 
+    /**
+     * Be sure to synchronize all methods that can use it concurrently.
+     * Even {@link #getRecords()} returns a copy to make this dummy service thread-safe/friendly.
+     */
     private final List<AuditEventRecord> records = new ArrayList<>();
 
     // This is to be able to be able to disable this service for some tests e.g. to prevent memory leaks
@@ -112,8 +115,8 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         }
     }
 
-    public List<AuditEventRecord> getRecords() {
-        return records;
+    public synchronized List<AuditEventRecord> getRecords() {
+        return new ArrayList<>(records);
     }
 
     public synchronized void clear() {
@@ -123,7 +126,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     /**
      * Asserts that there is a request message followed by execution message.
      */
-    public void assertSimpleRecordSanity() {
+    public synchronized void assertSimpleRecordSanity() {
         Iterator<AuditEventRecord> iterator = records.iterator();
         int num = 0;
         int numRequests = 0;
@@ -155,7 +158,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assert !StringUtils.isEmpty(record.getTaskIdentifier()) : "No task identifier in audit record (" + recordDesc + ")";
     }
 
-    public void assertRecords(int expectedNumber) {
+    public synchronized void assertRecords(int expectedNumber) {
         assert records.size() == expectedNumber
                 : "Unexpected number of audit records; expected " + expectedNumber + " but was " + records.size();
     }
@@ -165,7 +168,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assertEquals("Wrong # of execution records", expectedNumber, executionRecords.size());
     }
 
-    public List<AuditEventRecord> getRecordsOfType(AuditEventType type) {
+    public synchronized List<AuditEventRecord> getRecordsOfType(AuditEventType type) {
         List<AuditEventRecord> retval = new ArrayList<>();
         for (AuditEventRecord record : records) {
             if (record.getEventType() == type) {
@@ -181,7 +184,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
                 " but was " + filtered.size();
     }
 
-    public AuditEventRecord getRequestRecord() {
+    public synchronized AuditEventRecord getRequestRecord() {
         assertSingleBatch();
         AuditEventRecord requestRecord = records.get(0);
         assert requestRecord != null : "The first audit record is null";
@@ -189,7 +192,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         return requestRecord;
     }
 
-    public AuditEventRecord getExecutionRecord(int index) {
+    public synchronized AuditEventRecord getExecutionRecord(int index) {
         assertSingleBatch();
         AuditEventRecord executionRecord = records.get(index + 1);
         assert executionRecord != null : "The " + index + "th audit execution record is null";
@@ -197,9 +200,9 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         return executionRecord;
     }
 
-    public List<AuditEventRecord> getExecutionRecords() {
+    public synchronized List<AuditEventRecord> getExecutionRecords() {
         assertSingleBatch();
-        return records.subList(1, records.size());
+        return new ArrayList<>(records.subList(1, records.size()));
     }
 
     private void assertSingleBatch() {
@@ -300,7 +303,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assertEquals("Wrong message in execution record " + index, message, executionRecord.getMessage());
     }
 
-    public void assertNoRecord() {
+    public synchronized void assertNoRecord() {
         assert records.isEmpty() : "Expected no audit record but some sneaked in: " + records;
     }
 
@@ -348,7 +351,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assertEquals("Wrong number of execution deltas in audit trail (index " + index + ")", expectedNumber, getExecutionDeltas(index).size());
     }
 
-    public void assertCustomColumn(String nameOfProperty, String value) {
+    public synchronized void assertCustomColumn(String nameOfProperty, String value) {
         for (AuditEventRecord record : records) {
             Map<String, String> properties = record.getCustomColumnProperty();
             if (properties.containsKey(nameOfProperty) && properties.get(nameOfProperty).equals(value)) {
@@ -358,7 +361,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assert false : "Custom column property " + nameOfProperty + " with value " + value + " not found in audit records";
     }
 
-    public void assertResourceOid(String oid) {
+    public synchronized void assertResourceOid(String oid) {
         for (AuditEventRecord record : records) {
             Set<String> resourceOid = record.getResourceOids();
             if (resourceOid.contains(oid)) {
@@ -368,7 +371,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assert false : "Resource oid " + oid + " not found in audit records";
     }
 
-    public void assertTarget(String expectedOid, AuditEventStage stage) {
+    public synchronized void assertTarget(String expectedOid, AuditEventStage stage) {
         Collection<PrismReferenceValue> targets = new ArrayList<>();
         for (AuditEventRecord record : records) {
             PrismReferenceValue target = record.getTargetRef();
@@ -478,7 +481,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     /**
      * Checks that the first record is login and the last is logout.
      */
-    public void assertLoginLogout(String expectedChannel) {
+    public synchronized void assertLoginLogout(String expectedChannel) {
         AuditEventRecord firstRecord = records.get(0);
         assertEquals("Wrong type of first audit record: " + firstRecord.getEventType(), AuditEventType.CREATE_SESSION, firstRecord.getEventType());
         assertEquals("Wrong outcome of first audit record: " + firstRecord.getOutcome(), OperationResultStatus.SUCCESS, firstRecord.getOutcome());
@@ -496,7 +499,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         }
     }
 
-    public void assertFailedLogin(String expectedChannel) {
+    public synchronized void assertFailedLogin(String expectedChannel) {
         AuditEventRecord firstRecord = records.get(0);
         assertEquals("Wrong type of first audit record: " + firstRecord.getEventType(), AuditEventType.CREATE_SESSION, firstRecord.getEventType());
         assertEquals("Wrong outcome of first audit record: " + firstRecord.getOutcome(), OperationResultStatus.FATAL_ERROR, firstRecord.getOutcome());
@@ -505,7 +508,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         }
     }
 
-    public void assertFailedProxyLogin(String expectedChannel) {
+    public synchronized void assertFailedProxyLogin(String expectedChannel) {
         AuditEventRecord firstRecord = records.get(0);
         assertEquals("Wrong type of first audit record (service authN): " + firstRecord.getEventType(), AuditEventType.CREATE_SESSION, firstRecord.getEventType());
         assertEquals("Wrong outcome of first audit record (service authN): " + firstRecord.getOutcome(), OperationResultStatus.SUCCESS, firstRecord.getOutcome());
@@ -521,12 +524,12 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     }
 
     @Override
-    public String toString() {
+    public synchronized String toString() {
         return "DummyAuditService(" + records + ")";
     }
 
     @Override
-    public String debugDump(int indent) {
+    public synchronized String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("DummyAuditService: ").append(records.size()).append(" records\n");
