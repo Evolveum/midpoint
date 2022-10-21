@@ -152,7 +152,7 @@ public class AuthSequenceUtil {
             boolean isDefaultActSeq = Boolean.TRUE.equals(actualSequence.getChannel().isDefault());
             String suffixOfActSeq = actualSequence.getChannel().getUrlSuffix();
             String channelActSeq = actualSequence.getChannel().getChannelId();
-            if (!channelAddSeq.equals(channelActSeq)) {
+            if (channelAddSeq == null || !channelAddSeq.equals(channelActSeq)) {
                 continue;
             }
             if (suffixOfAddSeq.equalsIgnoreCase(suffixOfActSeq)) {
