@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -17,19 +22,11 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * Preliminary version.
  */
 public class ModificationDto implements Serializable {
 
-    public static final String F_ATTRIBUTE = "attribute";
-    public static final String F_CHANGE_TYPE = "changeType";
-    public static final String F_VALUE = "value";
     private static final String ADD = "ADD";
     private static final String REPLACE = "REPLACE";
     private static final String DELETE = "DELETE";
@@ -45,6 +42,18 @@ public class ModificationDto implements Serializable {
         this.changeType = type;
         this.value = value;
         isPropertyDelta = true;
+    }
+
+    public String getAttribute() {
+        return attribute;
+    }
+
+    public String getChangeType() {
+        return changeType;
+    }
+
+    public boolean isPropertyDelta() {
+        return isPropertyDelta;
     }
 
     public Object getValue() {
@@ -85,7 +94,7 @@ public class ModificationDto implements Serializable {
         }
         ItemPath path = delta.getPath();
         List<?> segments = path.getSegments();
-        for (int i = segments.size()-1; i >= 0; i--) {
+        for (int i = segments.size() - 1; i >= 0; i--) {
             Object component = segments.get(i);
             if (ItemPath.isName(component)) {
                 StringBuilder retval = new StringBuilder(ItemPath.toName(component).getLocalPart());

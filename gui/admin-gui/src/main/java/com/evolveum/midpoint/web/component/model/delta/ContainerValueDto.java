@@ -7,25 +7,22 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 
 /**
  * @author Pavol
  */
 public class ContainerValueDto implements Serializable {
 
-    public static final String F_ITEM_LIST = "itemList";
-
     private List<ContainerItemDto> itemList;
 
     public ContainerValueDto(PrismContainerValue value) {
-
         itemList = new ArrayList<>();
 
         for (Object o : value.getItems()) {
@@ -33,5 +30,9 @@ public class ContainerValueDto implements Serializable {
         }
 
         Collections.sort(itemList);
+    }
+
+    public List<ContainerItemDto> getItemList() {
+        return itemList;
     }
 }

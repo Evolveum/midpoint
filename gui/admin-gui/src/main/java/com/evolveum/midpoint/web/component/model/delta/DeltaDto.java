@@ -7,21 +7,16 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 public class DeltaDto implements Serializable {
-
-    public static final String F_CHANGE_TYPE = "changeType";
-    public static final String F_OID = "oid";
-    public static final String F_OBJECT_TO_ADD = "objectToAdd";
-    public static final String F_MODIFICATIONS = "modifications";
 
     private String changeType;
     private String oid;

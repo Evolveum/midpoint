@@ -9,18 +9,14 @@ package com.evolveum.midpoint.web.component.model.delta;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.ResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class DeltaPanel extends BasePanel<DeltaDto> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(DeltaPanel.class);
+    private static final long serialVersionUID = 1L;
 
     private static final String ID_CHANGE_TYPE = "changeType";
     private static final String ID_OID = "oid";
@@ -36,34 +32,30 @@ public class DeltaPanel extends BasePanel<DeltaDto> {
     }
 
     protected void initLayout() {
-        Label changeType = new Label(ID_CHANGE_TYPE, new PropertyModel<String>(getModel(), DeltaDto.F_CHANGE_TYPE));
+        Label changeType = new Label(ID_CHANGE_TYPE, () -> getModelObject().getChangeType());
         add(changeType);
 
-        VisibleBehaviour isAdd = new VisibleBehaviour(() -> getModel().getObject().isAdd());
-        VisibleEnableBehaviour isNotAdd = new VisibleBehaviour(() -> !getModel().getObject().isAdd());
+        VisibleBehaviour isAdd = new VisibleBehaviour(() -> getModelObject().isAdd());
+        VisibleEnableBehaviour isNotAdd = new VisibleBehaviour(() -> !getModelObject().isAdd());
 
-        Label oidLabel = new Label(ID_OID_LABEL, new ResourceModel("DeltaPanel.label.oid"));
+        Label oidLabel = new Label(ID_OID_LABEL, createStringResource("DeltaPanel.label.oid"));
         oidLabel.add(isNotAdd);
         add(oidLabel);
-        Label oid = new Label(ID_OID, new PropertyModel<String>(getModel(), DeltaDto.F_OID));
+
+        Label oid = new Label(ID_OID, () -> getModelObject().getOid());
         oid.add(isNotAdd);
         add(oid);
 
-        VisibleBehaviour never = new VisibleBehaviour(() -> false);
-
-        Label objectToAddLabel = new Label(ID_OBJECT_TO_ADD_LABEL, new ResourceModel("DeltaPanel.label.objectToAdd"));
-        //objectToAddLabel.add(isAdd);
-        objectToAddLabel.add(never);
+        Label objectToAddLabel = new Label(ID_OBJECT_TO_ADD_LABEL, createStringResource("DeltaPanel.label.objectToAdd"));
+        objectToAddLabel.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         add(objectToAddLabel);
 
-        ContainerValuePanel objectToAddPanel =
-                new ContainerValuePanel(ID_OBJECT_TO_ADD,
-                        new PropertyModel<>(getModel(), DeltaDto.F_OBJECT_TO_ADD));
+        ContainerValuePanel objectToAddPanel = new ContainerValuePanel(ID_OBJECT_TO_ADD, () -> getModelObject().getObjectToAdd());
         objectToAddPanel.add(isAdd);
         add(objectToAddPanel);
 
-        Label modificationsLabel = new Label(ID_MODIFICATIONS_LABEL, new ResourceModel("DeltaPanel.label.modifications"));
-        modificationsLabel.add(never);
+        Label modificationsLabel = new Label(ID_MODIFICATIONS_LABEL, createStringResource("DeltaPanel.label.modifications"));
+        modificationsLabel.add(VisibleBehaviour.ALWAYS_INVISIBLE);
         add(modificationsLabel);
 
         ModificationsPanel modificationsPanel = new ModificationsPanel(ID_MODIFICATIONS, getModel());

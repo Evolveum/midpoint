@@ -7,21 +7,18 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
+
 /**
  * @author Pavol
  */
 public class ContainerItemDto implements Serializable, Comparable {
-
-    public static final String F_ATTRIBUTE = "attribute";
-    public static final String F_VALUE = "value";
 
     private String attribute;
     private Object value;
@@ -46,7 +43,6 @@ public class ContainerItemDto implements Serializable, Comparable {
     }
 
     public static Collection<? extends ContainerItemDto> createContainerValueDtoList(Item item) {
-
         List<ContainerItemDto> retval = new ArrayList<>();
 
         String attribute = getItemName(item);
@@ -74,6 +70,7 @@ public class ContainerItemDto implements Serializable, Comparable {
                 }
             }
         }
+
         return Integer.MAX_VALUE;
     }
 
