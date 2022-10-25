@@ -167,7 +167,14 @@ public class CartSummaryPanel extends BasePanel<RequestAccess> implements Access
         form.add(new AbstractFormValidator() {
             @Override
             public FormComponent<?>[] getDependentFormComponents() {
-                return new FormComponent[] { customValidity.getFrom(), customValidity.getTo() };
+                FormComponent from = customValidity.getFrom();
+                FormComponent to = customValidity.getTo();
+
+                if (!from.isVisibleInHierarchy() || !to.isVisibleInHierarchy()) {
+                    return new FormComponent[0];
+                }
+
+                return new FormComponent[] { from, to };
             }
 
             @Override

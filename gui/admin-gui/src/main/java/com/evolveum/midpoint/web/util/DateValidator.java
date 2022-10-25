@@ -7,20 +7,21 @@
 
 package com.evolveum.midpoint.web.util;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
+import java.util.Date;
+
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 
-import java.util.Date;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * @author lazyman
  */
 public class DateValidator extends AbstractFormValidator {
 
-   private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private ItemPath identifier;
     private DateTimeField dateFrom;
@@ -42,7 +43,12 @@ public class DateValidator extends AbstractFormValidator {
             return new FormComponent[0];
         }
 
-        return new FormComponent[]{dateFrom, dateTo};
+        if (!dateFrom.isVisibleInHierarchy() || !dateTo.isVisibleInHierarchy()) {
+            // fields are not visible, should not be validated
+            return new FormComponent[0];
+        }
+
+        return new FormComponent[] { dateFrom, dateTo };
     }
 
     @Override
@@ -83,7 +89,7 @@ public class DateValidator extends AbstractFormValidator {
         return messageKey;
     }
 
-    public void setMessageKey(String messageKey){
+    public void setMessageKey(String messageKey) {
         this.messageKey = messageKey;
     }
 }
