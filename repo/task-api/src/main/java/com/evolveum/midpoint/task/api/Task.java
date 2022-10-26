@@ -985,6 +985,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     /** Gets the policy rule defined for the task (for running task the returned value is a clone). */
     PolicyRuleType getPolicyRule();
+
+    ModelExecuteOptionsType getModelExecuteOptions();
+
+    void setModelExecuteOptions(ModelExecuteOptionsType options);
     //endregion
 
     //region Misc

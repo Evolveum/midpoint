@@ -14,17 +14,14 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-
-import com.evolveum.midpoint.model.api.context.ModelContext;
-
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.model.common.util.PopulatorUtil;
@@ -508,15 +505,7 @@ public abstract class AbstractSearchExpressionEvaluator<
         ObjectDelta<O> addDelta = newObject.createAddDelta();
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
 
-        boolean isCreateOnDemandSafe = false; // todo this should be true by default later on
-
-        // todo we should probably store model execute options in task directly, using model operation context is not correct
-        ModelExecuteOptionsType options = task.getModelOperationContext() != null ? task.getModelOperationContext().getOptions() : new ModelExecuteOptionsType();
-        SimulationOptionsType simulation = options.getSimulation();
-        if (simulation != null && simulation.getCreateOnDemand() != null) {
-            isCreateOnDemandSafe = CreateOnDemandOptionsType.SAFE.equals(simulation.getCreateOnDemand());
-        }
-
+        boolean isCreateOnDemandSafe = isCreateOnDemandSafe(task);
         if (isCreateOnDemandSafe) {
             try {
                 ModelContext<O> context = modelInteractionService.previewChanges(deltas, null, task, result);
@@ -537,6 +526,22 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         ObjectDeltaOperation deltaOperation = ObjectDeltaOperation.findAddDelta(executedChanges, newObject);
         return deltaOperation != null ? deltaOperation.getObjectDelta().getObjectToAdd() : null;
+    }
+
+    private boolean isCreateOnDemandSafe(Task task) {
+        boolean isCreateOnDemandSafe = false;   // todo default value should be true later on;
+
+        ModelExecuteOptionsType options = task.getModelExecuteOptions();
+        if (options == null || options.getSimulation() == null) {
+            return isCreateOnDemandSafe;
+        }
+
+        SimulationOptionsType simulation = options.getSimulation();
+        if (simulation.getCreateOnDemand() == null) {
+            return isCreateOnDemandSafe;
+        }
+
+        return CreateOnDemandOptionsType.SAFE.equals(simulation.getCreateOnDemand());
     }
 
     // Override the default in this case. It makes more sense like this.

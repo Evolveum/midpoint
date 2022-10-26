@@ -416,6 +416,14 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
         return is(options, F_RECONCILE_AFFECTED);
     }
 
+    public SimulationOptionsType getSimulationOptions() {
+        return content.getSimulation();
+    }
+
+    public ModelExecuteOptions simulationOptions(SimulationOptionsType options) {
+        content.setSimulation(options);
+        return this;
+    }
     //endregion
 
     public static ModelExecuteOptionsType toModelExecutionOptionsBean(ModelExecuteOptions options) {

@@ -190,6 +190,8 @@ public class TaskQuartzImpl implements Task {
     @Experimental
     @NotNull private final Set<ConnIdOperationsListener> connIdOperationsListeners = ConcurrentHashMap.newKeySet();
 
+    private ModelExecuteOptionsType modelExecuteOptions;
+
     private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 
     //region Constructors
@@ -1883,6 +1885,16 @@ public class TaskQuartzImpl implements Task {
     @Override
     public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
         setContainerable(TaskType.F_EXECUTION_ENVIRONMENT, value);
+    }
+
+    @Override
+    public ModelExecuteOptionsType getModelExecuteOptions() {
+        return modelExecuteOptions;
+    }
+
+    @Override
+    public void setModelExecuteOptions(ModelExecuteOptionsType options) {
+        this.modelExecuteOptions = options;
     }
 
     //endregion

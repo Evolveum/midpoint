@@ -770,4 +770,13 @@ public class NullTaskImpl implements Task {
     @Override
     public void stopCollectingActionsExecuted() {
     }
+
+    @Override
+    public ModelExecuteOptionsType getModelExecuteOptions() {
+        return null;
+    }
+
+    @Override
+    public void setModelExecuteOptions(ModelExecuteOptionsType options) {
+    }
 }
