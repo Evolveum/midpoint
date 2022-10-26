@@ -6,8 +6,7 @@
   -->
 
 <org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:pc="http://midpoint.evolveum.com/xml/ns/samples/preview-changes"
-        oid="689eae33-14ea-4f59-9426-93bd6f51d9e0">
+        xmlns:pc="http://midpoint.evolveum.com/xml/ns/samples/preview-changes">
 
     <name>child org</name>
 

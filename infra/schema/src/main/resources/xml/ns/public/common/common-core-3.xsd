@@ -16107,10 +16107,50 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="previewChanges" type="tns:PreviewChangesType">
+
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="modelExecuteOptions" type="tns:ModelExecuteOptionsType"/>
+
+    <xsd:simpleType name="PreviewChangesType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies whether a particular part should be processed or not.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="safe">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            <!-- todo -->
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SAFE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="unsafe">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            <!-- todo -->
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNSAFE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="OperationBusinessContextType">
         <xsd:annotation>
