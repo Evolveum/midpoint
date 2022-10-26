@@ -224,7 +224,7 @@
         <groovy.version>3.0.11</groovy.version>
         <xmlsec.version>2.2.3</xmlsec.version>
         <!-- NOTE: also update the version number in TestConnectorManager -->
-        <connid.version>1.5.0.19</connid.version>
+        <connid.version>1.5.1.10</connid.version>
         <derby.version>10.15.2.0</derby.version>
         <poi.version>5.2.2</poi.version>
         <wro4j.version>1.10.1</wro4j.version>
