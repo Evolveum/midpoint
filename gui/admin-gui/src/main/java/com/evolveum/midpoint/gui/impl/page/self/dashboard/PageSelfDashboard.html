@@ -10,15 +10,15 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-        <div class="quicksearch-panel d-flex justify-content-end" wicket:id="searchPanel"/>
-        <div class="d-flex flex-wrap">
+        <div class="d-flex justify-content-end mb-3" wicket:id="searchPanel"/>
+        <div class="d-flex flex-wrap gap-3 mb-3">
             <wicket:container wicket:id="statisticWidgetsPanel">
-                <span class="p-2 dashboard-link-component" wicket:id="statisticWidget"/>
+                <div class="dashboard-link-component" wicket:id="statisticWidget"/>
             </wicket:container>
         </div>
-        <div class="d-flex flex-wrap">
+        <div class="row">
             <wicket:container wicket:id="objectCollectionViewWidgetsPanel">
-                <div wicket:id="objectCollectionViewWidget"></div>
+                <div wicket:id="objectCollectionViewWidget"/>
             </wicket:container>
         </div>
     </form>
