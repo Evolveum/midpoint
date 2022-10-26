@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -65,6 +66,7 @@ public class AssociationTargetSearchExpressionEvaluator
             PrismContext prismContext,
             ObjectResolver objectResolver,
             ModelService modelService,
+            ModelInteractionService modelInteractionService,
             SecurityContextManager securityContextManager,
             LocalizationService localizationService,
             CacheConfigurationManager cacheConfigurationManager) {
@@ -76,6 +78,7 @@ public class AssociationTargetSearchExpressionEvaluator
                 prismContext,
                 objectResolver,
                 modelService,
+                modelInteractionService,
                 securityContextManager,
                 localizationService,
                 cacheConfigurationManager);
@@ -137,12 +140,15 @@ public class AssociationTargetSearchExpressionEvaluator
 
     protected PrismContainerValue<ShadowAssociationType> createPrismValue(
             String oid,
+            PrismObject object,
             QName targetTypeQName,
             List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> additionalAttributeDeltas,
             ExpressionEvaluationContext params) {
         ShadowAssociationType association = new ShadowAssociationType()
                 .name(params.getMappingQName())
                 .shadowRef(oid, targetTypeQName);
+
+        association.getShadowRef().asReferenceValue().setObject(object);
 
         //noinspection unchecked
         PrismContainerValue<ShadowAssociationType> associationCVal = association.asPrismContainerValue();

@@ -14,6 +14,12 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+
+import com.evolveum.midpoint.model.api.context.ModelContext;
+
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -79,16 +85,22 @@ public abstract class AbstractSearchExpressionEvaluator<
 
     private final ObjectResolver objectResolver;
     private final ModelService modelService;
+    /**
+     * todo preview changes method calls in this class should be removed and everything should go through ModelService.executeChanges()
+     */
+    @Deprecated
+    private final ModelInteractionService modelInteractionService;
     protected CacheConfigurationManager cacheConfigurationManager;
 
     AbstractSearchExpressionEvaluator(QName elementName, E expressionEvaluatorType,
             D outputDefinition, Protector protector, PrismContext prismContext,
-            ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager,
+            ObjectResolver objectResolver, ModelService modelService, ModelInteractionService modelInteractionService, SecurityContextManager securityContextManager,
             LocalizationService localizationService,
             CacheConfigurationManager cacheConfigurationManager) {
         super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, securityContextManager, localizationService);
         this.objectResolver = objectResolver;
         this.modelService = modelService;
+        this.modelInteractionService = modelInteractionService;
         this.cacheConfigurationManager = cacheConfigurationManager;
     }
 
@@ -139,7 +151,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             resultValues = new ArrayList<>(1);
             resultValues.add(
                     createPrismValue(
-                            expressionEvaluatorBean.getOid(), targetTypeQName, additionalAttributeDeltas, context));
+                            expressionEvaluatorBean.getOid(), null, targetTypeQName, additionalAttributeDeltas, context));
 
         } else {
 
@@ -165,7 +177,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 if (defaultTargetRef != null) {
                     resultValues.add(
                             createPrismValue(
-                                    defaultTargetRef.getOid(), targetTypeQName, additionalAttributeDeltas, context));
+                                    defaultTargetRef.getOid(), null, targetTypeQName, additionalAttributeDeltas, context));
                 }
             }
         }
@@ -173,10 +185,14 @@ public abstract class AbstractSearchExpressionEvaluator<
         if (resultValues.isEmpty()
                 && Boolean.TRUE.equals(expressionEvaluatorBean.isCreateOnDemand())
                 && (valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
-            String createdObjectOid =
-                    createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, result);
+//            String createdObjectOid =
+//                    createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, result);
+//            resultValues.add(
+//                    createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, context));
+
+            PrismObject createdObject = createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, result);
             resultValues.add(
-                    createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, context));
+                    createPrismValue(createdObject.getOid(), createdObject, targetTypeQName, additionalAttributeDeltas, context));
         }
 
         LOGGER.trace("Search expression {} (valueDestination={}) got {} results for query {}",
@@ -442,7 +458,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             if (rawResults != null) {
                 rawResults.add(object);
             }
-            valueResults.add(createPrismValue(object.getOid(), targetTypeQName, additionalAttributeDeltas, params));
+            valueResults.add(createPrismValue(object.getOid(), null, targetTypeQName, additionalAttributeDeltas, params));
         }
     }
 
@@ -459,11 +475,12 @@ public abstract class AbstractSearchExpressionEvaluator<
 
     protected abstract V createPrismValue(
             String oid,
+            PrismObject object,
             QName targetTypeQName,
             List<ItemDelta<V, D>> additionalAttributeDeltas,
             ExpressionEvaluationContext params);
 
-    private String createOnDemand(Class<O> targetTypeClass, VariablesMap variables,
+    private PrismObject createOnDemand(Class<O> targetTypeClass, VariablesMap variables,
             ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (LOGGER.isTraceEnabled()) {
@@ -490,6 +507,26 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         ObjectDelta<O> addDelta = newObject.createAddDelta();
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
+
+        boolean isCreateOnDemandSafe = false; // todo this should be true by default later on
+
+        // todo we should probably store model execute options in task directly, using model operation context is not correct
+        ModelExecuteOptionsType options = task.getModelOperationContext() != null ? task.getModelOperationContext().getOptions() : new ModelExecuteOptionsType();
+        SimulationOptionsType simulation = options.getSimulation();
+        if (simulation != null && simulation.getCreateOnDemand() != null) {
+            isCreateOnDemandSafe = CreateOnDemandOptionsType.SAFE.equals(simulation.getCreateOnDemand());
+        }
+
+        if (isCreateOnDemandSafe) {
+            try {
+                ModelContext<O> context = modelInteractionService.previewChanges(deltas, null, task, result);
+                ModelElementContext focusContext = context.getFocusContext();
+                return focusContext.getObjectNew();
+            } catch (Exception ex) {
+                throw new ExpressionEvaluationException(ex.getMessage(), ex);
+            }
+        }
+
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges;
         try {
             executedChanges = modelService.executeChanges(deltas, null, task, result);
@@ -498,7 +535,8 @@ public abstract class AbstractSearchExpressionEvaluator<
             throw new ExpressionEvaluationException(e.getMessage(), e);
         }
 
-        return ObjectDeltaOperation.findAddDeltaOid(executedChanges, newObject);
+        ObjectDeltaOperation deltaOperation = ObjectDeltaOperation.findAddDelta(executedChanges, newObject);
+        return deltaOperation != null ? deltaOperation.getObjectDelta().getObjectToAdd() : null;
     }
 
     // Override the default in this case. It makes more sense like this.

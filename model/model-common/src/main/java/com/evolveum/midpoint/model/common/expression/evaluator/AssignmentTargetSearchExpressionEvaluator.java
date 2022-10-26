@@ -11,10 +11,12 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
@@ -45,20 +47,24 @@ public class AssignmentTargetSearchExpressionEvaluator
     AssignmentTargetSearchExpressionEvaluator(QName elementName,
             AssignmentTargetSearchExpressionEvaluatorType expressionEvaluatorType,
             PrismContainerDefinition<AssignmentType> outputDefinition,Protector protector, PrismContext prismContext,
-            ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager,
+            ObjectResolver objectResolver, ModelService modelService, ModelInteractionService modelInteractionService, SecurityContextManager securityContextManager,
             LocalizationService localizationService, CacheConfigurationManager cacheConfigurationManager) {
         super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver,
-                modelService, securityContextManager, localizationService, cacheConfigurationManager);
+                modelService, modelInteractionService, securityContextManager, localizationService, cacheConfigurationManager);
     }
 
     protected PrismContainerValue<AssignmentType> createPrismValue(
             String oid,
+            PrismObject object,
             QName targetTypeQName,
             List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas,
             ExpressionEvaluationContext context) {
 
-        AssignmentType assignment = new AssignmentType()
-                .targetRef(oid, targetTypeQName, getRelation());
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.oid(oid).type(targetTypeQName).relation(getRelation());
+        ref.asReferenceValue().setObject(object);
+
+        AssignmentType assignment = new AssignmentType().targetRef(ref);
         assignment.getSubtype().addAll(getSubtypes());
 
         //noinspection unchecked

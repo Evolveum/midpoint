@@ -136,6 +136,7 @@
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg ref="modelController"/>
+        <constructor-arg ref="modelInteractionService"/>
         <constructor-arg ref="securityContextManager"/>
         <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
@@ -147,6 +148,7 @@
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg ref="modelController"/>
+        <constructor-arg ref="modelInteractionService"/>
         <constructor-arg ref="securityContextManager"/>
         <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
@@ -158,6 +160,7 @@
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
         <constructor-arg ref="modelController"/>
+        <constructor-arg ref="modelInteractionService"/>
         <constructor-arg ref="securityContextManager"/>
         <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
