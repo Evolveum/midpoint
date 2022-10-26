@@ -51,7 +51,7 @@
                 <condition>
                     <script>
                         <code>
-                            "add".equals(operation)
+                            "add" == operation
                         </code>
                     </script>
                 </condition>

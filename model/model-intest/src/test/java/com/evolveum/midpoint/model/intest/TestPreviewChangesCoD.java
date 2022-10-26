@@ -10,6 +10,9 @@ package com.evolveum.midpoint.model.intest;
 import java.io.File;
 import java.util.Arrays;
 
+import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -19,6 +22,7 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -30,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestPreviewChangesCoD extends AbstractEmptyModelIntegrationTest {
+public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTest {
 
     private static final File TEST_DIR = new File("src/test/resources/preview-cod");
 
@@ -40,9 +44,17 @@ public class TestPreviewChangesCoD extends AbstractEmptyModelIntegrationTest {
 
     private static final File ORG_CHILD = new File(TEST_DIR, "org-child.xml");
 
-    private static final File ROLE_META = new File(TEST_DIR, "meta-role.xml");
+    private static final File ROLE_META_ASSIGNMENT_SEARCH = new File(TEST_DIR, "role-meta-assignment-search.xml");
 
-    private static final String ROLE_META_OID = "1ac00214-ffd0-49db-a1b9-51b46a0e9ae1";
+    private static final String ROLE_META_ASSIGNMENT_SEARCH_OID = "1ac00214-ffd0-49db-a1b9-51b46a0e9ae1";
+
+    private static final File ROLE_META_ASSOCIATION_SEARCH = new File(TEST_DIR, "role-meta-assignment-search.xml");
+
+    private static final String ROLE_META_ASSOCIATION_SEARCH_OID = "07edb2fc-5662-4886-aba7-54fbc58ce5ca";
+
+    protected DummyResource dummyResource;
+
+    protected DummyResourceContoller dummyResourceCtl;
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -53,8 +65,18 @@ public class TestPreviewChangesCoD extends AbstractEmptyModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+//        InternalsConfig.readEncryptionChecks = false;
+//
+//        dummyResourceCtl = DummyResourceContoller.create(null);
+//        dummyResourceCtl.extendSchemaPirate();
+//        dummyResource = dummyResourceCtl.getDummyResource();
+//        dummyResourceCtl.addAttrDef(dummyResource.getAccountObjectClass(),
+//                DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, String.class, false, false);
+
         addObject(OBJECT_TEMPLATE_ORG, initTask, initResult);
-        addObject(ROLE_META, initTask, initResult);
+        addObject(ROLE_META_ASSIGNMENT_SEARCH, initTask, initResult);
+
+        importObjectFromFile(RESOURCE_DUMMY_FILE, initTask, initResult);
     }
 
     @Test
@@ -93,10 +115,8 @@ public class TestPreviewChangesCoD extends AbstractEmptyModelIntegrationTest {
 
         PrismObject<OrgType> orgChild = prismContext.parseObject(ORG_CHILD);
         // we'll add assignment to meta role
-        orgChild.asObjectable().getAssignment().add(new AssignmentType().targetRef(ROLE_META_OID, RoleType.COMPLEX_TYPE));
+        orgChild.asObjectable().getAssignment().add(new AssignmentType().targetRef(ROLE_META_ASSIGNMENT_SEARCH_OID, RoleType.COMPLEX_TYPE));
         ObjectDelta delta = orgChild.createAddDelta();
-
-        System.out.println(delta.debugDump());
 
         ModelContext<OrgType> context = modelInteractionService.previewChanges(Arrays.asList(delta), ModelExecuteOptions.create(), task, result);
 
