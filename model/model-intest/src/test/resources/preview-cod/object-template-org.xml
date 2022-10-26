@@ -1,0 +1,64 @@
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:pc="http://midpoint.evolveum.com/xml/ns/samples/preview-changes"
+        oid="80d8bdb4-7288-41fe-a8a3-e39f1c9d2de3">
+
+    <name>Org object template</name>
+
+    <mapping>
+        <source>
+            <path>extension/pc:parentIdentifier</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>identifier</q:path>
+                        <expression>
+                            <script>
+                                <code>
+                                    parentIdentifier
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    parentIdentifier.tokenize("-")[0] + " org"
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>name</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    parentIdentifier
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>identifier</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+            </assignmentTargetSearch>
+        </expression>
+    </mapping>
+</objectTemplate>
