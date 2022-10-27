@@ -5,12 +5,16 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.simulation;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.Arrays;
 
-import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
+import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -22,9 +26,10 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -44,17 +49,14 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
     private static final File ORG_CHILD = new File(TEST_DIR, "org-child.xml");
 
-    private static final File ROLE_META_ASSIGNMENT_SEARCH = new File(TEST_DIR, "role-meta-assignment-search.xml");
+    private static final TestResource<RoleType> ROLE_META_ASSIGNMENT_SEARCH =
+            new TestResource<>(TEST_DIR, "role-meta-assignment-search.xml", "1ac00214-ffd0-49db-a1b9-51b46a0e9ae1");
 
-    private static final String ROLE_META_ASSIGNMENT_SEARCH_OID = "1ac00214-ffd0-49db-a1b9-51b46a0e9ae1";
+    private static final TestResource<RoleType> ROLE_META_ASSOCIATION_SEARCH =
+            new TestResource(TEST_DIR, "role-meta-assignment-search.xml", "07edb2fc-5662-4886-aba7-54fbc58ce5ca");
 
-    private static final File ROLE_META_ASSOCIATION_SEARCH = new File(TEST_DIR, "role-meta-assignment-search.xml");
-
-    private static final String ROLE_META_ASSOCIATION_SEARCH_OID = "07edb2fc-5662-4886-aba7-54fbc58ce5ca";
-
-    protected DummyResource dummyResource;
-
-    protected DummyResourceContoller dummyResourceCtl;
+    private static final DummyTestResource RESOURCE_DUMMY = new DummyTestResource(TEST_DIR, "resource-dummy.xml",
+            "8dfeccc9-e144-4864-a692-e483f4b1873a", "resource-preview-changes-cod", TestPreviewChangesCoD::createAttributeDefinitions);
 
     @Override
     protected File getSystemConfigurationFile() {
@@ -65,18 +67,18 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-//        InternalsConfig.readEncryptionChecks = false;
-//
-//        dummyResourceCtl = DummyResourceContoller.create(null);
-//        dummyResourceCtl.extendSchemaPirate();
-//        dummyResource = dummyResourceCtl.getDummyResource();
-//        dummyResourceCtl.addAttrDef(dummyResource.getAccountObjectClass(),
-//                DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, String.class, false, false);
-
         addObject(OBJECT_TEMPLATE_ORG, initTask, initResult);
         addObject(ROLE_META_ASSIGNMENT_SEARCH, initTask, initResult);
 
-        importObjectFromFile(RESOURCE_DUMMY_FILE, initTask, initResult);
+        initDummyResource(RESOURCE_DUMMY, initTask, initResult);
+    }
+
+    public static void createAttributeDefinitions(DummyResourceContoller controller)
+            throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                "fullName", String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getGroupObjectClass(),
+                "description", String.class, false, false);
     }
 
     @Test
@@ -115,7 +117,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         PrismObject<OrgType> orgChild = prismContext.parseObject(ORG_CHILD);
         // we'll add assignment to meta role
-        orgChild.asObjectable().getAssignment().add(new AssignmentType().targetRef(ROLE_META_ASSIGNMENT_SEARCH_OID, RoleType.COMPLEX_TYPE));
+        orgChild.asObjectable().getAssignment().add(new AssignmentType().targetRef(ROLE_META_ASSIGNMENT_SEARCH.oid, RoleType.COMPLEX_TYPE));
         ObjectDelta delta = orgChild.createAddDelta();
 
         ModelContext<OrgType> context = modelInteractionService.previewChanges(Arrays.asList(delta), ModelExecuteOptions.create(), task, result);
@@ -143,6 +145,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     @Test
     public void test300UserInOrgProvisioned() throws Exception {
         given();
+
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -158,6 +161,14 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
     @Test
     public void test500ReferenceTargetSearch() throws Exception {
+
+    }
+
+    /**
+     * MID-7155
+     */
+    @Test
+    public void test600MultithreadedSupportForCreateOnDemand() throws Exception {
 
     }
 }
