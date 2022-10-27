@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTest {
 
-    private static final File TEST_DIR = new File("src/test/resources/preview-cod");
+    private static final File TEST_DIR = new File("src/test/resources/simulation/cod");
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
