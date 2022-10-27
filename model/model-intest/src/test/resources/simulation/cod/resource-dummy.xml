@@ -59,11 +59,10 @@
 
             <attribute>
                 <ref>icfs:name</ref>
-                <displayName>Username</displayName>
                 <outbound>
                     <strength>strong</strength>
                     <source>
-                        <path>$user/name</path>
+                        <path>name</path>
                     </source>
                     <expression>
                         <script>
@@ -73,17 +72,9 @@
                         </script>
                     </expression>
                 </outbound>
-                <inbound>
-                    <!-- This avoids "kickback" of a name from account to a user. -->
-                    <strength>weak</strength>
-                    <target>
-                        <path>$user/name</path>
-                    </target>
-                </inbound>
             </attribute>
             <attribute>
                 <ref>icfs:uid</ref>
-                <displayName>UID</displayName>
             </attribute>
             <attribute>
                 <ref>ri:fullName</ref>
@@ -122,6 +113,25 @@
             <default>true</default>
             <objectClass>ri:GroupObjectClass</objectClass>
 
+            <attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>
+                                name
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>icfs:uid</ref>
+            </attribute>
             <attribute>
                 <ref>ri:description</ref>
                 <outbound>

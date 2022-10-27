@@ -73,7 +73,11 @@
                         <expression>
                             <script>
                                 <code>
-                                    parentIdentifier.substring(0, parentIdentifier.lastIndexOf(":"))
+                                    def index = parentIdentifier.lastIndexOf(":")
+                                    if (index &lt; 0) {
+                                        return null
+                                    }
+                                    parentIdentifier.substring(0, index)
                                 </code>
                             </script>
                         </expression>
@@ -91,5 +95,33 @@
                 </code>
             </script>
         </condition>
+    </mapping>
+
+    <mapping>
+        <source>
+            <path>extension/pc:parentIdentifier</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    "Description " + parentIdentifier
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>description</path>
+        </target>
+    </mapping>
+
+    <mapping>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>RoleType</targetType>
+                <oid>3d82a1af-0380-4368-b80a-b28a8c87b5bb</oid>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+        </target>
     </mapping>
 </objectTemplate>

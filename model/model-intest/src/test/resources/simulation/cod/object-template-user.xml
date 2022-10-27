@@ -25,7 +25,7 @@
                         <expression>
                             <script>
                                 <code>
-                                    organization.split(':').last()
+                                    basic.stringify(organization).split(':').last()
                                 </code>
                             </script>
                         </expression>
@@ -37,7 +37,7 @@
                         <expression>
                             <script>
                                 <code>
-                                    organization.split(':').last()
+                                    basic.stringify(organization).split(':').last()
                                 </code>
                             </script>
                         </expression>
@@ -49,7 +49,8 @@
                         <expression>
                             <script>
                                 <code>
-                                    organization.substring(0, organization.lastIndexOf(":"))
+                                    def str = basic.stringify(organization)
+                                    str.substring(0, str.lastIndexOf(":"))
                                 </code>
                             </script>
                         </expression>

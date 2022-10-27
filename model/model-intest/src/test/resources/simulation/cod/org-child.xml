@@ -11,7 +11,7 @@
     <name>child org</name>
 
     <extension>
-        <pc:parentIdentifier>parent-1</pc:parentIdentifier>
+        <pc:parentIdentifier>parentOfChild-1</pc:parentIdentifier>
     </extension>
 
     <identifier>child-1</identifier>

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.intest.simulation;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Modifier;
 import java.net.ConnectException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,6 +56,9 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     private static final DummyTestResource RESOURCE_DUMMY = new DummyTestResource(TEST_DIR, "resource-dummy.xml",
             "8dfeccc9-e144-4864-a692-e483f4b1873a", "resource-preview-changes-cod", TestPreviewChangesCoD::createAttributeDefinitions);
 
+    private static final TestResource<RoleType> ROLE_ORG =
+            new TestResource<>(TEST_DIR, "role-org.xml", "3d82a1af-0380-4368-b80a-b28a8c87b5bb");
+
     private static final TestResource<OrgType> ORG_CHILD = new TestResource<>(TEST_DIR, "org-child.xml");
 
     private static final TestResource<UserType> USER_BOB = new TestResource<>(TEST_DIR, "user-bob.xml");
@@ -81,6 +85,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         addObject(OBJECT_TEMPLATE_ORG, initTask, initResult);
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
         addObject(ROLE_META_ASSIGNMENT_SEARCH, initTask, initResult);
+        addObject(ROLE_ORG, initTask, initResult);
 
         RESOURCE_DUMMY.initAndTest(this, initTask, initResult);
     }
@@ -191,6 +196,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         for (ObjectTypes type : ObjectTypes.values()) {
             Class<? extends ObjectType> clazz = type.getClassDefinition();
+            if (Modifier.isAbstract(clazz.getModifiers())) {
+                continue;
+            }
+
             if (Arrays.stream(COLLECT_COUNT_TYPES).noneMatch(c -> c.isAssignableFrom(clazz))) {
                 continue;
             }
@@ -203,11 +212,21 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     }
 
     private void assertCollectedCounts(Map<Class<? extends ObjectType>, Integer> counts, Task task, OperationResult result) throws Exception {
+        StringBuilder msg = new StringBuilder();
+
+        boolean fail = false;
         for (Class<? extends ObjectType> clazz : counts.keySet()) {
             int expected = counts.get(clazz);
 
-            int real = modelService.countObjects(clazz, null, null, task, result);
-            AssertJUnit.assertEquals(clazz.getSimpleName() + " were created", expected, real);
+            int real = repositoryService.countObjects(clazz, null, null, result);
+            if (expected != real) {
+                fail = true;
+                msg.append(clazz.getSimpleName() + " were created, expected: " + expected + ", real: " + real + "\n");
+            }
+        }
+
+        if (fail) {
+            AssertJUnit.fail(msg.toString());
         }
     }
 }
