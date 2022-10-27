@@ -32,7 +32,7 @@
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId/> <!-- Default instance. -->
+            <icfi:instanceId>resource-preview-changes-cod</icfi:instanceId>
             <icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
             <icfi:uselessGuardedString>
                 <clearValue>whatever</clearValue>

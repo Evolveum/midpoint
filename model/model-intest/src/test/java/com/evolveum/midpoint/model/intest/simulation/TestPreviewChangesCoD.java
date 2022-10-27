@@ -82,10 +82,10 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
         addObject(ROLE_META_ASSIGNMENT_SEARCH, initTask, initResult);
 
-        initDummyResource(RESOURCE_DUMMY, initTask, initResult);
+        RESOURCE_DUMMY.initAndTest(this, initTask, initResult);
     }
 
-    public static void createAttributeDefinitions(DummyResourceContoller controller)
+    private static void createAttributeDefinitions(DummyResourceContoller controller)
             throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 "fullName", String.class, false, false);
@@ -195,7 +195,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
                 continue;
             }
 
-            int count = modelService.countObjects(clazz, null, null, task, result);
+            int count = repositoryService.countObjects(clazz, null, null, result);
             map.put(clazz, count);
         }
 
