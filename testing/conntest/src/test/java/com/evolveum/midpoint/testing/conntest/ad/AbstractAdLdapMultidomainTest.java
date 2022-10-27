@@ -702,7 +702,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query, 2, task, result);
 
-        // TODO: Why 2? Why not 1?
+        // increment = 2 because there are two searches:
+        // 1. one for baseContext (as defined for account/default)
+        // 2. one for objects
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
@@ -813,7 +815,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     protected String getExpected182FirstShadow() {
-        return "CN=Administrator," + getPeopleLdapSuffix();
+        return "CN=Admin," + getPeopleLdapSuffix();
     }
 
     /**
@@ -2278,7 +2280,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         // THEN
         then();
 
-        assertUsers(getNumberOfAllAccounts() + 2); // all accounts + administrator + ?
+        assertUsers(getNumberOfAllAccounts() + 1); // all accounts + administrator?
 
         // TODO: better asserts
 

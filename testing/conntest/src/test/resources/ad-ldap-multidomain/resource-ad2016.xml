@@ -35,13 +35,12 @@
                 <t:clearValue>qwe.123</t:clearValue>
             </icfcldap:bindPassword>
             <icfcldap:servers>host=ad06.ad2016.lab.evolveum.com; baseContext=DC=sub2016,DC=ad2016,DC=lab,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub2016,DC=ad2016,DC=lab,DC=evolveum,DC=com</icfcldap:servers>
-            <icfcldap:referralStrategy>ignore</icfcldap:referralStrategy>
             <icfcldap:globalCatalogStrategy>resolve</icfcldap:globalCatalogStrategy>
             <icfcldap:operationalAttributes>msExchHideFromAddressLists</icfcldap:operationalAttributes>
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
             <icfcldap:useTreeDelete>always</icfcldap:useTreeDelete>
-            <icfcldap:baseContextToSynchronize>CN=Users,DC=ad2016,DC=lab,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
+            <icfcldap:baseContextToSynchronize>DC=ad2016,DC=lab,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -350,6 +349,17 @@
                     <q:substring>
                         <q:path>attributes/dn</q:path>
                         <q:value>CN=SystemMailbox</q:value>
+                        <q:anchorStart>true</q:anchorStart>
+                        <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
+                    </q:substring>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/dn</q:path>
+                        <q:value>CN=AD05</q:value>
                         <q:anchorStart>true</q:anchorStart>
                         <!-- Explicit matching rule needs to be specified in the query. See MID-6935 -->
                         <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
