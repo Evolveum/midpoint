@@ -8,37 +8,13 @@
 <objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:pc="http://midpoint.evolveum.com/xml/ns/samples/preview-changes"
-        oid="80d8bdb4-7288-41fe-a8a3-e39f1c9d2de3">
+        oid="fc5bfc7b-0612-450a-85d2-ab5cff7e4ed9">
 
-    <name>Org object template</name>
-
-    <mapping>
-        <strength>weak</strength>
-        <source>
-            <path>identifier</path>
-        </source>
-        <expression>
-            <script>
-                <code>
-                    "Org: " + identifier
-                </code>
-            </script>
-        </expression>
-        <target>
-            <path>name</path>
-        </target>
-        <condition>
-            <script>
-                <code>
-                    identifier != null
-                </code>
-            </script>
-        </condition>
-    </mapping>
+    <name>object template user</name>
 
     <mapping>
         <source>
-            <path>extension/pc:parentIdentifier</path>
+            <path>organization</path>
         </source>
         <expression>
             <assignmentTargetSearch>
@@ -49,7 +25,7 @@
                         <expression>
                             <script>
                                 <code>
-                                    parentIdentifier.split(':').last()
+                                    organization.split(':').last()
                                 </code>
                             </script>
                         </expression>
@@ -61,7 +37,7 @@
                         <expression>
                             <script>
                                 <code>
-                                    parentIdentifier.split(':').last()
+                                    organization.split(':').last()
                                 </code>
                             </script>
                         </expression>
@@ -73,7 +49,7 @@
                         <expression>
                             <script>
                                 <code>
-                                    parentIdentifier.substring(0, parentIdentifier.lastIndexOf(":"))
+                                    organization.substring(0, organization.lastIndexOf(":"))
                                 </code>
                             </script>
                         </expression>
@@ -82,14 +58,22 @@
                         </target>
                     </populateItem>
                 </populateObject>
+                <assignmentProperties>
+                    <subtype>org</subtype>
+                </assignmentProperties>
             </assignmentTargetSearch>
         </expression>
-        <condition>
-            <script>
-                <code>
-                    parentIdentifier != null
-                </code>
-            </script>
-        </condition>
+        <target>
+            <path>assignment</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>
+                            assignment.subtype.contains("org")
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
     </mapping>
 </objectTemplate>
