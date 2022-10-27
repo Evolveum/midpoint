@@ -1,0 +1,121 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype oid="00000000-0000-0000-0000-000000000329"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>Application</name>
+    <description>
+        Applications are basic building blocks for defining access.
+        These objects contain business information.
+        Application is an administrative object describing application
+        as a business target that the access relates to.
+    </description>
+    <archetypePolicy>
+        <display>
+            <label>Application</label>
+            <pluralLabel>Applications</pluralLabel>
+            <icon>
+                <cssClass>fa fa-cloud</cssClass>
+                <color>blue</color>
+            </icon>
+        </display>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <panel>
+                    <identifier>projections</identifier>
+                    <panelType>projections</panelType>
+                    <display>
+                        <label>Application.panel.projections</label>
+                    </display>
+                </panel>
+                <panel>
+                    <identifier>assignments</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel>
+                    <identifier>password</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel>
+                    <identifier>applicablePolicies</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel>
+                    <identifier>serviceMembers</identifier>
+                    <listView>
+                        <searchBoxConfiguration>
+                            <indirectConfiguration>
+                                <indirect>true</indirect>
+                            </indirectConfiguration>
+                            <objectTypeConfiguration>
+                                <visibility>hidden</visibility>
+                                <defaultValue>UserType</defaultValue>
+                                <supportedTypes>UserType</supportedTypes>
+                            </objectTypeConfiguration>
+                        </searchBoxConfiguration>
+                    </listView>
+                </panel>
+                <panel>
+                    <identifier>serviceGovernance</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel>
+                    <identifier>inducements</identifier>
+                    <visibility>hidden</visibility>
+                </panel>
+                <panel>
+                    <identifier>resourceEntitlementsTopLevel</identifier>
+                    <panelType>constructionInducements</panelType>
+                    <display>
+                        <label>Application.panel.constructionInducements</label>
+                    </display>
+                    <displayOrder>115</displayOrder>
+                </panel>
+                <panel>
+                    <identifier>inducedEntitlementsTopLevel</identifier>
+                    <panelType>inducedEntitlements</panelType>
+                    <display>
+                        <label>AbstractRoleMainPanel.inducedEntitlements</label>
+                    </display>
+                    <displayOrder>116</displayOrder>
+                </panel>
+                <panel>
+                    <identifier>applicationRoles</identifier>
+                    <panelType>inducedBy</panelType>
+                    <display>
+                        <label>Application.panel.inducedBy</label>
+                    </display>
+                    <listView>
+                        <identifier>applicationRoles</identifier>
+                        <type>c:RoleType</type>
+                        <collection>
+                            <collectionRef oid="00000000-0000-0000-0001-000000000016" type="c:ObjectCollectionType"/>
+                        </collection>
+                        <searchBoxConfiguration>
+                            <objectTypeConfiguration>
+                                <visibility>hidden</visibility>
+                                <defaultValue>RoleType</defaultValue>
+                                <supportedTypes>RoleType</supportedTypes>
+                            </objectTypeConfiguration>
+                        </searchBoxConfiguration>
+                    </listView>
+                    <displayOrder>117</displayOrder>
+                </panel>
+                <panel>
+                    <identifier>inducedBy</identifier>
+                    <panelType>inducedBy</panelType>
+                    <displayOrder>118</displayOrder>
+                </panel>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+    <assignment>
+        <assignmentRelation>
+            <holderType>ServiceType</holderType>
+        </assignmentRelation>
+    </assignment>
+</archetype>

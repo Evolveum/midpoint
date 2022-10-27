@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -172,7 +174,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         List<ObjectReferenceType> archetypeRefList = relationSpec != null && !CollectionUtils.isEmpty(relationSpec.getArchetypeRefs()) ?
                 relationSpec.getArchetypeRefs() : getArchetypeRefList();
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.USER"),
-                new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(UserType.COMPLEX_TYPE))) {
+                new VisibleBehaviour(() -> objectTypes == null || QNameUtil.contains(objectTypes, UserType.COMPLEX_TYPE))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -205,7 +207,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         });
 
         tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"),
-                new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(RoleType.COMPLEX_TYPE))) {
+                new VisibleBehaviour(() -> objectTypes == null || QNameUtil.contains(objectTypes, RoleType.COMPLEX_TYPE))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -239,7 +241,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
         tabs.add(
                 new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"),
-                        new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(OrgType.COMPLEX_TYPE))) {
+                        new VisibleBehaviour(() -> objectTypes == null || QNameUtil.contains(objectTypes, OrgType.COMPLEX_TYPE))) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -280,7 +282,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
         if (archetypeRefList == null || archetypeRefList.isEmpty()) {
             tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
-                    new VisibleBehaviour(() -> isOrgTreeVisible() && (objectTypes == null || objectTypes.contains(OrgType.COMPLEX_TYPE)))) {
+                    new VisibleBehaviour(() -> isOrgTreeVisible() && (objectTypes == null || QNameUtil.contains(objectTypes, OrgType.COMPLEX_TYPE)))) {
 
                 private static final long serialVersionUID = 1L;
 
@@ -316,7 +318,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
         tabs.add(
                 new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"),
-                        new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(ServiceType.COMPLEX_TYPE))) {
+                        new VisibleBehaviour(() -> objectTypes == null || QNameUtil.contains(objectTypes, ServiceType.COMPLEX_TYPE))) {
 
                     private static final long serialVersionUID = 1L;
 

@@ -125,9 +125,9 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PANEL_MAPPING_OVERRIDE_WIZARD,
         PANEL_SYNCHRONIZATION_REACTION_WIZARD,
         PANEL_CORRELATION_ITEMS_WIZARD,
-
-        PANEL_CORRELATION_ITEM_WIZARD,
-        PAGE_REQUEST_ACCESS_ROLE_CATALOG
+        PAGE_REQUEST_ACCESS_ROLE_CATALOG,
+        PANEL_INDUCT_BY,
+        PANEL_ROLE_MEMBERSHIP
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

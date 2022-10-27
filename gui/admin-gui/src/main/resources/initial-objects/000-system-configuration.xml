@@ -911,6 +911,30 @@
                     </container>
                 </panel>
             </objectDetailsPage>
+            <objectDetailsPage>
+                <type>c:UserType</type>
+                <panel>
+                    <identifier>roleMemberships</identifier>
+                    <display>
+                        <label>Application.panel.applications</label>
+                    </display>
+                    <panelType>roleMemberships</panelType>
+                    <listView>
+                        <identifier>applications</identifier>
+                        <type>c:ServiceType</type>
+                        <collection>
+                            <collectionRef oid="00000000-0000-0000-0001-000000000017" type="c:ObjectCollectionType"/>
+                        </collection>
+                        <searchBoxConfiguration>
+                            <objectTypeConfiguration>
+                                <visibility>hidden</visibility>
+                                <defaultValue>ServiceType</defaultValue>
+                                <supportedTypes>ServiceType</supportedTypes>
+                            </objectTypeConfiguration>
+                        </searchBoxConfiguration>
+                    </listView>
+                </panel>
+            </objectDetailsPage>
             <resourceDetailsPage>
                 <panel>
                     <identifier>rw-type-basic</identifier>

@@ -363,7 +363,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (collectionRefSpecificationType == null) {
             compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
             getPageBase().getModelInteractionService().applyView(compiledCollectionViewFromPanelConfiguration, getPanelConfiguration().getListView());
-            return null;
+            return compiledCollectionViewFromPanelConfiguration;
         }
         Task task = getPageBase().createSimpleTask("Compile collection");
         OperationResult result = task.getResult();
@@ -431,15 +431,15 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (searchConfig.getTenantConfiguration() == null && !isNotRole()) {
             searchConfig.setTenantConfiguration(searchBoxConfig.getDefaultTenantConfiguration());
         }
-        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(defaultObjectType, searchConfig, getPageBase());
+        SearchConfigurationWrapper<?> searchConfigWrapper = new SearchConfigurationWrapper<>(defaultObjectType, searchConfig, getPageBase());
         SearchFactory.createAbstractRoleSearchItemWrapperList(searchConfigWrapper, searchConfig);
         if (additionalPanelConfig != null) {
             searchConfigWrapper.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
         }
         searchConfigWrapper.getItemsList().forEach(item -> {
             if (item instanceof ObjectTypeSearchItemWrapper) {
-                ((ObjectTypeSearchItemWrapper) item).setAllowAllTypesSearch(true);
-                ((ObjectTypeSearchItemWrapper) item).setValueForNull(
+                ((ObjectTypeSearchItemWrapper<?>) item).setAllowAllTypesSearch(true);
+                ((ObjectTypeSearchItemWrapper<?>) item).setValueForNull(
                         WebComponentUtil.classToQName(getPageBase().getPrismContext(), getChoiceForAllTypes()));
             }
         });
@@ -624,7 +624,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
                     @Override
                     protected List<QName> getAvailableObjectTypes() {
-                        return null;
+                        return getSearchBoxConfiguration().getSupportedObjectTypes();
                     }
 
                     @Override
@@ -1427,7 +1427,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return getSearchBoxConfiguration().getSupportedRelations();
     }
 
-    protected ObjectQuery getActionQuery(IModel rowModel, QueryScope scope, @NotNull Collection<QName> relations) {
+    protected ObjectQuery getActionQuery(IModel<?> rowModel, QueryScope scope, @NotNull Collection<QName> relations) {
         AssignmentHolderType assignmentHolder = getAssignmetHolderFromRow(rowModel);
         if (assignmentHolder == null) {
             return getActionQuery(scope, relations);
@@ -1459,7 +1459,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected List<QName> getNewMemberObjectTypes() {
-        return WebComponentUtil.createFocusTypeList();
+        return getSearchBoxConfiguration().getSupportedObjectTypes();
     }
 
     protected MainObjectListPanel<FocusType> getMemberTable() {
@@ -1575,17 +1575,9 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         searchBoxConfiguration = new SearchBoxConfigurationHelper(additionalPanelConfig);
         searchBoxConfiguration.setDefaultSupportedRelations(getSupportedRelations());
-        searchBoxConfiguration.setDefaultSupportedObjectTypes(getDefaultSupportedObjectTypes(false));
+        searchBoxConfiguration.setDefaultSupportedObjectTypes(getDefaultSupportedObjectTypes(true));
         searchBoxConfiguration.setDefaultObjectType(WebComponentUtil.classToQName(getPrismContext(), getDefaultObjectType()));
 
-//        MemberPanelStorage storage = (MemberPanelStorage) pageStorage;
-//
-//        storage.setIndirectSearchItem(searchBoxCofig.getDefaultIndirectConfiguration());
-//        storage.setRelationSearchItem(searchBoxCofig.getDefaultRelationConfiguration());
-//        storage.setScopeSearchItem(searchBoxCofig.getDefaultSearchScopeConfiguration());
-//        storage.setObjectTypeSearchItem(searchBoxCofig.getDefaultObjectTypeConfiguration());
-//        storage.setTenantSearchItem(searchBoxCofig.getDefaultTenantConfiguration());
-//        storage.setProjectSearchItem(searchBoxCofig.getDefaultProjectConfiguration());
         return searchBoxConfiguration;
     }
 
