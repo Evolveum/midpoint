@@ -394,6 +394,9 @@ public class SearchFactory {
             ObjectTypeSearchItemWrapper typeItem = new ObjectTypeSearchItemWrapper(searchConfWrapper.getAllowedTypeList(),
                     WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfWrapper.getTypeClass()));
             typeItem.setAllowAllTypesSearch(searchConfWrapper.isAllowAllTypeSearch());
+            if (searchConfWrapper.getAllowedTypeList().size() == 1) {
+                typeItem.setVisible(false);
+            }
             searchConfWrapper.getItemsList().add(typeItem);
         }
         if (searchConfWrapper.getAllowedModeList().contains(SearchBoxModeType.OID)) {

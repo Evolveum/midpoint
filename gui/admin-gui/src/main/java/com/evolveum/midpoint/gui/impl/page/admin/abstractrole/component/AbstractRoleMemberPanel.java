@@ -363,7 +363,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (collectionRefSpecificationType == null) {
             compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
             getPageBase().getModelInteractionService().applyView(compiledCollectionViewFromPanelConfiguration, getPanelConfiguration().getListView());
-            return null;
+            return compiledCollectionViewFromPanelConfiguration;
         }
         Task task = getPageBase().createSimpleTask("Compile collection");
         OperationResult result = task.getResult();
@@ -624,7 +624,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
                     @Override
                     protected List<QName> getAvailableObjectTypes() {
-                        return null;
+                        return getSearchBoxConfiguration().getSupportedObjectTypes();
                     }
 
                     @Override
@@ -1459,7 +1459,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected List<QName> getNewMemberObjectTypes() {
-        return WebComponentUtil.createFocusTypeList();
+        return getSearchBoxConfiguration().getSupportedObjectTypes();
     }
 
     protected MainObjectListPanel<FocusType> getMemberTable() {
