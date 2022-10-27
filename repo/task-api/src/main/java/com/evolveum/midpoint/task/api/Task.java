@@ -962,12 +962,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     void setRequesteeTransient(PrismObject<UserType> user);
 
-    /** Gets model operation context stored in task. NOT THREAD SAFE! */
-    LensContextType getModelOperationContext();
-
-    /** Sets model operation context. */
-    void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
-
     /** Gets the execution environment configuration. Cloned if running task. */
     TaskExecutionEnvironmentType getExecutionEnvironment();
 
@@ -985,10 +979,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     /** Gets the policy rule defined for the task (for running task the returned value is a clone). */
     PolicyRuleType getPolicyRule();
-
-    ModelExecuteOptionsType getModelExecuteOptions();
-
-    void setModelExecuteOptions(ModelExecuteOptionsType options);
     //endregion
 
     //region Misc

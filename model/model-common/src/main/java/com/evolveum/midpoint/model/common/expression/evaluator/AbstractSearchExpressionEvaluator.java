@@ -14,6 +14,9 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -531,12 +534,12 @@ public abstract class AbstractSearchExpressionEvaluator<
     private boolean isCreateOnDemandSafe(Task task) {
         boolean isCreateOnDemandSafe = false;   // todo default value should be true later on;
 
-        ModelExecuteOptionsType options = task.getModelExecuteOptions();
-        if (options == null || options.getSimulation() == null) {
+        ModelExecuteOptions options = ModelExpressionThreadLocalHolder.getLensContextRequired().getOptions();
+        if (options == null || options.getSimulationOptions() == null) {
             return isCreateOnDemandSafe;
         }
 
-        SimulationOptionsType simulation = options.getSimulation();
+        SimulationOptionsType simulation = options.getSimulationOptions();
         if (simulation.getCreateOnDemand() == null) {
             return isCreateOnDemandSafe;
         }

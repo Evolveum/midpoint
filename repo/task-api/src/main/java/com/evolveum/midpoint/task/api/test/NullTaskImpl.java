@@ -167,13 +167,6 @@ public class NullTaskImpl implements Task {
 
     }
 
-    @Override public LensContextType getModelOperationContext() {
-        return null;
-    }
-
-    @Override public void setModelOperationContext(LensContextType modelOperationContext) {
-    }
-
     @Override
     public ActivityErrorHandlingStrategyType getErrorHandlingStrategy() {
         return null;
@@ -769,14 +762,5 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void stopCollectingActionsExecuted() {
-    }
-
-    @Override
-    public ModelExecuteOptionsType getModelExecuteOptions() {
-        return null;
-    }
-
-    @Override
-    public void setModelExecuteOptions(ModelExecuteOptionsType options) {
     }
 }
