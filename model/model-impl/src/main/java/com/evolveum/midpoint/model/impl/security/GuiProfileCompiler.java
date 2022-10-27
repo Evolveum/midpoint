@@ -353,7 +353,7 @@ public class GuiProfileCompiler {
             composite.getHomePage().getWidget().addAll(sorted);
         }
 
-        if (composite.getSelfProfilePage() == null) {
+        if (composite.getSelfProfilePage() == null && principal != null) {
             QName principalType = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(principal.getFocus().getClass()).getTypeName();
             composite.setSelfProfilePage(new GuiObjectDetailsPageType().type(principalType));
         }

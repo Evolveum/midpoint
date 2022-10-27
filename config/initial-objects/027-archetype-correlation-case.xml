@@ -26,9 +26,10 @@
                     <display>
                         <label>Workitems</label>
                         <icon>
-                            <cssClass>fa fa-circle-o</cssClass>
+                            <cssClass>fa fa-circle</cssClass>
                         </icon>
                     </display>
+                    <displayOrder>20</displayOrder>
                     <panelType>caseWorkItems</panelType>
                     <type>c:CaseType</type>
                 </panel>
@@ -37,10 +38,10 @@
                     <display>
                         <label>Correlation</label>
                         <icon>
-                            <cssClass>fa fa-circle-o</cssClass>
+                            <cssClass>fa fa-circle</cssClass>
                         </icon>
                     </display>
-                    <displayOrder>1</displayOrder>
+                    <displayOrder>30</displayOrder>
                     <panelType>correlationContext</panelType>
                     <type>c:CaseType</type>
                     <default>true</default>

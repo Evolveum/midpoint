@@ -441,8 +441,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                             protected void onAdd(AjaxRequestTarget target) {
                                 SelectableBean<ObjectType> bean = model.getObject().getValue();
                                 addItemsPerformed(target, Arrays.asList(bean.getValue()));
-
-                                target.add(this);
                             }
 
                             @Override
