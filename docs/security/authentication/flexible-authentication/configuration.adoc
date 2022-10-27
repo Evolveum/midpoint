@@ -13,7 +13,8 @@
 Basic idea of flexible authentication is described on xref:..[Flexible Authentication] page.
 Before we describe configuration of flexible authentication, we have to become acquainted with a few terms.
 
-TODO it would be nice to warn the user who starts flexible authentication configuration about the risk not to have an access to midPoint GUI part. E.g. in case of incorrect LoginForm module configuration or in case of its absence, there will be no possibility to login via standard login form again. In that case the user should have another a way to restore midPoint environment.
+TODO it would be nice to warn the user who starts flexible authentication configuration about the risk not to have an access to midPoint GUI part. E.g. in case of incorrect LoginForm module configuration or in case of its absence, there will be no possibility to login via standard login form again. In that case the user should have another way to restore midPoint environment.
+
 TODO please, add a sample of urlSuffix attribute usage. There is a sample with explanation "Midpoint searches authentication sequence base-on next part of URL, in this case 'emergency'". But it's not clear here that 'emergency' is a value of urlSuffix attribute. I would suggest to paste url sample right to the table with attribute description.
 
 == Basic concepts
@@ -31,11 +32,11 @@ Every Authentication module contains some configuration properties, which define
 === Authentication sequence
 
 Authentication sequence is made up of authentication modules, so it contains chain of authentication modules.
-Each of module have its order in chain and necessity for this sequence.
-Sequence is define by channel.
-Channel represents part of Midpoint, for which is valid this authentication sequence, for example GUI, REST service, etc.
+Each of module has its order in chain and necessity for this sequence.
+Sequence is defined by channel.
+Channel represents part of Midpoint, for which this authentication sequence is valid, for example GUI, REST service, etc.
 Also channel contains url suffix for this authentication sequence.
-So channel define, which authentication sequence will be used for http request.
+So channel defines, which authentication sequence will be used for http request.
 
 
 === Authentication channel
@@ -97,7 +98,7 @@ After successful authentication Midpoint sends request to actuator service.
 Midpoint receives HTTP request with URL 'http:localhost:8080/midpoint/auth/emergency/users'.
 Midpoint obtains suffix 'auth' from URL, this suffix defines using of specific authentication sequence.
 Midpoint searches authentication sequence base-on next part of URL, in this case 'emergency'.
-After successful authentication Midpoint sends request to service, which define channel in sequence configuration.
+After successful authentication Midpoint sends request to service, which defines channel in sequence configuration.
 Let's say it is GUI for this example, so request is redirect to users page in GUI.
 
 
@@ -112,6 +113,9 @@ Element `sequence` defines a sequence of authentication modules.
 The modules are invoked in order as they are specified in the sequence.
 The purpose of the sequence is to guide user through a complete authentication process.
 
+*IMPORTANT*
+
+*Midpoint GUI authentication form:* To be able to use Midpoint GUI, an authentication sequence for formLogin module should be configured. In case when no authentication is configured in the security policy at all or there is no sequence in the configured authentication, Midpoint will use standard (built in) login form for the user GUI authentication. In case when at least one /not formLogin/ sequence is configured in the authentication configuration, a sequence for formLogin module should be evidently specified in the authentication configuration to make Midpoint GUI work. To see the default formLogin sequence configuration, please use security policy from the Midpoint initial objects (015-security-policy.xml).
 
 === Module configuration
 
