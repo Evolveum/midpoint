@@ -20,6 +20,7 @@ This is the basic SoD mechanism that is implemented in midPoint now.
 More complex SoD rules will be implemented in the future.
 
 
+[#_role_exclusion_definition]
 == Role Exclusion Definition
 
 Following role excludes role with oid `12345678-d34d-b33f-f00d-987987987988`. These two roles cannot be assigned at the same time.
