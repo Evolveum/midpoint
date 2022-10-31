@@ -98,6 +98,7 @@
     </mapping>
 
     <mapping>
+        <strength>weak</strength>
         <source>
             <path>identifier</path>
         </source>

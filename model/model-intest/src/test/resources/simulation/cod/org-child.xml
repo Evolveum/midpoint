@@ -9,6 +9,7 @@
         xmlns:pc="http://midpoint.evolveum.com/xml/ns/samples/preview-changes">
 
     <name>child org</name>
+    <description>no-provisioning</description>
 
     <extension>
         <pc:parentIdentifier>parentOfChild-1</pc:parentIdentifier>

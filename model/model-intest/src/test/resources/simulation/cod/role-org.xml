@@ -6,12 +6,9 @@
   -->
 
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-        xmlns:pc="http://midpoint.evolveum.com/xml/ns/samples/preview-changes"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         oid="3d82a1af-0380-4368-b80a-b28a8c87b5bb">
 
     <name>role org</name>
@@ -72,6 +69,18 @@
                 </outbound>
             </association>
         </construction>
+        <condition>
+            <source>
+                <path>$immediateRole/description</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        description != "no-provisioning"
+                    </code>
+                </script>
+            </expression>
+        </condition>
     </inducement>
 
     <inducement>
