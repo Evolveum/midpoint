@@ -176,8 +176,8 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
         String address = getRecipientAddress(event, transport, recipient, task, result);
         if (address == null) {
-            getLogger().debug("Skipping notification as no recipient address was provided for transport '{}'.", transportName);
-            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipient address provided be notifier or transport");
+            getLogger().debug("Skipping notification as no recipient address was provided or determined for transport '{}'.", transportName);
+            result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No recipient address provided/determined for notifier or transport");
             return 0;
         }
 

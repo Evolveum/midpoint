@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,8 +13,8 @@ import java.util.Map.Entry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 
 /**
- *  @author skublik
- * */
+ * @author skublik
+ */
 public final class ComponentLoggerType {
 
     public static final Map<String, LoggingComponentType> COMPONENT_MAP = new HashMap<>();
@@ -31,6 +31,7 @@ public final class ComponentLoggerType {
                 LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
         COMPONENT_MAP.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
         COMPONENT_MAP.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
+        COMPONENT_MAP.put("com.evolveum.midpoint.transport", LoggingComponentType.TRANSPORT);
         COMPONENT_MAP.put("com.evolveum.midpoint.certification", LoggingComponentType.ACCESS_CERTIFICATION);
         COMPONENT_MAP.put("com.evolveum.midpoint.security", LoggingComponentType.SECURITY);
     }

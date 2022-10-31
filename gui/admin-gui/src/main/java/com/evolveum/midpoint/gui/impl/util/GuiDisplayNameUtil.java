@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Evolveum and contributors
+ * Copyright (C) 2021-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,14 +12,11 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -27,6 +24,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class GuiDisplayNameUtil {
 
@@ -59,6 +57,7 @@ public class GuiDisplayNameUtil {
         }
         return "ContainerPanel.containerProperties";
     }
+
     private static <C extends Containerable> Method findDisplayNameMethod(PrismContainerValue<C> pcv) {
         for (Method method : GuiDisplayNameUtil.class.getMethods()) {
             if (method.getName().equals("getDisplayName")) {
@@ -232,10 +231,10 @@ public class GuiDisplayNameUtil {
     }
 
     public static String getDisplayName(ResourceItemDefinitionType resourceItemDefinition) {
-         if (resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
-             return resourceItemDefinition.getDisplayName();
-         }
-         return resourceItemDefinition.asPrismContainerValue().getParent().getPath().last().toString();
+        if (resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
+            return resourceItemDefinition.getDisplayName();
+        }
+        return resourceItemDefinition.asPrismContainerValue().getParent().getPath().last().toString();
     }
 
     public static String getDisplayName(MappingType mapping) {
@@ -245,7 +244,7 @@ public class GuiDisplayNameUtil {
             return mappingName + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
         }
         List<VariableBindingDefinitionType> sources = mapping.getSource();
-        String sourceDescription = "";
+        StringBuilder sourceDescriptionBuilder = new StringBuilder();
         if (CollectionUtils.isNotEmpty(sources)) {
             Iterator<VariableBindingDefinitionType> iterator = sources.iterator();
             while (iterator.hasNext()) {
@@ -254,14 +253,15 @@ public class GuiDisplayNameUtil {
                     continue;
                 }
                 String sourcePath = source.getPath().toString();
-                sourceDescription += sourcePath;
+                sourceDescriptionBuilder.append(sourcePath);
                 if (iterator.hasNext()) {
-                    sourceDescription += ",";
+                    sourceDescriptionBuilder.append(",");
                 }
             }
         }
         VariableBindingDefinitionType target = mapping.getTarget();
         String targetDescription = target.getPath() != null ? target.getPath().toString() : null;
+        String sourceDescription = sourceDescriptionBuilder.toString();
         if (StringUtils.isBlank(sourceDescription)) {
             sourceDescription = "(no sources)";
         }
@@ -272,11 +272,14 @@ public class GuiDisplayNameUtil {
     }
 
     public static String getDisplayName(ProvenanceAcquisitionType acquisition) {
-         return "ProvenanceAcquisitionType.details";
+        return "ProvenanceAcquisitionType.details";
     }
 
     public static String getDisplayName(ActivityErrorHandlingStrategyEntryType taskErrorHandlingStrategy) {
-        return "Strategy (order " + (taskErrorHandlingStrategy.getOrder() == null ? " not defined)" : Integer.toString(taskErrorHandlingStrategy.getOrder()) + ")");
+        return "Strategy (order " +
+                (taskErrorHandlingStrategy.getOrder() == null
+                        ? " not defined)"
+                        : taskErrorHandlingStrategy.getOrder() + ")");
     }
 
     //TODO improve
@@ -300,7 +303,7 @@ public class GuiDisplayNameUtil {
         return "";
     }
 
-    public static String getDisplayName(AbstractCorrelatorType correlator){
+    public static String getDisplayName(AbstractCorrelatorType correlator) {
         if (correlator == null) {
             return "";
         }

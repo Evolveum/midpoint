@@ -1,16 +1,14 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.notifications.impl.formatters;
 
-import java.util.*;
-
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +16,12 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Prepares text output for notification purposes.
@@ -30,15 +32,15 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 @Component
 public class TextFormatter {
 
-    public static final List<ItemPath> SYNCHRONIZATION_PATHS = Collections.unmodifiableList(Arrays.asList(
+    public static final List<ItemPath> SYNCHRONIZATION_PATHS = List.of(
             ShadowType.F_SYNCHRONIZATION_SITUATION,
             ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION,
             ShadowType.F_SYNCHRONIZATION_TIMESTAMP,
-            ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP));
+            ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP);
 
-    public static final List<ItemPath> AUXILIARY_PATHS = Collections.unmodifiableList(Arrays.asList(
+    public static final List<ItemPath> AUXILIARY_PATHS = List.of(
             ShadowType.F_METADATA,
-            ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_STATUS),                // works for user activation as well
+            ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_STATUS), // works for user activation as well
             ShadowType.F_ACTIVATION.append(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP),
             ShadowType.F_ACTIVATION.append(ActivationType.F_EFFECTIVE_STATUS),
             ShadowType.F_ACTIVATION.append(ActivationType.F_DISABLE_TIMESTAMP),
@@ -47,7 +49,7 @@ public class TextFormatter {
             ShadowType.F_ITERATION,
             ShadowType.F_ITERATION_TOKEN,
             FocusType.F_LINK_REF,
-            ShadowType.F_TRIGGER));
+            ShadowType.F_TRIGGER);
 
     @Autowired ValueFormatter valueFormatter;
     @Autowired DeltaFormatter deltaFormatter;
@@ -95,13 +97,15 @@ public class TextFormatter {
         return deltaFormatter.formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, null, null);
     }
 
-    public String formatObjectModificationDelta(@NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes, boolean showAuxiliaryAttributes,
-            PrismObject<?> objectOld, PrismObject<?> objectNew) {
+    public String formatObjectModificationDelta(
+            @NotNull ObjectDelta<? extends Objectable> objectDelta, boolean showSynchronizationAttributes,
+            boolean showAuxiliaryAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
         Collection<ItemPath> hiddenPaths = getHiddenPaths(showSynchronizationAttributes, showAuxiliaryAttributes);
         return formatObjectModificationDelta(objectDelta, hiddenPaths, showAuxiliaryAttributes, objectOld, objectNew);
     }
 
-    public String formatObjectModificationDelta(@NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> hiddenPaths,
+    public String formatObjectModificationDelta(
+            @NotNull ObjectDelta<? extends Objectable> objectDelta, Collection<ItemPath> hiddenPaths,
             boolean showOperationalAttributes, PrismObject<?> objectOld, PrismObject<?> objectNew) {
         return deltaFormatter.formatObjectModificationDelta(objectDelta, hiddenPaths, showOperationalAttributes, objectOld, objectNew);
     }
