@@ -103,6 +103,7 @@ class SynchronizationContextLoader {
 
         // Note this may update shadow kind/intent.
         TypeAndDefinition typeAndDefinition = determineObjectTypeAndDefinition(processingContext, schema, sorterResult, result);
+        LOGGER.trace("Type and definition: {}", typeAndDefinition);
 
         String tag = getOrGenerateTag(processingContext, typeAndDefinition.definition, result);
 
@@ -113,6 +114,7 @@ class SynchronizationContextLoader {
                                 typeAndDefinition.typeIdentification.getIntent(),
                                 updatedResource) :
                         null;
+        LOGGER.trace("Synchronization policy: {}", policy);
 
         // i.e. type identification == null => policy == null
 
@@ -258,6 +260,14 @@ class SynchronizationContextLoader {
             } else {
                 return new TypeAndDefinition(null, null);
             }
+        }
+
+        @Override
+        public String toString() {
+            return "TypeAndDefinition{" +
+                    "typeIdentification=" + typeIdentification +
+                    ", definition=" + definition +
+                    '}';
         }
     }
 }
