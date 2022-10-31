@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,14 +15,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
-
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.Validate;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Visitable;
@@ -160,18 +158,16 @@ public class OpResult implements Serializable, Visitable {
     private static IModel<String> createXmlModel(OperationResult result, PageBase page) {
         try {
             OperationResultType resultType = result.createOperationResultType();
-            return new ReadOnlyModel<String>(() -> {
+            return () -> {
                 try {
                     return page.getPrismContext().xmlSerializer().serializeAnyData(resultType, SchemaConstants.C_RESULT);
                 } catch (SchemaException e) {
                     throw new TunnelException(e);
                 }
-            });
+            };
         } catch (RuntimeException ex) {
             String m = "Can't create xml: " + ex;
-//            error(m);
-            return Model.of("<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml(m) + "</message>");
-//            throw ex;
+            return Model.of("<?xml version='1.0'?><message>" + StringEscapeUtils.escapeXml10(m) + "</message>");
         }
     }
 
@@ -191,7 +187,8 @@ public class OpResult implements Serializable, Visitable {
                 backgroundTaskVisible = true;
                 return;
             }
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
+                ConfigurationException | SecurityViolationException e) {
             backgroundTaskVisible = false;
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine background task visibility", e);
             return;
@@ -201,7 +198,8 @@ public class OpResult implements Serializable, Visitable {
         try {
             pageBase.getModelService().getObject(TaskType.class, backgroundTaskOid, null, task, task.getResult());
             backgroundTaskVisible = true;
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException |
+                ConfigurationException | ExpressionEvaluationException e) {
             LOGGER.debug("Task {} is not visible by the current user: {}: {}", backgroundTaskOid, e.getClass(), e.getMessage());
             backgroundTaskVisible = false;
         }
@@ -221,7 +219,8 @@ public class OpResult implements Serializable, Visitable {
                 caseVisible = true;
                 return;
             }
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException |
+                ConfigurationException | SecurityViolationException e) {
             caseVisible = false;
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine case visibility", e);
             return;
@@ -231,7 +230,8 @@ public class OpResult implements Serializable, Visitable {
         try {
             pageBase.getModelService().getObject(CaseType.class, caseOid, null, task, task.getResult());
             caseVisible = true;
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException |
+                ConfigurationException | ExpressionEvaluationException e) {
             LOGGER.debug("Case {} is not visible by the current user: {}: {}", caseOid, e.getClass(), e.getMessage());
             caseVisible = false;
         }
@@ -336,28 +336,22 @@ public class OpResult implements Serializable, Visitable {
 
     @Override
     public void accept(Visitor visitor) {
-
         visitor.visit(this);
 
         for (OpResult result : this.getSubresults()) {
             result.accept(visitor);
         }
-
     }
 
     public void setShowMoreAll(final boolean show) {
-        Visitor visitor = new Visitor() {
-
-            @Override
-            public void visit(Visitable visitable) {
-                if (!(visitable instanceof OpResult)) {
-                    return;
-                }
-
-                OpResult result = (OpResult) visitable;
-                result.setShowMore(show);
-
+        Visitor visitor = visitable -> {
+            if (!(visitable instanceof OpResult)) {
+                return;
             }
+
+            OpResult result = (OpResult) visitable;
+            result.setShowMore(show);
+
         };
 
         accept(visitor);
