@@ -1,18 +1,33 @@
 = Using Velocity Templates for Notifications
 :page-nav-title: Velocity Templates
-:page-wiki-name: Using Velocity Templates for Notifications
-:page-wiki-id: 23167527
-:page-wiki-metadata-create-user: mederly
-:page-wiki-metadata-create-date: 2016-09-08T21:13:50.163+02:00
-:page-wiki-metadata-modify-user: mederly
-:page-wiki-metadata-modify-date: 2016-09-08T21:14:54.826+02:00
 :page-upkeep-status: yellow
 :page-display-order: 900
+:page-toc: top
 
-Starting with midPoint 3.4.1 it is possible to use Apache Velocity templates for writing notifications.
-(In fact, it is possible to use Velocity templates at each place where an expression is expected, e.g. in mappings, but the use for notifications seems to be the most natural.)
+Starting with midPoint 3.4.1 it is possible to use Apache Velocity templates for writing notifications
+or xref:/midpoint/reference/misc/notifications/message-templates/[message templates].
 
-A few examples follow:
+== Using Velocity
+
+Technically, it is possible to use Velocity templates anywhere expression is expected, e.g. in mappings,
+but the velocity template returns textual (string) value.
+Because of this, it is best fitted to string-based template creation.
+
+Using Velocity templates is very simple for simple cases:
+
+* To show variable value in the text just insert `$variable` in the template, e.g. `$requestee`.
+* You can go deeper into structured objects, e.g. `$event.resourceOid`.
+* If the variable could be confused with the immediate template content, just use this style:
+`pass:[${requestee}]` or `pass:[${event.resourceOid}]`
+
+There are more complicated macros for iterating over collections, branching, adding comments and much more.
+Be sure to check the https://velocity.apache.org/engine/devel/user-guide.html[Velocity User Guide].
+
+Velocity 2.x is used in supported versions of midPoint - this may be an important detail when searching for solutions on the Internet.
+
+== Example
+
+Following example shows Velocity templates in notification configuration:
 
 [source,xml]
 ----
@@ -94,4 +109,17 @@ Channel: $!event.channel</code>
         </handler>
 ----
 
-TODO more detailed explanation
+Note that since midPoint 4.5 you can use xref:/midpoint/reference/misc/notifications/message-templates/[message templates]
+and just reference those from your configured notifiers.
+
+// TODO more detailed explanation
+
+// TODO currently there is no simple way how to escape the values provided by Velocity, e.g. in HTML code
+// For instance, object delta debug output contains <...Type> that would mess with HTML.
+// There is the Velocity escaping tool, but currently we don't provide it for our expressions.
+// https://velocity.apache.org/tools/2.0/apidocs/org/apache/velocity/tools/generic/EscapeTool.html
+
+
+== External links
+
+* https://velocity.apache.org/engine/devel/user-guide.html[Velocity User Guide]
