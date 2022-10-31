@@ -16,20 +16,30 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.aspectj.weaver.Shadow;
+import org.slf4j.Logger;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
@@ -42,6 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTest {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TestPreviewChangesCoD.class);
 
     private static final File TEST_DIR = new File("src/test/resources/simulation/cod");
 
@@ -80,14 +92,14 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        RESOURCE_DUMMY.initAndTest(this, initTask, initResult);
+
         TestResource.read(ORG_CHILD, USER_BOB);
 
         addObject(OBJECT_TEMPLATE_ORG, initTask, initResult);
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
         addObject(ROLE_META_ASSIGNMENT_SEARCH, initTask, initResult);
         addObject(ROLE_ORG, initTask, initResult);
-
-        RESOURCE_DUMMY.initAndTest(this, initTask, initResult);
     }
 
     private static void createAttributeDefinitions(DummyResourceContoller controller)
@@ -96,6 +108,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
                 "fullName", String.class, false, false);
         controller.addAttrDef(controller.getDummyResource().getGroupObjectClass(),
                 "description", String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getGroupObjectClass(),
+                DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
     }
 
     @Test
@@ -222,6 +236,16 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
             if (expected != real) {
                 fail = true;
                 msg.append(clazz.getSimpleName() + " were created, expected: " + expected + ", real: " + real + "\n");
+
+                if (ShadowType.class.equals(clazz)) {
+                    ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY.oid, SchemaConstants.RI_GROUP_OBJECT_CLASS);
+                    modelService.searchObjects(ShadowType.class, query, null, task, result).forEach(o -> LOGGER.info(o.debugDump()));
+                } else {
+                    repositoryService.searchObjectsIterative(clazz, null, (o, r) -> {
+                        LOGGER.info(o.debugDump());
+                        return true;
+                    }, null, true, result);
+                }
             }
         }
 

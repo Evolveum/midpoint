@@ -99,12 +99,12 @@
 
     <mapping>
         <source>
-            <path>extension/pc:parentIdentifier</path>
+            <path>identifier</path>
         </source>
         <expression>
             <script>
                 <code>
-                    "Description " + parentIdentifier
+                    "Description " + identifier
                 </code>
             </script>
         </expression>

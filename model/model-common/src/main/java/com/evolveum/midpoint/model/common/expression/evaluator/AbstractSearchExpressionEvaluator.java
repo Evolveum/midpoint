@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.caching.CacheConfiguration.getStatistic
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -513,7 +514,11 @@ public abstract class AbstractSearchExpressionEvaluator<
             try {
                 ModelContext<O> context = modelInteractionService.previewChanges(deltas, null, task, result);
                 ModelElementContext focusContext = context.getFocusContext();
-                return focusContext.getObjectNew();
+                PrismObject<O> newCodObject = focusContext.getObjectNew();
+//                if (newCodObject.getOid() == null) {
+//                    newObject.setOid(UUID.randomUUID().toString());
+//                }
+                return newCodObject;
             } catch (Exception ex) {
                 throw new ExpressionEvaluationException(ex.getMessage(), ex);
             }
@@ -532,7 +537,7 @@ public abstract class AbstractSearchExpressionEvaluator<
     }
 
     private boolean isCreateOnDemandSafe(Task task) {
-        boolean isCreateOnDemandSafe = false;   // todo default value should be true later on;
+        boolean isCreateOnDemandSafe = true;   // todo default value should be true later on;
 
         ModelExecuteOptions options = ModelExpressionThreadLocalHolder.getLensContextRequired().getOptions();
         if (options == null || options.getSimulationOptions() == null) {
