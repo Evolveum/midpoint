@@ -91,7 +91,7 @@ public class TestAdLdapAd2019 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected int getNumberOfAllAccounts() {
-        return 10;
+        return 11;
     }
 
     @Override

@@ -620,7 +620,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         } else {
             // This seems to vary quite wildly from system to system. Maybe TODO investigate the reasons later?
-            assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 9,10);
+            assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 9, 11);
         }
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
