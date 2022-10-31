@@ -72,7 +72,8 @@ class ShadowAcquisitionHelper {
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             GenericConnectorException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
-        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, resourceObjectSupplier, false, commonBeans)
+        return new ShadowAcquisition(
+                ctx, primaryIdentifier, objectClass, resourceObjectSupplier, false, commonBeans)
                 .execute(result);
     }
 }

@@ -4225,6 +4225,17 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
+    protected <T> ObjectQuery createAllAccountsQuery(ResourceType resource)
+            throws SchemaException, ConfigurationException {
+        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resource);
+        ResourceObjectDefinition accountDef =
+                schema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        return prismContext.queryFor(ShadowType.class)
+                .item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+                .and().item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassName())
+                .build();
+    }
+
     protected <T> ObjectQuery createAccountAttributeQuery(ResourceType resourceType, QName attributeName, T attributeValue)
             throws SchemaException, ConfigurationException {
         ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resourceType);

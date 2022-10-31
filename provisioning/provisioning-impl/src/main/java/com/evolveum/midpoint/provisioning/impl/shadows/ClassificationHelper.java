@@ -147,4 +147,23 @@ class ClassificationHelper {
         return classification.getKind() != shadow.getKind()
                 || !Objects.equals(classification.getIntent(), shadow.getIntent());
     }
+
+    /**
+     * In the future, here can be a complex algorithm that determines whether a particular shadow should be classified
+     * (reclassified) or not.
+     *
+     * But for now, let us keep it simple.
+     */
+    boolean shouldClassify(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow) {
+        if (!ShadowUtil.isClassified(repoShadow.asObjectable())) {
+            LOGGER.trace("Shadow is not classified -> we will do that");
+            return true;
+        } else if (ctx.isInProduction()) {
+            LOGGER.trace("Resource is in production and the shadow is already classified -> will not re-classify");
+            return false;
+        } else {
+            LOGGER.trace("Resource is NOT in production -> will re-classify the shadow");
+            return true;
+        }
+    }
 }

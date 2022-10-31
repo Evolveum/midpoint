@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.function.Supplier;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.LifecycleUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -443,6 +445,12 @@ public class ProvisioningContext {
 
     public boolean isInMaintenance() {
         return ResourceTypeUtil.isInMaintenance(resource);
+    }
+
+    // Preliminary code
+    public boolean isInProduction() {
+        return LifecycleUtil.isInProduction(
+                resource.getLifecycleState());
     }
 
     public void checkNotInMaintenance() throws MaintenanceException {

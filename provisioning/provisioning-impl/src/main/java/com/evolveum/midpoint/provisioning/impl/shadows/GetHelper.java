@@ -271,7 +271,7 @@ class GetHelper {
 
             LOGGER.trace("Object returned by ResourceObjectConverter:\n{}", resourceObject.debugDumpLazily(1));
 
-            if (!ShadowUtil.isClassified(repoShadow.asObjectable())) {
+            if (classificationHelper.shouldClassify(ctx, repoShadow)) {
                 ResourceObjectClassification classification =
                         classificationHelper.classify(ctx, repoShadow, resourceObject, result);
                 if (classification.isKnown()) {

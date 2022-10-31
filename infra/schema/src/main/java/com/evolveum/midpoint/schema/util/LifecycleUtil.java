@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
@@ -73,7 +74,12 @@ public class LifecycleUtil {
         return virtualAssignmenetSpecification;
     }
 
-
+    @Experimental // The behavior should be configurable
+    public static boolean isInProduction(String lifecycleState) {
+        return lifecycleState == null
+                || SchemaConstants.LIFECYCLE_ACTIVE.equals(lifecycleState)
+                || SchemaConstants.LIFECYCLE_DEPRECATED.equals(lifecycleState);
+    }
 
 //    public static <T extends AbstractRoleType> Collection<T> getListOfForcedRoles(LifecycleStateModelType lifecycleModel,
 //            String targetLifecycleState, PrismContext prismContext, ObjectResolver resolver, Task task, OperationResult result)  {
