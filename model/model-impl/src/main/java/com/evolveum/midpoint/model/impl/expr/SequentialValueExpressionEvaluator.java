@@ -7,11 +7,13 @@
 package com.evolveum.midpoint.model.impl.expr;
 
 import java.util.Collection;
+import java.util.Collections;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.SequenceHelper;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
@@ -29,9 +31,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SequentialValueExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Returns current value of a given sequence object. The value is returned in the zero set. Plus and minus sets are empty.
@@ -85,9 +85,8 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
             long freshValue;
             if (!isAdvanceSequenceSafe()) {
                 freshValue = repositoryService.advanceSequence(sequenceOid, result);
-
             } else {
-                Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createReadOnlyCollection();
+                Collection<SelectorOptions<GetOperationOptions>> options = Collections.emptyList();
                 SequenceType seq = repositoryService.getObject(SequenceType.class, sequenceOid, options, result).asObjectable();
                 freshValue = SequenceHelper.advanceSequence(seq);
             }
@@ -99,25 +98,39 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
     }
 
     private static boolean isAdvanceSequenceSafe() {
+        return isAdvanceSequenceSafe(ModelExpressionThreadLocalHolder.getLensContextRequired());
+    }
+
+    public static boolean isAdvanceSequenceSafe(ModelContext context) {
         boolean isAdvanceSequenceSafe = false;
 
-        return isAdvanceSequenceSafe;
+        ModelExecuteOptions options = context.getOptions();
+        if (options == null || options.getSimulationOptions() == null) {
+            return isAdvanceSequenceSafe;
+        }
+
+        SimulationOptionsType simulation = options.getSimulationOptions();
+        if (simulation.getSequence() == null) {
+            return isAdvanceSequenceSafe;
+        }
+
+        return SimulationOptionType.SAFE.equals(simulation.getSequence());
     }
 
     @NotNull
     private Item<V, D> addValueToOutputProperty(Object value) throws SchemaException {
         //noinspection unchecked
-        Item<V,D> output = outputDefinition.instantiate();
+        Item<V, D> output = outputDefinition.instantiate();
         if (output instanceof PrismProperty) {
-            ((PrismProperty<Object>)output).addRealValue(value);
+            ((PrismProperty<Object>) output).addRealValue(value);
         } else {
-            throw new UnsupportedOperationException("Can only provide values of property, not "+output.getClass());
+            throw new UnsupportedOperationException("Can only provide values of property, not " + output.getClass());
         }
         return output;
     }
 
     @Override
     public String shortDebugDump() {
-        return "sequentialValue: "+ sequenceOid;
+        return "sequentialValue: " + sequenceOid;
     }
 }
