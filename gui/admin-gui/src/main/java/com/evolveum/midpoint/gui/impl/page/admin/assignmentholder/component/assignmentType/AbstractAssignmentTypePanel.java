@@ -590,14 +590,15 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     @Override
     protected Search createSearch(Class<AssignmentType> type) {
-        Search search = super.createSearch(type);
+        Search search =  SearchFactory.createAssignmnetSearch(type, getAssignmentType(), getObjectCollectionView(), getPageBase());
+//        Search search = super.createSearch(type);
         search.setContainerDefinition(getTypeDefinitionForSearch());
         if (isRepositorySearchEnabled()) {
             OperationResult result = new OperationResult(OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION);
             try {
                 FullTextSearchConfigurationType config = getPageBase().getModelInteractionService().getSystemConfiguration(result).getFullTextSearch();
                 if (config != null && FullTextSearchUtil.isEnabledFor(config, Collections.singletonList(getAssignmentType() == null ? AbstractRoleType.COMPLEX_TYPE : getAssignmentType()))) {
-                    search.getSearchConfigurationWrapper().addAllowedMode(SearchBoxModeType.FULLTEXT);
+                    search.addAllowedModelType(SearchBoxModeType.FULLTEXT);
                     search.setSearchMode(SearchBoxModeType.FULLTEXT);
                 }
             } catch (Exception e) {
@@ -634,20 +635,20 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
         List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
 
-        addSpecificSearchableItemWrappers(containerDef, defs);
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-                defs, getPageBase());
-        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
-                defs, getPageBase());
-
-        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
-
-        if (getAssignmentType() != null) {
-            var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(getAssignmentType()), ObjectType.F_EXTENSION);
-            var objectExt =  SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase(), targetExtensionPath);
-            LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
-            defs.addAll(objectExt);
-        }
+//        addSpecificSearchableItemWrappers(containerDef, defs);
+//        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+//                defs, getPageBase());
+//        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+//                defs, getPageBase());
+//
+//        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
+//
+//        if (getAssignmentType() != null) {
+//            var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(getAssignmentType()), ObjectType.F_EXTENSION);
+//            var objectExt =  SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase(), targetExtensionPath);
+//            LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
+//            defs.addAll(objectExt);
+//        }
         return defs;
 
     }

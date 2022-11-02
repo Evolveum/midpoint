@@ -70,7 +70,7 @@ public class PropertySearchItemWrapper<T extends Serializable> extends AbstractS
     }
 
     @Override
-    public Class<? extends AbstractSearchItemPanel> getSearchItemPanelClass() {
+    public Class<? extends SingleSearchItemPanel> getSearchItemPanelClass() {
         return TextSearchItemPanel.class;
     }
 

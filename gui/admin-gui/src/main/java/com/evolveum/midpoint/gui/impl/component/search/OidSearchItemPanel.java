@@ -13,15 +13,15 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-public class OidSearchItemPanel extends AbstractSearchItemPanel<OidSearchItemWrapper> {
+public class OidSearchItemPanel extends SingleSearchItemPanel<OidSearchItemWrapper> {
 
     public OidSearchItemPanel(String id, IModel<OidSearchItemWrapper> searchItemModel) {
         super(id, searchItemModel);
     }
 
     @Override
-    protected Component initSearchItemField() {
-        TextPanel<String> inputPanel = new TextPanel<String>(ID_SEARCH_ITEM_FIELD,  new PropertyModel(getModel(), OidSearchItemWrapper.F_VALUE));
+    protected Component initSearchItemField(String id) {
+        TextPanel<String> inputPanel = new TextPanel<String>(id,  new PropertyModel(getModel(), OidSearchItemWrapper.F_VALUE));
         inputPanel.getBaseFormComponent().add(AttributeAppender.append("style", "width: 220px; max-width: 400px !important;"));
         return inputPanel;
     }

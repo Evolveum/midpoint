@@ -385,20 +385,27 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private <AH extends AssignmentHolderType> Search<AH> createMemberSearch(Class<AH> type) {
         MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
+        CompiledObjectCollectionView objectCollectionView = getCompiledCollectionViewFromPanelConfiguration();
         if (memberPanelStorage == null) { //normally, this should not happen
-            return SearchFactory.createMemberPanelSearch(new SearchConfigurationWrapper<>(type, getPageBase()), getPageBase());
+            //new SearchConfigurationWrapper<>(type, getPageBase())
+            return SearchFactory.createMemberSearch(type, getDefaultSupportedObjectTypes(true), getSupportedRelations(), getAbstractRoleType(), objectCollectionView, getPageBase());
         }
 
-        if (memberPanelStorage.getSearch() != null && type.equals(memberPanelStorage.getSearch().getSearchConfigurationWrapper().getTypeClass())) {
+        if (memberPanelStorage.getSearch() != null && type.equals(memberPanelStorage.getSearch().getTypeClass())) {
             return memberPanelStorage.getSearch();
         }
 
-        Search<AH> search = SearchFactory.createMemberPanelSearch(createSearchConfigWrapper(type), getPageBase());
+        //createSearchConfigWrapper(type)
+        Search<AH> search = SearchFactory.createMemberSearch(type, getDefaultSupportedObjectTypes(true), getSupportedRelations(), getAbstractRoleType(), objectCollectionView, getPageBase());
         memberPanelStorage.setSearch(search);
         return search;
     }
 
-    private SearchConfigurationWrapper createSearchConfigWrapper(Class<? extends ObjectType> defaultObjectType) {
+    private QName getAbstractRoleType() {
+        return getModelObject().asPrismObject().getDefinition().getTypeName();
+    }
+
+    private SearchBoxConfigurationType createSearchConfigWrapper(Class<? extends ObjectType> defaultObjectType) {
         SearchBoxConfigurationType searchConfig = getAdditionalPanelConfig();
         if (searchConfig == null) {
             searchConfig = new SearchBoxConfigurationType();
@@ -431,19 +438,22 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (searchConfig.getTenantConfiguration() == null && !isNotRole()) {
             searchConfig.setTenantConfiguration(searchBoxConfig.getDefaultTenantConfiguration());
         }
-        SearchConfigurationWrapper<?> searchConfigWrapper = new SearchConfigurationWrapper<>(defaultObjectType, searchConfig, getPageBase());
-        SearchFactory.createAbstractRoleSearchItemWrapperList(searchConfigWrapper, searchConfig);
-        if (additionalPanelConfig != null) {
-            searchConfigWrapper.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
-        }
-        searchConfigWrapper.getItemsList().forEach(item -> {
-            if (item instanceof ObjectTypeSearchItemWrapper) {
-                ((ObjectTypeSearchItemWrapper<?>) item).setAllowAllTypesSearch(true);
-                ((ObjectTypeSearchItemWrapper<?>) item).setValueForNull(
-                        WebComponentUtil.classToQName(getPageBase().getPrismContext(), getChoiceForAllTypes()));
-            }
-        });
-        return searchConfigWrapper;
+
+        return searchConfig;
+
+//        SearchConfigurationWrapper<?> searchConfigWrapper = new SearchConfigurationWrapper<>(defaultObjectType, searchConfig, getPageBase());
+//        SearchFactory.createAbstractRoleSearchItemWrapperList(searchConfigWrapper, searchConfig);
+//        if (additionalPanelConfig != null) {
+//            searchConfigWrapper.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
+//        }
+//        searchConfigWrapper.getItemsList().forEach(item -> {
+//            if (item instanceof ObjectTypeSearchItemWrapper) {
+//                ((ObjectTypeSearchItemWrapper<?>) item).setAllowAllTypesSearch(true);
+//                ((ObjectTypeSearchItemWrapper<?>) item).setValueForNull(
+//                        WebComponentUtil.classToQName(getPageBase().getPrismContext(), getChoiceForAllTypes()));
+//            }
+//        });
+//        return searchConfigWrapper;
     }
 
     private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(SearchBoxConfigurationHelper searchBoxConfigurationHelper) {
@@ -470,10 +480,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         if (!SearchBoxModeType.BASIC.equals(search.getSearchMode())) {
             return true;
         }
-        return !isSearchItemVisible(RelationSearchItemWrapper.class, search) && !isSearchItemVisible(IndirectSearchItemWrapper.class, search)
-                && (!isOrg() || !isSearchItemVisible(ScopeSearchItemWrapper.class, search))
-                && (isNotRole() || !isSearchItemVisible(TenantSearchItemWrapper.class, search))
-                && (isNotRole() || !isSearchItemVisible(ProjectSearchItemWrapper.class, search));
+        return false;
+//        return !isSearchItemVisible(RelationSearchItemWrapper.class, search) && !isSearchItemVisible(IndirectSearchItemWrapper.class, search)
+//                && (!isOrg() || !isSearchItemVisible(ScopeSearchItemWrapper.class, search))
+//                && (isNotRole() || !isSearchItemVisible(TenantSearchItemWrapper.class, search))
+//                && (isNotRole() || !isSearchItemVisible(ProjectSearchItemWrapper.class, search));
     }
 
     private <AH extends AssignmentHolderType> boolean isSearchItemVisible(Class<? extends AbstractSearchItemWrapper> searchItemClass, Search<AH> search) {
@@ -483,10 +494,11 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
     private List<QName> getRelationsForSearch(SearchConfigurationWrapper searchConfig) {
         List<QName> relations = new ArrayList<>();
-        if (QNameUtil.match(PrismConstants.Q_ANY, searchConfig.getDefaultRelation())) {
-            relations.addAll(searchConfig.getSupportedRelations());
+        QName defaultRelation = getRelationValue();
+        if (QNameUtil.match(PrismConstants.Q_ANY, defaultRelation)) {
+            relations.addAll(getSupportedRelations());
         } else {
-            relations.add(searchConfig.getDefaultRelation());
+            relations.add(defaultRelation);
         }
         return relations;
     }
@@ -1484,21 +1496,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return SearchBoxScopeType.SUBTREE == getScopeValue();
     }
 
-    protected IndirectSearchItemWrapper getSearchIndirect() {
-        List<AbstractSearchItemWrapper<?>> items = getMemberPanelStorage().getSearch().getItems();
-        for (AbstractSearchItemWrapper<?> item : items) {
-            if (item instanceof IndirectSearchItemWrapper) {
-                return (IndirectSearchItemWrapper) item;
-            }
-        }
-        return null;
-    }
-
     private boolean isIndirect() {
-        if (getSearchIndirect() != null) {
-            if (getSearchIndirect().getValue() != null) {
-                return BooleanUtils.isTrue(getSearchIndirect().getValue().getValue());
-            }
+        AbstractRoleSearchItemWrapper memberSearchItems = getMemberSearchItems();
+        if (memberSearchItems != null) {
+            return memberSearchItems.isIndirect();
         }
         return false;
     }
@@ -1509,36 +1510,28 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 .getTypeQName();
     }
 
-    protected ScopeSearchItemWrapper getSearchScope() {
-        List<AbstractSearchItemWrapper<?>> items = getMemberPanelStorage().getSearch().getItems();
-        for (AbstractSearchItemWrapper<?> item : items) {
-            if (item instanceof ScopeSearchItemWrapper) {
-                return (ScopeSearchItemWrapper) item;
-            }
-        }
-        return null;
-    }
-
     protected SearchBoxScopeType getScopeValue() {
-        if (getSearchScope() != null) {
-            return getSearchScope().getValue().getValue();
+        AbstractRoleSearchItemWrapper memberSearchitem = getMemberSearchItems();
+        if (memberSearchitem != null) {
+            return memberSearchitem.getScopeValue();
         }
         return null;
     }
 
-    protected RelationSearchItemWrapper getSearchRelation() {
+    private AbstractRoleSearchItemWrapper getMemberSearchItems() {
         List<AbstractSearchItemWrapper<?>> items = getMemberPanelStorage().getSearch().getItems();
         for (AbstractSearchItemWrapper<?> item : items) {
-            if (item instanceof RelationSearchItemWrapper) {
-                return (RelationSearchItemWrapper) item;
+            if (item instanceof AbstractRoleSearchItemWrapper) {
+                return (AbstractRoleSearchItemWrapper) item;
             }
         }
         return null;
     }
 
     protected QName getRelationValue() {
-        if (getSearchRelation() != null) {
-            return getSearchRelation().getValue().getValue();
+        AbstractRoleSearchItemWrapper memberSearchItems = getMemberSearchItems();
+        if (memberSearchItems != null) {
+            return memberSearchItems.getRelationValue();
         }
         return null;
     }

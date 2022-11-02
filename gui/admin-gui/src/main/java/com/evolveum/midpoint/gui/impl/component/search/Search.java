@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +37,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import javax.xml.namespace.QName;
+
 public class Search<C extends Containerable> implements Serializable, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(Search.class);
@@ -42,7 +46,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private static final String DOT_CLASS = Search.class.getName() + ".";
     private static final String OPERATION_EVALUATE_COLLECTION_FILTER = DOT_CLASS + "evaluateCollectionFilter";
     public static final String F_FULL_TEXT = "fullText";
-    public static final String F_TYPE = "type";
+    public static final String F_TYPE = "typeClass";
+
+    public static final String F_MODE = "defaultSearchBoxMode";
+    public static final String F_ALLOWED_MODES = "allowedModeList";
+    public static final String F_ALLOWED_TYPES = "allowedTypeList";
 
 
     public enum PanelType {
@@ -50,18 +58,92 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         MEMBER_PANEL,
     }
 
-    private List<SearchBoxModeType> allowedSearchType = new ArrayList<>();
 
-    private String advancedQuery;
-    private String dslQuery;
+    private Class<C> typeClass;
+
+    private List<QName> allowedTypeList = new ArrayList<>();
+    private SearchBoxModeType defaultSearchBoxMode;
+    private List<SearchBoxModeType> allowedModeList = new ArrayList<>();
+
+
+//    private String advancedQuery;
+    private AdvancedQueryWrapper advancedQueryWrapper;
+//    private String dslQuery;
+    private AxiomQueryWrapper axiomQueryWrapper;
     private String advancedError;
-    private String fullText;
+    private FulltextQueryWrapper fulltextQueryWrapper;
+
 
     private SearchConfigurationWrapper searchConfigurationWrapper;
-    private PrismContainerDefinition<C> containerDefinitionOverride;
+//    private PrismContainerDefinition<C> containerDefinitionOverride;
 
+    private String collectionViewName;
+    private String collectionRefOid;
+
+    public String getCollectionViewName() {
+        return collectionViewName;
+    }
+
+    public void setCollectionViewName(String collectionViewName) {
+        this.collectionViewName = collectionViewName;
+    }
+
+    public String getCollectionRefOid() {
+        return collectionRefOid;
+    }
+
+    public void setCollectionRefOid(String collectionRefOid) {
+        this.collectionRefOid = collectionRefOid;
+    }
+
+    @Deprecated
     public Search(SearchConfigurationWrapper searchConfigurationWrapper) {
         this.searchConfigurationWrapper = searchConfigurationWrapper;
+    }
+
+    public Search(Class type, SearchBoxConfigurationType searchBoxConfigurationType) {
+        this.typeClass = type;
+        this.defaultSearchBoxMode = searchBoxConfigurationType.getDefaultMode();
+
+        //TODO collection view
+//        if (collectionViewN == null) {
+//            //todo we need to get saved searches here for the specified type
+//            List<CompiledObjectCollectionView> views = modelServiceLocator.getCompiledGuiProfile()
+//                    .findAllApplicableObjectCollectionViews(WebComponentUtil.containerClassToQName(PrismContext.get(), type))
+//                    .stream()
+//                    .filter(v -> v.getFilter() != null)     //todo should we check also collectionRef?
+//                    .collect(Collectors.toList());
+//            if (CollectionUtils.isNotEmpty(views)) {
+//                ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(type,
+//                        views);
+//                viewListItem.setVisible(true);
+//                basicSearchWrapper.getItemsList().add(viewListItem);
+//            }
+//        }
+    }
+
+    public void setAllowedTypeList(List<QName> allowedTypeList) {
+        this.allowedTypeList = allowedTypeList;
+    }
+
+    public List<QName> getAllowedTypeList() {
+        return allowedTypeList;
+    }
+
+    void setAdvancedQueryWrapper(AdvancedQueryWrapper advancedQueryWrapper) {
+        this.advancedQueryWrapper = advancedQueryWrapper;
+    }
+
+    void setAxiomQueryWrapper(AxiomQueryWrapper axiomQueryWrapper) {
+        this.axiomQueryWrapper = axiomQueryWrapper;
+    }
+
+    void setSearchConfigurationWrapper(SearchConfigurationWrapper searchConfigurationWrapper) {
+        this.searchConfigurationWrapper = searchConfigurationWrapper;
+    }
+
+    void setFulltextQueryWrapper(FulltextQueryWrapper fulltextQueryWrapper) {
+        this.fulltextQueryWrapper = fulltextQueryWrapper;
     }
 
     public SearchConfigurationWrapper getSearchConfigurationWrapper() {
@@ -73,17 +155,31 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public SearchBoxModeType getSearchMode() {
-        return searchConfigurationWrapper.getDefaultSearchBoxMode();
+        return defaultSearchBoxMode;
     }
 
     public void setSearchMode(SearchBoxModeType searchMode) {
-        searchConfigurationWrapper.setDefaultSearchBoxMode(searchMode);
+        this.defaultSearchBoxMode = searchMode;
     }
 
     public boolean isFullTextSearchEnabled() {
-        return searchConfigurationWrapper.getAllowedModeList().contains(SearchBoxModeType.FULLTEXT);
+        return allowedModeList.contains(SearchBoxModeType.FULLTEXT);
     }
 
+    public List<SearchBoxModeType> getAllowedModeList() {
+        return allowedModeList;
+    }
+
+    public void setAllowedModeList(List<SearchBoxModeType> allowedModeList) {
+        this.allowedModeList = allowedModeList;
+    }
+
+    public void addAllowedModelType(SearchBoxModeType allowedModeType) {
+        if (allowedModeList == null) {
+            allowedModeList = new ArrayList<>();
+        }
+        allowedModeList.add(allowedModeType);
+    }
     public boolean isAdvancedQueryValid(PrismContext ctx) {
         try {
             advancedError = null;
@@ -101,35 +197,30 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return advancedError;
     }
 
+    @Deprecated
+    //TODO
     public String getAdvancedQuery() {
-        return advancedQuery;
+        return null;
     }
 
+    @Deprecated
+    //TODO
     public String getDslQuery() {
-        return dslQuery;
+        return null;
     }
 
+    @Deprecated
+    //TODO
     public void setDslQuery(String dslQuery) {
-        this.dslQuery = dslQuery;
+
     }
 
-    private ObjectFilter createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
-        SearchBoxModeType searchMode = searchConfigurationWrapper.getDefaultSearchBoxMode();
+    private ObjectQuery createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
+        SearchBoxModeType searchMode = getSearchMode();
         if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
-            if (StringUtils.isEmpty(advancedQuery)) {
-                return null;
-            }
-            SearchFilterType search = ctx.parserFor(advancedQuery).type(SearchFilterType.COMPLEX_TYPE).parseRealValue();
-            return ctx.getQueryConverter().parseFilter(search, getTypeClass());
+            return advancedQueryWrapper.createQuery(ctx);
         } else if (SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
-            if (StringUtils.isEmpty(dslQuery)) {
-                return null;
-            }
-            var parser = ctx.createQueryParser(ctx.getSchemaRegistry().staticNamespaceContext().allPrefixes());
-            if (containerDefinitionOverride  == null) {
-                return parser.parseFilter(getTypeClass(), dslQuery);
-            }
-            return parser.parseFilter(containerDefinitionOverride, dslQuery);
+            return axiomQueryWrapper.createQuery(ctx);
         }
 
         return null;
@@ -147,7 +238,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 return (Class<C>) WebComponentUtil.qnameToClass(PrismContext.get(), objectTypeWrapper.getValueForNull());
             }
         }
-        return searchConfigurationWrapper.getTypeClass();
+        return typeClass;
     }
 
     private String createErrorMessage(Exception ex) {
@@ -177,7 +268,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public ObjectQuery createObjectQuery(VariablesMap variables, PageBase pageBase, ObjectQuery customizeContentQuery) {
         LOGGER.debug("Creating query from {}", this);
         ObjectQuery query;
-        SearchBoxModeType searchMode = searchConfigurationWrapper.getDefaultSearchBoxMode();
+        SearchBoxModeType searchMode = getSearchMode();
         if (SearchBoxModeType.OID.equals(getSearchMode())) {
             query = createObjectQueryOid(pageBase);
         } else {
@@ -186,7 +277,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             if (SearchBoxModeType.ADVANCED.equals(searchMode) || SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
                 searchTypeQuery = createObjectQueryAdvanced(pageBase);
             } else if (SearchBoxModeType.FULLTEXT.equals(searchMode)) {
-                searchTypeQuery = createObjectQueryFullText(pageBase);
+                try {
+                    searchTypeQuery = fulltextQueryWrapper.createQuery(pageBase.getPrismContext());//createObjectQueryFullText(pageBase);
+                } catch (SchemaException e) {
+                    //TODO
+                    throw new RuntimeException(e);
+                }
             } else {
                 searchTypeQuery = createObjectQuerySimple(variables, pageBase);
             }
@@ -208,11 +304,11 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         try{
             advancedError = null;
 
-            ObjectFilter filter = createAdvancedObjectFilter(pageBase.getPrismContext());
-            if (filter == null) {
-                return null;
-            }
-            @NotNull ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery(filter);
+            ObjectQuery query = createAdvancedObjectFilter(pageBase.getPrismContext());
+//            if (filter == null) {
+//                return null;
+//            }
+//            @NotNull ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery(filter);
             return query;
         } catch (Exception ex) {
             advancedError = createErrorMessage(ex);
@@ -221,15 +317,15 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return null;
     }
 
-    private ObjectQuery createObjectQueryFullText(PageBase pageBase) {
-        if (StringUtils.isEmpty(fullText)) {
-            return null;
-        }
-        ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass())
-                .fullText(fullText)
-                .build();
-        return query;
-    }
+//    private ObjectQuery createObjectQueryFullText(PageBase pageBase) {
+//        if (StringUtils.isEmpty(fullText)) {
+//            return null;
+//        }
+//        ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass())
+//                .fullText(fullText)
+//                .build();
+//        return query;
+//    }
 
     private ObjectQuery createObjectQueryOid(PageBase pageBase) {
         OidSearchItemWrapper oidItem = findOidSearchItemWrapper();
@@ -293,21 +389,21 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         if (findObjectCollectionSearchItemWrapper() != null && findObjectCollectionSearchItemWrapper().getObjectCollectionView() != null) {
             view = findObjectCollectionSearchItemWrapper().getObjectCollectionView();
             collectionFilter = view != null ? view.getFilter() : null;
-        } else if (StringUtils.isNotEmpty(searchConfigurationWrapper.getCollectionViewName())) {
+        } else if (StringUtils.isNotEmpty(getCollectionViewName())) {
             view = pageBase.getCompiledGuiProfile()
                     .findObjectCollectionView(WebComponentUtil.containerClassToQName(pageBase.getPrismContext(), getTypeClass()),
-                            searchConfigurationWrapper.getCollectionViewName());
+                            getCollectionViewName());
             collectionFilter = view != null ? view.getFilter() : null;
-        } else if (StringUtils.isNotEmpty(searchConfigurationWrapper.getCollectionRefOid())) {
+        } else if (StringUtils.isNotEmpty(getCollectionRefOid())) {
             try {
                 PrismObject<ObjectCollectionType> collection = WebModelServiceUtils.loadObject(ObjectCollectionType.class,
-                        searchConfigurationWrapper.getCollectionRefOid(), pageBase, task, result);
+                        getCollectionRefOid(), pageBase, task, result);
                 if (collection != null && collection.asObjectable().getFilter() != null) {
                     collectionFilter = PrismContext.get().getQueryConverter().parseFilter(collection.asObjectable().getFilter(), getTypeClass());
                 }
             } catch (SchemaException e) {
-                LOGGER.error("Failed to parse filter from object collection, oid {}, {}", searchConfigurationWrapper.getCollectionRefOid(), e.getStackTrace());
-                pageBase.error("Failed to parse filter from object collection, oid " + searchConfigurationWrapper.getCollectionRefOid());
+                LOGGER.error("Failed to parse filter from object collection, oid {}, {}", getCollectionRefOid(), e.getStackTrace());
+                pageBase.error("Failed to parse filter from object collection, oid " + getCollectionRefOid());
             }
         }
         if (collectionFilter == null) {
@@ -391,16 +487,22 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return variables;
     }
 
+    @Deprecated
+    //TODO
     public void setAdvancedQuery(String advancedQuery) {
-        this.advancedQuery = advancedQuery;
+//        this.advancedQuery = advancedQuery;
     }
 
+    @Deprecated
+    //TODO
     public String getFullText() {
-        return fullText;
+        return null;
     }
 
+    @Deprecated
+    //TODO
     public void setFullText(String fullText) {
-        this.fullText = fullText;
+
     }
 
     public boolean allPropertyItemsPresent(List<AbstractSearchItemWrapper> items) {
@@ -459,8 +561,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("Search\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent + 1);
-        DebugUtil.dumpObjectSizeEstimate(sb, "advancedQuery", advancedQuery, indent + 2);
+//        DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent + 1);
+//        DebugUtil.dumpObjectSizeEstimate(sb, "advancedQuery", advancedQuery, indent + 2);
         DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
         DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", searchConfigurationWrapper, indent + 2);
@@ -479,12 +581,16 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 '}';
     }
 
+    @Deprecated
+    //TODO
     public void setContainerDefinition(PrismContainerDefinition<C> typeDefinitionForSearch) {
-        containerDefinitionOverride = typeDefinitionForSearch;
+//        containerDefinitionOverride = typeDefinitionForSearch;
     }
 
+    @Deprecated
+    //TODO
     public PrismContainerDefinition<C> getContainerDefinitionOverride() {
-        return containerDefinitionOverride;
+        return null;
     }
 
     public boolean searchByNameEquals(String nameValueToCompare) {
@@ -498,4 +604,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return nameValueToCompare != null && nameValueToCompare.equals(nameValue);
     }
 
+    public void setTypeClass(Class<C> typeClass) {
+        this.typeClass = typeClass;
+    }
 }

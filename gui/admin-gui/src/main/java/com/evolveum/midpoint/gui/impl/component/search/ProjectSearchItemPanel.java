@@ -10,29 +10,25 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.web.component.search.ReferenceValueSearchPanel;
 
-public class ProjectSearchItemPanel extends AbstractSearchItemPanel<ProjectSearchItemWrapper> {
+public class ProjectSearchItemPanel extends SingleSearchItemPanel<ProjectSearchItemWrapper> {
 
     public ProjectSearchItemPanel(String id, IModel<ProjectSearchItemWrapper> searchItemModel) {
         super(id, searchItemModel);
     }
 
     @Override
-    protected Component initSearchItemField() {
-        PrismReferenceDefinition projectRefDef = getModelObject().getProjectRefDef();
-        ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
-                new PropertyModel<>(getModel(), ProjectSearchItemWrapper.F_SEARCH_CONFIG + "." + SearchConfigurationWrapper.F_PROJECT),
-                projectRefDef) {
+    protected Component initSearchItemField(String id) {
+//        PrismReferenceDefinition projectRefDef = getModelObject().getProjectRefDef();
+        ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(id,
+                new PropertyModel<>(getModel(), ProjectSearchItemWrapper.F_VALUE),
+                null) {
 
             private static final long serialVersionUID = 1L;
 

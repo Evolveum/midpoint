@@ -18,16 +18,16 @@ import javax.xml.namespace.QName;
 import java.util.Collections;
 import java.util.List;
 
-public class TenantSearchItemPanel extends AbstractSearchItemPanel<TenantSearchItemWrapper> {
+public class TenantSearchItemPanel extends SingleSearchItemPanel<TenantSearchItemWrapper> {
 
     public TenantSearchItemPanel(String id, IModel<TenantSearchItemWrapper> searchItemModel) {
         super(id, searchItemModel);
     }
 
     @Override
-    protected Component initSearchItemField() {
-        ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
-                new PropertyModel<>(getModel(), ProjectSearchItemWrapper.F_SEARCH_CONFIG + "." + SearchConfigurationWrapper.F_TENANT),
+    protected Component initSearchItemField(String id) {
+        ReferenceValueSearchPanel searchItemField = new ReferenceValueSearchPanel(id,
+                new PropertyModel<>(getModel(), TenantSearchItemWrapper.F_VALUE),
                 getTenantDefinition()) {
 
             @Override

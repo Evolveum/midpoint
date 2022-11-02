@@ -10,15 +10,15 @@ import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-public class AutoCompleteSearchItemPanel extends AbstractSearchItemPanel<AutoCompleteSearchItemWrapper> {
+public class AutoCompleteSearchItemPanel extends SingleSearchItemPanel<AutoCompleteSearchItemWrapper> {
 
     public AutoCompleteSearchItemPanel(String id, IModel<AutoCompleteSearchItemWrapper> searchItem) {
         super(id, searchItem);
     }
 
     @Override
-    protected Component initSearchItemField() {
-        return createAutoCompetePanel(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), AutoCompleteSearchItemWrapper.F_VALUE),
+    protected Component initSearchItemField(String id) {
+        return createAutoCompetePanel(id, new PropertyModel<>(getModel(), AutoCompleteSearchItemWrapper.F_VALUE),
                 getModelObject().getLookupTable());
     }
 

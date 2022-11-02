@@ -12,15 +12,15 @@ import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-public class ItemPathSearchItemPanel extends AbstractSearchItemPanel<ItemPathSearchItemWrapper> {
+public class ItemPathSearchItemPanel extends SingleSearchItemPanel<ItemPathSearchItemWrapper> {
 
     public ItemPathSearchItemPanel(String id, IModel<ItemPathSearchItemWrapper> searchItemModel) {
         super(id, searchItemModel);
     }
 
     @Override
-    protected Component initSearchItemField() {
-        return new ItemPathSearchPanel(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), ItemPathSearchItemWrapper.F_VALUE));
+    protected Component initSearchItemField(String id) {
+        return new ItemPathSearchPanel(id, new PropertyModel(getModel(), ItemPathSearchItemWrapper.F_VALUE));
 
     }
 

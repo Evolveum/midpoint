@@ -6,11 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -24,28 +21,29 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.*;
 
-public class RelationSearchItemPanel extends AbstractSearchItemPanel<RelationSearchItemWrapper> {
+public class RelationSearchItemPanel extends SingleSearchItemPanel<RelationSearchItemWrapper> {
 
     public RelationSearchItemPanel(String id, IModel<RelationSearchItemWrapper> searchItemModel) {
         super(id, searchItemModel);
     }
 
     @Override
-    protected Component initSearchItemField() {
-        ReadOnlyModel<List<QName>> availableRelations = new ReadOnlyModel<>(() -> {
-            List<QName> choices = new ArrayList<>();
-            List<QName> relations = getModelObject().getSearchConfig().getSupportedRelations();
-            if (relations != null && relations.size() > 1) {
-                choices.add(PrismConstants.Q_ANY);
-            }
-            choices.addAll(relations);
-            return choices;
-        });
+    protected Component initSearchItemField(String id) {
+//        PropertyModel<List<QName>> availableRelations = new PropertyModel<>(getModel(), RelationSearchItemWrapper.F_SUPPORTED_RELATIONS);
+//        IModel<Lis> availableRelations = new ReadOnlyModel<>(() -> {
+//            List<QName> choices = new ArrayList<>();
+//            List<QName> relations = getModelObject().getSearchConfig().getSupportedRelations();
+//            if (relations != null && relations.size() > 1) {
+//                choices.add(PrismConstants.Q_ANY);
+//            }
+//            choices.addAll(relations);
+//            return choices;
+//        });
 
 
-        DropDownChoicePanel inputPanel = new DropDownChoicePanel(ID_SEARCH_ITEM_FIELD,
-                new PropertyModel(getModel(), RelationSearchItemWrapper.F_SEARCH_CONFIG + "." + SearchConfigurationWrapper.F_RELATION),
-                availableRelations, new QNameIChoiceRenderer() {
+        DropDownChoicePanel inputPanel = new DropDownChoicePanel(id,
+                new PropertyModel(getModel(), RelationSearchItemWrapper.F_VALUE),
+                new PropertyModel<>(getModel(), RelationSearchItemWrapper.F_SUPPORTED_RELATIONS), new QNameIChoiceRenderer() {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -8,39 +8,65 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.namespace.QName;
-import java.util.Collections;
 import java.util.List;
 
-public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWrapper {
+public class AbstractRoleSearchItemWrapper extends AbstractSearchItemWrapper {
 
+    public static final String F_SCOPE = "scopeSearchItemWrapper";
+    public static final String F_RELATION = "relationSearchItemWrapper";
+    public static final String F_INDIRECT = "indirectSearchItemWrapper";
+    public static final String F_TENANT = "tenantSearchItemWrapper";
+    public static final String F_PROJECT = "projectSearchItemWrapper";
     private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleSearchItemWrapper.class);
-    private SearchConfigurationWrapper searchConfig;
+
     protected String name;
     protected String help;
 
-    public static final String F_SEARCH_CONFIG = "searchConfig";
+    private RelationSearchItemWrapper relationSearchItemWrapper;
+    private ScopeSearchItemWrapper scopeSearchItemWrapper;
+    private  IndirectSearchItemWrapper indirectSearchItemWrapper;
+    private TenantSearchItemWrapper tenantSearchItemWrapper;
+    private ProjectSearchItemWrapper projectSearchItemWrapper;
 
-    public AbstractRoleSearchItemWrapper(SearchConfigurationWrapper searchConfig) {
-        this.searchConfig = searchConfig;
+    private QName abstractRoleType;
+
+    public AbstractRoleSearchItemWrapper(QName absctratRoleType, SearchBoxConfigurationType config) {
+        this.abstractRoleType = absctratRoleType;
+        if (config.getRelationConfiguration() != null) {
+            relationSearchItemWrapper = new RelationSearchItemWrapper(config.getRelationConfiguration());
+        }
+
+        if (config.getIndirectConfiguration() != null) {
+            indirectSearchItemWrapper = new IndirectSearchItemWrapper(config.getIndirectConfiguration());
+        }
+
+        if (config.getScopeConfiguration() != null) {
+            scopeSearchItemWrapper = new ScopeSearchItemWrapper(config.getScopeConfiguration());
+        }
+        if (config.getProjectConfiguration() != null) {
+            projectSearchItemWrapper = new ProjectSearchItemWrapper(config.getProjectConfiguration());
+        }
+        if (config.getTenantConfiguration() != null) {
+            tenantSearchItemWrapper = new TenantSearchItemWrapper(config.getTenantConfiguration());
+        }
+
     }
 
     @Override
@@ -56,16 +82,11 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
         }
 
         PrismContext prismContext = pageBase.getPrismContext();
-        List relations;
-        QName relation = getSearchConfig().getDefaultRelation();
-        if (QNameUtil.match(relation, PrismConstants.Q_ANY)){
-            relations = getSearchConfig().getSupportedRelations();
-        } else {
-            relations = Collections.singletonList(relation);
-        }
+
+        List<QName> relations = relationSearchItemWrapper.getRelationsForSearch();
 
         ObjectFilter filter;
-        Boolean indirect = getSearchConfig().isIndirect();
+        Boolean indirect = indirectSearchItemWrapper.getValue().getValue();
 
         if(BooleanUtils.isTrue(indirect)) {
             filter = prismContext.queryFor(type)
@@ -77,13 +98,13 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
                     .item(AssignmentType.F_TARGET_REF)
                     .ref(MemberOperationsHelper.createReferenceValuesList(ref, relations));
 
-            if (!getSearchConfig().isTenantEmpty()) {
-                q = q.and().item(AssignmentType.F_TENANT_REF).ref(getSearchConfig().getTenantRef().getOid());
-            }
-
-            if (!getSearchConfig().isProjectEmpty()) {
-                q = q.and().item(AssignmentType.F_ORG_REF).ref(getSearchConfig().getProjectRef().getOid());
-            }
+//            if (tenantSearchItemWrapper.getValue().getValue() != null) { //TODO is empty?
+//                q = q.and().item(AssignmentType.F_TENANT_REF).ref(tenantSearchItemWrapper.getValue().getValue().getOid());
+//            }
+//
+//            if (projectSearchItemWrapper.getValue().getValue() != null) {
+//                q = q.and().item(AssignmentType.F_ORG_REF).ref(projectSearchItemWrapper.getValue().getValue().getOid());
+//            }
             filter = q.endBlock().buildFilter();
         }
         return filter;
@@ -106,63 +127,22 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
         return null;
     }
 
-    public SearchConfigurationWrapper getSearchConfig() {
-        return searchConfig;
-    }
+//    public SearchConfigurationWrapper getSearchConfig() {
+//        return searchConfig;
+//    }
 
     private ScopeSearchItemWrapper getScopeSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfig.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
-            if (item instanceof ScopeSearchItemWrapper) {
-                return (ScopeSearchItemWrapper) item;
-            }
-        }
-        return null;
+        return scopeSearchItemWrapper;
     }
 
-    private RelationSearchItemWrapper getRelationSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfig.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
-            if (item instanceof RelationSearchItemWrapper) {
-                return (RelationSearchItemWrapper) item;
-            }
-        }
-        return null;
-    }
-
-    private IndirectSearchItemWrapper getIndirectSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfig.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
-            if (item instanceof IndirectSearchItemWrapper) {
-                return (IndirectSearchItemWrapper) item;
-            }
-        }
-        return null;
-    }
-
-    private ProjectSearchItemWrapper getProjectSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfig.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
-            if (item instanceof ProjectSearchItemWrapper) {
-                return (ProjectSearchItemWrapper) item;
-            }
-        }
-        return null;
-    }
-
-    private TenantSearchItemWrapper getTenantSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfig.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
-            if (item instanceof TenantSearchItemWrapper) {
-                return (TenantSearchItemWrapper) item;
-            }
-        }
-        return null;
+    @Override
+    public Class<? extends AbstractSearchItemPanel> getSearchItemPanelClass() {
+        return MemberSearchPanel.class;
     }
 
     @Override
     public String getName() {
-        return StringUtils.isNotEmpty(name) ? name : getNameResourceKey();
+        return StringUtils.isNotEmpty(name) ? name : null;
     }
 
     public void setName(String name) {
@@ -171,19 +151,67 @@ public abstract class AbstractRoleSearchItemWrapper extends AbstractSearchItemWr
 
     @Override
     public String getHelp() {
-        return StringUtils.isNotEmpty(help) ? help : getHelpResourceKey();
+        return StringUtils.isNotEmpty(help) ? help : null;
     }
+
+    @Override
+    public String getTitle() {
+        return null;
+    }
+
+    @Override
+    public DisplayableValue getDefaultValue() {
+        return null;
+    }
+
     public void setHelp(String help) {
         this.help = help;
     }
 
-    protected abstract String getNameResourceKey();
-    protected abstract String getHelpResourceKey();
+    public boolean isSearchScope(SearchBoxScopeType scope) {
+        SearchBoxScopeType searchScope = scopeSearchItemWrapper.getValue().getValue();
+        return scope == searchScope;
+    }
 
-    protected PrismReferenceDefinition getReferenceDefinition(ItemName refName) {
-        return PrismContext.get().getSchemaRegistry()
-                .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
-                .findReferenceDefinition(refName);
+    public boolean isSearchScopeVisible() {
+        return QNameUtil.match(OrgType.COMPLEX_TYPE, abstractRoleType);
+    }
+
+    public boolean isRelationVisible() {
+        return CollectionUtils.isNotEmpty(getSupportedRelations()) || isSearchScope(SearchBoxScopeType.ONE_LEVEL);
+    }
+
+    public boolean isIndirectVisible() {
+        return CollectionUtils.isNotEmpty(getSupportedRelations()) && isSearchScope(SearchBoxScopeType.ONE_LEVEL);
+    }
+
+    public boolean isParameterSearchVisible() {
+        return !isIndirect() && QNameUtil.match(RoleType.COMPLEX_TYPE, abstractRoleType);
+    }
+
+    public List<QName> getSupportedRelations() {
+        return relationSearchItemWrapper.getRelationsForSearch();
+    }
+
+    public QName getRelationValue() {
+        return relationSearchItemWrapper.getValue().getValue();
+    }
+
+    public SearchBoxScopeType getScopeValue() {
+        return scopeSearchItemWrapper.getValue().getValue();
+    }
+
+    public boolean isIndirect() {
+        return BooleanUtils.isTrue(indirectSearchItemWrapper.getValue().getValue());
+    }
+
+    @Override
+    public boolean isVisible() {
+        return isNotEmpty();
+    }
+
+    public boolean isNotEmpty() {
+        return scopeSearchItemWrapper != null || relationSearchItemWrapper != null || indirectSearchItemWrapper != null || tenantSearchItemWrapper != null || projectSearchItemWrapper != null;
     }
 
 }

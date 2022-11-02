@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.search.ReferenceValueSearchPanel;
 import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.web.component.search.SwitchablePropertyValuePanel;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -32,8 +31,8 @@ public class ReferenceSearchItemPanel extends PropertySearchItemPanel<ReferenceS
     }
 
     @Override
-    protected Component initSearchItemField() {
-        return new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD,
+    protected Component initSearchItemField(String id) {
+        return new ReferenceValueSearchPanel(id,
                 new PropertyModel<>(getModel(), ReferenceSearchItemWrapper.F_VALUE), getModelObject().getDef()){
 
             private static final long serialVersionUID = 1L;

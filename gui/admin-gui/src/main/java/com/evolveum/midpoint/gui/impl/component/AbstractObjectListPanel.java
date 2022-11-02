@@ -13,16 +13,10 @@ import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrappe
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.util.Arrays;
@@ -56,7 +50,15 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
 
     @Override
     protected Search createSearch(Class<O> type) {
-        return SearchFactory.createSearch(createSearchBoxConfigurationWrapper(), getPageBase());
+        Search search = SearchFactory.createSearch(type, getObjectCollectionView(), getPageBase());
+        search.getAllowedTypeList()
+                .addAll(Arrays.asList(
+                        AbstractRoleType.class,
+                        OrgType.class,
+                        ArchetypeType.class,
+                        RoleType.class,
+                        ServiceType.class));
+        return search;
     }
 
     protected SearchConfigurationWrapper<O> createSearchBoxConfigurationWrapper() {
@@ -66,19 +68,19 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
         if (getPanelConfiguration() != null
                 && getPanelConfiguration().getListView() != null
                 && getPanelConfiguration().getListView().getSearchBoxConfiguration() != null) {
-            searchWrapper = new SearchConfigurationWrapper<>(getType(), getPanelConfiguration().getListView().getSearchBoxConfiguration(),  getPageBase());
+            searchWrapper = new SearchConfigurationWrapper<>(getPanelConfiguration().getListView().getSearchBoxConfiguration());
         } else if (view != null && view.getSearchBoxConfiguration() != null) {
-            searchWrapper = new SearchConfigurationWrapper<>(getType(), view.getSearchBoxConfiguration(),  getPageBase());
+            searchWrapper = new SearchConfigurationWrapper<>(view.getSearchBoxConfiguration());
         } else {
-            searchWrapper = new SearchConfigurationWrapper<>(getType(), getPageBase());
+            searchWrapper = new SearchConfigurationWrapper<>();
         }
 
-        if (view != null
-                && view.getCollection() != null
-                && view.getCollection().getCollectionRef() != null
-                && QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, view.getCollection().getCollectionRef().getType())) {
-            searchWrapper.setCollectionRefOid(view.getCollection().getCollectionRef().getOid());
-        }
+//        if (view != null
+//                && view.getCollection() != null
+//                && view.getCollection().getCollectionRef() != null
+//                && QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, view.getCollection().getCollectionRef().getType())) {
+//            searchWrapper.setCollectionRefOid(view.getCollection().getCollectionRef().getOid());
+//        }
 
         return searchWrapper;
     }

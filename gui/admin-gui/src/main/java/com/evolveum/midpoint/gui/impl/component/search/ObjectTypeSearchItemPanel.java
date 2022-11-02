@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 
@@ -19,15 +18,15 @@ import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
 
-public class ObjectTypeSearchItemPanel<T> extends AbstractSearchItemPanel<ObjectTypeSearchItemWrapper> {
+public class ObjectTypeSearchItemPanel<T> extends SingleSearchItemPanel<ObjectTypeSearchItemWrapper> {
 
     public ObjectTypeSearchItemPanel(String id, IModel<ObjectTypeSearchItemWrapper> searchItem) {
         super(id, searchItem);
     }
 
     @Override
-    protected Component initSearchItemField() {
-        DropDownChoicePanel<QName> choices = new DropDownChoicePanel<>(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), ObjectTypeSearchItemWrapper.F_VALUE),
+    protected Component initSearchItemField(String id) {
+        DropDownChoicePanel<QName> choices = new DropDownChoicePanel<>(id, new PropertyModel(getModel(), ObjectTypeSearchItemWrapper.F_VALUE),
                 Model.ofList(getModelObject().getAvailableValues()),
                 new QNameObjectTypeChoiceRenderer(), getModelObject().isAllowAllTypesSearch()) {
 
@@ -46,7 +45,7 @@ public class ObjectTypeSearchItemPanel<T> extends AbstractSearchItemPanel<Object
             protected void onUpdate(AjaxRequestTarget target) {
                 getModelObject().setTypeChanged(true);
                 SearchPanel panel = findParent(SearchPanel.class);
-                panel.displayedSearchItemsModelReset();
+//                panel.displayedSearchItemsModelReset();
                 panel.searchPerformed(target);
             }
         });

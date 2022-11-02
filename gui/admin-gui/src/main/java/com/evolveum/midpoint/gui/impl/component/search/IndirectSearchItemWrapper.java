@@ -6,18 +6,25 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IndirectSearchItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
+public class IndirectSearchItemWrapper extends AbstractSearchItemWrapper<Boolean> {
 
-    public IndirectSearchItemWrapper(SearchConfigurationWrapper searchConfig) {
-        super(searchConfig);
+    private IndirectSearchItemConfigurationType indirectConfig;
+    public IndirectSearchItemWrapper(IndirectSearchItemConfigurationType indirectConfig) {
+        super();
+        this.indirectConfig = indirectConfig;
     }
 
 //    @Override
@@ -25,10 +32,11 @@ public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 //        return getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
 //    }
 
-    public boolean isVisible() {
-        return CollectionUtils.isNotEmpty(getSearchConfig().getSupportedRelations())
-                && !getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
-    }
+    //TODO in panel!
+//    public boolean isVisible() {
+//        return CollectionUtils.isNotEmpty(getSearchConfig().getSupportedRelations())
+//                && !getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
+//    }
 
     @Override
     public Class<IndirectSearchItemPanel> getSearchItemPanelClass() {
@@ -37,21 +45,27 @@ public class IndirectSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public DisplayableValue<Boolean> getDefaultValue() {
-        return new SearchValue<>(Boolean.FALSE);
+        return new SearchValue<>(indirectConfig.isIndirect());
     }
 
     @Override
-    public DisplayableValue<Boolean> getValue() {
-        return new SearchValue<>(getSearchConfig().isIndirect());
+    public <C extends Containerable> ObjectFilter createFilter(Class<C> type, PageBase pageBase, VariablesMap variables) {
+        return null;
     }
 
+//    @Override
+//    public DisplayableValue<Boolean> getValue() {
+//
+//        return new SearchValue<>(getSearchConfig().isIndirect());
+//    }
+
     @Override
-    protected String getNameResourceKey() {
+    public String getName() {
         return "abstractRoleMemberPanel.indirectMembers";
     }
 
     @Override
-    protected String getHelpResourceKey() {
+    public String getHelp() {
         return "abstractRoleMemberPanel.indirectMembers.tooltip";
     }
 

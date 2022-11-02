@@ -231,7 +231,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected Search<C> createSearch(Class<C> type) {
-        return SearchFactory.createSearch(type, getPageBase());
+        return SearchFactory.createSearch(getType(), getObjectCollectionView(), getPageBase());
     }
 
     private void initLayout() {
@@ -644,7 +644,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private List<ItemPath> getSearchablePaths(Class<C> type, ModelServiceLocator modelServiceLocator) {
-        List<ItemPath> availablePaths = SearchFactory.getAvailableSearchableItems(type, modelServiceLocator);
+        List<ItemPath> availablePaths = PredefinedSearchableItems.getAvailableSearchableItems(type, modelServiceLocator);
         if (CollectionUtils.isEmpty(availablePaths)) {
             availablePaths = new ArrayList<>();
         }
@@ -658,7 +658,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return typePaths;
         }
 
-        List<ItemPath> superPaths = SearchFactory.getAvailableSearchableItems(superClass, getPageBase());
+        List<ItemPath> superPaths = PredefinedSearchableItems.getAvailableSearchableItems(superClass, getPageBase());
         if (CollectionUtils.isNotEmpty(superPaths)) {
             typePaths.addAll(superPaths);
         }

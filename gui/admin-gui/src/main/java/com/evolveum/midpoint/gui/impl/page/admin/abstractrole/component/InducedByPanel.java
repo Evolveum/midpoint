@@ -41,15 +41,15 @@ public class InducedByPanel<AR extends AbstractRoleType> extends AbstractObjectL
 
     protected SearchConfigurationWrapper<AR> createSearchBoxConfigurationWrapper() {
         SearchConfigurationWrapper<AR> searchWrapper = super.createSearchBoxConfigurationWrapper();
-        if (searchWrapper.getAllowedTypeList().isEmpty()) {
-            searchWrapper.getAllowedTypeList()
-                    .addAll(Arrays.asList(
-                            AbstractRoleType.class,
-                            OrgType.class,
-                            ArchetypeType.class,
-                            RoleType.class,
-                            ServiceType.class));
-        }
+//        if (searchWrapper.getAllowedTypeList().isEmpty()) {
+//            searchWrapper.getAllowedTypeList()
+//                    .addAll(Arrays.asList(
+//                            AbstractRoleType.class,
+//                            OrgType.class,
+//                            ArchetypeType.class,
+//                            RoleType.class,
+//                            ServiceType.class));
+//        }
         return searchWrapper;
     }
 

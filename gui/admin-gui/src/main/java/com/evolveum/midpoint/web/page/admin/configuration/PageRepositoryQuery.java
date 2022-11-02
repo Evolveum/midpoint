@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.AdvancedQueryWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
@@ -462,8 +463,13 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             }
             // TODO add containerable option too
             //noinspection unchecked
-            Search<?> search = SearchFactory.createSearch(createSearchConfigWrapper((Class<? extends ObjectType>) request.getType()), this);
-            search.setAdvancedQuery(filterAsString);
+            //createSearchConfigWrapper((Class<? extends ObjectType>) request.getType()),
+            Search<?> search = SearchFactory.createSearch(request.getType(),  this);
+            AdvancedQueryWrapper wrapper = new AdvancedQueryWrapper();
+            wrapper.setAdvancedQuery(filterAsString);
+//            search.setAdvancedQuery(filterAsString);
+            search.getAllowedModeList().add(SearchBoxModeType.ADVANCED);
+            search.setSearchMode(SearchBoxModeType.ADVANCED);
 //            search.setSearchType(SearchBoxModeType.ADVANCED);
             if (!search.isAdvancedQueryValid(getPrismContext())) {
                 // shouldn't occur because the query was already parsed
@@ -634,9 +640,8 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 
     private SearchConfigurationWrapper createSearchConfigWrapper(Class<? extends ObjectType> type) {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
-        config.getAllowedMode().add(SearchBoxModeType.ADVANCED);
-        config.setDefaultMode(SearchBoxModeType.ADVANCED);
+
         //todo fix
-        return new SearchConfigurationWrapper(type, PageRepositoryQuery.this);
+        return new SearchConfigurationWrapper();
     }
 }

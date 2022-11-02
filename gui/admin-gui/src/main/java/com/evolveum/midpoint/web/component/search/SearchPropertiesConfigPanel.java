@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -350,7 +351,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 Class<?> type = getType();
 
                 if (ObjectType.class.isAssignableFrom(type)) {
-                    PrismObjectDefinition objectDef = SearchFactory.findObjectDefinition(getType(), null, getPageBase());
+                    PrismObjectDefinition objectDef = PredefinedSearchableItems.findObjectDefinition(getType(), null, getPageBase());
                     List<SearchItemDefinition> availableDefs =
                             SearchFactory.getAvailableDefinitions(objectDef, null, true, getPageBase());
                     List<Property> propertiesList = new ArrayList<>();

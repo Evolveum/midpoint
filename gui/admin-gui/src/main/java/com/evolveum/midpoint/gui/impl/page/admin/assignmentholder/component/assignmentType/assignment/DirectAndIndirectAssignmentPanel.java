@@ -252,7 +252,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
     @Override
     protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
         List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
-        SearchFactory.addSearchRefWrapper(containerDef, AssignmentType.F_TARGET_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+//        SearchFactory.addSearchRefWrapper(containerDef, AssignmentType.F_TARGET_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
         return defs;
     }
 

@@ -59,7 +59,9 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-        return SearchFactory.createSearch(createSearchConfigWrapper(), false, getPageBase());
+        //createSearchConfigWrapper()
+        //TODO compiled object collection view
+        return SearchFactory.createSearch(ShadowType.class, getPageBase());
     }
 
     private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
@@ -95,9 +97,9 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
         }
 
         for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class,
-                    new SearchItemType().path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)))),
-                    def, null, getPageBase()));
+//            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class,
+//                    new SearchItemType().path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)))), //TODO visible by default
+//                    def, null, getPageBase()));
         }
 
         return itemsList;

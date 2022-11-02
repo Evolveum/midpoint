@@ -6,15 +6,23 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScopeSearchItemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxScopeType;
 
-public class ScopeSearchItemWrapper extends AbstractRoleSearchItemWrapper {
+public class ScopeSearchItemWrapper extends AbstractSearchItemWrapper<SearchBoxScopeType> {
 
-    public ScopeSearchItemWrapper(SearchConfigurationWrapper searchConfig) {
-        super(searchConfig);
+    private ScopeSearchItemConfigurationType scopeConfig;
+
+    public ScopeSearchItemWrapper(ScopeSearchItemConfigurationType scopeConfig) {
+        super();
+        this.scopeConfig = scopeConfig;
     }
 
     @Override
@@ -33,21 +41,26 @@ public class ScopeSearchItemWrapper extends AbstractRoleSearchItemWrapper {
 
     @Override
     public DisplayableValue<SearchBoxScopeType> getDefaultValue() {
-        return new SearchValue<>(SearchBoxScopeType.ONE_LEVEL);
+        return new SearchValue<>(scopeConfig.getDefaultValue());
     }
 
     @Override
-    public DisplayableValue<SearchBoxScopeType> getValue() {
-        return new SearchValue<>(getSearchConfig().getDefaultScope());
+    public <C extends Containerable> ObjectFilter createFilter(Class<C> type, PageBase pageBase, VariablesMap variables) {
+        return null;
     }
 
+//    @Override
+//    public DisplayableValue<SearchBoxScopeType> getValue() {
+//        return new SearchValue<>(scopeConfig.getDefaultValue());
+//    }
+
     @Override
-    protected String getNameResourceKey() {
+    public String getName() {
         return "abstractRoleMemberPanel.searchScope";
     }
 
     @Override
-    protected String getHelpResourceKey() {
+    public String getHelp() {
         return "abstractRoleMemberPanel.searchScope.tooltip";
     }
 
@@ -56,9 +69,9 @@ public class ScopeSearchItemWrapper extends AbstractRoleSearchItemWrapper {
         return ""; //todo
     }
 
-    @Override
-    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-        return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
-    }
+//    @Override
+//    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
+//        return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
+//    }
 
 }

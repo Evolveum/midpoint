@@ -20,8 +20,8 @@ public class DateSearchItemPanel extends PropertySearchItemPanel<DateSearchItemW
     }
 
     @Override
-    protected Component initSearchItemField() {
-        return new DateIntervalSearchPanel(ID_SEARCH_ITEM_FIELD,
+    protected Component initSearchItemField(String id) {
+        return new DateIntervalSearchPanel(id,
                 new PropertyModel(getModel(), DateSearchItemWrapper.F_FROM_DATE),
                 new PropertyModel(getModel(), DateSearchItemWrapper.F_TO_DATE)) {
 

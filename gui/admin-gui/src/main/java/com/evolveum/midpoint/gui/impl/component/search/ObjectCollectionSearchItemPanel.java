@@ -15,14 +15,14 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-public class ObjectCollectionSearchItemPanel extends AbstractSearchItemPanel<ObjectCollectionSearchItemWrapper> {
+public class ObjectCollectionSearchItemPanel extends SingleSearchItemPanel<ObjectCollectionSearchItemWrapper> {
 
     public ObjectCollectionSearchItemPanel(String id, IModel<ObjectCollectionSearchItemWrapper> searchItemModel) {
         super(id, searchItemModel);
     }
 
     @Override
-    protected Component initSearchItemField() {
+    protected Component initSearchItemField(String id) {
         IModel<String> nameModel = super.createLabelModel();
         String oid = null;
         ObjectCollectionSearchItemWrapper item = getModelObject();
@@ -31,7 +31,7 @@ public class ObjectCollectionSearchItemPanel extends AbstractSearchItemPanel<Obj
             oid = item.getObjectCollectionView().getCollection().getCollectionRef().getOid();
         }
         String finalOid = oid;
-        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(ID_SEARCH_ITEM_FIELD, nameModel) {
+        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id, nameModel) {
             private static final long serialVersionUID = 1L;
 
             @Override

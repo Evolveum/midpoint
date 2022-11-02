@@ -17,7 +17,6 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.button.SelectableItemListPopoverPanel;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.PrismValue;
@@ -31,9 +30,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.application.CollectionInstance;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -45,12 +45,13 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -69,7 +70,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -77,11 +77,8 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 public abstract class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
@@ -109,22 +106,24 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_ADVANCED_SEARCH_FRAGMENT = "advancedSearchFragment";
     private static final String ID_FULLTEXT_SEARCH_FRAGMENT = "fulltextSearchFragment";
     private static final String ID_OID_SEARCH_FRAGMENT = "oidSearchFragment";
-    private static final String ID_ITEMS = "items";
-    private static final String ID_ITEM = "item";
-    private static final String ID_MORE = "more";
-    private static final String ID_MORE_PROPERTIES_POPOVER = "morePropertiesPopover";
+//    private static final String ID_ITEMS = "items";
+//    private static final String ID_ITEM = "item";
+//    private static final String ID_MORE = "more";
+//    private static final String ID_MORE_PROPERTIES_POPOVER = "morePropertiesPopover";
     private static final String ID_SAVED_FILTERS_POPOVER = "savedFiltersPopover";
-    private static final String ID_DEBUG = "debug";
-    private static final String ID_ADVANCED_GROUP = "advancedGroup";
-    private static final String ID_ADVANCED_AREA = "advancedArea";
-    private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
-    private static final String ID_ADVANCED_ERROR = "advancedError";
+//    private static final String ID_DEBUG = "debug";
+//    private static final String ID_ADVANCED_GROUP = "advancedGroup";
+//    private static final String ID_ADVANCED_AREA = "advancedArea";
+//    private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
+//    private static final String ID_ADVANCED_ERROR = "advancedError";
     private static final String ID_FULL_TEXT_CONTAINER = "fullTextContainer";
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
     private static final String ID_OID_ITEM = "oidItem";
 
-    private LoadableDetachableModel<List<AbstractSearchItemWrapper>> basicSearchItemsModel;
-    private LoadableDetachableModel<List<AbstractSearchItemWrapper>> morePopupModel;
+    private static final String ID_TYPE_SEARCH = "typeSelector";
+
+//    private LoadableDetachableModel<List<AbstractSearchItemWrapper>> basicSearchItemsModel;
+//    private LoadableDetachableModel<List<AbstractSearchItemWrapper>> morePopupModel;
     private LoadableDetachableModel<List<InlineMenuItem>> savedSearchListModel;
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
 
@@ -135,36 +134,36 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initBasicSearchItemsModel();
-        initMorePopupModel();
+//        initBasicSearchItemsModel();
+//        initMorePopupModel();
         initLayout();
     }
 
-    private void initBasicSearchItemsModel() {
-        basicSearchItemsModel = new LoadableDetachableModel<List<AbstractSearchItemWrapper>>() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            protected List<AbstractSearchItemWrapper> load() {
-                return getModelObject().getItems()
-                        .stream().filter(item
-                                -> !(item instanceof OidSearchItemWrapper))
-                        .collect(Collectors.toList());
-            }
-        };
-    }
+//    private void initBasicSearchItemsModel() {
+//        basicSearchItemsModel = new LoadableDetachableModel<List<AbstractSearchItemWrapper>>() {
+//            private static final long serialVersionUID = 1L;
+//            @Override
+//            protected List<AbstractSearchItemWrapper> load() {
+//                return getModelObject().getItems()
+//                        .stream().filter(item
+//                                -> !(item instanceof OidSearchItemWrapper))
+//                        .collect(Collectors.toList());
+//            }
+//        };
+//    }
 
-    private void initMorePopupModel() {
-        morePopupModel = new LoadableDetachableModel<List<AbstractSearchItemWrapper>>() {
-            @Override
-            protected List<AbstractSearchItemWrapper> load() {
-                return getModelObject().getItems();
-            }
-        };
-    }
+//    private void initMorePopupModel() {
+//        morePopupModel = new LoadableDetachableModel<List<AbstractSearchItemWrapper>>() {
+//            @Override
+//            protected List<AbstractSearchItemWrapper> load() {
+//                return getModelObject().getItems();
+//            }
+//        };
+//    }
 
-    public void displayedSearchItemsModelReset() {
-        basicSearchItemsModel.detach();
-    }
+//    public void displayedSearchItemsModelReset() {
+//        basicSearchItemsModel.detach();
+//    }
 
     private <S extends AbstractSearchItemWrapper, T extends Serializable> void initLayout() {
         setOutputMarkupId(true);
@@ -172,36 +171,37 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
 
-        RepeatingView searchItemsRepeatingView = new RepeatingView(ID_SEARCH_ITEMS_PANEL);
-        searchItemsRepeatingView.setOutputMarkupId(true);
-        form.add(searchItemsRepeatingView);
-        initSearchItemsPanel(searchItemsRepeatingView);
+        initSearchPanel(ID_SEARCH_ITEMS_PANEL, form);
+//        RepeatingView searchItemsRepeatingView = new RepeatingView(ID_SEARCH_ITEMS_PANEL);
+//        searchItemsRepeatingView.setOutputMarkupId(true);
+//        form.add(searchItemsRepeatingView);
+//        initSearchItemsPanel(searchItemsRepeatingView);
 
-        LoadableDetachableModel<String> labelModel = new LoadableDetachableModel<String>() {
-            @Override
-            protected String load() {
-                return createStringResource(SearchPanel.this.getModelObject().getSearchMode()).getString();
-            }
-        };
-        List<SearchBoxModeType> modesList = getSearchConfigurationWrapper().getAllowedModeList();
-        SearchButtonWithDropdownMenu<SearchBoxModeType> searchButtonPanel = new SearchButtonWithDropdownMenu<SearchBoxModeType>(ID_SEARCH_BUTTON_PANEL,
-                Model.ofList(modesList), getSearchConfigurationWrapper().getDefaultSearchBoxMode()) {
+//        LoadableDetachableModel<String> labelModel = new LoadableDetachableModel<String>() {
+//            @Override
+//            protected String load() {
+//                return createStringResource(SearchPanel.this.getModelObject().getSearchMode()).getString();
+//            }
+//        }; //todo not used?
+
+//        List<SearchBoxModeType> modesList = getModelObject().getAllowedModeList();
+        SearchButtonWithDropdownMenu<SearchBoxModeType> searchButtonPanel = new SearchButtonWithDropdownMenu<>(ID_SEARCH_BUTTON_PANEL,
+                new PropertyModel<>(getModel(), Search.F_ALLOWED_MODES), new PropertyModel<>(getModelObject(), Search.F_MODE)) {
             private static final long serialVersionUID = 1L;
+
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
                 SearchPanel.this.searchPerformed(target);
             }
-
 
             @Override
             protected void menuItemSelected(AjaxRequestTarget target, SearchBoxModeType searchBoxModeType) {
                 searchBoxTypeUpdated(target, searchBoxModeType);
             }
 
-
             @Override
             public IModel<Boolean> isMenuItemVisible(SearchBoxModeType searchBoxModeType) {
-                return Model.of(getSearchConfigurationWrapper().getAllowedModeList().contains(searchBoxModeType));
+                return Model.of(SearchPanel.this.getModelObject().getAllowedModeList().contains(searchBoxModeType));
             }
 
             @Override
@@ -215,6 +215,57 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         form.setDefaultButton(searchButtonPanel.getSearchButton());
 
         initSavedFiltersContainer(form);
+    }
+
+    private void initSearchPanel(String panelId, Form form) {
+
+// type search.. applicable for all types of searches
+        DropDownChoicePanel<QName> choices = new DropDownChoicePanel<>(ID_TYPE_SEARCH, () -> WebComponentUtil.containerClassToQName(PrismContext.get(), getModelObject().getTypeClass()),
+                new PropertyModel<>(getModel(), Search.F_ALLOWED_TYPES), new QNameObjectTypeChoiceRenderer(), true) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getNullValidDisplayValue() {
+                return getString("ObjectTypes.all");
+            }
+        };
+        choices.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+//                super.onUpdate(target);
+//                getModelObject().setTypeChanged(true);
+//                SearchPanel panel = findParent(SearchPanel.class);
+//                panel.displayedSearchItemsModelReset();
+//                panel.searchPerformed(target);
+            }
+        });
+        choices.add(new VisibleBehaviour(() -> getModelObject().getAllowedTypeList().size() > 1));
+        form.add(choices);
+
+
+        SearchBoxModeType modeType = getModelObject().getSearchMode();
+        switch (modeType) {
+            case BASIC:
+                BasicSearchPanel<C> basicSearchPanel = new BasicSearchPanel<>(panelId, new PropertyModel<>(getModel(), "searchConfigurationWrapper"));
+                form.addOrReplace(basicSearchPanel);
+                break;
+            case AXIOM_QUERY:
+                AxiomSearchPanel<C> axiomSearchPanel = new AxiomSearchPanel<>(panelId, new PropertyModel<>(getModel(), "axiomQueryWrapper"));
+                form.addOrReplace(axiomSearchPanel);
+                break;
+            case ADVANCED:
+                XmlSearchPanel xmlSearchPanel = new XmlSearchPanel(panelId, new PropertyModel<>(getModel(), "advancedQueryWrapper"));
+                form.addOrReplace(xmlSearchPanel);
+                break;
+            default:
+                BasicSearchPanel<C> defaultSearchpanel = new BasicSearchPanel<>(panelId, new PropertyModel<>(getModel(), "searchConfigurationWrapper"));
+                form.addOrReplace(defaultSearchpanel);
+        }
+
     }
 
     private void initSavedFiltersContainer(MidpointForm form) {
@@ -452,7 +503,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             applyFilterToFulltextMode(filter.getSearchItem());
         }
         SearchButtonWithDropdownMenu searchButton = getSearchButton();
-        searchButton.setSelectedValue(filter.getSearchMode());
+//        searchButton.setSelectedValue(filter.getSearchMode());
         target.add(searchButton);
         searchPerformed(target);
     }
@@ -499,20 +550,21 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     protected void initSearchItemsPanel(RepeatingView searchItemsRepeatingView) {
-        BasicSearchFragment basicSearchFragment = new BasicSearchFragment(searchItemsRepeatingView.newChildId(), ID_BASIC_SEARCH_FRAGMENT,
-                SearchPanel.this);
-        basicSearchFragment.setOutputMarkupId(true);
-        basicSearchFragment.add(new VisibleBehaviour(() -> SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode())));
-        basicSearchFragment.add(AttributeAppender.append("style", "display: contents !important;"));
-        searchItemsRepeatingView.add(basicSearchFragment);
+        //TODO basic search panel
+//        BasicSearchFragment basicSearchFragment = new BasicSearchFragment(searchItemsRepeatingView.newChildId(), ID_BASIC_SEARCH_FRAGMENT,
+//                SearchPanel.this);
+//        basicSearchFragment.setOutputMarkupId(true);
+//        basicSearchFragment.add(new VisibleBehaviour(() -> SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode())));
+//        basicSearchFragment.add(AttributeAppender.append("style", "display: contents !important;"));
+//        searchItemsRepeatingView.add(basicSearchFragment);
 
-        AdvancedSearchFragment advancedSearchFragment = new AdvancedSearchFragment(searchItemsRepeatingView.newChildId(), ID_ADVANCED_SEARCH_FRAGMENT,
-                SearchPanel.this);
-        advancedSearchFragment.setOutputMarkupId(true);
-        advancedSearchFragment.add(new VisibleBehaviour(() -> SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode()) ||
-                SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())));
-        advancedSearchFragment.add(AttributeAppender.append("class", "d-flex justify-content-end mp-w-8 mp-w-xxl-6"));
-        searchItemsRepeatingView.add(advancedSearchFragment);
+//        AdvancedSearchFragment advancedSearchFragment = new AdvancedSearchFragment(searchItemsRepeatingView.newChildId(), ID_ADVANCED_SEARCH_FRAGMENT,
+//                SearchPanel.this);
+//        advancedSearchFragment.setOutputMarkupId(true);
+//        advancedSearchFragment.add(new VisibleBehaviour(() -> SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode()) ||
+//                SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())));
+//        advancedSearchFragment.add(AttributeAppender.append("class", "d-flex justify-content-end mp-w-8 mp-w-xxl-6"));
+//        searchItemsRepeatingView.add(advancedSearchFragment);
 
         FulltextSearchFragment fulltextSearchFragment = new FulltextSearchFragment(searchItemsRepeatingView.newChildId(), ID_FULLTEXT_SEARCH_FRAGMENT,
                 SearchPanel.this);
@@ -531,7 +583,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private boolean isOidSearchTypePresent() {
-        return getSearchConfigurationWrapper().getAllowedModeList().contains(SearchBoxModeType.OID);
+        return getModelObject().getAllowedModeList().contains(SearchBoxModeType.OID);
     }
 
     private CompositedIcon getSubmitSearchButtonBuilder() {
@@ -545,7 +597,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private List<InlineMenuItem> getSearchBoxTypesList() {
         List<InlineMenuItem> searchItems = new ArrayList<>();
-        List<SearchBoxModeType> modeList = getSearchConfigurationWrapper().getAllowedModeList();
+        List<SearchBoxModeType> modeList = getModelObject().getAllowedModeList();
         for (SearchBoxModeType searchBoxModeType : modeList) {
             InlineMenuItem searchItem = new InlineMenuItem(createStringResource(searchBoxModeType)) {
                 private static final long serialVersionUID = 1L;
@@ -567,9 +619,9 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 public IModel<Boolean> getVisible() {
                     if (SearchBoxModeType.AXIOM_QUERY.equals(searchBoxModeType)) {
                         return Model.of(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())
-                                && getSearchConfigurationWrapper().getAllowedModeList().contains(searchBoxModeType));
+                                && getModelObject().getAllowedModeList().contains(searchBoxModeType));
                     }
-                    return Model.of(getSearchConfigurationWrapper().getAllowedModeList().contains(searchBoxModeType));
+                    return Model.of(getModelObject().getAllowedModeList().contains(searchBoxModeType));
                 }
             };
             searchItems.add(searchItem);
@@ -578,36 +630,40 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     }
 
     private void searchBoxTypeUpdated(AjaxRequestTarget target, SearchBoxModeType searchType) {
-        if (searchType.equals(getModelObject().getSearchMode())) {
-            return;
-        }
-        if (SearchBoxModeType.OID.equals(searchType) && getModelObject().findOidSearchItemWrapper() != null) {
-            getModelObject().findOidSearchItemWrapper().setValue(new SearchValue<>());
-        }
-        getModelObject().setSearchMode(searchType);
-        searchPerformed(target);
+//        if (searchType.equals(getModelObject().getSearchMode())) {
+//            return;
+//        }
+//        if (SearchBoxModeType.OID.equals(searchType) && getModelObject().findOidSearchItemWrapper() != null) {
+//            getModelObject().findOidSearchItemWrapper().setValue(new SearchValue<>());
+//        }
+//
+//        getModelObject().setSearchMode(searchType);
+
+//        searchPerformed(target);
         refreshSearchForm(target);
     }
 
-    private void addItemPerformed(List<AbstractSearchItemWrapper> itemList, AjaxRequestTarget target) {
-        if (itemList == null) {
-            itemList = morePopupModel.getObject();
-        }
-        itemList.forEach(item -> {
-            if (item.isSelected()) {
-                item.setVisible(true);
-                item.setSelected(false);
-            }
-        });
-        refreshSearchForm(target);
-    }
+//    private void addItemPerformed(List<AbstractSearchItemWrapper> itemList, AjaxRequestTarget target) {
+//        if (itemList == null) {
+//            itemList = morePopupModel.getObject();
+//        }
+//        itemList.forEach(item -> {
+//            if (item.isSelected()) {
+//                item.setVisible(true);
+//                item.setSelected(false);
+//            }
+//        });
+//        refreshSearchForm(target);
+//    }
 
     protected abstract void searchPerformed(AjaxRequestTarget target);
 
     void refreshSearchForm(AjaxRequestTarget target) {
-        displayedSearchItemsModelReset();
-        morePopupModel.detach();
-        target.add(get(ID_FORM));
+//        displayedSearchItemsModelReset();
+//        morePopupModel.detach();
+        Form form = (Form) get(ID_FORM);
+        initSearchPanel(ID_SEARCH_ITEMS_PANEL, form);
+        target.add(form);
         saveSearch(getModelObject(), target);
     }
 
@@ -647,7 +703,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         return (RepeatingView) get(ID_FORM).get(ID_SEARCH_ITEMS_PANEL);
     }
 
-    public <SIP extends AbstractSearchItemPanel, S extends AbstractSearchItemWrapper> SIP createSearchItemPanel(String panelId, IModel<S> searchItemModel) {
+    public <SIP extends SingleSearchItemPanel, S extends AbstractSearchItemWrapper> SIP createSearchItemPanel(String panelId, IModel<S> searchItemModel) {
         Class<?> panelClass = searchItemModel.getObject().getSearchItemPanelClass();
         Constructor<?> constructor;
         try {
@@ -741,7 +797,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 List<? extends PrismValue> values = ((ValueFilter) filter).getValues();
                 if (values != null && values.size() > 0) {//todo can it be there multiple values?
                     if (TextSearchItemPanel.class.equals(item.getSearchItemPanelClass())) {
-                        item.setValue(new SearchValue<String>(values.get(0).getRealValue().toString()));
+                        item.setValue(new SearchValue<>(values.get(0).getRealValue().toString()));
                     } else {
                         item.setValue(new SearchValue(values.get(0).getRealValue()));
                     }
@@ -775,205 +831,125 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }).collect(Collectors.toList());
     }
 
-    class BasicSearchFragment extends Fragment {
-        private static final long serialVersionUID = 1L;
-
-        public BasicSearchFragment(String id, String markupId, SearchPanel markupProvider) {
-            super(id, markupId, markupProvider);
-            initBasicSearchLayout();
-        }
-
-        private <T extends Serializable> void initBasicSearchLayout() {
-
-            ListView<AbstractSearchItemWrapper> items = new ListView<AbstractSearchItemWrapper>(ID_ITEMS, basicSearchItemsModel) {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                protected void populateItem(ListItem<AbstractSearchItemWrapper> item) {
-                    AbstractSearchItemPanel searchItemPanel = createSearchItemPanel(ID_ITEM, item.getModel());
-                    searchItemPanel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible()));
-                    item.add(searchItemPanel);
-                }
-            };
-            items.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
-            add(items);
-
-            SelectableItemListPopoverPanel<AbstractSearchItemWrapper> popoverPanel =
-                    new SelectableItemListPopoverPanel<AbstractSearchItemWrapper>(ID_MORE_PROPERTIES_POPOVER, morePopupModel) {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        protected void addItemsPerformed(List<AbstractSearchItemWrapper> itemList, AjaxRequestTarget target) {
-                            addItemPerformed(itemList, target);
-                        }
-
-                        @Override
-                        protected Component getPopoverReferenceComponent() {
-                            return BasicSearchFragment.this.getMoreButtonComponent();
-                        }
-
-                        @Override
-                        protected String getItemName(AbstractSearchItemWrapper item) {
-                            return item.getName();
-                        }
-
-                        @Override
-                        protected String getItemHelp(AbstractSearchItemWrapper item) {
-                            return item.getHelp();
-                        }
-
-                        @Override
-                        protected IModel<String> getPopoverTitleModel() {
-                            return createStringResource("SearchPanel.properties");
-                        }
-                    };
-            add(popoverPanel);
-
-            AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    popoverPanel.togglePopover(target);
-                }
-            };
-            more.add(new VisibleBehaviour(() -> {
-                return CollectionUtils.isNotEmpty(morePopupModel.getObject());
-            }));
-            more.setOutputMarkupId(true);
-            add(more);
-        }
-
-        private Component getMoreButtonComponent() {
-            return BasicSearchFragment.this.get(ID_MORE);
-        }
-
-        private void closeMorePopoverPerformed(AjaxRequestTarget target) {
-            String popoverId = get(ID_MORE_PROPERTIES_POPOVER).getMarkupId();
-            target.appendJavaScript("$('#" + popoverId + "').toggle();");
-        }
-    }
-
-    class AdvancedSearchFragment extends Fragment {
-        private static final long serialVersionUID = 1L;
-
-        public AdvancedSearchFragment(String id, String markupId, SearchPanel markupProvider) {
-            super(id, markupId, markupProvider);
-            initAdvancedSearchLayout();
-        }
-
-        private <S extends SearchItem, T extends Serializable> void initAdvancedSearchLayout() {
-            AjaxButton debug = new AjaxButton(ID_DEBUG, createStringResource("SearchPanel.debug")) {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    debugPerformed();
-                }
-            };
-            debug.add(new VisibleBehaviour(() -> isQueryPlaygroundAccessible()));
-            add(debug);
-
-            WebMarkupContainer advancedGroup = new WebMarkupContainer(ID_ADVANCED_GROUP);
-            advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
-            advancedGroup.setOutputMarkupId(true);
-            add(advancedGroup);
-
-            TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_QUERY));
-            advancedArea.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-            advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
-            advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
-            advancedArea.add(AttributeAppender.append("class", createValidityStyle()));
-            advancedGroup.add(advancedArea);
-
-            TextField<String> queryDslField = new TextField<>(ID_AXIOM_QUERY_FIELD,
-                    new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_DSL_QUERY));
-            queryDslField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-            queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
-            queryDslField.add(createVisibleBehaviour(SearchBoxModeType.AXIOM_QUERY));
-            queryDslField.add(AttributeAppender.append("class", createValidityStyle()));
-            advancedGroup.add(queryDslField);
-
-            Label advancedError = new Label(ID_ADVANCED_ERROR,
-                    new PropertyModel<String>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_ERROR));
-            advancedError.setOutputMarkupId(true);
-            advancedError.add(AttributeAppender.append("class",
-                    () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "valid-feedback" : "invalid-feedback"));
-            advancedError.add(new VisibleBehaviour(() -> {
-                Search search = getModelObject();
-
-                if (!isAdvancedMode()) {
-                    return false;
-                }
-
-                return StringUtils.isNotEmpty(search.getAdvancedError());
-            }));
-            advancedGroup.add(advancedError);
-        }
-
-        private boolean isAdvancedMode() {
-            return SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
-                    || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode());
-        }
-        private boolean isQueryPlaygroundAccessible() {
-            return SecurityUtils.isPageAuthorized(PageRepositoryQuery.class) && SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
-                    && ObjectType.class.isAssignableFrom(getModelObject().getTypeClass());
-        }
-
-        private void debugPerformed() {
-            Search search = getModelObject();
-            PageRepositoryQuery pageQuery;
-            if (search != null) {
-                ObjectTypes type = search.getTypeClass() != null ? ObjectTypes.getObjectType(search.getTypeClass().getSimpleName()) : null;
-                QName typeName = type != null ? type.getTypeQName() : null;
-                String inner = search.getAdvancedQuery();
-                if (StringUtils.isNotBlank(inner)) {
-                    inner = "\n" + inner + "\n";
-                } else if (inner == null) {
-                    inner = "";
-                }
-                pageQuery = new PageRepositoryQuery(typeName, "<query>" + inner + "</query>");
-            } else {
-                pageQuery = new PageRepositoryQuery();
-            }
-            SearchPanel.this.setResponsePage(pageQuery);
-        }
-
-        private IModel<String> createValidityStyle() {
-            return () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "is-valid" : "is-invalid";
-        }
-
-        private void updateAdvancedArea(Component area, AjaxRequestTarget target) {
-            Search search = getModelObject();
-            PrismContext ctx = getPageBase().getPrismContext();
-
-            search.isAdvancedQueryValid(ctx);
-
-            target.prependJavaScript("storeTextAreaSize('" + area.getMarkupId() + "');");
-            target.appendJavaScript("restoreTextAreaSize('" + area.getMarkupId() + "');");
-
-            target.add(
-                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP)),
-                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_BUTTON_PANEL)));
-        }
-
-        private void updateQueryDSLArea(Component child, Component parent, AjaxRequestTarget target) {
-            Search search = getModelObject();
-            PrismContext ctx = getPageBase().getPrismContext();
-
-            search.isAdvancedQueryValid(ctx);
-
-            target.appendJavaScript("$('#" + child.getMarkupId() + "').updateParentClass('fa-check-circle-o', 'has-success',"
-                    + " '" + parent.getMarkupId() + "', 'fa-exclamation-triangle', 'has-error');");
-
-            target.add(
-                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP, ID_ADVANCED_ERROR)),
-                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_BUTTON_PANEL)));
-        }
-
-    }
+//    class AdvancedSearchFragment extends Fragment {
+//        private static final long serialVersionUID = 1L;
+//
+//        public AdvancedSearchFragment(String id, String markupId, SearchPanel markupProvider) {
+//            super(id, markupId, markupProvider);
+//            initAdvancedSearchLayout();
+//        }
+//
+////        private <S extends SearchItem, T extends Serializable> void initAdvancedSearchLayout() {
+////            AjaxButton debug = new AjaxButton(ID_DEBUG, createStringResource("SearchPanel.debug")) {
+////
+////                private static final long serialVersionUID = 1L;
+////
+////                @Override
+////                public void onClick(AjaxRequestTarget target) {
+////                    debugPerformed();
+////                }
+////            };
+////            debug.add(new VisibleBehaviour(() -> isQueryPlaygroundAccessible()));
+////            add(debug);
+////
+////            WebMarkupContainer advancedGroup = new WebMarkupContainer(ID_ADVANCED_GROUP);
+////            advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
+////            advancedGroup.setOutputMarkupId(true);
+////            add(advancedGroup);
+////
+////            TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_QUERY));
+////            advancedArea.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+////            advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
+////            advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
+////            advancedArea.add(AttributeAppender.append("class", createValidityStyle()));
+////            advancedGroup.add(advancedArea);
+////
+////            TextField<String> queryDslField = new TextField<>(ID_AXIOM_QUERY_FIELD,
+////                    new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_DSL_QUERY));
+////            queryDslField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+////            queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
+////            queryDslField.add(createVisibleBehaviour(SearchBoxModeType.AXIOM_QUERY));
+////            queryDslField.add(AttributeAppender.append("class", createValidityStyle()));
+////            advancedGroup.add(queryDslField);
+////
+////            Label advancedError = new Label(ID_ADVANCED_ERROR,
+////                    new PropertyModel<String>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_ERROR));
+////            advancedError.setOutputMarkupId(true);
+////            advancedError.add(AttributeAppender.append("class",
+////                    () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "valid-feedback" : "invalid-feedback"));
+////            advancedError.add(new VisibleBehaviour(() -> {
+////                Search search = getModelObject();
+////
+////                if (!isAdvancedMode()) {
+////                    return false;
+////                }
+////
+////                return StringUtils.isNotEmpty(search.getAdvancedError());
+////            }));
+////            advancedGroup.add(advancedError);
+////        }
+////
+////        private boolean isAdvancedMode() {
+////            return SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
+////                    || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode());
+////        }
+////        private boolean isQueryPlaygroundAccessible() {
+////            return SecurityUtils.isPageAuthorized(PageRepositoryQuery.class) && SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
+////                    && ObjectType.class.isAssignableFrom(getModelObject().getTypeClass());
+////        }
+////
+////        private void debugPerformed() {
+////            Search search = getModelObject();
+////            PageRepositoryQuery pageQuery;
+////            if (search != null) {
+////                ObjectTypes type = search.getTypeClass() != null ? ObjectTypes.getObjectType(search.getTypeClass().getSimpleName()) : null;
+////                QName typeName = type != null ? type.getTypeQName() : null;
+////                String inner = search.getAdvancedQuery();
+////                if (StringUtils.isNotBlank(inner)) {
+////                    inner = "\n" + inner + "\n";
+////                } else if (inner == null) {
+////                    inner = "";
+////                }
+////                pageQuery = new PageRepositoryQuery(typeName, "<query>" + inner + "</query>");
+////            } else {
+////                pageQuery = new PageRepositoryQuery();
+////            }
+////            SearchPanel.this.setResponsePage(pageQuery);
+////        }
+////
+////        private IModel<String> createValidityStyle() {
+////            return () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "is-valid" : "is-invalid";
+////        }
+////
+////        private void updateAdvancedArea(Component area, AjaxRequestTarget target) {
+////            Search search = getModelObject();
+////            PrismContext ctx = getPageBase().getPrismContext();
+////
+////            search.isAdvancedQueryValid(ctx);
+////
+////            target.prependJavaScript("storeTextAreaSize('" + area.getMarkupId() + "');");
+////            target.appendJavaScript("restoreTextAreaSize('" + area.getMarkupId() + "');");
+////
+////            target.add(
+////                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP)),
+////                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_BUTTON_PANEL)));
+////        }
+////
+////        private void updateQueryDSLArea(Component child, Component parent, AjaxRequestTarget target) {
+////            Search search = getModelObject();
+////            PrismContext ctx = getPageBase().getPrismContext();
+////
+////            search.isAdvancedQueryValid(ctx);
+////
+////            target.appendJavaScript("$('#" + child.getMarkupId() + "').updateParentClass('fa-check-circle-o', 'has-success',"
+////                    + " '" + parent.getMarkupId() + "', 'fa-exclamation-triangle', 'has-error');");
+////
+////            target.add(
+////                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP, ID_ADVANCED_ERROR)),
+////                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_BUTTON_PANEL)));
+////        }
+//
+//    }
 
     class FulltextSearchFragment extends Fragment {
         private static final long serialVersionUID = 1L;

@@ -26,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -78,8 +80,8 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
             }
 
             @Override
-            protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
-                return getParentWrapper().getSpecialSearchItemFunctions();
+            protected Set<SearchItemType> getSpecialSearchItem() {
+                return getParentWrapper().getPredefinedSearchItem();
             }
 
             @Override

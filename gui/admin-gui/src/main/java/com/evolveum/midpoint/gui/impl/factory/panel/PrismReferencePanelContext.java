@@ -31,8 +31,5 @@ public class PrismReferencePanelContext<R extends Referencable> extends ItemPane
         return unwrapWrapperModel().getFilter();
     }
 
-    public Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItems() {
-        return unwrapWrapperModel().getSpecialSearchItemFunctions();
-    }
 
 }

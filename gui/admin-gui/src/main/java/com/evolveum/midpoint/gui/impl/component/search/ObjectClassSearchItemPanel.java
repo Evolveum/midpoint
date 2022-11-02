@@ -43,9 +43,9 @@ public class ObjectClassSearchItemPanel extends PropertySearchItemPanel {
     }
 
     @Override
-    protected Component initSearchItemField() {
+    protected Component initSearchItemField(String id) {
         return WebComponentUtil.createDropDownChoices(
-                ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), ObjectClassSearchItemWrapper.F_DISPLAYABLE_VALUE),
+                id, new PropertyModel(getModel(), ObjectClassSearchItemWrapper.F_DISPLAYABLE_VALUE),
                 Model.ofList(getAvailableObjectClassList()), true, getPageBase());
     }
 

@@ -26,6 +26,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -249,9 +251,11 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 
             @Override
             protected Search createSearch(Class<O> type) {
-                String collectionName = isCollectionViewPanelForCompiledView() ?
-                        WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
-                return SearchFactory.createSearch(createSearchConfigWrapper(type, collectionName), getPageBase());
+//                String collectionName = isCollectionViewPanelForCompiledView() ?
+//                        WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
+//                //TODO special items
+                Set<SearchItemType> specialItems = getSpecialItems();
+                return SearchFactory.createSearch(type, getObjectCollectionView(), getPageBase());
 //                Search search = super.createSearch(type);
 //                getSpecialSearchItemWrappers()
 //                        .forEach(function -> search.addSpecialItem(function.apply(search)));
@@ -262,16 +266,20 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
         return listPanel;
     }
 
-    private SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type, String collectionViewName) {
-        SearchConfigurationWrapper searchConfigWrapper = SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, getPageBase());
-        searchConfigWrapper.setCollectionViewName(collectionViewName);
-        searchConfigWrapper.getItemsList().addAll(new ArrayList(getSpecialSearchItemWrappers()));
-        return searchConfigWrapper;
-    }
-
-    protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
+    protected Set<SearchItemType> getSpecialItems() {
         return Collections.emptySet();
     }
+
+//    private SearchConfigurationWrapper<O> createSearchConfigWrapper(Class<O> type, String collectionViewName) {
+//        SearchConfigurationWrapper searchConfigWrapper = SearchFactory.createDefaultSearchBoxConfigurationWrapper(type, getPageBase());
+//        searchConfigWrapper.setCollectionViewName(collectionViewName);
+//        searchConfigWrapper.getItemsList().addAll(new ArrayList(getSpecialSearchItemWrappers()));
+//        return searchConfigWrapper;
+//    }
+
+//    protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
+//        return Collections.emptySet();
+//    }
 
     protected void addPerformed(AjaxRequestTarget target, QName type, List<O> selected) {
         parentPage.hideMainPopup(target);

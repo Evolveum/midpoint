@@ -167,7 +167,9 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
 
     @Override
     protected Search createSearch() {
-        return SearchFactory.createSearch(createSearchConfigWrapper(), false, getPageBase());
+        //TODO compuled object coolection view
+        //createSearchConfigWrapper()
+        return SearchFactory.createSearch(ShadowType.class, getPageBase());
     }
 
     private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {

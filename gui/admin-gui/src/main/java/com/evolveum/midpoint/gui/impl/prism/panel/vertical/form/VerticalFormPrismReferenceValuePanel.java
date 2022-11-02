@@ -18,6 +18,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -73,8 +75,8 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
             }
 
             @Override
-            protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
-                return getParentWrapper().getSpecialSearchItemFunctions();
+            protected Set<SearchItemType> getSpecialSearchItem() {
+                return getParentWrapper().getPredefinedSearchItem();
             }
 
             @Override

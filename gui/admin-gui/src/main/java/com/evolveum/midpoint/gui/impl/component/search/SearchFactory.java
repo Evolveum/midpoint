@@ -6,48 +6,43 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search;
 
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.web.component.search.*;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.NotNull;
 
 public class SearchFactory {
 
@@ -56,303 +51,167 @@ public class SearchFactory {
     private static final String LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
     private static final String LOAD_ADMIN_GUI_CONFIGURATION = DOT_CLASS + "loadAdminGuiConfiguration";
 
-    private static final Map<Class<?>, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
-
-    static {
-        SEARCHABLE_OBJECTS.put(ObjectType.class, Arrays.asList(
-                ItemPath.create(ObjectType.F_NAME),
-                ItemPath.create(ObjectType.F_LIFECYCLE_STATE),
-                ItemPath.create(ObjectType.F_SUBTYPE),
-                ItemPath.create(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
-                ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP)
-        ));
-        SEARCHABLE_OBJECTS.put(FocusType.class, Arrays.asList(
-                ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF),
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS),
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-                ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO)
-        ));
-        SEARCHABLE_OBJECTS.put(UserType.class, Arrays.asList(
-                ItemPath.create(UserType.F_TITLE),
-                ItemPath.create(UserType.F_GIVEN_NAME),
-                ItemPath.create(UserType.F_FAMILY_NAME),
-                ItemPath.create(UserType.F_FULL_NAME),
-                ItemPath.create(UserType.F_ADDITIONAL_NAME),
-                ItemPath.create(UserType.F_COST_CENTER),
-                ItemPath.create(UserType.F_EMAIL_ADDRESS),
-                ItemPath.create(UserType.F_TELEPHONE_NUMBER),
-                ItemPath.create(UserType.F_EMPLOYEE_NUMBER),
-                ItemPath.create(UserType.F_ORGANIZATIONAL_UNIT),
-                ItemPath.create(UserType.F_LOCALITY)
-        ));
-        SEARCHABLE_OBJECTS.put(RoleType.class, Arrays.asList(
-                ItemPath.create(RoleType.F_NAME),
-                ItemPath.create(RoleType.F_DISPLAY_NAME)
-        ));
-        SEARCHABLE_OBJECTS.put(ServiceType.class, Arrays.asList(
-                ItemPath.create(ServiceType.F_NAME),
-                ItemPath.create(RoleType.F_DISPLAY_NAME),
-                ItemPath.create(ServiceType.F_URL)
-        ));
-        SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
-                ItemPath.create(ConnectorHostType.F_HOSTNAME)
-        ));
-        SEARCHABLE_OBJECTS.put(ConnectorType.class, Arrays.asList(
-                ItemPath.create(ConnectorType.F_CONNECTOR_BUNDLE),
-                ItemPath.create(ConnectorType.F_CONNECTOR_VERSION),
-                ItemPath.create(ConnectorType.F_CONNECTOR_TYPE)
-        ));
-        SEARCHABLE_OBJECTS.put(AbstractRoleType.class, Arrays.asList(
-                ItemPath.create(AbstractRoleType.F_IDENTIFIER),
-                ItemPath.create(AbstractRoleType.F_REQUESTABLE)
-        ));
-        SEARCHABLE_OBJECTS.put(OrgType.class, Arrays.asList(
-                ItemPath.create(OrgType.F_DISPLAY_NAME),
-                ItemPath.create(OrgType.F_COST_CENTER),
-                ItemPath.create(OrgType.F_TENANT),
-                ItemPath.create(OrgType.F_PARENT_ORG_REF),
-                ItemPath.create(OrgType.F_LOCALITY)
-        ));
-//        SEARCHABLE_OBJECTS.put(GenericObjectType.class, Arrays.asList(
-//                ItemPath.create(GenericObjectType.F_OBJECT_TYPE)
-//        ));
-        SEARCHABLE_OBJECTS.put(NodeType.class, Arrays.asList(
-                ItemPath.create(NodeType.F_NODE_IDENTIFIER)
-        ));
-//        SEARCHABLE_OBJECTS.put(ReportType.class, Arrays.asList(
-//                ItemPath.create(ReportType.F_NAME)
-//        ));
-        SEARCHABLE_OBJECTS.put(ShadowType.class, Arrays.asList(
-                ItemPath.create(ShadowType.F_OBJECT_CLASS),
-                ItemPath.create(ShadowType.F_RESOURCE_REF),
-                ItemPath.create(ShadowType.F_DEAD),
-                ItemPath.create(ShadowType.F_INTENT),
-                ItemPath.create(ShadowType.F_EXISTS),
-                ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)
-        ));
-        SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
-                ItemPath.create(TaskType.F_TASK_IDENTIFIER),
-                ItemPath.create(TaskType.F_NODE),
-                ItemPath.create(TaskType.F_CATEGORY),
-                ItemPath.create(TaskType.F_RESULT_STATUS),
-                ItemPath.create(TaskType.F_EXECUTION_STATE),
-                ItemPath.create(TaskType.F_HANDLER_URI),
-                ItemPath.create(TaskType.F_OBJECT_REF)
-
-        ));
-
-        SEARCHABLE_OBJECTS.put(AssignmentType.class, Arrays.asList(
-                ItemPath.create(AssignmentType.F_TARGET_REF),
-                ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
-                ItemPath.create(AssignmentType.F_TENANT_REF),
-                ItemPath.create(AssignmentType.F_ORG_REF)
-        ));
-
-        SEARCHABLE_OBJECTS.put(CaseWorkItemType.class, Arrays.asList(
-                ItemPath.create(CaseWorkItemType.F_ASSIGNEE_REF),
-                ItemPath.create(CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF),
-                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_STATE),
-                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF),
-                ItemPath.create(CaseWorkItemType.F_PERFORMER_REF)
-        ));
-
-        SEARCHABLE_OBJECTS.put(CaseType.class, Arrays.asList(
-                ItemPath.create(CaseType.F_STATE),
-                ItemPath.create(CaseType.F_PARENT_REF),
-                ItemPath.create(CaseType.F_REQUESTOR_REF),
-                ItemPath.create(CaseType.F_TARGET_REF),
-                ItemPath.create(CaseType.F_TASK_REF),
-                ItemPath.create(CaseType.F_OBJECT_REF)
-        ));
-
-        SEARCHABLE_OBJECTS.put(ObjectPolicyConfigurationType.class, Arrays.asList(
-                ItemPath.create(ObjectPolicyConfigurationType.F_SUBTYPE),
-                ItemPath.create(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF)
-        ));
-
-        SEARCHABLE_OBJECTS.put(AuditEventRecordType.class, Arrays.asList(
-                ItemPath.create(AuditEventRecordType.F_TIMESTAMP),
-                ItemPath.create(AuditEventRecordType.F_INITIATOR_REF),
-                ItemPath.create(AuditEventRecordType.F_EVENT_STAGE),
-                ItemPath.create(AuditEventRecordType.F_EVENT_TYPE),
-                ItemPath.create(AuditEventRecordType.F_TARGET_REF),
-                ItemPath.create(AuditEventRecordType.F_TARGET_OWNER_REF),
-                ItemPath.create(AuditEventRecordType.F_CHANGED_ITEM),
-                ItemPath.create(AuditEventRecordType.F_OUTCOME),
-                ItemPath.create(AuditEventRecordType.F_CHANNEL),
-                ItemPath.create(AuditEventRecordType.F_HOST_IDENTIFIER),
-                ItemPath.create(AuditEventRecordType.F_REQUEST_IDENTIFIER),
-                ItemPath.create(AuditEventRecordType.F_REFERENCE),
-                ItemPath.create(AuditEventRecordType.F_TASK_IDENTIFIER)
-        ));
+    public static <C extends Containerable> Search<C> createMemberSearch(Class<C> type, List<QName> supportedTypes, List<QName> supportedRelations,
+            QName abstractRoleType, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
+        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultOrgMembersSearchBoxConfiguration(type, supportedTypes, supportedRelations, modelServiceLocator);
+        return createSearch(type, abstractRoleType, defaultSearchBox, collectionView, modelServiceLocator);
+    }
+    public static <C extends Containerable> Search<C> createSearch(Class<C> type, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
+        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, modelServiceLocator);
+        return createSearch(type, null, defaultSearchBox, collectionView, modelServiceLocator);
     }
 
-    private static final Map<Class<?>, List<ItemPath>> FIXED_SEARCH_ITEMS = new HashMap<>();
-    static {
-        FIXED_SEARCH_ITEMS.put(ObjectType.class, Arrays.asList(
-                ItemPath.create(ObjectType.F_NAME))
-        );
-        FIXED_SEARCH_ITEMS.put(UserType.class, Arrays.asList(
-                ItemPath.create(UserType.F_GIVEN_NAME),
-                ItemPath.create(UserType.F_FAMILY_NAME)
-        ));
-        FIXED_SEARCH_ITEMS.put(AbstractRoleType.class, Arrays.asList(
-                ItemPath.create(RoleType.F_DISPLAY_NAME)
-        ));
-        FIXED_SEARCH_ITEMS.put(RoleType.class, Arrays.asList(
-                ItemPath.create(RoleType.F_IDENTIFIER)
-        ));
-        FIXED_SEARCH_ITEMS.put(ServiceType.class, Arrays.asList(
-                ItemPath.create(ServiceType.F_IDENTIFIER)
-        ));
-        FIXED_SEARCH_ITEMS.put(OrgType.class, Arrays.asList(
-                ItemPath.create(OrgType.F_PARENT_ORG_REF)
-        ));
-        FIXED_SEARCH_ITEMS.put(AuditEventRecordType.class, Arrays.asList(
-                ItemPath.create(AuditEventRecordType.F_TIMESTAMP)
-        ));
-        FIXED_SEARCH_ITEMS.put(ShadowType.class, Arrays.asList(
-                ItemPath.create(ShadowType.F_RESOURCE_REF),
-                ItemPath.create(ShadowType.F_OBJECT_CLASS)
-        ));
-    }
+    private static <C extends Containerable> Search<C> createSearch(Class<C> type, QName abstractRoleType, SearchBoxConfigurationType defaultSearchBoxConfig, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
+        SearchBoxConfigurationType configuredSearchBox = getConfiguredSearchBox(collectionView);
+        SearchBoxConfigurationType mergedConfig = SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox);
 
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ModelServiceLocator modelServiceLocator) {
-        return createContainerSearch(type, null, modelServiceLocator, false);
-    }
+        SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(type, collectionView, mergedConfig, modelServiceLocator);
+        if (abstractRoleType != null) {
+            createAbstractRoleSearchItemWrapperList(abstractRoleType, basicSearchWrapper, mergedConfig);
+        }
+        AxiomQueryWrapper<C> axiomWrapper = new AxiomQueryWrapper<>();
+        AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper();
+        FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper();
 
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem,
-            ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
-        return createContainerSearch(type, defaultSearchItem, null, modelServiceLocator, useObjectCollection);
-    }
+        Search<C> search = new Search<>(type, mergedConfig);
+        search.setTypeClass(type);
 
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
-            ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
-        PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry()
-                .findContainerDefinitionByCompileTimeClass(type.getTypeClass());
-        return createContainerSearch(type, containerDef, defaultSearchItem, defaultAvailableDefs, modelServiceLocator, useObjectCollection);
-    }
-
-    @Deprecated
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.Search<C> createContainerSearch(ContainerTypeSearchItem<C> type, PrismContainerDefinition<C> containerDef, ItemPath defaultSearchItem, List<SearchItemDefinition> defaultAvailableDefs,
-            ModelServiceLocator modelServiceLocator, boolean useObjectCollection) {
-
-        List<SearchItemDefinition> availableDefs = defaultAvailableDefs;
-        if (CollectionUtils.isEmpty(defaultAvailableDefs)) {
-            availableDefs = getAvailableDefinitions(containerDef, null, true, modelServiceLocator);
+        if (mergedConfig.getObjectTypeConfiguration() != null) {
+            search.setAllowedTypeList(mergedConfig.getObjectTypeConfiguration()
+                    .getSupportedTypes());
         }
 
-        com.evolveum.midpoint.web.component.search.Search<C> search = new com.evolveum.midpoint.web.component.search.Search<>(type, availableDefs);
+        search.setAdvancedQueryWrapper(advancedQueryWrapper);
+        search.setAxiomQueryWrapper(axiomWrapper);
+        search.setFulltextQueryWrapper(fulltextQueryWrapper);
+        search.setSearchConfigurationWrapper(basicSearchWrapper);
+        search.setSearchMode(getDefaultSearchMode(mergedConfig, modelServiceLocator, type));
+        search.setAllowedModeList(createAllowedModeList(type, modelServiceLocator));
 
-        List<SearchItemDefinition> configuredSearchItemDefs = null;
-        if (useObjectCollection) {
-            configuredSearchItemDefs = getConfiguredSearchItemDefinitions(availableDefs, modelServiceLocator, containerDef.getTypeName(), null, Search.PanelType.DEFAULT);
-        }
-        if (!CollectionUtils.isEmpty(configuredSearchItemDefs)) {
-            processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, containerDef);
-        } else if (defaultSearchItem != null) {
-            ItemDefinition defaultItemDef = containerDef.findItemDefinition(defaultSearchItem);
-            if (defaultItemDef != null) {
-                search.addItem(defaultItemDef);
-            }
-        }
         return search;
     }
 
-    public static <C extends Containerable> com.evolveum.midpoint.web.component.search.Search<C> createSearchForReport(Class<C> type, List<SearchFilterParameterType> parameters, ModelServiceLocator modelServiceLocator) {
-        ContainerTypeSearchItem<C> typeItem = new ContainerTypeSearchItem<>(new SearchValue<>(type, ""));
-        com.evolveum.midpoint.web.component.search.Search<C> search = new com.evolveum.midpoint.web.component.search.Search<>(typeItem, new ArrayList<>(), false, SearchBoxModeType.BASIC, Collections.singletonList(SearchBoxModeType.BASIC), false);
+    public static <C extends Containerable> Search<C> createAssignmnetSearch(Class<C> type, QName targetType, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
 
-        SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
-        PrismContainerDefinition objDef = registry.findContainerDefinitionByCompileTimeClass(type);
 
-        final List<SearchItemDefinition> configuredSearchItemDefs = new ArrayList<>();
-        parameters.forEach(parameter -> {
-            SearchItemType searchItemType = new SearchItemType();
-            searchItemType.setParameter(parameter);
-            searchItemType.setVisibleByDefault(true);
-            if (parameter.getDisplay() != null) {
-                if (parameter.getDisplay().getLabel() != null) {
-                    searchItemType.setDisplayName(parameter.getDisplay().getLabel());
-                } else {
-                    searchItemType.setDisplayName(new PolyStringType(parameter.getName()));
-                }
-                if (parameter.getDisplay().getHelp() != null) {
-                    searchItemType.setDescription(
-                            modelServiceLocator.getLocalizationService().translate(parameter.getDisplay().getHelp().toPolyString()));
-                }
-            }
-            configuredSearchItemDefs.add(new SearchItemDefinition(searchItemType));
-        });
-        processSearchItemDefFromCompiledView(configuredSearchItemDefs, search, objDef);
-        search.setCanConfigure(false);
+        var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(targetType), ObjectType.F_EXTENSION);
+        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION, targetExtensionPath), null, modelServiceLocator);
+        SearchBoxConfigurationType configuredSearchBox = getConfiguredSearchBox(collectionView);
+        SearchBoxConfigurationType mergedConfig = SearchConfigurationMerger.mergeConfigurations(defaultSearchBox, configuredSearchBox);
+
+        SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(type, collectionView, mergedConfig, modelServiceLocator);
+
+        //TODO
+//        if (targetType == null) {
+//            SearchFactory.addSearchRefWrapper(containerDef, ItemPath.create(AssignmentType.F_TARGET_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+//            SearchFactory.addSearchRefWrapper(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+//            SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME), defs,
+//                    "AssignmentPanel.search.policyRule.name", getPageBase());
+//            SearchFactory.addSearchRefWrapper(containerDef,
+//                    ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
+//                            PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+//        }
+//        if (ResourceType.COMPLEX_TYPE.equals(targetType)) {
+//            SearchFactory.addSearchRefWrapper(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+//        }
+//        if (PolicyRuleType.COMPLEX_TYPE.equals(targetType)) {
+//            SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+//                    defs, getPageBase());
+//            SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+//                    defs, getPageBase());
+//            SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME),
+//                    defs, "AssignmentPanel.search.policyRule.name", getPageBase());
+//            SearchFactory.addSearchRefWrapper(containerDef,
+//                    ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
+//                            PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF), defs, AreaCategoryType.POLICY, getPageBase());
+//
+//            defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
+//        }
+//        addSearchPropertyWrapper(AssignmentType.class, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), modelServiceLocator);
+//        addSearchPropertyWrapper(AssignmentType.class, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+//                 modelServiceLocator));
+
+
+        AxiomQueryWrapper<C> axiomWrapper = new AxiomQueryWrapper<>();
+        AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper();
+        FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper();
+
+
+
+        Search<C> search = new Search<>(type, mergedConfig);
+        search.setTypeClass(type);
+        search.setAdvancedQueryWrapper(advancedQueryWrapper);
+        search.setAxiomQueryWrapper(axiomWrapper);
+        search.setFulltextQueryWrapper(fulltextQueryWrapper);
+        search.setSearchConfigurationWrapper(basicSearchWrapper);
+        search.setSearchMode(getDefaultSearchMode(mergedConfig, modelServiceLocator, type));
+        search.setAllowedModeList(createAllowedModeList(type, modelServiceLocator));
+        search.setCollectionViewName(collectionView.getViewIdentifier());
+
+//        if (view != null
+//                && view.getCollection() != null
+//                && view.getCollection().getCollectionRef() != null
+//                && QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, view.getCollection().getCollectionRef().getType())) {
+//            searchWrapper.setCollectionRefOid(view.getCollection().getCollectionRef().getOid());
+//        }
+        if (collectionView != null && collectionView.getCollection() != null && collectionView.getCollection().getCollectionRef() != null) {
+            search.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());
+        }
+
         return search;
     }
 
-    private static void processSearchItemDefFromCompiledView(List<SearchItemDefinition> configuredSearchItemDefs, com.evolveum.midpoint.web.component.search.Search search, PrismContainerDefinition containerDef) {
-        configuredSearchItemDefs.forEach(searchItemDef -> {
-            search.addItemToAllDefinitions(searchItemDef);
-            if (searchItemDef.isVisibleByDefault()) {
-                SearchItem item = null;
-                if (searchItemDef.getPath() != null) {
-                    ItemDefinition def = containerDef.findItemDefinition(searchItemDef.getPath());
-                    item = search.addItem(def);
-                    ((PropertySearchItem) item).setDisplayName(searchItemDef.getDisplayName());
-                } else if (searchItemDef.getPredefinedFilter() != null) {
-                    item = search.addItem(searchItemDef.getPredefinedFilter());
-                }
-                if (item != null) {
-                    item.setFixed(true);
-                    item.setDefinition(searchItemDef);
-                }
+    //TODO REVIEW NEEDED!!!!
+    private static <C extends Containerable> SearchConfigurationWrapper<C> createBasicSearchWrapper(Class<C> type,
+            CompiledObjectCollectionView collectionView, SearchBoxConfigurationType configuredSearchBox, ModelServiceLocator modelServiceLocator) {
+        SearchConfigurationWrapper<C> basicSearchWrapper = createDefaultSearchBoxConfigurationWrapper(type, configuredSearchBox, modelServiceLocator);
+        basicSearchWrapper.setAllowToConfigureSearchItems(isAllowToConfigureSearchItems(configuredSearchBox));
+
+
+        if (collectionView == null) {
+            //todo we need to get saved searches here for the specified type
+            List<CompiledObjectCollectionView> views = modelServiceLocator.getCompiledGuiProfile()
+                    .findAllApplicableObjectCollectionViews(WebComponentUtil.containerClassToQName(PrismContext.get(), type))
+                    .stream()
+                    .filter(v -> v.getFilter() != null)     //todo should we check also collectionRef?
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(views)) {
+                ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(type,
+                        views);
+                viewListItem.setVisible(true);
+                basicSearchWrapper.getItemsList().add(viewListItem);
             }
-        });
+        }
+        basicSearchWrapper.getItemsList().sort((i1, i2) -> String.CASE_INSENSITIVE_ORDER.compare(
+                StringUtils.isEmpty(i1.getName()) ? "" : PageBase.createStringResourceStatic(i1.getName()).getString(),
+                StringUtils.isEmpty(i2.getName()) ? "" : PageBase.createStringResourceStatic(i2.getName()).getString()));
+
+        basicSearchWrapper.getItemsList().sort(Comparator.comparing(i -> i instanceof PropertySearchItemWrapper));
+        return basicSearchWrapper;
+    }
+
+    private static <C extends Containerable> SearchBoxModeType getDefaultSearchMode(SearchBoxConfigurationType config, ModelServiceLocator modelServiceLocator, Class<C> type) {
+        if (isFullTextSearchEnabled(modelServiceLocator, type)) {
+            return SearchBoxModeType.FULLTEXT;
+        }
+        if (config == null || config.getDefaultMode() == null) {
+            return SearchBoxModeType.BASIC;
+        }
+
+        return config.getDefaultMode();
+    }
+
+    private static SearchBoxConfigurationType getConfiguredSearchBox(CompiledObjectCollectionView collectionView) {
+        if (collectionView == null) {
+            return null;
+        }
+
+        //TODO legacy support for members?
+        return collectionView.getSearchBoxConfiguration();
     }
 
     public static <C extends Containerable> Search<C> createSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
         return createSearch(type, null, modelServiceLocator);
-    }
-
-    public static <C extends Containerable> Search<C> createSearch(Class<C> type, String collectionViewName,  ModelServiceLocator modelServiceLocator) {
-        SearchConfigurationWrapper<C> searchConfigWrapper = createDefaultSearchBoxConfigurationWrapper(type, null, modelServiceLocator);
-        SearchBoxConfigurationType config = getSearchBoxConfiguration(modelServiceLocator,
-                WebComponentUtil.containerClassToQName(PrismContext.get(), type), collectionViewName, Search.PanelType.DEFAULT);
-        if (config != null) {
-            SearchConfigurationWrapper<C> preconfiguredSearchConfigWrapper = new SearchConfigurationWrapper<C>(type, config, modelServiceLocator);
-            preconfiguredSearchConfigWrapper.getItemsList().forEach(item -> item.setVisible(true));
-            searchConfigWrapper = combineSearchBoxConfiguration(searchConfigWrapper, preconfiguredSearchConfigWrapper, true);
-        }
-        searchConfigWrapper.setCollectionViewName(collectionViewName);
-        return createSearch(searchConfigWrapper, null, modelServiceLocator, Search.PanelType.DEFAULT, false);
-    }
-
-    /**
-     * use this method to create a search
-     * @param searchConfig
-     * @param modelServiceLocator
-     * @param <C>
-     * @return
-     */
-    public static <C extends Containerable> Search<C> createSearch(
-            SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
-        return createSearch(searchConfig, null, modelServiceLocator, Search.PanelType.DEFAULT, true);
-    }
-
-    public static <C extends Containerable> Search<C> createSearch(
-            SearchConfigurationWrapper<C> searchConfig, boolean mergeWithDefaultSearchWrapper, ModelServiceLocator modelServiceLocator) {
-        return createSearch(searchConfig, null, modelServiceLocator, Search.PanelType.DEFAULT, mergeWithDefaultSearchWrapper);
-    }
-
-    public static <C extends Containerable> Search<C> createSearch(
-            SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator, boolean combineWithDefaultConfig) {
-        return createSearch(searchConfig, null, modelServiceLocator, Search.PanelType.DEFAULT, true);
-    }
-
-   public static <C extends Containerable> Search<C> createMemberPanelSearch(
-           SearchConfigurationWrapper<C> searchConfig, ModelServiceLocator modelServiceLocator) {
-        return createSearch(searchConfig, null, modelServiceLocator, Search.PanelType.MEMBER_PANEL, true);
     }
 
     public static <C extends Containerable> Search<ShadowType> createProjectionsTabSearch(ModelServiceLocator modelServiceLocator) {
@@ -372,72 +231,22 @@ public class SearchFactory {
         return search;
     }
 
-    private static <C extends Containerable> Search<C> createSearch(
-            SearchConfigurationWrapper<C> searchConfigurationWrapper, ResourceShadowCoordinates coordinates,
-            ModelServiceLocator modelServiceLocator, Search.PanelType panelType, boolean mergeWithDefaultSearchWrapper) {
-        SearchConfigurationWrapper<C> searchConfWrapper;
-        if (mergeWithDefaultSearchWrapper) {
-            SearchConfigurationWrapper<C> defaultWrapper = createDefaultSearchBoxConfigurationWrapper(
-                    searchConfigurationWrapper.getTypeClass(), coordinates, modelServiceLocator);
-            searchConfWrapper = combineSearchBoxConfiguration(defaultWrapper, searchConfigurationWrapper);
-            if (!searchConfWrapper.getAllowedModeList().contains(searchConfWrapper.getDefaultSearchBoxMode())) {
-                if (searchConfWrapper.getAllowedModeList().contains(SearchBoxModeType.BASIC)) {
-                    searchConfWrapper.setDefaultSearchBoxMode(SearchBoxModeType.BASIC);
-                } else {
-                    searchConfWrapper.setDefaultSearchBoxMode(searchConfWrapper.getAllowedModeList().get(0));
-                }
-            }
-        } else {
-            searchConfWrapper = searchConfigurationWrapper;
+    private static <C extends Containerable> List<SearchBoxModeType> createAllowedModeList(Class<C> type, ModelServiceLocator modelServiceLocator) {
+        List<SearchBoxModeType> allowedModeTypes = Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY);
+        if (isFullTextSearchEnabled(modelServiceLocator, (Class<? extends ObjectType>) type)) {
+            allowedModeTypes.add(SearchBoxModeType.FULLTEXT);
         }
-        if (CollectionUtils.isNotEmpty(searchConfWrapper.getAllowedTypeList()) && !objectTypeSearchItemWrapperExists(searchConfWrapper.getItemsList())) {
-            ObjectTypeSearchItemWrapper typeItem = new ObjectTypeSearchItemWrapper(searchConfWrapper.getAllowedTypeList(),
-                    WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfWrapper.getTypeClass()));
-            typeItem.setAllowAllTypesSearch(searchConfWrapper.isAllowAllTypeSearch());
-            if (searchConfWrapper.getAllowedTypeList().size() == 1) {
-                typeItem.setVisible(false);
-            }
-            searchConfWrapper.getItemsList().add(typeItem);
-        }
-        if (searchConfWrapper.getAllowedModeList().contains(SearchBoxModeType.OID)) {
-            OidSearchItemWrapper oidWrapper = new OidSearchItemWrapper();
-            oidWrapper.setVisible(true);
-            searchConfWrapper.getItemsList().add(oidWrapper);
-        }
-        if (StringUtils.isEmpty(searchConfWrapper.getCollectionViewName())) {
-            //todo we need to get saved searches here for the specified type
-            List<CompiledObjectCollectionView> views = modelServiceLocator.getCompiledGuiProfile()
-                    .findAllApplicableObjectCollectionViews(WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfWrapper.getTypeClass()))
-                    .stream()
-                    .filter(v -> v.getFilter() != null)     //todo should we check also collectionRef?
-                    .collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(views)) {
-                ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(searchConfWrapper.getTypeClass(),
-                        views);
-                viewListItem.setVisible(true);
-                searchConfWrapper.getItemsList().add(viewListItem);
-            }
-        }
-        searchConfWrapper.getItemsList().sort((i1, i2) -> String.CASE_INSENSITIVE_ORDER.compare(
-                StringUtils.isEmpty(i1.getName()) ? "" : PageBase.createStringResourceStatic(i1.getName()).getString(),
-                StringUtils.isEmpty(i2.getName()) ? "" : PageBase.createStringResourceStatic(i2.getName()).getString()));
-
-        searchConfWrapper.getItemsList().sort(Comparator.comparing(i -> i instanceof PropertySearchItemWrapper));
-
-        Search<C> search = new Search<>(searchConfWrapper);
-        QName typeQname = WebComponentUtil.containerClassToQName(PrismContext.get(), searchConfigurationWrapper.getTypeClass());
-        searchConfigurationWrapper.setAllowToConfigureSearchItems(
-                isAllowToConfigureSearchItems(modelServiceLocator, typeQname, searchConfigurationWrapper.getCollectionViewName(), panelType));
-        return search;
+        return allowedModeTypes;
     }
 
     public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
-            SearchItemType item, ItemDefinition<?> itemDef, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
+            SearchItemType item, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
         ItemPath itemPath = null;
-        if (itemDef == null && item.getPath() != null) {
+        ItemDefinition<?> itemDef = null;
+        if (item.getPath() != null) {
             PrismContainerDefinition<C> def;
             if (ObjectType.class.isAssignableFrom(type) && modelServiceLocator != null) {
-                def = findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
+                def = PredefinedSearchableItems.findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
             } else {
                 def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
             }
@@ -457,11 +266,7 @@ public class SearchFactory {
                 createPropertySearchItemWrapper(
                         type, itemDef, itemPath, valueTypeName, availableValues, lookupTable, item.getFilter());
 
-        boolean isFixedItem = false;
-        if (itemPath != null) {
-            isFixedItem = isFixedItem(type, itemPath);
-        }
-        searchItemWrapper.setVisible(isFixedItem || hasParameter(item));
+        searchItemWrapper.setVisible(BooleanUtils.isTrue(item.isVisibleByDefault()) || hasParameter(item));
         searchItemWrapper.setValueTypeName(valueTypeName);
 
         searchItemWrapper.setName(getSearchItemName(item, itemDef));
@@ -529,10 +334,6 @@ public class SearchFactory {
 
     private static boolean hasParameter(SearchItemType searchItem) {
         return searchItem != null && searchItem.getParameter() != null;
-    }
-
-    private static boolean hasParameter(AbstractSearchItemWrapper searchItem) {
-        return searchItem != null && StringUtils.isNotEmpty(searchItem.getParameterName());
     }
 
     private static List<DisplayableValue<?>> getSearchItemAvailableValues(SearchItemType searchItem, ItemDefinition<?> def,
@@ -631,269 +432,73 @@ public class SearchFactory {
         }
         return false;
     }
-    public static void createAbstractRoleSearchItemWrapperList(SearchConfigurationWrapper searchConfigWrapper, SearchBoxConfigurationType config) {
-        if (config.getObjectTypeConfiguration() != null) {
-            ObjectTypeSearchItemWrapper objectTypeSearchItemWrapper = new ObjectTypeSearchItemWrapper(config.getObjectTypeConfiguration());
-            if (config.getObjectTypeConfiguration().getDisplay() != null) {
-                objectTypeSearchItemWrapper.setName(WebComponentUtil.getTranslatedPolyString(config.getObjectTypeConfiguration().getDisplay().getLabel()));
-                objectTypeSearchItemWrapper.setHelp(WebComponentUtil.getTranslatedPolyString(config.getObjectTypeConfiguration().getDisplay().getHelp()));
-            }
-            if (config.getObjectTypeConfiguration().getVisibility() != null) {
-                objectTypeSearchItemWrapper.setVisible(WebComponentUtil.getElementVisibility(config.getObjectTypeConfiguration().getVisibility()));
-            }
-            searchConfigWrapper.getItemsList().add(objectTypeSearchItemWrapper);
-        }
-        if (config.getRelationConfiguration() != null) {
-            RelationSearchItemWrapper relation = new RelationSearchItemWrapper(searchConfigWrapper);
-            if (config.getRelationConfiguration().getDisplay() != null) {
-                relation.setName(WebComponentUtil.getTranslatedPolyString(config.getRelationConfiguration().getDisplay().getLabel()));
-                relation.setHelp(WebComponentUtil.getTranslatedPolyString(config.getRelationConfiguration().getDisplay().getHelp()));
-            }
-            if (config.getRelationConfiguration().getVisibility() != null) {
-                relation.setVisible(WebComponentUtil.getElementVisibility(config.getRelationConfiguration().getVisibility()));
-            }
-            searchConfigWrapper.getItemsList().add(relation);
+    public static void createAbstractRoleSearchItemWrapperList(QName abstractRoleType, SearchConfigurationWrapper searchConfigWrapper, SearchBoxConfigurationType config) {
+        AbstractRoleSearchItemWrapper roleSearchWrapper = new AbstractRoleSearchItemWrapper(abstractRoleType, config);
+        if (roleSearchWrapper.isNotEmpty()){
+            searchConfigWrapper.getItemsList().add(roleSearchWrapper);
         }
 
-        if (config.getIndirectConfiguration() != null) {
-            IndirectSearchItemWrapper indirect = new IndirectSearchItemWrapper(searchConfigWrapper);
-            if (config.getIndirectConfiguration().getDisplay() != null) {
-                indirect.setName(WebComponentUtil.getTranslatedPolyString(config.getIndirectConfiguration().getDisplay().getLabel()));
-                indirect.setHelp(WebComponentUtil.getTranslatedPolyString(config.getIndirectConfiguration().getDisplay().getHelp()));
-            }
-            if (config.getIndirectConfiguration().getVisibility() != null) {
-                indirect.setVisible(WebComponentUtil.getElementVisibility(config.getIndirectConfiguration().getVisibility()));
-            }
-            searchConfigWrapper.getItemsList().add(indirect);
-        }
-
-        if (config.getScopeConfiguration() != null) {
-            ScopeSearchItemWrapper scope = new ScopeSearchItemWrapper(searchConfigWrapper);
-            if (config.getScopeConfiguration().getDisplay() != null) {
-                scope.setName(WebComponentUtil.getTranslatedPolyString(config.getScopeConfiguration().getDisplay().getLabel()));
-                scope.setHelp(WebComponentUtil.getTranslatedPolyString(config.getScopeConfiguration().getDisplay().getHelp()));
-            }
-            if (config.getScopeConfiguration().getVisibility() != null) {
-                scope.setVisible(WebComponentUtil.getElementVisibility(config.getScopeConfiguration().getVisibility()));
-            }
-            searchConfigWrapper.getItemsList().add(scope);
-        }
-        if (config.getProjectConfiguration() != null) {
-            ProjectSearchItemWrapper project = new ProjectSearchItemWrapper(searchConfigWrapper);
-            if (config.getProjectConfiguration().getDisplay() != null) {
-                project.setName(WebComponentUtil.getTranslatedPolyString(config.getProjectConfiguration().getDisplay().getLabel()));
-                project.setHelp(WebComponentUtil.getTranslatedPolyString(config.getProjectConfiguration().getDisplay().getHelp()));
-            }
-            if (config.getProjectConfiguration().getVisibility() != null) {
-                project.setVisible(WebComponentUtil.getElementVisibility(config.getProjectConfiguration().getVisibility()));
-            }
-            searchConfigWrapper.getItemsList().add(project);
-        }
-        if (config.getTenantConfiguration() != null) {
-            TenantSearchItemWrapper tenant = new TenantSearchItemWrapper(searchConfigWrapper);
-            if (config.getTenantConfiguration().getDisplay() != null) {
-                tenant.setName(WebComponentUtil.getTranslatedPolyString(config.getTenantConfiguration().getDisplay().getLabel()));
-                tenant.setHelp(WebComponentUtil.getTranslatedPolyString(config.getTenantConfiguration().getDisplay().getHelp()));
-            }
-            if (config.getTenantConfiguration().getVisibility() != null) {
-                tenant.setVisible(WebComponentUtil.getElementVisibility(config.getTenantConfiguration().getVisibility()));
-            }
-            searchConfigWrapper.getItemsList().add(tenant);
-        }
-    }
-
-    private static SearchConfigurationWrapper combineSearchBoxConfiguration(SearchConfigurationWrapper config, SearchConfigurationWrapper customConfig) {
-        return combineSearchBoxConfiguration(config, customConfig, false);
-    }
-
-    private static SearchConfigurationWrapper combineSearchBoxConfiguration(SearchConfigurationWrapper config,
-            SearchConfigurationWrapper customConfig, boolean replaceSearchItems) {
-        if (config == null) {
-            return customConfig;
-        }
-        if (customConfig == null) {
-            return config;
-        }
-        if (CollectionUtils.isNotEmpty(customConfig.getAllowedModeList())) {
-            config.getAllowedModeList().clear();
-            config.getAllowedModeList().addAll(customConfig.getAllowedModeList());
-        }
-        if (StringUtils.isNotEmpty(customConfig.getCollectionRefOid())) {
-            config.setCollectionRefOid(customConfig.getCollectionRefOid());
-        }
-        if (StringUtils.isNotEmpty(customConfig.getCollectionViewName())) {
-            config.setCollectionViewName(customConfig.getCollectionViewName());
-        }
-        if (customConfig.getDefaultSearchBoxMode() != null  && config.getAllowedModeList().contains(customConfig.getDefaultScope())) {
-            config.setDefaultSearchBoxMode(customConfig.getDefaultSearchBoxMode());
-        }
-        if (customConfig.getDefaultScope() != null) {
-            config.setDefaultScope(customConfig.getDefaultScope());
-        }
-        if (customConfig.getTypeClass() != null) {
-            config.setTypeClass(customConfig.getTypeClass());
-        }
-        if (CollectionUtils.isNotEmpty(customConfig.getAllowedTypeList())) {
-            config.getAllowedTypeList().clear();
-            config.getAllowedTypeList().addAll(customConfig.getAllowedTypeList());
-        }
-        if (customConfig.getDefaultRelation() != null) {
-            config.setDefaultRelation(customConfig.getDefaultRelation());
-        }
-        if (CollectionUtils.isNotEmpty(customConfig.getSupportedRelations())) {
-            config.getSupportedRelations().clear();
-            config.getSupportedRelations().addAll(customConfig.getSupportedRelations());
-        }
-
-        if (CollectionUtils.isNotEmpty(customConfig.getItemsList())) {
-            if (replaceSearchItems) {
-                config.getItemsList().clear();
-                config.getItemsList().addAll(customConfig.getItemsList());
-            } else {
-                customConfig.getItemsList().forEach(item -> {
-                    addOrReplaceSearchItemWrapper(config, (AbstractSearchItemWrapper) item);
-                });
-            }
-        }
-        config.setAllowToConfigureSearchItems(customConfig.isAllowToConfigureSearchItems());
-        return config;
-    }
-
-    private static void addOrReplaceSearchItemWrapper(SearchConfigurationWrapper config, AbstractSearchItemWrapper customItem) {
-        List<AbstractSearchItemWrapper> items = config.getItemsList();
-        boolean execute = false;
-        if (customItem instanceof PropertySearchItemWrapper) {
-            Iterator<AbstractSearchItemWrapper> itemsIterator = items.iterator();
-            while (itemsIterator.hasNext()) {
-                AbstractSearchItemWrapper item = itemsIterator.next();
-                if (!hasParameter(item) && item instanceof PropertySearchItemWrapper &&
-                        ((PropertySearchItemWrapper<?>) item).getPath().equivalent(((PropertySearchItemWrapper<?>) customItem).getPath())) {
-                    execute = true;
-                } else if (item instanceof AbstractRoleSearchItemWrapper && customItem.getClass().equals(item.getClass())) {
-                    execute = true;
-                }
-                if (execute) {
-                    itemsIterator.remove();
-                    items.add(customItem);
-                    break;
-                }
-            }
-            if (!execute) {
-                items.add(customItem);
-            }
-            return;
-        }
-
-        for (AbstractSearchItemWrapper item : items) {
-            if (item.getClass().equals(customItem.getClass())) {
-                items.remove(item);
-                items.add(customItem);
-                execute = true;
-                break;
-            }
-        }
-        if (!execute) {
-            items.add(customItem);
-        }
-    }
-
-    public static ScopeSearchItemConfigurationType combineScopeSearchItem(ScopeSearchItemConfigurationType scope1, ScopeSearchItemConfigurationType scope2) {
-        ScopeSearchItemConfigurationType scopeConfig = combineCustomUserInterfaceFeatureType(scope1, scope2);
-        if (scopeConfig != scope2) {
-            if (scope2 != null && scope2.getDefaultValue() != null) {
-                scopeConfig.setDefaultValue(scope2.getDefaultValue());
-            } else if (scope1 != null) {
-                scopeConfig.setDefaultValue(scope1.getDefaultValue());
-            }
-        }
-        return scopeConfig;
-    }
-
-    private static <F extends UserInterfaceFeatureType> F combineCustomUserInterfaceFeatureType(F feature, F customFeature) {
-        if (feature == null) {
-            return customFeature;
-        }
-        if (customFeature == null) {
-            return feature;
-        }
-        if (StringUtils.isNotEmpty(customFeature.getDescription())) {
-            feature.description(customFeature.getDescription());
-        }
-        if (StringUtils.isNotEmpty(customFeature.getDocumentation())) {
-            feature.documentation(customFeature.getDocumentation());
-        }
-        feature.setDisplay(WebComponentUtil.combineDisplay(feature.getDisplay(), customFeature.getDisplay()));
-        if (customFeature.getVisibility() != null) {
-            feature.setVisibility(customFeature.getVisibility());
-        }
-        if (customFeature.getDisplayOrder() != null) {
-            feature.setDisplayOrder(customFeature.getDisplayOrder());
-        }
-        if (customFeature.getApplicableForOperation() != null) {
-            feature.setApplicableForOperation(customFeature.getApplicableForOperation());
-        }
-        return feature;
-    }
-
-    private static SearchItemsType combineSearchItems(SearchItemsType searchItems, SearchItemsType customSearchItems) {
-        if (searchItems == null || CollectionUtils.isEmpty(searchItems.getSearchItem())) {
-            return customSearchItems;
-        }
-        if (customSearchItems == null || CollectionUtils.isEmpty(customSearchItems.getSearchItem())) {
-            return searchItems;
-        }
-        customSearchItems.getSearchItem().forEach(customItem -> {
-            SearchItemType item = findSearchItemByPath(searchItems.getSearchItem(), customItem.getPath());
-            if (item != null) {
-                combineSearchItem(item, customItem);
-            } else {
-                searchItems.getSearchItem().add(customItem.clone());
-            }
-        });
-        return searchItems;
-    }
-
-    private static SearchItemType findSearchItemByPath(List<SearchItemType> itemList, ItemPathType path) {
-        if (path == null) {
-            return null;
-        }
-        for (SearchItemType item : itemList) {
-            if (path.equivalent(item.getPath())) {
-                return item;
-            }
-        }
-        return null;
-    }
-
-    private static SearchItemType combineSearchItem(SearchItemType item, SearchItemType customItem) {
-        if (item == null) {
-             return customItem;
-        }
-        if (customItem == null) {
-            return item;
-        }
-        if (customItem.getPath() != null) {
-            item.setPath(customItem.getPath());
-        }
-        if (customItem.getFilter() != null) {
-            item.setFilter(customItem.getFilter());
-        }
-        if (customItem.getFilterExpression() != null) {
-            item.setFilterExpression(customItem.getFilterExpression());
-        }
-        if (customItem.getDescription() != null) {
-            item.setDescription(customItem.getDescription());
-        }
-        if (customItem.getDisplayName() != null) {
-            item.setDisplayName(customItem.getDisplayName());
-        }
-        if (customItem.getParameter() != null) {
-            item.setParameter(customItem.getParameter());
-        }
-        if (customItem.isVisibleByDefault() != null) {
-            item.setVisibleByDefault(customItem.isVisibleByDefault());
-        }
-        return item;
+//        if (config.getRelationConfiguration() != null) {
+//            RelationSearchItemConfigurationType relationConfiguration = config.getRelationConfiguration();
+//            RelationSearchItemWrapper relation = new RelationSearchItemWrapper(relationConfiguration);
+//            if (relationConfiguration.getDisplay() != null) {
+//                relation.setName(WebComponentUtil.getTranslatedPolyString(relationConfiguration.getDisplay().getLabel()));
+//                relation.setHelp(WebComponentUtil.getTranslatedPolyString(relationConfiguration.getDisplay().getHelp()));
+//            }
+//            if (relationConfiguration.getVisibility() != null) {
+//                relation.setVisible(WebComponentUtil.getElementVisibility(relationConfiguration.getVisibility()));
+//            }
+//            if (relationConfiguration.getSupportedRelations() != null) {
+//                relation.
+//            }
+//            searchConfigWrapper.getItemsList().add(relation);
+//        }
+//
+//        if (config.getIndirectConfiguration() != null) {
+//            IndirectSearchItemWrapper indirect = new IndirectSearchItemWrapper(searchConfigWrapper);
+//            if (config.getIndirectConfiguration().getDisplay() != null) {
+//                indirect.setName(WebComponentUtil.getTranslatedPolyString(config.getIndirectConfiguration().getDisplay().getLabel()));
+//                indirect.setHelp(WebComponentUtil.getTranslatedPolyString(config.getIndirectConfiguration().getDisplay().getHelp()));
+//            }
+//            if (config.getIndirectConfiguration().getVisibility() != null) {
+//                indirect.setVisible(WebComponentUtil.getElementVisibility(config.getIndirectConfiguration().getVisibility()));
+//            }
+//            searchConfigWrapper.getItemsList().add(indirect);
+//        }
+//
+//        if (config.getScopeConfiguration() != null) {
+//            ScopeSearchItemWrapper scope = new ScopeSearchItemWrapper(searchConfigWrapper);
+//            if (config.getScopeConfiguration().getDisplay() != null) {
+//                scope.setName(WebComponentUtil.getTranslatedPolyString(config.getScopeConfiguration().getDisplay().getLabel()));
+//                scope.setHelp(WebComponentUtil.getTranslatedPolyString(config.getScopeConfiguration().getDisplay().getHelp()));
+//            }
+//            if (config.getScopeConfiguration().getVisibility() != null) {
+//                scope.setVisible(WebComponentUtil.getElementVisibility(config.getScopeConfiguration().getVisibility()));
+//            }
+//            searchConfigWrapper.getItemsList().add(scope);
+//        }
+//        if (config.getProjectConfiguration() != null) {
+//            ProjectSearchItemWrapper project = new ProjectSearchItemWrapper(searchConfigWrapper);
+//            if (config.getProjectConfiguration().getDisplay() != null) {
+//                project.setName(WebComponentUtil.getTranslatedPolyString(config.getProjectConfiguration().getDisplay().getLabel()));
+//                project.setHelp(WebComponentUtil.getTranslatedPolyString(config.getProjectConfiguration().getDisplay().getHelp()));
+//            }
+//            if (config.getProjectConfiguration().getVisibility() != null) {
+//                project.setVisible(WebComponentUtil.getElementVisibility(config.getProjectConfiguration().getVisibility()));
+//            }
+//            searchConfigWrapper.getItemsList().add(project);
+//        }
+//        if (config.getTenantConfiguration() != null) {
+//            TenantSearchItemWrapper tenant = new TenantSearchItemWrapper(searchConfigWrapper);
+//            if (config.getTenantConfiguration().getDisplay() != null) {
+//                tenant.setName(WebComponentUtil.getTranslatedPolyString(config.getTenantConfiguration().getDisplay().getLabel()));
+//                tenant.setHelp(WebComponentUtil.getTranslatedPolyString(config.getTenantConfiguration().getDisplay().getHelp()));
+//            }
+//            if (config.getTenantConfiguration().getVisibility() != null) {
+//                tenant.setVisible(WebComponentUtil.getElementVisibility(config.getTenantConfiguration().getVisibility()));
+//            }
+//            searchConfigWrapper.getItemsList().add(tenant);
+//        }
     }
 
     public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(Class<C> type,
@@ -901,62 +506,25 @@ public class SearchFactory {
         return createDefaultSearchBoxConfigurationWrapper(type, null, modelServiceLocator);
     }
 
+    public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(Class<C> type,
+            SearchBoxConfigurationType mergedConfig, ModelServiceLocator modelServiceLocator) {
+        return createDefaultSearchBoxConfigurationWrapper(type, mergedConfig, null, modelServiceLocator);
+    }
+
     public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(
-            Class<C> type, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
-        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper(type, modelServiceLocator);
-        PrismContainerDefinition<C> def = null;
-        if (ObjectType.class.isAssignableFrom(type)) {
-            def = findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
-        } else {
-            def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-        }
-
-        Map<ItemPath, ItemDefinition<?>> availableDefs = getSearchableDefinitionMap(def, modelServiceLocator);
-
-        availableDefs.keySet().forEach(path -> {
-            searchConfigWrapper.getItemsList().add(createPropertySearchItemWrapper(type, new SearchItemType().path(new ItemPathType(path)),
-                    availableDefs.get(path), null, modelServiceLocator));
-        });
-        if (ObjectType.class.isAssignableFrom(type)) {
-            searchConfigWrapper.setTypeClass(type);
-        }
-        searchConfigWrapper
-                .addAllowedMode(SearchBoxModeType.BASIC)
-                .addAllowedMode(SearchBoxModeType.ADVANCED)
-                .addAllowedMode(SearchBoxModeType.AXIOM_QUERY);
-        searchConfigWrapper.setDefaultSearchBoxMode(SearchBoxModeType.BASIC);
-
-        if (ObjectType.class.isAssignableFrom(type) && isFullTextSearchEnabled(modelServiceLocator, (Class<? extends ObjectType>) type)) {
-            searchConfigWrapper.addAllowedMode(SearchBoxModeType.FULLTEXT);
-            searchConfigWrapper.setDefaultSearchBoxMode(SearchBoxModeType.FULLTEXT);
+            Class<C> type, @NotNull SearchBoxConfigurationType mergedConfig, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
+        SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper();
+        SearchItemsType searchItems = mergedConfig.getSearchItems();
+        for (SearchItemType searchItem : searchItems.getSearchItem()) {
+            searchConfigWrapper.getItemsList().add(createPropertySearchItemWrapper(type, searchItem,  null, modelServiceLocator));
         }
         return searchConfigWrapper;
     }
 
-    public static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
-            Class<T> type, ResourceShadowCoordinates coordinates,
-            ModelServiceLocator modelServiceLocator) {
-
-        Task task = modelServiceLocator.createSimpleTask(LOAD_OBJECT_DEFINITION);
-        OperationResult result = task.getResult();
-        try {
-            if (Modifier.isAbstract(type.getModifiers())) {
-                SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
-                return registry.findObjectDefinitionByCompileTimeClass(type);
-            }
-            PrismObject empty = modelServiceLocator.getPrismContext().createObject(type);
-
-            if (ShadowType.class.equals(type)) {
-                return modelServiceLocator.getModelInteractionService().getEditShadowDefinition(
-                        coordinates, AuthorizationPhaseType.REQUEST, task, result);
-            } else {
-                return modelServiceLocator.getModelInteractionService().getEditObjectDefinition(
-                        empty, AuthorizationPhaseType.REQUEST, task, result);
-            }
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | SecurityViolationException ex) {
-            result.recordFatalError(ex.getMessage());
-            throw new SystemException(ex);
-        }
+    private static <C extends Containerable> SearchItemType createSearchItem(Class<C> type, ItemPath path) {
+        SearchItemType searchItemType = new SearchItemType().path(new ItemPathType(path));
+        searchItemType.setVisibleByDefault(PredefinedSearchableItems.isFixedItem(type, path));
+        return searchItemType;
     }
 
     public static List<SearchItemDefinition> getConfiguredSearchItemDefinitions(List<SearchItemDefinition> availableDefinitions,
@@ -989,39 +557,6 @@ public class SearchFactory {
         return configuredSearchItemList;
     }
 
-    public static <C extends Containerable> List<SearchItemDefinition> getAvailableDefinitions(
-            PrismContainerDefinition<C> objectDef, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, ModelServiceLocator modelServiceLocator) {
-        List<SearchItemDefinition> definitions = new ArrayList<>();
-
-        if (objectDef == null) {
-            return definitions;
-        }
-
-        definitions.addAll(createExtensionDefinitionList(objectDef));
-
-        Class<C> typeClass = objectDef.getCompileTimeClass();
-        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
-            List<ItemPath> paths = CollectionUtils.isEmpty(availableItemPath) ? getAvailableSearchableItems(typeClass, modelServiceLocator) : availableItemPath;
-            if (paths != null) {
-                for (ItemPath path : paths) {
-                    ItemDefinition<?> def = objectDef.findItemDefinition(path);
-                    if (def != null) {
-                        SearchItemDefinition searchItemDef = new SearchItemDefinition(path, def, getAllowedValues(path));
-                        definitions.add(searchItemDef);
-                    }
-                }
-            }
-
-            if (!useDefsFromSuperclass) {
-                break;
-            }
-
-            typeClass = (Class<C>) typeClass.getSuperclass();
-        }
-
-        return definitions;
-    }
-
     private static List<DisplayableValue<?>> getAllowedValues(ItemPath path) {
         if (AuditEventRecordType.F_CHANNEL.equivalent(path)) {
             List<DisplayableValue<?>> list = new ArrayList<>();
@@ -1033,28 +568,9 @@ public class SearchFactory {
         return null;
     }
 
-    public static List<ItemPath> getAvailableSearchableItems(Class<?> typeClass, ModelServiceLocator modelServiceLocator) {
-        List<ItemPath> items = SEARCHABLE_OBJECTS.get(typeClass);
-        if (AuditEventRecordType.class.equals(typeClass)) {
-            SystemConfigurationType systemConfigurationType;
-            try {
-                systemConfigurationType = modelServiceLocator.getModelInteractionService()
-                        .getSystemConfiguration(new OperationResult("load_system_config"));
-            } catch (SchemaException | ObjectNotFoundException e) {
-                throw new SystemException(e);
-            }
-            if (systemConfigurationType != null && systemConfigurationType.getAudit() != null
-                    && systemConfigurationType.getAudit().getEventRecording() != null &&
-                    Boolean.TRUE.equals(systemConfigurationType.getAudit().getEventRecording().isRecordResourceOids())) {
-                ArrayList<ItemPath> auditItems = new ArrayList<>(items);
-                auditItems.add(ItemPath.create(AuditEventRecordType.F_RESOURCE_OID));
-                items = auditItems;
-            }
-        }
-        return items;
-    }
 
-    private static <T extends ObjectType> boolean isFullTextSearchEnabled(ModelServiceLocator modelServiceLocator, Class<T> type) {
+
+    private static <T extends Containerable> boolean isFullTextSearchEnabled(ModelServiceLocator modelServiceLocator, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_SYSTEM_CONFIGURATION);
         try {
             return FullTextSearchUtil.isEnabledFor(modelServiceLocator.getModelInteractionService().getSystemConfiguration(result)
@@ -1064,13 +580,11 @@ public class SearchFactory {
         }
     }
 
-    private static boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, QName type,
-            String collectionViewName, Search.PanelType panelType) {
-        SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
-        if (searchConfig == null || searchConfig.isAllowToConfigureSearchItems() == null) {
+    private static boolean isAllowToConfigureSearchItems(SearchBoxConfigurationType searchBoxConfigurationType) {
+        if (searchBoxConfigurationType == null || searchBoxConfigurationType.isAllowToConfigureSearchItems() == null) {
             return true; //todo should be set to false
         }
-        return searchConfig.isAllowToConfigureSearchItems();
+        return searchBoxConfigurationType.isAllowToConfigureSearchItems();
     }
 
     private static SearchBoxConfigurationType getSearchBoxConfiguration(ModelServiceLocator modelServiceLocator,
@@ -1093,6 +607,38 @@ public class SearchFactory {
         }
     }
 
+    public static <C extends Containerable> List<SearchItemDefinition> getAvailableDefinitions(
+            PrismContainerDefinition<C> objectDef, List<ItemPath> availableItemPath, boolean useDefsFromSuperclass, ModelServiceLocator modelServiceLocator) {
+        List<SearchItemDefinition> definitions = new ArrayList<>();
+
+        if (objectDef == null) {
+            return definitions;
+        }
+
+        definitions.addAll(createExtensionDefinitionList(objectDef));
+
+        Class<C> typeClass = objectDef.getCompileTimeClass();
+        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
+            List<ItemPath> paths = CollectionUtils.isEmpty(availableItemPath) ? PredefinedSearchableItems.getAvailableSearchableItems(typeClass, modelServiceLocator) : availableItemPath;
+            if (paths != null) {
+                for (ItemPath path : paths) {
+                    ItemDefinition<?> def = objectDef.findItemDefinition(path);
+                    if (def != null) {
+                        SearchItemDefinition searchItemDef = new SearchItemDefinition(path, def, getAllowedValues(path));
+                        definitions.add(searchItemDef);
+                    }
+                }
+            }
+
+            if (!useDefsFromSuperclass) {
+                break;
+            }
+
+            typeClass = (Class<C>) typeClass.getSuperclass();
+        }
+
+        return definitions;
+    }
     @Deprecated
     public static <C extends Containerable> List<SearchItemDefinition> createExtensionDefinitionList(
             PrismContainerDefinition<C> objectDef) {
@@ -1131,34 +677,6 @@ public class SearchFactory {
         return searchItemDefinitions;
     }
 
-    public static <C extends Containerable> List<AbstractSearchItemWrapper> createSearchableExtensionWrapperList(
-            PrismContainerDefinition<C> objectDef, ModelServiceLocator modelServiceLocator) {
-        return createSearchableExtensionWrapperList(objectDef, modelServiceLocator, ObjectType.F_EXTENSION);
-    }
-
-    public static <C extends Containerable> List<AbstractSearchItemWrapper> createSearchableExtensionWrapperList(
-            PrismContainerDefinition<C> objectDef, ModelServiceLocator modelServiceLocator, ItemPath extensionPath) {
-
-        List<AbstractSearchItemWrapper> searchItemWrappers = new ArrayList<>();
-        PrismContainerDefinition ext = objectDef.findContainerDefinition(extensionPath);
-        if (ext == null) {
-            return searchItemWrappers;
-        }
-        if (ext != null && ext.getDefinitions() != null) {
-            List<ItemDefinition<?>> defs = ((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
-                    .filter(def -> (def instanceof PrismReferenceDefinition || def instanceof PrismPropertyDefinition)
-                            && isIndexed(def)).collect(Collectors.toList());
-            for(ItemDefinition<?> def : defs) {
-                var searchItem = new SearchItemType()
-                        .path(new ItemPathType(ItemPath.create(extensionPath, def.getItemName())))
-                        .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(def, null));
-                searchItemWrappers.add(createPropertySearchItemWrapper(objectDef.getCompileTimeClass(),
-                        searchItem, def, null, modelServiceLocator));
-            }
-        }
-        return searchItemWrappers;
-    }
-
     public static <C extends Containerable> Map<ItemPath, ItemDefinition<?>> getSearchableDefinitionMap(
             PrismContainerDefinition<C> containerDef, ModelServiceLocator modelServiceLocator) {
         return getSearchableDefinitionMap(containerDef, modelServiceLocator, true);
@@ -1188,7 +706,7 @@ public class SearchFactory {
         }
         Class<C> typeClass = containerDef.getCompileTimeClass();
         while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
-            List<ItemPath> paths = getAvailableSearchableItems(typeClass, modelServiceLocator);
+            List<ItemPath> paths = PredefinedSearchableItems.getAvailableSearchableItems(typeClass, modelServiceLocator);
             if (paths != null) {
                 for (ItemPath path : paths) {
                     ItemDefinition<?> def = containerDef.findItemDefinition(path);
@@ -1207,18 +725,7 @@ public class SearchFactory {
         return searchableDefinitions;
     }
 
-    public static <C extends Containerable> boolean isFixedItem(Class<C> typeClass, ItemPath path) {
 
-        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
-            if (FIXED_SEARCH_ITEMS.get(typeClass) != null &&
-                    ItemPathCollectionsUtil.containsEquivalent(FIXED_SEARCH_ITEMS.get(typeClass), path)) {
-                return true;
-            }
-            typeClass = (Class<C>) typeClass.getSuperclass();
-        }
-
-        return false;
-    }
 
     @Deprecated
     public static <C extends Containerable> void addSearchRefDef(
@@ -1269,7 +776,7 @@ public class SearchFactory {
             return;
         }
         ReferenceSearchItemWrapper item = (ReferenceSearchItemWrapper) createPropertySearchItemWrapper(containerDef.getCompileTimeClass(),
-                new SearchItemType().path(new ItemPathType(path)), refDef, null, pageBase);
+                createSearchItem(containerDef.getCompileTimeClass(), path), null, pageBase);
         if (pageBase == null) {
             item.getAvailableValues().addAll(Collections.singletonList(WebComponentUtil.getDefaultRelationOrFail()));
             return;
@@ -1295,7 +802,7 @@ public class SearchFactory {
             return;
         }
         PropertySearchItemWrapper item = createPropertySearchItemWrapper(containerDef.getCompileTimeClass(),
-                new SearchItemType().path(new ItemPathType(propDef.getItemName())), propDef, null, modelServiceLocator);
+                createSearchItem(containerDef.getCompileTimeClass(), propDef.getItemName()), null, modelServiceLocator);
         if (key != null) {
             PolyStringType displayName = new PolyStringType(propDef.getItemName().getLocalPart());
             PolyStringTranslationType translation = new PolyStringTranslationType();
@@ -1305,11 +812,6 @@ public class SearchFactory {
             item.setName(WebComponentUtil.getTranslatedPolyString(displayName));
         }
         defs.add(item);
-    }
-
-    public static ScopeSearchItemConfigurationType createScopeSearchItem() {
-        //todo set default value here?
-        return new ScopeSearchItemConfigurationType();
     }
 
     private static boolean isIndexed(ItemDefinition def) {

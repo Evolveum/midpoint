@@ -53,7 +53,7 @@ public class ConstructionAssignmentsPanel<AH extends AssignmentHolderType> exten
     @Override
     protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
         List<? super AbstractSearchItemWrapper> defs = super.createSearchableItemWrappers(containerDef);
-        SearchFactory.addSearchRefWrapper(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
+//        SearchFactory.addSearchRefWrapper(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
         return defs;
     }
 

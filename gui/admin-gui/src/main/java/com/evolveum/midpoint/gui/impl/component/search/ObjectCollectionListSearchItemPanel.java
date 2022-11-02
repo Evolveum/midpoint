@@ -13,16 +13,16 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-public class ObjectCollectionListSearchItemPanel extends AbstractSearchItemPanel<ObjectCollectionListSearchItemWrapper> {
+public class ObjectCollectionListSearchItemPanel extends SingleSearchItemPanel<ObjectCollectionListSearchItemWrapper> {
 
     public ObjectCollectionListSearchItemPanel(String id, IModel<ObjectCollectionListSearchItemWrapper> searchItemModel) {
         super(id, searchItemModel);
     }
 
     @Override
-    protected Component initSearchItemField() {
+    protected Component initSearchItemField(String id) {
         return WebComponentUtil.createDropDownChoices(
-                ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value"),
+                id, new PropertyModel(getModel(), "value"),
                 Model.ofList(getModelObject().getViewNameList()), true, getPageBase());
     }
 }

@@ -74,7 +74,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 
     @Override
     protected Search createSearch(Class<C> type) {
-        return SearchFactory.createSearch(createSearchConfigWrapper(type), getPageBase());
+        return SearchFactory.createSearch(type, getObjectCollectionView(), getPageBase());
     }
 
     private SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type) {
@@ -84,11 +84,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         }
 
 
-        SearchConfigurationWrapper<C> searchConfigWrapper = maybeConfig != null ? new SearchConfigurationWrapper<C>(type, maybeConfig, getPageBase()) : new SearchConfigurationWrapper<C>(type, getPageBase());
-        CompiledObjectCollectionView collectionView = getObjectCollectionView();
-        if (objectCollectionRefExists(collectionView)) {
-            searchConfigWrapper.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());
-        }
+        SearchConfigurationWrapper<C> searchConfigWrapper = maybeConfig != null ? new SearchConfigurationWrapper<C>(maybeConfig) : new SearchConfigurationWrapper<C>();
+//        CompiledObjectCollectionView collectionView = getObjectCollectionView();
+//        if (objectCollectionRefExists(collectionView)) {
+//            searchConfigWrapper.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());
+//        }
         PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
         List<AbstractSearchItemWrapper> items = (List<AbstractSearchItemWrapper>) initSearchableItemWrappers(containerDefinition);
         if (items != null) {

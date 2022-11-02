@@ -21,12 +21,14 @@ import com.evolveum.midpoint.gui.impl.component.search.ChoicesSearchItemWrapper;
 import com.evolveum.midpoint.web.page.admin.resources.ResourceContentResourcePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -52,30 +54,37 @@ public class TenantRefWrapperFactory extends PrismReferenceWrapperFactory<Object
     @Override
     protected PrismReferenceWrapper<ObjectReferenceType> createWrapperInternal(PrismContainerValueWrapper<?> parent, PrismReference item, ItemStatus status, WrapperContext ctx) {
         PrismReferenceWrapper<ObjectReferenceType> wrapper =  super.createWrapperInternal(parent, item, status, ctx);
-
-        wrapper.setSpecialSearchItemFunctions(Collections.singleton(this::createTenantSearchItem));
+        wrapper.setPredefinedSearchItem(Set.of(createTenantSearchItem()));
+//        wrapper.setSpecialSearchItemFunctions(Collections.singleton(this::createTenantSearchItem));
         return wrapper;
     }
 
-    private AbstractSearchItemWrapper createTenantSearchItem() {
+    private SearchItemType createTenantSearchItem() {
+        SearchItemType searchItem = new SearchItemType();
+        searchItem.setPath(new ItemPathType(OrgType.F_TENANT));
+        searchItem.setVisibleByDefault(true);
+        SearchFilterType searchFilter = new SearchFilterType();
+        searchFilter.setText("tenant = true");
+        searchItem.setFilter(searchFilter);
+        return searchItem;
 //        PrismPropertyDefinition tenantDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(OrgType.class)
 //                .findPropertyDefinition(OrgType.F_TENANT);
 //        SearchItemType searchItem = new SearchItemType()
 //                .path(new ItemPathType(ItemPath.create(OrgType.F_TENANT)))
 //                .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(tenantDef, null));
-        ChoicesSearchItemWrapper searchItemWrapper = new ChoicesSearchItemWrapper(ItemPath.create(OrgType.F_TENANT),
-                Collections.singletonList(new SearchValue<Boolean>(Boolean.TRUE, "Boolean.TRUE")))  {
-            @Override
-            public boolean canRemoveSearchItem() {
-                return false;
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-        };
-        searchItemWrapper.setValue(new SearchValue<Boolean>(Boolean.TRUE, "Boolean.TRUE"));
-        return searchItemWrapper;
+//        ChoicesSearchItemWrapper searchItemWrapper = new ChoicesSearchItemWrapper(ItemPath.create(OrgType.F_TENANT),
+//                Collections.singletonList(new SearchValue<Boolean>(Boolean.TRUE, "Boolean.TRUE")))  {
+//            @Override
+//            public boolean canRemoveSearchItem() {
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean isEnabled() {
+//                return false;
+//            }
+//        };
+//        searchItemWrapper.setValue(new SearchValue<Boolean>(Boolean.TRUE, "Boolean.TRUE"));
+//        return searchItemWrapper;
     }
 }

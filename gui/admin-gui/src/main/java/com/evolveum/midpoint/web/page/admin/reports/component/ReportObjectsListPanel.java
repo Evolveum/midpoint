@@ -280,10 +280,11 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
 
     @Override
     protected Search createSearch(Class<C> type) {
-        return SearchFactory.createSearch(createSearchConfigurationWrapper(type), false, getPageBase());
+        Search search = SearchFactory.createSearch(type, getObjectCollectionView(), getPageBase());
+        //TODO default searchbox config
+        return search;
     }
-
-    private SearchConfigurationWrapper<C> createSearchConfigurationWrapper(Class<C> type) {
+    private SearchBoxConfigurationType createSearchConfigurationWrapper(Class<C> type) {
         SearchBoxConfigurationType searchBoxConfiguration = new SearchBoxConfigurationType();
         searchBoxConfiguration.setDefaultMode(SearchBoxModeType.BASIC);
         searchBoxConfiguration.getAllowedMode().add(SearchBoxModeType.BASIC);
@@ -329,7 +330,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
         searchItemsType.createSearchItemList().addAll(searchItems);
         searchBoxConfiguration.setSearchItems(searchItemsType);
 
-        return new SearchConfigurationWrapper<>(type, searchBoxConfiguration, getPageBase());
+        return searchBoxConfiguration;
     }
 
     private void processFilterToSearchItem(List<SearchItemType> searchItems, ObjectFilter filter) {

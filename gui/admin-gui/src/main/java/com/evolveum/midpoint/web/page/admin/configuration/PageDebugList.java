@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
@@ -20,7 +21,6 @@ import org.apache.commons.collections4.IteratorUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -138,7 +138,12 @@ public class PageDebugList extends PageAdminConfiguration {
                 Search search = storage.getSearch();
 
                 if (search == null) {
-                    search = SearchFactory.createSearch(createSearchConfigWrapper(confDialogModel.getObject().getType(), SystemConfigurationType.COMPLEX_TYPE), PageDebugList.this);
+                    //createSearchConfigWrapper(confDialogModel.getObject().getType(), SystemConfigurationType.COMPLEX_TYPE),
+                    search = SearchFactory.createSearch((Class) confDialogModel.getObject().getType(),  PageDebugList.this);
+                    //TODO axiom?
+                    search.getAllowedModeList().addAll(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
+
+
                     storage.setSearch(search);
                 }
                 return search;
@@ -149,11 +154,11 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private <C extends Containerable> SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type, QName defaultValue) {
-        SearchConfigurationWrapper<C> searchConfigurationWrapper = new SearchConfigurationWrapper<C>(type, PageDebugList.this);
-        searchConfigurationWrapper.addAllowedMode(SearchBoxModeType.BASIC)
-                .addAllowedMode(SearchBoxModeType.ADVANCED)
-                .addAllowedMode(SearchBoxModeType.OID);
-        searchConfigurationWrapper.getAllowedTypeList().addAll(getAllowedTypes());
+        SearchConfigurationWrapper<C> searchConfigurationWrapper = new SearchConfigurationWrapper<C>();
+//        searchConfigurationWrapper.addAllowedMode(SearchBoxModeType.BASIC)
+//                .addAllowedMode(SearchBoxModeType.ADVANCED)
+//                .addAllowedMode(SearchBoxModeType.OID);
+//        searchConfigurationWrapper.getAllowedTypeList().addAll(getAllowedTypes());
         return searchConfigurationWrapper;
     }
 
@@ -499,7 +504,10 @@ public class PageDebugList extends PageAdminConfiguration {
             ObjectTypeSearchItemWrapper<C> objectType = searchModel.getObject().getObjectTypeSearchItemWrapper();
             Class<? extends Containerable> type =
                     (Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), objectType.getValue().getValue());
-            Search search = SearchFactory.createSearch(createSearchConfigWrapper(type, objectType.getValue().getValue()), PageDebugList.this);
+            // createSearchConfigWrapper(type, objectType.getValue().getValue()),
+            Search search = SearchFactory.createSearch((Class) type, PageDebugList.this);
+            //TODO axiom?
+            search.getAllowedModeList().addAll(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
 //            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
             searchModel.setObject(search);//TODO: this is veeery ugly, available definitions should refresh when the type changed
 //            configureSearch(search);

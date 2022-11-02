@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper
 
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -206,16 +208,17 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
             }
 
             @Override
-            protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
-                return ValueChoosePanel.this.getSpecialSearchItemWrappers();
+            protected Set<SearchItemType> getSpecialItems() {
+                return ValueChoosePanel.this.getSpecialSearchItem();
             }
+
         };
 
         getPageBase().showMainPopup(objectBrowserPanel, target);
 
     }
 
-    protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
+    protected Set<SearchItemType> getSpecialSearchItem() {
         return Collections.emptySet();
     }
 

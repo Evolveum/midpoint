@@ -8,7 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 
 import org.apache.wicket.model.IModel;
 
-public abstract class PropertySearchItemPanel<P extends PropertySearchItemWrapper> extends AbstractSearchItemPanel<P> {
+public abstract class PropertySearchItemPanel<P extends PropertySearchItemWrapper> extends SingleSearchItemPanel<P> {
 
     private static final long serialVersionUID = 1L;
 
