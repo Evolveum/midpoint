@@ -1,0 +1,171 @@
+= Resource wizard
+:page-toc: top
+:page-since: "4.6"
+
+Resource wizard was complete rewrite and redesign in midPoint version 4.6.
+
+New UI takes form of some panels with choice for specific parts of resource configuration. Specific part of configuration is represented by a  wizard with steps.
+
+== Basic configuration
+
+.Resource catalog
+image::step-1-resource-catalog.png[Resource catalog,100%]
+
+First panel of resource wizard allows user to choose connector or template for future resource.
+There are two possibilities:
+
+* From template - selecting from the resource template that needs to be preconfigured.
+* From scratch - selecting from the available connectors.
+
+When we choose the source, we proceed to a couple of steps for the basic configuration of the resource and the connector.
+
+* First step contains basic configuration for resource.
+* When selected connector supports discovery operation, then in second step you have to set mandatory properties for discovering of possible configuration.
+* Third step contains contains other possible configuration properties. Some properties can contain suggestions.
+* Last step show table with possible object classes.
+
+[%autowidth, cols="a,a", frame=none, grid=none, role="center"]
+|===
+| image::step-1-basic-conf.png[title=Basic configuration of resource]
+| image::step-1-connector-conf-discovery.png[title=Partial configuration for discovery]
+
+| image::step-1-discovered-config.png[title=Discovered configuration]
+| image::step-1-schema.png[title=Schema]
+|===
+
+After basic configuration of resource we see three tiles for next path.
+
+.Part of resource configuration
+image::choice-part-resource.png[Part of resource configuration,100%]
+
+* First tile shows data on resource.
+
+.Data preview
+image::data-preview-resource.png[Data preview,100%]
+
+* Second tile leads to the object type configuration.
+* After clicking on last tile you will be redirect to resource details page.
+
+== Object type configuration
+
+When we choose the configuration for the object type, we can see a table.
+
+.Table of object type
+image::step-2-object-type-table.png[Table of object type,100%]
+
+{empty} +
+Detail for configuration of object type:
+
+[%autowidth, cols="a,a", frame=none, grid=none, role=center]
+|===
+| image::step-2-object-type-basic-config.png[title=Basic configuration of object type]
+| image::step-2-object-type-resource-data.png[title=Resource data]
+
+2+| image::step-2-object-type-resource-data.png[title=Midpoint data, 50%]
+|===
+
+After we configure object type, we can see the tiles for previewing the data and configuring the containers of the selected object type.
+
+.Part of object type configuration
+image::choice-part-object-type.png[Part of object type configuration,100%]
+
+.Data preview of object type
+image::data-preview-object-type.png[Data preview of object type,100%]
+
+=== Attribute mapping
+
+{empty} +
+Inbound mapping:
+[%autowidth, cols="a,a", frame=none, grid=none, role=center]
+|===
+| image::step-3-mappings-inbound.png[title=Table of inbound mappings]
+| image::step-3-mappings-inbound-detail.png[title=Detail configuration of inbound mapping]
+|===
+
+{empty} +
+Outbound mapping:
+[%autowidth, cols="a,a", frame=none, grid=none, role=center]
+|===
+| image::step-3-mappings-outbound.png[title=Table of outbound mappings]
+| image::step-3-mappings-outbound-detail.png[title=Detail configuration of outbound mapping]
+|===
+
+{empty} +
+Attribute override:
+[%autowidth, cols="a,a", frame=none, grid=none, role=center]
+|===
+
+2+| image::step-3-mappings-override.png[title=Table of attribute overrides]
+
+| image::step-3-mappings-override-detail-basic.png[title=Detail configuration of attribute override]
+| image::step-3-mappings-override-detail-limitations.png[title=Detail configuration of attribute override limitations]
+|===
+
+=== Synchronization
+
+.Table of synchronization rules
+image::step-4-synch.png[Table of synchronization actions,100%]
+
+{empty} +
+Detail for synchronization rule:
+
+[%autowidth, cols="a,a", frame=none, grid=none, role=center]
+|===
+| image::step-4-synch-detail-basic.png[title=Basic configuration of synchronizatio rule]
+| image::step-4-synch-detail-action.png[title=Action for synchronization rule]
+
+| image::step-4-synch-detail-optional.png[title=optional attributes for synchronization rule]
+|
+|===
+
+=== Correlation
+
+.Table of correlation rules
+image::step-5-correlator-rule.png[Table of correlation rules,100%]
+
+.Table of correlation items for one correlation rule
+image::step-5-correlator-item.png[Table of correlation items for one correlation rule,100%]
+
+=== Capabilities
+
+On the capabilities configuration panel, we can see one tile for each supported capability. Some capability we can only enable or disable, but some contains a configuration container. When a capability contains container, and we click on the capability tile, a container configuration popup will appear.
+
+.Capabilities configuration
+image::step-6-capabilities.png[Capabilities configuration,100%]
+
+=== Activation
+
+[NOTE]
+====
+The object type activation configuration will be improved in the next version of midPoint.
+====
+
+[%autowidth, cols="a,a", frame=none, grid=none, role=center]
+|===
+| image::step-7-activation-admin-status.png[title=Configuration of administrative status]
+| image::step-7-activation-existence.png[title=Configuration of existence]
+
+| image::step-7-activation-valid-from.png[title=Configuration of valid from]
+| image::step-7-activation-valid-to.png[title=Configuration of valid to]
+
+| image::step-7-activation-lockout-status.png[title=Configuration of lockout status]
+|
+|===
+
+=== Credentials
+
+[NOTE]
+====
+The object type credentials configuration will be improved in the next version of midPoint.
+====
+
+.Configuration of credentials
+image::step-8-credentials.png[Configuration of credentials, 100%]
+
+=== Associations
+
+.Table of associations
+image::step-9-association.png[Table of associations, 100%]
+
+.Detail configuration for association
+image::step-9-association-detail.png[Detail configuration for association, 100%]
