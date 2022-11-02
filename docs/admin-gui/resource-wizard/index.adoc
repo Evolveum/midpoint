@@ -26,11 +26,11 @@ When we choose the source, we proceed to a couple of steps for the basic configu
 
 [%autowidth, cols="1a,1a", frame=none, grid=none, role=center]
 |===
-| image::step-1-basic-conf.png[link=step-1-basic-conf.png, 50%, title=Basic configuration of resource]
-| image::step-1-connector-conf-discovery.png[link=step-1-connector-conf-discovery.png,50%, title=Partial configuration for discovery]
+| image::step-1-basic-conf.png[link=step-1-basic-conf.png, 100%, title=Basic configuration of resource]
+| image::step-1-connector-conf-discovery.png[link=step-1-connector-conf-discovery.png,100%, title=Partial configuration for discovery]
 
-| image::step-1-discovered-config.png[link=step-1-discovered-config.png, 50%, title=Discovered configuration]
-| image::step-1-schema.png[link=step-1-schema.png, 50%, title=Schema]
+| image::step-1-discovered-config.png[link=step-1-discovered-config.png, 100%, title=Discovered configuration]
+| image::step-1-schema.png[link=step-1-schema.png, 100%, title=Schema]
 |===
 
 After basic configuration of resource we see three tiles for next path.
@@ -58,10 +58,10 @@ Detail for configuration of object type:
 
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::step-2-object-type-basic-config.png[title=Basic configuration of object type]
-| image::step-2-object-type-resource-data.png[title=Resource data]
+| image::step-2-object-type-basic-config.png[link=step-2-object-type-basic-config.png, 100%, title=Basic configuration of object type]
+| image::step-2-object-type-resource-data.png[link=step-2-object-type-resource-data.png, 100%,title=Resource data]
 
-2+| image::step-2-object-type-resource-data.png[title=Midpoint data, 50%]
+2+| image::step-2-object-type-resource-data.png[link=step-2-object-type-resource-data.png, 100%, title=Midpoint data]
 |===
 
 After we configure object type, we can see the tiles for previewing the data and configuring the containers of the selected object type.
@@ -78,16 +78,16 @@ image::data-preview-object-type.png[Data preview of object type,100%]
 Inbound mapping:
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::step-3-mappings-inbound.png[title=Table of inbound mappings]
-| image::step-3-mappings-inbound-detail.png[title=Detail configuration of inbound mapping]
+| image::step-3-mappings-inbound.png[link=step-3-mappings-inbound.png, 100%, title=Table of inbound mappings]
+| image::step-3-mappings-inbound-detail.png[link=step-3-mappings-inbound-detail.png, 100%, title=Detail configuration of inbound mapping]
 |===
 
 {empty} +
 Outbound mapping:
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::step-3-mappings-outbound.png[title=Table of outbound mappings]
-| image::step-3-mappings-outbound-detail.png[title=Detail configuration of outbound mapping]
+| image::step-3-mappings-outbound.png[link=step-3-mappings-outbound.png, 100%, title=Table of outbound mappings]
+| image::step-3-mappings-outbound-detail.png[link=step-3-mappings-outbound-detail.png, 100%, title=Detail configuration of outbound mapping]
 |===
 
 {empty} +
@@ -95,10 +95,10 @@ Attribute override:
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
 
-2+| image::step-3-mappings-override.png[title=Table of attribute overrides]
+2+| image::step-3-mappings-override.png[link=step-3-mappings-override.png, 100%, title=Table of attribute overrides]
 
-| image::step-3-mappings-override-detail-basic.png[title=Detail configuration of attribute override]
-| image::step-3-mappings-override-detail-limitations.png[title=Detail configuration of attribute override limitations]
+| image::step-3-mappings-override-detail-basic.png[link=step-3-mappings-override-detail-basic.png, 100%, title=Detail configuration of attribute override]
+| image::step-3-mappings-override-detail-limitations.png[link=step-3-mappings-override-detail-limitations.png, 100%, title=Detail configuration of attribute override limitations]
 |===
 
 === Synchronization
@@ -111,10 +111,10 @@ Detail for synchronization rule:
 
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::step-4-synch-detail-basic.png[title=Basic configuration of synchronizatio rule]
-| image::step-4-synch-detail-action.png[title=Action for synchronization rule]
+| image::step-4-synch-detail-basic.png[link=step-4-synch-detail-basic.png, 100%, title=Basic configuration of synchronizatio rule]
+| image::step-4-synch-detail-action.png[link=step-4-synch-detail-action.png, 100%, title=Action for synchronization rule]
 
-| image::step-4-synch-detail-optional.png[title=optional attributes for synchronization rule]
+| image::step-4-synch-detail-optional.png[link=step-4-synch-detail-optional.png, 100%, title=optional attributes for synchronization rule]
 |
 |===
 
@@ -142,13 +142,13 @@ The object type activation configuration will be improved in the next version of
 
 [%autowidth, cols="a,a", frame=none, grid=none, role=center]
 |===
-| image::step-7-activation-admin-status.png[title=Configuration of administrative status]
-| image::step-7-activation-existence.png[title=Configuration of existence]
+| image::step-7-activation-admin-status.png[link=step-7-activation-admin-status.png, 100%, title=Configuration of administrative status]
+| image::step-7-activation-existence.png[link=step-7-activation-existence.png, 100%, title=Configuration of existence]
 
-| image::step-7-activation-valid-from.png[title=Configuration of valid from]
-| image::step-7-activation-valid-to.png[title=Configuration of valid to]
+| image::step-7-activation-valid-from.png[link=step-7-activation-valid-from.png, 100%, title=Configuration of valid from]
+| image::step-7-activation-valid-to.png[link=step-7-activation-valid-to.png, 100%, title=Configuration of valid to]
 
-| image::step-7-activation-lockout-status.png[title=Configuration of lockout status]
+| image::step-7-activation-lockout-status.png[link=step-7-activation-lockout-status.png, 100%, title=Configuration of lockout status]
 |
 |===
 
