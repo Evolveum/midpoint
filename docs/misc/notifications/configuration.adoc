@@ -14,7 +14,21 @@ For a basic introduction to notifications, please see this xref:..[general overv
 
 Here we describe detailed information on how to configure the notifications as a system administrator.
 
+Notification and transport configuration is specified with `notificationConfiguration` and `messageTransportConfiguration`
+containers inside xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object].
+
 == Configuring transports
+
+[NOTE]
+====
+In 4.5 the new container for transport configuration was introduced - `messageTransportConfiguration`.
+You can still place the transport configuration inside `notificationConfiguration` but that style
+will be eventually deprecated, depending on the GUI support for the new configuration style.
+
+There is just one noteble difference in both styles.
+The "old" style supports `name` _attribute_ to distinguish between multiple transports of the same
+type - while the new style uses `name` _element_ which is more idiomatic for midPoint configuration.
+====
 
 Currently, there are a couple of transports available: *mail, sms*, *custom* and *file*.
 
@@ -82,39 +96,42 @@ An example:
 
 [source,xml]
 ----
-   <notificationConfiguration>
-      <handler>
-         <simpleUserNotifier>
+<notificationConfiguration>
+    <handler>
+        <simpleUserNotifier>
             ...
             <transport>mail</transport>
-            <transport>file:users</transport>
-         </simpleUserNotifier>
-         <simpleWorkflowNotifier>
-            ...
-            <transport>mail</transport>
-            <transport>file</transport>
-         </simpleWorkflowNotifier>
-         <simpleCampaignNotifier>
+            <transport>users</transport>
+        </simpleUserNotifier>
+        <simpleWorkflowNotifier>
             ...
             <transport>mail</transport>
             <transport>file</transport>
-         </simpleCampaignNotifier>
-         ...
-      </handler>
-      ...
-      <file name="users">
-         <file>notifications-users.txt</file>
-      </file>
-      <file>
-         <file>notifications-other.txt</file>
-      </file>
-   </notificationConfiguration>
+        </simpleWorkflowNotifier>
+        <simpleCampaignNotifier>
+            ...
+            <transport>mail</transport>
+            <transport>file</transport>
+        </simpleCampaignNotifier>
+        ...
+    </handler>
+    ...
+</notificationConfiguration>
+<messageTransportConfiguration>
+    <file>
+        <name>users</name>
+        <file>notifications-users.txt</file>
+    </file>
+    <file>
+        <name>file</name>
+        <file>notifications-other.txt</file>
+    </file>
+    <mail>
+        <name>mail</name>
+        ...
+    </mail>
+</messageTransportConfiguration>
 ----
-
-[TIP]
-====
-"File" transport is available since 3.6.1.
-====
 
 === "SMS" transport
 
@@ -126,7 +143,8 @@ Some examples:
 [source,xml]
 ----
 <!-- there can be more SMS configurations, distinguished by their name -->
-<sms name="method1">
+<sms>
+    <name>method1</name>
     <!-- there can be one or more gateways; if one fails, the next one is tried -->
     <gateway>
         <urlExpression>
@@ -137,7 +155,8 @@ Some examples:
     </gateway>
 </sms>
 
-<sms name="with-post">
+<sms>
+    <name>with-post</name>
     <gateway>
         <method>post</method>
         <urlExpression>
@@ -159,7 +178,8 @@ Some examples:
     </gateway>
 </sms>
 
-<sms name="test">
+<sms>
+    <name>test</name>
     <!--
     When used, logs all notifications to a file INSTEAD OF sending them via gateway;
     this element can be used also within definition of a gateway - in that case the
@@ -188,7 +208,7 @@ If not specified, "get" is assumed.
 | headersExpression
 | Expression that returns HTTP request headers.
 The expression should return 0, 1 or more string values that will be used as request HTTP headers.
-Each value is in the form of "name: value", i.e. a header name followed by comma, space and a header value.
+Each value is in the form of "name: value", i.e. a header name followed by colon, space and a header value.
 If one header has to have more values, such name-value pair should be present more times for the given header name.
 | since 3.7.1
 

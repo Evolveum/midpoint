@@ -212,8 +212,8 @@ Type-independent panels:
 |===
 | Panel | Identifier | Description | Default order
 
-| Statistic widget
-| `statisticWidget`
+| Link widget
+| `linkWidget`
 | Panel displaying some statistic or configured data, works as a link to redirect the user to the specified page/panel.
 |
 |===
