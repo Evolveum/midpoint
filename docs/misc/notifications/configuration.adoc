@@ -48,7 +48,8 @@ For the time being, here we show a sample configuration, hopefully self-explanat
     </server>
 
     <defaultFrom>abc@gmail.com</defaultFrom>
-    <debug>true</debug> <!-- standard javax.mail debugging; it is going to stdout (catalina.out)! -->
+    <!-- standard javax.mail debugging; it is going to stdout (midpoint.out)! -->
+    <debug>true</debug>
     <!--
     All notifications are logged to this file IN ADDITION TO sending them via mail.
     They are logged in all cases: even if they eventually cannot be sent.
@@ -60,7 +61,7 @@ For the time being, here we show a sample configuration, hopefully self-explanat
 *Ensure your SMTP server will accept multiple connection (message rate limit)* as midPoint notifications are being sent as the objects are created, e.g. one user can have 15 accounts or one organization 40 entitlements created at the same time.
 This is especially important for Microsoft Exchange, where the default limit seems to be very low (5 connections per minute).
 
-Also please note that SSL-related settings for mail messaging are currently experimental (e.g. there is no support for setting certificate validation-related properties; default behavior of javax.mail implementation is used).
+Also please note that SSL-related settings for mail messaging are currently experimental (e.g. there is no support for setting certificate validation-related properties; default behavior of `javax.mail` implementation is used).
 You may also need to store the mail server self-signed SSL certificate in your Java "cacerts" keystore.
 
 [TIP]
@@ -124,8 +125,10 @@ Some examples:
 
 [source,xml]
 ----
-<sms name="method1">         <!-- there can be more SMS configurations, distinguished by their name -->
-    <gateway>                <!-- there can be one or more gateways; if one fails, the next one is tried -->
+<!-- there can be more SMS configurations, distinguished by their name -->
+<sms name="method1">
+    <!-- there can be one or more gateways; if one fails, the next one is tried -->
+    <gateway>
         <urlExpression>
             <script>
                 <code>"https://my-sms-gateway.com/send?number=" + encodedTo + "&amp;text=" + encodedMessageText</code>
@@ -151,14 +154,18 @@ Some examples:
         </bodyExpression>
         <username>a9038321</username>
         <password>5ecr3t</password>
-        <logToFile>target/sms.log</logToFile>        <!-- Logs messages to a file IN ADDITION TO being sent via gateway. Useful for debugging. -->
+        <!-- Logs messages to a file IN ADDITION TO being sent via gateway. Useful for debugging. -->
+        <logToFile>target/sms.log</logToFile>
     </gateway>
 </sms>
 
 <sms name="test">
-    <redirectToFile>sms-notifications.log</redirectToFile>        <!-- when used, logs all notifications to a file INSTEAD OF sending them via gateway;
-                                                                       this element can be used also within definition of a gateway - in that case the
-                                                                       computed URL is logged as well. -->
+    <!--
+    When used, logs all notifications to a file INSTEAD OF sending them via gateway;
+    this element can be used also within definition of a gateway - in that case the
+    computed URL is logged as well.
+    -->
+    <redirectToFile>sms-notifications.log</redirectToFile>
 </sms>
 ----
 
@@ -174,11 +181,9 @@ Currently, "get" and "post" are supported.
 If not specified, "get" is assumed.
 | since 3.7.1
 
-
 | urlExpression
 | Expression that returns URL used to send SMS.
 | since 3.7.1 (up to 3.7, this item was called `url`)
-
 
 | headersExpression
 | Expression that returns HTTP request headers.
@@ -187,11 +192,9 @@ Each value is in the form of "name: value", i.e. a header name followed by comma
 If one header has to have more values, such name-value pair should be present more times for the given header name.
 | since 3.7.1
 
-
 | bodyExpression
 | Expression that returns request body used to send SMS (as a string).
 | since 3.7.1
-
 
 | bodyEncoding
 | Encoding to be used for the message body.
@@ -200,24 +203,19 @@ Note that if you use any other encoding, your responsibility is to provide appro
 This requirement might change in the future.
 | since 3.7.1
 
-
 | username, password
 | How to authenticate to the SMS gateway.
 | since 3.7.1
-
 
 | redirectToFile
 | Instead of opening HTTP connection, writes the URL and other parameters to this file.
 Useful for debugging.
 |  +
 
-
-
 | logToFile
 | In addition to executing the expression, writes all messages to a file.
 Useful for debugging.
 | since 3.7.1
-
 
 |===
 
@@ -230,30 +228,23 @@ Expressions specified in urlExpression (url), headersExpression, bodyExpression 
 | from
 | The message sender: Either message.from, smsConfiguration.defaultFrom or an empty string (in that order).
 
-
 | to
 | List of message recipients.
-
 
 | messageText
 | Message text (body).
 
-
 | encodedFrom
 | URL-encoded version of the `from` variable.
-
 
 | encodedTo
 | URL-encoded version of the `to` variable.
 
-
 | encodedMessageText
 | URL-encoded version of the `messageText` variable.
 
-
 | message
 | The whole message (`com.evolveum.midpoint.notifications.api.transports.Message`).
-
 
 |===
 
@@ -523,7 +514,8 @@ Some examples:
 
 [source,xml]
 ----
-<expressionFilter>    <!-- passes 'new account' events requested by user named "security-admin" -->
+<!-- passes 'new account' events requested by user named "security-admin" -->
+<expressionFilter>
     <script><code>event.isAccountRelated() &amp;&amp; event.isAdd() &amp;&amp; "security-admin".equals(requester?.getName()?.getOrig())</code></script>
 </expressionFilter>
 ----
@@ -542,21 +534,17 @@ Variables that are available are:
 | com.evolveum.midpoint.notifications.events.Event
 | The event that is being processed.
 
-
 | requester
 | UserType
 | The user who requested the operation (if known).
-
 
 | requestee
 | ObjectType
 | The object (typically a user) that is modified by the operation, or the owner of an account that is modified by the operation (if known).
 
-
 | assignee
 | UserType
 | The user who is assigned the work item (only for WorkItemEvent).
-
 
 | transportName
 | String
@@ -564,3 +552,26 @@ Variables that are available are:
 Not available in expressionFilters.
 
 |===
+
+////
+TODO document other expression variables
+
+E.g. for recipient variables it's:
+actor = null (event initiator, administrator, task owner, etc.)
+basic = com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions
+configuration = systemConfiguration:00000000-0000-0000-0000-000000000001
+event = CustomEventImpl{id=1645537796646-0-1,requester=null,requestee=SimpleObjectRef{oid='null', objectType=user:null(null)}} (example, other event types possible)
+localizationService = com.evolveum.midpoint.common.LocalizationServiceImpl
+log = com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions
+midpoint = com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl
+notificationFunctions = com.evolveum.midpoint.notifications.impl.NotificationFunctions
+prismContext = com.evolveum.midpoint.prism.impl.PrismContextImpl
+requestee = user:null(null)
+requester = null (event.requester?)
+textFormatter = com.evolveum.midpoint.notifications.impl.formatters.TextFormatter
+transportName = test (String)
+
+Groovy used to print it: this.binding.variables.each {k,v -> println "$k = $v"}
+
+Link any other expression documentation discussing variables?
+////

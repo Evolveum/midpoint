@@ -21,6 +21,8 @@ Currently supported languages are:
 
 * xref:python.adoc[Python] (built-in until 4.3, optional since 4.4)
 
+* xref:/midpoint/reference/misc/notifications/velocity/[Velocity] (since 3.4.1) for expressions returning strings/texts
+
 (xref:xpath.adoc[XPath version 2] was supported until midPoint 3.5, but it is not supported any longer)
 
 [NOTE]
@@ -33,6 +35,8 @@ depends on it being part of the JDK - which it is not since Java 15.
 Python is made optional too although still easy to enable even on newer JDKs.
 
 Using Groovy is highly recommended.
+
+Using Velocity for string/textual templates is perfectly OK as well.
 ====
 
 == Script Expression Structure
@@ -64,6 +68,10 @@ Meaning of individual script expression fields is as follows:
 | Language URL.
 Specifies the language in which the expression is written.
 If not specified it defaults to Groovy language.
+
+Since midPoint 4.5, it is possible to use the local part after `#` instead of the whole URL;
+for example, you can use just `velocity` or `Groovy`.
+Note that the short name is still case-sensitive!
 
 
 | `trace`

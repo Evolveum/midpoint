@@ -10,10 +10,6 @@ MidPoint supports these requirements using _custom indexing_.
 
 IMPORTANT: This feature is available only when using the xref:/midpoint/reference/repository/native-postgresql/[native repository implementation].
 
-#TODO Decide on the "experimental" vs "production-ready" status of this work.
-The implementation itself should be reliable enough.
-However, there are some open questions regarding the configuration structures.#
-
 == Overview
 
 For each focus object (for example, a user), we have a special searchable container for all data that are indexed in this way.

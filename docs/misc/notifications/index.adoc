@@ -59,6 +59,10 @@ Custom transport can be also implemented, if needed.
 
 For instructions how to configure notifiers, filters, and transports please see the xref:configuration/[Configuration guide].
 
+// TODO 4.5+ examples with separate transport configuration element
+// TODO 4.5+ examples referencing message templates, consult midpoint/projects/idmatch/notification-redesign.adoc
+// Example referencing message template should also demonstrate the localized content resolution.
+
 == Some simple examples
 
 Configuration of notifications is currently done within xref:/midpoint/reference/concepts/system-configuration-object/[System Configuration Object].
@@ -402,42 +406,34 @@ Examples are:
 | User notification
 | Generates notifications about user records.
 
-
 | simpleResourceObjectNotifier
 | Resource object notification
 | Generates notifications about resource objects (e.g. accounts).
-
 
 | userPasswordNotifier
 | User notification
 | Generates notifications about user passwords.
 
-
 | accountPasswordNotifier
 | Account notification
 | Generates notifications about account passwords.
-
 
 | simpleWorkflowNotifier
 | Workflow notification
 | Generates notifications about start/completion of work items (i.e. user tasks) and about start/completion of workflow process instances.
 
-
 | simpleCampaignNotifier, simpleCampaignStageNotifier
 | Certification notification
 | Generates notifications about certification campaigns.
-
 
 | simpleTaskNotifier
 | Task notification
 | Generates notifications about tasks.
 
-
 | generalNotifier
 |
 
 | This is a general purpose notifier that is driven by expressions, which transform an event into a notification.
-
 
 |===
 
@@ -477,28 +473,6 @@ There are currently the following kinds of filters:
 |===
 
 A filter can be specified as part of a notifier - in that case it defines which classes of events get processed by that notifier.
-Or a filter can be a standalone part of a handler chain (see below).
-
-=== Special kinds of handlers
-
-There are two special kinds of handlers:
-
-[%autowidth]
-|===
-| Name | Description
-
-| Handler chain (chained)
-| Contains sequentially ordered event handlers (notifiers, filters, forks, other chains).
-Processing within a chain continues until an event is filtered out.
-(Please note that filtering is done only by filters; all notifiers simply pass all events along.)
-
-
-| Fork (forked)
-| Splits processing of an event into more handlers "in parallel".
-(We expect this kind of handler will be used only occassionally, however, we have implemented in for completeness.)
-
-
-|===
 
 === Mail attachments
 
@@ -562,16 +536,13 @@ If we use attachment, then we have two choices, insert the content to the xml or
 | true
 | Content type for the attachment, e.g. image/png or text/html.
 
-
 | content
 | choice
 | Content of the attachment.
 
-
 | contentFromFile
 | choice
 | Path of the file that provides the content for this attachment.
-
 
 | fileName
 | false
@@ -579,7 +550,6 @@ If we use attachment, then we have two choices, insert the content to the xml or
 E.g. in the case of the mail transport it should be put into Content-Disposition header field.
 If omitted and if contentFromFile is used, it is derived from the name of that file.
 If it omitted with used content, it's value is 'attachment'.
-
 
 | contentId
 | false
@@ -597,32 +567,12 @@ Some more advanced examples:
 
 TODO
 
-For instructions how to configure notifiers, filters, and transports please see xref:configuration/[administrator's guide].
+For instructions how to configure notifiers, filters, and transports please see xref:configuration/[administrator's guide],
+the page also documents the xref:/midpoint/reference/misc/notifications/configuration/#expressions[variables] that can be used in notification expressions.
+
+// TODO show example with HTML + solve HTML escaping for dynamic content (variables).
 
 To send HTML emails, set `<contentType>text/html; charset=UTF-8</contentType>` and put to `<bodyExpression>` escaped HTML in single quote.
-
-////
-TODO document expression variables
-
-E.g. for recipient variables it's:
-actor = null (event initiator, administrator, task owner, etc.)
-basic = com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions
-configuration = systemConfiguration:00000000-0000-0000-0000-000000000001
-event = CustomEventImpl{id=1645537796646-0-1,requester=null,requestee=SimpleObjectRef{oid='null', objectType=user:null(null)}} (example, other event types possible)
-localizationService = com.evolveum.midpoint.common.LocalizationServiceImpl
-log = com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions
-midpoint = com.evolveum.midpoint.model.impl.expr.MidpointFunctionsImpl
-notificationFunctions = com.evolveum.midpoint.notifications.impl.NotificationFunctions
-prismContext = com.evolveum.midpoint.prism.impl.PrismContextImpl
-requestee = user:null(null)
-requester = null (event.requester?)
-textFormatter = com.evolveum.midpoint.notifications.impl.formatters.TextFormatter
-transportName = test (String)
-
-Groovy used to print it: this.binding.variables.each {k,v -> println "$k = $v"}
-
-Link any other expression documentation discussing variables?
-////
 
 === Custom notifications
 
@@ -631,5 +581,7 @@ These are briefly described in the xref:/midpoint/reference/misc/notifications/s
 == See Also
 
 * xref:configuration/[Configuring Notifications and Transports]
+
+* xref:/midpoint/reference/misc/notifications/message-templates/[Message Templates]
 
 * xref:/midpoint/reference/misc/notifications/velocity/[Using Velocity Templates for Notifications]
