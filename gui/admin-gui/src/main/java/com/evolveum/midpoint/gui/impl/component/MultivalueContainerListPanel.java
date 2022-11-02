@@ -72,11 +72,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         super(id, type, null, config);
     }
 
-    @Override
-    protected Search createSearch(Class<C> type) {
-        return SearchFactory.createSearch(type, getObjectCollectionView(), getPageBase());
-    }
-
     private SearchConfigurationWrapper<C> createSearchConfigWrapper(Class<C> type) {
         SearchBoxConfigurationType maybeConfig = null;
         if (getPanelConfiguration() != null && getPanelConfiguration().getListView() != null) {
@@ -106,21 +101,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     protected PrismContainerDefinition<C> getTypeDefinitionForSearch() {
         return getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
     }
-
-    private ContainerTypeSearchItem<C> createTypeSearchItem(Class<C> type, PrismContainerDefinition<C> containerDefinition) {
-        return new ContainerTypeSearchItem<>(new SearchValue<>(type, containerDefinition == null ? getType().getTypeName() : containerDefinition.getDisplayName()));
-    }
-
-    @Deprecated
-    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef){
-        return null;
-    }
-
+    
     protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<C> containerDef){
-        return null;
-    }
-
-    protected ItemPath getDefaultSearchItem() {
         return null;
     }
 

@@ -39,20 +39,6 @@ public class InducedByPanel<AR extends AbstractRoleType> extends AbstractObjectL
                 .ref(getObjectDetailsModel().getObjectWrapper().getOid()).build();
     }
 
-    protected SearchConfigurationWrapper<AR> createSearchBoxConfigurationWrapper() {
-        SearchConfigurationWrapper<AR> searchWrapper = super.createSearchBoxConfigurationWrapper();
-//        if (searchWrapper.getAllowedTypeList().isEmpty()) {
-//            searchWrapper.getAllowedTypeList()
-//                    .addAll(Arrays.asList(
-//                            AbstractRoleType.class,
-//                            OrgType.class,
-//                            ArchetypeType.class,
-//                            RoleType.class,
-//                            ServiceType.class));
-//        }
-        return searchWrapper;
-    }
-
     @Override
     protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.PANEL_INDUCT_BY;

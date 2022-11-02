@@ -44,20 +44,6 @@ public class ConstructionAssignmentsPanel<AH extends AssignmentHolderType> exten
     }
 
     @Override
-    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<SearchItemDefinition> defs = super.createSearchableItems(containerDef);
-        SearchFactory.addSearchRefDef(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-        return defs;
-    }
-
-    @Override
-    protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<? super AbstractSearchItemWrapper> defs = super.createSearchableItemWrappers(containerDef);
-//        SearchFactory.addSearchRefWrapper(containerDef, ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF), defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-        return defs;
-    }
-
-    @Override
     protected QName getAssignmentType(){
         return ResourceType.COMPLEX_TYPE;
     }

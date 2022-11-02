@@ -247,37 +247,10 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
                     @Override
                     protected Search createSearch(Class<ShadowType> type) {
-                        Search search = SearchFactory.createProjectionsTabSearch(getPageBase());
-//                        PropertySearchItem<Boolean> defaultDeadItem = search.findPropertySearchItem(ShadowType.F_DEAD);
-//                        if (defaultDeadItem != null) {
-//                            defaultDeadItem.setVisible(false);
-//                        }
-//                        addDeadSearchItem(search);
+                        Search search = SearchFactory.createProjectionsTabSearch(getObjectCollectionView(), getPageBase());
                         return search;
                     }
 
-                    @Override
-                    protected List<SearchItemDefinition> initSearchableItems(
-                            PrismContainerDefinition<ShadowType> containerDef) {
-                        List<SearchItemDefinition> defs = new ArrayList<>();
-                        SearchFactory.addSearchRefDef(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-                        SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_NAME, defs);
-                        SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_INTENT, defs);
-                        SearchFactory.addSearchPropertyDef(containerDef, ShadowType.F_KIND, defs);
-                        return defs;
-                    }
-
-                    @Override
-                    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<ShadowType> containerDef){
-                        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
-
-                        SearchFactory.addSearchRefWrapper(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
-                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_NAME, defs, getPageBase());
-                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_INTENT, defs, getPageBase());
-                        SearchFactory.addSearchPropertyWrapper(containerDef, ShadowType.F_KIND, defs, getPageBase());
-
-                        return defs;
-                    }
 
                     @Override
                     protected MultivalueContainerDetailsPanel<ShadowType> getMultivalueContainerDetailsPanel(

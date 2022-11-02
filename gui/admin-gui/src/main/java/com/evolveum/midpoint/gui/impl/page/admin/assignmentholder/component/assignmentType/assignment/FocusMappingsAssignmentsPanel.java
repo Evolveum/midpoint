@@ -48,18 +48,18 @@ public class FocusMappingsAssignmentsPanel<AH extends AssignmentHolderType> exte
         return null;
     }
 
-    @Override
-    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<SearchItemDefinition> defs = new ArrayList<>();
-
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_DESCRIPTION), defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_MAPPING, MappingType.F_NAME), defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_MAPPING, MappingType.F_STRENGTH), defs);
-
-        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
-
-        return defs;
-    }
+//    @Override
+//    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+//        List<SearchItemDefinition> defs = new ArrayList<>();
+//
+//        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_DESCRIPTION), defs);
+//        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_MAPPING, MappingType.F_NAME), defs);
+//        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_FOCUS_MAPPINGS, MappingsType.F_MAPPING, MappingType.F_STRENGTH), defs);
+//
+//        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+//
+//        return defs;
+//    }
 
     protected ObjectQuery createCustomizeQuery() {
         return getPageBase().getPrismContext().queryFor(AssignmentType.class)

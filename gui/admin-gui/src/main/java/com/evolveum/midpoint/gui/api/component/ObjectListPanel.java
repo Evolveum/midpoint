@@ -75,12 +75,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return value.toString();
     }
 
-    @Override
-    protected Search createSearch(Class<O> type) {
-        return SearchFactory.createSearch(type, getObjectCollectionView(), getPageBase());
-    }
-
-
     protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
             SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(

@@ -44,7 +44,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -84,7 +83,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     protected static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     protected static final String OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ = DOT_CLASS + "loadAssignmentsTargetRefObject";
     protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
-    protected static final String OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION = DOT_CLASS + "loadFullTextSearchConfiguration";
+
     private IModel<PrismContainerWrapper<AssignmentType>> model;
     protected int assignmentsRequestsLimit = -1;
 
@@ -590,86 +589,63 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     @Override
     protected Search createSearch(Class<AssignmentType> type) {
-        Search search =  SearchFactory.createAssignmnetSearch(type, getAssignmentType(), getObjectCollectionView(), getPageBase());
-//        Search search = super.createSearch(type);
-        search.setContainerDefinition(getTypeDefinitionForSearch());
-        if (isRepositorySearchEnabled()) {
-            OperationResult result = new OperationResult(OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION);
-            try {
-                FullTextSearchConfigurationType config = getPageBase().getModelInteractionService().getSystemConfiguration(result).getFullTextSearch();
-                if (config != null && FullTextSearchUtil.isEnabledFor(config, Collections.singletonList(getAssignmentType() == null ? AbstractRoleType.COMPLEX_TYPE : getAssignmentType()))) {
-                    search.addAllowedModelType(SearchBoxModeType.FULLTEXT);
-                    search.setSearchMode(SearchBoxModeType.FULLTEXT);
-                }
-            } catch (Exception e) {
-                LOGGER.debug("Unable to load full text search configuration from system configuration, {}", e.getMessage());
-            }
-        }
+        Search search =  SearchFactory.createAssignmnetSearch(getAssignmentType(), isRepositorySearchEnabled(), getObjectCollectionView(), getPageBase());
+
         return search;
     }
 
-    @Override
-    protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        return createSearchableItems(containerDef);
-    }
-
-    @Override
-    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef){
-        return createSearchableItemWrappers(containerDef);
-    }
-
-    @Deprecated
-    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<SearchItemDefinition> defs = new ArrayList<>();
-
-        addSpecificSearchableItems(containerDef, defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
-
-        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
-
-        return defs;
-
-    }
-
-    protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
-        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
-
-//        addSpecificSearchableItemWrappers(containerDef, defs);
-//        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-//                defs, getPageBase());
-//        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
-//                defs, getPageBase());
+//    @Deprecated
+//    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
+//        List<SearchItemDefinition> defs = new ArrayList<>();
 //
-//        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
+//        addSpecificSearchableItems(containerDef, defs);
+//        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
+//        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
 //
-//        if (getAssignmentType() != null) {
-//            var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(getAssignmentType()), ObjectType.F_EXTENSION);
-//            var objectExt =  SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase(), targetExtensionPath);
-//            LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
-//            defs.addAll(objectExt);
+//        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
+//
+//        return defs;
+//
+//    }
+
+//    protected List<? super AbstractSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
+//        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
+//
+////        addSpecificSearchableItemWrappers(containerDef, defs);
+////        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+////                defs, getPageBase());
+////        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
+////                defs, getPageBase());
+////
+////        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
+////
+////        if (getAssignmentType() != null) {
+////            var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(getAssignmentType()), ObjectType.F_EXTENSION);
+////            var objectExt =  SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase(), targetExtensionPath);
+////            LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
+////            defs.addAll(objectExt);
+////        }
+//        return defs;
+//
+//    }
+
+
+//    @Override
+//    protected PrismContainerDefinition<AssignmentType> getTypeDefinitionForSearch() {
+//        if (searchDefinition != null) {
+//            return searchDefinition;
 //        }
-        return defs;
-
-    }
-
-
-    @Override
-    protected PrismContainerDefinition<AssignmentType> getTypeDefinitionForSearch() {
-        if (searchDefinition != null) {
-            return searchDefinition;
-        }
-        PrismContainerDefinition<AssignmentType> orig = super.getTypeDefinitionForSearch();
-        if (getAssignmentType() == null) {
-            searchDefinition = orig;
-        } else {
-            // We have more concrete assignment type, we should replace targetRef definition
-            // with one with concrete assignment type.
-            searchDefinition = getPageBase().getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, getAssignmentType());
-        }
-
-        return searchDefinition;
-    }
+//        PrismContainerDefinition<AssignmentType> orig = super.getTypeDefinitionForSearch();
+//        if (getAssignmentType() == null) {
+//            searchDefinition = orig;
+//        } else {
+//            // We have more concrete assignment type, we should replace targetRef definition
+//            // with one with concrete assignment type.
+//            searchDefinition = getPageBase().getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, getAssignmentType());
+//        }
+//
+//        return searchDefinition;
+//    }
 
 
     @Override

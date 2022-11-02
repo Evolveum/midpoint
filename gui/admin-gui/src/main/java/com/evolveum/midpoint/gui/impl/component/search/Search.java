@@ -75,7 +75,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
 
     private SearchConfigurationWrapper searchConfigurationWrapper;
-//    private PrismContainerDefinition<C> containerDefinitionOverride;
+    private PrismContainerDefinition<C> containerDefinitionOverride;
 
     private String collectionViewName;
     private String collectionRefOid;
@@ -581,16 +581,12 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
                 '}';
     }
 
-    @Deprecated
-    //TODO
     public void setContainerDefinition(PrismContainerDefinition<C> typeDefinitionForSearch) {
-//        containerDefinitionOverride = typeDefinitionForSearch;
+        containerDefinitionOverride = typeDefinitionForSearch;
     }
 
-    @Deprecated
-    //TODO
     public PrismContainerDefinition<C> getContainerDefinitionOverride() {
-        return null;
+        return containerDefinitionOverride;
     }
 
     public boolean searchByNameEquals(String nameValueToCompare) {

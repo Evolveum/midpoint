@@ -19,7 +19,10 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class AbstractObjectListPanel<O extends ObjectType> extends MainObjectListPanel<O> {
 
@@ -50,7 +53,7 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
 
     @Override
     protected Search createSearch(Class<O> type) {
-        Search search = SearchFactory.createSearch(type, getObjectCollectionView(), getPageBase());
+        Search search = SearchFactory.createMemberSearch(type, getSupportedTypes(), getSupportedRelations(), getAbstractRoleType(),  getObjectCollectionView(), getPageBase());
         search.getAllowedTypeList()
                 .addAll(Arrays.asList(
                         AbstractRoleType.class,
@@ -61,19 +64,36 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
         return search;
     }
 
-    protected SearchConfigurationWrapper<O> createSearchBoxConfigurationWrapper() {
-        CompiledObjectCollectionView view = getObjectCollectionView();
+    protected List<QName> getSupportedTypes() {
+        return Arrays.asList(
+                AbstractRoleType.COMPLEX_TYPE,
+                OrgType.COMPLEX_TYPE,
+                ArchetypeType.COMPLEX_TYPE,
+                RoleType.COMPLEX_TYPE,
+                ServiceType.COMPLEX_TYPE);
+    }
 
-        SearchConfigurationWrapper<O> searchWrapper;
-        if (getPanelConfiguration() != null
-                && getPanelConfiguration().getListView() != null
-                && getPanelConfiguration().getListView().getSearchBoxConfiguration() != null) {
-            searchWrapper = new SearchConfigurationWrapper<>(getPanelConfiguration().getListView().getSearchBoxConfiguration());
-        } else if (view != null && view.getSearchBoxConfiguration() != null) {
-            searchWrapper = new SearchConfigurationWrapper<>(view.getSearchBoxConfiguration());
-        } else {
-            searchWrapper = new SearchConfigurationWrapper<>();
-        }
+    protected List<QName> getSupportedRelations() {
+        return Collections.emptyList();
+    }
+
+    protected QName getAbstractRoleType() {
+        return getObjectDetailsModel().getObjectWrapper().getTypeName();
+    }
+
+//    protected SearchConfigurationWrapper<O> createSearchBoxConfigurationWrapper() {
+//        CompiledObjectCollectionView view = getObjectCollectionView();
+//
+//        SearchConfigurationWrapper<O> searchWrapper;
+//        if (getPanelConfiguration() != null
+//                && getPanelConfiguration().getListView() != null
+//                && getPanelConfiguration().getListView().getSearchBoxConfiguration() != null) {
+//            searchWrapper = new SearchConfigurationWrapper<>(getPanelConfiguration().getListView().getSearchBoxConfiguration());
+//        } else if (view != null && view.getSearchBoxConfiguration() != null) {
+//            searchWrapper = new SearchConfigurationWrapper<>(view.getSearchBoxConfiguration());
+//        } else {
+//            searchWrapper = new SearchConfigurationWrapper<>();
+//        }
 
 //        if (view != null
 //                && view.getCollection() != null
@@ -82,8 +102,8 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
 //            searchWrapper.setCollectionRefOid(view.getCollection().getCollectionRef().getOid());
 //        }
 
-        return searchWrapper;
-    }
+//        return searchWrapper;
+//    }
 
     @Override
     protected String getStorageKey() {

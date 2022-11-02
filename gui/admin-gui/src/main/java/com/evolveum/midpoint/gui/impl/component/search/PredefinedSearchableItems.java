@@ -109,6 +109,7 @@ public class PredefinedSearchableItems {
                 ItemPath.create(ShadowType.F_RESOURCE_REF),
                 ItemPath.create(ShadowType.F_DEAD),
                 ItemPath.create(ShadowType.F_INTENT),
+                ItemPath.create(ShadowType.F_KIND),
                 ItemPath.create(ShadowType.F_EXISTS),
                 ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)
         ));
@@ -166,6 +167,11 @@ public class PredefinedSearchableItems {
                 ItemPath.create(AuditEventRecordType.F_REQUEST_IDENTIFIER),
                 ItemPath.create(AuditEventRecordType.F_REFERENCE),
                 ItemPath.create(AuditEventRecordType.F_TASK_IDENTIFIER)
+        ));
+
+        SEARCHABLE_OBJECTS.put(ClassLoggerConfigurationType.class, Arrays.asList(
+                ItemPath.create(ClassLoggerConfigurationType.F_APPENDER),
+                ItemPath.create(ClassLoggerConfigurationType.F_PACKAGE)
         ));
     }
 
