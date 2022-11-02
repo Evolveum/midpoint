@@ -1447,7 +1447,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
-                            GUI feature identifier. E.g. idetifier for view or widget.
+                            GUI feature identifier. E.g. identifier for view or widget.
                             The feature specifications that come from different roles will be merged
                             if they have the same identifier. The identifier is also used for
                             diagnostics, e.g. used in the logfiles.
@@ -1459,10 +1459,10 @@
                             there is risk of conflicting with default midPoint configuration.
                         </p>
                         <p>
-                            If no identifer is specified for a view then midPoint will internally generate a value for the identifier.
+                            If no identifier is specified for a view then midPoint will internally generate a value for the identifier.
                             This internal identifier value is based on the GUI feature definition, e.g. object type and/or collection OID
                             or other aspects of the view. The algorithm for identifier generation may change and the results are not
-                            guaranteed to be completely unique. Therefore it is strongly recommended to explictly set identifier for all
+                            guaranteed to be completely unique. Therefore it is strongly recommended to explicitly set identifier for all
                             the UI features in any non-trivial midPoint configuration.
                         </p>
                         <p>
@@ -1931,7 +1931,7 @@
                     <xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Type of displayed objects. It may not be present in case that the type is defined in a referenced object colleciton.
+                                Type of displayed objects. It may not be present in case that the type is defined in a referenced object collection.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>GuiObjectListViewType.type</a:displayName>
@@ -2409,7 +2409,7 @@
                     <xsd:documentation>
                         Search will only traverse flat, one-level part of the hierarchy.
                         This is ordinary search scope for non-hierarchical data.
-                        But when used in organizational hieraries, then this search scope
+                        But when used in organizational hierarchies, then this search scope
                         will be limited only to a single organizational level.
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2422,7 +2422,7 @@
                     <xsd:documentation>
                         Search will traverse entire subtree.
                         This scope makes no sense for non-hierarchical data.
-                        But when used in organizational hieraries, then this search scope
+                        But when used in organizational hierarchies, then this search scope
                         will be span entire subtree with all sub-orgs.
                     </xsd:documentation>
                     <xsd:appinfo>
