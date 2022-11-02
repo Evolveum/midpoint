@@ -509,7 +509,7 @@ public abstract class AbstractSearchExpressionEvaluator<
         ObjectDelta<O> addDelta = newObject.createAddDelta();
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
 
-        boolean isCreateOnDemandSafe = isCreateOnDemandSafe(task);
+        boolean isCreateOnDemandSafe = isCreateOnDemandSafe();
         if (isCreateOnDemandSafe) {
             try {
                 ModelContext<O> context = modelInteractionService.previewChanges(deltas, null, task, result);
@@ -536,7 +536,7 @@ public abstract class AbstractSearchExpressionEvaluator<
         return deltaOperation != null ? deltaOperation.getObjectDelta().getObjectToAdd() : null;
     }
 
-    private boolean isCreateOnDemandSafe(Task task) {
+    protected boolean isCreateOnDemandSafe() {
         boolean isCreateOnDemandSafe = true;   // todo default value should be true later on;
 
         ModelExecuteOptions options = ModelExpressionThreadLocalHolder.getLensContextRequired().getOptions();
