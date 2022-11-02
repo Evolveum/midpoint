@@ -26,11 +26,11 @@ When we choose the source, we proceed to a couple of steps for the basic configu
 
 [%autowidth, cols="1a,1a", frame=none, grid=none, role=center]
 |===
-| image::step-1-basic-conf.png[link=step-1-basic-conf.png,title=Basic configuration of resource, 50%]
-| image::step-1-connector-conf-discovery.png[link=step-1-connector-conf-discovery.png,title=Partial configuration for discovery, 50%]
+| image::step-1-basic-conf.png[link=step-1-basic-conf.png, 50%, title=Basic configuration of resource]
+| image::step-1-connector-conf-discovery.png[link=step-1-connector-conf-discovery.png,50%, title=Partial configuration for discovery]
 
-| image::step-1-discovered-config.png[link=step-1-discovered-config.png,title=Discovered configuration, 50%]
-| image::step-1-schema.png[link=step-1-schema.png,title=Schema, 50%]
+| image::step-1-discovered-config.png[link=step-1-discovered-config.png, 50%, title=Discovered configuration]
+| image::step-1-schema.png[link=step-1-schema.png, 50%, title=Schema]
 |===
 
 After basic configuration of resource we see three tiles for next path.
