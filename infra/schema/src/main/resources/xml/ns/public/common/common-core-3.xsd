@@ -6476,7 +6476,7 @@
                                 </p>
                                 <p>
                                     Unlike assignments inducements do not apply to the object in which they are specified.
-                                    Inducements apply to the object that is has assigned the object which contains inducements.
+                                    Inducements apply to the object that is assigned the object which contains inducements.
                                     E.g. inducements specified in a role will not be applied to the role itself.
                                     The inducements will be applied to the user that is assigned to such role.
                                 </p>
@@ -7195,7 +7195,7 @@
             <xsd:element name="target" type="tns:OwnedObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Target of the operation. E.g. an role that is being assigned. It can be considered an operation
+                        Target of the operation. E.g. a role that is being assigned. It can be considered an operation
                         parameter. If no target is specified then the authorization applies to all possible targets.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -8150,7 +8150,7 @@
                              <xsd:documentation>
                                  Intent of resource object that should be created on the resource.
 
-                                 This must point to the a valid definition in
+                                 This must point to a valid definition in
                                  the resource object (in schemaHandling section).
 
                                  This element is optional. If not specified then the definition
@@ -8328,7 +8328,7 @@
             <xsd:documentation>
                 TODO: update
                 The user template used to create new users. It
-                contains fixed values or expressions that can set-up
+                contains fixed values or expressions that can set up
                 a new user object. It is used only during user creation in the
                 synchronization code, but will be most likely used also
                 on other places later.
@@ -13692,6 +13692,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="NOTIFICATIONS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="TRANSPORT">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TRANSPORT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

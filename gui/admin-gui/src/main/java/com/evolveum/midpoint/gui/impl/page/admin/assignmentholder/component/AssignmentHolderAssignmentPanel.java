@@ -17,7 +17,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 
 //@PanelType(name = "assignments", defaultContainerPath = "assignment")
 @PanelInstance(identifier = "assignments",
-        applicableForType = FocusType.class, // change later to assignmentholder type, probably we will want org assignemnts later
+        applicableForType = FocusType.class, // change later to assignmentHolder type, probably we will want org assignments later
         display = @PanelDisplay(label = "pageAdminFocus.assignments", icon = GuiStyleConstants.EVO_ASSIGNMENT_ICON, order = 30))
 @Counter(provider = AssignmentCounter.class)
 public class AssignmentHolderAssignmentPanel<AH extends AssignmentHolderType> extends AbstractObjectMainPanel<AH, ObjectDetailsModels<AH>> {
