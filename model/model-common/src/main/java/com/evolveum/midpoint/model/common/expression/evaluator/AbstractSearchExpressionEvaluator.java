@@ -12,20 +12,18 @@ import static com.evolveum.midpoint.util.caching.CacheConfiguration.getStatistic
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.model.common.util.PopulatorUtil;
@@ -514,11 +512,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             try {
                 ModelContext<O> context = modelInteractionService.previewChanges(deltas, null, task, result);
                 ModelElementContext focusContext = context.getFocusContext();
-                PrismObject<O> newCodObject = focusContext.getObjectNew();
-//                if (newCodObject.getOid() == null) {
-//                    newObject.setOid(UUID.randomUUID().toString());
-//                }
-                return newCodObject;
+                return focusContext.getObjectNew();
             } catch (Exception ex) {
                 throw new ExpressionEvaluationException(ex.getMessage(), ex);
             }
@@ -549,7 +543,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             return isCreateOnDemandSafe;
         }
 
-        return CreateOnDemandOptionsType.SAFE.equals(simulation.getCreateOnDemand());
+        return SimulationOptionType.SAFE.equals(simulation.getCreateOnDemand());
     }
 
     // Override the default in this case. It makes more sense like this.

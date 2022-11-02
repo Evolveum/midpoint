@@ -16154,12 +16154,13 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="createOnDemand" type="tns:CreateOnDemandOptionsType"/>
+            <xsd:element name="createOnDemand" type="tns:SimulationOptionType" minOccurs="0"/>
+            <xsd:element name="sequence" type="tns:SimulationOptionType" minOccurs="0"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
-    <xsd:simpleType name="CreateOnDemandOptionsType">
+    <xsd:simpleType name="SimulationOptionType">
         <xsd:annotation>
             <xsd:documentation>
                 <!-- todo -->

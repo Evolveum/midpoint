@@ -78,10 +78,22 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
         if (alreadyObtainedValue != null) {
             return alreadyObtainedValue;
         } else {
-            long freshValue = repositoryService.advanceSequence(sequenceOid, result);
-            ctx.setSequenceCounter(sequenceOid, freshValue);
-            return freshValue;
+            if (!isAdvanceSequenceSafe()) {
+                long freshValue = repositoryService.advanceSequence(sequenceOid, result);
+                ctx.setSequenceCounter(sequenceOid, freshValue);
+                return freshValue;
+            } else {
+                // todo implement
+
+                return -1;
+            }
         }
+    }
+
+    private static boolean isAdvanceSequenceSafe() {
+        boolean isAdvanceSequenceSafe = false;
+
+        return isAdvanceSequenceSafe;
     }
 
     @NotNull
