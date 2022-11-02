@@ -61,7 +61,8 @@ Detail for configuration of object type:
 | image::step-2-object-type-basic-config.png[link=step-2-object-type-basic-config.png, 100%, title=Basic configuration of object type]
 | image::step-2-object-type-resource-data.png[link=step-2-object-type-resource-data.png, 100%,title=Resource data]
 
-2+| image::step-2-object-type-resource-data.png[link=step-2-object-type-resource-data.png, 100%, title=Midpoint data]
+| image::step-2-object-type-resource-data.png[link=step-2-object-type-resource-data.png, 100%, title=Midpoint data]
+|
 |===
 
 After we configure object type, we can see the tiles for previewing the data and configuring the containers of the selected object type.
