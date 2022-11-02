@@ -6,28 +6,32 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import java.util.Collection;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.common.SequenceHelper;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequentialValueExpressionEvaluatorType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Returns current value of a given sequence object. The value is returned in the zero set. Plus and minus sets are empty.
@@ -78,15 +82,19 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
         if (alreadyObtainedValue != null) {
             return alreadyObtainedValue;
         } else {
+            long freshValue;
             if (!isAdvanceSequenceSafe()) {
-                long freshValue = repositoryService.advanceSequence(sequenceOid, result);
-                ctx.setSequenceCounter(sequenceOid, freshValue);
-                return freshValue;
-            } else {
-                // todo implement
+                freshValue = repositoryService.advanceSequence(sequenceOid, result);
 
-                return -1;
+            } else {
+                Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createReadOnlyCollection();
+                SequenceType seq = repositoryService.getObject(SequenceType.class, sequenceOid, options, result).asObjectable();
+                freshValue = SequenceHelper.advanceSequence(seq);
             }
+
+            ctx.setSequenceCounter(sequenceOid, freshValue);
+
+            return freshValue;
         }
     }
 

@@ -18,6 +18,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.SequenceHelper;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
 import com.querydsl.core.Tuple;
@@ -1403,12 +1405,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
             logger.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
 
-            long returnValue;
-            if (!sequence.getUnusedValues().isEmpty()) {
-                returnValue = sequence.getUnusedValues().remove(0);
-            } else {
-                returnValue = advanceSequence(sequence, oid);
-            }
+            long returnValue = SequenceHelper.advanceSequence(sequence);
 
             logger.trace("Return value = {}, OBJECT after:\n{}",
                     returnValue, sequence.debugDumpLazily());
@@ -1419,37 +1416,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } finally {
             registerOperationFinish(opHandle);
         }
-    }
-
-    private long advanceSequence(SequenceType sequence, UUID oid) {
-        long returnValue;
-        long counter = sequence.getCounter() != null ? sequence.getCounter() : 0L;
-        long maxCounter = sequence.getMaxCounter() != null
-                ? sequence.getMaxCounter() : Long.MAX_VALUE;
-        boolean allowRewind = Boolean.TRUE.equals(sequence.isAllowRewind());
-
-        if (counter < maxCounter) {
-            returnValue = counter;
-            sequence.setCounter(counter + 1);
-        } else if (counter == maxCounter) {
-            returnValue = counter;
-            if (allowRewind) {
-                sequence.setCounter(0L);
-            } else {
-                sequence.setCounter(counter + 1); // will produce exception during next run
-            }
-        } else { // i.e. counter > maxCounter
-            if (allowRewind) { // shouldn't occur but...
-                logger.warn("Sequence {} overflown with allowRewind set to true. Rewinding.", oid);
-                returnValue = 0;
-                sequence.setCounter(1L);
-            } else {
-                throw new SystemException("No (next) value available from sequence " + oid
-                        + ". Current counter = " + sequence.getCounter()
-                        + ", max value = " + sequence.getMaxCounter());
-            }
-        }
-        return returnValue;
     }
 
     @Override
