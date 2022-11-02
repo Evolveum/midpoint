@@ -27,14 +27,12 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.application.PageMounter;
-
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -170,6 +168,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -199,11 +198,8 @@ import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPres
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
-import com.evolveum.midpoint.web.page.self.PageSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -239,8 +235,6 @@ public final class WebComponentUtil {
      */
     private static RelationRegistry staticallyProvidedRelationRegistry;
 
-//    private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
-
     private static final Map<Class<? extends ObjectType>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
 
     static {
@@ -261,11 +255,6 @@ public final class WebComponentUtil {
         OBJECT_DETAILS_PAGE_MAP.put(MessageTemplateType.class, PageMessageTemplate.class);
     }
 
-//    static {
-//        CREATE_NEW_OBJECT_PAGE_MAP = new HashMap<>();
-//        CREATE_NEW_OBJECT_PAGE_MAP.put(ResourceType.class, PageResourceWizard.class);
-//    }
-
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)
     private static final Map<Class<?>, Class<? extends PageBase>> OBJECT_LIST_PAGE_MAP;
 
@@ -277,41 +266,6 @@ public final class WebComponentUtil {
         OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
         OBJECT_LIST_PAGE_MAP.put(TaskType.class, PageTasks.class);
         OBJECT_LIST_PAGE_MAP.put(PageMessageTemplate.class, PageMessageTemplates.class);
-    }
-
-    private static final Map<TableId, String> STORAGE_TABLE_ID_MAP;
-
-    static {
-        STORAGE_TABLE_ID_MAP = new HashMap<>();
-        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL, SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT);
-        STORAGE_TABLE_ID_MAP.put(TableId.ROLE_MEMBER_PANEL, SessionStorage.KEY_ROLE_MEMBER_PANEL);
-        STORAGE_TABLE_ID_MAP.put(TableId.ORG_MEMBER_PANEL, SessionStorage.KEY_ORG_MEMBER_PANEL);
-        STORAGE_TABLE_ID_MAP.put(TableId.SERVICE_MEMBER_PANEL, SessionStorage.KEY_SERVICE_MEMBER_PANEL);
-
-    }
-
-    private static final Map<String, LoggingComponentType> COMPONENT_MAP = new HashMap<>();
-
-    static {
-        COMPONENT_MAP.put("com.evolveum.midpoint", LoggingComponentType.ALL);
-        COMPONENT_MAP.put("com.evolveum.midpoint.model", LoggingComponentType.MODEL);
-        COMPONENT_MAP.put("com.evolveum.midpoint.provisioning", LoggingComponentType.PROVISIONING);
-        COMPONENT_MAP.put("com.evolveum.midpoint.repo", LoggingComponentType.REPOSITORY);
-        COMPONENT_MAP.put("com.evolveum.midpoint.web", LoggingComponentType.WEB);
-        COMPONENT_MAP.put("com.evolveum.midpoint.gui", LoggingComponentType.GUI);
-        COMPONENT_MAP.put("com.evolveum.midpoint.task", LoggingComponentType.TASKMANAGER);
-        COMPONENT_MAP.put("com.evolveum.midpoint.model.sync",
-                LoggingComponentType.RESOURCEOBJECTCHANGELISTENER);
-        COMPONENT_MAP.put("com.evolveum.midpoint.wf", LoggingComponentType.WORKFLOWS);
-        COMPONENT_MAP.put("com.evolveum.midpoint.notifications", LoggingComponentType.NOTIFICATIONS);
-        COMPONENT_MAP.put("com.evolveum.midpoint.certification", LoggingComponentType.ACCESS_CERTIFICATION);
-        COMPONENT_MAP.put("com.evolveum.midpoint.security", LoggingComponentType.SECURITY);
     }
 
     public enum AssignmentOrder {

@@ -505,9 +505,9 @@ public class ColumnUtils {
 
     public static <T extends AbstractRoleType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(boolean showAccounts) {
         String sortByDisplayName;
-        String sortByIdentifer;
+        String sortByIdentifier;
         sortByDisplayName = AbstractRoleType.F_DISPLAY_NAME.getLocalPart();
-        sortByIdentifer = AbstractRoleType.F_IDENTIFIER.getLocalPart();
+        sortByIdentifier = AbstractRoleType.F_IDENTIFIER.getLocalPart();
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
                 new ColumnTypeDto<>("AbstractRoleType.displayName",
                         sortByDisplayName,
@@ -515,7 +515,7 @@ public class ColumnUtils {
                 new ColumnTypeDto<>("AbstractRoleType.description",
                         null,
                         SelectableBeanImpl.F_VALUE + ".description", false),
-                new ColumnTypeDto<>("AbstractRoleType.identifier", sortByIdentifer,
+                new ColumnTypeDto<>("AbstractRoleType.identifier", sortByIdentifier,
                         SelectableBeanImpl.F_VALUE + ".identifier", false)
 
         );

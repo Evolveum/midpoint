@@ -45,23 +45,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<AssignmentType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentsDetailsPanel.class);
-    private boolean isEntitledAssignemnt;
+    private boolean isEntitledAssignment;
 
     public AssignmentsDetailsPanel(String id, IModel<PrismContainerValueWrapper<AssignmentType>> model, boolean isEntitledAssignment) {
         super(id, model, !isEntitledAssignment);
-        this.isEntitledAssignemnt = isEntitledAssignment;
+        this.isEntitledAssignment = isEntitledAssignment;
     }
 
     public AssignmentsDetailsPanel(String id, IModel<PrismContainerValueWrapper<AssignmentType>> model, boolean isEntitledAssignment, ContainerPanelConfigurationType config) {
         super(id, model, !isEntitledAssignment, config);
-        this.isEntitledAssignemnt = isEntitledAssignment;
+        this.isEntitledAssignment = isEntitledAssignment;
     }
 
     @NotNull
     @Override
     protected List<ITab> createTabs() {
         List<ITab> tabs = super.createTabs();
-        if (isEntitledAssignemnt) {
+        if (isEntitledAssignment) {
             tabs.add(getConstructionAssociationPanel());
             return tabs;
         }
@@ -330,6 +330,4 @@ public class AssignmentsDetailsPanel extends MultivalueContainerDetailsPanel<Ass
             }
         };
     }
-
-
 }

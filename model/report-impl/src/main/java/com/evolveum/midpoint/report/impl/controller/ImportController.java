@@ -1,11 +1,25 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.report.impl.controller;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.text.StringEscapeUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -24,30 +38,13 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
 
 /**
  * Controls the process of importing collection-based reports.
@@ -316,7 +313,7 @@ public class ImportController {
             for (Object realValue : realValues) {
                 if (realValue != null) {
                     PrismPropertyValue<?> newValue = reportService.getPrismContext().itemFactory().createPropertyValue(realValue);
-                    ((PrismProperty)newItem).addValue(newValue);
+                    ((PrismProperty) newItem).addValue(newValue);
                 }
             }
         } else {
@@ -336,7 +333,7 @@ public class ImportController {
                     continue;
                 }
                 PrismPropertyValue<?> newValue = reportService.getPrismContext().itemFactory().createPropertyValue(parsedObject);
-                ((PrismProperty)newItem).addValue(newValue);
+                ((PrismProperty) newItem).addValue(newValue);
             }
         }
     }
@@ -373,8 +370,8 @@ public class ImportController {
     }
 
     private Object parseRealValueFromString(PrismPropertyDefinition<?> def, String value) throws SchemaException {
-        String embeeded = "<a>" + StringEscapeUtils.escapeHtml4(value) + "</a>";
-        return reportService.getPrismContext().parserFor(embeeded).xml().definition(def).parseRealValue();
+        String embedded = "<a>" + StringEscapeUtils.escapeHtml4(value) + "</a>";
+        return reportService.getPrismContext().parserFor(embedded).xml().definition(def).parseRealValue();
     }
 
     public List<VariablesMap> parseColumnsAsVariablesFromFile(ReportDataType reportData)
@@ -441,5 +438,4 @@ public class ImportController {
         }
         return variablesMaps;
     }
-
 }

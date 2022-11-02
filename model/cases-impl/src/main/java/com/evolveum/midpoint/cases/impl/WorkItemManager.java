@@ -8,10 +8,6 @@
 package com.evolveum.midpoint.cases.impl;
 
 import com.evolveum.midpoint.cases.impl.engine.CaseEngineImpl;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.util.WorkItemId;
@@ -30,7 +26,6 @@ import com.evolveum.midpoint.cases.api.request.ReleaseWorkItemsRequest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
@@ -55,9 +50,6 @@ public class WorkItemManager {
 
     @Autowired private CaseEngineImpl caseEngine;
     @Autowired private Tracer tracer;
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
 
     private static final String DOT_INTERFACE = CaseManager.class.getName() + ".";
 
@@ -119,7 +111,7 @@ public class WorkItemManager {
      * Bulk version of completeWorkItem method. It's necessary when we need to complete more items at the same time,
      * to provide accurate completion information (avoiding completion of the first one and automated closure of other ones).
      */
-    public void completeWorkItems(CompleteWorkItemsRequest request, Task task, OperationResult parentResult)
+    void completeWorkItems(CompleteWorkItemsRequest request, Task task, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SchemaException, ObjectAlreadyExistsException {
         OperationResultBuilder builder = parentResult.subresult(OPERATION_COMPLETE_WORK_ITEMS);
@@ -137,7 +129,7 @@ public class WorkItemManager {
     }
 
     // We can eventually provide bulk version of this method as well.
-    public void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+    void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         OperationResultBuilder builder = parentResult.subresult(OPERATION_CLAIM_WORK_ITEM)
@@ -159,7 +151,7 @@ public class WorkItemManager {
     }
 
     // We can eventually provide bulk version of this method as well.
-    public void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+    void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         OperationResultBuilder builder = parentResult.subresult(OPERATION_RELEASE_WORK_ITEM)
@@ -225,18 +217,5 @@ public class WorkItemManager {
             result.computeStatusIfUnknown();
             storeTraceIfRequested(tracingRequested, task, result, parentResult);
         }
-    }
-
-    @NotNull
-    public CaseWorkItemType getWorkItem(WorkItemId id, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
-        PrismObject<CaseType> caseObject = repositoryService.getObject(CaseType.class, id.caseOid, null, result);
-        //noinspection unchecked
-        PrismContainerValue<CaseWorkItemType> pcv = (PrismContainerValue<CaseWorkItemType>)
-                caseObject.find(ItemPath.create(CaseType.F_WORK_ITEM, id.id));
-        if (pcv == null) {
-            throw new ObjectNotFoundException("No work item " + id.id + " in " + caseObject);
-        }
-        return pcv.asContainerable();
     }
 }
