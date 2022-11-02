@@ -4,7 +4,7 @@
 
 Resource wizard was complete rewrite and redesign in midPoint version 4.6.
 
-New UI takes form of some panels with choice for specific parts of resource configuration. Specific part of configuration is represented by a  wizard with steps.
+New UI takes form of some panels with choice for specific parts of resource configuration. Specific part of configuration is represented by a wizard with steps.
 
 == Basic configuration
 
@@ -24,19 +24,19 @@ When we choose the source, we proceed to a couple of steps for the basic configu
 * Third step contains contains other possible configuration properties. Some properties can contain suggestions.
 * Last step show table with possible object classes.
 
-[%autowidth, cols="a,a", frame=none, grid=none, role="center"]
+[%autowidth, cols="1a,1a", frame=none, grid=none, role=center]
 |===
-| image::step-1-basic-conf.png[title=Basic configuration of resource]
-| image::step-1-connector-conf-discovery.png[title=Partial configuration for discovery]
+| image::step-1-basic-conf.png[link=step-1-basic-conf.png,title=Basic configuration of resource, 50%]
+| image::step-1-connector-conf-discovery.png[link=step-1-connector-conf-discovery.png,title=Partial configuration for discovery, 50%]
 
-| image::step-1-discovered-config.png[title=Discovered configuration]
-| image::step-1-schema.png[title=Schema]
+| image::step-1-discovered-config.png[link=step-1-discovered-config.png,title=Discovered configuration, 50%]
+| image::step-1-schema.png[link=step-1-schema.png,title=Schema, 50%]
 |===
 
 After basic configuration of resource we see three tiles for next path.
 
-.Part of resource configuration
-image::choice-part-resource.png[Part of resource configuration,100%]
+.Parts of resource configuration
+image::choice-part-resource.png[Parts of resource configuration,100%]
 
 * First tile shows data on resource.
 
@@ -66,8 +66,8 @@ Detail for configuration of object type:
 
 After we configure object type, we can see the tiles for previewing the data and configuring the containers of the selected object type.
 
-.Part of object type configuration
-image::choice-part-object-type.png[Part of object type configuration,100%]
+.Parts of object type configuration
+image::choice-part-object-type.png[Parts of object type configuration,100%]
 
 .Data preview of object type
 image::data-preview-object-type.png[Data preview of object type,100%]
@@ -169,3 +169,10 @@ image::step-9-association.png[Table of associations, 100%]
 
 .Detail configuration for association
 image::step-9-association-detail.png[Detail configuration for association, 100%]
+
+== Wizard for existing resource
+
+We can use wizard panels to edit existing resource. It's enough if we open the panel for displaying resource objects (accounts/entitlements/generics), select specific object type by intent, and then the buttons for opening the wizard for a specific part of the object type configuration are displayed.
+
+.Resource detail
+image::resource-details.png[Resource detail, 100%]
