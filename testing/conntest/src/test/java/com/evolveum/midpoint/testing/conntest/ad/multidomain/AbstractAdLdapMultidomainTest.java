@@ -1017,6 +1017,82 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractAdLdapTest
     }
 
     @Test
+    public void test218ModifyAccountBarbossaTelephoneNumberGood() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+                .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
+        QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_TELEPHONE_NUMBER);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+                ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "+421901123456");
+        delta.addModification(attrDelta);
+
+        // WHEN
+        when();
+        executeChanges(delta, null, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, ATTRIBUTE_TELEPHONE_NUMBER, "+421901123456");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, ATTRIBUTE_OBJECT_CATEGORY_NAME, getObjectCategoryPerson());
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
+
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+
+//        assertLdapConnectorReasonableInstances();
+    }
+
+    /**
+     * We are trying to set a telephone number that is too long (more than 64 chars).
+     * AD will not accept that.
+     * Make sure the operation fails in a graceful way (e.g. no endless retry loops).
+     */
+    @Test
+    public void test219ModifyAccountBarbossaTelephoneNumberLong() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+                .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
+        QName attrQName = new QName(MidPointConstants.NS_RI, ATTRIBUTE_TELEPHONE_NUMBER);
+        ResourceAttributeDefinition<?> attrDef = accountDefinition.findAttributeDefinition(attrQName);
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
+                ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "+4219011234567890123456789012345678901234567890123456789012345678901234567890");
+        delta.addModification(attrDelta);
+
+        // WHEN
+        when();
+        executeChanges(delta, null, task, result);
+
+        // THEN
+        then();
+        assertPartialError(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        // We expect unchanged telephone number here
+        assertAttribute(entry, ATTRIBUTE_TELEPHONE_NUMBER, "+421901123456");
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, ATTRIBUTE_OBJECT_CATEGORY_NAME, getObjectCategoryPerson());
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
+
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+
+//        assertLdapConnectorReasonableInstances();
+    }
+
+    @Test
     public void test220ModifyUserBarbossaPasswordSelfServicePassword1() throws Exception {
         testModifyUserBarbossaPasswordSelfServiceSuccess(
                 USER_BARBOSSA_PASSWORD, USER_BARBOSSA_PASSWORD_AD_1);
