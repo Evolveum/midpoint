@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchButtonWithDropdownMenu;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchButtonWithDropdownMenu;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.formula.functions.T;

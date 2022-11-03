@@ -19,8 +19,6 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;

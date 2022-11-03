@@ -9,10 +9,6 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.jetbrains.annotations.NotNull;

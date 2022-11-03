@@ -10,15 +10,9 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.ChoicesSearchItemWrapper;
-import com.evolveum.midpoint.web.page.admin.resources.ResourceContentResourcePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -27,10 +21,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * @author skublik

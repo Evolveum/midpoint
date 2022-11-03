@@ -46,7 +46,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.SearchPanel;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.prism.PrismContext;

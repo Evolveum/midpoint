@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 
 import com.evolveum.midpoint.gui.impl.component.AbstractObjectListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -15,8 +14,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import java.util.Arrays;
 
 @PanelType(name = "inducedBy")
 @PanelInstance(identifier = "inducedBy",

@@ -13,7 +13,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 
 import com.evolveum.midpoint.web.session.GenericPageStorage;
 
@@ -73,8 +73,8 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.ObjectTypeSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.ObjectTypeSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugSearchFragment;

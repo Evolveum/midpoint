@@ -10,8 +10,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
+
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
+
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;

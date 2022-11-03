@@ -1,10 +1,11 @@
 package com.evolveum.midpoint.gui.impl.component.search;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;

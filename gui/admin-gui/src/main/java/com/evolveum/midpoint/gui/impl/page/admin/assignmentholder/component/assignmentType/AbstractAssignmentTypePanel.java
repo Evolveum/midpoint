@@ -12,9 +12,8 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -67,7 +66,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.RepoAssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.GenericPageStorage;

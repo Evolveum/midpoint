@@ -44,7 +44,7 @@ import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconWithLa
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.component.search.DateSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.DateSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.prism.path.ItemPath;

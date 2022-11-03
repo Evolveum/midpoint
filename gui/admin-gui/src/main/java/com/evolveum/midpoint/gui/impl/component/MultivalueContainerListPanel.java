@@ -11,13 +11,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.component.search.SearchConfigurationWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.*;
 
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
@@ -42,15 +41,12 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -101,7 +97,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
     protected PrismContainerDefinition<C> getTypeDefinitionForSearch() {
         return getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
     }
-    
+
     protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<C> containerDef){
         return null;
     }

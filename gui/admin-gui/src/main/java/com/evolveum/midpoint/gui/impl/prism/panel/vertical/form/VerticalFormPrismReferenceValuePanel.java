@@ -14,7 +14,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferenceValuePanel;
 
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
@@ -29,21 +28,12 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.INullAcceptingValidator;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.factory.panel.PrismReferencePanelContext;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;

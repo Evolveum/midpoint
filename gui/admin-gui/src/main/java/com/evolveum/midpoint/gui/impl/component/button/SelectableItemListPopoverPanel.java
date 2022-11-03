@@ -9,9 +9,9 @@ package com.evolveum.midpoint.gui.impl.component.button;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractRoleSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.Popover;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.panel.Popover;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;

@@ -12,10 +12,6 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.apache.commons.collections4.CollectionUtils;
