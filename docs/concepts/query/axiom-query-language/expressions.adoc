@@ -11,7 +11,6 @@ NOTE: Expressions are not executed / supported for user entered queries in
 search box in midPoint GUI, since that would allow users to execute code and
 may pose additional security risks.
 
-
 Script expressions are supported for following filters:
 
 * **Value comparison filters**
@@ -44,14 +43,12 @@ name = $c:account/c:attributes/ri:uid
 </q:equal>
 ----
 
-
 == Script
 
 There are two syntaxes for script expression: single-line scripts and multi-line scripts.
 By default scripts are Groovy scripts unless other scripting language is specified.
 
 .Single-line Groovy expression
-
 ----
 metadata/createTimestamp > `basic.fromNow("-P30D")`
 ----
@@ -88,40 +85,52 @@ The language name is same as you would use in XML filter script expressions.
 == Other expression types
 
 If you plan to use expression type, which does not have simplified syntax,
-you can use `yaml` script expression (`yaml` as scripting language is only
-available in Axiom Queries)
+you can use `yaml` expression (`yaml` language is only available in Axiom Queries).
 
 `yaml` expression allows you to pass-thru standard `expression` element
 serialized in YAML format.
 
 This is useful, if you need to define additional properties of expression,
-or use other expression types, which does not built-in syntax support.
+or use other expression types, which does not have built-in syntax support.
 
 ----
 metadata/createTimestamp > yaml```
-    language: groovy
-    code: |
-        now = basic.currentDateTime();
-        ret = basic.addDuration(now, "-P30D");
-        return ret
+    script:
+        language: groovy
+        code: |
+            now = basic.currentDateTime();
+            ret = basic.addDuration(now, "-P30D");
+            return ret
     ```
 ----
 
 .XML Equivalent
-[source, xml]
+[source,xml]
 ----
 <filter>
   <gt>
     <path>metadata/createTimestamp</path>
     <expression>
-      <language>groovy</language>
-      <code>
-        ret = basic.addDuration(now, "-P30D");
-        now = basic.currentDateTime();
-        return ret
-      </code>
+      <script>
+        <language>groovy</language>
+        <code>
+          ret = basic.addDuration(now, "-P30D");
+          now = basic.currentDateTime();
+          return ret
+        </code>
+      </script>
     </expression>
   </gt>
 </filter>
-
 ----
+
+[WARNING]
+====
+In midPoint 4.5 and 4.6 you *have to indent* the content of the YAML expression with at least
+one space, otherwise it will not parse with quite an obscure error.
+// TODO fixed in 4.7? MID-8286
+====
+
+== See Also
+
+* xref:/midpoint/reference/expressions/expressions/[Expressions] in general
