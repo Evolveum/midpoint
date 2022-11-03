@@ -9,10 +9,14 @@ package com.evolveum.midpoint.web.component.search;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -348,16 +352,16 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         return new LoadableModel<List<Property>>() {
             @Override
             protected List<Property> load() {
-                Class<?> type = getType();
+                Class<? extends Containerable> type = getType();
 
                 if (ObjectType.class.isAssignableFrom(type)) {
                     PrismObjectDefinition objectDef = PredefinedSearchableItems.findObjectDefinition(getType(), null, getPageBase());
-                    List<SearchItemDefinition> availableDefs =
-                            SearchFactory.getAvailableDefinitions(objectDef, null, true, getPageBase());
+                    Map<ItemPath, ItemDefinition<?>> availableDefs = PredefinedSearchableItems.getAvailableSearchItems(type, Collections.singletonList(ItemPath.create(ObjectType.F_EXTENSION)), null, getPageBase());
+//                            SearchFactory.getAvailableDefinitions(objectDef, null, true, getPageBase());
                     List<Property> propertiesList = new ArrayList<>();
-                    availableDefs.forEach(searchItemDef -> {
-                        if (!isPropertyAlreadyAdded(searchItemDef.getPath())) {
-                            propertiesList.add(new Property(searchItemDef.getDef(), searchItemDef.getPath()));
+                    availableDefs.entrySet().forEach(searchItemDef -> {
+                        if (!isPropertyAlreadyAdded(searchItemDef.getKey())) {
+                            propertiesList.add(new Property(searchItemDef.getValue(), searchItemDef.getKey()));
                         }
                     });
                     return propertiesList;

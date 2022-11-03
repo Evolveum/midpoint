@@ -1,8 +1,13 @@
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import java.lang.reflect.Modifier;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -13,19 +18,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.lang.reflect.Modifier;
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class PredefinedSearchableItems {
 
@@ -127,8 +121,8 @@ public class PredefinedSearchableItems {
         SEARCHABLE_OBJECTS.put(AssignmentType.class, Arrays.asList(
                 ItemPath.create(AssignmentType.F_TARGET_REF),
                 ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF),
-                ItemPath.create(AssignmentType.F_TENANT_REF),
-                ItemPath.create(AssignmentType.F_ORG_REF)
+                ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+                ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS)
         ));
 
         SEARCHABLE_OBJECTS.put(CaseWorkItemType.class, Arrays.asList(
@@ -176,7 +170,19 @@ public class PredefinedSearchableItems {
     }
 
     static {
-        SEARCHABLE_ASSIGNMENT_ITEMS.put(RoleType.COMPLEX_TYPE, Arrays.asList());
+        SEARCHABLE_ASSIGNMENT_ITEMS.put(RoleType.COMPLEX_TYPE, Arrays.asList(
+                ItemPath.create(AssignmentType.F_TARGET_REF),
+                ItemPath.create(AssignmentType.F_TENANT_REF),
+                ItemPath.create(AssignmentType.F_ORG_REF)));
+
+        SEARCHABLE_ASSIGNMENT_ITEMS.put(ResourceType.COMPLEX_TYPE, Arrays.asList(
+                ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_RESOURCE_REF)));
+
+        SEARCHABLE_ASSIGNMENT_ITEMS.put(PolicyRuleType.COMPLEX_TYPE, Arrays.asList(
+                ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME),
+                ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_POLICY_CONSTRAINTS,
+                        PolicyConstraintsType.F_EXCLUSION, ExclusionPolicyConstraintType.F_TARGET_REF)
+                ));
     }
     private static final Map<Class<?>, List<ItemPath>> FIXED_SEARCH_ITEMS = new HashMap<>();
     static {
@@ -253,6 +259,16 @@ public class PredefinedSearchableItems {
         return getSearchableDefinitionMap(def, extensionPaths, modelServiceLocator);
     }
 
+    public static <C extends Containerable> Map<ItemPath, ItemDefinition<?>> getAvailableAssignmentSearchItems(QName assignmentTargetType, PrismContainerDefinition<AssignmentType> definitionOverride, Collection<ItemPath> extensionPaths, ModelServiceLocator modelServiceLocator) {
+        Map<ItemPath, ItemDefinition<?>> searchableDefinitions = new HashMap<>();
+        collectExtensionDefinitions(definitionOverride, extensionPaths, searchableDefinitions);
+
+        collectionNonExtensionDefinitions(definitionOverride, searchableDefinitions, true, modelServiceLocator);
+
+        //TODO assignment search items according to type
+        return searchableDefinitions;
+    }
+
     public static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
             Class<T> type, ResourceShadowCoordinates coordinates,
             ModelServiceLocator modelServiceLocator) {
@@ -292,26 +308,6 @@ public class PredefinedSearchableItems {
 
         collectionNonExtensionDefinitions(containerDef, searchableDefinitions, useDefsFromSuperclass, modelServiceLocator);
 
-
-
-//        Class<C> typeClass = containerDef.getCompileTimeClass();
-//        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
-//            List<ItemPath> paths = PredefinedSearchableItems.getAvailableSearchableItems(typeClass, modelServiceLocator);
-//            if (paths != null) {
-//                for (ItemPath path : paths) {
-//                    ItemDefinition<?> def = containerDef.findItemDefinition(path);
-//                    if (def != null) {
-//                        searchableDefinitions.put(path, def);
-//                    }
-//                }
-//            }
-//            if (!useDefsFromSuperclass) {
-//                break;
-//            }
-//
-//            typeClass = (Class<C>) typeClass.getSuperclass();
-//        }
-
         return searchableDefinitions;
     }
 
@@ -333,38 +329,7 @@ public class PredefinedSearchableItems {
                     .collect(Collectors.toMap(d -> ItemPath.create(path, d.getItemName()), d -> d));
             searchableItems.putAll(extensionItems);
         }
-
-
-//            List<ItemDefinition<?>> defs = ((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
-//                    .filter(def -> );
-//            defs.forEach(def -> searchableDefinitions.put(ItemPath.create(ObjectType.F_EXTENSION, def.getItemName()), def));
-
     }
-
-
-
-//    public static <C extends Containerable> List<AbstractSearchItemWrapper> createSearchableExtensionWrapperList(
-//            PrismContainerDefinition<C> objectDef, ModelServiceLocator modelServiceLocator, ItemPath extensionPath) {
-//
-//        List<AbstractSearchItemWrapper> searchItemWrappers = new ArrayList<>();
-//        PrismContainerDefinition ext = objectDef.findContainerDefinition(extensionPath);
-//        if (ext == null) {
-//            return searchItemWrappers;
-//        }
-//        if (ext != null && ext.getDefinitions() != null) {
-//            List<ItemDefinition<?>> defs = ((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
-//                    .filter(def -> (def instanceof PrismReferenceDefinition || def instanceof PrismPropertyDefinition)
-//                            && isIndexed(def)).collect(Collectors.toList());
-//            for(ItemDefinition<?> def : defs) {
-//                var searchItem = new SearchItemType()
-//                        .path(new ItemPathType(ItemPath.create(extensionPath, def.getItemName())))
-//                        .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(def, null));
-//                searchItemWrappers.add(createPropertySearchItemWrapper(objectDef.getCompileTimeClass(),
-//                        searchItem, def, null, modelServiceLocator));
-//            }
-//        }
-//        return searchItemWrappers;
-//    }
 
     private static <C extends Containerable> void collectionNonExtensionDefinitions(PrismContainerDefinition<C> containerDef, Map<ItemPath, ItemDefinition<?>> searchableDefinitions, boolean useDefsFromSuperclass,  ModelServiceLocator modelServiceLocator) {
         Class<C> typeClass = containerDef.getCompileTimeClass();

@@ -1,22 +1,16 @@
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import java.util.*;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 public class SearchBoxConfigurationUtil {
 
@@ -57,22 +51,44 @@ public class SearchBoxConfigurationUtil {
         return defaultSearchBoxConfig;
     }
 
+    public static SearchBoxConfigurationType getDefaultAssignmentSearchBoxConfiguration(QName assignmentTargetType, PrismContainerDefinition<AssignmentType> definitionOverride, Collection<ItemPath> extensionPaths, ModelServiceLocator modelServiceLocator) {
+        SearchBoxConfigurationType defaultSearchBoxConfig = createDefaultSearchBoxConfig();
+
+        SearchItemsType searchItemsType = createSearchItemsForAssignments(assignmentTargetType, definitionOverride, extensionPaths, null, modelServiceLocator);
+        defaultSearchBoxConfig.setSearchItems(searchItemsType);
+        return defaultSearchBoxConfig;
+    }
+
     private static <C extends Containerable> SearchItemsType createSearchItemsForType(Class<C> type, Collection<ItemPath> extensionPaths, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
         Map<ItemPath, ItemDefinition<?>> availableDefs = PredefinedSearchableItems.getAvailableSearchItems(type, extensionPaths, coordinates, modelServiceLocator);//getSearchableDefinitionMap(def, modelServiceLocator);
 
+        List<SearchItemType> searchItems = createSearchItemList(availableDefs);
+        SearchItemsType searchItemsType = new SearchItemsType();
+        searchItemsType.getSearchItem().addAll(searchItems);
+        return searchItemsType;
+    }
+
+    private static <C extends Containerable> SearchItemsType createSearchItemsForAssignments(QName assignmentTargetType, PrismContainerDefinition<AssignmentType> definitionOverride, Collection<ItemPath> extensionPaths, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
+        Map<ItemPath, ItemDefinition<?>> availableDefs = PredefinedSearchableItems.getAvailableAssignmentSearchItems(assignmentTargetType, definitionOverride, extensionPaths, modelServiceLocator);//getSearchableDefinitionMap(def, modelServiceLocator);
+
+        List<SearchItemType> searchItems = createSearchItemList(availableDefs);
+        SearchItemsType searchItemsType = new SearchItemsType();
+        searchItemsType.getSearchItem().addAll(searchItems);
+        return searchItemsType;
+    }
+
+    private static List<SearchItemType> createSearchItemList(Map<ItemPath, ItemDefinition<?>> availableDefinitions) {
         List<SearchItemType> searchItems = new ArrayList<>();
 //        List<ItemPath> fixedItems = collectFixedItems(type);
-        for (ItemPath path : availableDefs.keySet()) {
+        for (ItemPath path : availableDefinitions.keySet()) {
             SearchItemType searchItem = new SearchItemType();
             searchItem.setPath(new ItemPathType(path));
-            if (PredefinedSearchableItems.isFixedItem(type, path)) {
+            if (PredefinedSearchableItems.isFixedItem(AssignmentType.class, path)) {
                 searchItem.setVisibleByDefault(true);
             }
             searchItems.add(searchItem);
         }
-        SearchItemsType searchItemsType = new SearchItemsType();
-        searchItemsType.getSearchItem().addAll(searchItems);
-        return searchItemsType;
+        return searchItems;
     }
 
     public static <C extends Containerable> SearchBoxConfigurationType getDefaultOrgMembersSearchBoxConfiguration(Class<C> defaultType,

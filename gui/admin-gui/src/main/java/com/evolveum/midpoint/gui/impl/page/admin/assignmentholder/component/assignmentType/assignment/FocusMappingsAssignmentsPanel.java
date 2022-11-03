@@ -75,6 +75,11 @@ public class FocusMappingsAssignmentsPanel<AH extends AssignmentHolderType> exte
         return createCustomizeQuery();
     }
 
+//    @Override
+//    protected void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs) {
+//
+//    }
+
     @Override
     protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(
             List<PrismContainerValueWrapper<AssignmentType>> list) {

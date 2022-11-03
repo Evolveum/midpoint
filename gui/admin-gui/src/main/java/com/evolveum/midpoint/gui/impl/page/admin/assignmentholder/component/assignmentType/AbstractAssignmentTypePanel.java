@@ -89,7 +89,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
     private Class<? extends Objectable> objectType;
     private String objectOid;
-    private PrismContainerDefinition<AssignmentType> searchDefinition;
+//    private PrismContainerDefinition<AssignmentType> searchDefinition;
 
 
     public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends Objectable> type, String oid) {
@@ -657,7 +657,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
 
     @Deprecated
-    protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs);
+//    protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs);
 
     protected abstract void addSpecificSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef, List<? super AbstractSearchItemWrapper> defs);
 

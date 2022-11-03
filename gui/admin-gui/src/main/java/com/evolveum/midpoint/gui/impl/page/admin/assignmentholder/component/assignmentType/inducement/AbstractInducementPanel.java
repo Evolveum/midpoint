@@ -77,10 +77,10 @@ public class AbstractInducementPanel<AR extends AbstractRoleType> extends Abstra
         return null;
     }
 
-    @Override
-    protected void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs) {
-
-    }
+//    @Override
+//    protected void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs) {
+//
+//    }
 
     @Override
     protected void addSpecificSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef, List<? super AbstractSearchItemWrapper> defs) {
