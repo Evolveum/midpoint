@@ -102,7 +102,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
     }
 
     public static boolean isAdvanceSequenceSafe(ModelContext context) {
-        boolean isAdvanceSequenceSafe = false;
+        boolean isAdvanceSequenceSafe = true;
 
         ModelExecuteOptions options = context.getOptions();
         if (options == null || options.getSimulationOptions() == null) {

@@ -16136,7 +16136,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="simulation" type="tns:SimulationOptionsType">
+            <xsd:element name="simulation" type="tns:SimulationOptionsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         <!-- todo -->
