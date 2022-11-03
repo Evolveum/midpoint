@@ -49,7 +49,7 @@ There many prepared notifier types to handle the basic situations and many thing
 Examples are shown later in this document.
 
 * *Message template* (added in version 4.5) is an object containing predefined message.
-The xref:../message-templates/[message template] can have multiple localizations and optionally contain attachments.
+The xref:message-templates/[message template] can have multiple localizations and optionally contain attachments.
 In versions 4.4 and lower, the content of the notifiaction message could be specified only
 directly in the notifier (which is still an option, but localization is very cumbersome).
 
