@@ -198,6 +198,15 @@
             </attribute>
 
             <attribute>
+                <ref>ri:telephoneNumber</ref>
+                <outbound>
+                    <source>
+                        <path>telephoneNumber</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <attribute>
                     <ref>ri:userPrincipalName</ref>
                     <outbound>
                     <source>

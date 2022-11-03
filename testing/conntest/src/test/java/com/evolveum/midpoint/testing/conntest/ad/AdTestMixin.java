@@ -38,6 +38,7 @@ public interface AdTestMixin extends InfraTestMixin {
     String ATTRIBUTE_UNICODE_PWD_NAME = "unicodePwd";
     String ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME = "msExchHideFromAddressLists";
     String ATTRIBUTE_TITLE_NAME = "title";
+    String ATTRIBUTE_TELEPHONE_NUMBER = "telephoneNumber";
     String ATTRIBUTE_PROXY_ADDRESSES_NAME = "proxyAddresses";
     String ATTRIBUTE_USER_PARAMETERS_NAME = "userParameters";
     String ATTRIBUTE_MEMBER_NAME = "member";
