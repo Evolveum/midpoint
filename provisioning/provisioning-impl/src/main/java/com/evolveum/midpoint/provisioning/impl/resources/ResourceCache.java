@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
@@ -224,7 +225,7 @@ public class ResourceCache implements Cache {
 
     /** Invalidates single (concrete) resource and all its descendants. */
     synchronized void invalidateSingle(@NotNull String oid) {
-        Set<String> descendants = dependencyMap.get(oid);
+        Set<String> descendants = new HashSet<>(dependencyMap.get(oid));
         LOGGER.trace("Invalidating {} and all its descendants: {}", oid, descendants);
 
         invalidateSingleShallow(oid);
