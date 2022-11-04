@@ -26,7 +26,11 @@
                             <q:equal>
                                 <q:path>name</q:path>
                                 <expression>
-                                    <path>$name</path>
+                                    <script>
+                                        <code>
+                                            'Role: ' + name + '-Read'
+                                        </code>
+                                    </script>
                                 </expression>
                             </q:equal>
                         </filter>
@@ -35,7 +39,9 @@
                             <populateItem>
                                 <expression>
                                     <script>
-                                        <code>name + '-Read'</code>
+                                        <code>
+                                            'Role: ' + name + '-Read'
+                                        </code>
                                     </script>
                                 </expression>
                                 <target>
@@ -48,13 +54,6 @@
                 <target>
                     <path>assignment</path>
                 </target>
-                <condition>
-                    <script>
-                        <code>
-                            "add" == operation
-                        </code>
-                    </script>
-                </condition>
             </mapping>
         </focusMappings>
     </inducement>

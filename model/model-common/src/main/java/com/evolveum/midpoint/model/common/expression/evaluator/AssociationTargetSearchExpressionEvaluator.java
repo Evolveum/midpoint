@@ -181,4 +181,13 @@ public class AssociationTargetSearchExpressionEvaluator
     public String shortDebugDump() {
         return "associationExpression";
     }
+
+    /**
+     * Create on demand used in AssociationTargetSearch would fail
+     * @return false
+     */
+    @Override
+    protected boolean isCreateOnDemandSafe() {
+        return false;
+    }
 }

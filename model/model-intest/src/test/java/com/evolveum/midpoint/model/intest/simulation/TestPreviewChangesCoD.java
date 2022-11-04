@@ -78,9 +78,6 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     private static final TestResource<RoleType> ROLE_META_ASSIGNMENT_SEARCH =
             new TestResource<>(TEST_DIR, "role-meta-assignment-search.xml", "1ac00214-ffd0-49db-a1b9-51b46a0e9ae1");
 
-    private static final TestResource<RoleType> ROLE_META_ASSOCIATION_SEARCH =
-            new TestResource<>(TEST_DIR, "role-meta-assignment-search.xml", "07edb2fc-5662-4886-aba7-54fbc58ce5ca");
-
     private static final Class<? extends ObjectType>[] COLLECT_COUNT_TYPES = new Class[] { FocusType.class, ShadowType.class };
 
     @Override
@@ -121,7 +118,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
 
-        when();
+        when("preview for create org, that should search/createOnDemand parent org");
 
         PrismObject<OrgType> orgChild = ORG_CHILD.getObject().clone();
         ObjectDelta<OrgType> delta = orgChild.createAddDelta();
@@ -143,7 +140,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
 
-        when();
+        when("preview for create org, that should search/createOnDemand parent org. Also role should be searched/createOnDemand for this new org via metarole");
 
         PrismObject<OrgType> orgChild = ORG_CHILD.getObject().clone();
         // we'll add assignment to meta role
@@ -158,7 +155,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         assertCollectedCounts(counts, task, result);
     }
 
-    @Test
+    @Test(description = "Test currently fails since previewChanges doesn't handle associationTargetSearch properly (projector instead of whole clockwork is running)")
     public void test200ComplexCase() throws Exception {
         given();
 
@@ -167,7 +164,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
 
-        when();
+        when("preview for add user bob, org and parent org should be created as well as groups on resource + bob'account should be added to group on resource");
 
         PrismObject<UserType> orgChild = USER_BOB.getObject().clone();
         ObjectDelta<UserType> delta = orgChild.createAddDelta();
@@ -180,8 +177,9 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         assertCollectedCounts(counts, task, result);
     }
 
-    @Test
-    public void test300ReferenceTargetSearch() throws Exception {
+//    @Test
+//    public void test300ReferenceTargetSearch() throws Exception {
+//        // todo find example
 //        given();
 //
 //        Task task = getTestTask();
@@ -195,15 +193,15 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 //
 //        AssertJUnit.assertNotNull(context);
 //        assertCollectedCounts(counts, task, result);
-    }
+//    }
 
     /**
      * MID-7155
      */
-    @Test
-    public void test400MultiThreadSupportForCreateOnDemand() throws Exception {
-
-    }
+//    @Test
+//    public void test400MultiThreadSupportForCreateOnDemand() throws Exception {
+//        // todo implement
+//    }
 
     private Map<Class<? extends ObjectType>, Integer> collectCounts(Task task, OperationResult result) throws Exception {
         Map<Class<? extends ObjectType>, Integer> map = new HashMap<>();
