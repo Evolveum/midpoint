@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+oid="e681fa58-cf53-452d-99d0-4f1377a06a54">
+    <name>role simple</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="64d8b7f9-28a0-43a9-bec7-d5a1a327a740"/>
+            <kind>account</kind>
+        </construction>
+    </inducement>
+</role>
