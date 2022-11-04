@@ -161,6 +161,17 @@ public interface ProvisioningService {
      * | errorHandling   |
      * |===
      *
+     * === Potential side effects
+     *
+     * . Quick or full shadow refresh - before the GET issued against resource (or after the repo load if noFetch is set).
+     * The shadow may be even deleted by the refresh.
+     * . Discovery process (an event is sent to the listener, typically to model).
+     * . Shadow is updated with the information obtained from the resource: cached identifiers and/or other attributes,
+     * probably `dead` and `exists` properties.
+     * . ...
+     *
+     * TODO think about compatibility of these side effects with the limitations prescribed by development/execution mode.
+     *
      * === Effects of development and execution mode
      *
      * The following configuration items should be respected:
@@ -210,6 +221,11 @@ public interface ProvisioningService {
      * | readOnly        |
      * |===
      *
+     * === Potential side effects
+     *
+     * . If a resource undergoes completion, the capabilities and/or schema are updated in the repository.
+     * . The complete resource may be put into the cache.
+     *
      * === Effects of development and execution mode
      *
      * They are none. The definition of the resource is the same, regardless of the mode we run in. For example, it is cached
@@ -221,6 +237,10 @@ public interface ProvisioningService {
      * == ConnectorType and other objects
      *
      * These objects are just retrieved from the repository. They are not treated in any special way now.
+     *
+     * === Potential side effects
+     *
+     * None.
      *
      * === Effects of development and execution mode
      *
