@@ -1,0 +1,18 @@
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="a013bf3e-68b2-42b7-923e-c4d55e40e486">
+
+    <name>security policy for resource simple</name>
+
+    <credentials>
+        <password>
+            <valuePolicyRef oid="fd0d70ea-ef5a-4e20-8bf0-3b367ff85f1c"/>
+        </password>
+    </credentials>
+</securityPolicy>
