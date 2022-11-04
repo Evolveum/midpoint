@@ -531,7 +531,7 @@ public abstract class AbstractSearchExpressionEvaluator<
     }
 
     protected boolean isCreateOnDemandSafe() {
-        boolean isCreateOnDemandSafe = true;   // todo default value should be true later on;
+        boolean isCreateOnDemandSafe = false;
 
         ModelExecuteOptions options = ModelExpressionThreadLocalHolder.getLensContextRequired().getOptions();
         if (options == null || options.getSimulationOptions() == null) {

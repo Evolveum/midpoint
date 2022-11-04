@@ -189,6 +189,19 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throw new UnsupportedOperationException("previewChanges is not supported in raw mode");
         }
 
+        if (options == null) {
+            options = ModelExecuteOptions.create();
+        }
+
+        if (options.getSimulationOptions() == null) {
+            SimulationOptionsType simulation = new SimulationOptionsType();
+
+            simulation.setCreateOnDemand(SimulationOptionType.SAFE);
+            simulation.setSequence(SimulationOptionType.SAFE);
+
+            options.simulationOptions(simulation);
+        }
+
         LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDumpLazily(deltas));
         Collection<ObjectDelta<? extends ObjectType>> clonedDeltas = cloneDeltas(deltas);
 
