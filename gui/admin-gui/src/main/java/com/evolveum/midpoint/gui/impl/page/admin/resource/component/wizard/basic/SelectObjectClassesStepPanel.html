@@ -11,8 +11,8 @@
     <div wicket:id="feedbackContainer" class="col-8 feedbackContainer">
         <div wicket:id="feedback" class="messagePanel"/>
     </div>
-    <div class="col-lg-12 px-0">
-        <div class="bg-white card mb-0 d-flex flex-row px-3 py-2">
+    <div class="col-lg-12 px-0 card">
+        <div class="bg-white card-header mb-0 d-flex flex-row px-3 py-2">
             <span class="mt-2">
                 <i class="fa fa-table-cells"></i>
                 <span class="pl-1">
@@ -30,7 +30,7 @@
                 </div>
             </form>
         </div>
-        <div class="bg-white card mb-0 border-top d-flex flex-column p-3" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
+        <div class="bg-white card-body mb-0 d-flex flex-column p-3" style="min-height: 5.4rem;" wicket:id="selectedItemsContainer">
             <span>
                 <wicket:message key="SelectObjectClassesStepPanel.selectedItem"/>
             </span>
@@ -45,7 +45,7 @@
                 </wicket:container>
             </div>
         </div>
-        <div class="bg-white card mb-0 border-top mb-0" wicket:id="table"/>
+        <div class="bg-white card-body mb-0 border-top mb-0 p-0" wicket:id="table"/>
     </div>
 </wicket:extend>
 </html>

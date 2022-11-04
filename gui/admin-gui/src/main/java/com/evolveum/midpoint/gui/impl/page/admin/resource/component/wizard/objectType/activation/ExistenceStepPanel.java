@@ -11,8 +11,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -42,10 +40,6 @@ public abstract class ExistenceStepPanel extends ActivationMappingStepPanel {
     protected String getPanelType() {
         return PANEL_TYPE;
     }
-
-//    private String getIcon() {
-//        return "fa fa-toggle-off";
-//    }
 
     @Override
     public IModel<String> getTitle() {

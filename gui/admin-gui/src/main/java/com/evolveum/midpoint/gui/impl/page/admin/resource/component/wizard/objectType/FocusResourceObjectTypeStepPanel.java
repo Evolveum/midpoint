@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -28,14 +27,12 @@ public class FocusResourceObjectTypeStepPanel extends AbstractValueFormResourceW
 
     public static final String PANEL_TYPE = "rw-type-focus";
 
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> objectTypeValueModel;
     private final IModel<PrismContainerValueWrapper<ResourceObjectFocusSpecificationType>> valueModel;
 
     public FocusResourceObjectTypeStepPanel(ResourceDetailsModel model,
                                             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
         super(model, null);
         this.valueModel = createNewValueModel(newValueModel, ResourceObjectTypeDefinitionType.F_FOCUS);
-        this.objectTypeValueModel = newValueModel;
     }
 
     @Override
@@ -45,10 +42,6 @@ public class FocusResourceObjectTypeStepPanel extends AbstractValueFormResourceW
 
     protected String getPanelType() {
         return PANEL_TYPE;
-    }
-
-    protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getObjectTypeValueModel() {
-        return objectTypeValueModel;
     }
 
     @Override

@@ -6,37 +6,28 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.LabelWithHelpPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -44,55 +35,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author lskublik
  */
-public class CorrelationItemRefsTable extends MultivalueContainerListPanel<CorrelationItemType> {
+public class CorrelationItemRefsTable extends AbstractResourceWizardTable<CorrelationItemType, ItemsSubCorrelatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemRefsTable.class);
-
-    private final IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel;
 
     public CorrelationItemRefsTable(
             String id,
             IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
-        super(id, CorrelationItemType.class);
-        this.valueModel = valueModel;
-    }
-
-    @Override
-    protected boolean isHeaderVisible() {
-        return false;
-    }
-
-    @Override
-    protected List<Component> createToolbarButtonsList(String idButton) {
-        List<Component> buttons = super.createToolbarButtonsList(idButton);
-        buttons.forEach(button -> {
-            if (button instanceof AjaxIconButton) {
-                ((AjaxIconButton) button).showTitleAsLabel(true);
-            }
-        });
-        return buttons;
-    }
-
-    @Override
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
-        createNewItems(target);
-        refreshTable(target);
+        super(id, valueModel, CorrelationItemType.class);
     }
 
     @Override
@@ -102,42 +66,21 @@ public class CorrelationItemRefsTable extends MultivalueContainerListPanel<Corre
             List<PrismContainerValueWrapper<CorrelationItemType>> listItems) {
     }
 
-    private PrismContainerValueWrapper createNewItems(AjaxRequestTarget target) {
+    protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
         PrismContainerWrapper<CorrelationItemType> container = getContainerModel().getObject();
         PrismContainerValue<CorrelationItemType> newReaction = container.getItem().createNewValue();
-        PrismContainerValueWrapper<CorrelationItemType> newReactionWrapper =
-                createNewItemContainerValueWrapper(newReaction, container, target);
-        return newReactionWrapper;
-    }
-
-    @Override
-    protected boolean isCreateNewObjectVisible() {
-        return true;
+        return createNewItemContainerValueWrapper(newReaction, container, target);
     }
 
     @Override
     protected List<InlineMenuItem> createInlineMenu() {
-        List<InlineMenuItem> items = new ArrayList<>();
-        items.add(new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createDeleteColumnAction();
-            }
-        });
-        return items;
+        return Collections.singletonList(createDeleteItemMenu());
     }
 
     @Override
     protected IModel<PrismContainerWrapper<CorrelationItemType>> getContainerModel() {
         return PrismContainerWrapperModel.fromContainerValueWrapper(
-                valueModel,
+                getValueModel(),
                 ItemsSubCorrelatorType.F_ITEM);
     }
 
@@ -226,9 +169,9 @@ public class CorrelationItemRefsTable extends MultivalueContainerListPanel<Corre
                     IModel<PrismContainerValueWrapper<CorrelationItemType>> rowModel) {
                 IModel<PrismPropertyWrapper<String>> model = () -> {
                     AtomicReference<ItemName> container = new AtomicReference<>();
-                    cellItem.getParent().visitChildren(ContainersDropDownPanel.class, (component, objectIVisit) -> {
-                        container.set((ItemName) ((ContainersDropDownPanel) component).getDropDownModel().getObject());
-                    });
+                    cellItem.getParent().visitChildren(
+                            ContainersDropDownPanel.class,
+                            (component, objectIVisit) -> container.set(((ContainersDropDownPanel<?>) component).getDropDownModel().getObject()));
 
                     if (container.get() != null) {
                         ItemPath path = ItemPath.create(
@@ -260,23 +203,11 @@ public class CorrelationItemRefsTable extends MultivalueContainerListPanel<Corre
         };
     }
 
-    public boolean isValidFormComponents() {
-        AtomicReference<Boolean> valid = new AtomicReference<>(true);
-        getTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (row, object) -> {
-            ((SelectableDataTable.SelectableRowItem) row).visitChildren(FormComponent.class, (baseFormComponent, object2) -> {
-                if (baseFormComponent.hasErrorMessage()) {
-                    valid.set(false);
-                }
-            });
-        });
-        return valid.get();
-    }
-
     protected LoadableModel<PrismContainerDefinition<CorrelationItemType>> getCorrelationItemDefinition() {
         return new LoadableModel<>() {
             @Override
             protected PrismContainerDefinition<CorrelationItemType> load() {
-                return valueModel.getObject().getDefinition().findContainerDefinition(ItemsSubCorrelatorType.F_ITEM);
+                return getValueModel().getObject().getDefinition().findContainerDefinition(ItemsSubCorrelatorType.F_ITEM);
             }
         };
     }
@@ -289,5 +220,10 @@ public class CorrelationItemRefsTable extends MultivalueContainerListPanel<Corre
     @Override
     protected String getKeyOfTitleForNewObjectButton() {
         return "CorrelationItemRefsTable.newObject";
+    }
+
+    @Override
+    protected boolean isCreateNewObjectVisible() {
+        return false;
     }
 }

@@ -10,15 +10,13 @@ import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -50,19 +48,23 @@ public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizard
     }
 
     @Override
-    protected void addCustomButtons(RepeatingView buttons) {
-        AjaxIconButton saveButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of("fa fa-check"),
-                getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.confirmSettings")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onExitPerformed(target);
-            }
-        };
-        saveButton.showTitleAsLabel(true);
-        saveButton.add(AttributeAppender.append("class", "btn btn-success"));
-        buttons.add(saveButton);
+    protected boolean isSubmitButtonVisible() {
+        return true;
+    }
+
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
+    }
+
+    @Override
+    protected String getSubmitIcon() {
+        return "fa fa-check";
+    }
+
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.confirmSettings");
     }
 
     @Override
@@ -71,7 +73,7 @@ public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizard
     }
 
     @Override
-    protected IModel<String> getBreadcrumbLabel() {
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
         String name = GuiDisplayNameUtil.getDisplayName(valueModel.getObject().getRealValue());
         if (StringUtils.isNotBlank(name)) {
             return Model.of(name);

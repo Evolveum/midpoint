@@ -7,25 +7,14 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceContentPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceSchemaHandlingPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -43,6 +32,13 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel {
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+    }
+
+    @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        getTable().setShowAsCard(false);
     }
 
     private void initLayout() {
@@ -74,7 +70,17 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel {
             }
         };
         table.setOutputMarkupId(true);
+
         add(table);
+    }
+
+    public BoxedTablePanel getTable() {
+        ResourceUncategorizedPanel panel =
+                (ResourceUncategorizedPanel) get(ID_TABLE);
+        if (panel == null) {
+            return null;
+        }
+        return panel.getTable();
     }
 
     ContainerPanelConfigurationType getConfiguration(){
@@ -84,7 +90,7 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel {
     }
 
     @Override
-    protected IModel<String> getBreadcrumbLabel() {
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
         return getPageBase().createStringResource("PreviewResourceDataWizardPanel.title");
     }
 

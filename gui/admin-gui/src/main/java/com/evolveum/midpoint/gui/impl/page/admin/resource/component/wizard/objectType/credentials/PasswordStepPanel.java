@@ -14,8 +14,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.Abstr
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
@@ -23,7 +21,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
@@ -38,8 +35,6 @@ import org.apache.wicket.model.IModel;
         display = @PanelDisplay(label = "PageResource.wizard.step.credentials", icon = "fa fa-key"),
         expanded = true)
 public class PasswordStepPanel extends AbstractResourceWizardStepPanel {
-
-    private static final Trace LOGGER = TraceManager.getTrace(PasswordStepPanel.class);
 
     protected static final String ID_PANEL = "panel";
 
@@ -116,10 +111,6 @@ public class PasswordStepPanel extends AbstractResourceWizardStepPanel {
     protected boolean isExitButtonVisible() {
         return true;
     }
-
-//    private String getIcon() {
-//        return "fa fa-key";
-//    }
 
     @Override
     public IModel<String> getTitle() {

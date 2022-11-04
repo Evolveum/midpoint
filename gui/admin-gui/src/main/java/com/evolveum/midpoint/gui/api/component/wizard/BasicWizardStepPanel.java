@@ -127,7 +127,7 @@ public class BasicWizardStepPanel<T> extends WizardStepPanel<T> {
         next.add(nextLabel);
     }
 
-    protected IModel<?> getSubmitLabelModel() {
+    protected IModel<String> getSubmitLabelModel() {
         return getPageBase().createStringResource("WizardPanel.submit");
     }
 

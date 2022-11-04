@@ -6,26 +6,19 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceSchemaHandlingPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
@@ -52,9 +45,16 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
                 ResourceObjectTypeTableWizardPanel.this.onEditValue(valueModel, target);
             }
 
+//            @Override
+//            protected boolean isCreateNewObjectVisible() {
+//                return false;
+//            }
+
             @Override
-            protected boolean isCreateNewObjectVisible() {
-                return false;
+            protected void onBeforeRender() {
+                super.onBeforeRender();
+
+                getTable().getTable().setShowAsCard(false);
             }
         };
         table.setOutputMarkupId(true);
@@ -71,24 +71,6 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
                 PANEL_TYPE);
     }
 
-    @Override
-    protected void addCustomButtons(RepeatingView buttons) {
-        AjaxIconButton newObjectTypeButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of("fa fa-circle-plus"),
-                getPageBase().createStringResource("ResourceObjectTypeTableWizardPanel.addNewObjectType")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onAddNewObject(target);
-            }
-        };
-        newObjectTypeButton.showTitleAsLabel(true);
-        newObjectTypeButton.add(AttributeAppender.append("class", "btn btn-primary"));
-        buttons.add(newObjectTypeButton);
-    }
-
-    protected abstract void onAddNewObject(AjaxRequestTarget target);
-
     protected abstract void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> value, AjaxRequestTarget target);
 
     @Override
@@ -97,7 +79,7 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
     }
 
     @Override
-    protected IModel<String> getBreadcrumbLabel() {
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
         return getPageBase().createStringResource("ResourceObjectTypeTableWizardPanel.title");
     }
 

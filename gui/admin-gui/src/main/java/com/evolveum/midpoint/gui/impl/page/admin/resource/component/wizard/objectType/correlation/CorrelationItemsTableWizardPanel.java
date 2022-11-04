@@ -9,15 +9,12 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -62,29 +59,14 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractWizardBas
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel);
 
-    public CorrelationItemsTable getTablePanel() {
-        //noinspection unchecked
-        return (CorrelationItemsTable) get(ID_TABLE);
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        onSaveResourcePerformed(target);
     }
 
     @Override
-    protected void addCustomButtons(RepeatingView buttons) {
-        AjaxIconButton saveButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of(getSubmitIcon()),
-                getSubmitLabelModel()) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onSaveResourcePerformed(target);
-            }
-        };
-        saveButton.showTitleAsLabel(true);
-        saveButton.add(AttributeAppender.append("class", "btn btn-success"));
-        buttons.add(saveButton);
-    }
-
-    protected String getSubmitIcon() {
-        return "fa fa-floppy-disk";
+    protected boolean isSubmitButtonVisible() {
+        return true;
     }
 
     protected IModel<String> getSubmitLabelModel() {
@@ -94,7 +76,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractWizardBas
     protected abstract void onSaveResourcePerformed(AjaxRequestTarget target);
 
     @Override
-    protected IModel<String> getBreadcrumbLabel() {
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
         return getPageBase().createStringResource("CorrelationWizardPanelWizardPanel.breadcrumb");
     }
 

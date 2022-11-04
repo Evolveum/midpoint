@@ -67,6 +67,7 @@ public class VerticalFormPrismContainerValuePanel<C extends Containerable, CVW e
                 onExpandClick(target);
             }
         });
+        header.add(AttributeAppender.append("class", () -> getModelObject().isExpanded() ? "card-header" : ""));
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeAppender.append("class", () -> getIcon()));

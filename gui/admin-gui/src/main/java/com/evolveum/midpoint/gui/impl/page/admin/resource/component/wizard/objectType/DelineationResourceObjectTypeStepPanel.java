@@ -17,7 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 
 /**
  * @author lskublik
@@ -30,7 +29,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 public class DelineationResourceObjectTypeStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDelineationType> {
 
     public static final String PANEL_TYPE = "rw-type-delineation";
-    private IModel<PrismContainerValueWrapper<ResourceObjectTypeDelineationType>> valueModel = null;
+    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDelineationType>> valueModel;
 
     public DelineationResourceObjectTypeStepPanel(ResourceDetailsModel model,
                            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
