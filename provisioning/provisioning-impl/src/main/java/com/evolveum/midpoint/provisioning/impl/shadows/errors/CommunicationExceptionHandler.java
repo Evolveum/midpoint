@@ -137,8 +137,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
             ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
             OperationResult failedOperationResult, Task task, OperationResult parentResult)
-            throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws CommunicationException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_DELETE_ERROR);
         result.addParam("exception", cause.getMessage());
         try {
@@ -154,7 +153,9 @@ class CommunicationExceptionHandler extends ErrorHandler {
         }
     }
 
-    private void handleRetriesAndAttempts(ProvisioningContext ctx, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, ProvisioningOperationOptions options, Exception cause, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+    private void handleRetriesAndAttempts(
+            ProvisioningContext ctx, ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+            ProvisioningOperationOptions options, Exception cause, OperationResult result) throws CommunicationException {
         ResourceType resource = ctx.getResource();
         if (!isOperationRetryEnabled(resource) || !isCompletePostponedOperations(options)) {
             LOGGER.trace("Operation retry turned off for {}", resource);

@@ -177,7 +177,7 @@ class ModifyHelper {
                 if (repoShadow == null) {
                     LOGGER.trace("Shadow is gone. Nothing more to do");
                     parentResult.recordPartialError("Shadow disappeared during modify.");
-                    throw new ObjectNotFoundException("Shadow is gone.");
+                    throw new ObjectNotFoundException("Shadow is gone.", ShadowType.class, null); // TODO OID
                 }
 
                 ConnectorOperationOptions connOptions = commonHelper.createConnectorOperationOptions(ctx, options, parentResult);

@@ -848,8 +848,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             target = provisioningService.getObject(ShadowType.class, oid, options, task, result);
         } catch (ObjectNotFoundException e) {
             // TODO maybe warn/error log would suffice (also for other exceptions?)
-            throw new ObjectNotFoundException("Couldn't evaluate tolerant/intolerant values for association " + isCValue
-                    + ", because the association target object does not exist: " + e.getMessage(), e);
+            throw e.wrap("Couldn't evaluate tolerant/intolerant values for association " + isCValue
+                    + ", because the association target object does not exist");
         }
         identifiersContainer = ShadowUtil.getAttributesContainer(target);
         if (identifiersContainer == null) {

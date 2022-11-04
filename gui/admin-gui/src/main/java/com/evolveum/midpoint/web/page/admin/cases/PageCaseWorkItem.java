@@ -140,7 +140,10 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         try {
             List<CaseWorkItemType> caseWorkItemList = caseModel.getObject().getWorkItem();
             if (caseWorkItemList == null) {
-                throw new ObjectNotFoundException("No case work item found for case " + workItemId.getCaseOid() + " with id " + workItemId.getId());
+                throw new ObjectNotFoundException(
+                        "No case work item found for case " + workItemId.getCaseOid() + " with id " + workItemId.getId(),
+                        CaseWorkItemType.class,
+                        workItemId.asString());
             }
             for (CaseWorkItemType caseWorkItemType : caseWorkItemList) {
                 if (caseWorkItemType.getId().equals(workItemId.getId())) {

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
+
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.nio.charset.StandardCharsets;
@@ -220,7 +222,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .fetchOne();
 
         if (result == null || result.get(root.fullObject) == null) {
-            throw new ObjectNotFoundException(schemaType, oid.toString());
+            throw new ObjectNotFoundException(schemaType, oid.toString(), isAllowNotFound(options));
         }
 
         return rootMapping.toSchemaObjectComplete(result, root, options, jdbcSession, false);
@@ -269,7 +271,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                     .where(root.oid.eq(oid))
                     .fetchOne();
             if (version == null) {
-                throw new ObjectNotFoundException(type, oid.toString());
+                throw new ObjectNotFoundException(type, oid.toString(), false);
             }
 
             String versionString = version.toString();
@@ -532,7 +534,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     private ObjectNotFoundException handleObjectNotFound(
             ObjectNotFoundException e, OperationResult operationResult,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> getOptions) throws ObjectNotFoundException {
-        if (!GetOperationOptions.isAllowNotFound(SelectorOptions.findRootOptions(getOptions))) {
+        if (!isAllowNotFound(SelectorOptions.findRootOptions(getOptions))) {
             operationResult.recordFatalError(e);
         } else {
             operationResult.recordHandledError(e);
@@ -704,7 +706,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .fetchOne();
 
         if (result == null || result.get(entityPath.fullObject) == null) {
-            throw new ObjectNotFoundException(schemaType, oid.toString());
+            throw new ObjectNotFoundException(schemaType, oid.toString(), isAllowNotFound(getOptions));
         }
 
         S object = rootMapping.toSchemaObjectComplete(
@@ -806,7 +808,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
                 .where(entityPath.oid.eq(oid))
                 .fetchOne();
         if (fullObject == null) {
-            throw new ObjectNotFoundException(type, oid.toString());
+            throw new ObjectNotFoundException(type, oid.toString(), false);
         }
 
         // object delete cascades to all owned related rows

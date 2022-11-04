@@ -146,8 +146,7 @@ class DeleteHelper {
             resultShadow = shadowManager.recordDeleteResult(ctx, opState, options, result);
         } catch (ObjectNotFoundException ex) {
             result.recordFatalErrorNotFinish("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(), ex);
-            throw new ObjectNotFoundException("An error occurred while deleting resource object " + repoShadow
-                    + " with identifiers " + repoShadow + ": " + ex.getMessage(), ex);
+            throw ex.wrap("An error occurred while deleting resource object " + repoShadow);
         } catch (EncryptionException e) {
             throw new SystemException(e.getMessage(), e);
         }

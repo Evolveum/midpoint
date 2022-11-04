@@ -247,7 +247,10 @@ class GetOperation {
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         repositoryShadow = localBeans.refreshHelper.refreshShadowQuick(ctx, repositoryShadow, now, task, result);
         if (repositoryShadow == null) {
-            throw new ObjectNotFoundException("Resource object not found (after quick refresh)");
+            throw new ObjectNotFoundException(
+                    "Resource object not found (after quick refresh)",
+                    ShadowType.class,
+                    oid);
         }
         updateShadowState();
     }
@@ -351,7 +354,13 @@ class GetOperation {
                         repositoryShadow, shadowState);
                 // This is live shadow that was not found on resource. Just re-throw the exception. It will
                 // be caught later and the usual error handlers will bury the shadow.
-                throw e;
+                // We re-wrap the exception (in a custom way) in order to provide shadow OID and "allow not found" information.
+                throw new ObjectNotFoundException(
+                        "Resource object for shadow " + oid + " could not be retrieved: " + e.getMessage(),
+                        e,
+                        ShadowType.class,
+                        oid,
+                        isAllowNotFound(rootOptions));
             }
         }
     }

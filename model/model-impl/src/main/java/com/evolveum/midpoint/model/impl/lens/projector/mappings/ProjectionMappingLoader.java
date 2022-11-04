@@ -51,11 +51,11 @@ public class ProjectionMappingLoader<F extends ObjectType> implements MappingLoa
         contextLoader.loadFullShadow(projectionContext, loadReason, task, result);
         if (SynchronizationPolicyDecision.BROKEN.equals(projectionContext.getSynchronizationPolicyDecision())) {
             LOGGER.debug("Attempt to load full object for {} failed, projection context is broken", projectionContext.getHumanReadableName());
-            throw new ObjectNotFoundException("Projection loading failed, projection broken");
+            throw new ObjectNotFoundException("Projection loading failed, projection broken"); // TODO is this correct exception?
         }
         if (projectionContext.isGone()) {
             LOGGER.debug("Projection {} is gone", projectionContext.getHumanReadableName());
-            throw new ObjectNotFoundException("Projection loading failed, projection gone");
+            throw new ObjectNotFoundException("Projection loading failed, projection gone"); // TODO is this correct exception?
         }
         return projectionContext.getObjectCurrent();
     }

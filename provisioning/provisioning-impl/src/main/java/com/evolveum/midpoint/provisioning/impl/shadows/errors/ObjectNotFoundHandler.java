@@ -210,14 +210,15 @@ class ObjectNotFoundHandler extends HardErrorHandler {
     }
 
     @Override
-    protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
+    protected void throwException(
+            Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
             throws ObjectNotFoundException {
         recordCompletionError(cause, opState, result);
         if (cause instanceof ObjectNotFoundException) {
             throw (ObjectNotFoundException)cause;
         } else {
+            // Actually, this should never occur. ObjectNotFoundHandler is called only for ObjectNotFoundException causes.
             throw new ObjectNotFoundException(cause.getMessage(), cause);
         }
     }
-
 }

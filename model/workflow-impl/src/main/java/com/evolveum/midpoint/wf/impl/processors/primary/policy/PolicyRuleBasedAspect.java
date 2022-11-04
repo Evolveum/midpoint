@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,10 +41,6 @@ import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
@@ -79,8 +77,11 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
     @NotNull
     @Override
-    public <T extends ObjectType> List<PcpStartInstruction> getStartInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
-            @NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+    public <T extends ObjectType> List<PcpStartInstruction> getStartInstructions(
+            @NotNull ObjectTreeDeltas<T> objectTreeDeltas,
+            @NotNull ModelInvocationContext<T> ctx,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
         OperationResult result = parentResult.subresult(OP_GET_START_INSTRUCTIONS)
                 .setMinor()
                 .build();

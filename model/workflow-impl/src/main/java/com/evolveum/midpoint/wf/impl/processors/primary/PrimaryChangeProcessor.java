@@ -153,10 +153,10 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
                 return executeStartInstructions(startInstructions, ctx, changesBeingDecomposed, result);
             }
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -212,7 +212,7 @@ public class PrimaryChangeProcessor implements ChangeProcessor {
 
     private <O extends ObjectType> List<PcpStartInstruction> gatherStartInstructions(
             @NotNull ObjectTreeDeltas<O> changesBeingDecomposed, @NotNull ModelInvocationContext<O> ctx,
-            @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+            @NotNull OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
         OperationResult result = parentResult.subresult(OP_GATHER_START_INSTRUCTIONS)
                 .setMinor()

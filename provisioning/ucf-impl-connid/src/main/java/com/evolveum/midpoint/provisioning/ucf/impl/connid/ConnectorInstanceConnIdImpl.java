@@ -494,15 +494,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 // This is fatal. No point in continuing. Just re-throw the exception.
                 throw ex;
             } catch (ObjectNotFoundException ex) {
-                throw new ObjectNotFoundException(
-                        "Object identified by " + resourceObjectIdentification + " (ConnId UID " + uid + "), objectClass "
-                                + objectDefinition.getTypeName() + "  was not found in " + description);
+                throw ex.wrap(String.format(
+                        "Object identified by %s (ConnId UID %s), objectClass %s was not found in %s",
+                        resourceObjectIdentification, uid, objectDefinition.getTypeName(), description));
             }
 
             if (co == null) {
                 throw new ObjectNotFoundException(
-                        "Object identified by " + resourceObjectIdentification + " (ConnId UID " + uid + "), objectClass "
-                                + objectDefinition.getTypeName() + " was not in " + description);
+                        String.format(
+                                "Object identified by %s (ConnId UID %s), objectClass %s was not in %s",
+                                resourceObjectIdentification, uid, objectDefinition.getTypeName(), description),
+                        ShadowType.class, uid.getUidValue());
             }
 
             PrismObjectDefinition<ShadowType> shadowDefinition = toShadowDefinition(objectDefinition);

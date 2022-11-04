@@ -605,4 +605,9 @@ public class ProvisioningContext {
                     .asObjectable();
         }
     }
+
+    public boolean isAllowNotFound() {
+        return GetOperationOptions.isAllowNotFound(
+                SelectorOptions.findRootOptions(getOperationOptions));
+    }
 }

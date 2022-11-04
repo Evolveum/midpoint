@@ -341,6 +341,16 @@ public class ProvisioningUtil {
         // Therefore we'll log the exception only on debug level here.
         LoggingUtils.logExceptionOnDebugLevel(logger, message, ex);
         opResult.recordFatalErrorNotFinish(message, ex); // We are not the one who created the result, so we shouldn't close it
+        opResult.markExceptionRecorded();
+    }
+
+    public static void recordExceptionWhileRethrowing(Trace logger, OperationResult opResult, String explicitMessage, Throwable ex) {
+        String message = explicitMessage != null ? explicitMessage : ex.getMessage();
+        // Should we log the exception? Actually, there's no reason to do it if the exception is rethrown.
+        // Therefore we'll log the exception only on debug level here.
+        LoggingUtils.logExceptionOnDebugLevel(logger, message, ex);
+        opResult.recordExceptionNotFinish(message, ex); // We are not the one who created the result, so we shouldn't close it
+        opResult.markExceptionRecorded();
     }
 
     public static boolean shouldStoreAttributeInShadow(ResourceObjectDefinition objectDefinition, QName attributeName,

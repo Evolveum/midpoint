@@ -150,8 +150,7 @@ class EntitlementsHelper {
             repoShadow = repositoryService.getObject(ShadowType.class,
                     associationType.getShadowRef().getOid(), null, result);
         } catch (ObjectNotFoundException e) {
-            throw new ObjectNotFoundException(e.getMessage()
-                    + " while resolving entitlement association OID in " + association + " in " + desc, e);
+            throw e.wrap("Couldn't resolve entitlement association OID in " + association + " in " + desc);
         }
         shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
         transplantIdentifiers(association, repoShadow);

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
@@ -51,8 +52,11 @@ public interface PrimaryChangeAspect {
      * @return list of start process instructions  @see WfTaskCreationInstruction
      */
     @NotNull
-    <T extends ObjectType> List<PcpStartInstruction> getStartInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
-            @NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
+    <T extends ObjectType> List<PcpStartInstruction> getStartInstructions(
+            @NotNull ObjectTreeDeltas<T> objectTreeDeltas,
+            @NotNull ModelInvocationContext<T> ctx,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     //    /**
 //     * Returns a list of users who have approved the particular request. This information is then stored in the task by the wf module,
