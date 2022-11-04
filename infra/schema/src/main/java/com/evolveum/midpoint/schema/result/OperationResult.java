@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl;
 
 import org.apache.commons.lang3.StringUtils;
@@ -121,6 +122,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * there's non-negligible processing after that point), {@link #setStatus(OperationResultStatus)} method or its variants
  * (like {@link #setSuccess()}) can be used. These fill-in {@link #status} field without closing the whole operation result.
  *
+ * === Note: Recording Exceptions
+ *
+ * The Correct Closure Principle (#1) dictates that the operation result has to be correctly closed even in the case
+ * of exception occurring. That is why we usually create a "try-catch" block for the code covered by a single operation result.
+ * Traditionally, the {@link #recordFatalError(Throwable)} call was put into the `catch` code.
+ *
+ * However, there may be situations where a different handling is required:
+ *
+ * . If the exception is non-fatal or even completely benign. This may be the case of e.g. expected ("allowed")
+ * object-not-found conditions. See {@link ObjectNotFoundException#getSeverity()}.
+ * . If the exception was processed by other means. For example, a custom error message was already provided.
+ *
+ * To handle these cases, {@link #recordException(Throwable)} should be used instead of {@link #recordFatalError(Throwable)}.
+ * The difference is that the former checks the {@link #exceptionRecorded} flag to see if the exception was already
+ * processed. See also {@link #markExceptionRecorded()}.
+ *
+ * NOTE: This mechanism is *experimental*.
+ *
  * === Suggested Use
  *
  * Stemming from the above, the following can be seen as a suggested way how to use the operation result:
@@ -137,7 +156,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *     try {
  *         // ... some meat here ...
  *     } catch (SomeException | RuntimeException e) {
- *         result.recordFatalError(e);
+ *         result.recordException(e);
  *         throw e;
  *     } finally {
  *         result.close();
@@ -236,6 +255,9 @@ public class OperationResult
     private Long invocationId;
 
     private final List<LogSegmentType> logSegments = new ArrayList<>();
+
+    /** See {@link #markExceptionRecorded()}. */
+    private boolean exceptionRecorded;
 
     // The following properties are NOT SERIALIZED
     private CompiledTracingProfile tracingProfile;
@@ -1165,22 +1187,6 @@ public class OperationResult
         computeStatusIfUnknown();
     }
 
-    public void closeAndCleanup() {
-        close();
-        cleanupResult();
-    }
-
-    /**
-     * Closes the result and cleans it up.
-     *
-     * BEWARE: It does *NOT* record the {@link Throwable} as a fatal error! Its value is used only for debugging
-     * potential problems during result cleanup.
-     */
-    public void closeAndCleanup(@Nullable Throwable t) {
-        close();
-        cleanupResult(t);
-    }
-
     public void computeStatusIfUnknown() {
         recordEnd();
         if (isUnknown()) {
@@ -1679,15 +1685,65 @@ public class OperationResult
     }
 
     /**
-     * Records a fatal error if it was not recorded before.
-     * TODO Not 100% safe, because the fatal error could be recorded for some other reason.
-     *  We have to improve error reporting in general.
+     * A more sophisticated replacement for {@link #recordFatalError(String, Throwable)}.
+     *
+     * . Takes care not to overwrite the exception if it was already processed.
+     * . Marks the exception as processed.
+     * . Sets the appropriate result status.
+     *
+     * See the class javadoc.
+     */
+    public void recordException(String message, @NotNull Throwable cause) {
+        if (!exceptionRecorded) {
+            recordStatus(
+                    OperationResultStatus.forThrowable(cause),
+                    message,
+                    cause);
+            markExceptionRecorded();
+        }
+    }
+
+    /** Convenience version of {@link #recordException(String, Throwable)} (with no custom message). */
+    public void recordException(@NotNull Throwable cause) {
+        recordException(cause.getMessage(), cause);
+    }
+
+    /** As {@link #recordException(String, Throwable)} but does not mark operation as finished. */
+    public void recordExceptionNotFinish(String message, @NotNull Throwable cause) {
+        if (!exceptionRecorded) {
+            recordStatusNotFinish(
+                    OperationResultStatus.forThrowable(cause),
+                    message,
+                    cause);
+            markExceptionRecorded();
+        }
+    }
+
+    /** Convenience version of {@link #recordExceptionNotFinish(String, Throwable)} (with no custom message). */
+    public void recordExceptionNotFinish(@NotNull Throwable cause) {
+        recordExceptionNotFinish(cause.getMessage(), cause);
+    }
+
+    /**
+     * Marks the current exception (that is expected to be throws outside the context of the current operation)
+     * as already processed - so no further actions (besides closing the result) are necessary.
+     *
+     * See also the class javadoc.
+     *
+     * @see #unmarkExceptionRecorded()
      */
     @Experimental
-    public void recordFatalErrorIfNeeded(Throwable t) {
-        if (status != OperationResultStatus.FATAL_ERROR) {
-            recordFatalError(t);
-        }
+    public void markExceptionRecorded() {
+        exceptionRecorded = true;
+    }
+
+    /**
+     * "Un-marks" the exception as being recorded. To be used when the code decides e.g. that the exception will not
+     * be thrown out of the context of the current operation.
+     */
+    @SuppressWarnings({ "unused", "WeakerAccess" }) // Waiting to be used
+    public void unmarkExceptionRecorded() {
+        exceptionRecorded = false;
     }
 
     public void recordFatalErrorNotFinish(Throwable cause) {
@@ -2169,11 +2225,21 @@ public class OperationResult
     }
 
     /**
+     * As {@link #cleanupResult(Throwable)} but uses the recorded exception for diagnostics. It is more convenient than that
+     * method, as it can be used in the `finally` block - assuming that the exception was recorded in the `catch` block
+     * or earlier.
+     */
+    public void cleanup() {
+        cleanupInternal(cause);
+    }
+
+    /**
      * Removes all the successful minor results. Also checks if the result is roughly consistent
      * and complete. (e.g. does not have unknown operation status, etc.)
      */
+    @Deprecated // use cleanup()
     public void cleanupResult() {
-        cleanupResult(null);
+        cleanupInternal(null);
     }
 
     /**
@@ -2183,8 +2249,12 @@ public class OperationResult
      * The argument "e" is for easier use of the cleanup in the exceptions handlers. The original exception is passed
      * to the IAE that this method produces for easier debugging.
      */
+    @Deprecated // use cleanup() with recordException()
     public void cleanupResult(Throwable e) {
+        cleanupInternal(e);
+    }
 
+    private void cleanupInternal(Throwable e) {
         if (!canBeCleanedUp()) {
             return; // TEMPORARY fixme
         }

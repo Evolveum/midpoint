@@ -150,41 +150,38 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         Preconditions.checkNotNull(task, "task");
         Preconditions.checkNotNull(parentResult, "parentResult");
 
-        PrismObject<T> resultingObject;
         ProvisioningGetOperation<T> operation = new ProvisioningGetOperation<>(type, oid, options, task, beans, operationsHelper);
 
-        OperationResult result = parentResult.createMinorSubresult(OP_GET_OBJECT); // TODO why minor?
+        OperationResult result = parentResult.createSubresult(OP_GET_OBJECT);
         result.addParam(OperationResult.PARAM_OID, oid);
         result.addParam(OperationResult.PARAM_TYPE, type);
         result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-        //noinspection EmptyFinallyBlock
+        PrismObject<T> resultingObject;
         try {
             resultingObject = operation.execute(result);
-            result.closeAndCleanup();
         } catch (Throwable t) {
-            // We use this strange construction because in some occasions we record the exception in a custom way
-            // (e.g. using custom message). Therefore let's record the fatal error only if it was not recorded previously.
-            // An alternative would be to check if the result has a status of FATAL_ERROR already set. But there might be
-            // cases (in the future) when we want to record status other than FATAL_ERROR and still throw the exception.
-            if (!operation.isExceptionRecorded()) {
-                result.recordFatalError(t);
-            }
-            result.closeAndCleanup(t);
+            result.recordException(t);
             throw t;
         } finally {
-            // Nothing needs to be here, as the result is already closed and cleaned up.
+            result.close();
+            result.cleanup();
         }
 
         LOGGER.trace("Retrieved object {} with the status of {}", resultingObject, result.getStatus());
+        return storeFetchResultIfApplicable(resultingObject, operation, result);
+    }
 
+    private static <T extends ObjectType> PrismObject<T> storeFetchResultIfApplicable(
+            PrismObject<T> object, ProvisioningGetOperation<T> operation, OperationResult result) {
         if (operation.isRawMode() && result.isSuccess()) {
-            return resultingObject;
+            return object;
         } else {
             // This must be done after the result is closed.
-            // TODO There may be fetch result stored in the object by lower layers. We assume (hope) that this parent result
-            //  contains its value as one of the children.
-            PrismObject<T> clone = resultingObject.cloneIfImmutable();
+            // TODO There may be fetch result stored in the object by lower layers. We overwrite it. We assume (hope) that
+            //  this parent result contains its value as one of the children (hence the overwriting does not cause loss
+            //  of information).
+            PrismObject<T> clone = object.cloneIfImmutable();
             clone.asObjectable().setFetchResult(result.createBeanReduced());
             return clone;
         }
@@ -367,21 +364,19 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addParam(OperationResult.PARAM_QUERY, query);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        //noinspection EmptyFinallyBlock
         try {
             SearchResultList<PrismObject<T>> objects =
                     new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
                             .executeSearch(result);
 
             LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDumpLazily(objects.getMetadata()));
-            result.closeAndCleanup();
             return objects;
         } catch (Throwable t) {
             result.recordFatalError(t);
-            result.closeAndCleanup(t);
             throw t;
         } finally {
-            // Nothing needs to be here, as the result is already closed and cleaned up.
+            result.close();
+            result.cleanup();
         }
     }
 
@@ -405,7 +400,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addParam(OperationResult.PARAM_QUERY, query);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        //noinspection EmptyFinallyBlock
         try {
             Integer count =
                     new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
@@ -413,14 +407,13 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
             LOGGER.trace("Result of the counting: {}", count);
             result.addReturn(OperationResult.RETURN_COUNT, count);
-            result.closeAndCleanup();
             return count;
         } catch (Throwable t) {
-            result.recordFatalError(t);
-            result.closeAndCleanup(t);
+            result.recordException(t);
             throw t;
         } finally {
-            // Nothing needs to be here, as the result is already closed and cleaned up.
+            result.close();
+            result.cleanup();
         }
     }
 
@@ -483,16 +476,16 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw new SystemException(e.getMessage(), e);
         } catch (ObjectAlreadyExistsException e) {
-            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't modify object: object after modification would conflict with another existing object: " + e.getMessage(), e);
+            ProvisioningUtil.recordExceptionWhileRethrowing(LOGGER, result, "Couldn't modify object: object"
+                    + " after modification would conflict with another existing object: " + e.getMessage(), e);
             throw e;
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
+            result.cleanup();
         }
-
-        result.cleanupResult();
         return oid;
     }
 
@@ -531,11 +524,11 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             }
 
         } catch (Throwable t) {
-            result.recordFatalErrorIfNeeded(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
-            result.cleanupResult();
+            result.close();
+            result.cleanup();
         }
     }
 
@@ -766,21 +759,19 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addParam(OperationResult.PARAM_QUERY, query);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-        //noinspection EmptyFinallyBlock
         try {
             SearchResultMetadata metadata =
                     new ProvisioningSearchLikeOperation<>(type, query, options, task, beans)
                             .executeIterativeSearch(handler, result);
 
             LOGGER.trace("Finished iterative searching. Metadata: {}", DebugUtil.shortDumpLazily(metadata));
-            result.closeAndCleanup();
             return metadata;
         } catch (Throwable t) {
             result.recordFatalError(t);
-            result.closeAndCleanup(t);
             throw t;
         } finally {
-            // Nothing needs to be here, as the result is already closed and cleaned up.
+            result.close();
+            result.cleanup();
         }
     }
 
@@ -1069,15 +1060,13 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             //noinspection unchecked
             comparisonResult = shadowsFacade.compare((PrismObject<ShadowType>) repositoryObject, path, expectedValue, task, result);
 
-        } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException |
-                SecurityViolationException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
-            throw e;
+        } catch (Throwable t) {
+            ProvisioningUtil.recordExceptionWhileRethrowing(LOGGER, result, null, t);
+            throw t;
+        } finally {
+            result.close();
+            result.cleanup();
         }
-
-        result.computeStatus();
-        result.cleanupResult();
-
         return comparisonResult;
     }
 

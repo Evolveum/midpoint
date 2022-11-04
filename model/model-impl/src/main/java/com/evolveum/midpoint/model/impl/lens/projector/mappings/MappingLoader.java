@@ -25,6 +25,8 @@ public interface MappingLoader<O extends ObjectType> {
 
     boolean isLoaded();
 
-    PrismObject<O> load(String loadReason, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    PrismObject<O> load(String loadReason, Task task, OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
 
 }

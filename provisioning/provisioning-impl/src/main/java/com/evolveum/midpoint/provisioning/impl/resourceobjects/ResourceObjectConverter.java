@@ -214,7 +214,11 @@ public class ResourceObjectConverter {
                         result);
                 if (shadowHolder.isEmpty()) {
                     // We could consider continuing with another secondary identifier, but let us keep the original behavior.
-                    throw new ObjectNotFoundException("No object found for secondary identifier " + secondaryIdentifier);
+                    throw new ObjectNotFoundException(
+                            "No object found for secondary identifier " + secondaryIdentifier,
+                            ShadowType.class,
+                            null,
+                            ctx.isAllowNotFound());
                 }
                 PrismObject<ShadowType> shadow = shadowHolder.getValue();
                 // todo consider whether it is always necessary to fetch the entitlements
@@ -465,8 +469,8 @@ public class ResourceObjectConverter {
                                 ctx.getObjectDefinitionRequired(), shadow, identifiers, ctx.getUcfExecutionContext(), result);
 
             } catch (ObjectNotFoundException ex) {
-                throw new ObjectNotFoundException("An error occurred while deleting resource object " + shadow
-                        + " with identifiers " + identifiers + ": " + ex.getMessage(), ex);
+                throw ex.wrap(
+                        "An error occurred while deleting resource object " + shadow + " with identifiers " + identifiers);
             } catch (CommunicationException ex) {
                 throw new CommunicationException("Error communicating with the connector " + connector + ": "
                         + ex.getMessage(), ex);
@@ -491,7 +495,7 @@ public class ResourceObjectConverter {
             }
             return aResult;
         } catch (Throwable t) {
-            result.recordFatalErrorIfNeeded(t); // TODO
+            result.recordException(t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();
@@ -760,7 +764,11 @@ public class ResourceObjectConverter {
                     resourceObjectReferenceResolver.resolvePrimaryIdentifier(ctx, identifiers,
                             "modification of resource object "+identifiers, result);
             if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
-                throw new ObjectNotFoundException("Cannot find repository shadow for identifiers "+identifiers);
+                throw new ObjectNotFoundException(
+                        "Cannot find repository shadow for identifiers " + identifiers,
+                        ShadowType.class,
+                        null,
+                        ctx.isAllowNotFound());
             }
             Collection allIdentifiers = new ArrayList();
             allIdentifiers.addAll(identifiers);
@@ -872,7 +880,7 @@ public class ResourceObjectConverter {
 
         } catch (ObjectNotFoundException ex) {
             result.recordFatalErrorNotFinish("Object to modify not found: " + ex.getMessage(), ex);
-            throw new ObjectNotFoundException("Object to modify not found: " + ex.getMessage(), ex);
+            throw ex.wrap("Object to modify was not found");
         } catch (CommunicationException ex) {
             result.recordFatalErrorNotFinish(
                     "Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
@@ -1707,6 +1715,7 @@ public class ResourceObjectConverter {
                 String message = "Could not execute provisioning script. Error communicating with the connector " + connector + ": " + ex.getMessage();
                 if (ExceptionUtil.isFatalCriticality(operation.getCriticality(), CriticalityType.FATAL)) {
                     result.recordFatalError(message, ex);
+                    result.markExceptionRecorded();
                     throw new CommunicationException(message, ex);
                 } else {
                     LOGGER.warn("{}", message);
@@ -1715,6 +1724,7 @@ public class ResourceObjectConverter {
                 String message = "Could not execute provisioning script. Generic error in connector: " + ex.getMessage();
                 if (ExceptionUtil.isFatalCriticality(operation.getCriticality(), CriticalityType.FATAL)) {
                     result.recordFatalError(message, ex);
+                    result.markExceptionRecorded();
                     throw new GenericConnectorException(message, ex);
                 } else {
                     LOGGER.warn("{}", message);
@@ -1723,6 +1733,7 @@ public class ResourceObjectConverter {
                 String message = "Could not execute provisioning script. Unexpected error in connector: " +t.getClass().getSimpleName() + ": " + t.getMessage();
                 if (ExceptionUtil.isFatalCriticality(operation.getCriticality(), CriticalityType.FATAL)) {
                     result.recordFatalError(message, t);
+                    result.markExceptionRecorded();
                     throw t;
                 } else {
                     LOGGER.warn("{}", message);

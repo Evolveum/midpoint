@@ -46,21 +46,14 @@ public class OperationsHelper {
             throws ObjectNotFoundException, SchemaException {
         try {
             return cacheRepositoryService.getObject(type, oid, options, result);
-        } catch (ObjectNotFoundException e) {
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            if (!GetOperationOptions.isAllowNotFound(rootOptions)) {
-                ProvisioningUtil.recordFatalErrorWhileRethrowing(
-                        LOGGER, result, "Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
-            } else {
-                // TODO check if this is really needed (lower layers shouldn't produce FATAL_ERROR if allow not found is true)
-                result.muteLastSubresultError();
-                result.computeStatus();
-            }
+        } catch (Throwable e) {
+            ProvisioningUtil.recordExceptionWhileRethrowing(
+                    LOGGER,
+                    result,
+                    String.format(
+                            "Can't get object of type %s with oid %s. Reason %s", oid, type.getSimpleName(), e.getMessage()),
+                    e);
             throw e;
-        } catch (SchemaException ex) {
-            ProvisioningUtil.recordFatalErrorWhileRethrowing(
-                    LOGGER, result, "Can't get object with oid " + oid + ". Reason " + ex.getMessage(), ex);
-            throw ex;
         }
     }
 }

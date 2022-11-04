@@ -111,7 +111,11 @@ class ResourceObjectReferenceResolver {
                 return shadow;
             }
         } else if (resolutionFrequency == NEVER) {
-            throw new ObjectNotFoundException("No shadowRef OID in "+desc+" and resolution frequency set to NEVER");
+            // TODO looks more like ConfigurationException
+            throw new ObjectNotFoundException(
+                    "No shadowRef OID in "+desc+" and resolution frequency set to NEVER",
+                    ShadowType.class,
+                    null);
         }
 
         argCheck(resourceObjectReference.getObjectClass() != null,
@@ -228,10 +232,16 @@ class ResourceObjectReferenceResolver {
             return connector.fetchObject(resolvedIdentification, attributesToReturn, ctx.getUcfExecutionContext(), parentResult);
         } catch (ObjectNotFoundException e) {
             // Not finishing the result because we did not create it! (The same for other catch clauses.)
-            parentResult.recordFatalErrorNotFinish("Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
-            throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
-                        PrettyPrinter.prettyPrint(objectDefinition.getTypeName())+": "
-                    + e.getMessage(), e, ShadowType.class, repoShadow != null ? repoShadow.getOid() : null);
+            // We do not use simple "e.wrap" because there is a lot of things to be filled-in here.
+            ObjectNotFoundException objectNotFoundException = new ObjectNotFoundException(
+                    "Object not found. identifiers=" + identifiers + ", objectclass=" +
+                            PrettyPrinter.prettyPrint(objectDefinition.getTypeName()) + ": " + e.getMessage(),
+                    e,
+                    ShadowType.class,
+                    repoShadow != null ? repoShadow.getOid() : null,
+                    ctx.isAllowNotFound());
+            parentResult.recordExceptionNotFinish(objectNotFoundException);
+            throw objectNotFoundException;
         } catch (CommunicationException e) {
             parentResult.recordFatalErrorNotFinish("Error communication with the connector " + connector
                     + ": " + e.getMessage(), e);
@@ -271,7 +281,10 @@ class ResourceObjectReferenceResolver {
         PrismObject<ShadowType> repoShadow = shadowManager.lookupShadowBySecondaryIds(ctx, secondaryIdentifiers, result);
         if (repoShadow == null) {
             // TODO: we should attempt resource search here
-            throw new ObjectNotFoundException("No repository shadow for "+secondaryIdentifiers+", cannot resolve identifiers");
+            throw new ObjectNotFoundException(
+                    "No repository shadow for " + secondaryIdentifiers + ", cannot resolve identifiers",
+                    ShadowType.class,
+                    null);
         }
         shadowsFacade.applyDefinition(repoShadow, ctx.getTask(), result);
         PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);

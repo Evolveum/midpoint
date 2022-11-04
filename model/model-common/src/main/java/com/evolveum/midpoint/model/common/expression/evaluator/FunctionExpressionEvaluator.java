@@ -96,14 +96,14 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
             List<ExpressionType> allFunctions = functionLibrary.getFunction();
             if (CollectionUtils.isEmpty(allFunctions)) {
-                throw new ObjectNotFoundException(
+                throw new ConfigurationException(
                         "No functions defined in referenced function library: " + functionLibrary + " used in " +
                                 context.getContextDescription());
             }
 
             String functionName = expressionEvaluatorBean.getName();
             if (StringUtils.isEmpty(functionName)) {
-                throw new SchemaException(
+                throw new ConfigurationException(
                         "Missing function name in " + shortDebugDump() + " in " + context.getContextDescription());
             }
 
@@ -114,7 +114,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
                 String allFunctionNames = allFunctions.stream()
                         .map(ExpressionType::getName)
                         .collect(Collectors.joining(", "));
-                throw new ObjectNotFoundException("No function with name " + functionName + " found in " + shortDebugDump()
+                throw new ConfigurationException("No function with name " + functionName + " found in " + shortDebugDump()
                         + ". Function defined are: " + allFunctionNames + ". In " + context.getContextDescription());
             }
 
@@ -129,7 +129,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
     @NotNull
     private ExpressionType selectFromMatchingFunctions(List<ExpressionType> functionsMatchingName,
-            ExpressionEvaluationContext context) throws ObjectNotFoundException {
+            ExpressionEvaluationContext context) throws ConfigurationException {
 
         if (functionsMatchingName.size() == 1) {
             return functionsMatchingName.iterator().next();
@@ -148,7 +148,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             return filteredExpression;
         }
         String functionName = expressionEvaluatorBean.getName();
-        throw new ObjectNotFoundException("No matching function with name " + functionName + " found in " + shortDebugDump()
+        throw new ConfigurationException("No matching function with name " + functionName + " found in " + shortDebugDump()
                 + ". " + functionsMatchingName.size() + " functions with this name found but none matches the parameters. In " +
                 context.getContextDescription());
     }

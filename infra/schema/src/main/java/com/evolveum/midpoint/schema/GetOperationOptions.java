@@ -609,6 +609,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return options.allowNotFound;
     }
 
+    public static boolean isAllowNotFound(Collection<SelectorOptions<GetOperationOptions>> options) {
+        return isAllowNotFound(
+                SelectorOptions.findRootOptions(options));
+    }
+
     public static Collection<SelectorOptions<GetOperationOptions>> createAllowNotFoundCollection() {
         return SelectorOptions.createCollection(createAllowNotFound());
     }

@@ -130,9 +130,8 @@ public class GuiProfiledPrincipalManagerImpl implements CacheListener, GuiProfil
         PrismObject<FocusType> focus;
         try {
             focus = findByUsername(username, clazz, result);
-
             if (focus == null) {
-                throw new ObjectNotFoundException("Couldn't find focus with name '" + username + "'");
+                throw new ObjectNotFoundException("Couldn't find focus with name '" + username + "'", clazz, null);
             }
         } catch (ObjectNotFoundException ex) {
             LOGGER.trace("Couldn't find user with name '{}', reason: {}.", username, ex.getMessage(), ex);
