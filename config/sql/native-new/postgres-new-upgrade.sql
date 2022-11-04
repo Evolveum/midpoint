@@ -162,7 +162,12 @@ call apply_change(11, $aa$
 ALTER TABLE m_connector ADD available BOOLEAN;
 $aa$);
 
--- SCHEMA-COMMIT 4.6: commit TODO
+-- SCHEMA-COMMIT 4.5: commit c5f19c9e
+
+-- No changes for audit schema in 4.6
+-- SCHEMA-COMMIT 4.6: commit 71f2df50
+
+-- changes for 4.7
 
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
