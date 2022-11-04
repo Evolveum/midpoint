@@ -48,16 +48,17 @@ class PendingOperationsHelper {
     @Autowired private PrismContext prismContext;
 
     void addPendingOperationAdd(
-            PrismObject<ShadowType> repoShadow,
-            PrismObject<ShadowType> resourceShadow,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState, String asyncOperationReference)
+            ShadowType repoShadow,
+            ShadowType resourceShadow,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+            String asyncOperationReference)
             throws SchemaException {
 
-        ShadowType repoShadowType = repoShadow.asObjectable();
-        PendingOperationType pendingOperation = createPendingOperation(resourceShadow.createAddDelta(), opState, asyncOperationReference);
-        repoShadowType.getPendingOperation().add(pendingOperation);
+        PendingOperationType pendingOperation = createPendingOperation(
+                resourceShadow.asPrismObject().createAddDelta(), opState, asyncOperationReference);
+        repoShadow.getPendingOperation().add(pendingOperation);
         opState.addPendingOperation(pendingOperation);
-        repoShadowType.setExists(false);
+        repoShadow.setExists(false);
     }
 
     PendingOperationType createPendingOperation(

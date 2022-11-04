@@ -158,7 +158,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     private Long staleness;
 
     /**
-     * Force refresh of object before the data are retrieved. The operations are retried after the time perios passed.
+     * Force refresh of object before the data are retrieved. The operations are retried after the time period passed.
      * This option is a guarantee that we get the freshest data that is possible. However, strange things may happen here.
      * E.g. object that existed before this operation may get deleted during refresh because it has expired in the
      * meantime. Or get operation may in fact attempt to create, modify and even delete of an account. This may

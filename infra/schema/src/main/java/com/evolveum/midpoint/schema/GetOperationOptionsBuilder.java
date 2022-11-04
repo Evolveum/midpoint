@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
@@ -20,6 +21,10 @@ import java.util.Collection;
  *
  */
 public interface GetOperationOptionsBuilder {
+
+    static GetOperationOptionsBuilder create() {
+        return new GetOperationOptionsBuilderImpl(PrismContext.get());
+    }
 
     GetOperationOptionsBuilder root();
     GetOperationOptionsBuilder items(Object... items);

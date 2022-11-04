@@ -46,14 +46,13 @@ public class CreatorUpdaterHelper {
 
     // Just minimal metadata for now, maybe we need to expand that later
     // those are needed to properly manage dead shadows
-    void addCreateMetadata(PrismObject<ShadowType> repoShadow) {
-        ShadowType repoShadowType = repoShadow.asObjectable();
-        MetadataType metadata = repoShadowType.getMetadata();
+    void addCreateMetadata(ShadowType repoShadow) {
+        MetadataType metadata = repoShadow.getMetadata();
         if (metadata != null) {
             return;
         }
         metadata = new MetadataType();
-        repoShadowType.setMetadata(metadata);
+        repoShadow.setMetadata(metadata);
         metadata.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
     }
 

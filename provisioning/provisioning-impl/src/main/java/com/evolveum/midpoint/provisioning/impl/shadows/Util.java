@@ -109,11 +109,11 @@ class Util {
         return sb.toString();
     }
 
-    static PrismObject<ShadowType> minimize(PrismObject<ShadowType> resourceObject, ResourceObjectDefinition objDef) {
+    static ShadowType minimize(ShadowType resourceObject, ResourceObjectDefinition objDef) {
         if (resourceObject == null) {
             return null;
         }
-        PrismObject<ShadowType> minimized = resourceObject.clone();
+        ShadowType minimized = resourceObject.clone();
         ShadowUtil.removeAllAttributesExceptPrimaryIdentifier(minimized, objDef);
         if (ShadowUtil.hasPrimaryIdentifier(minimized, objDef)) {
             return minimized;

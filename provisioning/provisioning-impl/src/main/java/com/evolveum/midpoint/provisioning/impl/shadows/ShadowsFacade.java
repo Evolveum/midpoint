@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
 import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +37,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Facade for the whole "shadows" package.
  *
+ * Basically, it only dispatches method calls to a set of helper classes, like {@link GetOperation}, {@link SearchHelper},
+ * {@link ModifyHelper}, {@link DeleteHelper}, and so on.
+ *
+ * @see com.evolveum.midpoint.provisioning.impl.shadows
+ *
  * @author Radovan Semancik
  * @author Katarina Valalikova
  */
@@ -44,7 +51,6 @@ public class ShadowsFacade {
     static final String OP_DELAYED_OPERATION = ShadowsFacade.class.getName() + ".delayedOperation";
 
     @Autowired private AddHelper addHelper;
-    @Autowired private GetHelper getHelper;
     @Autowired private RefreshHelper refreshHelper;
     @Autowired private ModifyHelper modifyHelper;
     @Autowired private DeleteHelper deleteHelper;
@@ -53,12 +59,12 @@ public class ShadowsFacade {
     @Autowired private SearchHelper searchHelper;
     @Autowired private PropagateHelper propagateHelper;
     @Autowired private CompareHelper compareHelper;
-    @Autowired private ClassificationHelper classificationHelper;
     @Autowired private ShadowsLocalBeans localBeans;
 
     /**
-     * @param repositoryShadow Current shadow in the repository. If not specified, this method will retrieve it by OID.
-     * @param identifiersOverride Identifiers that are known to the caller and that should override
+     * @param oid OID of the shadow to be fetched
+     * @param repositoryShadow (Optional) current shadow in the repository. If not specified, this method will retrieve it by OID.
+     * @param identifiersOverride (Optional) identifiers that are known to the caller and that should override
      * the ones (if any) in the shadow.
      */
     public @NotNull PrismObject<ShadowType> getShadow(
@@ -70,7 +76,9 @@ public class ShadowsFacade {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
-        return getHelper.getShadow(oid, repositoryShadow, identifiersOverride, options, task, result);
+        return asPrismObject(
+                new GetOperation(oid, repositoryShadow, identifiersOverride, options, task, localBeans)
+                        .execute(result));
     }
 
     public String addResourceObject(PrismObject<ShadowType> resourceObjectToAdd, OperationProvisioningScriptsType scripts,

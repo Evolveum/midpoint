@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 import static java.util.Collections.emptySet;
 
 import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectPrimaryIdentifiers;
@@ -227,6 +229,10 @@ public abstract class ResourceObjectChange implements InitializableMixin {
 
     public PrismObject<ShadowType> getResourceObject() {
         return resourceObject;
+    }
+
+    public ShadowType getResourceObjectBean() {
+        return asObjectable(resourceObject);
     }
 
     @Override

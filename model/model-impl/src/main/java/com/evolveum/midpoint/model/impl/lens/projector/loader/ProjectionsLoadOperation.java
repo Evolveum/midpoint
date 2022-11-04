@@ -597,6 +597,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                                     //.readOnly() [not yet]
                                     .build();
                     shadow = beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
+                    beans.provisioningService.determineShadowState(shadow, task, result);
                     projectionContext = getOrCreateEmptyGone(oid);
                     projectionContext.setFresh(true);
                     projectionContext.setExists(false);

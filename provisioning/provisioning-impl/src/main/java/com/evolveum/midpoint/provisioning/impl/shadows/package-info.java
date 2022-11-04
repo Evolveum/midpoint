@@ -19,11 +19,7 @@
  *
  * The `shadows` package itself is structured like this:
  *
- * {@link com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade} is a facade that dispatch method calls to a set
- * of helper classes, like {@link com.evolveum.midpoint.provisioning.impl.shadows.GetHelper},
- * {@link com.evolveum.midpoint.provisioning.impl.shadows.SearchHelper},
- * {@link com.evolveum.midpoint.provisioning.impl.shadows.ModifyHelper},
- * {@link com.evolveum.midpoint.provisioning.impl.shadows.DeleteHelper}, and so on.
+ * Root: {@link com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade} and its helper classes.
  *
  * A special case is live sync and async update, which are invoked outside of the facade. (This will most probably be fixed.)
  *

@@ -1715,6 +1715,14 @@ public class OperationResult
         }
     }
 
+    // Temporary solution
+    public void clearLastSubresultError() {
+        OperationResult lastSubresult = getLastSubresult();
+        if (lastSubresult != null && (lastSubresult.isError() || lastSubresult.isHandledError())) {
+            lastSubresult.status = OperationResultStatus.SUCCESS;
+        }
+    }
+
     public void deleteLastSubresultIfError() {
         OperationResult lastSubresult = getLastSubresult();
         if (lastSubresult != null && lastSubresult.isError()) {

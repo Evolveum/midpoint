@@ -344,7 +344,7 @@ class ResourceSchemaHelper {
                     + "and resource is not specified as well. Could not apply definition.");
             return resourceWhenNoOid;
         } else {
-            return resourceManager.getResource(resourceOid, options, task, result)
+            return resourceManager.getCompletedResource(resourceOid, options, task, result)
                     .asObjectable();
         }
     }

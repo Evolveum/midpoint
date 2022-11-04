@@ -45,4 +45,5 @@ public class CommonBeans {
     @Autowired public ConnectorManager connectorManager;
     @Autowired public ResourceOperationalStateManager operationalStateManager;
     @Autowired public SystemObjectCache systemObjectCache;
+    @Autowired public ShadowCaretaker shadowCaretaker;
 }

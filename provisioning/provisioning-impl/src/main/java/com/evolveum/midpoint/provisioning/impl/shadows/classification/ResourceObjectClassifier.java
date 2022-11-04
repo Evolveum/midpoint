@@ -111,7 +111,7 @@ public class ResourceObjectClassifier {
             result.recordFatalError(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

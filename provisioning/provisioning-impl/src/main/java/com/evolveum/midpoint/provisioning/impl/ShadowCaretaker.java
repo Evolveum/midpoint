@@ -40,6 +40,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType.*;
+
 /**
  * Component that takes care of some shadow (or resource object) maintenance, such as applying definitions, applying pending
  * operations and so on.
@@ -133,15 +135,21 @@ public class ShadowCaretaker {
         }
     }
 
-    @NotNull public PrismObject<ShadowType> applyAttributesDefinitionToImmutable(
-            ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException {
-        PrismObject<ShadowType> mutableShadow = shadow.clone();
-        applyAttributesDefinition(ctx, mutableShadow);
-        return mutableShadow.createImmutableClone();
+    @NotNull ShadowType applyAttributesDefinitionToImmutable(ProvisioningContext ctx, ShadowType shadow)
+            throws SchemaException, ConfigurationException {
+        ShadowType mutableShadow = shadow.clone();
+        applyAttributesDefinition(ctx, mutableShadow.asPrismObject());
+        return mutableShadow.asPrismObject().createImmutableClone().asObjectable();
     }
 
     public ProvisioningContext applyAttributesDefinition(
-            ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException {
+            @NotNull ProvisioningContext ctx, @NotNull ShadowType shadow) throws SchemaException, ConfigurationException {
+        return applyAttributesDefinition(ctx, shadow.asPrismObject());
+    }
+
+    public ProvisioningContext applyAttributesDefinition(
+            @NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> shadow)
+            throws SchemaException, ConfigurationException {
         ProvisioningContext subctx = ctx.spawnForShadow(shadow.asObjectable());
         subctx.assertDefinition();
         ResourceObjectDefinition objectDefinition = subctx.getObjectDefinitionRequired();
@@ -192,17 +200,16 @@ public class ShadowCaretaker {
      * reapplied e.g. if the shadow has auxiliary object classes, if it is of a subclass
      * of the object class that was originally requested, etc.
      */
-    public ProvisioningContext reapplyDefinitions(ProvisioningContext ctx,
-            PrismObject<ShadowType> rawResourceObject) throws SchemaException, ConfigurationException {
-        ShadowType rawResourceObjectBean = rawResourceObject.asObjectable();
-        QName objectClassQName = rawResourceObjectBean.getObjectClass();
-        List<QName> auxiliaryObjectClassQNames = rawResourceObjectBean.getAuxiliaryObjectClass();
+    public ProvisioningContext reapplyDefinitions(
+            ProvisioningContext ctx, ShadowType rawResourceObject) throws SchemaException, ConfigurationException {
+        QName objectClassQName = rawResourceObject.getObjectClass();
+        List<QName> auxiliaryObjectClassQNames = rawResourceObject.getAuxiliaryObjectClass();
         if (auxiliaryObjectClassQNames.isEmpty()
                 && objectClassQName.equals(ctx.getObjectClassNameRequired())) {
             // shortcut, no need to reapply anything
             return ctx;
         }
-        ProvisioningContext shadowCtx = ctx.spawnForShadow(rawResourceObject.asObjectable());
+        ProvisioningContext shadowCtx = ctx.spawnForShadow(rawResourceObject);
         shadowCtx.assertDefinition();
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(rawResourceObject);
         attributesContainer.applyDefinition(
@@ -211,15 +218,13 @@ public class ShadowCaretaker {
         return shadowCtx;
     }
 
-    public PrismObject<ShadowType> applyPendingOperations(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceShadow,
+    public @NotNull PrismObject<ShadowType> applyPendingOperations(
+            @NotNull ProvisioningContext ctx,
+            @NotNull PrismObject<ShadowType> repoShadow,
+            PrismObject<ShadowType> resourceShadow,
             boolean skipExecutionPendingOperations,
             XMLGregorianCalendar now)
             throws SchemaException, ConfigurationException {
-        if (repoShadow == null) {
-            return resourceShadow;
-        }
-
         PrismObject<ShadowType> resultShadow = Objects.requireNonNullElse(resourceShadow, repoShadow);
 
         if (ShadowUtil.isDead(resultShadow)) {
@@ -233,27 +238,29 @@ public class ShadowCaretaker {
         ShadowType resultShadowBean = resultShadow.asObjectable();
         List<PendingOperationType> sortedOperations = sortPendingOperations(pendingOperations);
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
-        boolean resourceReadIsCachingOnly = ProvisioningUtil.resourceReadIsCachingOnly(ctx.getResource());
+        boolean resourceReadIsCachingOnly = ctx.isReadingCachingOnly();
         for (PendingOperationType pendingOperation: sortedOperations) {
             OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
             PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();
-            if (OperationResultStatusType.NOT_APPLICABLE.equals(resultStatus)) {
+            if (resultStatus == NOT_APPLICABLE) {
                 // Not applicable means: "no point trying this, will not retry". Therefore it will not change future state.
                 continue;
             }
-            if (PendingOperationExecutionStatusType.COMPLETED.equals(executionStatus) && ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
+            if (PendingOperationExecutionStatusType.COMPLETED.equals(executionStatus)
+                    && ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
                 // Completed operations over grace period. They have already affected current state. They are already "applied".
                 continue;
             }
             // Note: We still want to process errors, even fatal errors. As long as they are in executing state then they
             // are going to be retried and they still may influence future state
-            if (skipExecutionPendingOperations && executionStatus == PendingOperationExecutionStatusType.EXECUTION_PENDING) {
+            if (skipExecutionPendingOperations
+                    && executionStatus == PendingOperationExecutionStatusType.EXECUTION_PENDING) {
                 continue;
             }
             if (resourceReadIsCachingOnly) {
                 // We are getting the data from our own cache. So we know that all completed operations are already applied in the cache.
                 // Re-applying them will mean additional risk of corrupting the data.
-                if (resultStatus != null && resultStatus != OperationResultStatusType.IN_PROGRESS && resultStatus != OperationResultStatusType.UNKNOWN) {
+                if (resultStatus != null && resultStatus != IN_PROGRESS && resultStatus != UNKNOWN) {
                     continue;
                 }
             } else {
@@ -311,9 +318,9 @@ public class ShadowCaretaker {
 
     public ChangeTypeType findPreviousPendingLifecycleOperationInGracePeriod(
             @Nullable ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull ShadowType shadow,
             @NotNull XMLGregorianCalendar now) {
-        List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
+        List<PendingOperationType> pendingOperations = shadow.getPendingOperation();
         if (pendingOperations.isEmpty()) {
             return null;
         }
@@ -348,32 +355,31 @@ public class ShadowCaretaker {
     // detect it as corpse. But that should not cause any big problems.
     public @NotNull ShadowLifecycleStateType determineShadowState(
             @NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull ShadowType shadow,
             @NotNull XMLGregorianCalendar now) {
         return determineShadowStateInternal(ctx, shadow, now);
    }
 
     public @NotNull ShadowLifecycleStateType determineShadowState(
             @NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> shadow) {
+            @NotNull ShadowType shadow) {
         return determineShadowStateInternal(ctx, shadow, clock.currentTimeXMLGregorianCalendar());
    }
 
     /** If emergency situations the context can be null. */
     private @NotNull ShadowLifecycleStateType determineShadowStateInternal(
             @Nullable ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull ShadowType shadow,
             @NotNull XMLGregorianCalendar now) {
-        ShadowType shadowBean = shadow.asObjectable();
         ChangeTypeType pendingLifecycleOperation = findPreviousPendingLifecycleOperationInGracePeriod(ctx, shadow, now);
-        if (ShadowUtil.isDead(shadowBean)) {
+        if (ShadowUtil.isDead(shadow)) {
             if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
                 return ShadowLifecycleStateType.CORPSE;
             } else {
                 return ShadowLifecycleStateType.TOMBSTONE;
             }
         }
-        if (ShadowUtil.isExists(shadowBean)) {
+        if (ShadowUtil.isExists(shadow)) {
             if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
                 return ShadowLifecycleStateType.REAPING;
             } else if (pendingLifecycleOperation == ChangeTypeType.ADD) {
@@ -384,7 +390,7 @@ public class ShadowCaretaker {
         }
         // FIXME currently we don't work correctly with the object lifecycle for shadows. E.g. some shadows are marked
         //  as proposed, even if they are active in fact. So be careful with this.
-        if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadowBean.getLifecycleState())) {
+        if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())) {
             return ShadowLifecycleStateType.PROPOSED;
         } else {
             return ShadowLifecycleStateType.CONCEIVED;
@@ -393,23 +399,20 @@ public class ShadowCaretaker {
 
     /** Determines and updates the shadow state. */
     public void updateShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow) {
+        updateShadowState(ctx, shadow.asObjectable());
+    }
+
+    /** Determines and updates the shadow state. */
+    public void updateShadowState(ProvisioningContext ctx, ShadowType shadow) {
         ShadowLifecycleStateType state = determineShadowState(ctx, shadow);
-        shadow.asObjectable().setShadowLifecycleState(state);
+        shadow.setShadowLifecycleState(state);
     }
 
     /** Determines and updates the shadow state - in situations where we don't have the context. */
-    public void updateShadowStateInEmergency(PrismObject<ShadowType> shadow)
+    public void updateShadowStateInEmergency(ShadowType shadow)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException {
         ShadowLifecycleStateType state = determineShadowStateInternal(null, shadow, clock.currentTimeXMLGregorianCalendar());
-        shadow.asObjectable().setShadowLifecycleState(state);
-    }
-
-    /** Determines and updates (and returns) the shadow state. */
-    public @NotNull ShadowLifecycleStateType updateAndReturnShadowState(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow, XMLGregorianCalendar now) {
-        ShadowLifecycleStateType state = determineShadowState(ctx, shadow, now);
-        shadow.asObjectable().setShadowLifecycleState(state);
-        return state;
+        shadow.setShadowLifecycleState(state);
     }
 }

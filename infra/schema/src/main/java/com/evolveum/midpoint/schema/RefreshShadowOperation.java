@@ -15,6 +15,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 public class RefreshShadowOperation implements DebugDumpable {
 
     private PrismObject<ShadowType> refreshedShadow;
@@ -32,6 +34,10 @@ public class RefreshShadowOperation implements DebugDumpable {
 
     public PrismObject<ShadowType> getRefreshedShadow() {
         return refreshedShadow;
+    }
+
+    public ShadowType getRefreshedShadowBean() {
+        return asObjectable(refreshedShadow);
     }
 
     public void setRefreshedShadow(PrismObject<ShadowType> refreshedShadow) {

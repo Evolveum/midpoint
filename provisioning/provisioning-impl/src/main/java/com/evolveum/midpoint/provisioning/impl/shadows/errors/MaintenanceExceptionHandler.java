@@ -53,8 +53,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     @Override
     public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
             PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
-            Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ObjectNotFoundException,
-            ConfigurationException, ExpressionEvaluationException {
+            Task task, OperationResult parentResult) throws CommunicationException {
 
         ResourceType resource = ctx.getResource();
         if (!ProvisioningUtil.isDoDiscovery(resource, rootOptions)) {

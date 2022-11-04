@@ -1031,10 +1031,10 @@ public class ObjectTypeUtil {
         return fetchResult != null && OperationResultUtil.isError(fetchResult.getStatus());
     }
 
-    public static void recordFetchError(PrismObject<? extends ObjectType> object, OperationResult result) {
+    public static void recordFetchError(ObjectType object, OperationResult result) {
         OperationResultType resultBean = result.createBeanReduced();
         assert OperationResultUtil.isError(resultBean.getStatus());
-        object.asObjectable().setFetchResult(resultBean);
+        object.setFetchResult(resultBean);
     }
 
     public static Collection<ObjectReferenceType> createObjectRefs(Collection<PrismReferenceValue> values) {

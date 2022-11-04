@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
 import java.util.ArrayList;
@@ -204,7 +205,7 @@ public class ShadowedObjectConstruction {
 
         ActivationType resultActivation = resultingShadowedObject.asObjectable().getActivation();
         if (resultActivation == null) {
-            resultActivation = new ActivationType(beans.prismContext);
+            resultActivation = new ActivationType();
             resultingShadowedObject.asObjectable().setActivation(resultActivation);
         }
         resultActivation.setId(repoActivation.getId());
@@ -231,28 +232,14 @@ public class ShadowedObjectConstruction {
             return;
         }
 
-        PasswordType resultPassword = getOrCreateResultPassword();
+        PasswordType resultPassword =
+                ShadowUtil.getOrCreateShadowPassword(
+                        resultingShadowedObject.asObjectable());
 
         MetadataType resultMetadata = resultPassword.getMetadata();
         if (resultMetadata == null) {
             resultPassword.setMetadata(repoPasswordMetadata.clone());
         }
-    }
-
-    @NotNull
-    private PasswordType getOrCreateResultPassword() {
-        ShadowType resultShadowBean = resultingShadowedObject.asObjectable();
-        CredentialsType resultCredentials = resultShadowBean.getCredentials();
-        if (resultCredentials == null) {
-            resultCredentials = new CredentialsType(beans.prismContext);
-            resultShadowBean.setCredentials(resultCredentials);
-        }
-        PasswordType resultPassword = resultCredentials.getPassword();
-        if (resultPassword == null) {
-            resultPassword = new PasswordType(beans.prismContext);
-            resultCredentials.setPassword(resultPassword);
-        }
-        return resultPassword;
     }
 
     @Nullable
@@ -294,8 +281,7 @@ public class ShadowedObjectConstruction {
         assert resultingShadowedObject.getPrismContext() != null : "No prism context in resultShadow";
     }
 
-    private void copyAttributes(OperationResult result) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void copyAttributes(OperationResult result) throws SchemaException, ConfigurationException {
 
         resultingShadowedObject.removeContainer(ShadowType.F_ATTRIBUTES);
         ResourceAttributeContainer resultAttributes = resourceObjectAttributes.clone();
@@ -350,8 +336,8 @@ public class ShadowedObjectConstruction {
             LOGGER.trace("Processing kind={}, intent={} (from the definition)", entitlementKind, entitlementIntent);
             ProvisioningContext ctxEntitlement = ctx.spawnForKindIntent(entitlementKind, entitlementIntent);
 
-            PrismObject<ShadowType> entitlementRepoShadow = acquireEntitlementRepoShadow(associationValue, identifierContainer,
-                    ctxEntitlement, result);
+            ShadowType entitlementRepoShadow = acquireEntitlementRepoShadow(
+                    associationValue, identifierContainer, ctxEntitlement, result);
             if (entitlementRepoShadow == null) {
                 continue; // maybe we should try another intent
             }
@@ -372,7 +358,7 @@ public class ShadowedObjectConstruction {
     }
 
     @Nullable
-    private PrismObject<ShadowType> acquireEntitlementRepoShadow(PrismContainerValue<ShadowAssociationType> associationValue,
+    private ShadowType acquireEntitlementRepoShadow(PrismContainerValue<ShadowAssociationType> associationValue,
             ResourceAttributeContainer identifierContainer, ProvisioningContext ctxEntitlement, OperationResult result)
             throws ConfigurationException, CommunicationException, ExpressionEvaluationException, SecurityViolationException,
             EncryptionException, SchemaException, ObjectNotFoundException {
@@ -381,7 +367,7 @@ public class ShadowedObjectConstruction {
         PrismObject<ShadowType> providedResourceObject = identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
         if (providedResourceObject != null) {
             return localBeans.shadowAcquisitionHelper.acquireRepoShadow(
-                    ctxEntitlement, providedResourceObject, false, result);
+                    ctxEntitlement, providedResourceObject.asObjectable(), false, result);
         }
 
         try {
@@ -390,7 +376,7 @@ public class ShadowedObjectConstruction {
                             ctxEntitlement, identifierContainer, result);
 
             if (existingRepoShadow != null) {
-                return existingRepoShadow;
+                return existingRepoShadow.asObjectable();
             }
 
             PrismObject<ShadowType> fetchedResourceObject = beans.resourceObjectConverter
@@ -400,7 +386,7 @@ public class ShadowedObjectConstruction {
             // have searched before we might have only some identifiers. The shadow
             // might still be there, but it may be renamed
             return localBeans.shadowAcquisitionHelper
-                    .acquireRepoShadow(ctxEntitlement, fetchedResourceObject, false, result);
+                    .acquireRepoShadow(ctxEntitlement, asObjectable(fetchedResourceObject), false, result);
 
         } catch (ObjectNotFoundException e) {
             // The entitlement to which we point is not there. Simply ignore this association value.
@@ -443,11 +429,11 @@ public class ShadowedObjectConstruction {
         return entitlementIdentifiers;
     }
 
-    private boolean doesAssociationMatch(ResourceAssociationDefinition rEntitlementAssociationDef,
-                                         @NotNull PrismObject<ShadowType> entitlementRepoShadow) {
+    private boolean doesAssociationMatch(
+            ResourceAssociationDefinition rEntitlementAssociationDef, @NotNull ShadowType entitlementRepoShadow) {
 
-        ShadowKindType shadowKind = ShadowUtil.getKind(entitlementRepoShadow.asObjectable());
-        String shadowIntent = ShadowUtil.getIntent(entitlementRepoShadow.asObjectable());
+        ShadowKindType shadowKind = ShadowUtil.getKind(entitlementRepoShadow);
+        String shadowIntent = ShadowUtil.getIntent(entitlementRepoShadow);
         if (ShadowUtil.isNotKnown(shadowKind) || ShadowUtil.isNotKnown(shadowIntent)) {
             // We have unclassified shadow here. This should not happen in a well-configured system. But the world is a tough place.
             // In case that this happens let's just keep all such shadows in all associations. This is how midPoint worked before,
@@ -456,7 +442,7 @@ public class ShadowedObjectConstruction {
             // for debugging.
             return true;
         }
-        return rEntitlementAssociationDef.getKind() == shadowKind &&
-                rEntitlementAssociationDef.getIntents().contains(shadowIntent);
+        return rEntitlementAssociationDef.getKind() == shadowKind
+                && rEntitlementAssociationDef.getIntents().contains(shadowIntent);
     }
 }

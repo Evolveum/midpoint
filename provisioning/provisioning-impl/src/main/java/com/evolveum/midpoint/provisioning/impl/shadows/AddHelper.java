@@ -143,7 +143,7 @@ class AddHelper {
 
         preAddChecks(ctx, resourceObjectToAdd, opState, parentResult);
 
-        shadowManager.addNewProposedShadow(ctx, resourceObjectToAdd, opState, task, parentResult);
+        shadowManager.addNewProposedShadow(ctx, resourceObjectToAdd.asObjectable(), opState, task, parentResult);
 
         entitlementsHelper.preprocessEntitlements(ctx, resourceObjectToAdd, parentResult);
 
@@ -244,7 +244,7 @@ class AddHelper {
 
         // REPO OPERATION: add
         // This is where the repo shadow is created or updated (if needed)
-        shadowManager.recordAddResult(ctx, resourceObjectToAdd, opState, parentResult);
+        shadowManager.recordAddResult(ctx, resourceObjectToAdd.asObjectable(), opState, parentResult);
 
         if (addedShadow == null) {
             addedShadow = resourceObjectToAdd;
@@ -258,10 +258,9 @@ class AddHelper {
         return opState.getRepoShadow().getOid();
     }
 
-    private boolean hasDeadShadowWithDeleteOperation(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
-            OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    private boolean hasDeadShadowWithDeleteOperation(
+            ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd, OperationResult result)
+            throws SchemaException {
 
         Collection<PrismObject<ShadowType>> previousDeadShadows = shadowManager.searchForPreviousDeadShadows(ctx, shadowToAdd, result);
         if (previousDeadShadows.isEmpty()) {
@@ -271,7 +270,7 @@ class AddHelper {
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         for (PrismObject<ShadowType> previousDeadShadow : previousDeadShadows) {
-            if (shadowCaretaker.findPreviousPendingLifecycleOperationInGracePeriod(ctx, previousDeadShadow, now) == ChangeTypeType.DELETE) {
+            if (shadowCaretaker.findPreviousPendingLifecycleOperationInGracePeriod(ctx, previousDeadShadow.asObjectable(), now) == ChangeTypeType.DELETE) {
                 return true;
             }
         }

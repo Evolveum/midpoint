@@ -49,6 +49,7 @@ public class ProvisioningContextFactory {
 
     @Autowired private ResourceManager resourceManager;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private CommonBeans commonBeans;
 
     /**
      * Creates the context when exact resource + object type is known. This is the most direct approach;
@@ -281,7 +282,7 @@ public class ProvisioningContextFactory {
 
     public @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
-        return resourceManager.getResource(resourceOid, GetOperationOptions.createReadOnly(), task, result)
+        return resourceManager.getCompletedResource(resourceOid, GetOperationOptions.createReadOnly(), task, result)
                 .asObjectable();
     }
 
@@ -310,5 +311,9 @@ public class ProvisioningContextFactory {
             this.definition = definition;
             this.wholeClass = wholeClass;
         }
+    }
+
+    public @NotNull CommonBeans getCommonBeans() {
+        return commonBeans;
     }
 }

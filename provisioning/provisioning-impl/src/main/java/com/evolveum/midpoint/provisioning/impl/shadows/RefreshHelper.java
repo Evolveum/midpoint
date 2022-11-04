@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.Util.createSuccessOperationDescription;
 import static com.evolveum.midpoint.provisioning.impl.shadows.Util.needsRetry;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.ArrayList;
@@ -158,9 +159,11 @@ class RefreshHelper {
     /**
      * Used to quickly and efficiently refresh shadow before GET operations.
      */
-    PrismObject<ShadowType> refreshShadowQuick(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+    ShadowType refreshShadowQuick(ProvisioningContext ctx, ShadowType repoShadowBean,
             XMLGregorianCalendar now, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+
+        PrismObject<ShadowType> repoShadow = repoShadowBean.asPrismObject();
 
         ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
         expirePendingOperations(ctx, repoShadow, shadowDelta, now);
@@ -170,9 +173,8 @@ class RefreshHelper {
             shadowDelta.applyTo(repoShadow);
         }
 
-        repoShadow = deleteDeadShadowIfPossible(ctx, repoShadow, now, task, parentResult);
-
-        return repoShadow;
+        return asObjectable(
+                deleteDeadShadowIfPossible(ctx, repoShadow, now, task, parentResult));
     }
 
     /**

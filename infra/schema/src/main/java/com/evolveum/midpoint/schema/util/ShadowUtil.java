@@ -36,6 +36,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 /**
@@ -172,6 +173,11 @@ public class ShadowUtil {
     }
 
     public static ResourceAttributeContainer getOrCreateAttributesContainer(
+            ShadowType shadow, ResourceObjectDefinition definition) {
+        return getOrCreateAttributesContainer(shadow.asPrismObject(), definition);
+    }
+
+    public static ResourceAttributeContainer getOrCreateAttributesContainer(
             PrismObject<? extends ShadowType> shadow, ResourceObjectDefinition definition) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer != null) {
@@ -303,34 +309,30 @@ public class ShadowUtil {
         return values.iterator().next();
     }
 
-    public static void setPassword(ShadowType shadowType, ProtectedStringType password) {
-        CredentialsType credentialsType = shadowType.getCredentials();
-        if (credentialsType == null) {
-            credentialsType = new CredentialsType();
-            shadowType.setCredentials(credentialsType);
-        }
-        PasswordType passwordType = credentialsType.getPassword();
-        if (passwordType == null) {
-            passwordType = new PasswordType();
-            credentialsType.setPassword(passwordType);
-        }
-        passwordType.setValue(password);
+    public static void setPassword(ShadowType shadow, ProtectedStringType passwordValue) {
+        getOrCreateShadowPassword(shadow)
+                .setValue(passwordValue);
     }
 
-    public static void setPasswordIncomplete(ShadowType shadowType) throws SchemaException {
-        CredentialsType credentialsType = shadowType.getCredentials();
-        if (credentialsType == null) {
-            credentialsType = new CredentialsType();
-            shadowType.setCredentials(credentialsType);
-        }
-        PasswordType passwordType = credentialsType.getPassword();
-        if (passwordType == null) {
-            passwordType = new PasswordType();
-            credentialsType.setPassword(passwordType);
-        }
-        PrismContainerValue<PasswordType> passwordContainer = passwordType.asPrismContainerValue();
+    public static void setPasswordIncomplete(ShadowType shadow) throws SchemaException {
+        PasswordType password = getOrCreateShadowPassword(shadow);
+        PrismContainerValue<PasswordType> passwordContainer = password.asPrismContainerValue();
         PrismProperty<ProtectedStringType> valueProperty = passwordContainer.findOrCreateProperty(PasswordType.F_VALUE);
         valueProperty.setIncomplete(true);
+    }
+
+    public static @NotNull PasswordType getOrCreateShadowPassword(ShadowType shadow) {
+        CredentialsType credentials = shadow.getCredentials();
+        if (credentials == null) {
+            credentials = new CredentialsType();
+            shadow.setCredentials(credentials);
+        }
+        PasswordType password = credentials.getPassword();
+        if (password == null) {
+            password = new PasswordType();
+            credentials.setPassword(password);
+        }
+        return password;
     }
 
     public static ActivationType getOrCreateActivation(ShadowType shadowType) {
@@ -492,7 +494,7 @@ public class ShadowUtil {
         return dead != null && dead;
     }
 
-    public static boolean isDead(PrismObject<ShadowType> shadow) {
+    public static boolean isDead(@NotNull PrismObject<ShadowType> shadow) {
         return isDead(shadow.asObjectable());
     }
 
@@ -673,6 +675,10 @@ public class ShadowUtil {
         return shadowType.getCachingMetadata().getRetrievalTimestamp() != null;
     }
 
+    public static PolyString determineShadowName(ShadowType shadow) throws SchemaException {
+        return determineShadowName(asPrismObject(shadow));
+    }
+
     public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow) throws SchemaException {
         String stringName = determineShadowStringName(shadow);
         return stringName != null ? PolyString.fromOrig(stringName) : null;
@@ -748,8 +754,7 @@ public class ShadowUtil {
                 path.rest().startsWithName(attributeName);
     }
 
-    public static boolean hasPrimaryIdentifier(PrismObject<ShadowType> shadow,
-            ResourceObjectDefinition objectDefinition) {
+    public static boolean hasPrimaryIdentifier(ShadowType shadow, ResourceObjectDefinition objectDefinition) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         return attributesContainer != null &&
                 !attributesContainer
@@ -850,6 +855,10 @@ public class ShadowUtil {
         return DebugUtil.lazy(() -> shortDumpShadow(shadow));
     }
 
+    public static String shortDumpShadow(ShadowType shadow) {
+        return shortDumpShadow(asPrismObject(shadow));
+    }
+
     public static String shortDumpShadow(PrismObject<ShadowType> shadow) {
         if (shadow == null) {
             return "null";
@@ -862,11 +871,11 @@ public class ShadowUtil {
         } else {
             Collection<ResourceAttribute<?>> primaryIdentifiers = getPrimaryIdentifiers(shadow);
             if (primaryIdentifiers != null && !primaryIdentifiers.isEmpty()) {
-                shortDumpShadowIdentifiers(sb, shadow, primaryIdentifiers);
+                shortDumpShadowIdentifiers(sb, primaryIdentifiers);
             } else {
                 Collection<ResourceAttribute<?>> secondaryIdentifiers = getSecondaryIdentifiers(shadow);
                 if (secondaryIdentifiers != null && !secondaryIdentifiers.isEmpty()) {
-                    shortDumpShadowIdentifiers(sb, shadow, secondaryIdentifiers);
+                    shortDumpShadowIdentifiers(sb, secondaryIdentifiers);
                 }
             }
         }
@@ -883,7 +892,7 @@ public class ShadowUtil {
         return sb.toString();
     }
 
-    private static void shortDumpShadowIdentifiers(StringBuilder sb, PrismObject<ShadowType> shadow, Collection<ResourceAttribute<?>> identifiers) {
+    private static void shortDumpShadowIdentifiers(StringBuilder sb, Collection<ResourceAttribute<?>> identifiers) {
         Iterator<ResourceAttribute<?>> iterator = identifiers.iterator();
         while (iterator.hasNext()) {
             ResourceAttribute<?> identifier = iterator.next();
@@ -929,8 +938,7 @@ public class ShadowUtil {
         }
     }
 
-    public static void removeAllAttributesExceptPrimaryIdentifier(PrismObject<ShadowType> shadow,
-            ResourceObjectDefinition objDef) {
+    public static void removeAllAttributesExceptPrimaryIdentifier(ShadowType shadow, ResourceObjectDefinition objDef) {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer != null) {
             List<ItemName> attributesToDelete = attributesContainer.getAttributes().stream()

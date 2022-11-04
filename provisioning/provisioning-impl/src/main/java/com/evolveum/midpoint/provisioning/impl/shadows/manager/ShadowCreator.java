@@ -46,6 +46,8 @@ import org.springframework.stereotype.Component;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
 /**
  * Creates shadows as needed.
  *
@@ -69,20 +71,20 @@ class ShadowCreator {
     @Autowired private CreatorUpdaterHelper creatorUpdaterHelper;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
 
-    @NotNull PrismObject<ShadowType> addDiscoveredRepositoryShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceObject, OperationResult parentResult)
+    @NotNull ShadowType addDiscoveredRepositoryShadow(
+            ProvisioningContext ctx, ShadowType resourceObject, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
         LOGGER.trace("Adding new shadow from resource object:\n{}", resourceObject.debugDumpLazily(1));
-        PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, resourceObject);
-        ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable()); // TODO eventually replace by repo cache invalidation
-        String oid = repositoryService.addObject(repoShadow, null, parentResult);
+        ShadowType repoShadow = createRepositoryShadow(ctx, resourceObject);
+        ConstraintsChecker.onShadowAddOperation(repoShadow); // TODO eventually replace by repo cache invalidation
+        String oid = repositoryService.addObject(repoShadow.asPrismObject(), null, result);
         repoShadow.setOid(oid);
         LOGGER.debug("Added new shadow (from resource object): {}", repoShadow);
         LOGGER.trace("Added new shadow (from resource object):\n{}", repoShadow.debugDumpLazily(1));
         return repoShadow;
     }
 
-    void addNewProposedShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
+    void addNewProposedShadow(ProvisioningContext ctx, ShadowType shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
             Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -99,32 +101,30 @@ class ShadowCreator {
         }
 
         // This is wrong: MID-4833
-        PrismObject<ShadowType> newRepoShadow = createRepositoryShadow(ctx, shadowToAdd);
-        newRepoShadow.asObjectable().setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
+        ShadowType newRepoShadow = createRepositoryShadow(ctx, shadowToAdd);
+        newRepoShadow.setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
         opState.setExecutionStatus(PendingOperationExecutionStatusType.REQUESTED);
         pendingOperationsHelper.addPendingOperationAdd(newRepoShadow, shadowToAdd, opState, task.getTaskIdentifier());
 
-        ConstraintsChecker.onShadowAddOperation(newRepoShadow.asObjectable()); // TODO migrate to cache invalidation process
-        String oid = repositoryService.addObject(newRepoShadow, null, result);
+        ConstraintsChecker.onShadowAddOperation(newRepoShadow); // TODO migrate to cache invalidation process
+        String oid = repositoryService.addObject(newRepoShadow.asPrismObject(), null, result);
         newRepoShadow.setOid(oid);
         LOGGER.trace("Proposed shadow added to the repository: {}", newRepoShadow);
-        opState.setRepoShadow(newRepoShadow);
+        opState.setRepoShadow(newRepoShadow.asPrismObject());
     }
 
     /**
      * Create a copy of a resource object (or another shadow) that is suitable for repository storage.
      */
-    @NotNull PrismObject<ShadowType> createRepositoryShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceObjectOrShadow)
+    @NotNull ShadowType createRepositoryShadow(ProvisioningContext ctx, ShadowType resourceObjectOrShadow)
             throws SchemaException, ConfigurationException, EncryptionException {
 
         ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObjectOrShadow);
 
-        PrismObject<ShadowType> repoShadow = resourceObjectOrShadow.clone();
-        ShadowType repoShadowType = repoShadow.asObjectable();
+        ShadowType repoShadow = resourceObjectOrShadow.clone();
 
         ResourceAttributeContainer repoAttributesContainer = ShadowUtil.getAttributesContainer(repoShadow);
-        repoShadowType.setPrimaryIdentifierValue(helper.determinePrimaryIdentifierValue(ctx, resourceObjectOrShadow));
+        repoShadow.setPrimaryIdentifierValue(helper.determinePrimaryIdentifierValue(ctx, resourceObjectOrShadow));
 
         CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
         if (cachingStrategy == CachingStrategyType.NONE) {
@@ -155,25 +155,25 @@ class ShadowCreator {
                 }
             }
 
-            repoShadowType.setCachingMetadata(null);
+            repoShadow.setCachingMetadata(null);
 
-            ProvisioningUtil.cleanupShadowActivation(repoShadowType);
+            ProvisioningUtil.cleanupShadowActivation(repoShadow);
 
         } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
             // Do not need to clear anything. Just store all attributes and add metadata.
             CachingMetadataType cachingMetadata = new CachingMetadataType();
             cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
-            repoShadowType.setCachingMetadata(cachingMetadata);
+            repoShadow.setCachingMetadata(cachingMetadata);
 
         } else {
             throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
         }
 
-        helper.setKindIfNecessary(repoShadowType, ctx);
+        helper.setKindIfNecessary(repoShadow, ctx);
 //        setIntentIfNecessary(repoShadowType, objectClassDefinition);
 
         // Store only password meta-data in repo - unless there is explicit caching
-        CredentialsType credentials = repoShadowType.getCredentials();
+        CredentialsType credentials = repoShadow.getCredentials();
         if (credentials != null) {
             PasswordType passwordType = credentials.getPassword();
             if (passwordType != null) {
@@ -186,22 +186,22 @@ class ShadowCreator {
 
         // if shadow does not contain resource or resource reference, create it
         // now
-        if (repoShadowType.getResourceRef() == null) {
-            repoShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource(), prismContext));
+        if (repoShadow.getResourceRef() == null) {
+            repoShadow.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource(), prismContext));
         }
 
-        if (repoShadowType.getName() == null) {
-            repoShadowType.setName(
+        if (repoShadow.getName() == null) {
+            repoShadow.setName(
                     new PolyStringType(
-                            ShadowUtil.determineShadowNameRequired(resourceObjectOrShadow)));
+                            ShadowUtil.determineShadowNameRequired(asPrismObject(resourceObjectOrShadow))));
         }
 
-        if (repoShadowType.getObjectClass() == null) {
-            repoShadowType.setObjectClass(attributesContainer.getDefinition().getTypeName());
+        if (repoShadow.getObjectClass() == null) {
+            repoShadow.setObjectClass(attributesContainer.getDefinition().getTypeName());
         }
 
-        if (repoShadowType.isProtectedObject() != null) {
-            repoShadowType.setProtectedObject(null);
+        if (repoShadow.isProtectedObject() != null) {
+            repoShadow.setProtectedObject(null);
         }
 
         helper.normalizeAttributes(repoShadow, ctx.getObjectDefinitionRequired());

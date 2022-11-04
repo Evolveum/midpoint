@@ -212,9 +212,10 @@ class ResourceObjectReferenceResolver {
 
         try {
 
-            ReadCapabilityType readCapability = ctx.getCapability(ReadCapabilityType.class);
+            ReadCapabilityType readCapability = ctx.getEnabledCapability(ReadCapabilityType.class);
             if (readCapability == null) {
-                throw new UnsupportedOperationException("Resource does not support 'read' operation: " + ctx.toHumanReadableDescription());
+                throw new UnsupportedOperationException(
+                        "Resource does not support 'read' operation: " + ctx.toHumanReadableDescription());
             }
 
             if (Boolean.TRUE.equals(readCapability.isCachingOnly())) {

@@ -12,7 +12,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +42,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 /**
  * Responsibilities of the shadow manager package:
@@ -141,7 +143,7 @@ public class ShadowManager {
     /**
      * Looks up live (or any other, if there's none) shadow by primary identifier(s).
      */
-    public PrismObject<ShadowType> lookupLiveOrAnyShadowByPrimaryIds(ProvisioningContext ctx,
+    public ShadowType lookupLiveOrAnyShadowByPrimaryIds(ProvisioningContext ctx,
             Collection<ResourceAttribute<?>> identifiers, OperationResult result)
             throws SchemaException, ConfigurationException {
         return ProvisioningUtil.selectLiveOrAnyShadow(
@@ -163,7 +165,7 @@ public class ShadowManager {
      */
     public PrismObject<ShadowType> lookupShadowBySecondaryIds(
             ProvisioningContext ctx, Collection<ResourceAttribute<?>> secondaryIdentifiers, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            throws SchemaException {
         return shadowFinder.lookupShadowBySecondaryIds(ctx, secondaryIdentifiers, result);
     }
 
@@ -179,8 +181,7 @@ public class ShadowManager {
      * Returns dead shadows "compatible" (having the same primary identifier) as given shadow that is to be added.
      */
     public Collection<PrismObject<ShadowType>> searchForPreviousDeadShadows(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowToAdd, OperationResult result) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            PrismObject<ShadowType> shadowToAdd, OperationResult result) throws SchemaException {
         return shadowFinder.searchForPreviousDeadShadows(ctx, shadowToAdd, result);
     }
 
@@ -189,10 +190,9 @@ public class ShadowManager {
      * Used when searching for objects or when completing entitlements.
      */
     @NotNull
-    public PrismObject<ShadowType> addDiscoveredRepositoryShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceObject, OperationResult result) throws SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException,
-            EncryptionException {
+    public ShadowType addDiscoveredRepositoryShadow(
+            ProvisioningContext ctx, ShadowType resourceObject, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
         return shadowCreator.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
     }
 
@@ -200,7 +200,7 @@ public class ShadowManager {
      * Adds new shadow in the `proposed` state (if proposed shadows processing is enabled).
      * The new shadow is recorded into the `opState`.
      */
-    public void addNewProposedShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
+    public void addNewProposedShadow(ProvisioningContext ctx, ShadowType shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
             Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -211,7 +211,7 @@ public class ShadowManager {
     /**
      * Record results of ADD operation to the shadow: creates a shadow or updates an existing one.
      */
-    public void recordAddResult(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
+    public void recordAddResult(ProvisioningContext ctx, ShadowType shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
             OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
@@ -274,7 +274,7 @@ public class ShadowManager {
         shadowUpdater.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
     }
 
-    public <T> T determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
+    public <T> T determinePrimaryIdentifierValue(ProvisioningContext ctx, ShadowType shadow)
             throws SchemaException {
         return helper.determinePrimaryIdentifierValue(ctx, shadow);
     }
@@ -308,7 +308,7 @@ public class ShadowManager {
         shadowUpdater.modifyShadowAttributes(ctx, shadow, modifications, parentResult);
     }
 
-    public boolean isRepositoryOnlyModification(Collection<? extends ItemDelta> modifications) {
+    public boolean isRepositoryOnlyModification(Collection<? extends ItemDelta<?, ?>> modifications) {
         return helper.isRepositoryOnlyModification(modifications);
     }
 
@@ -323,12 +323,19 @@ public class ShadowManager {
      *
      * @return repository shadow as it should look like after the update
      */
-    public PrismObject<ShadowType> updateShadow(@NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull PrismObject<ShadowType> repoShadow, ShadowLifecycleStateType shadowState, OperationResult result)
+    public ShadowType updateShadow(@NotNull ProvisioningContext ctx,
+            @NotNull ShadowType currentResourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull ShadowType repoShadow, ShadowLifecycleStateType shadowState, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             ExpressionEvaluationException {
-        return shadowUpdater.updateShadow(ctx, currentResourceObject, resourceObjectDelta, repoShadow, shadowState, result);
+        return asObjectable(
+                shadowUpdater.updateShadow(
+                        ctx,
+                        asPrismObject(currentResourceObject),
+                        resourceObjectDelta,
+                        asPrismObject(repoShadow),
+                        shadowState,
+                        result));
     }
 
     /**
@@ -356,18 +363,24 @@ public class ShadowManager {
         return shadowUpdater.markShadowTombstone(repoShadow, task, result);
     }
 
+    public PrismObject<ShadowType> markShadowTombstone(
+            ShadowType repoShadow, Task task, OperationResult result) throws SchemaException {
+        return shadowUpdater.markShadowTombstone(asPrismObject(repoShadow), task, result);
+    }
+
     /**
      * Re-reads the shadow, re-evaluates the identifiers and stored values
      * (including their normalization under matching rules), updates them if necessary.
      *
      * Returns fixed shadow.
      */
-    public @NotNull PrismObject<ShadowType> fixShadow(
+    public @NotNull ShadowType fixShadow(
             @NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> origRepoShadow,
+            @NotNull ShadowType origRepoShadow,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
-        return shadowUpdater.fixShadow(ctx, origRepoShadow, result);
+        return shadowUpdater.fixShadow(ctx, origRepoShadow.asPrismObject(), result)
+                .asObjectable();
     }
 
     public void setKindIfNecessary(ShadowType repoShadowType, ProvisioningContext ctx) {

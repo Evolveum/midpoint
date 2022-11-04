@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.provisioning.impl.shadows.Util.*;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
 import java.util.List;
@@ -129,7 +130,7 @@ class DeleteHelper {
         }
 
         PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
-        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow);
+        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, asObjectable(repoShadow));
 
         LOGGER.trace("Deleting object {} from {}, options={}, shadowState={}", repoShadow, ctx.getResource(), options, shadowState);
 

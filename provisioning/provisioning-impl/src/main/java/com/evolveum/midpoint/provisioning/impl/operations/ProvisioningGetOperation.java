@@ -103,7 +103,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
     private @NotNull PrismObject<ResourceType> getResourceNonRaw(@NotNull OperationResult result)
             throws ConfigurationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
         try {
-            return beans.resourceManager.getResource(oid, rootOptions, task, result);
+            return beans.resourceManager.getCompletedResource(oid, rootOptions, task, result);
         } catch (CommonException ex) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Problem getting resource " + oid, ex);
             exceptionRecorded = true;
@@ -136,16 +136,16 @@ public class ProvisioningGetOperation<T extends ObjectType> {
             LOGGER.trace(e.getMessage(), e);
             exceptionRecorded = true;
             throw e;
-        } catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
-            ProvisioningUtil.recordFatalErrorWhileRethrowing(
-                    LOGGER, result, "Error getting shadow with OID=" + oid + ": " + e.getMessage(), e);
-            exceptionRecorded = true;
-            throw e;
         } catch (EncryptionException e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(
                     LOGGER, result, "Error getting shadow with OID=" + oid + ": " + e.getMessage(), e);
             exceptionRecorded = true;
             throw new SystemException(e);
+        } catch (Throwable t) {
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(
+                    LOGGER, result, "Error getting shadow with OID=" + oid + ": " + t.getMessage(), t);
+            exceptionRecorded = true;
+            throw t;
         }
     }
 

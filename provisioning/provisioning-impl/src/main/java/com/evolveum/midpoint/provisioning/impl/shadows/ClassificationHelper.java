@@ -57,8 +57,8 @@ class ClassificationHelper {
      */
     ResourceObjectClassification classify(
             ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow,
-            PrismObject<ShadowType> resourceObject,
+            ShadowType shadow,
+            ShadowType resourceObject,
             OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
@@ -99,16 +99,16 @@ class ClassificationHelper {
      * In particular, we hope that the object class is roughly OK, and things like entitlement, credentials, and so on
      * are not needed.
      */
-    private ShadowType combine(PrismObject<ShadowType> resourceObject, PrismObject<ShadowType> shadow)
+    private ShadowType combine(ShadowType resourceObject, ShadowType shadow)
             throws SchemaException {
-        PrismObject<ShadowType> combined = shadow.clone();
+        ShadowType combined = shadow.clone();
         ResourceAttributeContainer fullAttributes = ShadowUtil.getAttributesContainer(resourceObject);
         if (fullAttributes != null) {
-            combined.removeContainer(ShadowType.F_ATTRIBUTES);
-            combined.add(fullAttributes.clone());
+            combined.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
+            combined.asPrismObject().add(fullAttributes.clone());
         }
         LOGGER.trace("Combined object:\n{}", combined.debugDumpLazily(1));
-        return combined.asObjectable();
+        return combined;
     }
 
     /**
@@ -154,8 +154,8 @@ class ClassificationHelper {
      *
      * But for now, let us keep it simple.
      */
-    boolean shouldClassify(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow) {
-        if (!ShadowUtil.isClassified(repoShadow.asObjectable())) {
+    boolean shouldClassify(ProvisioningContext ctx, ShadowType repoShadow) {
+        if (!ShadowUtil.isClassified(repoShadow)) {
             LOGGER.trace("Shadow is not classified -> we will do that");
             return true;
         } else if (ctx.isInProduction()) {

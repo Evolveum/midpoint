@@ -51,23 +51,23 @@ class ShadowAcquisitionHelper {
      * It may look like this method would rather belong to ShadowManager. But it does NOT. It does too much stuff
      * (e.g. change notification).
      */
-    @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceObject, boolean skipClassification, OperationResult result)
+    @NotNull ShadowType acquireRepoShadow(
+            ProvisioningContext ctx, ShadowType resourceObject, boolean skipClassification, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
         PrismProperty<?> primaryIdentifier = requireNonNull(
-                ProvisioningUtil.getSingleValuedPrimaryIdentifier(resourceObject),
+                ProvisioningUtil.getSingleValuedPrimaryIdentifier(resourceObject.asPrismObject()),
                 () -> "No primary identifier value in " + ShadowUtil.shortDumpShadow(resourceObject));
         QName objectClass = requireNonNull(
-                resourceObject.asObjectable().getObjectClass(),
+                resourceObject.getObjectClass(),
                 () -> "No object class in " + ShadowUtil.shortDumpShadow(resourceObject));
 
         return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, () -> resourceObject, skipClassification, commonBeans)
                 .execute(result);
     }
 
-    @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx, PrismProperty<?> primaryIdentifier,
+    @NotNull ShadowType acquireRepoShadow(ProvisioningContext ctx, PrismProperty<?> primaryIdentifier,
             QName objectClass, ResourceObjectSupplier resourceObjectSupplier, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             GenericConnectorException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {

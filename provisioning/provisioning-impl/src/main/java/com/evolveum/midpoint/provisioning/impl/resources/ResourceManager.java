@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.resources;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
@@ -80,10 +81,21 @@ public class ResourceManager {
     private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
 
     /**
-     * Completes a resource that has been just retrieved from the repository, usually by a search operation.
-     * (If the up-to-date cached version of the resource is available, it is used immediately.)
+     * Gets (from cache) or completes a resource that has been just retrieved from the repository.
+     *
+     * If the up-to-date cached version of the resource is available, it is used immediately.
+     * Otherwise, completion is requested.
+     *
+     * Options:
+     *
+     * - honored: `readOnly`, `noFetch`
+     * - ignored: `raw` (We assume we are not called in this mode.)
+     *
+     * For requested processing, see {@link ProvisioningService#getObject(Class, String, Collection, Task, OperationResult)}.
+     *
+     * Typical use case: search operation.
      */
-    public @NotNull PrismObject<ResourceType> completeResource(
+    public @NotNull PrismObject<ResourceType> getCompletedResource(
             @NotNull PrismObject<ResourceType> repositoryObject,
             @Nullable GetOperationOptions options,
             @NotNull Task task,
@@ -103,11 +115,20 @@ public class ResourceManager {
     }
 
     /**
-     * Gets a resource. We try the cache first. If it's not there, then we fetch, complete, and cache it.
+     * Gets (from cache) or gets (from repo) and completes a resource.
+     *
+     * If a cached version of the resource is available, it is used immediately.
+     * Otherwise, resource is obtained from the repository, and its completion is requested.
+     *
+     * For more information please see {@link #getCompletedResource(PrismObject, GetOperationOptions, Task, OperationResult)}.
+     *
+     * Typical use case: get operation.
      */
-    @NotNull
-    public PrismObject<ResourceType> getResource(
-            @NotNull String oid, @Nullable GetOperationOptions options, @NotNull Task task, @NotNull OperationResult result)
+    public @NotNull PrismObject<ResourceType> getCompletedResource(
+            @NotNull String oid,
+            @Nullable GetOperationOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
         boolean readonly = GetOperationOptions.isReadOnly(options);
         PrismObject<ResourceType> cachedResource = resourceCache.getIfLatest(oid, readonly, result);
@@ -121,6 +142,7 @@ public class ResourceManager {
         }
     }
 
+    /** The processing is described in {@link ProvisioningService#getObject(Class, String, Collection, Task, OperationResult)}. */
     private @NotNull PrismObject<ResourceType> completeAndCacheResource(
             @NotNull PrismObject<ResourceType> repositoryObject,
             @Nullable GetOperationOptions options,
@@ -283,7 +305,7 @@ public class ResourceManager {
             resourceDesc = "resource " + resourceOid;
         } else {
             try {
-                resource = getResource(resourceOid, GetOperationOptions.createNoFetch(), task, result);
+                resource = getCompletedResource(resourceOid, GetOperationOptions.createNoFetch(), task, result);
             } catch (ConfigurationException | SchemaException | ExpressionEvaluationException e) {
                 // We actually do not expect any of these exceptions here. The resource is most probably in use
                 result.recordFatalError("Unexpected exception: " + e.getMessage(), e);
@@ -348,7 +370,7 @@ public class ResourceManager {
     public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        PrismObject<ResourceType> resource = getResource(resourceOid, null, task, result);
+        PrismObject<ResourceType> resource = getCompletedResource(resourceOid, null, task, result);
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, ScriptCapabilityType.class);
         ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
         ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource, prismContext);

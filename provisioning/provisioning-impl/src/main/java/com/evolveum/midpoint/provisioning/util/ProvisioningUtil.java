@@ -469,14 +469,6 @@ public class ProvisioningUtil {
                 QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
 
-    public static boolean resourceReadIsCachingOnly(ResourceType resource) {
-        ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEnabledCapability(resource, ReadCapabilityType.class);
-        if (readCapabilityType == null) {
-            return false;        // TODO reconsider this
-        }
-        return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
-    }
-
     public static Duration getGracePeriod(ProvisioningContext ctx) {
         Duration gracePeriod = null;
         ResourceConsistencyType consistency = ctx.getResource().getConsistency();
@@ -541,13 +533,13 @@ public class ProvisioningUtil {
         return statusType != null && statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
     }
 
-    public static boolean hasPendingAddOperation(PrismObject<ShadowType> shadow) {
-        return shadow.asObjectable().getPendingOperation().stream()
+    public static boolean hasPendingAddOperation(ShadowType shadow) {
+        return shadow.getPendingOperation().stream()
                 .anyMatch(ProvisioningUtil::isPendingAddOperation);
     }
 
-    public static boolean hasPendingDeleteOperation(PrismObject<ShadowType> shadow) {
-        return shadow.asObjectable().getPendingOperation().stream()
+    public static boolean hasPendingDeleteOperation(ShadowType shadow) {
+        return shadow.getPendingOperation().stream()
                 .anyMatch(ProvisioningUtil::isPendingDeleteOperation);
     }
 
@@ -658,14 +650,14 @@ public class ProvisioningUtil {
      *
      * TODO better place?
      */
-    public static PrismObject<ShadowType> selectLiveOrAnyShadow(List<PrismObject<ShadowType>> shadows) {
+    public static ShadowType selectLiveOrAnyShadow(List<PrismObject<ShadowType>> shadows) {
         PrismObject<ShadowType> liveShadow = ProvisioningUtil.selectLiveShadow(shadows);
         if (liveShadow != null) {
-            return liveShadow;
+            return liveShadow.asObjectable();
         } else if (shadows.isEmpty()) {
             return null;
         } else {
-            return shadows.get(0);
+            return shadows.get(0).asObjectable();
         }
     }
 
@@ -710,6 +702,10 @@ public class ProvisioningUtil {
     }
 
     // TODO better place?
+    public static void validateShadow(@NotNull ShadowType shadow, boolean requireOid) {
+        validateShadow(shadow.asPrismObject(), requireOid);
+    }
+
     public static void validateShadow(PrismObject<ShadowType> shadow, boolean requireOid) {
         if (requireOid) {
             Validate.notNull(shadow.getOid(), "null shadow OID");

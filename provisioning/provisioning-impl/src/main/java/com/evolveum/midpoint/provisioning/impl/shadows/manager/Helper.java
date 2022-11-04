@@ -17,7 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -30,7 +29,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
@@ -72,7 +70,7 @@ class Helper {
                 .normalize(value);
     }
 
-    <T> T determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException {
+    <T> T determinePrimaryIdentifierValue(ProvisioningContext ctx, ShadowType shadow) throws SchemaException {
         if (ShadowUtil.isDead(shadow)) {
             return null;
         }
@@ -103,7 +101,7 @@ class Helper {
         return normalizedPrimaryIdentifierValues.iterator().next();
     }
 
-    ResourceAttribute<String> getPrimaryIdentifier(PrismObject<ShadowType> shadow) throws SchemaException {
+    ResourceAttribute<String> getPrimaryIdentifier(ShadowType shadow) throws SchemaException {
         Collection<? extends ResourceAttribute<?>> primaryIdentifiers = emptyIfNull(ShadowUtil.getPrimaryIdentifiers(shadow));
         // Let's make this simple. We support single-attribute, single-value, string-only primary identifiers anyway
         if (primaryIdentifiers.isEmpty()) {
@@ -118,26 +116,14 @@ class Helper {
         return (ResourceAttribute<String>) primaryIdentifiers.iterator().next();
     }
 
-    void setKindIfNecessary(ShadowType repoShadowType, ResourceObjectTypeDefinition objectClassDefinition) {
-        if (repoShadowType.getKind() == null && objectClassDefinition != null) {
-            repoShadowType.setKind(objectClassDefinition.getKind());
-        }
-    }
-
     void setKindIfNecessary(@NotNull ShadowType shadow, @NotNull ProvisioningContext ctx) {
         if (shadow.getKind() == null && ctx.isTypeBased()) {
             shadow.setKind(ctx.getObjectTypeDefinitionRequired().getKind());
         }
     }
 
-    public void setIntentIfNecessary(ShadowType repoShadowType, ResourceObjectTypeDefinition objectClassDefinition) {
-        if (repoShadowType.getIntent() == null && objectClassDefinition.getIntent() != null) {
-            repoShadowType.setIntent(objectClassDefinition.getIntent());
-        }
-    }
-
-    public void normalizeAttributes(
-            PrismObject<ShadowType> shadow, ResourceObjectDefinition objectClassDefinition) throws SchemaException {
+    void normalizeAttributes(
+            ShadowType shadow, ResourceObjectDefinition objectClassDefinition) throws SchemaException {
         for (ResourceAttribute<?> attribute : ShadowUtil.getAttributes(shadow)) {
             normalizeAttribute(attribute, objectClassDefinition.findAttributeDefinitionRequired(attribute.getElementName()));
         }
@@ -154,14 +140,7 @@ class Helper {
         }
     }
 
-    public <T> void normalizeDeltas(Collection<? extends ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>>> deltas,
-            ResourceObjectTypeDefinition objectClassDefinition) throws SchemaException {
-        for (ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> delta : deltas) {
-            normalizeDelta(delta, objectClassDefinition);
-        }
-    }
-
-    public <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> delta,
+    <T> void normalizeDelta(ItemDelta<PrismPropertyValue<T>, PrismPropertyDefinition<T>> delta,
             ResourceObjectDefinition objectDefinition) throws SchemaException {
         if (!delta.getPath().startsWithName(ShadowType.F_ATTRIBUTES)) {
             return;
@@ -194,8 +173,8 @@ class Helper {
         }
     }
 
-    boolean isRepositoryOnlyModification(Collection<? extends ItemDelta> modifications) {
-        for (ItemDelta itemDelta : modifications) {
+    boolean isRepositoryOnlyModification(Collection<? extends ItemDelta<?, ?>> modifications) {
+        for (ItemDelta<?, ?> itemDelta : modifications) {
             if (isResourceModification(itemDelta)) {
                 return false;
             }

@@ -185,7 +185,7 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
         try {
             if (ResourceType.class.equals(type)) {
                 //noinspection unchecked
-                completedObject = (PrismObject<T>) beans.resourceManager.completeResource(
+                completedObject = (PrismObject<T>) beans.resourceManager.getCompletedResource(
                         (PrismObject<ResourceType>) object, rootOptions, task, result);
             }
         } catch (Throwable t) {

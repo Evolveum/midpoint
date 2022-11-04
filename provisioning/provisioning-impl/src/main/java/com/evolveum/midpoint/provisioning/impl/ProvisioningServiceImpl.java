@@ -816,7 +816,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         PrismObject<ResourceType> resource;
         try {
 
-            resource = resourceManager.getResource(resourceOid, null, task, result);
+            resource = resourceManager.getCompletedResource(resourceOid, null, task, result);
 
         } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException ex) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, ex.getMessage(), ex);

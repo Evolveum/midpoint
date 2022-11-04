@@ -7,11 +7,18 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
+import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
+import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
+import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,9 +33,18 @@ class ShadowsLocalBeans {
     @Autowired ShadowAcquisitionHelper shadowAcquisitionHelper;
     @Autowired CommonHelper commonHelper;
     @Autowired ClassificationHelper classificationHelper;
-    @Autowired
-    ShadowsFacade shadowsFacade;
+    @Autowired ShadowsFacade shadowsFacade;
     @Autowired ShadowCaretaker shadowCaretaker;
     @Autowired ShadowManager shadowManager;
 
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    RepositoryService repositoryService;
+
+    @Autowired ErrorHandlerLocator errorHandlerLocator;
+    @Autowired ResourceManager resourceManager;
+    @Autowired Clock clock;
+    @Autowired ResourceObjectConverter resourceObjectConverter;
+    @Autowired ProvisioningContextFactory ctxFactory;
+    @Autowired RefreshHelper refreshHelper;
 }

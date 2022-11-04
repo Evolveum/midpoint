@@ -27,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 /**
  * Takes care of the _shadow acquisition_ process. We look up an appropriate live shadow,
  * and if it is not found, we try to create one.
@@ -67,7 +69,7 @@ class ShadowAcquisition {
     /**
      * Lazily obtained resource object (via {@link #resourceObjectSupplier}).
      */
-    private PrismObject<ShadowType> resourceObject;
+    private ShadowType resourceObject;
 
     /** Whether we want to skip the classification. It is used e.g. in emergency shadow creation. */
     private final boolean skipClassification;
@@ -91,11 +93,11 @@ class ShadowAcquisition {
         this.localBeans = commonBeans.shadowsFacade.getLocalBeans();
     }
 
-    public PrismObject<ShadowType> execute(OperationResult result)
+    public @NotNull ShadowType execute(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             GenericConnectorException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
-        PrismObject<ShadowType> repoShadow = obtainRepoShadow(result);
+        ShadowType repoShadow = obtainRepoShadow(result);
 
         setOidAndResourceRefToResourceObject(repoShadow);
 
@@ -106,14 +108,14 @@ class ShadowAcquisition {
             LOGGER.trace("Acquired repo shadow (no need to classify):\n{}", repoShadow.debugDumpLazily(1));
             return repoShadow;
         } else {
-            PrismObject<ShadowType> fixedRepoShadow = classifyAndFixTheShadow(repoShadow, result);
-            LOGGER.trace("Acquired repo shadow (after classification and re-reading):\n{}", fixedRepoShadow.debugDumpLazily(1));
+            ShadowType fixedRepoShadow = classifyAndFixTheShadow(repoShadow, result);
+            LOGGER.trace("Acquired repo shadow (after classification and re-reading):\n{}",
+                    fixedRepoShadow.debugDumpLazily(1));
             return fixedRepoShadow;
         }
     }
 
-    @NotNull
-    private PrismObject<ShadowType> classifyAndFixTheShadow(PrismObject<ShadowType> repoShadow, OperationResult result)
+    private @NotNull ShadowType classifyAndFixTheShadow(ShadowType repoShadow, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
 
@@ -124,9 +126,9 @@ class ShadowAcquisition {
     }
 
     // TODO is it OK to do it here? OID maybe. But resourceRef should have been there already (although without full object)
-    private void setOidAndResourceRefToResourceObject(PrismObject<ShadowType> repoShadow)
+    private void setOidAndResourceRefToResourceObject(ShadowType repoShadow)
             throws SchemaException {
-        ShadowType resourceObject = getResourceObject().asObjectable();
+        ShadowType resourceObject = getResourceObject();
 
         resourceObject.setOid(repoShadow.getOid());
         if (resourceObject.getResourceRef() == null) {
@@ -135,19 +137,18 @@ class ShadowAcquisition {
         resourceObject.getResourceRef().asReferenceValue().setObject(ctx.getResource().asPrismObject());
     }
 
-    @NotNull
-    private PrismObject<ShadowType> obtainRepoShadow(OperationResult result) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    private @NotNull ShadowType obtainRepoShadow(OperationResult result)
+            throws SchemaException, ConfigurationException, EncryptionException {
 
         PrismObject<ShadowType> existingRepoShadow = beans.shadowManager.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier,
                 objectClass, result);
 
         if (existingRepoShadow != null) {
             LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadowLazily(existingRepoShadow));
-            return existingRepoShadow;
+            return existingRepoShadow.asObjectable();
         }
 
-        PrismObject<ShadowType> resourceObject = getResourceObject();
+        ShadowType resourceObject = getResourceObject();
 
         LOGGER.trace("Shadow object (in repo) corresponding to the resource object (on the resource) was not found. "
                 + "The repo shadow will be created. The resource object:\n{}", resourceObject);
@@ -159,15 +160,14 @@ class ShadowAcquisition {
         try {
             return beans.shadowManager.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
         } catch (ObjectAlreadyExistsException e) {
-            return findConflictingShadow(resourceObject, e, result);
+            return asObjectable(
+                    findConflictingShadow(resourceObject, e, result));
         }
     }
 
-    @NotNull
-    private PrismObject<ShadowType> findConflictingShadow(PrismObject<ShadowType> resourceObject,
-            ObjectAlreadyExistsException e, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+    private @NotNull PrismObject<ShadowType> findConflictingShadow(
+            ShadowType resourceObject, ObjectAlreadyExistsException e, OperationResult result)
+            throws SchemaException {
 
         // Conflict! But we haven't supplied an OID and we have checked for existing shadow before,
         // therefore there should not conflict. Unless someone managed to create the same shadow
@@ -204,7 +204,7 @@ class ShadowAcquisition {
         return conflictingShadow;
     }
 
-    private PrismObject<ShadowType> getResourceObject() throws SchemaException {
+    private ShadowType getResourceObject() throws SchemaException {
         if (resourceObject == null) {
             resourceObject = resourceObjectSupplier.getResourceObject();
         }
@@ -213,6 +213,6 @@ class ShadowAcquisition {
 
     @FunctionalInterface
     interface ResourceObjectSupplier {
-        @NotNull PrismObject<ShadowType> getResourceObject() throws SchemaException;
+        @NotNull ShadowType getResourceObject() throws SchemaException;
     }
 }

@@ -53,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExec
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.getErrorReportingMethod;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 @Component
 class ObjectNotFoundHandler extends HardErrorHandler {
@@ -166,7 +167,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
     private void discoverDeletedShadow(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
             Exception cause, Task task, OperationResult parentResult) throws SchemaException {
 
-        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repositoryShadow);
+        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, asObjectable(repositoryShadow));
         if (shadowState != ShadowLifecycleStateType.LIVE) {
             // Do NOT do discovery of shadow that can legally not exist. This is no discovery.
             // We already know that the object are supposed not to exist yet or to dead already.

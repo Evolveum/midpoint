@@ -143,10 +143,10 @@ class SearchHelper {
 
             ShadowedObjectFound shadowedObjectFound = new ShadowedObjectFound(objectFound, localBeans, ctx);
             shadowedObjectFound.initialize(ctx.getTask(), objResult);
-            PrismObject<ShadowType> shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
+            ShadowType shadowedObject = shadowedObjectFound.getResultingObject(ucfErrorReportingMethod);
 
             try {
-                return handler.handle(shadowedObject, objResult);
+                return handler.handle(shadowedObject.asPrismObject(), objResult);
             } catch (Throwable t) {
                 objResult.recordFatalError(t);
                 throw t;

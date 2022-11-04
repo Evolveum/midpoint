@@ -19,6 +19,7 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCon
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -286,7 +287,7 @@ class ModifyHelper {
      */
     ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> executeResourceModify(
             ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
+            @NotNull PrismObject<ShadowType> repoShadow,
             Collection<? extends ItemDelta<?, ?>> modifications,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,

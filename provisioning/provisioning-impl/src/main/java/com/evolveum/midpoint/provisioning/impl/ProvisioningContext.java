@@ -8,9 +8,13 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.*;
 import java.util.function.Supplier;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.LifecycleUtil;
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.util.*;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,9 +36,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -422,6 +423,28 @@ public class ProvisioningContext {
                 resource, getObjectTypeDefinitionIfPresent(), capabilityClass);
     }
 
+    public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass) {
+        T capability = getCapability(capabilityClass);
+        return CapabilityUtil.isCapabilityEnabled(capability) ? capability : null;
+    }
+
+    public boolean hasCapability(@NotNull Class<? extends CapabilityType> capabilityClass) {
+        return getEnabledCapability(capabilityClass) != null;
+    }
+
+    public boolean hasReadCapability() {
+        return hasCapability(ReadCapabilityType.class);
+    }
+
+    public boolean isReadingCachingOnly() {
+        ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
+        if (readCapability == null) {
+            return false; // TODO reconsider this
+        } else {
+            return Boolean.TRUE.equals(readCapability.isCachingOnly());
+        }
+    }
+
     @Override
     public String toString() {
         return "ProvisioningContext(" + getDesc() + ")";
@@ -537,5 +560,49 @@ public class ProvisioningContext {
      */
     public AttributesToReturn createAttributesToReturn() {
         return ProvisioningUtil.createAttributesToReturn(this);
+    }
+
+    // Methods delegated to shadow caretaker (convenient to be here, but not sure if it's ok...)
+
+    public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow) throws SchemaException, ConfigurationException {
+        return getCaretaker().applyAttributesDefinition(this, shadow);
+    }
+
+    public @NotNull ShadowType applyAttributesDefinitionConsideringImmutability(@NotNull ShadowType shadow)
+            throws SchemaException, ConfigurationException {
+        if (shadow.isImmutable()) {
+            return getCaretaker().applyAttributesDefinitionToImmutable(this, shadow);
+        } else {
+            getCaretaker().applyAttributesDefinition(this, shadow.asPrismObject());
+            return shadow;
+        }
+    }
+
+    private @NotNull ShadowCaretaker getCaretaker() {
+        return contextFactory.getCommonBeans().shadowCaretaker;
+    }
+
+    public void updateShadowState(ShadowType shadow) {
+        getCaretaker().updateShadowState(this, shadow);
+    }
+
+    // TODO not sure if it's ok here
+    public @NotNull ShadowType futurizeShadow(
+            @NotNull ShadowType repoShadow,
+            ShadowType resourceShadow,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            XMLGregorianCalendar now)
+            throws SchemaException, ConfigurationException {
+        if (!ProvisioningUtil.isFuturePointInTime(options)) {
+            return Objects.requireNonNullElse(resourceShadow, repoShadow);
+        } else {
+            return getCaretaker().applyPendingOperations(
+                            this,
+                            ObjectTypeUtil.asPrismObject(repoShadow),
+                            ObjectTypeUtil.asPrismObject(resourceShadow),
+                            false,
+                            now)
+                    .asObjectable();
+        }
     }
 }

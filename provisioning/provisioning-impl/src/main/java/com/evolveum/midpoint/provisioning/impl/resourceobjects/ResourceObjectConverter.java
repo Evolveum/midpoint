@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -112,10 +114,10 @@ public class ResourceObjectConverter {
     /**
      * @param repoShadow Used when read capability is "caching only"
      */
-    public @NotNull PrismObject<ShadowType> getResourceObject(
+    public @NotNull ShadowType getResourceObject(
             @NotNull ProvisioningContext ctx,
             @NotNull Collection<? extends ResourceAttribute<?>> identifiers,
-            @Nullable PrismObject<ShadowType> repoShadow,
+            @Nullable ShadowType repoShadow,
             boolean fetchAssociations,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
@@ -126,11 +128,11 @@ public class ResourceObjectConverter {
                 ctx,
                 identifiers,
                 ctx.createAttributesToReturn(),
-                repoShadow,
+                asPrismObject(repoShadow),
                 fetchAssociations,
                 result);
         LOGGER.trace("Got resource object\n{}", resourceObject.debugDumpLazily());
-        return resourceObject;
+        return resourceObject.asObjectable();
     }
 
     /**
@@ -303,7 +305,7 @@ public class ResourceObjectConverter {
                 checkForAddConflicts(ctx, shadow, result);
             }
 
-            checkForCapability(ctx, CreateCapabilityType.class, result);
+            checkForCapability(ctx, CreateCapabilityType.class);
 
             executeProvisioningScripts(ctx, ProvisioningOperationTypeType.ADD, BeforeAfterType.BEFORE, scripts, result);
 
@@ -432,7 +434,7 @@ public class ResourceObjectConverter {
 
             LOGGER.trace("Deleting resource object {}", shadow);
 
-            checkForCapability(ctx, DeleteCapabilityType.class, result);
+            checkForCapability(ctx, DeleteCapabilityType.class);
 
             Collection<? extends ResourceAttribute<?>> identifiers = getIdentifiers(ctx, shadow);
 
@@ -531,8 +533,8 @@ public class ResourceObjectConverter {
      * PrismObject, Collection, ConnectorOperationOptions, UcfExecutionContext, OperationResult)}.
      */
     public AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> modifyResourceObject(
-            ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
+            @NotNull ProvisioningContext ctx,
+            @NotNull PrismObject<ShadowType> repoShadow,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             Collection<? extends ItemDelta<?, ?>> itemDeltas,
@@ -751,7 +753,7 @@ public class ResourceObjectConverter {
             LOGGER.trace("Resource object modification operations: {}", operations);
         }
 
-        checkForCapability(ctx, UpdateCapabilityType.class, result);
+        checkForCapability(ctx, UpdateCapabilityType.class);
 
         if (!ShadowUtil.hasPrimaryIdentifier(identifiers, objectDefinition)) {
             Collection<? extends ResourceAttribute<?>> primaryIdentifiers =
@@ -921,7 +923,7 @@ public class ResourceObjectConverter {
                     fetchResourceObject(ctx, identifiers, attributesToReturn, currentShadow, false, result);
             operationsWave = convertToReplace(ctx, operationsWave, fetchedShadow, false);
         }
-        UpdateCapabilityType updateCapability = ctx.getCapability(UpdateCapabilityType.class);
+        UpdateCapabilityType updateCapability = ctx.getCapability(UpdateCapabilityType.class); // TODO what if it's disabled?
         if (updateCapability != null) {
             AttributeContentRequirementType attributeContentRequirement = updateCapability.getAttributeContentRequirement();
             if (AttributeContentRequirementType.ALL.equals(attributeContentRequirement)) {
@@ -1604,7 +1606,7 @@ public class ResourceObjectConverter {
 
     @Nullable
     private Integer getMaxChanges(@Nullable Integer maxChangesConfigured, ProvisioningContext ctx) {
-        LiveSyncCapabilityType capability = ctx.getCapability(LiveSyncCapabilityType.class);
+        LiveSyncCapabilityType capability = ctx.getCapability(LiveSyncCapabilityType.class); // TODO what if it's disabled?
         if (capability != null) {
             if (Boolean.TRUE.equals(capability.isPreciseTokenValue())) {
                 return maxChangesConfigured;
@@ -1827,15 +1829,10 @@ public class ResourceObjectConverter {
         result.setAsynchronousOperationReference(asyncRef);
     }
 
-    private <C extends CapabilityType> void checkForCapability(
-            ProvisioningContext ctx, Class<C> capabilityClass, OperationResult result) {
-        C capability = ctx.getCapability(capabilityClass);
-        if (capability == null || BooleanUtils.isFalse(capability.isEnabled())) {
-            UnsupportedOperationException e = new UnsupportedOperationException("Operation not supported "+ctx.getDesc()+" as "+capabilityClass.getSimpleName()+" is missing");
-            if (result != null) {
-                result.recordFatalError(e);
-            }
-            throw e;
+    private <C extends CapabilityType> void checkForCapability(ProvisioningContext ctx, Class<C> capabilityClass) {
+        if (!ctx.hasCapability(capabilityClass)) {
+            throw new UnsupportedOperationException(
+                    String.format("Operation not supported %s as %s is missing", ctx.getDesc(), capabilityClass.getSimpleName()));
         }
     }
 

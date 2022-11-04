@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import java.util.Collection;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,8 +22,6 @@ import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -100,24 +95,4 @@ class CommonHelper {
         eventDispatcher.notifyFailure(operationDescription, task, parentResult);
         parentResult.computeStatusIfUnknown();
     }
-
-    // TODO move to more appropriate place
-    PrismObject<ShadowType> futurizeShadow(
-            ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
-            PrismObject<ShadowType> resourceShadow,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            XMLGregorianCalendar now)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
-        if (!ProvisioningUtil.isFuturePointInTime(options)) {
-            if (resourceShadow == null) {
-                return repoShadow;
-            } else {
-                return resourceShadow;
-            }
-        }
-        return shadowCaretaker.applyPendingOperations(ctx, repoShadow, resourceShadow, false, now);
-    }
-
 }
