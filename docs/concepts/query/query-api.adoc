@@ -1365,7 +1365,7 @@ This filter now allows to navigate and filter on the referencing object in the o
 
 Let's consider two objects, one referencing the other:
 
-image:object-reference-object.png[]
+image::object-reference-object.png[]
 
 With filters before 4.6, we could find object with _oid1_ by various criteria on the _someRef_
 reference or, with dereference, even on the target object (_oid2_).
