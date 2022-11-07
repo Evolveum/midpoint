@@ -1159,7 +1159,7 @@ Typical example is `AccessCertificationWorkItemType` that is under `AccessCertif
 container of the object type `AccessCertificationCampaignType`.
 
 The following example shows the search for all `AccessCertificationWorkItemType` containers that
-are part of an object with specfied OID:
+are part of an object with specified OID:
 
 [source,xml]
 ----
