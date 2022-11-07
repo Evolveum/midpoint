@@ -677,6 +677,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         throw new UnsupportedOperationException("Archetypes are not supported for projections.");
     }
 
+    @Override
     public ResourceType getResource() {
         return resource;
     }
@@ -967,6 +968,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         compositeObjectDefinition = null;
     }
 
+    @Override
     public CompositeObjectDefinition getCompositeObjectDefinition() throws SchemaException, ConfigurationException {
         if (compositeObjectDefinition == null) {
             ResourceObjectDefinition structuralDefinition = getStructuralObjectDefinition();

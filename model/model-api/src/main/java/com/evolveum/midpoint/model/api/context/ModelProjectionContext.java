@@ -7,9 +7,11 @@
 package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.processor.CompositeObjectDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDependencyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -79,4 +81,8 @@ public interface ModelProjectionContext extends ModelElementContext<ShadowType> 
      * TODO decide what to return if the dependency configuration cannot be obtained; currently it's an empty list
      */
     Collection<ResourceObjectTypeDependencyType> getDependencies() throws SchemaException, ConfigurationException;
+
+    CompositeObjectDefinition getCompositeObjectDefinition() throws SchemaException, ConfigurationException;
+
+    ResourceType getResource();
 }

@@ -8,6 +8,9 @@
 package com.evolveum.midpoint.model.impl.visualizer;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.visualizer.output.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -15,6 +18,7 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,6 +42,8 @@ import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+
 @Component
 public class Visualizer {
 
@@ -54,6 +60,7 @@ public class Visualizer {
     private Resolver resolver;
 
     private static final Map<Class<?>, List<ItemPath>> DESCRIPTIVE_ITEMS = new HashMap<>();
+
     static {
         DESCRIPTIVE_ITEMS.put(AssignmentType.class, Arrays.asList(
                 AssignmentType.F_TARGET_REF,
@@ -135,15 +142,84 @@ public class Visualizer {
         }
     }
 
+    public List<? extends SceneImpl> visualizeProjectionContexts(List<? extends ModelProjectionContext> projectionContexts, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException {
+
+//        OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeProjectionContexts");
+//        try {
+//            if (!isEquivalentWithoutOperationAttr(primaryDelta, CloneUtil.clone(projCtx.getExecutableDelta()))) {
+//                addIgnoreNull(secondaryDeltas, CloneUtil.clone(projCtx.getExecutableDelta()));
+//            }
+//
+//            resolver.resolve(deltas, task, result);
+//            return visualizeDeltas(deltas, new VisualizationContext(), task, result);
+//        } catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
+//            result.recordFatalError("Couldn't visualize the data structure: " + e.getMessage(), e);
+//            throw e;
+//        } finally {
+//            result.computeStatusIfUnknown();
+//        }
+
+        return null;
+    }
+
+    @NotNull
+    public SceneImpl visualizeProjectionContext(ModelProjectionContext context, VisualizationContext vc, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException {
+
+        SynchronizationPolicyDecision decision = context.getSynchronizationPolicyDecision();
+        if (decision != SynchronizationPolicyDecision.BROKEN) {
+            return visualizeDelta(context.getExecutableDelta(), null, null, vc, task, result);
+        }
+
+        ObjectDelta executable = context.getExecutableDelta();
+        if (executable == null || !executable.isModify()) {
+            return visualizeDelta(context.getExecutableDelta(), null, null, vc, task, result);
+        }
+
+        if (context.getObjectOld() != null || context.getObjectNew() == null) {
+            return visualizeDelta(context.getExecutableDelta(), null, null, vc, task, result);
+        }
+
+        // Looks like, it should be an ADD not MODIFY delta (just a guess work since status is BROKEN
+        ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(context.getObjectTypeClass(),
+                ChangeType.ADD);
+        ResourceObjectDefinition objectTypeDef = context.getCompositeObjectDefinition();
+
+        ProjectionContextKey key = context.getKey();
+        if (objectTypeDef == null) {
+            throw new IllegalStateException("Definition for account type " + key
+                    + " not found in the context, but it should be there");
+        }
+
+        String resourceOid = null;
+        if (context.getResource() != null) {
+            resourceOid = context.getResource().getOid();
+        } else {
+            resourceOid = key.getResourceOid();
+        }
+
+        PrismObject<ShadowType> newAccount = objectTypeDef.createBlankShadow(resourceOid, key.getTag());
+        addDelta.setObjectToAdd(newAccount);
+
+        if (executable != null) {
+            addDelta.merge(executable);
+        }
+
+        return visualizeDelta(addDelta, null, null, vc, task, result);
+    }
+
     private List<? extends SceneImpl> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, VisualizationContext context, Task task, OperationResult result)
             throws SchemaException {
         List<SceneImpl> rv = new ArrayList<>(deltas.size());
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
-            if (!delta.isEmpty()) {
-                final SceneImpl scene = visualizeDelta(delta, null, null, context, task, result);
-                if (!scene.isEmpty()) {
-                    rv.add(scene);
-                }
+            if (delta.isEmpty()) {
+                continue;
+            }
+
+            final SceneImpl scene = visualizeDelta(delta, null, null, context, task, result);
+            if (!scene.isEmpty()) {
+                rv.add(scene);
             }
         }
         return rv;
@@ -166,7 +242,7 @@ public class Visualizer {
         try {
             resolver.resolve(objectDelta, includeOriginalObject, task, result);
             VisualizationContext visualizationContext = new VisualizationContext();
-            if (includeOperationalItems){
+            if (includeOperationalItems) {
                 visualizationContext.setIncludeOperationalItems(includeOperationalItems);
             }
             return visualizeDelta(objectDelta, null, objectRef, visualizationContext, task, result);
@@ -179,7 +255,7 @@ public class Visualizer {
     }
 
     private SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, SceneImpl owner, ObjectReferenceType objectRef,
-                                     VisualizationContext context, Task task, OperationResult result)
+            VisualizationContext context, Task task, OperationResult result)
             throws SchemaException {
         SceneImpl scene = new SceneImpl(owner);
         scene.setChangeType(objectDelta.getChangeType());
@@ -248,7 +324,8 @@ public class Visualizer {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Object {} does not exist", e, oid);
             result.recordHandledError(e);
             return null;
-        } catch (RuntimeException|SchemaException|ConfigurationException|CommunicationException|SecurityViolationException|ExpressionEvaluationException e) {
+        } catch (RuntimeException | SchemaException | ConfigurationException | CommunicationException |
+                SecurityViolationException | ExpressionEvaluationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve object {}", e, oid);
             result.recordWarning("Couldn't resolve object " + oid + ": " + e.getMessage(), e);
             return null;
@@ -276,7 +353,7 @@ public class Visualizer {
                 PrismContainer<?> pc = (PrismContainer<?>) item;
                 PrismContainerDefinition<?> def = pc.getDefinition();
                 boolean separate = isContainerSingleValued(def, pc) ? context.isSeparateSinglevaluedContainers() : context.isSeparateMultivaluedContainers();
-                 SceneImpl currentScene = scene;
+                SceneImpl currentScene = scene;
                 for (PrismContainerValue<?> pcv : pc.getValues()) {
                     if (separate) {
                         SceneImpl si = new SceneImpl(scene);
@@ -513,7 +590,7 @@ public class Visualizer {
                 }
                 PrismContainerValue<?> ownerPCV = scene.getSourceValue();
                 if (ownerPCV != null) {
-                    Item<?,?> item = ownerPCV.findItem(sceneRelativeItemPath);
+                    Item<?, ?> item = ownerPCV.findItem(sceneRelativeItemPath);
                     if (item instanceof PrismContainer) {
                         PrismContainer<?> container = (PrismContainer<?>) item;
                         sceneForItem.setSourceDefinition(container.getDefinition());
@@ -561,9 +638,9 @@ public class Visualizer {
         if (itemPathsToShow == null) {
             return;
         }
-        List<Item<?,?>> itemsToShow = new ArrayList<>();
+        List<Item<?, ?>> itemsToShow = new ArrayList<>();
         for (ItemPath itemPath : itemPathsToShow) {
-            Item<?,?> item = sourceValue.findItem(itemPath);
+            Item<?, ?> item = sourceValue.findItem(itemPath);
             if (item != null) {
                 itemsToShow.add(item);
             }
@@ -636,7 +713,7 @@ public class Visualizer {
         }
     }
 
-    private SceneItemImpl createSceneItemCommon(Item<?,?> item) {
+    private SceneItemImpl createSceneItemCommon(Item<?, ?> item) {
         SceneItemImpl si = new SceneItemImpl(createSceneItemName(item));
         ItemDefinition<?> def = item.getDefinition();
         if (def != null) {
@@ -743,7 +820,7 @@ public class Visualizer {
 
         D def = itemDelta.getDefinition();
         if (def != null) {
-            Item<V,D> item = def.instantiate();
+            Item<V, D> item = def.instantiate();
             if (itemDelta.getEstimatedOldValues() != null) {
                 item.addAll(CloneUtil.cloneCollectionMembers(itemDelta.getEstimatedOldValues()));
             }
@@ -758,7 +835,7 @@ public class Visualizer {
         return si;
     }
 
-    private NameImpl createSceneItemName(Item<?,?> item) {
+    private NameImpl createSceneItemName(Item<?, ?> item) {
         NameImpl name = new NameImpl(item.getElementName().getLocalPart());
         ItemDefinition<?> def = item.getDefinition();
         if (def != null) {
@@ -769,7 +846,6 @@ public class Visualizer {
         name.setNamesAreResourceKeys(true);
         return name;
     }
-
 
     private SceneDeltaItemImpl createSceneDeltaItem(ReferenceDelta delta, SceneImpl owningScene, VisualizationContext context, Task task,
             OperationResult result)
@@ -794,7 +870,6 @@ public class Visualizer {
         di.setNewValues(toSceneItemValuesRef(reference.getValues(), context, task, result));
         return di;
     }
-
 
     private List<SceneItemValueImpl> toSceneItemValues(Collection<? extends PrismPropertyValue<?>> values) {
         List<SceneItemValueImpl> rv = new ArrayList<>();
@@ -871,9 +946,9 @@ public class Visualizer {
     private NameImpl createSceneName(String oid, ObjectReferenceType objectRef) {
         NameImpl nv = new NameImpl(oid);
         nv.setId(oid);
-        if (objectRef != null && objectRef.asReferenceValue() != null && objectRef.asReferenceValue().getObject() != null){
+        if (objectRef != null && objectRef.asReferenceValue() != null && objectRef.asReferenceValue().getObject() != null) {
             PrismObject<ObjectType> object = objectRef.asReferenceValue().getObject();
-            if (object.asObjectable().getName() != null){
+            if (object.asObjectable().getName() != null) {
                 nv.setDisplayName(object.asObjectable().getName().getOrig());
             }
         }

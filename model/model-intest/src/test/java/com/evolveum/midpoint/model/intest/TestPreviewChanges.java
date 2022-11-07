@@ -16,7 +16,13 @@ import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+
+import com.evolveum.midpoint.model.api.visualizer.ModelScene;
+
+import com.evolveum.midpoint.model.api.visualizer.Scene;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -2047,17 +2053,20 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertSerializable(modelContext);
     }
 
-    @Test
+    @Test(enabled = false)
     public void test750previewAddUserShadowInsufficientPassword() throws Exception {
         given();
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        addObject(SECURITY_POLICY, task, result);
         addObject(VALUE_POLICY_PASSWORD, task, result);
+        addObject(SECURITY_POLICY, task, result);
         addObject(ROLE_SIMPLE, task, result);
         addObject(USER_JOE, task, result);
+
+        result.computeStatusIfUnknown();
+        assertSuccess(result);
 
         when();
 
@@ -2069,8 +2078,31 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         ModelContext<UserType> modelContext = modelInteractionService.previewChanges(singleton(delta), null, task, result);
 
-        then();
+        result.computeStatus();
 
         AssertJUnit.assertNotNull(modelContext);
+        AssertJUnit.assertEquals(1, modelContext.getProjectionContexts().size());
+
+        ModelProjectionContext projectionContext = modelContext.getProjectionContexts().iterator().next();
+        ObjectDelta<ShadowType> summaryDelta = projectionContext.getSummaryDelta();
+
+        // in reality, it's, add shadow without shadow resourceRef, kind, intent.
+        PrismAsserts.assertIsModify(summaryDelta);
+
+        then("Delta should be marked as broken and preview should show add shadodw delta");
+
+        ModelScene modelScene = modelInteractionService.visualiseModelContext(modelContext, task, result);
+        List<? extends Scene> secondaryScenes = modelScene.getSecondaryScenes();
+
+        AssertJUnit.assertEquals(1, secondaryScenes.size());
+
+        Scene scene = secondaryScenes.get(0);
+        AssertJUnit.assertTrue(scene.isBroken());
+        AssertJUnit.assertEquals(ChangeType.ADD, scene.getChangeType());
+
+        ObjectDelta sourceDelta = scene.getSourceDelta();
+        PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_KIND), ShadowKindType.ACCOUNT);
+        PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_INTENT), "default");
+        PrismAsserts.assertReferenceAdd(sourceDelta, ShadowType.F_RESOURCE_REF, RESOURCE_SIMPLE.oid);
     }
 }

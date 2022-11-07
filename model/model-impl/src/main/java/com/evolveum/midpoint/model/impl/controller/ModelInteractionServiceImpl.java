@@ -19,13 +19,19 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
 
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.visualizer.ModelScene;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.schema.processor.*;
@@ -49,10 +55,6 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
@@ -80,10 +82,6 @@ import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -824,8 +822,78 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException {
+
         return visualizer.visualizeDeltas(deltas, task, result);
+    }
+
+    @Override
+    public List<? extends Scene> visualizeProjectionContexts(List<? extends ModelProjectionContext> projectionContexts, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException {
+
+        return visualizer.visualizeProjectionContexts(projectionContexts, task, result);
+    }
+
+    @Override
+    public <O extends ObjectType> ModelScene visualiseModelContext(ModelContext<O> context, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
+
+        if (context == null) {
+            return new ModelScene();
+        }
+
+        final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
+        final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
+
+        final List<? extends ModelProjectionContext> projectionContexts = new ArrayList<>();
+
+        final List<? extends Scene> primaryScenes;
+        final List<? extends Scene> secondaryScenes;
+
+        if (context.getFocusContext() != null) {
+            addIgnoreNull(primaryDeltas, CloneUtil.clone(context.getFocusContext().getPrimaryDelta()));
+            ObjectDelta<O> summarySecondaryDelta = CloneUtil.clone(context.getFocusContext().getSummarySecondaryDelta());
+            if (summarySecondaryDelta != null && !summarySecondaryDelta.getModifications().isEmpty()) {
+                secondaryDeltas.add(summarySecondaryDelta);
+            }
+        }
+
+        for (ModelProjectionContext projCtx : context.getProjectionContexts()) {
+            ObjectDelta<ShadowType> primaryDelta = CloneUtil.clone(projCtx.getPrimaryDelta());
+            addIgnoreNull(primaryDeltas, primaryDelta);
+            if (!isEquivalentWithoutOperationAttr(primaryDelta, CloneUtil.clone(projCtx.getExecutableDelta()))) {
+                addIgnoreNull(secondaryDeltas, CloneUtil.clone(projCtx.getExecutableDelta()));
+            }
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Primary deltas:\n{}", DebugUtil.debugDump(primaryDeltas));
+            LOGGER.trace("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
+        }
+
+        primaryScenes = visualizeDeltas(primaryDeltas, task, task.getResult());
+        secondaryScenes = visualizeDeltas(secondaryDeltas, task, task.getResult());
+
+        return new ModelScene(primaryScenes, secondaryScenes);
+    }
+
+    private boolean isEquivalentWithoutOperationAttr(ObjectDelta<ShadowType> primaryDelta, ObjectDelta<ShadowType> secondaryDelta) {
+        if (primaryDelta == null || secondaryDelta == null) {
+            return false;
+        }
+
+        List<ItemDelta> modifications = new ArrayList<>();
+        modifications.addAll(secondaryDelta.getModifications());
+
+        for (ItemDelta secondaryModification : modifications){
+            ItemDefinition def = secondaryModification.getDefinition();
+            if (def != null && def.isOperational()) {
+                secondaryDelta.removeModification(secondaryModification);
+            }
+        }
+
+        return primaryDelta.equivalent(secondaryDelta);
     }
 
     @Override
