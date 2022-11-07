@@ -148,9 +148,8 @@ public class Visualizer {
 
         try {
             for (ModelProjectionContext ctx : projectionContexts) {
-                ObjectDelta executableDelta = CloneUtil.clone(ctx.getExecutableDelta());
-                Scene scene = visualizeDelta(executableDelta, task, result);
-                if (scene != null && !scene.isEmpty()) {
+                Scene scene = visualizeProjectionContext(ctx, task, result);
+                if (!scene.isEmpty()) {
                     scenes.add(scene);
                 }
             }
@@ -165,26 +164,26 @@ public class Visualizer {
     }
 
     @NotNull
-    public SceneImpl visualizeProjectionContext(ModelProjectionContext context, VisualizationContext vc, Task task, OperationResult result)
-            throws SchemaException, ConfigurationException {
+    public SceneImpl visualizeProjectionContext(ModelProjectionContext context, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
+
+        ObjectDelta<ShadowType> executable = context.getExecutableDelta();
 
         SynchronizationPolicyDecision decision = context.getSynchronizationPolicyDecision();
         if (decision != SynchronizationPolicyDecision.BROKEN) {
-            return visualizeDelta(context.getExecutableDelta(), null, null, vc, task, result);
+            return visualizeDelta(executable, task, result);
         }
 
-        ObjectDelta executable = context.getExecutableDelta();
         if (executable == null || !executable.isModify()) {
-            return visualizeDelta(context.getExecutableDelta(), null, null, vc, task, result);
+            return visualizeDelta(executable, task, result);
         }
 
         if (context.getObjectOld() != null || context.getObjectNew() == null) {
-            return visualizeDelta(context.getExecutableDelta(), null, null, vc, task, result);
+            return visualizeDelta(executable, task, result);
         }
 
         // Looks like, it should be an ADD not MODIFY delta (just a guess work since status is BROKEN
-        ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(context.getObjectTypeClass(),
-                ChangeType.ADD);
+        ObjectDelta<ShadowType> addDelta = PrismContext.get().deltaFactory().object().create(context.getObjectTypeClass(), ChangeType.ADD);
         ResourceObjectDefinition objectTypeDef = context.getCompositeObjectDefinition();
 
         ProjectionContextKey key = context.getKey();
@@ -193,7 +192,7 @@ public class Visualizer {
                     + " not found in the context, but it should be there");
         }
 
-        String resourceOid = null;
+        String resourceOid;
         if (context.getResource() != null) {
             resourceOid = context.getResource().getOid();
         } else {
@@ -207,7 +206,10 @@ public class Visualizer {
             addDelta.merge(executable);
         }
 
-        return visualizeDelta(addDelta, null, null, vc, task, result);
+        SceneImpl scene = visualizeDelta(addDelta, task, result);
+        scene.setBroken(context.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN);
+
+        return scene;
     }
 
     private List<Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, VisualizationContext context, Task task, OperationResult result)
@@ -337,8 +339,10 @@ public class Visualizer {
         if (items == null) {
             return;
         }
+
         List<Item<?, ?>> itemsToShow = new ArrayList<>(items);
-        Collections.sort(itemsToShow, getItemDisplayOrderComparator());
+        itemsToShow.sort(getItemDisplayOrderComparator());
+
         for (Item<?, ?> item : itemsToShow) {
             if (item instanceof PrismProperty) {
                 final SceneItemImpl sceneItem = createSceneItem((PrismProperty) item, descriptive);
@@ -412,49 +416,42 @@ public class Visualizer {
     }
 
     private void sortItems(SceneImpl scene) {
-        Collections.sort(scene.getItems(), new Comparator<SceneItemImpl>() {
-            @Override
-            public int compare(SceneItemImpl o1, SceneItemImpl o2) {
-                return compareDefinitions(o1.getSourceDefinition(), o2.getSourceDefinition());
-            }
-        });
+        scene.getItems().sort((Comparator<SceneItemImpl>) (o1, o2) -> compareDefinitions(o1.getSourceDefinition(), o2.getSourceDefinition()));
     }
 
     private void sortPartialScenes(SceneImpl scene) {
-        Collections.sort(scene.getPartialScenes(), new Comparator<SceneImpl>() {
-            @Override
-            public int compare(SceneImpl s1, SceneImpl s2) {
-                final PrismContainerDefinition<?> def1 = s1.getSourceDefinition();
-                final PrismContainerDefinition<?> def2 = s2.getSourceDefinition();
-                int a = compareDefinitions(def1, def2);
-                if (a != 0) {
-                    return a;
-                }
-                if (def1 == null || def2 == null) {
-                    return MiscUtil.compareNullLast(def1, def2);
-                }
-                if (s1.isContainerValue() && s2.isContainerValue()) {
-                    Long id1 = s1.getSourceContainerValueId();
-                    Long id2 = s2.getSourceContainerValueId();
-                    return compareNullableIntegers(id1, id2);
-                } else if (s1.isObjectValue() && s2.isObjectValue()) {
-                    boolean f1 = s1.isFocusObject();
-                    boolean f2 = s2.isFocusObject();
-                    if (f1 && !f2) {
-                        return -1;
-                    } else if (f2 && !f1) {
-                        return 1;
-                    } else {
-                        return 0;
-                    }
-                }
-                if (s1.isObjectValue()) {
-                    return -1;
-                } else if (s2.isObjectValue()) {
-                    return 1;
-                }
-                return 0;
+        scene.getPartialScenes().sort((Comparator<SceneImpl>) (s1, s2) -> {
+
+            final PrismContainerDefinition<?> def1 = s1.getSourceDefinition();
+            final PrismContainerDefinition<?> def2 = s2.getSourceDefinition();
+            int a = compareDefinitions(def1, def2);
+            if (a != 0) {
+                return a;
             }
+            if (def1 == null || def2 == null) {
+                return MiscUtil.compareNullLast(def1, def2);
+            }
+            if (s1.isContainerValue() && s2.isContainerValue()) {
+                Long id1 = s1.getSourceContainerValueId();
+                Long id2 = s2.getSourceContainerValueId();
+                return compareNullableIntegers(id1, id2);
+            } else if (s1.isObjectValue() && s2.isObjectValue()) {
+                boolean f1 = s1.isFocusObject();
+                boolean f2 = s2.isFocusObject();
+                if (f1 && !f2) {
+                    return -1;
+                } else if (f2 && !f1) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+            if (s1.isObjectValue()) {
+                return -1;
+            } else if (s2.isObjectValue()) {
+                return 1;
+            }
+            return 0;
         });
     }
 
@@ -854,7 +851,7 @@ public class Visualizer {
         SceneDeltaItemImpl di = createSceneDeltaItemCommon(delta, owningScene);
         if (delta.isDelete() && CollectionUtils.isEmpty(delta.getEstimatedOldValues()) &&
                 CollectionUtils.isNotEmpty(delta.getValuesToDelete())) {
-            delta.setEstimatedOldValues((Collection) delta.getValuesToDelete());
+            delta.setEstimatedOldValues(delta.getValuesToDelete());
         }
         di.setOldValues(toSceneItemValuesRef(delta.getEstimatedOldValues(), context, task, result));
 

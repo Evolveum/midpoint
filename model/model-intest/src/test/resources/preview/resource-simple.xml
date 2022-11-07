@@ -74,7 +74,7 @@
                 </password>
             </credentials>
 
-            <!--<securityPolicyRef oid="a013bf3e-68b2-42b7-923e-c4d55e40e486"/>-->
+            <securityPolicyRef oid="a013bf3e-68b2-42b7-923e-c4d55e40e486"/>
         </objectType>
     </schemaHandling>
 </resource>
