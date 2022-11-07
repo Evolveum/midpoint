@@ -58,7 +58,6 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
 
         isSupportedChannel(authenticationChannel);
 
-        SamlModuleWebSecurityConfiguration.setProtector(getProtector());
         SamlModuleWebSecurityConfiguration configuration = SamlModuleWebSecurityConfiguration.build((Saml2AuthenticationModuleType)moduleType, sequenceSuffix, getPublicUrlPrefix(request), request);
         configuration.setSequenceSuffix(sequenceSuffix);
         configuration.addAuthenticationProvider(getObjectObjectPostProcessor().postProcess(new Saml2Provider()));

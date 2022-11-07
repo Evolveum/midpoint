@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.authentication.impl.module.configuration;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -42,6 +43,8 @@ import static org.springframework.util.StringUtils.hasText;
  */
 
 public class RemoteModuleWebSecurityConfiguration extends ModuleWebSecurityConfigurationImpl {
+
+    static Protector protector = PrismContext.get().getDefaultProtector();
 
     protected static Certificate getCertificate(AbstractSimpleKeyType key, Protector protector)
             throws EncryptionException, CertificateException, Base64Exception {
