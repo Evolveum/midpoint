@@ -6,17 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-
-import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+
+import org.jetbrains.annotations.NotNull;
 
 public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePanel<ResourceWizardPreviewPanel.PreviewTileType> {
 
@@ -29,7 +29,7 @@ public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePan
         PREVIEW_DATA("fa fa-magnifying-glass"),
         CONFIGURE_OBJECT_TYPES("fa fa-object-group");
 
-        private String icon;
+        private final String icon;
 
         PreviewTileType(String icon) {
             this.icon = icon;
@@ -42,7 +42,7 @@ public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePan
     }
 
     @Override
-    protected IModel<String> getBreadcrumbLabel() {
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
         String name = WebComponentUtil.getDisplayNameOrName(getResourceModel().getObjectWrapper().getObject());
         if (StringUtils.isEmpty(name)) {
             return getPageBase().createStringResource("ResourceWizardPreviewPanel.title");

@@ -55,7 +55,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
     private LoadableDetachableModel<Search<AssignmentHolderType>> searchModel;
 
-    private Model<TemplateType> templateType = Model.of(TemplateType.CONNECTOR);
+    private final Model<TemplateType> templateType = Model.of(TemplateType.CONNECTOR);
 
     public CreateResourceTemplatePanel(String id) {
         super(id);

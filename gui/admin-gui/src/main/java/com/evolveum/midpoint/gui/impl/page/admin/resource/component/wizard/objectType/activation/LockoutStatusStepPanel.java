@@ -43,10 +43,6 @@ public abstract class LockoutStatusStepPanel extends ActivationMappingStepPanel 
         return PANEL_TYPE;
     }
 
-//    private String getIcon() {
-//        return "fa fa-toggle-off";
-//    }
-
     @Override
     public IModel<String> getTitle() {
         return createStringResource("PageResource.wizard.step.activation.lockoutStatus");

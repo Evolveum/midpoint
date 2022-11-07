@@ -11,36 +11,46 @@
     <div class="d-flex flex-wrap" wicket:id="topButtonsContainer">
         <div wicket:id="topButtons"/>
     </div>
-    <div class="d-flex flex-wrap justify-content-between my-3">
+    <div class="d-flex flex-wrap justify-content-between pl-4">
         <div class="d-flex flex-wrap gap-2">
             <wicket:enclosure child="intent">
-                <label class="col-form-label-sm mb-0"><wicket:message key="ShadowType.intent"/></label>
-                <div wicket:id="intent" />
-                <wicket:enclosure child="realObjectClass">
-                    <span class="col-form-label-sm mb-0">(<wicket:message key="ShadowType.objectClass"/>: <span wicket:id="realObjectClass"/>)</span>
-                </wicket:enclosure>
+                <div class="my-3 d-flex flex-wrap gap-2">
+                    <label class="col-form-label-sm mb-0">
+                        <wicket:message key="ShadowType.intent"/>
+                    </label>
+                    <div wicket:id="intent"/>
+                    <wicket:enclosure child="realObjectClass">
+                        <span class="col-form-label-sm mb-0">(<wicket:message key="ShadowType.objectClass"/>: <span wicket:id="realObjectClass"/>)</span>
+                    </wicket:enclosure>
+                </div>
             </wicket:enclosure>
             <wicket:enclosure child="objectClass">
-                <label class="col-form-label-sm mb-0"><wicket:message key="ShadowType.objectClass"/></label>
-                <div wicket:id="objectClass" />
+                <div class="my-3 d-flex flex-wrap gap-2">
+                    <label class="col-form-label-sm mb-0">
+                        <wicket:message key="ShadowType.objectClass"/>
+                    </label>
+                    <div wicket:id="objectClass"/>
+                </div>
             </wicket:enclosure>
         </div>
 
         <div class="d-flex flex-wrap gap-2" wicket:id="resourceChoiceContainer">
-            <label class="col-form-label-sm mb-0"><wicket:message key="ResourceContentTabPanel.searchType" /></label>
+            <label class="col-form-label-sm mb-0">
+                <wicket:message key="ResourceContentTabPanel.searchType"/>
+            </label>
             <div class="btn-group btn-group-sm">
                 <a class="btn btn-default" wicket:id="repositorySearch">
-                    <wicket:message key="ResourceContentTabPanel.searchType.repository" />
+                    <wicket:message key="ResourceContentTabPanel.searchType.repository"/>
                 </a>
                 <a class="btn btn-default" wicket:id="resourceSearch">
-                    <wicket:message key="ResourceContentTabPanel.searchType.resource" />
+                    <wicket:message key="ResourceContentTabPanel.searchType.resource"/>
                 </a>
             </div>
         </div>
     </div>
 
     <form wicket:id="mainForm">
-        <div wicket:id="table" />
+        <div wicket:id="table"/>
     </form>
 </wicket:panel>
 </html>

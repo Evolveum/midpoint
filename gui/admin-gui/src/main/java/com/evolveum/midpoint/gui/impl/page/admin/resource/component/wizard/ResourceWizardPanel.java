@@ -75,12 +75,7 @@ public class ResourceWizardPanel extends BasePanel {
     }
 
     protected ResourceObjectTypeTableWizardPanel createTablePanel() {
-        ResourceObjectTypeTableWizardPanel table = new ResourceObjectTypeTableWizardPanel(ID_WIZARD_PANEL, getResourceModel()) {
-            @Override
-            protected void onAddNewObject(AjaxRequestTarget target) {
-                showWizardPanel(createObjectTypeWizard(null), target);
-            }
-
+        return new ResourceObjectTypeTableWizardPanel(ID_WIZARD_PANEL, getResourceModel()) {
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 showWizardPanel(createObjectTypeWizard(valueModel), target);
@@ -92,7 +87,6 @@ public class ResourceWizardPanel extends BasePanel {
                 exitToPreview(target);
             }
         };
-        return table;
     }
 
     public ResourceDetailsModel getResourceModel() {

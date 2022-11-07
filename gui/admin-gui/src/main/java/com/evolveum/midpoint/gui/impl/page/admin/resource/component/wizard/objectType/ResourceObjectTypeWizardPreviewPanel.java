@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizardChoicePanel<ResourceObjectTypeWizardPreviewPanel.ResourceObjectTypePreviewTileType> {
 
@@ -49,7 +49,7 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
         CREDENTIALS("fa fa-key"),
         ASSOCIATIONS("fa fa-shield");
 
-        private String icon;
+        private final String icon;
 
         ResourceObjectTypePreviewTileType(String icon) {
             this.icon = icon;
@@ -71,7 +71,7 @@ public abstract class ResourceObjectTypeWizardPreviewPanel extends ResourceWizar
     }
 
     @Override
-    protected IModel<String> getBreadcrumbLabel() {
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
         return new LoadableDetachableModel<>() {
             @Override
             protected String load() {

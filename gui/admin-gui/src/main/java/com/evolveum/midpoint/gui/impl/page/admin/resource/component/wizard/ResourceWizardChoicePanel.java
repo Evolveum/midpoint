@@ -27,7 +27,7 @@ public abstract class ResourceWizardChoicePanel<T extends TileEnum> extends Wiza
 
     @Override
     protected void addDefaultTile(List<Tile<T>> list) {
-        Tile tile = new Tile(
+        Tile<T> tile = new Tile<>(
                 "fa fa-server",
                 getPageBase().createStringResource("ResourceWizardChoicePanel.toResource").getString());
         list.add(tile);

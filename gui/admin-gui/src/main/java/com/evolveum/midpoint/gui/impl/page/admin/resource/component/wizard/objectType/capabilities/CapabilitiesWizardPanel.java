@@ -32,14 +32,14 @@ public class CapabilitiesWizardPanel extends AbstractResourceWizardPanel<Resourc
     }
 
     protected void initLayout() {
-        add(createChoiceFragment(createCapabilityPanel(getValueModel())));
+        add(createChoiceFragment(createCapabilityPanel()));
     }
 
     public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
         return valueModel;
     }
 
-    private CapabilitiesWizardStepPanel createCapabilityPanel(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+    private CapabilitiesWizardStepPanel createCapabilityPanel() {
         CapabilitiesWizardStepPanel panel = new CapabilitiesWizardStepPanel(
                 getIdOfChoicePanel(),
                 getResourceModel(),

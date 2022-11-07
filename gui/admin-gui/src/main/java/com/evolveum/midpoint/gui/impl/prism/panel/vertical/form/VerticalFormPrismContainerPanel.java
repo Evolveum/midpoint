@@ -16,6 +16,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
@@ -82,6 +83,7 @@ public class VerticalFormPrismContainerPanel<C extends Containerable> extends Pr
             }
         };
         header.setOutputMarkupId(true);
+        header.add(AttributeAppender.append("class", () -> getModelObject().isExpanded() ? "card-header" : ""));
         return header;
     }
 

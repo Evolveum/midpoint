@@ -10,23 +10,16 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -54,7 +47,7 @@ public abstract class InboundAttributeMappingsTable extends AttributeMappingsTab
 
     @Override
     protected String getKeyOfTitleForNewObjectButton() {
-        return "InboundAttributeMappingsTable.newObject.simple";
+        return "InboundAttributeMappingsTable.newObject";
     }
 
     @Override
@@ -70,18 +63,6 @@ public abstract class InboundAttributeMappingsTable extends AttributeMappingsTab
                 ResourceAttributeDefinitionType.F_REF,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
                 getPageBase()));
-
-//        columns.add(new IconColumn<>(Model.of()) {
-//            @Override
-//            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<MappingType>> rowModel) {
-//                return new DisplayType().beginIcon().cssClass("fa fa-minus text-secondary").end();
-//            }
-//
-//            @Override
-//            public String getCssClass() {
-//                return "";
-//            }
-//        });
 
         columns.add(new IconColumn<>(Model.of()) {
             @Override

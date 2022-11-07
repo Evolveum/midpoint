@@ -9,15 +9,15 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceContentPanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -26,7 +26,6 @@ import javax.xml.namespace.QName;
  */
 public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasicPanel {
 
-    private static final String PANEL_TYPE = "?"; //TODO
     private static final String ID_TABLE = "table";
 
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> resourceObjectType;
@@ -40,6 +39,13 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
     }
 
     @Override
+    protected void onBeforeRender() {
+        super.onBeforeRender();
+
+        getTable().setShowAsCard(false);
+    }
+
+    @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
@@ -50,7 +56,7 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
                 ID_TABLE,
                 resourceObjectType.getObject().getRealValue().getKind(),
                 getResourceModel(),
-                getConfiguration(),
+                null,
                 false) {
 
             @Override
@@ -97,18 +103,13 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
         add(table);
     }
 
-    ContainerPanelConfigurationType getConfiguration(){
-        return WebComponentUtil.getContainerConfiguration(
-                getResourceModel().getObjectDetailsPageConfiguration().getObject(),
-                PANEL_TYPE);
-    }
 
     protected IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getResourceObjectType() {
         return resourceObjectType;
     }
 
     @Override
-    protected IModel<String> getBreadcrumbLabel() {
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
         return getPageBase().createStringResource("PreviewResourceObjectTypeDataWizardPanel.title");
     }
 
@@ -120,5 +121,14 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
     @Override
     protected IModel<String> getTextModel() {
         return getPageBase().createStringResource("PreviewResourceObjectTypeDataWizardPanel.text");
+    }
+
+    public BoxedTablePanel getTable() {
+        ResourceContentPanel panel =
+                (ResourceContentPanel) get(ID_TABLE);
+        if (panel == null) {
+            return null;
+        }
+        return panel.getTable();
     }
 }
