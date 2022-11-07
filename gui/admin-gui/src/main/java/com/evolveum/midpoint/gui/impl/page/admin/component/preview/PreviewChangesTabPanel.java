@@ -80,7 +80,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             Task task = getPageBase().createSimpleTask("visualize");
             OperationResult result = task.getResult();
 
-            modelScene = getPageBase().getModelInteractionService().visualiseModelContext(modelContext, task, result);
+            modelScene = getPageBase().getModelInteractionService().visualizeModelContext(modelContext, task, result);
         } catch (SchemaException | ExpressionEvaluationException | ConfigurationException e) {
             throw new SystemException(e);        // TODO
         }

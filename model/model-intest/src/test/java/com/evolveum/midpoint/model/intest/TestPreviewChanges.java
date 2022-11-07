@@ -2053,7 +2053,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertSerializable(modelContext);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test750previewAddUserShadowInsufficientPassword() throws Exception {
         given();
 
@@ -2068,7 +2068,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         result.computeStatusIfUnknown();
         assertSuccess(result);
 
-        when();
+        when("We're attempting to create account (shadow) with password that doesn't match password policy");
 
         AssignmentType a = new AssignmentType()
                 .targetRef(ROLE_SIMPLE.oid, RoleType.COMPLEX_TYPE);
@@ -2089,9 +2089,9 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         // in reality, it's, add shadow without shadow resourceRef, kind, intent.
         PrismAsserts.assertIsModify(summaryDelta);
 
-        then("Delta should be marked as broken and preview should show add shadodw delta");
+        then("Delta should be marked as broken and preview should show add shadow delta");
 
-        ModelScene modelScene = modelInteractionService.visualiseModelContext(modelContext, task, result);
+        ModelScene modelScene = modelInteractionService.visualizeModelContext(modelContext, task, result);
         List<? extends Scene> secondaryScenes = modelScene.getSecondaryScenes();
 
         AssertJUnit.assertEquals(1, secondaryScenes.size());

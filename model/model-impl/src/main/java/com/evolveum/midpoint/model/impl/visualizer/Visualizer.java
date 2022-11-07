@@ -7,14 +7,27 @@
 
 package com.evolveum.midpoint.model.impl.visualizer;
 
+import static com.evolveum.midpoint.prism.delta.ChangeType.*;
+import static com.evolveum.midpoint.prism.path.ItemPath.EMPTY_PATH;
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
+import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+
+import java.util.*;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.impl.visualizer.output.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -28,21 +41,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-
-import static com.evolveum.midpoint.prism.delta.ChangeType.*;
-import static com.evolveum.midpoint.prism.path.ItemPath.EMPTY_PATH;
-import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetch;
-import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-
-import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 @Component
 public class Visualizer {
@@ -129,7 +127,7 @@ public class Visualizer {
         return scene;
     }
 
-    public List<? extends SceneImpl> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+    public List<Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDeltas");
         try {
             resolver.resolve(deltas, task, result);
@@ -142,25 +140,28 @@ public class Visualizer {
         }
     }
 
-    public List<? extends SceneImpl> visualizeProjectionContexts(List<? extends ModelProjectionContext> projectionContexts, Task task, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException {
+    public List<Scene> visualizeProjectionContexts(List<? extends ModelProjectionContext> projectionContexts, Task task, OperationResult parentResult)
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
-//        OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeProjectionContexts");
-//        try {
-//            if (!isEquivalentWithoutOperationAttr(primaryDelta, CloneUtil.clone(projCtx.getExecutableDelta()))) {
-//                addIgnoreNull(secondaryDeltas, CloneUtil.clone(projCtx.getExecutableDelta()));
-//            }
-//
-//            resolver.resolve(deltas, task, result);
-//            return visualizeDeltas(deltas, new VisualizationContext(), task, result);
-//        } catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
-//            result.recordFatalError("Couldn't visualize the data structure: " + e.getMessage(), e);
-//            throw e;
-//        } finally {
-//            result.computeStatusIfUnknown();
-//        }
+        final List<Scene> scenes = new ArrayList<>();
+        final OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeProjectionContexts");
 
-        return null;
+        try {
+            for (ModelProjectionContext ctx : projectionContexts) {
+                ObjectDelta executableDelta = CloneUtil.clone(ctx.getExecutableDelta());
+                Scene scene = visualizeDelta(executableDelta, task, result);
+                if (scene != null && !scene.isEmpty()) {
+                    scenes.add(scene);
+                }
+            }
+        } catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
+            result.recordFatalError("Couldn't visualize the data structure: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        return scenes;
     }
 
     @NotNull
@@ -209,9 +210,9 @@ public class Visualizer {
         return visualizeDelta(addDelta, null, null, vc, task, result);
     }
 
-    private List<? extends SceneImpl> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, VisualizationContext context, Task task, OperationResult result)
+    private List<Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, VisualizationContext context, Task task, OperationResult result)
             throws SchemaException {
-        List<SceneImpl> rv = new ArrayList<>(deltas.size());
+        List<Scene> rv = new ArrayList<>(deltas.size());
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
             if (delta.isEmpty()) {
                 continue;
