@@ -33,7 +33,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BaseEventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationMessageAttachmentType;
 
 @Component
 public abstract class BaseHandler<E extends Event, C extends BaseEventHandlerType> implements EventHandler<E, C> {
