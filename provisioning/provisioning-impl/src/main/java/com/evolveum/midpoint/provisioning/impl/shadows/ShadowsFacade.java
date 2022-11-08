@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Facade for the whole "shadows" package.
  *
- * Basically, it only dispatches method calls to a set of helper classes, like {@link GetOperation}, {@link SearchHelper},
+ * Basically, it only dispatches method calls to a set of helper classes, like {@link ShadowGetOperation}, {@link ShadowSearchLikeOperation},
  * {@link ModifyHelper}, {@link DeleteHelper}, and so on.
  *
  * @see com.evolveum.midpoint.provisioning.impl.shadows
@@ -49,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class ShadowsFacade {
 
     static final String OP_DELAYED_OPERATION = ShadowsFacade.class.getName() + ".delayedOperation";
+    static final String OP_HANDLE_OBJECT = ShadowsFacade.class.getName() + ".handleObject";
 
     @Autowired private AddHelper addHelper;
     @Autowired private RefreshHelper refreshHelper;
@@ -56,7 +57,6 @@ public class ShadowsFacade {
     @Autowired private DeleteHelper deleteHelper;
     @Autowired private DefinitionsHelper definitionsHelper;
     @Autowired private StateHelper stateHelper;
-    @Autowired private SearchHelper searchHelper;
     @Autowired private PropagateHelper propagateHelper;
     @Autowired private CompareHelper compareHelper;
     @Autowired private ShadowsLocalBeans localBeans;
@@ -66,10 +66,11 @@ public class ShadowsFacade {
      * @param repositoryShadow (Optional) current shadow in the repository. If not specified, this method will retrieve it by OID.
      * @param identifiersOverride (Optional) identifiers that are known to the caller and that should override
      * the ones (if any) in the shadow.
+     * @param options "read only" option is ignored
      */
     public @NotNull PrismObject<ShadowType> getShadow(
             @NotNull String oid,
-            @Nullable PrismObject<ShadowType> repositoryShadow,
+            @Nullable ShadowType repositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull Task task,
@@ -77,7 +78,7 @@ public class ShadowsFacade {
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         return asPrismObject(
-                new GetOperation(oid, repositoryShadow, identifiersOverride, options, task, localBeans)
+                new ShadowGetOperation(oid, repositoryShadow, identifiersOverride, options, task, localBeans)
                         .execute(result));
     }
 
@@ -133,42 +134,63 @@ public class ShadowsFacade {
         stateHelper.determineShadowState(ctx, shadow);
     }
 
-    public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
-            Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return searchHelper.searchObjectsIterative(query, options, handler, task, result);
-    }
-
-    @NotNull
-    public SearchResultList<PrismObject<ShadowType>> searchObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException,
-            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return searchHelper.searchObjects(query, options, task, result);
-    }
-
-    public SearchResultMetadata searchObjectsIterative(ProvisioningContext ctx, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> handler,
+    public SearchResultMetadata searchObjectsIterative(
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            ResultHandler<ShadowType> handler,
+            Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return searchHelper.searchObjectsIterative(ctx, query, options, handler, result);
+        return ShadowSearchLikeOperation
+                .create(query, options, task, result, localBeans)
+                .executeIterativeSearch(handler, result);
     }
 
-    @NotNull
-    public SearchResultList<PrismObject<ShadowType>> searchObjects(ProvisioningContext ctx, ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, final OperationResult result)
+    public @NotNull SearchResultList<PrismObject<ShadowType>> searchObjects(
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        return searchHelper.searchObjects(ctx, query, options, result);
+        return ShadowSearchLikeOperation
+                .create(query, options, task, result, localBeans)
+                .executeNonIterativeSearch(result);
     }
 
-    public Integer countObjects(ObjectQuery query, Task task, OperationResult result)
+    public SearchResultMetadata searchObjectsIterative(
+            ProvisioningContext ctx,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            ResultHandler<ShadowType> handler,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        return ShadowSearchLikeOperation
+                .create(ctx, query, options, localBeans)
+                .executeIterativeSearch(handler, result);
+    }
+
+    public @NotNull SearchResultList<PrismObject<ShadowType>> searchObjects(
+            ProvisioningContext ctx,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            final OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        return ShadowSearchLikeOperation
+                .create(ctx, query, options, localBeans)
+                .executeNonIterativeSearch(result);
+    }
+
+    public Integer countObjects(
+            ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        return searchHelper.countObjects(query, task, result);
+        return ShadowSearchLikeOperation
+                .create(query, options, task, result, localBeans)
+                .executeCount(result);
     }
 
     public void propagateOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task task,

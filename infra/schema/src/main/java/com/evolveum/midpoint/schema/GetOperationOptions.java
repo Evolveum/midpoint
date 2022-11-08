@@ -957,7 +957,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
     public void setErrorReportingMethod(FetchErrorReportingMethodType method, PrismContext prismContext) {
         if (errorHandling == null) {
-            errorHandling = new FetchErrorHandlingType(prismContext);
+            errorHandling = new FetchErrorHandlingType();
         }
         errorHandling.setReportingMethod(method);
     }

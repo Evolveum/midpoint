@@ -19,7 +19,7 @@
  *
  * The `shadows` package itself is structured like this:
  *
- * Root: {@link com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade} and its helper classes.
+ * Root: {@link com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade} and its helper/operation-scope classes.
  *
  * A special case is live sync and async update, which are invoked outside of the facade. (This will most probably be fixed.)
  *

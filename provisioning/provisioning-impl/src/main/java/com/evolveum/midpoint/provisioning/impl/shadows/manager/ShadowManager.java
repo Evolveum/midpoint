@@ -101,7 +101,6 @@ public class ShadowManager {
     public SearchResultMetadata searchShadowsIterative(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> repoHandler,
             OperationResult result) throws SchemaException {
-
         ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
         return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, true, result);
     }
@@ -111,7 +110,6 @@ public class ShadowManager {
      */
     public SearchResultList<PrismObject<ShadowType>> searchShadows(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
-
         ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
         return repositoryService.searchObjects(ShadowType.class, repoQuery, options, parentResult);
     }

@@ -164,8 +164,7 @@ public class ShadowCaretaker {
                 }
             } else {
                 try {
-                    // We need to convert <attributes> to
-                    // ResourceAttributeContainer
+                    // We need to convert <attributes> to ResourceAttributeContainer
                     ResourceAttributeContainer convertedContainer = ResourceAttributeContainer
                             .convertFromContainer(attributesContainer, objectDefinition);
                     shadow.getValue().replace(attributesContainer, convertedContainer);

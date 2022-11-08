@@ -75,11 +75,39 @@ public interface ProvisioningService {
      * Returns the object with specified OID. (It must fail if there is no object with that OID in the repository.)
      * The functionality vary vastly by the type of object requested.
      *
-     * == ShadowType objects
+     * == {@link ShadowType} objects
      *
      * The resource object shadow may be retrieved from the repository, directly from the resource or a combination of both.
      * The retrieval may fail due to resource failure, network failure or similar external cases. The retrieval may also
      * take relatively long time (e.g. until it times out).
+     *
+     * === Options support
+     *
+     * [%autowidth]
+     * [%header]
+     * |===
+     * | Option                     | Support
+     * | retrieve                   | only as far as attributes are concerned - ignored e.g. for the associations (why?)
+     * | resolve                    | do not use (effects are unclear)
+     * | resolveNames               | do not use (effects are unclear)
+     * | noFetch                    | yes
+     * | raw                        | yes
+     * | tolerateRawData            | do not use
+     * | doNotDiscovery             | yes
+     * | relationalValueSearchQuery | ignored
+     * | allowNotFound              | partially supported
+     * | readOnly                   | ignored (shadows are heavily updated after fetching from repo, anyway)
+     * | pointInTimeType            | yes
+     * | staleness                  | yes
+     * | forceRefresh               | yes
+     * | forceRetry                 | yes
+     * | distinct                   | ignored
+     * | attachDiagData             | do not use (effects are unclear)
+     * | definitionProcessing       | ignored
+     * | iterationMethod            | ignored
+     * | executionPhase             | ignored
+     * | errorHandling              | partially supported
+     * |===
      *
      * === The `raw`, `noFetch`, and regular modes
      *
@@ -143,24 +171,6 @@ public interface ProvisioningService {
      * (Fetched either from the resource or from repository.) The current implementation is not 100% correct, as it tries
      * to apply all attribute deltas even if the base object does not have all the attributes available.
      *
-     * === Options respected
-     *
-     * [%autowidth]
-     * [%header]
-     * |===
-     * | Option          | Note
-     * | retrieve        | Only as far as attributes are concerned. Ignored e.g. for the associations.
-     * | noFetch         |
-     * | raw             |
-     * | doNotDiscovery  |
-     * | allowNotFound   | Partially
-     * | pointInTimeType |
-     * | staleness       |
-     * | forceRefresh    |
-     * | forceRetry      |
-     * | errorHandling   |
-     * |===
-     *
      * === Potential side effects
      *
      * . Quick or full shadow refresh - before the GET issued against resource (or after the repo load if noFetch is set).
@@ -209,16 +219,32 @@ public interface ProvisioningService {
      * . "Is complete in repo" means that both capabilities and schema are fetched - see
      * {@link ResourceTypeUtil#isComplete(ResourceType)}.
      *
-     * === Options respected
+     * === Options support
      *
      * [%autowidth]
      * [%header]
      * |===
-     * | Option          | Note
-     * | noFetch         |
-     * | raw             |
-     * | allowNotFound   | Partially
-     * | readOnly        |
+     * | Option                     | Support
+     * | retrieve                   | do not use (effects are unclear)
+     * | resolve                    | do not use (effects are unclear)
+     * | resolveNames               | do not use (effects are unclear)
+     * | noFetch                    | yes
+     * | raw                        | yes
+     * | tolerateRawData            | do not use
+     * | doNotDiscovery             | ignored
+     * | relationalValueSearchQuery | ignored
+     * | allowNotFound              | partially supported
+     * | readOnly                   | yes
+     * | pointInTimeType            | ignored
+     * | staleness                  | ignored
+     * | forceRefresh               | ignored
+     * | forceRetry                 | ignored
+     * | distinct                   | ignored
+     * | attachDiagData             | do not use (effects are unclear)
+     * | definitionProcessing       | ignored
+     * | iterationMethod            | ignored
+     * | executionPhase             | ignored
+     * | errorHandling              | ignored
      * |===
      *
      * === Potential side effects
@@ -410,7 +436,37 @@ public interface ProvisioningService {
      * The method call should fail if object type is wrong. Should fail if the query is wrong, e.g. if it contains
      * a reference to an unknown attribute.
      *
-     * == Specifying the "coordinates"
+     * == Processing of {@link ShadowType} objects
+     *
+     * === Options support
+     *
+     * [%autowidth]
+     * [%header]
+     * |===
+     * | Option                     | Support
+     * | retrieve                   | for attributes and associations
+     * | resolve                    | do not use (effects are unclear)
+     * | resolveNames               | do not use (effects are unclear)
+     * | noFetch                    | yes
+     * | raw                        | yes
+     * | tolerateRawData            | do not use
+     * | doNotDiscovery             | ignored (TODO check if it is really ignored)
+     * | relationalValueSearchQuery | ignored
+     * | allowNotFound              | ignored
+     * | readOnly                   | ignored (shadows are heavily updated after fetching from repo, anyway)
+     * | pointInTimeType            | ignored (no futurization)
+     * | staleness                  | limited support
+     * | forceRefresh               | ignored
+     * | forceRetry                 | ignored
+     * | distinct                   | supported for repository search, ignored for resource search
+     * | attachDiagData             | do not use (effects are unclear)
+     * | definitionProcessing       | ignored
+     * | iterationMethod            | ignored
+     * | executionPhase             | ignored
+     * | errorHandling              | yes
+     * |===
+     *
+     * === Specifying the "coordinates"
      *
      * When dealing with shadow queries in non-raw mode, there are the following requirements on the query:
      *
@@ -423,10 +479,9 @@ public interface ProvisioningService {
      *
      * (For the raw mode the requirements are currently the same; however, we may relax them in the future.)
      *
-     * == Interpreting the query for on-resource search
+     * === Interpreting the query for on-resource search
      *
-     * === If `kind` is specified
-     *
+     * ==== If `kind` is specified
      * In this case, a specific _object type_ definition is looked up: either by `kind` and `intent` (if the latter is present),
      * or - if `intent` is not specified - by looking for a type marked as "default for its kind". The search is then executed
      * against this object type, taking its delineation (object class, base context, additional filters) into account.
@@ -434,35 +489,51 @@ public interface ProvisioningService {
      * If `objectClass` is specified as well, it is just checked against the value in given object type definition. (Hence it
      * is not necessary nor advisable to specify object class when kind is specified.)
      *
-     * === If only `objectClass` is specified
-     *
+     * ==== If only `objectClass` is specified
      * Here the implementation searches for all objects of given `objectClass`. However, there are few things that must be done
      * during the search, for example determining "attributes to get" i.e. what attributes should be explicitly requested.
      * These things depend on object class or object type definition. Therefore, the implementation has to look up appropriate
      * definition first.
      *
-     * It does so by looking up raw or refined object class definition. If there is a type definition marked as "default for
-     * object class", it is used. However, if such a type definition is found, the delineation (base context, filters, and so on)
-     * are ignored: as stated above, all objects of given object class are searched for.
+     * It does so by looking up raw or refined object class definition. Also, if there is a type definition marked as "default for
+     * object class", it is used. However, even if such a type definition is found, the delineation (base context, filters, and
+     * so on) are ignored: as stated above, all objects of given object class are searched for.
      *
      * See {@link ResourceSchemaUtil#findDefinitionForBulkOperation(ResourceType, ShadowKindType, String, QName)}
      * and {@link ResourceSchemaUtil#findObjectDefinitionPrecisely(ResourceType, ShadowKindType, String, QName)} for
      * the details.
      *
-     * == Extra resource objects
+     * === Extra resource objects
      *
      * Note that when using kind and/or intent, the method may return objects that do not match these conditions. It depends
-     * on how precisely is the respective type definition, namely if its delineation: base context, hierarchy scope,
+     * on how precise is the respective type definition, namely if its delineation: base context, hierarchy scope,
      * and/or object filter(s) precisely describe objects that belong to this type. If these features do not describe
      * the type adequately (e.g. if the classification has to be done using conditions written in Groovy), then the
      * returned set of objects may contain ones that are not of requested type. It is then the responsibility of the
      * caller to sort these extra objects out.
+     *
+     * === Potential side effects
+     *
+     * . Shadow is updated with the information obtained from the resource: cached identifiers and/or other attributes,
+     * probably `dead` and `exists` properties.
+     * . #TODO#
+     *
+     * === Effects of development and execution mode
+     *
+     * #TODO#
      *
      * == Processing of {@link ResourceType} objects
      *
      * Just like the {@link #getObject(Class, String, Collection, Task, OperationResult)} method, the resources returned from
      * this one are processed according to the inheritance rules, unless the `raw` mode is applied. Beware that - obviously -
      * the search query is applied to find the original resource objects, not the "processed" ones.
+     *
+     * #TODO expand this part#
+     * #TODO side effects#
+     *
+     * === Effects of development and execution mode
+     *
+     * #TODO#
      *
      * == Fetch result
      *
@@ -489,6 +560,25 @@ public interface ProvisioningService {
             SecurityViolationException, ExpressionEvaluationException;
 
     /**
+     * Counts the objects of the respective type.
+     *
+     * == {@link ShadowType} objects
+     *
+     * These are counted in repository or on resource (if it has appropriate capability).
+     * #TODO the description, including the options#
+     *
+     * === Potential side effects
+     *
+     * #TODO#
+     *
+     * === Effects of development and execution mode
+     *
+     * #TODO#
+     *
+     * == Other object types
+     *
+     * These are counted simply in the repository service.
+     *
      * @param query See {@link #searchObjects(Class, ObjectQuery, Collection, Task, OperationResult)} description.
      * @param options If noFetch or raw, we count only shadows from the repository.
      */

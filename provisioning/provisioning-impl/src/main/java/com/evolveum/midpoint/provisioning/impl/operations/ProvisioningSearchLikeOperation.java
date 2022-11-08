@@ -122,11 +122,8 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
             return createNoneFilterCount();
         }
 
-        if (ShadowType.class.isAssignableFrom(type)
-                && !GetOperationOptions.isNoFetch(rootOptions)
-                && !GetOperationOptions.isRaw(rootOptions)) {
-            // There is a irregularity: the shadow facade does not treat raw/no-fetch counting (like it does for searching)
-            return beans.shadowsFacade.countObjects(query, task, result);
+        if (ShadowType.class.isAssignableFrom(type)) {
+            return beans.shadowsFacade.countObjects(query, options, task, result);
         } else {
             return beans.cacheRepositoryService.countObjects(type, query, options, result);
         }

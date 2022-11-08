@@ -64,9 +64,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * (The processing between {@link ProvisioningServiceImpl} and this class is minimal. So the contract there is quite relevant
  * for what is done here.)
  */
-class GetOperation {
+class ShadowGetOperation {
 
-    private static final Trace LOGGER = TraceManager.getTrace(GetOperation.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowGetOperation.class);
 
     /** OID of the shadow to be gotten. */
     @NotNull private final String oid;
@@ -80,7 +80,9 @@ class GetOperation {
     /** If present, overwrites the identifiers from the {@link #repositoryShadow}. */
     @Nullable private final Collection<ResourceAttribute<?>> identifiersOverride;
 
+    /** The "readOnly" is never set. This is because we need to modify the shadow during post-processing. */
     @Nullable private final Collection<SelectorOptions<GetOperationOptions>> options;
+
     @Nullable private final GetOperationOptions rootOptions;
     @NotNull private final Task task;
     @NotNull private final ShadowsLocalBeans localBeans;
@@ -89,18 +91,19 @@ class GetOperation {
     /** Provisioning context derived from the repository shadow. */
     private ProvisioningContext ctx;
 
-    GetOperation(
+    ShadowGetOperation(
             @NotNull String oid,
-            @Nullable PrismObject<ShadowType> repositoryShadow,
+            @Nullable ShadowType repositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull Task task,
             @NotNull ShadowsLocalBeans localBeans) {
         this.oid = oid;
-        this.repositoryShadow = asObjectable(repositoryShadow);
+        this.repositoryShadow = repositoryShadow;
         this.identifiersOverride = identifiersOverride;
-        this.options = options;
-        this.rootOptions = SelectorOptions.findRootOptions(options);
+        this.options = GetOperationOptions.updateToReadWrite(options);
+        this.rootOptions = SelectorOptions.findRootOptions(this.options);
+        assert !GetOperationOptions.isReadOnly(rootOptions);
         this.task = task;
         this.localBeans = localBeans;
         this.now = localBeans.clock.currentTimeXMLGregorianCalendar();
@@ -116,7 +119,7 @@ class GetOperation {
             return repositoryShadow;
         }
 
-        repositoryShadow = ctx.applyAttributesDefinitionConsideringImmutability(repositoryShadow);
+        ctx.applyAttributesDefinition(repositoryShadow);
 
         if (isRaw()) {
             return repositoryShadow;
@@ -174,6 +177,9 @@ class GetOperation {
             LOGGER.trace("Start getting '{}' (opts {}); identifiers override = {}",
                     repositoryShadow, options, identifiersOverride);
             argCheck(oid.equals(repositoryShadow.getOid()), "Provided OID is not equal to OID of repository shadow");
+            if (repositoryShadow.isImmutable()) {
+                repositoryShadow = repositoryShadow.clone();
+            }
         } else {
             LOGGER.trace("Start getting shadow '{}' (opts {}); identifiers override = {}", oid, options, identifiersOverride);
             // Get the shadow from repository. There are identifiers that we need for accessing the object by UCF.
@@ -402,6 +408,11 @@ class GetOperation {
         }
     }
 
+    /**
+     * Analogous to {@link ShadowSearchLikeOperation#processRepoShadow(PrismObject, OperationResult)}.
+     *
+     * TODO shouldn't we try to set the "protected" flag here (like we do in the search-like operation)?
+     */
     private @NotNull ShadowType returnCached(String reason) throws SchemaException, ConfigurationException {
         LOGGER.trace("Returning cached (repository) version of shadow {} because of: {}", repositoryShadow, reason);
         repositoryShadow = ctx.futurizeShadow(repositoryShadow, null, options, now);

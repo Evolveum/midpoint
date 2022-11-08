@@ -313,7 +313,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
                     // TODO why we use shadow cache and not resource object converter?!
                     resourceObject = beans.shadowsFacade.getShadow(
                             repoShadow.getOid(),
-                            repoShadow.asPrismObject(),
+                            repoShadow,
                             getIdentifiers(),
                             options,
                             context.getTask(),

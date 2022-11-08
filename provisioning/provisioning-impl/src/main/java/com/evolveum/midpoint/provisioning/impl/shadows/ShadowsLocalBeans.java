@@ -15,6 +15,7 @@ import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ class ShadowsLocalBeans {
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired ShadowCaretaker shadowCaretaker;
     @Autowired ShadowManager shadowManager;
+    @Autowired ExpressionFactory expressionFactory;
 
     @Autowired
     @Qualifier("cacheRepositoryService")

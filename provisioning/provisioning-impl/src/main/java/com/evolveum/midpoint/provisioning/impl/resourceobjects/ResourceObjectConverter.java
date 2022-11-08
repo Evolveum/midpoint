@@ -95,6 +95,7 @@ public class ResourceObjectConverter {
     private static final String OPERATION_REFRESH_OPERATION_STATUS = DOT_CLASS + "refreshOperationStatus";
     private static final String OPERATION_HANDLE_CHANGE = DOT_CLASS + "handleChange";
     static final String OP_SEARCH_RESOURCE_OBJECTS = DOT_CLASS + "searchResourceObjects";
+    static final String OP_COUNT_RESOURCE_OBJECTS = DOT_CLASS + "countResourceObjects";
 
     @Autowired private EntitlementConverter entitlementConverter;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
@@ -516,7 +517,8 @@ public class ResourceObjectConverter {
     }
 
     @Nullable
-    private Collection<? extends ResourceAttribute<?>> getIdentifiers(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    private Collection<? extends ResourceAttribute<?>> getIdentifiers(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
+            throws SchemaException, ConfigurationException {
         if (ShadowUtil.isAttributesContainerRaw(shadow)) {
             // This could occur if shadow was re-read during op state processing
             shadowCaretaker.applyAttributesDefinition(ctx, shadow);
@@ -1046,7 +1048,11 @@ public class ResourceObjectConverter {
     /**
      *  Converts ADD/DELETE VALUE operations into REPLACE VALUE, if needed
      */
-    private Collection<Operation> convertToReplace(ProvisioningContext ctx, Collection<Operation> operations, PrismObject<ShadowType> currentShadow, boolean requireAllAttributes) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    private Collection<Operation> convertToReplace(
+            ProvisioningContext ctx,
+            Collection<Operation> operations,
+            PrismObject<ShadowType> currentShadow,
+            boolean requireAllAttributes) throws SchemaException {
         List<Operation> retval = new ArrayList<>(operations.size());
         for (Operation operation : operations) {
             if (operation instanceof PropertyModificationOperation) {
@@ -1411,11 +1417,20 @@ public class ResourceObjectConverter {
             @Nullable ObjectQuery query,
             boolean fetchAssociations,
             @Nullable FetchErrorReportingMethodType errorReportingMethod,
-            @NotNull OperationResult parentResult) throws SchemaException,
-            CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException,
-            ExpressionEvaluationException {
-
+            @NotNull OperationResult parentResult)
+            throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         return new ResourceObjectSearchOperation(ctx, resultHandler, query, fetchAssociations, errorReportingMethod, beans)
+                .execute(parentResult);
+    }
+
+    public Integer countResourceObjects(
+            @NotNull ProvisioningContext ctx,
+            @Nullable ObjectQuery query,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        return new ResourceObjectCountOperation(ctx, query, beans)
                 .execute(parentResult);
     }
 
