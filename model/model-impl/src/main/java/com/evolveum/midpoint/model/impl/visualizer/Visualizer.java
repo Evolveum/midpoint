@@ -514,7 +514,7 @@ public class Visualizer {
             }
         }
         scene.setSourceValue(value);
-        visualizeItems(scene, value.getItems(), false, context, task, result);
+        visualizeItems(scene, value.getItems(), true, context, task, result);
 
         owningScene.addPartialScene(scene);
     }
