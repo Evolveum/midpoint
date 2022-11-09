@@ -138,7 +138,7 @@ class AddHelper {
             throw e;
         }
         if (!(attributesContainer instanceof ResourceAttributeContainer)) {
-            shadowCaretaker.applyAttributesDefinition(ctx, resourceObjectToAdd);
+            ctx.applyAttributesDefinition(resourceObjectToAdd);
         }
 
         preAddChecks(ctx, resourceObjectToAdd, opState, parentResult);
@@ -147,7 +147,7 @@ class AddHelper {
 
         entitlementsHelper.preprocessEntitlements(ctx, resourceObjectToAdd, parentResult);
 
-        shadowCaretaker.applyAttributesDefinition(ctx, resourceObjectToAdd);
+        ctx.applyAttributesDefinition(resourceObjectToAdd);
         shadowManager.setKindIfNecessary(resourceObjectToAdd.asObjectable(), ctx);
         accessChecker.checkAdd(ctx, resourceObjectToAdd, parentResult);
         PrismObject<ShadowType> addedShadow = null;

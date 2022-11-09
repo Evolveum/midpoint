@@ -60,16 +60,20 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
 
         when("they are retrieved the first time");
         List<PrismObject<ShadowType>> accounts = retrieveAndCheckAccounts(
-                RESOURCE_DUMMY_PROPOSED, "test100", "default",
-                "_test100", "testing", task, result);
+                RESOURCE_DUMMY_PROPOSED,
+                "test100", "default", false,
+                "_test100", "testing", false,
+                task, result);
 
         when("their intents are broken (swapped)");
         swapIntents(accounts, result);
 
         and("they are retrieved again (by search)");
         retrieveAndCheckAccounts(
-                RESOURCE_DUMMY_PROPOSED, "test100", "default",
-                "_test100", "testing", task, result);
+                RESOURCE_DUMMY_PROPOSED,
+                "test100", "default", false,
+                "_test100", "testing", false,
+                task, result);
 
         when("their intents are broken (swapped) again");
         swapIntents(accounts, result);
@@ -77,14 +81,16 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
         and("they are retrieved again (by get)");
         retrieveAndCheckAccountsByGet(
                 accounts,
-                "test100", "default",
-                "_test100", "testing",
+                "test100", "default", false,
+                "_test100", "testing", false,
                 task, result);
     }
 
     private List<PrismObject<ShadowType>> retrieveAndCheckAccounts(
-            DummyTestResource resource, String firstName, String firstIntent,
-            String secondName, String secondIntent, Task task, OperationResult result)
+            DummyTestResource resource,
+            String firstName, String firstIntent, boolean firstProduction,
+            String secondName, String secondIntent, boolean secondProduction,
+            Task task, OperationResult result)
             throws CommonException {
         var accounts = provisioningService.searchObjects(
                 ShadowType.class,
@@ -109,17 +115,19 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
 
         assertShadowAfter(first)
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(firstIntent);
+                .assertIntent(firstIntent)
+                .assertInProduction(firstProduction);
         assertShadowAfter(second)
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(secondIntent);
+                .assertIntent(secondIntent)
+                .assertInProduction(secondProduction);
         return accounts;
     }
 
     private void retrieveAndCheckAccountsByGet(
             List<PrismObject<ShadowType>> accounts,
-            String firstName, String firstIntent,
-            String secondName, String secondIntent,
+            String firstName, String firstIntent, boolean firstProduction,
+            String secondName, String secondIntent, boolean secondProduction,
             Task task, OperationResult result)
             throws CommonException {
 
@@ -143,10 +151,12 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
 
         assertShadowAfter(first)
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(firstIntent);
+                .assertIntent(firstIntent)
+                .assertInProduction(firstProduction);
         assertShadowAfter(second)
                 .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent(secondIntent);
+                .assertIntent(secondIntent)
+                .assertInProduction(secondProduction);
     }
 
     private void swapIntents(List<PrismObject<ShadowType>> accounts, OperationResult result) throws CommonException {
@@ -179,24 +189,28 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
 
         when("they are retrieved the first time");
         List<PrismObject<ShadowType>> accounts = retrieveAndCheckAccounts(
-                RESOURCE_DUMMY_ACTIVE, "test110", "default",
-                "_test110", "testing", task, result);
+                RESOURCE_DUMMY_ACTIVE,
+                "test110", "default", true,
+                "_test110", "testing", true,
+                task, result);
 
         when("their types are broken (swapped)");
         swapIntents(accounts, result);
 
         and("they are retrieved again (by search)");
         retrieveAndCheckAccounts(
-                RESOURCE_DUMMY_ACTIVE, "test110", "testing",
-                "_test110", "default", task, result);
+                RESOURCE_DUMMY_ACTIVE,
+                "test110", "testing", true,
+                "_test110", "default", true,
+                task, result);
 
         // No swapping of intents, as they should be still swapped
 
         and("they are retrieved again (by get)");
         retrieveAndCheckAccountsByGet(
                 accounts,
-                "test110", "testing",
-                "_test110", "default",
+                "test110", "testing", true,
+                "_test110", "default", true,
                 task, result);
     }
 }

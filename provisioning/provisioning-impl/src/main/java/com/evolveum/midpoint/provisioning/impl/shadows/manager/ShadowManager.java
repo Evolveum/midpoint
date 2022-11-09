@@ -316,6 +316,7 @@ public class ShadowManager {
      * - shadow name,
      * - aux object classes,
      * - exists flag,
+     * - "production" flag,
      * - caching metadata.
      *
      * Retrieves index-only attributes from repo if needed.

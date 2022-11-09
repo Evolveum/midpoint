@@ -98,7 +98,7 @@ class RefreshHelper {
         LOGGER.trace("Refreshing {}", repoShadow);
         ProvisioningContext ctx = ctxFactory.createForShadow(repoShadow, task, result);
         ctx.assertDefinition();
-        shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
+        ctx.applyAttributesDefinition(repoShadow);
 
         try {
             shadowManager.refreshProvisioningIndexes(ctx, repoShadow, true, result);
@@ -349,7 +349,7 @@ class RefreshHelper {
         expirePendingOperations(ctx, repoShadow, shadowDelta, now);
 
         if (!shadowDelta.isEmpty()) {
-            shadowCaretaker.applyAttributesDefinition(ctx, shadowDelta);
+            ctx.applyAttributesDefinition(shadowDelta);
             shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
         }
 

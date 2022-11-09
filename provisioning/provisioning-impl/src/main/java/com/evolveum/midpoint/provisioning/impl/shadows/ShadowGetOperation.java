@@ -88,7 +88,7 @@ class ShadowGetOperation {
     @NotNull private final ShadowsLocalBeans localBeans;
     @NotNull private final XMLGregorianCalendar now;
 
-    /** Provisioning context derived from the repository shadow. */
+    /** Provisioning context derived from the repository shadow. May be updated after classification (if there's one). */
     private ProvisioningContext ctx;
 
     ShadowGetOperation(
@@ -468,15 +468,15 @@ class ShadowGetOperation {
     }
 
     private void updateShadowInRepository(ShadowType resourceObject, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
-            ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
             LOGGER.trace("Resource object fetched from resource:\n{}", resourceObject.debugDump(1));
         }
         repositoryShadow =
                 localBeans.shadowManager.updateShadowInRepository(
-                        ctx, resourceObject, null, repositoryShadow, repositoryShadow.getShadowLifecycleState(), result);
+                        ctx, resourceObject, null, repositoryShadow,
+                        repositoryShadow.getShadowLifecycleState(), result);
         LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDumpLazily(1));
     }
 

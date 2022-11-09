@@ -120,7 +120,7 @@ class DeleteHelper {
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        shadowCaretaker.applyAttributesDefinition(ctx, opState.getRepoShadow());
+        ctx.applyAttributesDefinition(opState.getRepoShadow());
 
         PendingOperationType duplicateOperation =
                 shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, opState, result);

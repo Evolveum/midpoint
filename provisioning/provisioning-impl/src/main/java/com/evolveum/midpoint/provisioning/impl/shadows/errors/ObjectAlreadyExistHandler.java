@@ -124,7 +124,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             final List<PrismObject<ShadowType>> conflictingRepoShadows = findConflictingShadowsInRepo(query, result);
             PrismObject<ShadowType> oldShadow = selectLiveShadow(conflictingRepoShadows);
             if (oldShadow != null) {
-                shadowCaretaker.applyAttributesDefinition(ctx, oldShadow);
+                ctx.applyAttributesDefinition(oldShadow);
             }
 
             LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}", ShadowUtil.shortDumpShadowLazily(newShadow));

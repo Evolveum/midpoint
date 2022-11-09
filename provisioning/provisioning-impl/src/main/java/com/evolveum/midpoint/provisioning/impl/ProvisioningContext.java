@@ -11,6 +11,8 @@ import java.util.function.Supplier;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.util.*;
 
@@ -169,9 +171,12 @@ public class ProvisioningContext {
         this.propagation = value;
     }
 
-    @NotNull
-    public ResourceType getResource() {
+    public @NotNull ResourceType getResource() {
         return resource;
+    }
+
+    public @NotNull ObjectReferenceType getResourceRef() {
+        return ObjectTypeUtil.createObjectRef(resource);
     }
 
     public @NotNull ResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
@@ -452,17 +457,18 @@ public class ProvisioningContext {
         return ItemPath.create(components);
     }
 
-    public CachingStrategyType getCachingStrategy() {
-        CachingPolicyType caching = resource.getCaching();
-        if (caching == null || caching.getCachingStrategy() == null) {
+    public @NotNull CachingStrategyType getCachingStrategy() {
+        CachingPolicyType cachingPolicy = resource.getCaching();
+        CachingStrategyType explicitCachingStrategy = cachingPolicy != null ? cachingPolicy.getCachingStrategy() : null;
+        if (explicitCachingStrategy != null) {
+            return explicitCachingStrategy;
+        } else {
             ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
             if (readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly())) {
                 return CachingStrategyType.PASSIVE;
             } else {
                 return CachingStrategyType.NONE;
             }
-        } else {
-            return caching.getCachingStrategy();
         }
     }
 
@@ -479,9 +485,18 @@ public class ProvisioningContext {
     }
 
     // Preliminary code
-    public boolean isInProduction() {
+    public boolean isResourceInProduction() {
         return LifecycleUtil.isInProduction(
                 resource.getLifecycleState());
+    }
+
+    // Preliminary code
+    public boolean isObjectDefinitionInProduction() {
+        if (!isResourceInProduction()) {
+            return false; // We ignore any object class/type level settings here.
+        }
+        return resourceObjectDefinition == null
+                || LifecycleUtil.isInProduction(resourceObjectDefinition.getLifecycleState());
     }
 
     public void checkNotInMaintenance() throws MaintenanceException {
@@ -572,18 +587,19 @@ public class ProvisioningContext {
 
     // Methods delegated to shadow caretaker (convenient to be here, but not sure if it's ok...)
 
-    public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow) throws SchemaException, ConfigurationException {
+    public ProvisioningContext applyAttributesDefinition(@NotNull PrismObject<ShadowType> shadow)
+            throws SchemaException, ConfigurationException {
         return getCaretaker().applyAttributesDefinition(this, shadow);
     }
 
-    public @NotNull ShadowType applyAttributesDefinitionConsideringImmutability(@NotNull ShadowType shadow)
+    public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
-        if (shadow.isImmutable()) {
-            return getCaretaker().applyAttributesDefinitionToImmutable(this, shadow);
-        } else {
-            getCaretaker().applyAttributesDefinition(this, shadow.asPrismObject());
-            return shadow;
-        }
+        return getCaretaker().applyAttributesDefinition(this, shadow);
+    }
+
+    public void applyAttributesDefinition(@NotNull ObjectDelta<ShadowType> delta)
+            throws SchemaException, ConfigurationException {
+        getCaretaker().applyAttributesDefinition(this, delta);
     }
 
     private @NotNull ShadowCaretaker getCaretaker() {

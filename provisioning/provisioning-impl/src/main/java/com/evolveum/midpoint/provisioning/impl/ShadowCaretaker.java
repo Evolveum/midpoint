@@ -57,8 +57,9 @@ public class ShadowCaretaker {
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
 
+    // Please use this method only via ProvisioningContext
     public void applyAttributesDefinition(ProvisioningContext ctx, ObjectDelta<ShadowType> delta)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException {
         if (delta.isAdd()) {
             applyAttributesDefinition(ctx, delta.getObjectToAdd());
         } else if (delta.isModify()) {
@@ -135,18 +136,13 @@ public class ShadowCaretaker {
         }
     }
 
-    @NotNull ShadowType applyAttributesDefinitionToImmutable(ProvisioningContext ctx, ShadowType shadow)
-            throws SchemaException, ConfigurationException {
-        ShadowType mutableShadow = shadow.clone();
-        applyAttributesDefinition(ctx, mutableShadow.asPrismObject());
-        return mutableShadow.asPrismObject().createImmutableClone().asObjectable();
-    }
-
+    // Please use this method only via ProvisioningContext
     public ProvisioningContext applyAttributesDefinition(
             @NotNull ProvisioningContext ctx, @NotNull ShadowType shadow) throws SchemaException, ConfigurationException {
         return applyAttributesDefinition(ctx, shadow.asPrismObject());
     }
 
+    // Please use this method only via ProvisioningContext
     public ProvisioningContext applyAttributesDefinition(
             @NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> shadow)
             throws SchemaException, ConfigurationException {

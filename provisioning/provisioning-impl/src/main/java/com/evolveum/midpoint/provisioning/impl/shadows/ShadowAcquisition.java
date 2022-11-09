@@ -37,6 +37,9 @@ import static com.evolveum.midpoint.schema.util.ShadowUtil.shortDumpShadowLazily
  * 2. Resource object appeared as part of live sync or async update process.
  * 3. Resource object was found during entitlement conversion (attribute -> association).
  *
+ * Note that a different process is followed during {@link ShadowGetOperation}: we have a shadow first (otherwise we could not
+ * ask for `getObject`), so we have no need to acquire one there. We just update the shadow after getting the resource object.
+ *
  * This class also takes care of _object classification_. I am not sure if this is the right approach, though.
  *
  * Note: Maybe we can make this class an inner class of {@link ShadowAcquisitionHelper}?

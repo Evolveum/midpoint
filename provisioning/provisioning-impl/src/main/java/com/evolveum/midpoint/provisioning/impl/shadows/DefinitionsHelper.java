@@ -83,14 +83,14 @@ class DefinitionsHelper {
         } else {
             ctx = ctxFactory.createForShadow(shadow, task, result);
         }
-        shadowCaretaker.applyAttributesDefinition(ctx, delta);
+        ctx.applyAttributesDefinition(delta);
     }
 
     public void applyDefinition(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, parentResult);
-        shadowCaretaker.applyAttributesDefinition(ctx, shadow);
+        ctx.applyAttributesDefinition(shadow);
     }
 
     public void applyDefinition(ObjectQuery query, Task task, OperationResult result)

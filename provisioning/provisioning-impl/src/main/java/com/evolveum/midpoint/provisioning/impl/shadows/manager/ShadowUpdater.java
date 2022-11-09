@@ -7,6 +7,25 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
+import static com.evolveum.midpoint.prism.delta.PropertyDeltaCollectionsUtil.findPropertyDelta;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -22,16 +41,15 @@ import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ShadowDeathEvent;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
-import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
@@ -42,33 +60,12 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.prism.delta.PropertyDeltaCollectionsUtil.findPropertyDelta;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
-import static com.evolveum.midpoint.util.DebugUtil.*;
 
 /**
  * Updates shadows as needed.
@@ -92,7 +89,6 @@ class ShadowUpdater {
     @Autowired private ShadowDeltaComputer shadowDeltaComputer;
     @Autowired private ShadowFinder shadowFinder;
     @Autowired private ShadowCreator shadowCreator;
-    @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired private Helper helper;
     @Autowired private CreatorUpdaterHelper creatorUpdaterHelper;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;

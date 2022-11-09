@@ -320,6 +320,14 @@ public interface ResourceObjectDefinition
      * @see ResourceObjectTypeDefinitionType#getMappingsEvaluation()
      */
     @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases();
+
+    /**
+     * What lifecycle state is the (refined) object class or object type definition?
+     * Raw object class definition should always return `null` here.
+     *
+     * @see ResourceObjectTypeDefinitionType#getLifecycleState()
+     */
+    @Nullable String getLifecycleState();
     //endregion
 
     //region Creating artifacts (shadow, query, PCD, instances, ...)

@@ -69,7 +69,7 @@ class CommonHelper {
             throw new ConfigurationException("Requested non-existing 'runAs' shadow", e);
         }
         ProvisioningContext runAsCtx = ctxFactory.createForShadow(runAsShadow.asObjectable(), ctx.getResource(), ctx.getTask());
-        shadowCaretaker.applyAttributesDefinition(runAsCtx, runAsShadow);
+        runAsCtx.applyAttributesDefinition(runAsShadow);
         ResourceObjectIdentification runAsIdentification =
                 ResourceObjectIdentification.createFromShadow(
                         runAsCtx.getObjectDefinitionRequired(), runAsShadow.asObjectable());

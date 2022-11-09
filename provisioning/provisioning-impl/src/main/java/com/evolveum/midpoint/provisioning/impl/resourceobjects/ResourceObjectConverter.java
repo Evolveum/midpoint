@@ -512,7 +512,7 @@ public class ResourceObjectConverter {
             throws SchemaException, ConfigurationException {
         if (ShadowUtil.isAttributesContainerRaw(shadow)) {
             // This could occur if shadow was re-read during op state processing
-            shadowCaretaker.applyAttributesDefinition(ctx, shadow);
+            ctx.applyAttributesDefinition(shadow);
         }
         return ShadowUtil.getAllIdentifiers(shadow);
     }
@@ -953,8 +953,8 @@ public class ResourceObjectConverter {
             boolean fetchEntitlements,
             PrismObject<ShadowType> repoShadow,
             OperationResult parentResult)
-                    throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        PrismObject<ShadowType> currentShadow;
+            throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         List<ResourceAttributeDefinition<?>> neededExtraAttributes = new ArrayList<>();
         for (Operation operation : operations) {
             ResourceAttributeDefinition<?> rad = getAttributeDefinitionIfApplicable(operation, ctx.getObjectDefinition());
@@ -965,9 +965,11 @@ public class ResourceObjectConverter {
 
         AttributesToReturn attributesToReturn = new AttributesToReturn();
         attributesToReturn.setAttributesToReturn(neededExtraAttributes);
+        ShadowType currentShadow;
         try {
-            currentShadow = fetchResourceObject(ctx, identifiers,
-                attributesToReturn, repoShadow, fetchEntitlements, parentResult);
+            currentShadow =
+                    fetchResourceObject(ctx, identifiers, attributesToReturn, repoShadow, fetchEntitlements, parentResult)
+                            .asObjectable();
         } catch (ObjectNotFoundException e) {
             // This may happen for semi-manual connectors that are not yet up to date.
             // No big deal. We will have to work without it.
@@ -977,10 +979,9 @@ public class ResourceObjectConverter {
         if (repoShadow != null) {
             currentShadow.setOid(repoShadow.getOid());
         }
-        currentShadow.asObjectable().setName(
-                new PolyStringType(
-                        ShadowUtil.determineShadowNameRequired(currentShadow)));
-        return currentShadow;
+        currentShadow.setName(
+                ShadowUtil.determineShadowNameRequired(currentShadow));
+        return currentShadow.asPrismObject();
     }
 
     private Collection<ResourceAttributeDefinition<?>> determineReadReplace(

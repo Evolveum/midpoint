@@ -152,7 +152,7 @@ class EntitlementsHelper {
         } catch (ObjectNotFoundException e) {
             throw e.wrap("Couldn't resolve entitlement association OID in " + association + " in " + desc);
         }
-        shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
+        ctx.applyAttributesDefinition(repoShadow);
         transplantIdentifiers(association, repoShadow);
     }
 

@@ -62,7 +62,7 @@ class PropagateHelper {
     @Autowired private ModifyHelper modifyHelper;
     @Autowired private DeleteHelper deleteHelper;
 
-    public void propagateOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task task,
+    void propagateOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task task,
             OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
             SecurityViolationException, PolicyViolationException, EncryptionException {
@@ -81,7 +81,8 @@ class PropagateHelper {
 
         List<PendingOperationType> pendingExecutionOperations = new ArrayList<>();
         boolean triggered = false;
-        for (PendingOperationType pendingOperation: shadow.asObjectable().getPendingOperation()) {
+        ShadowType shadowBean = shadow.asObjectable();
+        for (PendingOperationType pendingOperation : shadowBean.getPendingOperation()) {
             PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();
             if (executionStatus == PendingOperationExecutionStatusType.EXECUTION_PENDING) {
                 pendingExecutionOperations.add(pendingOperation);
@@ -105,7 +106,7 @@ class PropagateHelper {
         for (PendingOperationType pendingOperation: sortedOperations) {
             ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
             ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
-            definitionsHelper.applyDefinition(pendingDelta, shadow.asObjectable(), task, result);
+            definitionsHelper.applyDefinition(pendingDelta, shadowBean, task, result);
             if (operationDelta == null) {
                 operationDelta = pendingDelta;
             } else {
@@ -116,8 +117,8 @@ class PropagateHelper {
 
         ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
         ctx.setPropagation(true);
-        shadowCaretaker.applyAttributesDefinition(ctx, shadow);
-        shadowCaretaker.applyAttributesDefinition(ctx, operationDelta);
+        ctx.applyAttributesDefinition(shadowBean);
+        ctx.applyAttributesDefinition(operationDelta);
         LOGGER.trace("Merged operation for {}:\n{} ", shadow, operationDelta.debugDumpLazily(1));
 
         if (operationDelta.isAdd()) {

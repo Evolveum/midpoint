@@ -151,7 +151,7 @@ class ModifyHelper {
             return repoShadow.getOid();
         }
 
-        shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
+        ctx.applyAttributesDefinition(repoShadow);
 
         accessChecker.checkModify(ctx, modifications, parentResult);
 

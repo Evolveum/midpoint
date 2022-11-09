@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import javax.xml.namespace.QName;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -675,23 +677,23 @@ public class ShadowUtil {
         return shadowType.getCachingMetadata().getRetrievalTimestamp() != null;
     }
 
-    public static PolyString determineShadowName(ShadowType shadow) throws SchemaException {
-        return determineShadowName(asPrismObject(shadow));
+    public static PolyString determineShadowName(PrismObject<ShadowType> shadow) throws SchemaException {
+        return determineShadowName(asObjectable(shadow));
     }
 
-    public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow) throws SchemaException {
+    public static PolyString determineShadowName(ShadowType shadow) throws SchemaException {
         String stringName = determineShadowStringName(shadow);
         return stringName != null ? PolyString.fromOrig(stringName) : null;
     }
 
-    public static <T extends ShadowType> PolyString determineShadowNameRequired(PrismObject<T> shadow) throws SchemaException {
-        return PolyString.fromOrig(
+    public static PolyStringType determineShadowNameRequired(ShadowType shadow) throws SchemaException {
+        return PolyStringType.fromOrig(
                 MiscUtil.requireNonNull(
                         determineShadowStringName(shadow),
                         () -> "Name could not be determined for " + shadow));
     }
 
-    private static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow) throws SchemaException {
+    private static String determineShadowStringName(ShadowType shadow) throws SchemaException {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         if (attributesContainer == null) {
             return null;
@@ -1031,5 +1033,10 @@ public class ShadowUtil {
 
     public static @NotNull String resolveDefault(String intent) {
         return Objects.requireNonNullElse(intent, SchemaConstants.INTENT_DEFAULT);
+    }
+
+    // Temporary code
+    public static boolean isInProduction(@NotNull ShadowType shadow) {
+        return !Boolean.TRUE.equals(shadow.isSimulated());
     }
 }
