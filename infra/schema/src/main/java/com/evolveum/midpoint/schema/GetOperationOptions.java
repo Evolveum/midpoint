@@ -1290,6 +1290,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return updateRootOptions(originalOptions, opt -> opt.setReadOnly(true));
     }
 
+    public static Collection<SelectorOptions<GetOperationOptions>> updateToDistinct(
+            Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
+        return updateRootOptions(originalOptions, opt -> opt.setDistinct(true));
+    }
+
     public static Collection<SelectorOptions<GetOperationOptions>> updateRootOptions(
             Collection<SelectorOptions<GetOperationOptions>> options, Consumer<GetOperationOptions> updater) {
         return SelectorOptions.updateRootOptions(options, updater, GetOperationOptions::new);

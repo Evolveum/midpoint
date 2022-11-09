@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,9 +14,7 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -27,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.shortDumpShadowLazily;
 
 /**
  * Takes care of the _shadow acquisition_ process. We look up an appropriate live shadow,
@@ -40,8 +38,9 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
  * 3. Resource object was found during entitlement conversion (attribute -> association).
  *
  * This class also takes care of _object classification_. I am not sure if this is the right approach, though.
+ *
+ * Note: Maybe we can make this class an inner class of {@link ShadowAcquisitionHelper}?
  */
-@Experimental
 class ShadowAcquisition {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAcquisition.class);
@@ -140,12 +139,16 @@ class ShadowAcquisition {
     private @NotNull ShadowType obtainRepoShadow(OperationResult result)
             throws SchemaException, ConfigurationException, EncryptionException {
 
-        PrismObject<ShadowType> existingRepoShadow = beans.shadowManager.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier,
-                objectClass, result);
+        ShadowType existingLiveRepoShadow =
+                beans.shadowManager.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
 
-        if (existingRepoShadow != null) {
-            LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadowLazily(existingRepoShadow));
-            return existingRepoShadow.asObjectable();
+        if (existingLiveRepoShadow != null) {
+            LOGGER.trace("Found live shadow object in the repository {}", shortDumpShadowLazily(existingLiveRepoShadow));
+            if (beans.shadowManager.markLiveShadowExistingIfNotMarkedSo(existingLiveRepoShadow, result)) {
+                return existingLiveRepoShadow;
+            } else {
+                LOGGER.trace("The shadow disappeared, we will create a new one: {}", existingLiveRepoShadow);
+            }
         }
 
         ShadowType resourceObject = getResourceObject();
@@ -153,19 +156,17 @@ class ShadowAcquisition {
         LOGGER.trace("Shadow object (in repo) corresponding to the resource object (on the resource) was not found. "
                 + "The repo shadow will be created. The resource object:\n{}", resourceObject);
 
-        // The resource object obviously exists on the resource, but appropriate shadow does
-        // not exist in the repository we need to create the shadow to align repo state to the
-        // reality (resource)
+        // The resource object obviously exists on the resource, but appropriate shadow does not exist in the repository.
+        // We need to create the shadow to align repo state to the reality (resource).
 
         try {
             return beans.shadowManager.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
         } catch (ObjectAlreadyExistsException e) {
-            return asObjectable(
-                    findConflictingShadow(resourceObject, e, result));
+            return findConflictingShadow(resourceObject, e, result);
         }
     }
 
-    private @NotNull PrismObject<ShadowType> findConflictingShadow(
+    private @NotNull ShadowType findConflictingShadow(
             ShadowType resourceObject, ObjectAlreadyExistsException e, OperationResult result)
             throws SchemaException {
 
@@ -176,32 +177,41 @@ class ShadowAcquisition {
 
         OperationResult originalRepoAddSubresult = result.getLastSubresult();
 
-        LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow", resourceObject);
-        PrismObject<ShadowType> conflictingShadow = beans.shadowManager
-                .lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
+        LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow",
+                resourceObject);
+        ShadowType conflictingLiveShadow =
+                beans.shadowManager.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
 
-        if (conflictingShadow == null) {
-            // This is really strange. The shadow should not have disappeared in the meantime, dead shadow would remain instead.
-            // Maybe we have broken "indexes"? (e.g. primaryIdentifierValue column)
-
-            // Do some "research" and log the results, so we have good data to diagnose this situation.
-            String determinedPrimaryIdentifierValue = beans.shadowManager.determinePrimaryIdentifierValue(ctx, resourceObject);
-            PrismObject<ShadowType> potentialConflictingShadow = beans.shadowManager.lookupShadowByIndexedPrimaryIdValue(ctx,
-                    determinedPrimaryIdentifierValue, result);
-
-            LOGGER.error("Unexpected repository behavior: object already exists error even after we double-checked "
-                    + "shadow uniqueness: {}", e.getMessage(), e);
-            LOGGER.debug("REPO CONFLICT: resource shadow\n{}", resourceObject.debugDumpLazily(1));
-            LOGGER.debug("REPO CONFLICT: resource shadow: determined primaryIdentifierValue: {}", determinedPrimaryIdentifierValue);
-            LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}",
-                    DebugUtil.debugDumpLazily(potentialConflictingShadow, 1));
-
-            throw new SystemException("Unexpected repository behavior: object already exists error even after we double-checked "
-                    + "shadow uniqueness: " + e.getMessage(), e);
+        if (conflictingLiveShadow != null) {
+            if (beans.shadowManager.markLiveShadowExistingIfNotMarkedSo(conflictingLiveShadow, result)) {
+                originalRepoAddSubresult.muteError();
+                return conflictingLiveShadow;
+            } else {
+                // logged later
+            }
         }
 
-        originalRepoAddSubresult.muteError();
-        return conflictingShadow;
+        // This is really strange. The shadow should not have disappeared in the meantime, dead shadow would remain instead.
+        // Maybe we have broken "indexes"? (e.g. primaryIdentifierValue column)
+
+        // Do some "research" and log the results, so we have good data to diagnose this situation.
+        String determinedPrimaryIdentifierValue = beans.shadowManager.determinePrimaryIdentifierValue(ctx, resourceObject);
+        PrismObject<ShadowType> potentialConflictingShadow = beans.shadowManager.lookupShadowByIndexedPrimaryIdValue(ctx,
+                determinedPrimaryIdentifierValue, result);
+
+        LOGGER.error("Unexpected repository behavior: object already exists error even after we double-checked "
+                + "shadow uniqueness: {}", e.getMessage(), e);
+        if (conflictingLiveShadow != null) {
+            LOGGER.error("The conflicting shadow was there, but is there no longer. A transitional state? Shadow: {}",
+                    conflictingLiveShadow);
+        }
+        LOGGER.debug("REPO CONFLICT: resource shadow\n{}", resourceObject.debugDumpLazily(1));
+        LOGGER.debug("REPO CONFLICT: resource shadow: determined primaryIdentifierValue: {}", determinedPrimaryIdentifierValue);
+        LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}",
+                DebugUtil.debugDumpLazily(potentialConflictingShadow, 1));
+
+        throw new SystemException("Unexpected repository behavior: object already exists error even after we double-checked "
+                + "shadow uniqueness: " + e.getMessage(), e);
     }
 
     private ShadowType getResourceObject() throws SchemaException {

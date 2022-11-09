@@ -319,11 +319,7 @@ class DeleteHelper {
             ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException {
 
-        ErrorHandler handler = errorHandlerLocator.locateErrorHandler(cause);
-        if (handler == null) {
-            result.recordFatalError("Error without a handler: " + cause.getMessage(), cause);
-            throw new SystemException(cause.getMessage(), cause);
-        }
+        ErrorHandler handler = errorHandlerLocator.locateErrorHandlerRequired(cause);
         LOGGER.debug("Handling provisioning DELETE exception {}: {}", cause.getClass(), cause.getMessage());
         try {
 

@@ -126,7 +126,7 @@ class ShadowCreator {
         ResourceAttributeContainer repoAttributesContainer = ShadowUtil.getAttributesContainer(repoShadow);
         repoShadow.setPrimaryIdentifierValue(helper.determinePrimaryIdentifierValue(ctx, resourceObjectOrShadow));
 
-        CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+        CachingStrategyType cachingStrategy = ctx.getCachingStrategy();
         if (cachingStrategy == CachingStrategyType.NONE) {
             // Clean all repoShadow attributes and add only those that should be there
             repoAttributesContainer.clear();

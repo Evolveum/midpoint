@@ -10,9 +10,9 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -58,7 +58,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * Instantiated separately for each shadowing operation.
  */
-public class ShadowedObjectConstruction {
+class ShadowedObjectConstruction {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowedObjectConstruction.class);
 
@@ -67,12 +67,12 @@ public class ShadowedObjectConstruction {
      * OTOH it is the only source of some information like password, activation metadata, or shadow state,
      * and a more reliable source for others: like exists and dead.
      */
-    @NotNull private final PrismObject<ShadowType> repoShadow;
+    @NotNull private final ShadowType repoShadow;
 
     /**
      * Object that was fetched from the resource.
      */
-    @NotNull private final PrismObject<ShadowType> resourceObject;
+    @NotNull private final ShadowType resourceObject;
 
     /** Attributes of the resource object. */
     private final ResourceAttributeContainer resourceObjectAttributes;
@@ -93,31 +93,33 @@ public class ShadowedObjectConstruction {
      * Result shadow that is being constructed. It starts with the repo shadow, with selected information
      * transferred from the resource object.
      */
-    @NotNull private final PrismObject<ShadowType> resultingShadowedObject;
+    @NotNull private final ShadowType resultingShadowedObject;
 
     @NotNull private final CommonBeans beans;
 
     @NotNull private final ShadowsLocalBeans localBeans;
 
-    private ShadowedObjectConstruction(@NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> repoShadow,
-            @NotNull PrismObject<ShadowType> resourceObject, @NotNull CommonBeans beans) {
+    private ShadowedObjectConstruction(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repoShadow,
+            @NotNull ShadowType resourceObject,
+            @NotNull CommonBeans beans) {
         this.ctx = ctx;
         this.resourceObject = resourceObject;
         this.resourceObjectAttributes = ShadowUtil.getAttributesContainer(resourceObject);
-        this.resourceObjectAssociations = resourceObject.findContainer(ShadowType.F_ASSOCIATION);
+        this.resourceObjectAssociations = resourceObject.asPrismObject().findContainer(ShadowType.F_ASSOCIATION);
         this.repoShadow = repoShadow;
         this.resultingShadowedObject = repoShadow.clone();
         this.beans = beans;
         this.localBeans = beans.shadowsFacade.getLocalBeans();
     }
 
-    public static ShadowedObjectConstruction create(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-            PrismObject<ShadowType> resourceObject, CommonBeans commonBeans) {
+    static ShadowedObjectConstruction create(
+            ProvisioningContext ctx, ShadowType repoShadow, ShadowType resourceObject, CommonBeans commonBeans) {
         return new ShadowedObjectConstruction(ctx, repoShadow, resourceObject, commonBeans);
     }
 
-    @NotNull
-    public PrismObject<ShadowType> construct(OperationResult result)
+    @NotNull ShadowType construct(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
@@ -126,10 +128,10 @@ public class ShadowedObjectConstruction {
         //  - "merge" means we take from both sources (resource and repo).
 
         applyDefinition();
-        assertPrismContext();
 
         setName();
         copyObjectClassIfMissing();
+        copyAuxiliaryObjectClasses();
 
         copyAttributes(result);
 
@@ -153,14 +155,14 @@ public class ShadowedObjectConstruction {
 
     private void checkConsistence() {
         // Sanity asserts to catch some exotic bugs
-        PolyStringType resultName = resultingShadowedObject.asObjectable().getName();
+        PolyStringType resultName = resultingShadowedObject.getName();
         assert resultName != null : "No name generated in " + resultingShadowedObject;
         assert !StringUtils.isEmpty(resultName.getOrig()) : "No name (orig) in " + resultingShadowedObject;
         assert !StringUtils.isEmpty(resultName.getNorm()) : "No name (norm) in " + resultingShadowedObject;
     }
 
     private void copyCachingMetadata() {
-        resultingShadowedObject.asObjectable().setCachingMetadata(resourceObject.asObjectable().getCachingMetadata());
+        resultingShadowedObject.setCachingMetadata(resourceObject.getCachingMetadata());
     }
 
     private void copyAndAdoptAssociations(OperationResult result) throws SchemaException, ObjectNotFoundException,
@@ -174,7 +176,7 @@ public class ShadowedObjectConstruction {
         LOGGER.trace("Start adopting associations: {}", resourceObjectAssociations.size());
 
         PrismContainer<ShadowAssociationType> associationsCloned = resourceObjectAssociations.clone();
-        resultingShadowedObject.addReplaceExisting(associationsCloned);
+        resultingShadowedObject.asPrismObject().addReplaceExisting(associationsCloned);
         Iterator<PrismContainerValue<ShadowAssociationType>> associationIterator = associationsCloned.getValues().iterator();
         while (associationIterator.hasNext()) {
             if (!setAssociationValueShadowRef(associationIterator.next(), result)) {
@@ -185,28 +187,27 @@ public class ShadowedObjectConstruction {
 
     private void setProtectedFlag(OperationResult result) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
-        ProvisioningUtil.setProtectedFlag(ctx, resultingShadowedObject, beans.matchingRuleRegistry, beans.relationRegistry,
-                beans.expressionFactory, result);
+        ProvisioningUtil.setProtectedFlag(ctx, resultingShadowedObject, beans.expressionFactory, result);
     }
 
     /**
      * We take activation from the resource object, but metadata is taken from the repo!
      */
     private void mergeActivation() {
-        resultingShadowedObject.asObjectable().setActivation(resourceObject.asObjectable().getActivation());
+        resultingShadowedObject.setActivation(resourceObject.getActivation());
         transplantActivationMetadata();
     }
 
     private void transplantActivationMetadata() {
-        ActivationType repoActivation = repoShadow.asObjectable().getActivation();
+        ActivationType repoActivation = repoShadow.getActivation();
         if (repoActivation == null) {
             return;
         }
 
-        ActivationType resultActivation = resultingShadowedObject.asObjectable().getActivation();
+        ActivationType resultActivation = resultingShadowedObject.getActivation();
         if (resultActivation == null) {
             resultActivation = new ActivationType();
-            resultingShadowedObject.asObjectable().setActivation(resultActivation);
+            resultingShadowedObject.setActivation(resultActivation);
         }
         resultActivation.setId(repoActivation.getId());
         resultActivation.setDisableReason(repoActivation.getDisableReason());
@@ -217,11 +218,11 @@ public class ShadowedObjectConstruction {
     }
 
     private void copyIgnored() {
-        resultingShadowedObject.asObjectable().setIgnored(resourceObject.asObjectable().isIgnored());
+        resultingShadowedObject.setIgnored(resourceObject.isIgnored());
     }
 
     private void mergeCredentials() {
-        resultingShadowedObject.asObjectable().setCredentials(resourceObject.asObjectable().getCredentials());
+        resultingShadowedObject.setCredentials(resourceObject.getCredentials());
         transplantRepoPasswordMetadataIfMissing();
     }
 
@@ -232,9 +233,7 @@ public class ShadowedObjectConstruction {
             return;
         }
 
-        PasswordType resultPassword =
-                ShadowUtil.getOrCreateShadowPassword(
-                        resultingShadowedObject.asObjectable());
+        PasswordType resultPassword = ShadowUtil.getOrCreateShadowPassword(resultingShadowedObject);
 
         MetadataType resultMetadata = resultPassword.getMetadata();
         if (resultMetadata == null) {
@@ -244,7 +243,7 @@ public class ShadowedObjectConstruction {
 
     @Nullable
     private MetadataType getRepoPasswordMetadata() {
-        CredentialsType repoCredentials = repoShadow.asObjectable().getCredentials();
+        CredentialsType repoCredentials = repoShadow.getCredentials();
         if (repoCredentials == null) {
             return null;
         }
@@ -256,15 +255,25 @@ public class ShadowedObjectConstruction {
     }
 
     private void copyObjectClassIfMissing() {
-        if (resultingShadowedObject.asObjectable().getObjectClass() == null) {
-            resultingShadowedObject.asObjectable().setObjectClass(resourceObjectAttributes.getDefinition().getTypeName());
+        if (resultingShadowedObject.getObjectClass() == null) {
+            resultingShadowedObject.setObjectClass(resourceObjectAttributes.getDefinition().getTypeName());
         }
+    }
+
+    /**
+     * Always take auxiliary object classes from the resource. Unlike structural object classes
+     * the auxiliary object classes may change.
+     */
+    private void copyAuxiliaryObjectClasses() {
+        List<QName> targetAuxObjectClassList = resultingShadowedObject.getAuxiliaryObjectClass();
+        targetAuxObjectClassList.clear();
+        targetAuxObjectClassList.addAll(resourceObject.getAuxiliaryObjectClass());
     }
 
     private void setName() throws SchemaException {
         PolyString newName = ShadowUtil.determineShadowName(resourceObject);
         if (newName != null) {
-            resultingShadowedObject.asObjectable().setName(PolyString.toPolyStringType(newName));
+            resultingShadowedObject.setName(PolyString.toPolyStringType(newName));
         } else {
             // TODO emergency name
             throw new SchemaException("Name could not be determined for " + resourceObject);
@@ -273,44 +282,23 @@ public class ShadowedObjectConstruction {
 
     /** The real definition may be different than that of repo shadow (e.g. because of different auxiliary object classes). */
     private void applyDefinition() throws SchemaException {
-        resultingShadowedObject.applyDefinition(
+        resultingShadowedObject.asPrismObject().applyDefinition(
                 ctx.getObjectDefinitionRequired().getPrismObjectDefinition(), true);
-    }
-
-    private void assertPrismContext() {
-        assert resultingShadowedObject.getPrismContext() != null : "No prism context in resultShadow";
     }
 
     private void copyAttributes(OperationResult result) throws SchemaException, ConfigurationException {
 
-        resultingShadowedObject.removeContainer(ShadowType.F_ATTRIBUTES);
+        resultingShadowedObject.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
         ResourceAttributeContainer resultAttributes = resourceObjectAttributes.clone();
 
         ResourceObjectDefinition compositeObjectClassDef = computeCompositeObjectClassDefinition();
         localBeans.accessChecker.filterGetAttributes(resultAttributes, compositeObjectClassDef, result);
 
-        resultingShadowedObject.add(resultAttributes);
+        resultingShadowedObject.asPrismObject().add(resultAttributes);
     }
 
     private ResourceObjectDefinition computeCompositeObjectClassDefinition() throws SchemaException, ConfigurationException {
-        return ctx.computeCompositeObjectDefinition(
-                getAuxiliaryObjectClasses());
-    }
-
-    /**
-     * Always take auxiliary object classes from the resource. Unlike structural object classes
-     * the auxiliary object classes may change.
-     */
-    private Collection<QName> getAuxiliaryObjectClasses() throws SchemaException {
-        Collection<QName> auxObjectClassQNames = new ArrayList<>();
-        resultingShadowedObject.removeProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-        PrismProperty<QName> resourceAuxOcProp = resourceObject.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-        if (resourceAuxOcProp != null) {
-            PrismProperty<QName> resultAuxOcProp = resultingShadowedObject.findOrCreateProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-            resultAuxOcProp.addAll(PrismValueCollectionsUtil.cloneCollection(resourceAuxOcProp.getValues()));
-            auxObjectClassQNames.addAll(resultAuxOcProp.getRealValues());
-        }
-        return auxObjectClassQNames;
+        return ctx.computeCompositeObjectDefinition(resourceObject.getAuxiliaryObjectClass());
     }
 
     /**
@@ -371,12 +359,11 @@ public class ShadowedObjectConstruction {
         }
 
         try {
-            PrismObject<ShadowType> existingRepoShadow =
-                    beans.shadowManager.lookupLiveShadowByAllIds(
-                            ctxEntitlement, identifierContainer, result);
+            ShadowType existingLiveRepoShadow =
+                    beans.shadowManager.lookupLiveShadowByAllIds(ctxEntitlement, identifierContainer, result);
 
-            if (existingRepoShadow != null) {
-                return existingRepoShadow.asObjectable();
+            if (existingLiveRepoShadow != null) {
+                return existingLiveRepoShadow;
             }
 
             PrismObject<ShadowType> fetchedResourceObject = beans.resourceObjectConverter

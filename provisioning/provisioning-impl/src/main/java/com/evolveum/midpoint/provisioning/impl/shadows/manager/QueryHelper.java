@@ -45,7 +45,7 @@ class QueryHelper {
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
     /**
-     * Visit the query and normalize values (or set matching rules) as needed
+     * Visits the query and normalizes values (or set matching rules) as needed
      */
     @Contract("null, _ -> null; !null, _ -> !null")
     ObjectQuery applyMatchingRules(ObjectQuery originalQuery, ResourceObjectDefinition objectDef) {

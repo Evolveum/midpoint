@@ -12,9 +12,11 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -43,7 +45,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 /**
@@ -89,32 +90,29 @@ public class ShadowManager {
     @Autowired private Helper helper;
     @Autowired private QueryHelper queryHelper;
 
-    /** Simply gets a repo shadow from the repository. No magic here. */
+    /** Simply gets a repo shadow from the repository. No magic here. No side effects. */
     public PrismObject<ShadowType> getShadow(String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         return repositoryService.getObject(ShadowType.class, oid, null, result);
     }
 
-    /**
-     * Iteratively searches for shadows in the repository.
-     */
+    /** Iteratively searches for shadows in the repository. No magic except for handling matching rules. No side effects. */
     public SearchResultMetadata searchShadowsIterative(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> repoHandler,
             OperationResult result) throws SchemaException {
         ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
-        return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, true, result);
+        return repositoryService.searchObjectsIterative(
+                ShadowType.class, repoQuery, repoHandler, options, true, result);
     }
 
-    /**
-     * Non-iteratively searches for shadows in the repository.
-     */
+    /** Non-iteratively searches for shadows in the repository. No magic except for handling matching rules. No side effects. */
     public SearchResultList<PrismObject<ShadowType>> searchShadows(ProvisioningContext ctx, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
         ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
         return repositoryService.searchObjects(ShadowType.class, repoQuery, options, parentResult);
     }
 
-    /** Simply counts the shadows in repository. */
+    /** Simply counts the shadows in repository. No magic except for handling matching rules. No side effects. */
     public int countShadows(ProvisioningContext ctx, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult result) throws SchemaException {
         ObjectQuery repoQuery = queryHelper.applyMatchingRules(query, ctx.getObjectDefinition());
@@ -122,44 +120,45 @@ public class ShadowManager {
     }
 
     /**
-     * Looks up a live shadow by primary identifier. Differences from other methods:
-     *
-     * 1. Unlike {@link #lookupShadowByIndexedPrimaryIdValue(ProvisioningContext, String, OperationResult)} this method
+     * Looks up a live shadow by primary identifier.
+     * Unlike {@link #lookupShadowByIndexedPrimaryIdValue(ProvisioningContext, String, OperationResult)} this method
      * uses stored attributes to execute the query.
      *
-     * 2. Unlike other methods, this checks if the shadow returned has exists=true (and sets it in the repo if it does not).
-     * TODO TODO TODO - we should perhaps defer this to the update method! Because that method takes shadow state into account.
+     * Side effects: none.
      *
      * @param objectClass Intentionally not taken from the context - yet.
      */
-    public PrismObject<ShadowType> lookupLiveShadowByPrimaryId(ProvisioningContext ctx,
-            @NotNull PrismProperty<?> primaryIdentifier, @NotNull QName objectClass, OperationResult result)
+    public ShadowType lookupLiveShadowByPrimaryId(
+            @NotNull ProvisioningContext ctx,
+            @NotNull PrismProperty<?> primaryIdentifier,
+            @NotNull QName objectClass,
+            @NotNull OperationResult result)
             throws SchemaException {
         return shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
     }
 
-    /**
-     * Looks up live (or any other, if there's none) shadow by primary identifier(s).
-     */
-    public ShadowType lookupLiveOrAnyShadowByPrimaryIds(ProvisioningContext ctx,
-            Collection<ResourceAttribute<?>> identifiers, OperationResult result)
+    /** Looks up live (or any other, if there's none) shadow by primary identifier(s). Side effects: none. */
+    public ShadowType lookupLiveOrAnyShadowByPrimaryIds(
+            ProvisioningContext ctx, Collection<ResourceAttribute<?>> identifiers, OperationResult result)
             throws SchemaException, ConfigurationException {
         return ProvisioningUtil.selectLiveOrAnyShadow(
                 shadowFinder.searchShadowsByPrimaryIds(ctx, identifiers, result));
     }
 
-    /**
-     * Looks up (any) shadow by all available identifiers.
-     */
-    public PrismObject<ShadowType> lookupLiveShadowByAllIds(ProvisioningContext ctx,
-            ResourceAttributeContainer identifierContainer, OperationResult result)
+    /** Looks up a live shadow by all available identifiers (all must match). Side effects: none. */
+    public ShadowType lookupLiveShadowByAllIds(
+            ProvisioningContext ctx, ResourceAttributeContainer identifierContainer, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         return shadowFinder.lookupLiveShadowByAllIds(ctx, identifierContainer, result);
     }
 
     /**
-     * Looks up (any) shadow with given secondary identifiers.
-     * If there are none, null is returned.
+     * Looks up a shadow with given secondary identifiers (any one must match).
+     * If there are no secondary identifiers, null is returned.
+     * If there is no matching shadow, null is returned.
+     * If there are more matching shadows, an exception is thrown.
+     *
+     * Side effects: none.
      */
     public PrismObject<ShadowType> lookupShadowBySecondaryIds(
             ProvisioningContext ctx, Collection<ResourceAttribute<?>> secondaryIdentifiers, OperationResult result)
@@ -167,16 +166,15 @@ public class ShadowManager {
         return shadowFinder.lookupShadowBySecondaryIds(ctx, secondaryIdentifiers, result);
     }
 
-    /**
-     * Looks up (any) shadow by indexed primary identifier, i.e. `primaryIdentifierValue` property.
-     */
-    public PrismObject<ShadowType> lookupShadowByIndexedPrimaryIdValue(ProvisioningContext ctx,
-            String primaryIdentifierValue, OperationResult result) throws SchemaException {
+    /** Looks up (any) shadow by indexed primary identifier, i.e. `primaryIdentifierValue` property. Side effects: none. */
+    public PrismObject<ShadowType> lookupShadowByIndexedPrimaryIdValue(
+            ProvisioningContext ctx, String primaryIdentifierValue, OperationResult result) throws SchemaException {
         return shadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, primaryIdentifierValue, result);
     }
 
     /**
      * Returns dead shadows "compatible" (having the same primary identifier) as given shadow that is to be added.
+     * Side effects: none.
      */
     public Collection<PrismObject<ShadowType>> searchForPreviousDeadShadows(ProvisioningContext ctx,
             PrismObject<ShadowType> shadowToAdd, OperationResult result) throws SchemaException {
@@ -290,8 +288,8 @@ public class ShadowManager {
             Collection<? extends ItemDelta> requestedModifications,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
             XMLGregorianCalendar now, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException,
-            EncryptionException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
+            ExpressionEvaluationException {
         shadowUpdater.recordModifyResult(ctx, oldRepoShadow, requestedModifications, opState, now, parentResult);
     }
 
@@ -302,7 +300,7 @@ public class ShadowManager {
     public void modifyShadowAttributes(
             ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications,
             OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
         shadowUpdater.modifyShadowAttributes(ctx, shadow, modifications, parentResult);
     }
 
@@ -311,8 +309,14 @@ public class ShadowManager {
     }
 
     /**
-     * Updates repository shadow based on object or delta from resource.
-     * Updates: cached attributes and activation, shadow name, aux object classes, exists flag, caching metadata.
+     * Updates repository shadow based on an object or a delta from the resource.
+     * What is updated:
+     *
+     * - cached attributes and activation,
+     * - shadow name,
+     * - aux object classes,
+     * - exists flag,
+     * - caching metadata.
      *
      * Retrieves index-only attributes from repo if needed.
      *
@@ -320,20 +324,18 @@ public class ShadowManager {
      * @param resourceObjectDelta Delta coming from the resource (if known).
      *
      * @return repository shadow as it should look like after the update
+     *
+     * @see ShadowDeltaComputer
      */
-    public ShadowType updateShadow(@NotNull ProvisioningContext ctx,
-            @NotNull ShadowType currentResourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull ShadowType repoShadow, ShadowLifecycleStateType shadowState, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
-            ExpressionEvaluationException {
-        return asObjectable(
-                shadowUpdater.updateShadow(
-                        ctx,
-                        asPrismObject(currentResourceObject),
-                        resourceObjectDelta,
-                        asPrismObject(repoShadow),
-                        shadowState,
-                        result));
+    public @NotNull ShadowType updateShadowInRepository(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType currentResourceObject,
+            @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull ShadowType repoShadow,
+            ShadowLifecycleStateType shadowState, // TODO ensure this is filled-in
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+        return shadowUpdater.updateShadow(ctx, currentResourceObject, resourceObjectDelta, repoShadow, shadowState, result);
     }
 
     /**
@@ -361,9 +363,9 @@ public class ShadowManager {
         return shadowUpdater.markShadowTombstone(repoShadow, task, result);
     }
 
-    public PrismObject<ShadowType> markShadowTombstone(
+    public void markShadowTombstone(
             ShadowType repoShadow, Task task, OperationResult result) throws SchemaException {
-        return shadowUpdater.markShadowTombstone(asPrismObject(repoShadow), task, result);
+        shadowUpdater.markShadowTombstone(asPrismObject(repoShadow), task, result);
     }
 
     /**
@@ -383,5 +385,25 @@ public class ShadowManager {
 
     public void setKindIfNecessary(ShadowType repoShadowType, ProvisioningContext ctx) {
         helper.setKindIfNecessary(repoShadowType, ctx);
+    }
+
+    /**
+     * Checks that the live shadow is marked as existing.
+     *
+     * Side effects: marks the live shadow as existing, if it is not marked as such yet.
+     *
+     * Returns `false` if the shadow has disappeared in the meantime.
+     */
+    public boolean markLiveShadowExistingIfNotMarkedSo(ShadowType liveShadow, OperationResult result) throws SchemaException {
+        assert ShadowUtil.isNotDead(liveShadow);
+        if (ShadowUtil.isExists(liveShadow)) {
+            return true;
+        } else {
+            // This is where gestation quantum state collapses.
+            // Or maybe the account was created and we have found it before the original thread could mark the shadow as alive.
+            // Marking the shadow as existent should not cause much harm. It should only speed up things a little.
+            // And it also avoids shadow duplication.
+            return shadowUpdater.markShadowExists(liveShadow, result);
+        }
     }
 }

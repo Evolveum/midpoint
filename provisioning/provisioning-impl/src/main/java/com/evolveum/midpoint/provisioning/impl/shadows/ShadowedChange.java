@@ -27,7 +27,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -368,12 +367,13 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
 
     /**
      * Index-only items in the resource object delta are necessarily incomplete: their old value was taken from repo
-     * (i.e. was empty before delta application). We mark them as such. One of direct consequences is that updateShadow method
-     * will know that it cannot use this data to update cached (index-only) attributes in repo shadow.
+     * (i.e. was empty before delta application). We mark them as such. One of direct consequences is that
+     * updateShadowInRepository method will know that it cannot use this data to update cached (index-only) attributes
+     * in repo shadow.
      */
     private void markIndexOnlyItemsAsIncomplete(ShadowType resourceObject)
             throws SchemaException, ConfigurationException {
-        ResourceObjectDefinition ocDef = context.computeCompositeObjectDefinition(resourceObject.asPrismObject());
+        ResourceObjectDefinition ocDef = context.computeCompositeObjectDefinition(resourceObject);
         for (ResourceAttributeDefinition<?> attrDef : ocDef.getAttributeDefinitions()) {
             if (attrDef.isIndexOnly()) {
                 ItemPath path = ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getItemName());
@@ -405,12 +405,11 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
     }
 
     private void updateRepoShadow(@NotNull ShadowType resourceObject, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
 
         // TODO: shadowState MID-5834: We might not want to update exists flag in quantum states
         // TODO should we update the repo even if we obtained current resource object from the cache? (except for e.g. metadata)
-        beans.shadowManager.updateShadow(context, resourceObject, objectDelta, repoShadow, null, result);
+        beans.shadowManager.updateShadowInRepository(context, resourceObject, objectDelta, repoShadow, null, result);
     }
 
     private void markRepoShadowTombstone(OperationResult result) throws SchemaException {

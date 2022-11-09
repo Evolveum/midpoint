@@ -20,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
@@ -282,10 +281,9 @@ public class ProvisioningContext {
     /**
      * Returns either real composite type definition, or just object definition - if that's not possible.
      */
-    public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(@NotNull PrismObject<ShadowType> shadow)
+    public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
-        return computeCompositeObjectDefinition(
-                shadow.asObjectable().getAuxiliaryObjectClass());
+        return computeCompositeObjectDefinition(shadow.getAuxiliaryObjectClass());
     }
 
     public String getChannel() {
@@ -455,7 +453,17 @@ public class ProvisioningContext {
     }
 
     public CachingStrategyType getCachingStrategy() {
-        return ProvisioningUtil.getCachingStrategy(this);
+        CachingPolicyType caching = resource.getCaching();
+        if (caching == null || caching.getCachingStrategy() == null) {
+            ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
+            if (readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly())) {
+                return CachingStrategyType.PASSIVE;
+            } else {
+                return CachingStrategyType.NONE;
+            }
+        } else {
+            return caching.getCachingStrategy();
+        }
     }
 
     public String toHumanReadableDescription() {

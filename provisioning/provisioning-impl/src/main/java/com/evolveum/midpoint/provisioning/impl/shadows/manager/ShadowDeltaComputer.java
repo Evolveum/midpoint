@@ -21,6 +21,7 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -30,7 +31,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,13 +44,14 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- *  Computes deltas to be applied to repository shadows.
- *  This functionality grew too large to deserve special implementation class.
+ * Computes deltas to be applied to repository shadows.
+ * This functionality grew too large to deserve special implementation class, to offload {@link ShadowUpdater}.
  *
- *  In the future we might move more functionality here and rename this class.
+ * @see ShadowManager#updateShadowInRepository(ProvisioningContext, ShadowType, ObjectDelta, ShadowType,
+ * ShadowLifecycleStateType, OperationResult)
  */
 @Component
-public class ShadowDeltaComputer {
+class ShadowDeltaComputer {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowDeltaComputer.class);
 
@@ -55,16 +59,17 @@ public class ShadowDeltaComputer {
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private PrismContext prismContext;
 
-    @NotNull
-    ObjectDelta<ShadowType> computeShadowDelta(@NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> resourceObjectDelta, ShadowLifecycleStateType shadowState)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    @NotNull ObjectDelta<ShadowType> computeShadowDelta(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repoShadow,
+            @NotNull ShadowType resourceObject,
+            @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
+            ShadowLifecycleStateType shadowState) // TODO ensure this is filled-in
+            throws SchemaException, ConfigurationException {
 
-        ObjectDelta<ShadowType> computedShadowDelta = repoShadow.createModifyDelta();
+        ObjectDelta<ShadowType> computedShadowDelta = repoShadow.asPrismObject().createModifyDelta();
 
-        CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+        CachingStrategyType cachingStrategy = ctx.getCachingStrategy();
         Collection<QName> incompleteCacheableItems = new HashSet<>();
 
         processAttributes(ctx, repoShadow, resourceObject, resourceObjectDelta,
@@ -85,22 +90,23 @@ public class ShadowDeltaComputer {
         return computedShadowDelta;
     }
 
-    private void addShadowNameDelta(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> computedShadowDelta) throws SchemaException {
+    private void addShadowNameDelta(ShadowType repoShadow, ShadowType resourceObject, ObjectDelta<ShadowType> computedShadowDelta)
+            throws SchemaException {
         PolyString resourceObjectName = ShadowUtil.determineShadowName(resourceObject);
-        PolyString repoShadowName = repoShadow.getName();
+        PolyString repoShadowName = PolyString.toPolyString(repoShadow.getName());
         if (resourceObjectName != null && !resourceObjectName.equalsOriginalValue(repoShadowName)) {
             PropertyDelta<?> shadowNameDelta = prismContext.deltaFactory().property()
-                    .createModificationReplaceProperty(ShadowType.F_NAME, repoShadow.getDefinition(), resourceObjectName);
+                    .createModificationReplaceProperty(
+                            ShadowType.F_NAME, repoShadow.asPrismObject().getDefinition(), resourceObjectName);
             computedShadowDelta.addModification(shadowNameDelta);
         }
     }
 
-    private void addAuxiliaryObjectClassDelta(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> computedShadowDelta) {
+    private void addAuxiliaryObjectClassDelta(
+            ShadowType repoShadow, ShadowType resourceObject, ObjectDelta<ShadowType> computedShadowDelta) {
         PropertyDelta<QName> auxOcDelta = ItemUtil.diff(
-                repoShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
-                resourceObject.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
+                repoShadow.asPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
+                resourceObject.asPrismObject().findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
         if (auxOcDelta != null) {
             computedShadowDelta.addModification(auxOcDelta);
         }
@@ -116,8 +122,8 @@ public class ShadowDeltaComputer {
         }
     }
 
-    private void addClearCachingMetadataDelta(@NotNull PrismObject<ShadowType> repoShadow, ObjectDelta<ShadowType> computedShadowDelta) {
-        if (repoShadow.asObjectable().getCachingMetadata() != null) {
+    private void addClearCachingMetadataDelta(@NotNull ShadowType repoShadow, ObjectDelta<ShadowType> computedShadowDelta) {
+        if (repoShadow.getCachingMetadata() != null) {
             computedShadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA);
         }
     }
@@ -132,18 +138,18 @@ public class ShadowDeltaComputer {
         }
     }
 
-    private void addCachedActivationDeltas(PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> computedShadowDelta) {
+    private void addCachedActivationDeltas(
+            ShadowType repoShadow, ShadowType resourceObject, ObjectDelta<ShadowType> computedShadowDelta) {
         compareUpdateProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, repoShadow, resourceObject, computedShadowDelta);
         compareUpdateProperty(SchemaConstants.PATH_ACTIVATION_VALID_FROM, repoShadow, resourceObject, computedShadowDelta);
         compareUpdateProperty(SchemaConstants.PATH_ACTIVATION_VALID_TO, repoShadow, resourceObject, computedShadowDelta);
         compareUpdateProperty(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, repoShadow, resourceObject, computedShadowDelta);
     }
 
-    private <T> void compareUpdateProperty(ItemPath itemPath, PrismObject<ShadowType> repoShadow, PrismObject<ShadowType> resourceObject,
-            ObjectDelta<ShadowType> computedShadowDelta) {
-        PrismProperty<T> currentProperty = resourceObject.findProperty(itemPath);
-        PrismProperty<T> oldProperty = repoShadow.findProperty(itemPath);
+    private <T> void compareUpdateProperty(
+            ItemPath itemPath, ShadowType repoShadow, ShadowType resourceObject, ObjectDelta<ShadowType> computedShadowDelta) {
+        PrismProperty<T> currentProperty = resourceObject.asPrismObject().findProperty(itemPath);
+        PrismProperty<T> oldProperty = repoShadow.asPrismObject().findProperty(itemPath);
         PropertyDelta<T> itemDelta = ItemUtil.diff(oldProperty, currentProperty);
         if (itemDelta != null && !itemDelta.isEmpty()) {
             computedShadowDelta.addModification(itemDelta);
@@ -152,17 +158,17 @@ public class ShadowDeltaComputer {
 
     private void processAttributes(
             ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
-            PrismObject<ShadowType> resourceObject,
+            ShadowType repoShadow,
+            ShadowType resourceObject,
             ObjectDelta<ShadowType> resourceObjectDelta,
             CachingStrategyType cachingStrategy,
             Collection<QName> incompleteCacheableAttributes,
             ObjectDelta<ShadowType> computedShadowDelta)
-            throws SchemaException, ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException,
-            CommunicationException {
+            throws SchemaException, ConfigurationException {
 
-        PrismContainer<Containerable> resourceObjectAttributes = resourceObject.findContainer(ShadowType.F_ATTRIBUTES);
-        PrismContainer<Containerable> repoShadowAttributes = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
+        PrismContainer<Containerable> resourceObjectAttributes =
+                resourceObject.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
+        PrismContainer<Containerable> repoShadowAttributes = repoShadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
         ResourceObjectDefinition ocDef = ctx.computeCompositeObjectDefinition(resourceObject);
 
         // For complete attributes we can proceed as before: take resourceObjectAttributes as authoritative.

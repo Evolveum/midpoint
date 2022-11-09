@@ -285,7 +285,6 @@ public class ResourceObjectConverter {
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ADD_RESOURCE_OBJECT);
-        boolean specificExceptionRecorded = false;
         try {
             ResourceType resource = ctx.getResource();
 
@@ -294,16 +293,14 @@ public class ResourceObjectConverter {
             // We might be modifying the shadow (e.g. for simulated capabilities). But we do not want the changes
             // to propagate back to the calling code. Hence the clone.
             PrismObject<ShadowType> shadowClone = shadow.clone();
-            ShadowType shadowType = shadowClone.asObjectable();
+            ShadowType shadowBean = shadowClone.asObjectable();
 
             Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
 
-            if (ProvisioningUtil.isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowClone, matchingRuleRegistry,
-                    relationRegistry)) {
-                LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
-                SecurityViolationException e = new SecurityViolationException("Cannot get protected shadow " + shadowType);
-                result.recordFatalError(e);
-                throw e;
+            if (ProvisioningUtil.isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowBean)) {
+                // TODO remove this unnecessary logging statement (the error will be logged anyway)
+                LOGGER.error("Attempt to add protected shadow {}; ignoring the request", shadowBean);
+                throw new SecurityViolationException("Cannot add protected shadow " + shadowBean);
             }
 
             if (!skipExplicitUniquenessCheck) {
@@ -320,10 +317,10 @@ public class ResourceObjectConverter {
             AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> connectorAsyncOpRet;
             try {
                 LOGGER.debug("PROVISIONING ADD operation on resource {}\n ADD object:\n{}\n",
-                        resource, shadowType.asPrismObject().debugDumpLazily());
+                        resource, shadowBean.debugDumpLazily());
 
                 new ActivationConverter(ctx, commonBeans)
-                        .transformActivationOnAdd(shadowType, result);
+                        .transformActivationOnAdd(shadowBean, result);
 
                 connectorAsyncOpRet = connector.addObject(shadowClone, ctx.getUcfExecutionContext(), result);
                 resourceAttributesAfterAdd = connectorAsyncOpRet.getReturnValue();
@@ -335,19 +332,11 @@ public class ResourceObjectConverter {
                 // outside this method.
                 applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
             } catch (CommunicationException ex) {
-                result.recordFatalError(
-                        "Could not create object on the resource. Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
-                specificExceptionRecorded = true;
-                throw new CommunicationException("Error communicating with the connector " + connector + ": "
-                        + ex.getMessage(), ex);
+                throw new CommunicationException(
+                        "Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
             } catch (GenericFrameworkException ex) {
-                result.recordFatalError("Could not create object on the resource. Generic error in connector: " + ex.getMessage(), ex);
-                specificExceptionRecorded = true;
                 throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
             } catch (ObjectAlreadyExistsException ex) {
-                result.recordFatalError(
-                        "Could not create object on the resource. Object already exists on the resource: " + ex.getMessage(), ex);
-                specificExceptionRecorded = true;
                 throw new ObjectAlreadyExistsException("Object already exists on the resource: " + ex.getMessage(), ex);
             }
 
@@ -364,12 +353,10 @@ public class ResourceObjectConverter {
             asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
             return asyncOpRet;
         } catch (Throwable t) {
-            if (!specificExceptionRecorded) {
-                result.recordFatalError(t);
-            }
+            result.recordException("Could not create object on the resource: " + t.getMessage(), t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -503,12 +490,16 @@ public class ResourceObjectConverter {
         }
     }
 
-    private void checkIfProtected(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
-            Collection<? extends ResourceAttribute<?>> identifiers, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            SecurityViolationException {
+    private void checkIfProtected(
+            ProvisioningContext ctx,
+            PrismObject<ShadowType> shadow,
+            Collection<? extends ResourceAttribute<?>> identifiers,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, SecurityViolationException {
         Collection<ResourceObjectPattern> protectedPatterns = ctx.getProtectedAccountPatterns(expressionFactory, result);
-        if (ProvisioningUtil.isProtectedShadow(protectedPatterns, shadow, matchingRuleRegistry, relationRegistry)) {
+        if (ProvisioningUtil.isProtectedShadow(protectedPatterns, shadow.asObjectable())) {
+            // TODO remove this unnecessary logging statement (the error will be logged anyway)
             LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
                     + identifiers + "; ignoring the request");
             throw new SecurityViolationException("Cannot delete protected resource object "
@@ -526,7 +517,13 @@ public class ResourceObjectConverter {
         return ShadowUtil.getAllIdentifiers(shadow);
     }
 
-    private void updateQuantum(ProvisioningContext ctx, ConnectorInstance connectorUsedForOperation, AsynchronousOperationResult aResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    private void updateQuantum(
+            ProvisioningContext ctx,
+            ConnectorInstance connectorUsedForOperation,
+            AsynchronousOperationResult aResult,
+            OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         ConnectorInstance readConnector = ctx.getConnector(ReadCapabilityType.class, parentResult);
         if (readConnector != connectorUsedForOperation) {
             // Writing by different connector that we are going to use for reading: danger of quantum effects
@@ -559,14 +556,14 @@ public class ResourceObjectConverter {
 
             Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
 
-            if (ProvisioningUtil.isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), repoShadow, matchingRuleRegistry,
-                    relationRegistry)) {
+            if (ProvisioningUtil.isProtectedShadow(
+                    ctx.getProtectedAccountPatterns(expressionFactory, result),
+                    repoShadow.asObjectable())) {
                 if (hasChangesOnResource(itemDeltas)) {
+                    // TODO remove this unnecessary logging statement (the error will be logged anyway)
                     LOGGER.error("Attempt to modify protected resource object {}: {}", objectClassDefinition, identifiers);
-                    SecurityViolationException e = new SecurityViolationException("Cannot modify protected resource object "
-                            + objectClassDefinition + ": " + identifiers);
-                    result.recordFatalError(e);
-                    throw e;
+                    throw new SecurityViolationException(
+                            "Cannot modify protected resource object " + objectClassDefinition + ": " + identifiers);
                 } else {
                     // Return immediately. This structure of the code makes sure that we do not execute any
                     // resource operation for protected account even if there is a bug in the code below.
@@ -1679,7 +1676,7 @@ public class ResourceObjectConverter {
         }
         ShadowType resourceObjectBean = resourceObject.asObjectable();
 
-        ProvisioningUtil.setProtectedFlag(ctx, resourceObject, matchingRuleRegistry, relationRegistry, expressionFactory, result);
+        ProvisioningUtil.setProtectedFlag(ctx, resourceObjectBean, expressionFactory, result);
 
         if (resourceObjectBean.isExists() == null) {
             resourceObjectBean.setExists(true);

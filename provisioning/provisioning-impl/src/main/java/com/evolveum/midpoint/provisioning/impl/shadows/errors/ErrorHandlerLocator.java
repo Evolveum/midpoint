@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +37,14 @@ public class ErrorHandlerLocator {
     @Autowired PolicyViolationHandler policyViolationHandler;
     @Autowired MaintenanceExceptionHandler maintenanceExceptionHandler;
 
-    public ErrorHandler locateErrorHandler(Throwable ex) {
+    public @NotNull ErrorHandler locateErrorHandlerRequired(Throwable ex) {
+        return MiscUtil.requireNonNull(
+                locateErrorHandler(ex),
+                () -> new SystemException("Error without a handler: " + MiscUtil.formatExceptionMessage(ex), ex));
+
+    }
+
+    private ErrorHandler locateErrorHandler(Throwable ex) {
         if (ex instanceof MaintenanceException) {
             return maintenanceExceptionHandler;
         }

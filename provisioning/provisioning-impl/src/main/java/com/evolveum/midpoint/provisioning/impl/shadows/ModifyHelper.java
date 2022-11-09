@@ -347,11 +347,7 @@ class ModifyHelper {
 
         // TODO: record operationExecution
 
-        ErrorHandler handler = errorHandlerLocator.locateErrorHandler(cause);
-        if (handler == null) {
-            parentResult.recordFatalError("Error without a handler: " + cause.getMessage(), cause);
-            throw new SystemException(cause.getMessage(), cause);
-        }
+        ErrorHandler handler = errorHandlerLocator.locateErrorHandlerRequired(cause);
         LOGGER.debug("Handling provisioning MODIFY exception {}: {}", cause.getClass(), cause.getMessage());
         try {
 

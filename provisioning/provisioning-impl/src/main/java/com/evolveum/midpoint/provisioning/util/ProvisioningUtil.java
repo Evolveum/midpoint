@@ -62,7 +62,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 public class ProvisioningUtil {
@@ -313,19 +312,19 @@ public class ProvisioningUtil {
         return refinedSchema;
     }
 
-    public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, PrismObject<ShadowType> shadow,
-            MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException {
-        boolean isProtected = protectedAccountPatterns != null &&
-                ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry, relationRegistry);
+    public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow)
+            throws SchemaException {
+        boolean isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns);
         LOGGER.trace("isProtectedShadow: {} = {}", shadow, isProtected);
         return isProtected;
     }
 
-    public static void setProtectedFlag(ProvisioningContext ctx, PrismObject<ShadowType> resourceObjectOrShadow,
-            MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry, ExpressionFactory factory, OperationResult result) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
-        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), resourceObjectOrShadow, matchingRuleRegistry, relationRegistry)) {
-            resourceObjectOrShadow.asObjectable().setProtectedObject(true);
+    public static void setProtectedFlag(
+            ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ExpressionEvaluationException, SecurityViolationException {
+        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), shadow)) {
+            shadow.setProtectedObject(true);
         }
     }
 
@@ -427,7 +426,7 @@ public class ProvisioningUtil {
     }
 
     public static void checkShadowActivationConsistency(PrismObject<ShadowType> shadow) {
-        if (shadow == null) {        // just for sure
+        if (shadow == null) { // just for sure
             return;
         }
         ActivationType activation = shadow.asObjectable().getActivation();
@@ -446,23 +445,6 @@ public class ProvisioningUtil {
             LOGGER.warn("{}", m);
             //throw new IllegalStateException(m);        // use only for testing
         }
-    }
-
-    public static CachingStrategyType getCachingStrategy(ProvisioningContext ctx) {
-        ResourceType resource = ctx.getResource();
-        CachingPolicyType caching = resource.getCaching();
-        if (caching == null || caching.getCachingStrategy() == null) {
-            ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEnabledCapability(resource, ReadCapabilityType.class);
-            if (readCapabilityType == null) {
-                return CachingStrategyType.NONE;
-            }
-            Boolean cachingOnly = readCapabilityType.isCachingOnly();
-            if (cachingOnly == Boolean.TRUE) {
-                return CachingStrategyType.PASSIVE;
-            }
-            return CachingStrategyType.NONE;
-        }
-        return caching.getCachingStrategy();
     }
 
     public static boolean isResourceModification(ItemDelta modification) {

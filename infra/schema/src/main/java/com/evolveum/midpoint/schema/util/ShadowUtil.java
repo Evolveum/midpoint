@@ -855,6 +855,10 @@ public class ShadowUtil {
         return DebugUtil.lazy(() -> shortDumpShadow(shadow));
     }
 
+    public static Object shortDumpShadowLazily(ShadowType shadow) {
+        return DebugUtil.lazy(() -> shortDumpShadow(shadow));
+    }
+
     public static String shortDumpShadow(ShadowType shadow) {
         return shortDumpShadow(asPrismObject(shadow));
     }

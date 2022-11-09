@@ -234,7 +234,7 @@ class ShadowUpdater {
     private void computeUpdateShadowAttributeChanges(ProvisioningContext ctx, Collection<ItemDelta<?, ?>> repoShadowChanges,
             ShadowType resourceShadow, ShadowType repoShadow) throws SchemaException, ConfigurationException {
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
-        CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+        CachingStrategyType cachingStrategy = ctx.getCachingStrategy();
         for (ResourceAttributeDefinition<?> attrDef : objectDefinition.getAttributeDefinitions()) {
             if (ProvisioningUtil.shouldStoreAttributeInShadow(objectDefinition, attrDef.getItemName(), cachingStrategy)) {
                 ResourceAttribute<Object> resourceAttr =
@@ -484,7 +484,7 @@ class ShadowUpdater {
             throws SchemaException, ConfigurationException {
 
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired(); // If type is not present, OC def is fine
-        CachingStrategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
+        CachingStrategyType cachingStrategy = ctx.getCachingStrategy();
         ItemDelta<?, ?> attributeBasedNameChange = null;
         ItemDelta<?, ?> explicitNameChange = null;
         Collection<ItemDelta<?, ?>> repoChanges = new ArrayList<>();
@@ -637,8 +637,8 @@ class ShadowUpdater {
         return repoShadow;
     }
 
-    /** @return true if the shadow was found and marked as existing */
-    boolean markShadowExists(PrismObject<ShadowType> repoShadow, OperationResult parentResult) throws SchemaException {
+    /** @return false if the shadow was not found. */
+    boolean markShadowExists(ShadowType repoShadow, OperationResult parentResult) throws SchemaException {
         List<ItemDelta<?, ?>> shadowChanges = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_EXISTS).replace(true)
                 .asItemDeltas();
@@ -652,7 +652,7 @@ class ShadowUpdater {
             LOGGER.trace("Attempt to mark shadow {} as existent found that no such shadow exists", repoShadow);
             return false;
         }
-        ObjectDeltaUtil.applyTo(repoShadow, shadowChanges);
+        ObjectDeltaUtil.applyTo(repoShadow.asPrismObject(), shadowChanges);
         return true;
     }
 
@@ -982,11 +982,14 @@ class ShadowUpdater {
         return delta;
     }
 
-    PrismObject<ShadowType> updateShadow(@NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> resourceObjectDelta,
-            @NotNull PrismObject<ShadowType> repoShadow, ShadowLifecycleStateType shadowState, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
-            ExpressionEvaluationException {
+    @NotNull ShadowType updateShadow(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType currentResourceObject,
+            @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
+            @NotNull ShadowType repoShadow,
+            ShadowLifecycleStateType shadowState, // TODO ensure this is filled-in
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
 
         if (resourceObjectDelta == null) {
             repoShadow = retrieveIndexOnlyAttributesIfNeeded(ctx, repoShadow, result);
@@ -1000,9 +1003,9 @@ class ShadowUpdater {
 
         if (!computedShadowDelta.isEmpty()) {
             LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadow, computedShadowDelta.debugDumpLazily(1));
-            executeShadowModification(ctx, repoShadow, computedShadowDelta.getModifications(), result);
-            PrismObject<ShadowType> updatedShadow = repoShadow.clone();
-            computedShadowDelta.applyTo(updatedShadow);
+            executeShadowModification(ctx, repoShadow.asPrismObject(), computedShadowDelta.getModifications(), result);
+            ShadowType updatedShadow = repoShadow.clone();
+            computedShadowDelta.applyTo(updatedShadow.asPrismObject());
             return updatedShadow;
         } else {
             LOGGER.trace("No need to update repo shadow {} (empty delta)", repoShadow);
@@ -1010,11 +1013,10 @@ class ShadowUpdater {
         }
     }
 
-    private PrismObject<ShadowType> retrieveIndexOnlyAttributesIfNeeded(ProvisioningContext shadowCtx,
-            PrismObject<ShadowType> repoShadow, OperationResult result)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException {
-        @Nullable ResourceObjectDefinition objectDefinition = shadowCtx.getObjectDefinition();
+    private @NotNull ShadowType retrieveIndexOnlyAttributesIfNeeded(
+            @NotNull ProvisioningContext shadowCtx, @NotNull ShadowType repoShadow, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        ResourceObjectDefinition objectDefinition = shadowCtx.getObjectDefinition();
         if (objectDefinition == null) {
             // TODO consider throwing an exception
             LOGGER.warn("No resource object definition for {}", shadowCtx);
@@ -1038,11 +1040,13 @@ class ShadowUpdater {
                         .item(ShadowType.F_ATTRIBUTES).retrieve(RetrieveOption.INCLUDE)
                         .build();
 
-        PrismObject<ShadowType> retrievedRepoShadow =
-                repositoryService.getObject(ShadowType.class, repoShadow.getOid(), options, result);
+        ShadowType retrievedRepoShadow =
+                repositoryService
+                        .getObject(ShadowType.class, repoShadow.getOid(), options, result)
+                        .asObjectable();
 
-        shadowCaretaker.applyAttributesDefinition(shadowCtx, retrievedRepoShadow);
-        shadowCaretaker.updateShadowState(shadowCtx, retrievedRepoShadow);
+        shadowCtx.applyAttributesDefinition(retrievedRepoShadow);
+        shadowCtx.updateShadowState(retrievedRepoShadow);
 
         LOGGER.trace("Full repo shadow:\n{}", retrievedRepoShadow.debugDumpLazily(1));
 

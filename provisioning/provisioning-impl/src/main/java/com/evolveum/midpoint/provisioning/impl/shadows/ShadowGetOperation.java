@@ -155,7 +155,8 @@ class ShadowGetOperation {
             ShadowType resourceObject = getResourceObject(identifiers, result);
             classifyIfNeeded(resourceObject, result);
             updateShadowInRepository(resourceObject, result);
-            return returnRetrieved(resourceObject, result);
+            ShadowType shadowedObject = constructShadowedObject(resourceObject, result);
+            return returnRetrieved(shadowedObject);
         } catch (ReturnCachedException e) {
             return returnCached(e.reason);
         } catch (Exception ex) {
@@ -360,7 +361,9 @@ class ShadowGetOperation {
                         repositoryShadow, shadowState);
                 // This is live shadow that was not found on resource. Just re-throw the exception. It will
                 // be caught later and the usual error handlers will bury the shadow.
-                // We re-wrap the exception (in a custom way) in order to provide shadow OID and "allow not found" information.
+                //
+                // We re-wrap the exception (in a custom way) instead of re-throwing it or calling e.wrap() method
+                // in order to provide shadow OID and "allow not found" information.
                 throw new ObjectNotFoundException(
                         "Resource object for shadow " + oid + " could not be retrieved: " + e.getMessage(),
                         e,
@@ -385,11 +388,8 @@ class ShadowGetOperation {
             throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException {
-        ErrorHandler handler = localBeans.errorHandlerLocator.locateErrorHandler(cause);
-        if (handler == null) {
-            throw new SystemException("Error without a handler: " + cause.getMessage(), cause);
-        }
         LOGGER.debug("Handling provisioning GET exception {}: {}", cause.getClass(), cause.getMessage());
+        ErrorHandler handler = localBeans.errorHandlerLocator.locateErrorHandlerRequired(cause);
         repositoryShadow = asObjectable(
                 handler.handleGetError(ctx, asPrismObject(repositoryShadow), rootOptions, cause, task, result));
         if (repositoryShadow != null) {
@@ -422,23 +422,26 @@ class ShadowGetOperation {
         return repositoryShadow;
     }
 
-    private @NotNull ShadowType returnRetrieved(@NotNull ShadowType resourceObject, OperationResult result)
+    private @NotNull ShadowType returnRetrieved(@NotNull ShadowType shadowedObject)
+            throws SchemaException, ConfigurationException {
+        assert repositoryShadow != null;
+        ShadowType shadowToReturn = ctx.futurizeShadow(repositoryShadow, shadowedObject, options, now);
+        LOGGER.trace("Futurized shadowed resource object:\n{}", shadowToReturn.debugDumpLazily(1));
+        validateShadow(shadowToReturn, true);
+        return shadowToReturn;
+    }
+
+    @NotNull
+    private ShadowType constructShadowedObject(@NotNull ShadowType resourceObject, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException, EncryptionException {
-
-        assert repositoryShadow != null;
-
         // Complete the shadow by adding attributes from the resource object
         // This also completes the associations by adding shadowRefs
         ShadowType shadowedObject =
                 localBeans.shadowedObjectConstructionHelper.constructShadowedObject(
                         ctx, repositoryShadow, resourceObject, result);
         LOGGER.trace("Shadowed resource object:\n{}", shadowedObject.debugDumpLazily(1));
-
-        ShadowType shadowToReturn = ctx.futurizeShadow(repositoryShadow, shadowedObject, options, now);
-        LOGGER.trace("Futurized shadowed resource object:\n{}", shadowToReturn.debugDumpLazily(1));
-        validateShadow(shadowToReturn, true);
-        return shadowToReturn;
+        return shadowedObject;
     }
 
     private void classifyIfNeeded(ShadowType resourceObject, @NotNull OperationResult result)
@@ -472,7 +475,7 @@ class ShadowGetOperation {
             LOGGER.trace("Resource object fetched from resource:\n{}", resourceObject.debugDump(1));
         }
         repositoryShadow =
-                localBeans.shadowManager.updateShadow(
+                localBeans.shadowManager.updateShadowInRepository(
                         ctx, resourceObject, null, repositoryShadow, repositoryShadow.getShadowLifecycleState(), result);
         LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDumpLazily(1));
     }
