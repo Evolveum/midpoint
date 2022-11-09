@@ -9,11 +9,6 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationItemRefsTableWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationItemsTableWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationWizardPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,7 +23,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
 /**
@@ -50,58 +44,56 @@ public class AssociationsWizardPanel extends AbstractResourceWizardPanel<Resourc
     }
 
     protected AssociationsTableWizardPanel createTablePanel() {
-        AssociationsTableWizardPanel table =
-                new AssociationsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
+        return new AssociationsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
 
-                    @Override
-                    protected void onSaveResourcePerformed(AjaxRequestTarget target) {
-                        if (!isSavedAfterWizard()) {
-                            onExitPerformed(target);
-                            return;
-                        }
-                        OperationResult result = AssociationsWizardPanel.this.onSaveResourcePerformed(target);
-                        if (result != null && !result.isError()) {
-                            new Toast()
-                                    .success()
-                                    .title(getString("ResourceWizardPanel.updateResource"))
-                                    .icon("fas fa-circle-check")
-                                    .autohide(true)
-                                    .delay(5_000)
-                                    .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
-                            onExitPerformed(target);
-                        }
-                    }
+            @Override
+            protected void onSaveResourcePerformed(AjaxRequestTarget target) {
+                if (!isSavedAfterWizard()) {
+                    onExitPerformed(target);
+                    return;
+                }
+                OperationResult result = AssociationsWizardPanel.this.onSaveResourcePerformed(target);
+                if (result != null && !result.isError()) {
+                    new Toast()
+                            .success()
+                            .title(getString("ResourceWizardPanel.updateResource"))
+                            .icon("fas fa-circle-check")
+                            .autohide(true)
+                            .delay(5_000)
+                            .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
+                    onExitPerformed(target);
+                }
+            }
 
-                    @Override
-                    protected void onExitPerformed(AjaxRequestTarget target) {
-                        super.onExitPerformed(target);
-                        AssociationsWizardPanel.this.onExitPerformed(target);
-                    }
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
+                AssociationsWizardPanel.this.onExitPerformed(target);
+            }
 
-                    @Override
-                    protected IModel<String> getSubmitLabelModel() {
-                        if (isSavedAfterWizard()) {
-                            return super.getSubmitLabelModel();
-                        }
-                        return getPageBase().createStringResource("WizardPanel.confirm");
-                    }
+            @Override
+            protected IModel<String> getSubmitLabelModel() {
+                if (isSavedAfterWizard()) {
+                    return super.getSubmitLabelModel();
+                }
+                return getPageBase().createStringResource("WizardPanel.confirm");
+            }
 
-                    @Override
-                    protected void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> value, AjaxRequestTarget target) {
-                        showWizardFragment(target, new WizardPanel(
-                                getIdOfWizardPanel(),
-                                new WizardModel(createAssociationsSteps(value))));
-                    }
+            @Override
+            protected void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> value, AjaxRequestTarget target) {
+                showWizardFragment(target, new WizardPanel(
+                        getIdOfWizardPanel(),
+                        new WizardModel(createAssociationsSteps(value))));
+            }
 
-                    @Override
-                    protected String getSubmitIcon() {
-                        if (isSavedAfterWizard()) {
-                            return super.getSubmitIcon();
-                        }
-                        return "fa fa-check";
-                    }
-                };
-        return table;
+            @Override
+            protected String getSubmitIcon() {
+                if (isSavedAfterWizard()) {
+                    return super.getSubmitIcon();
+                }
+                return "fa fa-check";
+            }
+        };
     }
 
     public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {

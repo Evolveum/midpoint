@@ -9,7 +9,6 @@ package com.evolveum.midpoint.authentication.impl.module.configuration;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.impl.module.authentication.RemoteModuleAuthenticationImpl;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -46,16 +45,10 @@ public class OidcClientModuleWebSecurityConfiguration extends RemoteModuleWebSec
 
     private static final Trace LOGGER = TraceManager.getTrace(OidcClientModuleWebSecurityConfiguration.class);
 
-    private static Protector protector;
-
     private InMemoryClientRegistrationRepository clientRegistrationRepository;
     private final Map<String, OidcAdditionalConfiguration> additionalConfiguration = new HashMap<>();
 
     private OidcClientModuleWebSecurityConfiguration() {
-    }
-
-    public static void setProtector(Protector protector) {
-        OidcClientModuleWebSecurityConfiguration.protector = protector;
     }
 
     public static OidcClientModuleWebSecurityConfiguration build(OidcAuthenticationModuleType modelType, String prefixOfSequence,

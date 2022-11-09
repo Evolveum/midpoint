@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -43,66 +42,64 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
     }
 
     protected SynchronizationReactionTableWizardPanel createTablePanel() {
-        SynchronizationReactionTableWizardPanel table
-                = new SynchronizationReactionTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
+        return new SynchronizationReactionTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
 
-            @Override
-            protected void onSaveResourcePerformed(AjaxRequestTarget target) {
-                if (!isSavedAfterWizard()) {
-                    onExitPerformedAfterValidate(target);
-                    return;
-                }
-                OperationResult result = SynchronizationWizardPanel.this.onSaveResourcePerformed(target);
-                if (result != null && !result.isError()) {
-                    new Toast()
-                            .success()
-                            .title(getString("ResourceWizardPanel.updateResource"))
-                            .icon("fas fa-circle-check")
-                            .autohide(true)
-                            .delay(5_000)
-                            .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
-                    onExitPerformedAfterValidate(target);
-                } else {
-                    target.add(getFeedback());
-                }
-            }
+    @Override
+    protected void onSaveResourcePerformed(AjaxRequestTarget target) {
+        if (!isSavedAfterWizard()) {
+            onExitPerformedAfterValidate(target);
+            return;
+        }
+        OperationResult result = SynchronizationWizardPanel.this.onSaveResourcePerformed(target);
+        if (result != null && !result.isError()) {
+            new Toast()
+                    .success()
+                    .title(getString("ResourceWizardPanel.updateResource"))
+                    .icon("fas fa-circle-check")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
+            onExitPerformedAfterValidate(target);
+        } else {
+            target.add(getFeedback());
+        }
+    }
 
-            @Override
-            protected void inEditNewValue(IModel<PrismContainerValueWrapper<SynchronizationReactionType>> value, AjaxRequestTarget target) {
-                showWizardFragment(target, new WizardPanel(
-                        getIdOfWizardPanel(),
-                        new WizardModel(createSynchronizationConfigSteps(value))));
-            }
+    @Override
+    protected void inEditNewValue(IModel<PrismContainerValueWrapper<SynchronizationReactionType>> value, AjaxRequestTarget target) {
+        showWizardFragment(target, new WizardPanel(
+                getIdOfWizardPanel(),
+                new WizardModel(createSynchronizationConfigSteps(value))));
+    }
 
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                if (getTablePanel().isValidFormComponents(target)) {
-                    onExitPerformedAfterValidate(target);
-                }
-            }
+    @Override
+    protected void onExitPerformed(AjaxRequestTarget target) {
+        if (getTablePanel().isValidFormComponents(target)) {
+            onExitPerformedAfterValidate(target);
+        }
+    }
 
-            private void onExitPerformedAfterValidate(AjaxRequestTarget target) {
-                super.onExitPerformed(target);
-                SynchronizationWizardPanel.this.onExitPerformed(target);
-            }
+    private void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+        super.onExitPerformed(target);
+        SynchronizationWizardPanel.this.onExitPerformed(target);
+    }
 
-            @Override
-            protected IModel<String> getSubmitLabelModel() {
-                if (isSavedAfterWizard()) {
-                    return super.getSubmitLabelModel();
-                }
-                return getPageBase().createStringResource("WizardPanel.confirm");
-            }
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        if (isSavedAfterWizard()) {
+            return super.getSubmitLabelModel();
+        }
+        return getPageBase().createStringResource("WizardPanel.confirm");
+    }
 
-            @Override
-            protected String getSubmitIcon() {
-                if (isSavedAfterWizard()) {
-                    return super.getSubmitIcon();
-                }
-                return "fa fa-check";
-            }
-        };
-        return table;
+    @Override
+    protected String getSubmitIcon() {
+        if (isSavedAfterWizard()) {
+            return super.getSubmitIcon();
+        }
+        return "fa fa-check";
+    }
+};
     }
 
     public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {

@@ -130,6 +130,11 @@ public class WrapperScene implements Scene {
     }
 
     @Override
+    public boolean isBroken() {
+        return false;
+    }
+
+    @Override
     public boolean isEmpty() {
         if (partialScenes == null) {
             return true;

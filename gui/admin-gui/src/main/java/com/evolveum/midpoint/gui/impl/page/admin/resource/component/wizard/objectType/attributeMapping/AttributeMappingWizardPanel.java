@@ -49,72 +49,70 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
     }
 
     protected AttributeMappingsTableWizardPanel createTablePanel(WrapperContext.AttributeMappingType initialTab) {
-        AttributeMappingsTableWizardPanel table
-                = new AttributeMappingsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel, initialTab) {
+        return new AttributeMappingsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel, initialTab) {
 
-            @Override
-            protected void onSaveResourcePerformed(AjaxRequestTarget target) {
-                if (!isSavedAfterWizard()) {
-                    onExitPerformedAfterValidate(target);
-                    return;
-                }
-                OperationResult result = AttributeMappingWizardPanel.this.onSaveResourcePerformed(target);
-                if (result != null && !result.isError()) {
-                    new Toast()
-                            .success()
-                            .title(getString("ResourceWizardPanel.updateResource"))
-                            .icon("fas fa-circle-check")
-                            .autohide(true)
-                            .delay(5_000)
-                            .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
-                    onExitPerformedAfterValidate(target);
-                }
-            }
+    @Override
+    protected void onSaveResourcePerformed(AjaxRequestTarget target) {
+        if (!isSavedAfterWizard()) {
+            onExitPerformedAfterValidate(target);
+            return;
+        }
+        OperationResult result = AttributeMappingWizardPanel.this.onSaveResourcePerformed(target);
+        if (result != null && !result.isError()) {
+            new Toast()
+                    .success()
+                    .title(getString("ResourceWizardPanel.updateResource"))
+                    .icon("fas fa-circle-check")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
+            onExitPerformedAfterValidate(target);
+        }
+    }
 
-            @Override
-            protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
-                showOutboundAttributeMappingWizardFragment(target, value);
-            }
+    @Override
+    protected void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
+        showOutboundAttributeMappingWizardFragment(target, value);
+    }
 
-            @Override
-            protected void inEditInboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
-                showInboundAttributeMappingWizardFragment(target, value);
-            }
+    @Override
+    protected void inEditInboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target) {
+        showInboundAttributeMappingWizardFragment(target, value);
+    }
 
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                if (getTable().isValidFormComponents(target)) {
-                    onExitPerformedAfterValidate(target);
-                }
-            }
+    @Override
+    protected void onExitPerformed(AjaxRequestTarget target) {
+        if (getTable().isValidFormComponents(target)) {
+            onExitPerformedAfterValidate(target);
+        }
+    }
 
-            private void onExitPerformedAfterValidate(AjaxRequestTarget target) {
-                super.onExitPerformed(target);
-                AttributeMappingWizardPanel.this.onExitPerformed(target);
-            }
+    private void onExitPerformedAfterValidate(AjaxRequestTarget target) {
+        super.onExitPerformed(target);
+        AttributeMappingWizardPanel.this.onExitPerformed(target);
+    }
 
-            @Override
-            protected void onShowOverrides(AjaxRequestTarget target, WrapperContext.AttributeMappingType selectedTable) {
-                showAttributeOverrides(target, selectedTable);
-            }
+    @Override
+    protected void onShowOverrides(AjaxRequestTarget target, WrapperContext.AttributeMappingType selectedTable) {
+        showAttributeOverrides(target, selectedTable);
+    }
 
-            @Override
-            protected IModel<String> getSubmitLabelModel() {
-                if (isSavedAfterWizard()) {
-                    return super.getSubmitLabelModel();
-                }
-                return getPageBase().createStringResource("WizardPanel.confirm");
-            }
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        if (isSavedAfterWizard()) {
+            return super.getSubmitLabelModel();
+        }
+        return getPageBase().createStringResource("WizardPanel.confirm");
+    }
 
-            @Override
-            protected String getSubmitIcon() {
-                if (isSavedAfterWizard()) {
-                    return super.getSubmitIcon();
-                }
-                return "fa fa-check";
-            }
-        };
-        return table;
+    @Override
+    protected String getSubmitIcon() {
+        if (isSavedAfterWizard()) {
+            return super.getSubmitIcon();
+        }
+        return "fa fa-check";
+    }
+};
     }
 
     private void showAttributeOverrides(AjaxRequestTarget target, WrapperContext.AttributeMappingType selectedTable) {

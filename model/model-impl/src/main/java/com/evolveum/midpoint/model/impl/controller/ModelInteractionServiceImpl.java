@@ -6,15 +6,14 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
@@ -24,19 +23,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+import com.evolveum.midpoint.prism.delta.*;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,21 +36,19 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
+import com.evolveum.midpoint.model.api.visualizer.ModelScene;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
@@ -80,27 +69,32 @@ import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -111,6 +105,7 @@ import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -118,7 +113,9 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -488,7 +485,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ObjectSecurityConstraints securityConstraints;
         try {
             securityConstraints = securityEnforcer.compileSecurityConstraints(focus, null, task, result);
-        } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException | SecurityViolationException e) {
+        } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException |
+                SecurityViolationException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -824,8 +822,75 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public List<Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException {
+
         return visualizer.visualizeDeltas(deltas, task, result);
+    }
+
+    @Override
+    public <O extends ObjectType> ModelScene visualizeModelContext(ModelContext<O> context, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
+
+        if (context == null) {
+            return new ModelScene();
+        }
+
+        final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
+        final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
+
+        final List<ModelProjectionContext> projectionContexts = new ArrayList<>();
+
+        final List<Scene> primaryScenes;
+        final List<Scene> secondaryScenes;
+
+        if (context.getFocusContext() != null) {
+            addIgnoreNull(primaryDeltas, CloneUtil.clone(context.getFocusContext().getPrimaryDelta()));
+            ObjectDelta<O> summarySecondaryDelta = CloneUtil.clone(context.getFocusContext().getSummarySecondaryDelta());
+            if (summarySecondaryDelta != null && !summarySecondaryDelta.getModifications().isEmpty()) {
+                secondaryDeltas.add(summarySecondaryDelta);
+            }
+        }
+
+        for (ModelProjectionContext projCtx : context.getProjectionContexts()) {
+            ObjectDelta<ShadowType> primaryDelta = CloneUtil.clone(projCtx.getPrimaryDelta());
+            addIgnoreNull(primaryDeltas, primaryDelta);
+
+            if (!isEquivalentWithoutOperationAttr(primaryDelta, CloneUtil.clone(projCtx.getExecutableDelta()))) {
+                projectionContexts.add(projCtx);
+            }
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Primary deltas:\n{}", DebugUtil.debugDump(primaryDeltas));
+            LOGGER.trace("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
+        }
+
+        primaryScenes = visualizeDeltas(primaryDeltas, task, result);
+        secondaryScenes = visualizeDeltas(secondaryDeltas, task, result);
+
+        List<Scene> projectionScenes = visualizer.visualizeProjectionContexts(projectionContexts, task, result);
+        secondaryScenes.addAll(projectionScenes);
+
+        return new ModelScene(primaryScenes, secondaryScenes);
+    }
+
+    private boolean isEquivalentWithoutOperationAttr(ObjectDelta<ShadowType> primaryDelta, ObjectDelta<ShadowType> secondaryDelta) {
+        if (primaryDelta == null || secondaryDelta == null) {
+            return false;
+        }
+
+        List<ItemDelta> modifications = new ArrayList<>();
+        modifications.addAll(secondaryDelta.getModifications());
+
+        for (ItemDelta secondaryModification : modifications){
+            ItemDefinition def = secondaryModification.getDefinition();
+            if (def != null && def.isOperational()) {
+                secondaryDelta.removeModification(secondaryModification);
+            }
+        }
+
+        return primaryDelta.equivalent(secondaryDelta);
     }
 
     @Override
@@ -859,7 +924,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         List<ConnectorOperationalStatus> status;
         try {
             status = provisioning.getConnectorOperationalStatus(resourceOid, task, result);
-        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
+                ExpressionEvaluationException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -1253,7 +1319,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         for (String newValue : valuesToValidate) {
             OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
-            if (path != null) { result.addParam("path", path.toString()); }
+            if (path != null) {result.addParam("path", path.toString());}
             result.addParam("valueToValidate", newValue);
 
             ObjectValuePolicyEvaluator.Builder evaluatorBuilder = new ObjectValuePolicyEvaluator.Builder()
@@ -1677,7 +1743,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Collection<ObjectDeltaOperation<? extends ObjectType>> result = modelService.executeChanges(
                     MiscUtil.createCollection(userDelta), ModelExecuteOptions.create().raw(), task, parentResult);
         } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
-                | SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PolicyViolationException e) {
+                | SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
+                PolicyViolationException e) {
             response.message(LocalizationUtil.createForFallbackMessage("Failed to reset credential: " + e.getMessage()));
             throw e;
         }
@@ -1983,7 +2050,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     query, options, task, result);
             processContainerByHandler(auditRecords, handler);
         } else if (ObjectType.class.isAssignableFrom(type)) {
-            ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test((PrismContainer)value);
+            ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test((PrismContainer) value);
             checkOrdering(query, ObjectType.F_NAME);
             modelService.searchObjectsIterative((Class<ObjectType>) type, query, resultHandler, options, task, result);
         } else {
@@ -2033,7 +2100,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType(), prismContext);
                 paging.setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
                 query.setPaging(paging);
-            } else if (query.getPaging().getPrimaryOrderingPath() == null){
+            } else if (query.getPaging().getPrimaryOrderingPath() == null) {
                 query.getPaging().setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
             }
             return query;
@@ -2044,7 +2111,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private void processContainerByHandler(SearchResultList<? extends Containerable> containers, Predicate<PrismContainer> handler) throws SchemaException {
-        for (Containerable container : containers){
+        for (Containerable container : containers) {
             PrismContainerValue prismValue = container.asPrismContainerValue();
             prismValue.setPrismContext(prismContext);
             PrismContainer prismContainer = prismValue.asSingleValuedContainer(prismValue.getTypeName());

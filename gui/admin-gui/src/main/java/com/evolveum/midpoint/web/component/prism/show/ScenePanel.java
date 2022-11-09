@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -65,6 +67,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
     private static final String ID_NEW_VALUE_LABEL = "newValueLabel";
     private static final String ID_VALUE_LABEL = "valueLabel";
     private static final String ID_SORT_PROPERTIES = "sortProperties";
+    private static final String ID_WARNING = "warning";
 
     private boolean showOperationalItems = false;
     private boolean operationalItemsVisible = false;
@@ -133,9 +136,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
         });
 
         Label headerChangeType = new Label(ID_HEADER_CHANGE_TYPE, new ChangeTypeModel());
-        //headerChangeType.setRenderBodyOnly(true);
         Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
-        //headerObjectType.setRenderBodyOnly(true);
 
         IModel<String> nameModel = () -> model.getObject().getName(ScenePanel.this);
 
@@ -167,6 +168,11 @@ public class ScenePanel extends BasePanel<SceneDto> {
         headerPanel.add(headerNameLink);
         headerPanel.add(headerDescription);
         headerPanel.add(headerWrapperDisplayName);
+
+        Label warning = new Label(ID_WARNING);
+        warning.add(new VisibleBehaviour(() -> getModelObject().getScene().isBroken()));
+        warning.add(new TooltipBehavior());
+        headerPanel.add(warning);
 
         headerChangeType.add(createHeaderOnClickBehaviour(model));
         headerObjectType.add(createHeaderOnClickBehaviour(model));

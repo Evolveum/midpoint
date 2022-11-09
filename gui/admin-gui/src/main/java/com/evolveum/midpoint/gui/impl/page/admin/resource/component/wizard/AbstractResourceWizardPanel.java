@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -19,15 +25,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.panel.Fragment;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 
 /**
  * @author lskublik
@@ -103,12 +100,12 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
     }
 
     protected IModel<PrismContainerValueWrapper<C>> createModelOfNewValue(ItemPath path) {
-        return new IModel() {
+        return new IModel<>() {
 
             private PrismContainerValueWrapper<C> newItemWrapper;
 
             @Override
-            public Object getObject() {
+            public PrismContainerValueWrapper<C> getObject() {
                 if (newItemWrapper == null) {
                     try {
                         PrismContainerWrapper<C> container = findContainer(path);

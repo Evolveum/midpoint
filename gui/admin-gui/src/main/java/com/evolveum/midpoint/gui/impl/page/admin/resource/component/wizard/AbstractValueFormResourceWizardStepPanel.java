@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -15,7 +14,6 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.*;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -38,7 +36,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractValueFormResourceWizardStepPanel.class);
     private static final String ID_VALUE = "value";
-    private IModel<PrismContainerValueWrapper<C>> newValueModel;
+    private final IModel<PrismContainerValueWrapper<C>> newValueModel;
 
     public AbstractValueFormResourceWizardStepPanel(
             ResourceDetailsModel model,
@@ -51,34 +49,33 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
         }
     }
 
-    protected <C extends Containerable, T extends Containerable> IModel<PrismContainerValueWrapper<C>> createNewValueModel(
+    protected <Con extends Containerable, T extends Containerable> IModel<PrismContainerValueWrapper<Con>> createNewValueModel(
             IModel<PrismContainerValueWrapper<T>> parentValue, ItemName itemName) {
-        LoadableDetachableModel<PrismContainerValueWrapper<C>> model = new LoadableDetachableModel<>() {
+        return new LoadableDetachableModel<>() {
 
             @Override
-            protected PrismContainerValueWrapper<C> load() {
-                PrismContainerWrapperModel<T, C> model
+            protected PrismContainerValueWrapper<Con> load() {
+                PrismContainerWrapperModel<T, Con> model1
                         = PrismContainerWrapperModel.fromContainerValueWrapper(
                         parentValue,
                         itemName);
-                if (model.getObject().getValues().isEmpty()) {
+                if (model1.getObject().getValues().isEmpty()) {
                     try {
-                        PrismContainerValue<C> newItem = model.getObject().getItem().createNewValue();
-                        PrismContainerValueWrapper<C> newItemWrapper = WebPrismUtil.createNewValueWrapper(
-                                model.getObject(), newItem, getPageBase());
-                        model.getObject().getValues().add(newItemWrapper);
+                        PrismContainerValue<Con> newItem = model1.getObject().getItem().createNewValue();
+                        PrismContainerValueWrapper<Con> newItemWrapper = WebPrismUtil.createNewValueWrapper(
+                                model1.getObject(), newItem, getPageBase());
+                        model1.getObject().getValues().add(newItemWrapper);
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't create new value for limitation container", e);
                         return null;
                     }
                 }
-                PrismContainerValueWrapper<C> newItemWrapper = model.getObject().getValues().get(0);
+                PrismContainerValueWrapper<Con> newItemWrapper = model1.getObject().getValues().get(0);
                 newItemWrapper.setExpanded(true);
                 newItemWrapper.setShowEmpty(true);
                 return newItemWrapper;
             }
         };
-        return model;
     }
 
     @Override
@@ -129,12 +126,12 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
     @Override
     protected void updateFeedbackPanels(AjaxRequestTarget target) {
-        getValuePanel().visitChildren(VerticalFormPrismPropertyValuePanel.class, (component, objectIVisit) -> {
-            ((VerticalFormPrismPropertyValuePanel) component).updateFeedbackPanel(target);
-        });
-        getValuePanel().visitChildren(VerticalFormPrismReferenceValuePanel.class, (component, objectIVisit) -> {
-            ((VerticalFormPrismReferenceValuePanel) component).updateFeedbackPanel(target);
-        });
+        getValuePanel().visitChildren(
+                VerticalFormPrismPropertyValuePanel.class,
+                (component, objectIVisit) -> ((VerticalFormPrismPropertyValuePanel) component).updateFeedbackPanel(target));
+        getValuePanel().visitChildren(
+                VerticalFormPrismReferenceValuePanel.class,
+                (component, objectIVisit) -> ((VerticalFormPrismReferenceValuePanel) component).updateFeedbackPanel(target));
     }
 
     @Override

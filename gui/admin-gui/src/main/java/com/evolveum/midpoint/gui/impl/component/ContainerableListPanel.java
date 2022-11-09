@@ -7,11 +7,16 @@
 package com.evolveum.midpoint.gui.impl.component;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.web.component.data.*;
+
+import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
@@ -27,6 +32,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -35,6 +41,7 @@ import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.visit.IVisitor;
+import org.apache.wicket.validation.ValidatorAdapter;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -1332,5 +1339,34 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public ContainerPanelConfigurationType getPanelConfiguration() {
         return config;
+    }
+
+    public boolean isValidFormComponents(AjaxRequestTarget target) {
+        AtomicReference<Boolean> valid = new AtomicReference<>(true);
+        getTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (row, object) -> {
+            ((SelectableDataTable.SelectableRowItem) row).visitChildren(FormComponent.class, (baseFormComponent, object2) -> {
+                baseFormComponent.getBehaviors().stream()
+                        .filter(behaviour -> behaviour instanceof ValidatorAdapter
+                                && ((ValidatorAdapter)behaviour).getValidator() instanceof NotNullValidator)
+                        .map(adapter -> ((ValidatorAdapter)adapter).getValidator())
+                        .forEach(validator -> ((NotNullValidator)validator).setUseModel(true));
+                ((FormComponent)baseFormComponent).validate();
+                if (baseFormComponent.hasErrorMessage()) {
+                    valid.set(false);
+                    if (target != null) {
+                        target.add(baseFormComponent);
+                        InputPanel inputParent = baseFormComponent.findParent(InputPanel.class);
+                        if (inputParent != null && inputParent.getParent() != null) {
+                            target.addChildren(inputParent.getParent(), FeedbackLabels.class);
+                        }
+                    }
+                }
+            });
+        });
+        return valid.get();
+    }
+
+    public boolean isValidFormComponents() {
+        return isValidFormComponents(null);
     }
 }

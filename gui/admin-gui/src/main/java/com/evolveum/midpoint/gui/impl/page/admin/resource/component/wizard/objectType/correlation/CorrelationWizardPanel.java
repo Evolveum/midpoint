@@ -34,66 +34,64 @@ public class CorrelationWizardPanel extends AbstractResourceWizardPanel<Resource
     }
 
     protected CorrelationItemsTableWizardPanel createTablePanel() {
-        CorrelationItemsTableWizardPanel table
-                = new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
+        return new CorrelationItemsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
 
-            @Override
-            protected void onSaveResourcePerformed(AjaxRequestTarget target) {
-                if (!isSavedAfterWizard()) {
-                    onExitPerformed(target);
-                    return;
-                }
-                OperationResult result = CorrelationWizardPanel.this.onSaveResourcePerformed(target);
-                if (result != null && !result.isError()) {
-                    new Toast()
-                            .success()
-                            .title(getString("ResourceWizardPanel.updateResource"))
-                            .icon("fas fa-circle-check")
-                            .autohide(true)
-                            .delay(5_000)
-                            .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
-                    onExitPerformed(target);
-                } else {
-                    target.add(getFeedback());
-                }
-            }
+    @Override
+    protected void onSaveResourcePerformed(AjaxRequestTarget target) {
+        if (!isSavedAfterWizard()) {
+            onExitPerformed(target);
+            return;
+        }
+        OperationResult result = CorrelationWizardPanel.this.onSaveResourcePerformed(target);
+        if (result != null && !result.isError()) {
+            new Toast()
+                    .success()
+                    .title(getString("ResourceWizardPanel.updateResource"))
+                    .icon("fas fa-circle-check")
+                    .autohide(true)
+                    .delay(5_000)
+                    .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
+            onExitPerformed(target);
+        } else {
+            target.add(getFeedback());
+        }
+    }
 
+    @Override
+    protected void onExitPerformed(AjaxRequestTarget target) {
+        super.onExitPerformed(target);
+        CorrelationWizardPanel.this.onExitPerformed(target);
+    }
+
+    @Override
+    protected void showTableForItemRefs(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
+        showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), rowModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
-                super.onExitPerformed(target);
-                CorrelationWizardPanel.this.onExitPerformed(target);
-            }
-
-            @Override
-            protected void showTableForItemRefs(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel) {
-                showChoiceFragment(target, new CorrelationItemRefsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), rowModel) {
-                    @Override
-                    protected void onExitPerformed(AjaxRequestTarget target) {
-                        if (getTable().isValidFormComponents()) {
-                            super.onExitPerformed(target);
-                            showChoiceFragment(target, createTablePanel());
-                        }
-                    }
-                });
-            }
-
-            @Override
-            protected IModel<String> getSubmitLabelModel() {
-                if (isSavedAfterWizard()) {
-                    return super.getSubmitLabelModel();
+                if (getTable().isValidFormComponents()) {
+                    super.onExitPerformed(target);
+                    showChoiceFragment(target, createTablePanel());
                 }
-                return getPageBase().createStringResource("WizardPanel.confirm");
             }
+        });
+    }
 
-            @Override
-            protected String getSubmitIcon() {
-                if (isSavedAfterWizard()) {
-                    return super.getSubmitIcon();
-                }
-                return "fa fa-check";
-            }
-        };
-        return table;
+    @Override
+    protected IModel<String> getSubmitLabelModel() {
+        if (isSavedAfterWizard()) {
+            return super.getSubmitLabelModel();
+        }
+        return getPageBase().createStringResource("WizardPanel.confirm");
+    }
+
+    @Override
+    protected String getSubmitIcon() {
+        if (isSavedAfterWizard()) {
+            return super.getSubmitIcon();
+        }
+        return "fa fa-check";
+    }
+};
     }
 
     public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {

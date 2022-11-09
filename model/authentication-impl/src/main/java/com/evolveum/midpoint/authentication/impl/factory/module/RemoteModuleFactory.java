@@ -8,7 +8,6 @@ package com.evolveum.midpoint.authentication.impl.factory.module;
 
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,9 +27,6 @@ public abstract class RemoteModuleFactory extends AbstractModuleFactory {
     private static final Trace LOGGER = TraceManager.getTrace(RemoteModuleFactory.class);
 
     @Autowired
-    private Protector protector;
-
-    @Autowired
     private SystemObjectCache systemObjectCache;
 
     protected String getPublicUrlPrefix(ServletRequest request) {
@@ -41,9 +37,5 @@ public abstract class RemoteModuleFactory extends AbstractModuleFactory {
             LOGGER.error("Couldn't load system configuration", e);
             return null;
         }
-    }
-
-    protected Protector getProtector() {
-        return protector;
     }
 }

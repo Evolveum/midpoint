@@ -23,13 +23,14 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.page.admin.shadows.ShadowTablePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -676,6 +677,19 @@ public class ResourceContentPanel extends AbstractObjectMainPanel<ResourceType, 
 
     protected boolean isIntentAndObjectClassPanelVisible() {
         return true;
+    }
+
+    public BoxedTablePanel getTable() {
+        com.evolveum.midpoint.web.page.admin.resources.ResourceContentPanel panel =
+                (com.evolveum.midpoint.web.page.admin.resources.ResourceContentPanel) get(getPageBase().createComponentPath(ID_MAIN_FORM, ID_TABLE));
+        if (panel == null) {
+            return null;
+        }
+        ShadowTablePanel table = panel.getTable();
+        if (table == null) {
+            return null;
+        }
+        return table.getTable();
     }
 
 }

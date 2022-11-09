@@ -9,29 +9,21 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -40,96 +32,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author lskublik
  */
 @Experimental
-public abstract class AssociationsTable extends MultivalueContainerListPanel<ResourceObjectAssociationType> {
-
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
+public abstract class AssociationsTable extends AbstractResourceWizardTable<ResourceObjectAssociationType, ResourceObjectTypeDefinitionType> {
 
     public AssociationsTable(
             String id,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, ResourceObjectAssociationType.class);
-        this.valueModel = valueModel;
+        super(id, valueModel, ResourceObjectAssociationType.class);
     }
 
-    @Override
-    protected boolean isHeaderVisible() {
-        return false;
-    }
-
-    @Override
-    protected List<Component> createToolbarButtonsList(String idButton) {
-        List<Component> buttons = super.createToolbarButtonsList(idButton);
-        buttons.forEach(button -> {
-            if (button instanceof AjaxIconButton) {
-                ((AjaxIconButton) button).showTitleAsLabel(true);
-            }
-        });
-        return buttons;
-    }
-
-    @Override
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
-        createNewAssociation(target);
-        refreshTable(target);
-    }
-
-    protected PrismContainerValueWrapper createNewAssociation(AjaxRequestTarget target) {
+    protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
         PrismContainerWrapper<ResourceObjectAssociationType> container = getContainerModel().getObject();
         PrismContainerValue<ResourceObjectAssociationType> newReaction = container.getItem().createNewValue();
-        PrismContainerValueWrapper<ResourceObjectAssociationType> newReactionWrapper =
-                createNewItemContainerValueWrapper(newReaction, container, target);
-        return newReactionWrapper;
-    }
-
-    @Override
-    protected boolean isCreateNewObjectVisible() {
-        return true;
-    }
-
-    @Override
-    protected List<InlineMenuItem> createInlineMenu() {
-        List<InlineMenuItem> items = new ArrayList<>();
-
-        InlineMenuItem item = new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createEditColumnAction();
-            }
-        };
-        items.add(item);
-
-        items.add(new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createDeleteColumnAction();
-            }
-        });
-        return items;
+        return createNewItemContainerValueWrapper(newReaction, container, target);
     }
 
     @Override
     protected IModel<PrismContainerWrapper<ResourceObjectAssociationType>> getContainerModel() {
         return PrismContainerWrapperModel.fromContainerValueWrapper(
-                valueModel,
+                getValueModel(),
                 ResourceObjectTypeDefinitionType.F_ASSOCIATION);
     }
 
@@ -189,7 +109,7 @@ public abstract class AssociationsTable extends MultivalueContainerListPanel<Res
         return new LoadableModel<>() {
             @Override
             protected PrismContainerDefinition<ResourceObjectAssociationType> load() {
-                return valueModel.getObject().getDefinition().findContainerDefinition(
+                return getValueModel().getObject().getDefinition().findContainerDefinition(
                         ResourceObjectTypeDefinitionType.F_ASSOCIATION);
             }
         };

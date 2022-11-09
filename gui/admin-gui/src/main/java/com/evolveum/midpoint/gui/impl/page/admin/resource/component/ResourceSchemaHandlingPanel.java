@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -34,13 +35,9 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -95,7 +92,6 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
             @Override
             protected List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> createDefaultColumns() {
                 List<IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String>> columns = new ArrayList<>();
-//                columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_DISPLAY_NAME, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
                 columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_KIND, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
                 columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_INTENT, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
                 columns.add(new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_DEFAULT, AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()));
@@ -112,6 +108,33 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
                 });
                 return columns;
+            }
+
+            @Override
+            protected List<Component> createToolbarButtonsList(String idButton) {
+                List<Component> buttons = super.createToolbarButtonsList(idButton);
+                buttons.stream()
+                        .filter(component -> component instanceof AjaxIconButton)
+                        .forEach(button -> {
+                            ((AjaxIconButton) button).showTitleAsLabel(true);
+                            button.add(AttributeAppender.replace("class", "btn btn-primary btn-sm"));
+                        });
+                return buttons;
+            }
+
+            @Override
+            protected String getIconForNewObjectButton() {
+                return "fa fa-circle-plus";
+            }
+
+            @Override
+            protected String getKeyOfTitleForNewObjectButton() {
+                return "ResourceSchemaHandlingPanel.newObject";
+            }
+
+            @Override
+            protected boolean isHeaderVisible() {
+                return false;
             }
 
             @Override
@@ -160,47 +183,6 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
 
     protected boolean isCreateNewObjectVisible() {
         return true;
-    }
-
-//    protected void editItemPerformed(
-//            AjaxRequestTarget target,
-//            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> rowModel,
-//            List<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> listItems,
-//            AbstractPageObjectDetails parent) {
-//
-//        ContainerPanelConfigurationType detailsPanel = new ContainerPanelConfigurationType();
-//        detailsPanel.setPanelType("schemaHandlingDetails");
-//
-//        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> objectTypeDef;
-//        if (rowModel != null) {
-//            objectTypeDef = rowModel.getObject();
-//        } else {
-//            objectTypeDef = listItems.iterator().next();
-//        }
-//        detailsPanel.setPath(new ItemPathType(objectTypeDef.getPath()));
-//
-//        detailsPanel.setIdentifier("schemaHandlingDetails");
-//        DisplayType displayType = new DisplayType();
-//        displayType.setLabel(getObjectTypeDisplayName(objectTypeDef.getNewValue().asContainerable()));
-//        detailsPanel.setDisplay(displayType);
-//
-//        getPageBase().getSessionStorage().setObjectDetailsStorage("details" + parent.getType().getSimpleName(), detailsPanel);
-//
-//        ResourceSchemaHandlingPanel.this.getPanelConfiguration().getPanel().add(detailsPanel);
-//        target.add(parent);
-//        parent.replacePanel(detailsPanel, target);
-//    }
-
-    private PolyStringType getObjectTypeDisplayName(ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType) {
-        String displayName = resourceObjectTypeDefinitionType.getDisplayName();
-        if (StringUtils.isNotBlank(displayName)) {
-            return new PolyStringType(displayName);
-        }
-        PolyStringType polyStringType = new PolyStringType();
-        PolyStringTranslationType translationType = new PolyStringTranslationType();
-        translationType.setKey("feedbackMessagePanel.message.undefined");
-        polyStringType.setTranslation(translationType);
-        return polyStringType;
     }
 
     private MultivalueContainerListPanelWithDetailsPanel<ResourceObjectTypeDefinitionType> getMultivalueContainerListPanel() {

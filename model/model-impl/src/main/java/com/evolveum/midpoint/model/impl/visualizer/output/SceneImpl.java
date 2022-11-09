@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class SceneImpl implements Scene, DebugDumpable {
 
@@ -35,6 +36,7 @@ public class SceneImpl implements Scene, DebugDumpable {
     private PrismContainerValue<?> sourceValue;
     private PrismContainerDefinition<?> sourceDefinition;
     private ObjectDelta<?> sourceDelta;
+    private boolean broken;
 
     public SceneImpl(SceneImpl owner) {
         this.owner = owner;
@@ -137,6 +139,15 @@ public class SceneImpl implements Scene, DebugDumpable {
     }
 
     @Override
+    public boolean isBroken() {
+        return broken;
+    }
+
+    public void setBroken(boolean broken) {
+        this.broken = broken;
+    }
+
+    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
@@ -223,26 +234,22 @@ public class SceneImpl implements Scene, DebugDumpable {
     // owner must not be tested here!
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
 
         SceneImpl scene = (SceneImpl) o;
 
-        if (operational != scene.operational) return false;
-        if (name != null ? !name.equals(scene.name) : scene.name != null) return false;
-        if (changeType != scene.changeType) return false;
-        if (partialScenes != null ? !partialScenes.equals(scene.partialScenes) : scene.partialScenes != null)
-            return false;
-        if (items != null ? !items.equals(scene.items) : scene.items != null) return false;
-        if (sourceRelPath != null ? !sourceRelPath.equals(scene.sourceRelPath) : scene.sourceRelPath != null)
-            return false;
-        if (sourceAbsPath != null ? !sourceAbsPath.equals(scene.sourceAbsPath) : scene.sourceAbsPath != null)
-            return false;
-        if (sourceValue != null ? !sourceValue.equals(scene.sourceValue) : scene.sourceValue != null) return false;
-        if (sourceDefinition != null ? !sourceDefinition.equals(scene.sourceDefinition) : scene.sourceDefinition != null)
-            return false;
-        return !(sourceDelta != null ? !sourceDelta.equals(scene.sourceDelta) : scene.sourceDelta != null);
-
+        if (operational != scene.operational) {return false;}
+        if (broken != scene.broken) {return false;}
+        if (!Objects.equals(name, scene.name)) {return false;}
+        if (changeType != scene.changeType) {return false;}
+        if (partialScenes != null ? !partialScenes.equals(scene.partialScenes) : scene.partialScenes != null) {return false;}
+        if (items != null ? !items.equals(scene.items) : scene.items != null) {return false;}
+        if (!Objects.equals(sourceRelPath, scene.sourceRelPath)) {return false;}
+        if (!Objects.equals(sourceAbsPath, scene.sourceAbsPath)) {return false;}
+        if (!Objects.equals(sourceValue, scene.sourceValue)) {return false;}
+        if (!Objects.equals(sourceDefinition, scene.sourceDefinition)) {return false;}
+        return Objects.equals(sourceDelta, scene.sourceDelta);
     }
 
     @Override
@@ -257,6 +264,7 @@ public class SceneImpl implements Scene, DebugDumpable {
         result = 31 * result + (sourceValue != null ? sourceValue.hashCode() : 0);
         result = 31 * result + (sourceDefinition != null ? sourceDefinition.hashCode() : 0);
         result = 31 * result + (sourceDelta != null ? sourceDelta.hashCode() : 0);
+        result = 31 * result + (broken ? 1 : 0);
         return result;
     }
 }

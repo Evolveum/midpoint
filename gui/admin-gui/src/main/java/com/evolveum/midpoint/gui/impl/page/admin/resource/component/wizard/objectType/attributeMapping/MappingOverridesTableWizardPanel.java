@@ -6,30 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
-import com.evolveum.midpoint.gui.api.component.TableTabbedPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * @author lskublik
@@ -67,57 +54,24 @@ public abstract class MappingOverridesTableWizardPanel extends AbstractWizardBas
         add(table);
     }
 
-    public MappingOverrideTable getTablePanel() {
-        //noinspection unchecked
-        return (MappingOverrideTable) get(ID_TABLE);
+    @Override
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        if (getTable().isValidFormComponents(target)) {
+            onSaveResourcePerformed(target);
+        }
     }
 
     @Override
-    protected void addCustomButtons(RepeatingView buttons) {
-        AjaxIconButton newObjectTypeButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of("fa fa-circle-plus"),
-                getPageBase().createStringResource("MappingOverridesTableWizardPanel.addNewAttributeOverride")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onAddNewObject(target);
-            }
-        };
-        newObjectTypeButton.showTitleAsLabel(true);
-        newObjectTypeButton.add(AttributeAppender.append("class", "btn btn-primary"));
-        buttons.add(newObjectTypeButton);
-
-        AjaxIconButton saveButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of(getSubmitIcon()),
-                getSubmitLabelModel()) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                if (getTable().isValidFormComponents(target)) {
-                    onSaveResourcePerformed(target);
-                }
-            }
-        };
-        saveButton.showTitleAsLabel(true);
-        saveButton.add(AttributeAppender.append("class", "btn btn-success"));
-        buttons.add(saveButton);
+    protected boolean isSubmitButtonVisible() {
+        return true;
     }
 
     protected MappingOverrideTable getTable() {
         return (MappingOverrideTable) get(ID_TABLE);
     }
 
-    protected String getSubmitIcon() {
-        return "fa fa-floppy-disk";
-    }
-
     protected IModel<String> getSubmitLabelModel() {
         return getPageBase().createStringResource("MappingOverridesTableWizardPanel.saveButton");
-    }
-
-    private void onAddNewObject(AjaxRequestTarget target) {
-        MappingOverrideTable table = getTablePanel();
-        inEditNewValue(Model.of(table.createNewOverride(target)), target);
     }
 
     protected abstract void onSaveResourcePerformed(AjaxRequestTarget target);
@@ -125,7 +79,7 @@ public abstract class MappingOverridesTableWizardPanel extends AbstractWizardBas
     protected abstract void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> value, AjaxRequestTarget target);
 
     @Override
-    protected IModel<String> getBreadcrumbLabel() {
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
         return getPageBase().createStringResource("MappingOverridesTableWizardPanel.breadcrumb");
     }
 
