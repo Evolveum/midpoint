@@ -421,11 +421,13 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 
         // WHEN
         when();
-        PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
+        PrismObject<ShadowType> shadowProvisioning =
+                provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
         // THEN
         then();

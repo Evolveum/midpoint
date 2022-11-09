@@ -14,12 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
@@ -44,23 +46,20 @@ class EntitlementsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(EntitlementsHelper.class);
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-    @Autowired private PrismContext prismContext;
-    @Autowired private ShadowCaretaker shadowCaretaker;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired protected ShadowManager shadowManager;
 
     /**
      * Makes sure that all the entitlements have identifiers in them so this is
      * usable by the ResourceObjectConverter.
      */
-    void preprocessEntitlements(final ProvisioningContext ctx, final PrismObject<ShadowType> resourceObjectToAdd,
-            final OperationResult result) throws SchemaException, ObjectNotFoundException,
-            ConfigurationException, CommunicationException, ExpressionEvaluationException {
+    void preprocessEntitlements(
+            ProvisioningContext ctx, ShadowType resourceObjectToAdd, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
+            ExpressionEvaluationException {
         try {
-            resourceObjectToAdd.accept(
+            // TODO why using visitor?
+            resourceObjectToAdd.asPrismObject().accept(
                     (visitable) -> {
                         try {
                             //noinspection unchecked
@@ -94,8 +93,11 @@ class EntitlementsHelper {
      * Makes sure that all the entitlements have identifiers in them so this is
      * usable by the ResourceObjectConverter.
      */
-    void preprocessEntitlements(final ProvisioningContext ctx,
-            Collection<? extends ItemDelta> modifications, final String desc, final OperationResult result)
+    void preprocessEntitlements(
+            ProvisioningContext ctx,
+            Collection<? extends ItemDelta> modifications,
+            String desc,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException,
             CommunicationException, ExpressionEvaluationException {
         try {
@@ -128,12 +130,14 @@ class EntitlementsHelper {
         }
     }
 
-    private void preprocessEntitlement(ProvisioningContext ctx,
-            PrismContainerValue<ShadowAssociationType> association, String desc, OperationResult result)
+    private void preprocessEntitlement(
+            ProvisioningContext ctx,
+            PrismContainerValue<ShadowAssociationType> association,
+            String desc,
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException,
             CommunicationException, ExpressionEvaluationException {
-        PrismContainer<Containerable> identifiersContainer = association
-                .findContainer(ShadowAssociationType.F_IDENTIFIERS);
+        PrismContainer<Containerable> identifiersContainer = association.findContainer(ShadowAssociationType.F_IDENTIFIERS);
         if (identifiersContainer != null && !identifiersContainer.isEmpty()) {
             // We already have identifiers here
             return;
@@ -147,8 +151,8 @@ class EntitlementsHelper {
         }
         PrismObject<ShadowType> repoShadow;
         try {
-            repoShadow = repositoryService.getObject(ShadowType.class,
-                    associationType.getShadowRef().getOid(), null, result);
+            repoShadow = repositoryService.getObject(
+                    ShadowType.class, associationType.getShadowRef().getOid(), null, result);
         } catch (ObjectNotFoundException e) {
             throw e.wrap("Couldn't resolve entitlement association OID in " + association + " in " + desc);
         }
@@ -156,10 +160,11 @@ class EntitlementsHelper {
         transplantIdentifiers(association, repoShadow);
     }
 
-    private void transplantIdentifiers(PrismContainerValue<ShadowAssociationType> association,
+    private void transplantIdentifiers(
+            PrismContainerValue<ShadowAssociationType> association,
             PrismObject<ShadowType> repoShadow) throws SchemaException {
-        PrismContainer<ShadowAttributesType> identifiersContainer = association
-                .findContainer(ShadowAssociationType.F_IDENTIFIERS);
+        PrismContainer<ShadowAttributesType> identifiersContainer =
+                association.findContainer(ShadowAssociationType.F_IDENTIFIERS);
         if (identifiersContainer == null) {
             ResourceAttributeContainer origContainer = ShadowUtil.getAttributesContainer(repoShadow);
             identifiersContainer = ObjectFactory.createResourceAttributeContainer(ShadowAssociationType.F_IDENTIFIERS,
@@ -176,5 +181,4 @@ class EntitlementsHelper {
             identifiersContainer.add(identifier.clone());
         }
     }
-
 }

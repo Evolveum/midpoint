@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -58,16 +57,19 @@ class PropagateHelper {
     @Autowired protected ShadowManager shadowManager;
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private DefinitionsHelper definitionsHelper;
-    @Autowired private AddHelper addHelper;
+    @Autowired private ShadowAddHelper addHelper;
     @Autowired private ModifyHelper modifyHelper;
     @Autowired private DeleteHelper deleteHelper;
 
-    void propagateOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task task,
+    void propagateOperations(
+            ResourceType resource,
+            ShadowType shadow,
+            Task task,
             OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
             SecurityViolationException, PolicyViolationException, EncryptionException {
 
-        ResourceConsistencyType resourceConsistencyType = resource.asObjectable().getConsistency();
+        ResourceConsistencyType resourceConsistencyType = resource.getConsistency();
         if (resourceConsistencyType == null) {
             LOGGER.warn("Skipping propagation of {} because no there is no consistency definition in resource", shadow);
             return;
@@ -81,8 +83,7 @@ class PropagateHelper {
 
         List<PendingOperationType> pendingExecutionOperations = new ArrayList<>();
         boolean triggered = false;
-        ShadowType shadowBean = shadow.asObjectable();
-        for (PendingOperationType pendingOperation : shadowBean.getPendingOperation()) {
+        for (PendingOperationType pendingOperation : shadow.getPendingOperation()) {
             PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();
             if (executionStatus == PendingOperationExecutionStatusType.EXECUTION_PENDING) {
                 pendingExecutionOperations.add(pendingOperation);
@@ -106,7 +107,7 @@ class PropagateHelper {
         for (PendingOperationType pendingOperation: sortedOperations) {
             ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
             ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
-            definitionsHelper.applyDefinition(pendingDelta, shadowBean, task, result);
+            definitionsHelper.applyDefinition(pendingDelta, shadow, task, result);
             if (operationDelta == null) {
                 operationDelta = pendingDelta;
             } else {
@@ -117,16 +118,16 @@ class PropagateHelper {
 
         ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
         ctx.setPropagation(true);
-        ctx.applyAttributesDefinition(shadowBean);
+        ctx.applyAttributesDefinition(shadow);
         ctx.applyAttributesDefinition(operationDelta);
         LOGGER.trace("Merged operation for {}:\n{} ", shadow, operationDelta.debugDumpLazily(1));
 
         if (operationDelta.isAdd()) {
-            PrismObject<ShadowType> shadowToAdd = operationDelta.getObjectToAdd();
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState =
+            ShadowType shadowToAdd = operationDelta.getObjectToAdd().asObjectable();
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState =
                     ProvisioningOperationState.fromPendingOperations(shadow, sortedOperations);
             shadowToAdd.setOid(shadow.getOid());
-            addHelper.addShadowAttempt(ctx, shadowToAdd, null, opState, null, task, result);
+            addHelper.executeAddShadowAttempt(ctx, shadowToAdd, null, opState, null, result);
             opState.determineExecutionStatusFromResult();
 
             shadowManager.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
@@ -136,12 +137,12 @@ class PropagateHelper {
         } else if (operationDelta.isModify()) {
             Collection<? extends ItemDelta<?,?>> modifications = operationDelta.getModifications();
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState =
-                    modifyHelper.executeResourceModify(ctx, shadow, modifications, null, null, now, task, result);
+                    modifyHelper.executeResourceModify(ctx, shadow, modifications, null, null, now, result);
             opState.determineExecutionStatusFromResult();
 
             shadowManager.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
 
-            modifyHelper.notifyAfterModify(ctx, shadow, modifications, opState, task, result);
+            modifyHelper.notifyAfterModify(ctx, shadow, modifications, opState, result);
 
         } else if (operationDelta.isDelete()) {
             ProvisioningOperationState<AsynchronousOperationResult> opState =
@@ -150,7 +151,7 @@ class PropagateHelper {
 
             shadowManager.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
 
-            deleteHelper.notifyAfterDelete(ctx, shadow, opState, task, result);
+            deleteHelper.notifyAfterDelete(ctx, shadow, opState, result);
 
         } else {
             throw new IllegalStateException("Delta from outer space: "+operationDelta);

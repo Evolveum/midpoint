@@ -7,13 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -21,8 +18,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ItemComparisonResult;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -41,11 +38,10 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 class CompareHelper {
 
     @Autowired private ProvisioningContextFactory ctxFactory;
-    @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired private Protector protector;
 
     public <T> ItemComparisonResult compare(
-            @NotNull PrismObject<ShadowType> repositoryShadow,
+            @NotNull ShadowType repositoryShadow,
             ItemPath path,
             T expectedValue,
             Task task,
@@ -67,7 +63,7 @@ class CompareHelper {
             throw new UnsupportedOperationException("Password comparison is not supported on "+resource);
         }
 
-        PrismProperty<T> repoProperty = repositoryShadow.findProperty(path);
+        PrismProperty<T> repoProperty = repositoryShadow.asPrismObject().findProperty(path);
         if (repoProperty == null) {
             if (passwordCompareStrategy == PasswordCompareStrategyType.CACHED) {
                 if (expectedValue == null) {

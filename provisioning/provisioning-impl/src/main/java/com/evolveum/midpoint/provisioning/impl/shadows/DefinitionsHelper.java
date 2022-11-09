@@ -44,7 +44,6 @@ class DefinitionsHelper {
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired protected ShadowManager shadowManager;
     @Autowired private ProvisioningContextFactory ctxFactory;
 
@@ -86,10 +85,10 @@ class DefinitionsHelper {
         ctx.applyAttributesDefinition(delta);
     }
 
-    public void applyDefinition(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
+    public void applyDefinition(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, parentResult);
+        ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
         ctx.applyAttributesDefinition(shadow);
     }
 

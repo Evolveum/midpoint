@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType.*;
 
 /**
@@ -213,24 +214,23 @@ public class ShadowCaretaker {
         return shadowCtx;
     }
 
-    public @NotNull PrismObject<ShadowType> applyPendingOperations(
+    public @NotNull ShadowType applyPendingOperations(
             @NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> repoShadow,
-            PrismObject<ShadowType> resourceShadow,
+            @NotNull ShadowType repoShadow,
+            ShadowType resourceShadow,
             boolean skipExecutionPendingOperations,
             XMLGregorianCalendar now)
             throws SchemaException, ConfigurationException {
-        PrismObject<ShadowType> resultShadow = Objects.requireNonNullElse(resourceShadow, repoShadow);
+        ShadowType resultShadow = Objects.requireNonNullElse(resourceShadow, repoShadow);
 
         if (ShadowUtil.isDead(resultShadow)) {
             return resultShadow;
         }
 
-        List<PendingOperationType> pendingOperations = repoShadow.asObjectable().getPendingOperation();
+        List<PendingOperationType> pendingOperations = repoShadow.getPendingOperation();
         if (pendingOperations.isEmpty()) {
             return resultShadow;
         }
-        ShadowType resultShadowBean = resultShadow.asObjectable();
         List<PendingOperationType> sortedOperations = sortPendingOperations(pendingOperations);
         Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
         boolean resourceReadIsCachingOnly = ctx.isReadingCachingOnly();
@@ -269,27 +269,25 @@ public class ShadowCaretaker {
                 // In that case the object was obviously already created. The data that we have from the
                 // resource are going to be more precise than the pending ADD delta (which might not have been applied completely)
                 if (resourceShadow == null) {
-                    ShadowType repoShadowBean = repoShadow.asObjectable();
-                    resultShadow = pendingDelta.getObjectToAdd().clone();
+                    resultShadow = pendingDelta.getObjectToAdd().clone().asObjectable();
                     resultShadow.setOid(repoShadow.getOid());
-                    resultShadowBean = resultShadow.asObjectable();
-                    resultShadowBean.setExists(true);
-                    resultShadowBean.setName(repoShadowBean.getName());
-                    resultShadowBean.setShadowLifecycleState(repoShadowBean.getShadowLifecycleState());
-                    List<PendingOperationType> newPendingOperations = resultShadowBean.getPendingOperation();
-                    for (PendingOperationType pendingOperation2: repoShadowBean.getPendingOperation()) {
+                    resultShadow.setExists(true);
+                    resultShadow.setName(repoShadow.getName());
+                    resultShadow.setShadowLifecycleState(repoShadow.getShadowLifecycleState());
+                    List<PendingOperationType> newPendingOperations = resultShadow.getPendingOperation();
+                    for (PendingOperationType pendingOperation2: repoShadow.getPendingOperation()) {
                         newPendingOperations.add(pendingOperation2.clone());
                     }
                     applyAttributesDefinition(ctx, resultShadow);
                 }
             }
             if (pendingDelta.isModify()) {
-                pendingDelta.applyTo(resultShadow);
+                pendingDelta.applyTo(asPrismObject(resultShadow));
             }
             if (pendingDelta.isDelete()) {
-                resultShadowBean.setDead(true);
-                resultShadowBean.setExists(false);
-                resultShadowBean.setPrimaryIdentifierValue(null);
+                resultShadow.setDead(true);
+                resultShadow.setExists(false);
+                resultShadow.setPrimaryIdentifierValue(null);
             }
         }
         // TODO: check schema, remove non-readable attributes, activation, password, etc.

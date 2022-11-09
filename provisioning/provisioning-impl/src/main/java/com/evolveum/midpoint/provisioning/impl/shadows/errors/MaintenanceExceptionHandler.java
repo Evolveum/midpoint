@@ -51,8 +51,8 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     private RepositoryService repositoryService;
 
     @Override
-    public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
+    public ShadowType handleGetError(ProvisioningContext ctx,
+            ShadowType repositoryShadow, GetOperationOptions rootOptions, Exception cause,
             Task task, OperationResult parentResult) throws CommunicationException {
 
         ResourceType resource = ctx.getResource();
@@ -68,32 +68,31 @@ class MaintenanceExceptionHandler extends ErrorHandler {
         }
 
         result.recordSuccess();
-        repositoryShadow.asObjectable().setFetchResult(result.createBeanReduced());
+        repositoryShadow.setFetchResult(result.createBeanReduced());
 
         return repositoryShadow;
     }
 
     @Override
     public OperationResultStatus handleAddError(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowToAdd,
+            ShadowType shadowToAdd,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             Exception cause,
             OperationResult failedOperationResult,
             Task task,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            OperationResult parentResult) throws SchemaException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
         try {
             if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
-                ObjectQuery query = ObjectAlreadyExistHandler.createQueryBySecondaryIdentifier
-                        (shadowToAdd.asObjectable(), prismContext);
+                ObjectQuery query = ObjectAlreadyExistHandler.createQueryBySecondaryIdentifier(shadowToAdd, prismContext);
                 SearchResultList<PrismObject<ShadowType>> conflictingShadows =
                         repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 
                 if (!conflictingShadows.isEmpty()) {
-                    opState.setRepoShadow(conflictingShadows.get(0)); // there is already repo shadow in mp
+                    opState.setRepoShadow(conflictingShadows.get(0).asObjectable()); // there is already repo shadow in mp
                     failedOperationResult.setStatus(OperationResultStatus.SUCCESS);
                     result.recordSuccess();
                     return OperationResultStatus.SUCCESS;
@@ -101,7 +100,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             }
 
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS); // this influences how pending operation resultStatus is saved
-            return postponeAdd(ctx, shadowToAdd, opState, failedOperationResult, result);
+            return postponeAdd(shadowToAdd, opState, failedOperationResult, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -111,10 +110,15 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     }
 
     @Override
-    public OperationResultStatus handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-            Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
+    public OperationResultStatus handleModifyError(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
+            Collection<? extends ItemDelta> modifications,
+            ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult) {
+            Exception cause,
+            OperationResult failedOperationResult,
+            OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_MODIFY_ERROR);
         result.addParam("exception", cause.getMessage());
@@ -130,10 +134,14 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     }
 
     @Override
-    public OperationResultStatus handleDeleteError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+    public OperationResultStatus handleDeleteError(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
-            OperationResult failedOperationResult, Task task, OperationResult parentResult) {
+            ProvisioningOperationState<AsynchronousOperationResult> opState,
+            Exception cause,
+            OperationResult failedOperationResult,
+            OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_DELETE_ERROR);
         result.addParam("exception", cause.getMessage());
         try {

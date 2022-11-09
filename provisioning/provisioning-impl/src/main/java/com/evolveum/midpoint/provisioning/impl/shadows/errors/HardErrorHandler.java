@@ -12,7 +12,6 @@ import java.util.Collection;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -42,9 +41,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 abstract class HardErrorHandler extends ErrorHandler {
 
     @Override
-    public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
-            Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException,
+    public ShadowType handleGetError(
+            ProvisioningContext ctx,
+            ShadowType repositoryShadow,
+            GetOperationOptions rootOptions,
+            Exception cause,
+            Task task,
+            OperationResult parentResult) throws SchemaException, GenericFrameworkException,
             CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
@@ -53,10 +56,15 @@ abstract class HardErrorHandler extends ErrorHandler {
     }
 
     @Override
-    public OperationResultStatus handleAddError(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
+    public OperationResultStatus handleAddError(
+            ProvisioningContext ctx,
+            ShadowType shadowToAdd,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-            Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
+            Exception cause,
+            OperationResult failedOperationResult,
+            Task task,
+            OperationResult parentResult)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
@@ -66,10 +74,15 @@ abstract class HardErrorHandler extends ErrorHandler {
     }
 
     @Override
-    public OperationResultStatus handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-            Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
+    public OperationResultStatus handleModifyError(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
+            Collection<? extends ItemDelta> modifications,
+            ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
+            Exception cause,
+            OperationResult failedOperationResult,
+            OperationResult parentResult)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
@@ -79,10 +92,14 @@ abstract class HardErrorHandler extends ErrorHandler {
     }
 
     @Override
-    public OperationResultStatus handleDeleteError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+    public OperationResultStatus handleDeleteError(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
-            OperationResult failedOperationResult, Task task, OperationResult parentResult)
+            ProvisioningOperationState<AsynchronousOperationResult> opState,
+            Exception cause,
+            OperationResult failedOperationResult,
+            OperationResult parentResult)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {

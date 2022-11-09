@@ -282,8 +282,7 @@ public class ProvisioningContextFactory {
 
     public @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
-        return resourceManager.getCompletedResource(resourceOid, GetOperationOptions.createReadOnly(), task, result)
-                .asObjectable();
+        return resourceManager.getCompletedResource(resourceOid, GetOperationOptions.createReadOnly(), task, result);
     }
 
     private ResourceObjectDefinition getObjectDefinition(

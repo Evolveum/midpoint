@@ -99,8 +99,10 @@ class ShadowUpdater {
     /**
      * Record results of ADD operation to the shadow.
      */
-    void recordAddResult(ProvisioningContext ctx, ShadowType shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+    void recordAddResult(
+            ProvisioningContext ctx,
+            ShadowType shadowToAdd,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
@@ -120,7 +122,7 @@ class ShadowUpdater {
      * This is indicated by the execution status in the opState parameter.
      */
     private void recordAddResultNewShadow(ProvisioningContext ctx, ShadowType resourceObjectToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
 
@@ -129,13 +131,13 @@ class ShadowUpdater {
 
         ShadowType resourceObject;
         if (opState.wasStarted() && opState.getAsyncResult().getReturnValue() != null) {
-            resourceObject = opState.getAsyncResult().getReturnValue().asObjectable();
+            resourceObject = opState.getAsyncResult().getReturnValue();
         } else {
             resourceObject = resourceObjectToAdd;
         }
 
         ShadowType repoShadow = shadowCreator.createRepositoryShadow(ctx, resourceObject);
-        opState.setRepoShadow(asPrismObject(repoShadow));
+        opState.setRepoShadow(repoShadow);
 
         if (!opState.isCompleted()) {
             pendingOperationsHelper.addPendingOperationAdd(repoShadow, resourceObject, opState, null);
@@ -160,7 +162,7 @@ class ShadowUpdater {
                     "Couldn't add shadow object to the repository. Shadow object already exist. Reason: " + ex.getMessage(), ex);
         }
         repoShadow.setOid(oid);
-        opState.setRepoShadow(repoShadow.asPrismObject());
+        opState.setRepoShadow(repoShadow);
 
         LOGGER.trace("Active shadow added to the repository: {}", repoShadow);
 
@@ -168,23 +170,22 @@ class ShadowUpdater {
     }
 
     private void recordAddResultExistingShadow(ProvisioningContext ctx, ShadowType shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
 
         final ShadowType resourceShadow;
         if (opState.wasStarted() && opState.getAsyncResult().getReturnValue() != null) {
-            resourceShadow = opState.getAsyncResult().getReturnValue().asObjectable();
+            resourceShadow = opState.getAsyncResult().getReturnValue();
         } else {
             resourceShadow = shadowToAdd;
         }
 
-        PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
+        ShadowType repoShadow = opState.getRepoShadow();
 
         ObjectDelta<ShadowType> requestDelta = resourceShadow.asPrismObject().createAddDelta();
         Collection<ItemDelta<?, ?>> internalShadowModifications = computeInternalShadowModifications(ctx, opState, requestDelta);
-        computeUpdateShadowAttributeChanges(ctx, internalShadowModifications, resourceShadow, asObjectable(repoShadow));
+        computeUpdateShadowAttributeChanges(ctx, internalShadowModifications, resourceShadow, repoShadow);
         creatorUpdaterHelper.addModifyMetadataDeltas(repoShadow, internalShadowModifications);
 
         executeShadowModification(ctx, repoShadow, internalShadowModifications, result);
@@ -194,14 +195,14 @@ class ShadowUpdater {
 
     void recordModifyResult(
             ProvisioningContext ctx,
-            PrismObject<ShadowType> oldRepoShadow,
+            ShadowType oldRepoShadow,
             Collection<? extends ItemDelta> requestedModifications,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
             XMLGregorianCalendar now,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
 
-        ObjectDelta<ShadowType> requestDelta = opState.getRepoShadow().createModifyDelta();
+        ObjectDelta<ShadowType> requestDelta = opState.getRepoShadow().asPrismObject().createModifyDelta();
         requestDelta.addModifications(ItemDeltaCollectionsUtil.cloneCollection(requestedModifications));
 
         List<ItemDelta<?, ?>> internalShadowModifications = computeInternalShadowModifications(ctx, opState, requestDelta);
@@ -273,15 +274,14 @@ class ShadowUpdater {
     /**
      * Returns updated repo shadow, or null if shadow is deleted from repository.
      */
-    PrismObject<ShadowType> recordDeleteResult(
+    ShadowType recordDeleteResult(
             ProvisioningContext ctx,
             ProvisioningOperationState<AsynchronousOperationResult> opState,
             ProvisioningOperationOptions options,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException {
 
-        PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
+        ShadowType repoShadow = opState.getRepoShadow();
 
         if (ProvisioningOperationOptions.isForce(options)) {
             LOGGER.trace("Deleting repository {} (force delete): {}", repoShadow, opState);
@@ -291,7 +291,7 @@ class ShadowUpdater {
         }
 
         if (!opState.hasPendingOperations() && opState.isCompleted()) {
-            if (repoShadow.asObjectable().getPendingOperation().isEmpty() && opState.isSuccess()) {
+            if (repoShadow.getPendingOperation().isEmpty() && opState.isSuccess()) {
                 LOGGER.trace("Deleting repository {}: {}", repoShadow, opState);
                 executeShadowDeletion(repoShadow, ctx.getTask(), result);
                 opState.setRepoShadow(null);
@@ -300,17 +300,17 @@ class ShadowUpdater {
                 // There are unexpired pending operations in the shadow. We cannot delete the shadow yet.
                 // Therefore just mark shadow as dead.
                 LOGGER.trace("Keeping dead {} because of pending operations or operation result", repoShadow);
-                PrismObject<ShadowType> updatedShadow = markShadowTombstone(repoShadow, ctx.getTask(), result);
+                ShadowType updatedShadow = markShadowTombstone(repoShadow, ctx.getTask(), result);
                 opState.setRepoShadow(updatedShadow);
                 return updatedShadow;
             }
         }
         LOGGER.trace("Recording pending delete operation in repository {}: {}", repoShadow, opState);
-        ObjectDelta<ShadowType> requestDelta = repoShadow.createDeleteDelta();
+        ObjectDelta<ShadowType> requestDelta = repoShadow.asPrismObject().createDeleteDelta();
         List<ItemDelta<?, ?>> internalShadowModifications = computeInternalShadowModifications(ctx, opState, requestDelta);
         creatorUpdaterHelper.addModifyMetadataDeltas(opState.getRepoShadow(), internalShadowModifications);
 
-        if (repoShadow.asObjectable().getPrimaryIdentifierValue() != null) {
+        if (repoShadow.getPrimaryIdentifierValue() != null) {
             // State goes to reaping or corpse or tombstone -> primaryIdentifierValue must be freed (if not done so yet)
             ItemDeltaCollectionsUtil.addNotEquivalent(
                     internalShadowModifications,
@@ -322,7 +322,7 @@ class ShadowUpdater {
         LOGGER.trace("Updating repository {} after DELETE operation {}, {} repository shadow modifications",
                 repoShadow, opState, internalShadowModifications.size());
         modifyShadowAttributes(ctx, repoShadow, internalShadowModifications, result);
-        ObjectDeltaUtil.applyTo(repoShadow, internalShadowModifications);
+        ObjectDeltaUtil.applyTo(repoShadow.asPrismObject(), internalShadowModifications);
         return repoShadow; // The shadow is obviously updated also in opState (it is the same Java object).
     }
 
@@ -330,9 +330,8 @@ class ShadowUpdater {
             ProvisioningContext ctx,
             ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
             ObjectDelta<ShadowType> requestDelta)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
-        PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
+            throws SchemaException {
+        ShadowType repoShadow = opState.getRepoShadow();
         List<ItemDelta<?, ?>> shadowModifications = new ArrayList<>();
 
         if (opState.hasPendingOperations()) {
@@ -345,7 +344,7 @@ class ShadowUpdater {
             if (!opState.isCompleted()) {
 
                 PrismContainerDefinition<PendingOperationType> containerDefinition =
-                        repoShadow.getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
+                        repoShadow.asPrismObject().getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
                 ContainerDelta<PendingOperationType> pendingOperationDelta =
                         containerDefinition.createEmptyDelta(ShadowType.F_PENDING_OPERATION);
                 PendingOperationType pendingOperation =
@@ -361,7 +360,7 @@ class ShadowUpdater {
             if (requestDelta.isDelete()) {
                 addDeadShadowDeltas(repoShadow, shadowModifications);
             } else {
-                if (!ShadowUtil.isExists(repoShadow.asObjectable())) {
+                if (!ShadowUtil.isExists(repoShadow)) {
                     shadowModifications.add(
                             createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, null));
                 }
@@ -369,8 +368,8 @@ class ShadowUpdater {
         }
 
         // TODO: this is wrong. Provisioning should not change lifecycle states. Just for compatibility. MID-4833
-        if (creatorUpdaterHelper.isUseProposedShadows(ctx)) {
-            String currentLifecycleState = repoShadow.asObjectable().getLifecycleState();
+        if (ctx.shouldUseProposedShadows()) {
+            String currentLifecycleState = repoShadow.getLifecycleState();
             if (currentLifecycleState != null && !currentLifecycleState.equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
                 shadowModifications.add(
                         createShadowPropertyReplaceDelta(
@@ -381,20 +380,20 @@ class ShadowUpdater {
         return shadowModifications;
     }
 
-    void addDeadShadowDeltas(
-            PrismObject<ShadowType> repoShadow, List<ItemDelta<?, ?>> shadowModifications)
+    void addDeadShadowDeltas(ShadowType repoShadow, List<ItemDelta<?, ?>> shadowModifications)
             throws SchemaException {
         LOGGER.trace("Adding deltas that mark shadow {} as dead", repoShadow);
-        if (ShadowUtil.isExists(repoShadow.asObjectable())) {
-            shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.FALSE));
+        if (ShadowUtil.isExists(repoShadow)) {
+            shadowModifications.add(
+                    createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.FALSE));
         }
-        if (!ShadowUtil.isDead(repoShadow.asObjectable())) {
+        if (!ShadowUtil.isDead(repoShadow)) {
             shadowModifications.add(
                     prismContext.deltaFor(ShadowType.class)
                             .item(ShadowType.F_DEAD).replace(true)
                             .asItemDelta());
         }
-        if (repoShadow.asObjectable().getPrimaryIdentifierValue() != null) {
+        if (repoShadow.getPrimaryIdentifierValue() != null) {
             // We need to free the identifier for further use by live shadows that may come later
             shadowModifications.add(
                     prismContext.deltaFor(ShadowType.class)
@@ -403,8 +402,9 @@ class ShadowUpdater {
         }
     }
 
-    private <T> PropertyDelta<T> createShadowPropertyReplaceDelta(PrismObject<ShadowType> repoShadow, QName propName, T value) {
-        PrismPropertyDefinition<T> def = repoShadow.getDefinition().findPropertyDefinition(ItemName.fromQName(propName));
+    private <T> PropertyDelta<T> createShadowPropertyReplaceDelta(ShadowType repoShadow, QName propName, T value) {
+        PrismPropertyDefinition<T> def =
+                repoShadow.asPrismObject().getDefinition().findPropertyDefinition(ItemName.fromQName(propName));
         PropertyDelta<T> delta = def.createEmptyDelta(ItemPath.create(propName));
         if (value == null) {
             delta.setValueToReplace();
@@ -414,14 +414,17 @@ class ShadowUpdater {
         return delta;
     }
 
-    void modifyShadowAttributes(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
-            Collection<? extends ItemDelta> modifications, OperationResult result) throws SchemaException,
+    void modifyShadowAttributes(
+            ProvisioningContext ctx,
+            ShadowType shadow,
+            Collection<? extends ItemDelta> modifications,
+            OperationResult result) throws SchemaException,
             ObjectNotFoundException, ConfigurationException {
         Collection<? extends ItemDelta<?, ?>> shadowChanges = extractRepoShadowChanges(ctx, shadow, modifications);
         executeShadowModification(ctx, shadow, shadowChanges, result);
     }
 
-    private void executeShadowDeletion(PrismObject<ShadowType> repoShadow, Task task, OperationResult result) {
+    private void executeShadowDeletion(ShadowType repoShadow, Task task, OperationResult result) {
         try {
             LOGGER.trace("Deleting repository {}", repoShadow);
             repositoryService.deleteObject(ShadowType.class, repoShadow.getOid(), result);
@@ -435,8 +438,11 @@ class ShadowUpdater {
         }
     }
 
-    private void executeShadowModification(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
-            Collection<? extends ItemDelta<?, ?>> modifications, OperationResult result)
+    private void executeShadowModification(
+            ProvisioningContext ctx,
+            ShadowType shadow,
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         if (!modifications.isEmpty()) {
             LOGGER.trace("Applying repository shadow modifications:\n{}", debugDumpLazily(modifications, 1));
@@ -451,7 +457,7 @@ class ShadowUpdater {
                 }
                 // This is important e.g. to update opState.repoShadow content in case of ADD operation success
                 // - to pass newly-generated primary identifier to other parts of the code.
-                ItemDeltaCollectionsUtil.applyTo(modifications, shadow);
+                ItemDeltaCollectionsUtil.applyTo(modifications, shadow.asPrismObject());
                 LOGGER.trace("Shadow changes processed successfully.");
             } catch (ObjectAlreadyExistsException ex) {
                 throw new SystemException(ex);
@@ -459,7 +465,7 @@ class ShadowUpdater {
         }
     }
 
-    private boolean wasMarkedDead(PrismObject<ShadowType> stateBefore, Collection<? extends ItemDelta<?, ?>> changes) {
+    private boolean wasMarkedDead(ShadowType stateBefore, Collection<? extends ItemDelta<?, ?>> changes) {
         return !ShadowUtil.isDead(stateBefore) && changedToDead(changes);
     }
 
@@ -476,7 +482,7 @@ class ShadowUpdater {
     @SuppressWarnings("rawtypes")
     @NotNull
     private Collection<? extends ItemDelta<?, ?>> extractRepoShadowChanges(
-            ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
+            ProvisioningContext ctx, ShadowType shadow, Collection<? extends ItemDelta> objectChange)
             throws SchemaException, ConfigurationException {
 
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired(); // If type is not present, OC def is fine
@@ -500,7 +506,8 @@ class ShadowUpdater {
                     }
                     attributeBasedNameChange =
                             prismContext.deltaFactory().property()
-                                    .createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
+                                    .createReplaceDelta(
+                                            shadow.asPrismObject().getDefinition(), ShadowType.F_NAME, new PolyString(newName));
                 }
                 if (objectDefinition.isPrimaryIdentifier(attrName)) {
                     // Change of primary identifier $shadow/primaryIdentifier.
@@ -510,7 +517,7 @@ class ShadowUpdater {
                     } else if (itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty()) {
                         newPrimaryIdentifier = ((PrismPropertyValue) itemDelta.getValuesToAdd().iterator().next()).getValue().toString();
                     }
-                    ResourceAttribute<String> primaryIdentifier = helper.getPrimaryIdentifier(asObjectable(shadow));
+                    ResourceAttribute<String> primaryIdentifier = helper.getPrimaryIdentifier(shadow);
                     //noinspection unchecked
                     ResourceAttributeDefinition<String> rDef =
                             (ResourceAttributeDefinition<String>) objectDefinition.findAttributeDefinitionRequired(
@@ -518,7 +525,9 @@ class ShadowUpdater {
                     String normalizedNewPrimaryIdentifier = helper.getNormalizedAttributeValue(rDef, newPrimaryIdentifier);
                     PropertyDelta<String> primaryIdentifierDelta =
                             prismContext.deltaFactory().property()
-                                    .createReplaceDelta(shadow.getDefinition(), ShadowType.F_PRIMARY_IDENTIFIER_VALUE,
+                                    .createReplaceDelta(
+                                            shadow.asPrismObject().getDefinition(),
+                                            ShadowType.F_PRIMARY_IDENTIFIER_VALUE,
                                             normalizedNewPrimaryIdentifier);
                     repoChanges.add(primaryIdentifierDelta);
                 }
@@ -602,7 +611,7 @@ class ShadowUpdater {
         }
     }
 
-    PrismObject<ShadowType> markShadowTombstone(PrismObject<ShadowType> repoShadow, Task task, OperationResult result)
+    ShadowType markShadowTombstone(ShadowType repoShadow, Task task, OperationResult result)
             throws SchemaException {
         if (repoShadow == null) {
             return null;
@@ -628,8 +637,8 @@ class ShadowUpdater {
             return null;
         }
         eventDispatcher.notify(ShadowDeathEvent.dead(repoShadow.getOid()), task, result);
-        ObjectDeltaUtil.applyTo(repoShadow, shadowChanges);
-        repoShadow.asObjectable().setShadowLifecycleState(ShadowLifecycleStateType.TOMBSTONE);
+        ObjectDeltaUtil.applyTo(repoShadow.asPrismObject(), shadowChanges);
+        repoShadow.setShadowLifecycleState(ShadowLifecycleStateType.TOMBSTONE);
         return repoShadow;
     }
 
@@ -663,7 +672,7 @@ class ShadowUpdater {
             ObjectDelta<ShadowType> delta,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        PrismObject<ShadowType> repoShadow = opState.getRepoShadow();
+        ShadowType repoShadow = opState.getRepoShadow();
         if (repoShadow == null) {
             // Shadow does not exist. As this operation immediately ends up with an error then
             // we not even bother to create a shadow.
@@ -707,30 +716,36 @@ class ShadowUpdater {
         executeShadowModification(ctx, opState.getRepoShadow(), shadowChanges, result);
     }
 
-    <A extends AsynchronousOperationResult> void updatePendingOperations(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
-            ProvisioningOperationState<A> opState, List<PendingOperationType> pendingExecutionOperations,
-            XMLGregorianCalendar now, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    <A extends AsynchronousOperationResult> void updatePendingOperations(
+            ProvisioningContext ctx,
+            ShadowType shadow,
+            ProvisioningOperationState<A> opState,
+            List<PendingOperationType> pendingExecutionOperations,
+            XMLGregorianCalendar now,
+            OperationResult result) throws ObjectNotFoundException, SchemaException {
 
         Collection<? extends ItemDelta<?, ?>> repoDeltas = new ArrayList<>();
         OperationResultStatusType resultStatus = opState.getResultStatusType();
         String asynchronousOperationReference = opState.getAsynchronousOperationReference();
         PendingOperationExecutionStatusType executionStatus = opState.getExecutionStatus();
 
+        PrismObjectDefinition<ShadowType> definition = shadow.asPrismObject().getDefinition();
+
         for (PendingOperationType existingPendingOperation : pendingExecutionOperations) {
             ItemPath containerPath = existingPendingOperation.asPrismContainerValue().getPath();
-            addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_EXECUTION_STATUS, executionStatus, shadow.getDefinition());
-            addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_RESULT_STATUS, resultStatus, shadow.getDefinition());
-            addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_ASYNCHRONOUS_OPERATION_REFERENCE, asynchronousOperationReference, shadow.getDefinition());
+            addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_EXECUTION_STATUS, executionStatus, definition);
+            addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_RESULT_STATUS, resultStatus, definition);
+            addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_ASYNCHRONOUS_OPERATION_REFERENCE, asynchronousOperationReference, definition);
             if (existingPendingOperation.getRequestTimestamp() == null) {
                 // This is mostly failsafe. We do not want operations without timestamps. Those would be quite difficult to cleanup.
                 // Therefore unprecise timestamp is better than no timestamp.
-                addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_REQUEST_TIMESTAMP, now, shadow.getDefinition());
+                addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_REQUEST_TIMESTAMP, now, definition);
             }
             if (executionStatus == PendingOperationExecutionStatusType.COMPLETED && existingPendingOperation.getCompletionTimestamp() == null) {
-                addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_COMPLETION_TIMESTAMP, now, shadow.getDefinition());
+                addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_COMPLETION_TIMESTAMP, now, definition);
             }
             if (executionStatus == PendingOperationExecutionStatusType.EXECUTING && existingPendingOperation.getOperationStartTimestamp() == null) {
-                addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_OPERATION_START_TIMESTAMP, now, shadow.getDefinition());
+                addPropertyDelta(repoDeltas, containerPath, PendingOperationType.F_OPERATION_START_TIMESTAMP, now, definition);
             }
         }
 
@@ -753,13 +768,12 @@ class ShadowUpdater {
     }
 
     void refreshProvisioningIndexes(
-            ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, boolean resolveDuplicates, OperationResult result)
+            ProvisioningContext ctx, ShadowType repoShadow, boolean resolveDuplicates, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-        ShadowType shadowType = repoShadow.asObjectable();
-        String currentPrimaryIdentifierValue = shadowType.getPrimaryIdentifierValue();
+        String currentPrimaryIdentifierValue = repoShadow.getPrimaryIdentifierValue();
 
-        String expectedPrimaryIdentifierValue = helper.determinePrimaryIdentifierValue(ctx, shadowType);
+        String expectedPrimaryIdentifierValue = helper.determinePrimaryIdentifierValue(ctx, repoShadow);
 
         if (Objects.equals(currentPrimaryIdentifierValue, expectedPrimaryIdentifierValue)) {
             // Everything is all right
@@ -816,7 +830,7 @@ class ShadowUpdater {
                 throw new SystemException("Despite all our best efforts, attempt to refresh primaryIdentifierValue on " + repoShadow + " failed: " + ee.getMessage(), ee);
             }
         }
-        shadowType.setPrimaryIdentifierValue(expectedPrimaryIdentifierValue);
+        repoShadow.setPrimaryIdentifierValue(expectedPrimaryIdentifierValue);
     }
 
     /**
@@ -844,7 +858,7 @@ class ShadowUpdater {
 
         OptimisticLockingRunner<ShadowType, PendingOperationType> runner =
                 new OptimisticLockingRunner.Builder<ShadowType, PendingOperationType>()
-                        .object(opState.getRepoShadow())
+                        .object(asPrismObject(opState.getRepoShadow()))
                         .result(result)
                         .repositoryService(repositoryService)
                         .maxNumberOfAttempts(10)
@@ -857,11 +871,12 @@ class ShadowUpdater {
                     (object) -> {
 
                         // The runner itself could have updated the shadow (in case of precondition violation).
-                        opState.setRepoShadow(runner.getObject());
+                        opState.setRepoShadow(asObjectable(runner.getObject()));
 
                         if (avoidDuplicateOperations) {
                             PendingOperationType existingPendingOperation =
-                                    pendingOperationsHelper.findExistingPendingOperation(object, proposedDelta, true);
+                                    pendingOperationsHelper.findExistingPendingOperation(
+                                            object.asObjectable(), proposedDelta, true);
                             if (existingPendingOperation != null) {
                                 LOGGER.debug("Found duplicate operation for {} of {}: {}", proposedDelta.getChangeType(),
                                         object, existingPendingOperation);
@@ -916,7 +931,9 @@ class ShadowUpdater {
 
         // We have to re-read shadow here. We need to get the pending operation in a form as it was stored.
         // We need id in the operation. Otherwise we won't be able to update it.
-        PrismObject<ShadowType> updatedShadow = repositoryService.getObject(ShadowType.class, shadow.getOid(), null, result);
+        ShadowType updatedShadow = repositoryService
+                .getObject(ShadowType.class, shadow.getOid(), null, result)
+                .asObjectable();
         PendingOperationType storedPendingOperation =
                 Objects.requireNonNull(
                         pendingOperationsHelper.findExistingPendingOperation(updatedShadow, pendingDelta, true),
@@ -937,7 +954,7 @@ class ShadowUpdater {
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 
-        ObjectDelta<ShadowType> proposedDelta = opState.getRepoShadow().createDeleteDelta();
+        ObjectDelta<ShadowType> proposedDelta = opState.getRepoShadow().asPrismObject().createDeleteDelta();
         return checkAndRecordPendingOperationBeforeExecution(ctx, proposedDelta, opState, parentResult);
     }
 
@@ -959,7 +976,8 @@ class ShadowUpdater {
         return checkAndRecordPendingOperationBeforeExecution(ctx, proposedDelta, opState, parentResult);
     }
 
-    private ObjectDelta<ShadowType> createProposedModifyDelta(PrismObject<ShadowType> repoShadow, Collection<? extends ItemDelta> modifications) {
+    private ObjectDelta<ShadowType> createProposedModifyDelta(
+            ShadowType repoShadow, Collection<? extends ItemDelta> modifications) {
         Collection<ItemDelta> resourceModifications = new ArrayList<>(modifications.size());
         for (ItemDelta modification : modifications) {
             if (ProvisioningUtil.isResourceModification(modification)) {
@@ -972,8 +990,8 @@ class ShadowUpdater {
         return createModifyDelta(repoShadow, resourceModifications);
     }
 
-    private ObjectDelta<ShadowType> createModifyDelta(PrismObject<ShadowType> repoShadow, Collection<? extends ItemDelta> modifications) {
-        ObjectDelta<ShadowType> delta = repoShadow.createModifyDelta();
+    private ObjectDelta<ShadowType> createModifyDelta(ShadowType repoShadow, Collection<? extends ItemDelta> modifications) {
+        ObjectDelta<ShadowType> delta = repoShadow.asPrismObject().createModifyDelta();
         delta.addModifications(ItemDeltaCollectionsUtil.cloneCollection(modifications));
         return delta;
     }
@@ -999,7 +1017,7 @@ class ShadowUpdater {
 
         if (!computedShadowDelta.isEmpty()) {
             LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadow, computedShadowDelta.debugDumpLazily(1));
-            executeShadowModification(ctx, repoShadow.asPrismObject(), computedShadowDelta.getModifications(), result);
+            executeShadowModification(ctx, repoShadow, computedShadowDelta.getModifications(), result);
             ShadowType updatedShadow = repoShadow.clone();
             computedShadowDelta.applyTo(updatedShadow.asPrismObject());
             return updatedShadow;
@@ -1049,7 +1067,7 @@ class ShadowUpdater {
         return retrievedRepoShadow;
     }
 
-    public void deleteShadow(PrismObject<ShadowType> oldRepoShadow, Task task, OperationResult result)
+    public void deleteShadow(ShadowType oldRepoShadow, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         executeShadowDeletion(oldRepoShadow, task, result);
@@ -1063,7 +1081,7 @@ class ShadowUpdater {
      */
     @NotNull PrismObject<ShadowType> fixShadow(
             @NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> origRepoShadow,
+            @NotNull ShadowType origRepoShadow,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         PrismObject<ShadowType> currentRepoShadow =

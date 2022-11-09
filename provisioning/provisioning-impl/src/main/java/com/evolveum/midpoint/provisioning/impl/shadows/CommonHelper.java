@@ -18,14 +18,12 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,12 +42,13 @@ class CommonHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(CommonHelper.class);
 
-    @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired protected ShadowManager shadowManager;
     @Autowired private EventDispatcher eventDispatcher;
     @Autowired private ProvisioningContextFactory ctxFactory;
 
-    ConnectorOperationOptions createConnectorOperationOptions(ProvisioningContext ctx, ProvisioningOperationOptions options, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+    ConnectorOperationOptions createConnectorOperationOptions(
+            ProvisioningContext ctx, ProvisioningOperationOptions options, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         if (options == null) {
             return null;
         }
@@ -79,20 +78,27 @@ class CommonHelper {
         return connOptions;
     }
 
-    void handleErrorHandlerException(ProvisioningContext ctx,
+    void handleErrorHandlerException(
+            ProvisioningContext ctx,
             ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
             ObjectDelta<ShadowType> delta,
-            Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+            String message,
+            OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ObjectAlreadyExistsException, ExpressionEvaluationException {
         // Error handler had re-thrown the exception. We will throw the exception later. But first we need to record changes in opState.
-        shadowManager.recordOperationException(ctx, opState, delta, parentResult);
+        shadowManager.recordOperationException(ctx, opState, delta, result);
 
-        PrismObject<ShadowType> shadow = opState.getRepoShadow();
+        ShadowType shadow;
         if (delta.isAdd()) {
             // This is more precise. Besides, there is no repo shadow in some cases (e.g. adding protected shadow).
-            shadow = delta.getObjectToAdd();
+            shadow = delta.getObjectToAdd().asObjectable();
+        } else {
+            shadow = opState.getRepoShadow();
         }
-        ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(shadow, ctx.getResource(), delta, parentResult);
-        eventDispatcher.notifyFailure(operationDescription, task, parentResult);
-        parentResult.computeStatusIfUnknown();
+        ResourceOperationDescription operationDescription =
+                ProvisioningUtil.createResourceFailureDescription(shadow, ctx.getResource(), delta, message);
+        eventDispatcher.notifyFailure(operationDescription, ctx.getTask(), result);
+        result.computeStatusIfUnknown();
     }
 }

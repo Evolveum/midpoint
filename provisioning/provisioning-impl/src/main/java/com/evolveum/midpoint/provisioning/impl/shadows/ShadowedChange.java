@@ -316,7 +316,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
                             getIdentifiers(),
                             options,
                             context.getTask(),
-                            result).asObjectable();
+                            result);
                 } catch (ObjectNotFoundException e) {
                     // The object on the resource does not exist (any more?).
                     LOGGER.warn("Object {} does not exist on the resource any more", repoShadow);

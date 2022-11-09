@@ -15,7 +15,6 @@ import com.evolveum.midpoint.util.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -63,8 +62,9 @@ public abstract class ErrorHandler {
     @Autowired private ResourceManager resourceManager;
     @Autowired protected PrismContext prismContext;
 
-    public abstract PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repositoryShadow,
+    public abstract ShadowType handleGetError(
+            ProvisioningContext ctx,
+            ShadowType repositoryShadow,
             GetOperationOptions rootOptions,
             Exception cause,
             Task task,
@@ -74,10 +74,11 @@ public abstract class ErrorHandler {
                     SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
 
-    public abstract OperationResultStatus handleAddError(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowToAdd,
+    public abstract OperationResultStatus handleAddError(
+            ProvisioningContext ctx,
+            ShadowType shadowToAdd,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             Exception cause,
             OperationResult failedOperationResult,
             Task task,
@@ -86,14 +87,14 @@ public abstract class ErrorHandler {
                 ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
                 SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
-    protected OperationResultStatus postponeAdd(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+    OperationResultStatus postponeAdd(
+            ShadowType shadowToAdd,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             OperationResult failedOperationResult,
             OperationResult result) {
         LOGGER.trace("Postponing ADD operation for {}", shadowToAdd);
         opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
-        AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncResult = new AsynchronousOperationReturnValue<>();
+        AsynchronousOperationReturnValue<ShadowType> asyncResult = new AsynchronousOperationReturnValue<>();
         asyncResult.setOperationResult(failedOperationResult);
         asyncResult.setOperationType(PendingOperationTypeType.RETRY);
         opState.setAsyncResult(asyncResult);
@@ -104,21 +105,21 @@ public abstract class ErrorHandler {
         return OperationResultStatus.IN_PROGRESS;
     }
 
-    public abstract OperationResultStatus handleModifyError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
+    public abstract OperationResultStatus handleModifyError(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
             Collection<? extends ItemDelta> modifications,
             ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
             Exception cause,
             OperationResult failedOperationResult,
-            Task task,
             OperationResult parentResult)
                 throws SchemaException, GenericFrameworkException, CommunicationException,
                 ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
                 SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
     OperationResultStatus postponeModify(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
+            ShadowType repoShadow,
             Collection<? extends ItemDelta> modifications,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
             OperationResult failedOperationResult,
@@ -126,8 +127,9 @@ public abstract class ErrorHandler {
         return ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
     }
 
-    protected OperationResultStatus postponeDelete(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
+    OperationResultStatus postponeDelete(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
             ProvisioningOperationState<AsynchronousOperationResult> opState,
             OperationResult failedOperationResult,
             OperationResult result) {
@@ -144,14 +146,14 @@ public abstract class ErrorHandler {
         return OperationResultStatus.IN_PROGRESS;
     }
 
-    public abstract OperationResultStatus handleDeleteError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
+    public abstract OperationResultStatus handleDeleteError(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
             ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationResult> opState,
             Exception cause,
             OperationResult failedOperationResult,
-            Task task,
-            OperationResult parentResult)
+            OperationResult result)
                 throws SchemaException, GenericFrameworkException, CommunicationException,
                 ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
                 SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;

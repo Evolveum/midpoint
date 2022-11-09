@@ -141,6 +141,10 @@ public class ShadowUtil {
         return getAttributesContainer(shadow).getAttributes();
     }
 
+    public static <T> ResourceAttribute<T> getAttribute(ShadowType shadow, QName attrName) {
+        return getAttributesContainer(shadow).findAttribute(attrName);
+    }
+
     public static <T> ResourceAttribute<T> getAttribute(PrismObject<? extends ShadowType> shadow, QName attrName) {
         return getAttributesContainer(shadow).findAttribute(attrName);
     }
@@ -157,8 +161,8 @@ public class ShadowUtil {
         return getAttributesContainer(shadow.getValue(), containerName);
     }
 
-    public static boolean isAttributesContainerRaw(PrismObject<? extends ShadowType> shadow) {
-        PrismContainer<ShadowAttributesType> container = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+    public static boolean isAttributesContainerRaw(ShadowType shadow) {
+        PrismContainer<ShadowAttributesType> container = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
         return container != null && !(container instanceof ResourceAttributeContainer);
     }
 
@@ -669,12 +673,9 @@ public class ShadowUtil {
         return getHumanReadableName(shadowType.asPrismObject());
     }
 
-    public static boolean isFullShadow(PrismObject<ShadowType> shadow) {
-        ShadowType shadowType = shadow.asObjectable();
-        if (shadowType.getCachingMetadata() == null) {
-            return false;
-        }
-        return shadowType.getCachingMetadata().getRetrievalTimestamp() != null;
+    public static boolean isFullShadow(ShadowType shadow) {
+        CachingMetadataType cachingMetadata = shadow.getCachingMetadata();
+        return cachingMetadata != null && cachingMetadata.getRetrievalTimestamp() != null;
     }
 
     public static PolyString determineShadowName(PrismObject<ShadowType> shadow) throws SchemaException {
@@ -798,8 +799,8 @@ public class ShadowUtil {
     }
 
     // TODO: may be useful to move to ResourceObjectClassDefinition later?
-    public static void validateAttributeSchema(ShadowType shadow,
-            ResourceObjectDefinition objectDefinition) throws SchemaException {
+    public static void validateAttributeSchema(
+            ShadowType shadow, ResourceObjectDefinition objectDefinition) throws SchemaException {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
             validateAttribute(attribute, objectDefinition);

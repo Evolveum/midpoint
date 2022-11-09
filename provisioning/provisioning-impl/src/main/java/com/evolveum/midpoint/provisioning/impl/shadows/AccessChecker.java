@@ -40,7 +40,7 @@ class AccessChecker {
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessChecker.class);
 
-    void checkAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult)
+    void checkAdd(ProvisioningContext ctx, ShadowType shadow, OperationResult parentResult)
             throws SecurityViolationException, SchemaException {
         OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
         try {

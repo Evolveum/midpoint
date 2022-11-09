@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -33,9 +32,10 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -60,7 +60,6 @@ class ShadowCreator {
     @Autowired private Clock clock;
     @Autowired private Protector protector;
     @Autowired private Helper helper;
-    @Autowired private CreatorUpdaterHelper creatorUpdaterHelper;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
 
     @NotNull ShadowType addDiscoveredRepositoryShadow(
@@ -76,17 +75,18 @@ class ShadowCreator {
         return repoShadow;
     }
 
-    void addNewProposedShadow(ProvisioningContext ctx, ShadowType shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-            Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, ObjectAlreadyExistsException, EncryptionException {
+    void addNewProposedShadowIfNeeded(
+            ProvisioningContext ctx,
+            ShadowType shadowToAdd,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
+            OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
 
-        if (!creatorUpdaterHelper.isUseProposedShadows(ctx)) {
+        if (!ctx.shouldUseProposedShadows()) {
             return;
         }
 
-        PrismObject<ShadowType> existingRepoShadow = opState.getRepoShadow();
+        ShadowType existingRepoShadow = opState.getRepoShadow();
         if (existingRepoShadow != null) {
             // TODO: should we add pending operation here?
             return;
@@ -96,13 +96,14 @@ class ShadowCreator {
         ShadowType newRepoShadow = createRepositoryShadow(ctx, shadowToAdd);
         newRepoShadow.setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
         opState.setExecutionStatus(PendingOperationExecutionStatusType.REQUESTED);
-        pendingOperationsHelper.addPendingOperationAdd(newRepoShadow, shadowToAdd, opState, task.getTaskIdentifier());
+        pendingOperationsHelper.addPendingOperationAdd(
+                newRepoShadow, shadowToAdd, opState, ctx.getTask().getTaskIdentifier());
 
         ConstraintsChecker.onShadowAddOperation(newRepoShadow); // TODO migrate to cache invalidation process
         String oid = repositoryService.addObject(newRepoShadow.asPrismObject(), null, result);
         newRepoShadow.setOid(oid);
         LOGGER.trace("Proposed shadow added to the repository: {}", newRepoShadow);
-        opState.setRepoShadow(newRepoShadow.asPrismObject());
+        opState.setRepoShadow(newRepoShadow);
     }
 
     /**
@@ -160,9 +161,6 @@ class ShadowCreator {
         } else {
             throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
         }
-
-        helper.setKindIfNecessary(repoShadow, ctx);
-//        setIntentIfNecessary(repoShadowType, objectClassDefinition);
 
         // Store only password meta-data in repo - unless there is explicit caching
         CredentialsType credentials = repoShadow.getCredentials();

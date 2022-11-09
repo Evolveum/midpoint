@@ -18,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleState
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -53,7 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExec
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.getErrorReportingMethod;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 @Component
 class ObjectNotFoundHandler extends HardErrorHandler {
@@ -66,8 +64,8 @@ class ObjectNotFoundHandler extends HardErrorHandler {
     @Autowired private ShadowCaretaker shadowCaretaker;
 
     @Override
-    public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
+    public ShadowType handleGetError(ProvisioningContext ctx,
+            ShadowType repositoryShadow, GetOperationOptions rootOptions, Exception cause,
             Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException,
             CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
@@ -76,18 +74,18 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             LOGGER.debug("Trying to handle {} but 'forced exception' mode is selected. Will rethrow it.",
                     cause.getClass().getSimpleName());
 
-            if (repositoryShadow != null && ShadowUtil.isExists(repositoryShadow.asObjectable())) {
+            if (repositoryShadow != null && ShadowUtil.isExists(repositoryShadow)) {
                 markShadowTombstoneUnlessInSimulationMode(repositoryShadow, task, parentResult);
                 return super.handleGetError(ctx, null, rootOptions, cause, task, parentResult);
             }
         }
 
         if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), rootOptions)) {
-            discoverDeletedShadow(ctx, repositoryShadow, cause, task, parentResult);
+            discoverDeletedShadow(ctx, repositoryShadow, parentResult);
         }
 
         if (repositoryShadow != null) {
-            if (ShadowUtil.isExists(repositoryShadow.asObjectable())) {
+            if (ShadowUtil.isExists(repositoryShadow)) {
                 repositoryShadow = markShadowTombstoneUnlessInSimulationMode(repositoryShadow, task, parentResult);
             } else {
                 // We always want to return repository shadow it such shadow is available.
@@ -117,8 +115,8 @@ class ObjectNotFoundHandler extends HardErrorHandler {
      *
      * For the dry run, we want to mark the shadow as dead. See MID-7724.
      */
-    private PrismObject<ShadowType> markShadowTombstoneUnlessInSimulationMode(
-            PrismObject<ShadowType> repositoryShadow, Task task, OperationResult result) throws SchemaException {
+    private ShadowType markShadowTombstoneUnlessInSimulationMode(
+            ShadowType repositoryShadow, Task task, OperationResult result) throws SchemaException {
 
         if (TaskUtil.isExecute(task) || TaskUtil.isDryRun(task)) {
             LOGGER.trace("Setting {} as tombstone. This may be a quantum state collapse. Or maybe a lost shadow.",
@@ -132,30 +130,39 @@ class ObjectNotFoundHandler extends HardErrorHandler {
     }
 
     @Override
-    public OperationResultStatus handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-            Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
+    public OperationResultStatus handleModifyError(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
+            Collection<? extends ItemDelta> modifications,
+            ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
+            Exception cause,
+            OperationResult failedOperationResult,
+            OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
-            discoverDeletedShadow(ctx, repoShadow, cause, task, parentResult);
+            discoverDeletedShadow(ctx, repoShadow, result);
         }
 
-        return super.handleModifyError(ctx, repoShadow, modifications, options, opState, cause, failedOperationResult, task, parentResult);
+        return super.handleModifyError(ctx, repoShadow, modifications, options, opState, cause, failedOperationResult, result);
     }
 
     @Override
-    public OperationResultStatus handleDeleteError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
-            OperationResult failedOperationResult, Task task, OperationResult parentResult)
+    public OperationResultStatus handleDeleteError(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
+            ProvisioningOperationOptions options,
+            ProvisioningOperationState<AsynchronousOperationResult> opState,
+            Exception cause,
+            OperationResult failedOperationResult,
+            OperationResult parentResult)
             throws SchemaException {
 
         if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
-            discoverDeletedShadow(ctx, repoShadow, cause, task, parentResult);
+            discoverDeletedShadow(ctx, repoShadow, parentResult);
         }
 
         // Error deleting shadow because the shadow is already deleted. This means someone has done our job already.
@@ -164,10 +171,12 @@ class ObjectNotFoundHandler extends HardErrorHandler {
         return OperationResultStatus.HANDLED_ERROR;
     }
 
-    private void discoverDeletedShadow(ProvisioningContext ctx, PrismObject<ShadowType> repositoryShadow,
-            Exception cause, Task task, OperationResult parentResult) throws SchemaException {
+    private void discoverDeletedShadow(
+            ProvisioningContext ctx,
+            ShadowType repositoryShadow,
+            OperationResult parentResult) throws SchemaException {
 
-        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, asObjectable(repositoryShadow));
+        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repositoryShadow);
         if (shadowState != ShadowLifecycleStateType.LIVE) {
             // Do NOT do discovery of shadow that can legally not exist. This is no discovery.
             // We already know that the object are supposed not to exist yet or to dead already.
@@ -175,6 +184,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             return;
         }
 
+        Task task = ctx.getTask();
         OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
         try {
 
@@ -194,11 +204,11 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
             change.setResource(ctx.getResource().asPrismObject());
             change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
-            change.setObjectDelta(repositoryShadow.createDeleteDelta());
+            change.setObjectDelta(repositoryShadow.asPrismObject().createDeleteDelta());
             // Current shadow is a tombstone. This means that the object was deleted. But we need current shadow here.
             // Otherwise the synchronization situation won't be updated because SynchronizationService could think that
             // there is not shadow at all.
-            change.setShadowedResourceObject(repositoryShadow);
+            change.setShadowedResourceObject(repositoryShadow.asPrismObject());
             change.setSimulate(TaskUtil.isPreview(task));
             eventDispatcher.notifyChange(change, task, result);
         } catch (Throwable t) {

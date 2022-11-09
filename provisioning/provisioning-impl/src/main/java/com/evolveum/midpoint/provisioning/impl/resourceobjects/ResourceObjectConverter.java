@@ -7,12 +7,12 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
-
 import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import static com.evolveum.midpoint.prism.PrismPropertyValue.getRealValue;
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.isProtectedShadow;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -43,7 +43,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.async.UcfAsyncUpdateChangeListener;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -64,7 +63,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Responsibilities:
@@ -102,7 +100,6 @@ public class ResourceObjectConverter {
     @Autowired private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired private PrismContext prismContext;
-    @Autowired private RelationRegistry relationRegistry;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private CommonBeans commonBeans;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
@@ -274,9 +271,9 @@ public class ResourceObjectConverter {
         return true;
     }
 
-    public AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResourceObject(
+    public AsynchronousOperationReturnValue<ShadowType> addResourceObject(
             ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow,
+            ShadowType shadow,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             boolean skipExplicitUniquenessCheck,
@@ -292,44 +289,40 @@ public class ResourceObjectConverter {
 
             // We might be modifying the shadow (e.g. for simulated capabilities). But we do not want the changes
             // to propagate back to the calling code. Hence the clone.
-            PrismObject<ShadowType> shadowClone = shadow.clone();
-            ShadowType shadowBean = shadowClone.asObjectable();
+            ShadowType shadowClone = shadow.clone();
 
             Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
 
-            if (ProvisioningUtil.isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowBean)) {
-                // TODO remove this unnecessary logging statement (the error will be logged anyway)
-                LOGGER.error("Attempt to add protected shadow {}; ignoring the request", shadowBean);
-                throw new SecurityViolationException("Cannot add protected shadow " + shadowBean);
+            if (isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), shadowClone)) {
+                throw new SecurityViolationException("Cannot add protected shadow " + shadowClone);
             }
 
             if (!skipExplicitUniquenessCheck) {
-                checkForAddConflicts(ctx, shadow, result);
+                checkForAddConflicts(ctx, shadowClone, result);
             }
 
             checkForCapability(ctx, CreateCapabilityType.class);
 
             executeProvisioningScripts(ctx, ProvisioningOperationTypeType.ADD, BeforeAfterType.BEFORE, scripts, result);
 
-            entitlementConverter.processEntitlementsAdd(shadowClone, ctx);
+            entitlementConverter.processEntitlementsAdd(shadowClone.asPrismObject(), ctx);
 
             ConnectorInstance connector = ctx.getConnector(CreateCapabilityType.class, result);
             AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> connectorAsyncOpRet;
             try {
                 LOGGER.debug("PROVISIONING ADD operation on resource {}\n ADD object:\n{}\n",
-                        resource, shadowBean.debugDumpLazily());
+                        resource, shadowClone.debugDumpLazily());
 
                 new ActivationConverter(ctx, commonBeans)
-                        .transformActivationOnAdd(shadowBean, result);
+                        .transformActivationOnAdd(shadowClone, result);
 
-                connectorAsyncOpRet = connector.addObject(shadowClone, ctx.getUcfExecutionContext(), result);
+                connectorAsyncOpRet = connector.addObject(shadowClone.asPrismObject(), ctx.getUcfExecutionContext(), result);
                 resourceAttributesAfterAdd = connectorAsyncOpRet.getReturnValue();
 
                 LOGGER.debug("PROVISIONING ADD successful, returned attributes:\n{}",
                         SchemaDebugUtil.prettyPrintLazily(resourceAttributesAfterAdd));
 
-                // Be careful not to apply this to the cloned shadow. This needs to be propagated
-                // outside this method.
+                // Be careful NOT to apply this to the cloned shadow. This needs to be propagated outside this method.
                 applyAfterOperationAttributes(shadow, resourceAttributesAfterAdd);
             } catch (CommunicationException ex) {
                 throw new CommunicationException(
@@ -343,13 +336,14 @@ public class ResourceObjectConverter {
             // Execute entitlement modification on other objects (if needed)
             executeEntitlementChangesAdd(ctx, shadowClone, scripts, connOptions, result);
 
-            LOGGER.trace("Added resource object {}", shadow);
+            LOGGER.trace("Added resource object {}", shadowClone);
 
             executeProvisioningScripts(ctx, ProvisioningOperationTypeType.ADD, BeforeAfterType.AFTER, scripts, result);
 
             computeResultStatus(result);
 
-            AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncOpRet = AsynchronousOperationReturnValue.wrap(shadow, result);
+            // This should NOT be the cloned shadow: we need the original in order to retry the operation.
+            AsynchronousOperationReturnValue<ShadowType> asyncOpRet = AsynchronousOperationReturnValue.wrap(shadow, result);
             asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
             return asyncOpRet;
         } catch (Throwable t) {
@@ -365,10 +359,10 @@ public class ResourceObjectConverter {
      * which we want to add is already present in the backing store. In case of manual provisioning the resource
      * itself will not indicate "already exist" error. We have to explicitly check for that.
      */
-    private void checkForAddConflicts(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult result) throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Checking for add conflicts for {}", ShadowUtil.shortDumpShadow(shadow));
-        }
+    private void checkForAddConflicts(ProvisioningContext ctx, ShadowType shadow, OperationResult result)
+            throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
+        LOGGER.trace("Checking for add conflicts for {}", ShadowUtil.shortDumpShadowLazily(shadow));
         PrismObject<ShadowType> existingObject;
         ConnectorInstance readConnector = null;
         try {
@@ -381,8 +375,7 @@ public class ResourceObjectConverter {
                 return;
             }
             ResourceObjectIdentification identification =
-                    ResourceObjectIdentification.createFromShadow(
-                            ctx.getObjectDefinitionRequired(), shadow.asObjectable());
+                    ResourceObjectIdentification.createFromShadow(ctx.getObjectDefinitionRequired(), shadow);
 
             existingObject =
                     readConnector.fetchObject(identification, null, ctx.getUcfExecutionContext(), result);
@@ -416,8 +409,12 @@ public class ResourceObjectConverter {
         }
     }
 
-    public AsynchronousOperationResult deleteResourceObject(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
-            OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions, OperationResult parentResult)
+    public AsynchronousOperationResult deleteResourceObject(
+            ProvisioningContext ctx,
+            ShadowType shadow,
+            OperationProvisioningScriptsType scripts,
+            ConnectorOperationOptions connOptions,
+            OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
@@ -444,7 +441,7 @@ public class ResourceObjectConverter {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(
                             "PROVISIONING DELETE operation on {}\n DELETE object, object class {}, identified by:\n{}",
-                            ctx.getResource(), shadow.asObjectable().getObjectClass(),
+                            ctx.getResource(), shadow.getObjectClass(),
                             SchemaDebugUtil.debugDump(identifiers));
                 }
 
@@ -454,7 +451,11 @@ public class ResourceObjectConverter {
 
                 connectorAsyncOpRet =
                         connector.deleteObject(
-                                ctx.getObjectDefinitionRequired(), shadow, identifiers, ctx.getUcfExecutionContext(), result);
+                                ctx.getObjectDefinitionRequired(),
+                                shadow.asPrismObject(),
+                                identifiers,
+                                ctx.getUcfExecutionContext(),
+                                result);
 
             } catch (ObjectNotFoundException ex) {
                 throw ex.wrap(
@@ -492,13 +493,13 @@ public class ResourceObjectConverter {
 
     private void checkIfProtected(
             ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow,
+            ShadowType shadow,
             Collection<? extends ResourceAttribute<?>> identifiers,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException {
         Collection<ResourceObjectPattern> protectedPatterns = ctx.getProtectedAccountPatterns(expressionFactory, result);
-        if (ProvisioningUtil.isProtectedShadow(protectedPatterns, shadow.asObjectable())) {
+        if (isProtectedShadow(protectedPatterns, shadow)) {
             // TODO remove this unnecessary logging statement (the error will be logged anyway)
             LOGGER.error("Attempt to delete protected resource object " + ctx.getObjectClassDefinition() + ": "
                     + identifiers + "; ignoring the request");
@@ -508,7 +509,7 @@ public class ResourceObjectConverter {
     }
 
     @Nullable
-    private Collection<? extends ResourceAttribute<?>> getIdentifiers(ProvisioningContext ctx, PrismObject<ShadowType> shadow)
+    private Collection<? extends ResourceAttribute<?>> getIdentifiers(ProvisioningContext ctx, ShadowType shadow)
             throws SchemaException, ConfigurationException {
         if (ShadowUtil.isAttributesContainerRaw(shadow)) {
             // This could occur if shadow was re-read during op state processing
@@ -537,7 +538,7 @@ public class ResourceObjectConverter {
      */
     public AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> modifyResourceObject(
             @NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> repoShadow,
+            @NotNull ShadowType repoShadow,
             OperationProvisioningScriptsType scripts,
             ConnectorOperationOptions connOptions,
             Collection<? extends ItemDelta<?, ?>> itemDeltas,
@@ -556,9 +557,7 @@ public class ResourceObjectConverter {
 
             Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(repoShadow);
 
-            if (ProvisioningUtil.isProtectedShadow(
-                    ctx.getProtectedAccountPatterns(expressionFactory, result),
-                    repoShadow.asObjectable())) {
+            if (isProtectedShadow(ctx.getProtectedAccountPatterns(expressionFactory, result), repoShadow)) {
                 if (hasChangesOnResource(itemDeltas)) {
                     // TODO remove this unnecessary logging statement (the error will be logged anyway)
                     LOGGER.error("Attempt to modify protected resource object {}: {}", objectClassDefinition, identifiers);
@@ -616,7 +615,7 @@ public class ResourceObjectConverter {
              */
             collectAttributeAndEntitlementChanges(ctx, itemDeltas, operations, repoShadow, result);
 
-            PrismObject<ShadowType> preReadShadow = null;
+            ShadowType preReadShadow = null;
             if (hasVolatilityTriggerModification || ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource()) || isRename(ctx, operations)) {
                 // We need to filter out the deltas that add duplicate values or remove values that are not there
                 LOGGER.trace("Pre-reading resource shadow");
@@ -656,18 +655,18 @@ public class ResourceObjectConverter {
              *  State of the shadow after execution of the deltas - e.g. with new DN (if it was part of the delta), because this one should be recorded
              *  in groups of which this account is a member of. (In case of object->subject associations.)
              */
-            PrismObject<ShadowType> shadowAfter = preReadShadow == null ? repoShadow.clone() : preReadShadow.clone();
+            ShadowType shadowAfter = preReadShadow == null ? repoShadow.clone() : preReadShadow.clone();
             for (ItemDelta itemDelta : itemDeltas) {
-                itemDelta.applyTo(shadowAfter);
+                itemDelta.applyTo(asPrismObject(shadowAfter));
             }
 
-            PrismObject<ShadowType> postReadShadow = null;
+            ShadowType postReadShadow = null;
             if (hasVolatilityTriggerModification) {
                 // There may be other changes that were not detected by the connector. Re-read the object and compare.
                 LOGGER.trace("Post-reading resource shadow");
                 postReadShadow = preReadShadow(ctx, identifiers, operations, true, repoShadow, result);
                 LOGGER.trace("Post-read object:\n{}", DebugUtil.debugDumpLazily(postReadShadow));
-                ObjectDelta<ShadowType> resourceShadowDelta = preReadShadow.diff(postReadShadow);
+                ObjectDelta<ShadowType> resourceShadowDelta = preReadShadow.asPrismObject().diff(asPrismObject(postReadShadow));
                 LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDumpLazily());
                 for (ItemDelta modification: resourceShadowDelta.getModifications()) {
                     if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES) &&
@@ -690,9 +689,11 @@ public class ResourceObjectConverter {
 
             if (!knownExecutedDeltas.isEmpty()) {
                 if (preReadShadow != null) {
-                    PrismUtil.setDeltaOldValue(preReadShadow, knownExecutedDeltas);
+                    PrismUtil.setDeltaOldValue(
+                            preReadShadow.asPrismObject(), knownExecutedDeltas);
                 } else {
-                    PrismUtil.setDeltaOldValue(repoShadow, knownExecutedDeltas);
+                    PrismUtil.setDeltaOldValue(
+                            asPrismObject(repoShadow), knownExecutedDeltas);
                 }
             }
 
@@ -736,7 +737,7 @@ public class ResourceObjectConverter {
     @SuppressWarnings("rawtypes")
     private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> executeModify(
             ProvisioningContext ctx,
-            PrismObject<ShadowType> currentShadow,
+            ShadowType currentShadow,
             Collection<? extends ResourceAttribute<?>> identifiers,
             @NotNull Collection<Operation> operations,
             OperationProvisioningScriptsType scripts,
@@ -802,8 +803,12 @@ public class ResourceObjectConverter {
                         if (origOperation instanceof PropertyModificationOperation) {
                             PropertyModificationOperation modificationOperation = (PropertyModificationOperation)origOperation;
                             PropertyDelta<?> propertyDelta = modificationOperation.getPropertyDelta();
-                            PropertyDelta<?> filteredDelta = ProvisioningUtil.narrowPropertyDelta(propertyDelta, currentShadow,
-                                    modificationOperation.getMatchingRuleQName(), matchingRuleRegistry);
+                            PropertyDelta<?> filteredDelta =
+                                    ProvisioningUtil.narrowPropertyDelta(
+                                            propertyDelta,
+                                            currentShadow,
+                                            modificationOperation.getMatchingRuleQName(),
+                                            matchingRuleRegistry);
                             if (filteredDelta != null && !filteredDelta.isEmpty()) {
                                 if (propertyDelta == filteredDelta) {
                                     filteredOperations.add(origOperation);
@@ -856,7 +861,7 @@ public class ResourceObjectConverter {
                 if (!operationsWave.isEmpty()) {
                     ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectDefinition, identifiersWorkingCopy);
                     connectorAsyncOpRet = connector.modifyObject(
-                            identification, currentShadow, operationsWave, connOptions, ctx.getUcfExecutionContext(), result);
+                            identification, asPrismObject(currentShadow), operationsWave, connOptions, ctx.getUcfExecutionContext(), result);
                     Collection<PropertyModificationOperation> currentKnownExecutedChanges = connectorAsyncOpRet.getReturnValue();
                     if (currentKnownExecutedChanges != null) {
                         knownExecutedChanges.addAll(currentKnownExecutedChanges);
@@ -910,7 +915,7 @@ public class ResourceObjectConverter {
 
     private Collection<Operation> convertToReplaceAsNeeded(
             ProvisioningContext ctx,
-            PrismObject<ShadowType> currentShadow,
+            ShadowType currentShadow,
             Collection<Operation> operationsWave,
             Collection<ResourceAttribute<?>> identifiers,
             ResourceObjectDefinition objectDefinition,
@@ -927,7 +932,8 @@ public class ResourceObjectConverter {
             // but make sure currentShadow contains all required attributes
             LOGGER.trace("Fetching object because of READ+REPLACE mode");
             PrismObject<ShadowType> fetchedShadow =
-                    fetchResourceObject(ctx, identifiers, attributesToReturn, currentShadow, false, result);
+                    fetchResourceObject(
+                            ctx, identifiers, attributesToReturn, asPrismObject(currentShadow), false, result);
             operationsWave = convertToReplace(ctx, operationsWave, fetchedShadow, false);
         }
         UpdateCapabilityType updateCapability = ctx.getCapability(UpdateCapabilityType.class); // TODO what if it's disabled?
@@ -936,7 +942,8 @@ public class ResourceObjectConverter {
             if (AttributeContentRequirementType.ALL.equals(attributeContentRequirement)) {
                 LOGGER.trace("AttributeContentRequirement: {} for {}", attributeContentRequirement, ctx.getResource());
                 PrismObject<ShadowType> fetchedShadow =
-                        fetchResourceObject(ctx, identifiers, null, currentShadow, false, result);
+                        fetchResourceObject(
+                                ctx, identifiers, null, asPrismObject(currentShadow), false, result);
                 if (fetchedShadow == null) {
                     throw new SystemException("Attribute content requirement set for resource "+ctx.toHumanReadableDescription()+", but read of shadow returned null, identifiers: "+identifiers);
                 }
@@ -946,12 +953,12 @@ public class ResourceObjectConverter {
         return operationsWave;
     }
 
-    private PrismObject<ShadowType> preReadShadow(
+    private ShadowType preReadShadow(
             ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers,
             Collection<Operation> operations,
             boolean fetchEntitlements,
-            PrismObject<ShadowType> repoShadow,
+            ShadowType repoShadow,
             OperationResult parentResult)
             throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
@@ -968,7 +975,8 @@ public class ResourceObjectConverter {
         ShadowType currentShadow;
         try {
             currentShadow =
-                    fetchResourceObject(ctx, identifiers, attributesToReturn, repoShadow, fetchEntitlements, parentResult)
+                    fetchResourceObject(
+                            ctx, identifiers, attributesToReturn, asPrismObject(repoShadow), fetchEntitlements, parentResult)
                             .asObjectable();
         } catch (ObjectNotFoundException e) {
             // This may happen for semi-manual connectors that are not yet up to date.
@@ -981,7 +989,7 @@ public class ResourceObjectConverter {
         }
         currentShadow.setName(
                 ShadowUtil.determineShadowNameRequired(currentShadow));
-        return currentShadow.asPrismObject();
+        return currentShadow;
     }
 
     private Collection<ResourceAttributeDefinition<?>> determineReadReplace(
@@ -1228,9 +1236,14 @@ public class ResourceObjectConverter {
                 ctx.getObjectDefinitionRequired().isSecondaryIdentifier(propertyDelta.getElementName());
     }
 
-    private PrismObject<ShadowType> executeEntitlementChangesAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
-            OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions,
-            OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+    private ShadowType executeEntitlementChangesAdd(
+            ProvisioningContext ctx,
+            ShadowType shadow,
+            OperationProvisioningScriptsType scripts,
+            ConnectorOperationOptions connOptions,
+            OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
         Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 
@@ -1241,9 +1254,14 @@ public class ResourceObjectConverter {
         return shadow;
     }
 
-    private PrismObject<ShadowType> executeEntitlementChangesModify(ProvisioningContext ctx, PrismObject<ShadowType> subjectShadowBefore,
-            PrismObject<ShadowType> subjectShadowAfter,
-            OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions, Collection<? extends ItemDelta> subjectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+    private ShadowType executeEntitlementChangesModify(ProvisioningContext ctx,
+            ShadowType subjectShadowBefore,
+            ShadowType subjectShadowAfter,
+            OperationProvisioningScriptsType scripts,
+            ConnectorOperationOptions connOptions,
+            Collection<? extends ItemDelta> subjectDeltas,
+            OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException,
+            SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
         Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 
@@ -1259,8 +1277,9 @@ public class ResourceObjectConverter {
 
             } else {
 
-                ContainerDelta<ShadowAssociationType> associationDelta = prismContext.deltaFactory().container().createDelta(ShadowType.F_ASSOCIATION, subjectShadowBefore.getDefinition());
-                PrismContainer<ShadowAssociationType> associationContainer = subjectShadowBefore.findContainer(ShadowType.F_ASSOCIATION);
+                ContainerDelta<ShadowAssociationType> associationDelta =
+                        prismContext.deltaFactory().container().createDelta(ShadowType.F_ASSOCIATION, subjectShadowBefore.asPrismObject().getDefinition());
+                PrismContainer<ShadowAssociationType> associationContainer = subjectShadowBefore.asPrismObject().findContainer(ShadowType.F_ASSOCIATION);
                 if (associationContainer == null || associationContainer.isEmpty()) {
                     LOGGER.trace("No shadow association container in old shadow. Skipping processing entitlements change for {}.", subjectItemPath);
                     continue;
@@ -1308,9 +1327,9 @@ public class ResourceObjectConverter {
         return subjectShadowAfter;
     }
 
-    private <T> boolean isRenameReal(PrismObject<ShadowType> objectBefore, PrismObject<ShadowType> objectAfter, ItemPath itemPath) throws SchemaException {
-        PrismProperty<T> propertyBefore = objectBefore.findProperty(itemPath);
-        PrismProperty<T> propertyAfter = objectAfter.findProperty(itemPath);
+    private <T> boolean isRenameReal(ShadowType objectBefore, ShadowType objectAfter, ItemPath itemPath) throws SchemaException {
+        PrismProperty<T> propertyBefore = objectBefore.asPrismObject().findProperty(itemPath);
+        PrismProperty<T> propertyAfter = objectAfter.asPrismObject().findProperty(itemPath);
         boolean beforeIsNull = propertyBefore == null || propertyBefore.isEmpty();
         boolean afterIsNull = propertyAfter == null || propertyAfter.isEmpty();
         if (beforeIsNull) {
@@ -1336,18 +1355,20 @@ public class ResourceObjectConverter {
         return matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
     }
 
-    private void executeEntitlementChangesDelete(ProvisioningContext ctx, PrismObject<ShadowType> subjectShadow,
-            OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions,
-            OperationResult parentResult) throws SchemaException  {
+    private void executeEntitlementChangesDelete(
+            ProvisioningContext ctx,
+            ShadowType subjectShadow,
+            OperationProvisioningScriptsType scripts,
+            ConnectorOperationOptions connOptions,
+            OperationResult result) throws SchemaException  {
 
         try {
 
             Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap = new HashMap<>();
 
-            entitlementConverter.collectEntitlementsAsObjectOperationDelete(roMap, subjectShadow, ctx,
-                    parentResult);
+            entitlementConverter.collectEntitlementsAsObjectOperationDelete(roMap, subjectShadow, ctx, result);
 
-            executeEntitlements(ctx, roMap, connOptions, parentResult);
+            executeEntitlements(ctx, roMap, connOptions, result);
 
         // TODO: now just log the errors, but do NOT re-throw the exception (except for some exceptions)
         //  we want the original delete to take place, throwing an exception would spoil that
@@ -1481,7 +1502,7 @@ public class ResourceObjectConverter {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private void applyAfterOperationAttributes(PrismObject<ShadowType> shadow,
+    private void applyAfterOperationAttributes(ShadowType shadow,
             Collection<ResourceAttribute<?>> resourceAttributesAfterAdd) throws SchemaException {
         if (resourceAttributesAfterAdd == null) {
             return;
@@ -1514,7 +1535,9 @@ public class ResourceObjectConverter {
 
     private void collectAttributeAndEntitlementChanges(ProvisioningContext ctx,
             Collection<? extends ItemDelta<?, ?>> objectChange, Collection<Operation> operations,
-            PrismObject<ShadowType> shadow, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            ShadowType shadow, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         if (operations == null) {
             operations = new ArrayList<>();
         }
@@ -1543,7 +1566,7 @@ public class ResourceObjectConverter {
             } else if (SchemaConstants.PATH_ACTIVATION.equivalent(itemDelta.getParentPath())) {
                 if (!activationProcessed) {
                     Collection<Operation> activationOperations = new ActivationConverter(ctx, commonBeans)
-                            .createActivationChangeOperations(shadow.asObjectable(), objectChange, result);
+                            .createActivationChangeOperations(shadow, objectChange, result);
                     operations.addAll(activationOperations);
                     activationProcessed = true;
                 }
@@ -1701,7 +1724,7 @@ public class ResourceObjectConverter {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, GenericConnectorException {
         Collection<ExecuteProvisioningScriptOperation> operations =
-                determineExecuteScriptOperations(provisioningOperationType, beforeAfter, scripts, ctx.getResource(), result);
+                determineExecuteScriptOperations(provisioningOperationType, beforeAfter, scripts, ctx.getResource());
         if (operations == null || operations.isEmpty()) {
             return;
         }
@@ -1759,8 +1782,7 @@ public class ResourceObjectConverter {
             ProvisioningOperationTypeType provisioningOperationType,
             BeforeAfterType beforeAfter,
             OperationProvisioningScriptsType scripts,
-            ResourceType resource,
-            OperationResult result) throws SchemaException {
+            ResourceType resource) throws SchemaException {
         if (scripts == null) {
             // No warning needed, this is quite normal
             LOGGER.trace("Skipping creating script operation to execute. No scripts were defined.");
@@ -1782,8 +1804,9 @@ public class ResourceObjectConverter {
     }
 
     public AsynchronousOperationResult refreshOperationStatus(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow, String asyncRef, OperationResult parentResult)
-                    throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            ShadowType shadow, String asyncRef, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_REFRESH_OPERATION_STATUS);
 

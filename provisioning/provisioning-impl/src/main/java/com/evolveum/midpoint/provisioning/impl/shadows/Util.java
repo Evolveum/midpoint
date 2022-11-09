@@ -20,7 +20,6 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -35,12 +34,12 @@ class Util {
                 pendingOperation.getAttemptNumber() != null;
     }
 
-    static boolean shouldRefresh(PrismObject<ShadowType> repoShadow) {
+    static boolean shouldRefresh(ShadowType repoShadow) {
         if (repoShadow == null) {
             return false;
         }
 
-        List<PendingOperationType> pendingOperations = repoShadow.asObjectable().getPendingOperation();
+        List<PendingOperationType> pendingOperations = repoShadow.getPendingOperation();
         if (pendingOperations == null || pendingOperations.isEmpty()) {
             return false;
         }
@@ -54,23 +53,14 @@ class Util {
         return false;
     }
 
-    static boolean shouldExecuteResourceOperationDirectly(ProvisioningContext ctx) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        if (ctx.isPropagation()) {
-            return true;
-        }
-        ResourceConsistencyType consistency = ctx.getResource().getConsistency();
-        return consistency == null || consistency.getOperationGroupingInterval() == null;
-    }
-
     static ResourceOperationDescription createSuccessOperationDescription(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowType, ObjectDelta<? extends ShadowType> delta, OperationResult parentResult) {
+            ShadowType shadowType, ObjectDelta<? extends ShadowType> delta, String message) {
         ResourceOperationDescription operationDescription = new ResourceOperationDescription();
-        operationDescription.setCurrentShadow(shadowType);
+        operationDescription.setCurrentShadow(shadowType.asPrismObject());
         operationDescription.setResource(ctx.getResource().asPrismObject());
         operationDescription.setSourceChannel(ctx.getChannel());
         operationDescription.setObjectDelta(delta);
-        operationDescription.setResult(parentResult);
+        operationDescription.setMessage(message);
         return operationDescription;
     }
 
@@ -89,8 +79,8 @@ class Util {
         parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
     }
 
-    static String getAdditionalOperationDesc(OperationProvisioningScriptsType scripts,
-            ProvisioningOperationOptions options) {
+    static String getAdditionalOperationDesc(
+            OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options) {
         if (scripts == null && options == null) {
             return "";
         }

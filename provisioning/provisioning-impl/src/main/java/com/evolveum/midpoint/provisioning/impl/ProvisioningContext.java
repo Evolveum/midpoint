@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.util.*;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -396,7 +397,7 @@ public class ProvisioningContext {
                 parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
         try {
             return contextFactory.getResourceManager()
-                    .getConfiguredConnectorInstance(resource.asPrismObject(), operationCapabilityClass, false, result);
+                    .getConfiguredConnectorInstance(resource, operationCapabilityClass, false, result);
         } catch (ObjectNotFoundException | SchemaException e) {
             result.recordPartialError("Could not get connector instance " + getDesc() + ": " + e.getMessage(), e);
             // Wrap those exceptions to a configuration exception. In the context of the provisioning operation we really cannot throw
@@ -485,6 +486,7 @@ public class ProvisioningContext {
     }
 
     // Preliminary code
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isResourceInProduction() {
         return LifecycleUtil.isInProduction(
                 resource.getLifecycleState());
@@ -495,6 +497,9 @@ public class ProvisioningContext {
         if (!isResourceInProduction()) {
             return false; // We ignore any object class/type level settings here.
         }
+        // Note that the object type/class lifecycle state may be null. This means that it should inherit the value
+        // of the resource LC state. In that case it means that it should be considered as "production", because the resource
+        // itself is in production state (per above condition). Hence the following code is OK.
         return resourceObjectDefinition == null
                 || LifecycleUtil.isInProduction(resourceObjectDefinition.getLifecycleState());
     }
@@ -620,18 +625,30 @@ public class ProvisioningContext {
         if (!ProvisioningUtil.isFuturePointInTime(options)) {
             return Objects.requireNonNullElse(resourceShadow, repoShadow);
         } else {
-            return getCaretaker().applyPendingOperations(
-                            this,
-                            ObjectTypeUtil.asPrismObject(repoShadow),
-                            ObjectTypeUtil.asPrismObject(resourceShadow),
-                            false,
-                            now)
-                    .asObjectable();
+            return getCaretaker().applyPendingOperations(this, repoShadow, resourceShadow, false, now);
         }
     }
 
     public boolean isAllowNotFound() {
         return GetOperationOptions.isAllowNotFound(
                 SelectorOptions.findRootOptions(getOperationOptions));
+    }
+
+    public boolean shouldExecuteResourceOperationDirectly() {
+        if (propagation) {
+            return true;
+        } else {
+            ResourceConsistencyType consistency = resource.getConsistency();
+            return consistency == null || consistency.getOperationGroupingInterval() == null;
+        }
+    }
+
+    public boolean shouldUseProposedShadows() {
+        ResourceConsistencyType consistency = resource.getConsistency();
+        return consistency != null && BooleanUtils.isTrue(consistency.isUseProposedShadows());
+    }
+
+    public @NotNull ShadowCheckType getShadowConstraintsCheck() {
+        return ResourceTypeUtil.getShadowConstraintsCheck(resource);
     }
 }

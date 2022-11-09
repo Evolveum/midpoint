@@ -145,7 +145,7 @@ class ShadowFinder {
     }
 
     Collection<PrismObject<ShadowType>> searchForPreviousDeadShadows(
-            ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd, OperationResult result)
+            ProvisioningContext ctx, ShadowType shadowToAdd, OperationResult result)
             throws SchemaException {
 
         PrismProperty<?> identifier = ProvisioningUtil.getSingleValuedPrimaryIdentifier(shadowToAdd);
@@ -154,7 +154,7 @@ class ShadowFinder {
             return emptyList();
         }
 
-        ObjectQuery query = createQueryByPrimaryId(ctx, identifier, shadowToAdd.asObjectable().getObjectClass());
+        ObjectQuery query = createQueryByPrimaryId(ctx, identifier, shadowToAdd.getObjectClass());
         LOGGER.trace("Searching for dead shadows using filter:\n{}", query.debugDumpLazily(1));
 
         List<PrismObject<ShadowType>> shadowsFound = searchRepoShadows(query, zeroStalenessOptions(), result);

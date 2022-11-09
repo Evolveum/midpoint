@@ -18,6 +18,8 @@ import java.io.File;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.api.Resource;
+
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -256,7 +258,8 @@ public class TestUniversity extends AbstractStoryTest {
         when("'john' is fetched");
         List<PrismObject<ShadowType>> accounts = modelService.searchObjects(
                 ShadowType.class,
-                createAccountAttributeQueryWithKindAndIntent(resourceOpenDjType, QNAME_UID, "john"),
+                Resource.of(resourceOpenDjType)
+                        .accountDefaultObjectsQuery(QNAME_UID, "john"),
                 null, task, result);
 
         then("account was found");

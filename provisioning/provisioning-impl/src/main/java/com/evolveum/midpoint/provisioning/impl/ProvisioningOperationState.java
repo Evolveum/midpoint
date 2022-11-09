@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -21,6 +20,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
+
 import static java.util.Collections.singletonList;
 
 /**
@@ -30,7 +32,7 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
 
     private A asyncResult;
     private PendingOperationExecutionStatusType executionStatus;
-    private PrismObject<ShadowType> repoShadow;
+    private ShadowType repoShadow;
 
     private Integer attemptNumber;
     private List<PendingOperationType> pendingOperations;
@@ -51,11 +53,11 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
         this.executionStatus = executionStatus;
     }
 
-    public PrismObject<ShadowType> getRepoShadow() {
+    public ShadowType getRepoShadow() {
         return repoShadow;
     }
 
-    public void setRepoShadow(PrismObject<ShadowType> repoShadow) {
+    public void setRepoShadow(ShadowType repoShadow) {
         this.repoShadow = repoShadow;
     }
 
@@ -83,19 +85,7 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
     }
 
     public PendingOperationTypeType getOperationType() {
-        if (asyncResult == null) {
-            return null;
-        } else {
-            return asyncResult.getOperationType();
-        }
-    }
-
-    public boolean isQuantumOperation() {
-        if (asyncResult == null) {
-            return false;
-        } else {
-            return asyncResult.isQuantumOperation();
-        }
+        return asyncResult != null ? asyncResult.getOperationType() : null;
     }
 
     /**
@@ -103,59 +93,49 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
      * if the operation is executing (in progress) or finished.
      */
     public boolean wasStarted() {
-        return executionStatus == PendingOperationExecutionStatusType.EXECUTING || executionStatus == PendingOperationExecutionStatusType.COMPLETED;
+        return executionStatus == EXECUTING || executionStatus == COMPLETED;
     }
 
     public boolean isCompleted() {
-        return executionStatus == PendingOperationExecutionStatusType.COMPLETED;
+        return executionStatus == COMPLETED;
     }
 
     public boolean isExecuting() {
-        return executionStatus == PendingOperationExecutionStatusType.EXECUTING;
+        return executionStatus == EXECUTING;
     }
 
     public boolean isSuccess() {
         return OperationResultStatusType.SUCCESS.equals(getResultStatusType());
     }
 
-
     public OperationResultStatusType getResultStatusType() {
         OperationResultStatus resultStatus = getResultStatus();
-        if (resultStatus == null) {
-            return null;
-        }
-        return resultStatus.createStatusType();
+        return resultStatus != null ? resultStatus.createStatusType() : null;
+    }
+
+    private OperationResult getOperationResult() {
+        return asyncResult != null ? asyncResult.getOperationResult() : null;
     }
 
     public OperationResultStatus getResultStatus() {
-        if (asyncResult == null || asyncResult.getOperationResult() == null) {
-            return null;
-        } else {
-            return asyncResult.getOperationResult().getStatus();
-        }
+        OperationResult operationResult = getOperationResult();
+        return operationResult != null ? operationResult.getStatus() : null;
     }
 
     public String getAsynchronousOperationReference() {
-        if (asyncResult == null || asyncResult.getOperationResult() == null) {
-            return null;
-        } else {
-            return asyncResult.getOperationResult().getAsynchronousOperationReference();
-        }
+        OperationResult operationResult = getOperationResult();
+        return operationResult != null ? operationResult.getAsynchronousOperationReference() : null;
     }
 
     public void processAsyncResult(A asyncReturnValue) {
         setAsyncResult(asyncReturnValue);
-        if (asyncReturnValue == null) {
-            return;
-        }
-        OperationResult operationResult = asyncReturnValue.getOperationResult();
+        OperationResult operationResult = getOperationResult();
         if (operationResult == null) {
-            return;
-        }
-        if (operationResult.isInProgress()) {
-            executionStatus = PendingOperationExecutionStatusType.EXECUTING;
+            // No effect
+        } else if (operationResult.isInProgress()) {
+            executionStatus = EXECUTING;
         } else {
-            executionStatus = PendingOperationExecutionStatusType.COMPLETED;
+            executionStatus = COMPLETED;
         }
     }
 
@@ -194,20 +174,20 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
         if (status == null) {
             executionStatus = PendingOperationExecutionStatusType.REQUESTED;
         } else if (status == OperationResultStatus.IN_PROGRESS) {
-            executionStatus = PendingOperationExecutionStatusType.EXECUTING;
+            executionStatus = EXECUTING;
         } else {
-            executionStatus = PendingOperationExecutionStatusType.COMPLETED;
+            executionStatus = COMPLETED;
         }
     }
 
     // TEMPORARY: TODO: remove
     public static <A extends AsynchronousOperationResult> ProvisioningOperationState<A> fromPendingOperation(
-            PrismObject<ShadowType> repoShadow, PendingOperationType pendingOperation) {
+            ShadowType repoShadow, PendingOperationType pendingOperation) {
         return fromPendingOperations(repoShadow, singletonList(pendingOperation));
     }
 
     public static <A extends AsynchronousOperationResult> ProvisioningOperationState<A> fromPendingOperations(
-            PrismObject<ShadowType> repoShadow, List<PendingOperationType> pendingOperations) {
+            ShadowType repoShadow, List<PendingOperationType> pendingOperations) {
         ProvisioningOperationState<A> opState = new ProvisioningOperationState<>();
         if (pendingOperations == null || pendingOperations.isEmpty()) {
             throw new IllegalArgumentException("Empty list of pending operations, cannot create ProvisioningOperationState");

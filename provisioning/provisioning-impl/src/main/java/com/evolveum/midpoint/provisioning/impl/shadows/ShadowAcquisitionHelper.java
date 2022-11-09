@@ -57,7 +57,7 @@ class ShadowAcquisitionHelper {
             CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
         PrismProperty<?> primaryIdentifier = requireNonNull(
-                ProvisioningUtil.getSingleValuedPrimaryIdentifier(resourceObject.asPrismObject()),
+                ProvisioningUtil.getSingleValuedPrimaryIdentifier(resourceObject),
                 () -> "No primary identifier value in " + ShadowUtil.shortDumpShadow(resourceObject));
         QName objectClass = requireNonNull(
                 resourceObject.getObjectClass(),
