@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -20,10 +24,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.TableTabbedPanel;
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -34,20 +36,17 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lskublik
  */
-public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBasicPanel {
+public abstract class AttributeMappingsTableWizardPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
 
     private static final String ID_TAB_TABLE = "tabTable";
 
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
     private final WrapperContext.AttributeMappingType initialTab;
 
     public AttributeMappingsTableWizardPanel(
             String id,
-            ResourceDetailsModel model,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
+            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> superHelper,
             WrapperContext.AttributeMappingType initialTab) {
-        super(id, model);
-        this.valueModel = valueModel;
+        super(id, superHelper);
         this.initialTab = initialTab;
     }
 
@@ -108,7 +107,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new InboundAttributeMappingsTable(panelId, valueModel) {
+                return new InboundAttributeMappingsTable(panelId, getValueModel()) {
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
@@ -127,7 +126,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new OutboundAttributeMappingsTable(panelId, valueModel) {
+                return new OutboundAttributeMappingsTable(panelId, getValueModel()) {
                     @Override
                     protected void editItemPerformed(
                             AjaxRequestTarget target,
@@ -179,28 +178,16 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractWizardBa
     }
 
     @Override
-    protected boolean isSubmitButtonVisible() {
-        return true;
-    }
-
-    @Override
-    protected void onSubmitPerformed(AjaxRequestTarget target) {
-        if (getTable().isValidFormComponents(target)) {
-            onSaveResourcePerformed(target);
-        }
-    }
-
-    protected String getSubmitIcon() {
-        return "fa fa-floppy-disk";
+    protected boolean isValid(AjaxRequestTarget target) {
+        return getTable().isValidFormComponents(target);
     }
 
     protected abstract void onShowOverrides(AjaxRequestTarget target, WrapperContext.AttributeMappingType selectedMappingType);
 
-    protected IModel<String> getSubmitLabelModel() {
-        return getPageBase().createStringResource("AttributeMappingsTableWizardPanel.saveButton");
+    @Override
+    protected String getSaveLabelKey() {
+        return "AttributeMappingsTableWizardPanel.saveButton";
     }
-
-    protected abstract void onSaveResourcePerformed(AjaxRequestTarget target);
 
     protected abstract void inEditOutboundValue(IModel<PrismContainerValueWrapper<MappingType>> value, AjaxRequestTarget target);
 

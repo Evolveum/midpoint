@@ -1345,12 +1345,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         AtomicReference<Boolean> valid = new AtomicReference<>(true);
         getTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (row, object) -> {
             ((SelectableDataTable.SelectableRowItem) row).visitChildren(FormComponent.class, (baseFormComponent, object2) -> {
-                baseFormComponent.getBehaviors().stream()
-                        .filter(behaviour -> behaviour instanceof ValidatorAdapter
-                                && ((ValidatorAdapter)behaviour).getValidator() instanceof NotNullValidator)
-                        .map(adapter -> ((ValidatorAdapter)adapter).getValidator())
-                        .forEach(validator -> ((NotNullValidator)validator).setUseModel(true));
-                ((FormComponent)baseFormComponent).validate();
+                if (!baseFormComponent.hasErrorMessage()) {
+                    baseFormComponent.getBehaviors().stream()
+                            .filter(behaviour -> behaviour instanceof ValidatorAdapter
+                                    && ((ValidatorAdapter) behaviour).getValidator() instanceof NotNullValidator)
+                            .map(adapter -> ((ValidatorAdapter) adapter).getValidator())
+                            .forEach(validator -> ((NotNullValidator) validator).setUseModel(true));
+                    ((FormComponent)baseFormComponent).validate();
+                }
                 if (baseFormComponent.hasErrorMessage()) {
                     valid.set(false);
                     if (target != null) {

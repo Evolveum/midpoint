@@ -6,13 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.credentials;
 
-import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -33,21 +33,14 @@ import java.util.List;
 @Experimental
 public class CredentialsWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
 
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
-
-    public CredentialsWizardPanel(String id, ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, model);
-        this.valueModel = valueModel;
+    public CredentialsWizardPanel(String id, ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> helper) {
+        super(id, helper);
     }
 
     protected void initLayout() {
         add(createWizardFragment(new WizardPanel(
                 getIdOfWizardPanel(),
                 new WizardModel(createCredentialsSteps(getValueModel())))));
-    }
-
-    public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
-        return valueModel;
     }
 
     private List<WizardStep> createCredentialsSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
@@ -72,13 +65,7 @@ public class CredentialsWizardPanel extends AbstractResourceWizardPanel<Resource
                 }
                 OperationResult result = CredentialsWizardPanel.this.onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
-                    new Toast()
-                            .success()
-                            .title(getString("ResourceWizardPanel.updateResource"))
-                            .icon("fas fa-circle-check")
-                            .autohide(true)
-                            .delay(5_000)
-                            .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
+                    WebComponentUtil.createToastForUpdateResource(target, this);
                     onExitPerformed(target);
                 }
             }
@@ -95,9 +82,5 @@ public class CredentialsWizardPanel extends AbstractResourceWizardPanel<Resource
         steps.add(panel);
 
         return steps;
-    }
-
-    protected boolean isSavedAfterWizard() {
-        return true;
     }
 }

@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation;
 
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
@@ -21,18 +21,14 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class CorrelationItemsTableWizardPanel extends AbstractWizardBasicPanel {
+public abstract class CorrelationItemsTableWizardPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
 
     private static final String ID_TABLE = "table";
 
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
-
     public CorrelationItemsTableWizardPanel(
             String id,
-            ResourceDetailsModel model,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, model);
-        this.valueModel = valueModel;
+            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> superHelper) {
+        super(id, superHelper);
     }
 
     @Override
@@ -42,7 +38,7 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractWizardBas
     }
 
     private void initLayout() {
-        CorrelationItemsTable table = new CorrelationItemsTable(ID_TABLE, valueModel) {
+        CorrelationItemsTable table = new CorrelationItemsTable(ID_TABLE, getValueModel()) {
             @Override
             protected void editItemPerformed(
                     AjaxRequestTarget target,
@@ -60,20 +56,9 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractWizardBas
             IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> rowModel);
 
     @Override
-    protected void onSubmitPerformed(AjaxRequestTarget target) {
-        onSaveResourcePerformed(target);
+    protected String getSaveLabelKey() {
+        return "CorrelationWizardPanelWizardPanel.saveButton";
     }
-
-    @Override
-    protected boolean isSubmitButtonVisible() {
-        return true;
-    }
-
-    protected IModel<String> getSubmitLabelModel() {
-        return getPageBase().createStringResource("CorrelationWizardPanelWizardPanel.saveButton");
-    }
-
-    protected abstract void onSaveResourcePerformed(AjaxRequestTarget target);
 
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
@@ -88,5 +73,14 @@ public abstract class CorrelationItemsTableWizardPanel extends AbstractWizardBas
     @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("CorrelationWizardPanelWizardPanel.subText");
+    }
+
+    protected CorrelationItemsTable getTable() {
+        return (CorrelationItemsTable) get(ID_TABLE);
+    }
+
+    @Override
+    protected boolean isValid(AjaxRequestTarget target) {
+        return getTable().isValidFormComponents(target);
     }
 }

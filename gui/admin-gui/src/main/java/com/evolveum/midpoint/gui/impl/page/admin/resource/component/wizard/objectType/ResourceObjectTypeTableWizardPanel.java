@@ -45,11 +45,6 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
                 ResourceObjectTypeTableWizardPanel.this.onEditValue(valueModel, target);
             }
 
-//            @Override
-//            protected boolean isCreateNewObjectVisible() {
-//                return false;
-//            }
-
             @Override
             protected void onBeforeRender() {
                 super.onBeforeRender();

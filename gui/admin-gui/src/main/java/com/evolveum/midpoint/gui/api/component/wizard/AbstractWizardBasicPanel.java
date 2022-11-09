@@ -78,7 +78,7 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
 
     @NotNull protected abstract IModel<String> getBreadcrumbLabel();
 
-    private void removeLastBreadcrumb() {
+    protected void removeLastBreadcrumb() {
         int index = getBreadcrumb().size() - 1;
         getBreadcrumb().remove(index);
     }

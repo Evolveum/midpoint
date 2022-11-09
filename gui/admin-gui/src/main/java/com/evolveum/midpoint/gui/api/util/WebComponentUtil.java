@@ -27,6 +27,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.result.Toast;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -5410,5 +5412,23 @@ public final class WebComponentUtil {
 
         String skin = info.getSkin();
         return AdminLTESkin.create(skin);
+    }
+
+    public static void createToastForUpdateResource(AjaxRequestTarget target, Component panel){
+        createToastForResource(target, panel, "ResourceWizardPanel.updateResource");
+    }
+
+    public static void createToastForCreateResource(AjaxRequestTarget target, Component panel){
+        createToastForResource(target, panel, "ResourceWizardPanel.createResource");
+    }
+
+    private static void createToastForResource(AjaxRequestTarget target, Component panel, String key){
+        new Toast()
+                .success()
+                .title(panel.getString(key))
+                .icon("fas fa-circle-check")
+                .autohide(true)
+                .delay(5_000)
+                .body(panel.getString(key + ".text")).show(target);
     }
 }

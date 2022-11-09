@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,12 +15,15 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.ActivationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations.AssociationsWizardPanel;
@@ -36,6 +41,8 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -67,6 +74,8 @@ import org.jetbrains.annotations.Nullable;
                         description = "PageResource.auth.resource.description")
         })
 public class PageResource extends PageAssignmentHolderDetails<ResourceType, ResourceDetailsModel> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
 
     private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
     private static final String ID_WIZARD = "wizard";
@@ -182,135 +191,71 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     public void showSynchronizationWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
-        fragment.setOutputMarkupId(true);
-        addOrReplace(fragment);
-        SynchronizationWizardPanel wizard = new SynchronizationWizardPanel(
-                ID_WIZARD, getObjectDetailsModels(), valueModel) {
-
-            @Override
-            protected boolean isSavedAfterWizard() {
-                return false;
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                backToDetailsFromWizard(target);
-            }
-        };
-        wizard.setOutputMarkupId(true);
-        fragment.add(wizard);
-        target.add(fragment);
+        showResourceWizard(target, valueModel, SynchronizationWizardPanel.class);
     }
 
     public void showCorrelationWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
-        fragment.setOutputMarkupId(true);
-        addOrReplace(fragment);
-        CorrelationWizardPanel wizard = new CorrelationWizardPanel(
-                ID_WIZARD, getObjectDetailsModels(), valueModel) {
-
-            @Override
-            protected boolean isSavedAfterWizard() {
-                return false;
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                backToDetailsFromWizard(target);
-            }
-        };
-        wizard.setOutputMarkupId(true);
-        fragment.add(wizard);
-        target.add(fragment);
+        showResourceWizard(target, valueModel, CorrelationWizardPanel.class);
     }
 
     public void showCapabilitiesWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
-        fragment.setOutputMarkupId(true);
-        addOrReplace(fragment);
-        CapabilitiesWizardPanel wizard = new CapabilitiesWizardPanel(
-                ID_WIZARD, getObjectDetailsModels(), valueModel) {
-
-            @Override
-            protected boolean isSavedAfterWizard() {
-                return false;
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                backToDetailsFromWizard(target);
-            }
-        };
-        wizard.setOutputMarkupId(true);
-        fragment.add(wizard);
-        target.add(fragment);
+        showResourceWizard(target, valueModel, CapabilitiesWizardPanel.class);
     }
 
     public void showCredentialsWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
-        fragment.setOutputMarkupId(true);
-        addOrReplace(fragment);
-        CredentialsWizardPanel wizard = new CredentialsWizardPanel(
-                ID_WIZARD, getObjectDetailsModels(), valueModel) {
-
-            @Override
-            protected boolean isSavedAfterWizard() {
-                return false;
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                backToDetailsFromWizard(target);
-            }
-        };
-        wizard.setOutputMarkupId(true);
-        fragment.add(wizard);
-        target.add(fragment);
+        showResourceWizard(target, valueModel, CredentialsWizardPanel.class);
     }
 
     public void showActivationsWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
-        fragment.setOutputMarkupId(true);
-        addOrReplace(fragment);
-        ActivationsWizardPanel wizard = new ActivationsWizardPanel(
-                ID_WIZARD, getObjectDetailsModels(), valueModel) {
-
-            @Override
-            protected boolean isSavedAfterWizard() {
-                return false;
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                backToDetailsFromWizard(target);
-            }
-        };
-        wizard.setOutputMarkupId(true);
-        fragment.add(wizard);
-        target.add(fragment);
+        showResourceWizard(target, valueModel, ActivationsWizardPanel.class);
     }
 
     public void showAssociationsWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        showResourceWizard(target, valueModel, AssociationsWizardPanel.class);
+    }
+
+    public void showObjectTypeWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        showResourceWizard(target, valueModel, ResourceObjectTypeWizardPanel.class);
+    }
+
+    public void showAttributeMappingWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        showResourceWizard(target, valueModel, AttributeMappingWizardPanel.class);
+    }
+
+    private void showResourceWizard(
+            AjaxRequestTarget target,
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
+            Class<? extends AbstractResourceWizardPanel> clazz) {
         Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
         fragment.setOutputMarkupId(true);
         addOrReplace(fragment);
-        AssociationsWizardPanel wizard = new AssociationsWizardPanel(
-                ID_WIZARD, getObjectDetailsModels(), valueModel) {
+
+        try {
+            Constructor<? extends AbstractResourceWizardPanel> constructor = clazz.getConstructor(String.class, ResourceWizardPanelHelper.class);
+            AbstractResourceWizardPanel wizard = constructor.newInstance(ID_WIZARD, createResourceWizardPanelHelper(valueModel));
+            wizard.setOutputMarkupId(true);
+            fragment.add(wizard);
+            target.add(fragment);
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            LOGGER.error("Couldn't create panel by constructor for class " + clazz.getSimpleName()
+                    + " with parameters type: String, ResourceWizardPanelHelper");
+        }
+    }
+
+    private ResourceWizardPanelHelper createResourceWizardPanelHelper(
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
+        return new ResourceWizardPanelHelper(getObjectDetailsModels(), valueModel) {
 
             @Override
-            protected boolean isSavedAfterWizard() {
-                return false;
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
+            public void onExitPerformed(AjaxRequestTarget target) {
                 backToDetailsFromWizard(target);
             }
+
+            @Override
+            public boolean isSavedAfterWizard() {
+                return false;
+            }
         };
-        wizard.setOutputMarkupId(true);
-        fragment.add(wizard);
-        target.add(fragment);
     }
 
     private void backToDetailsFromWizard(AjaxRequestTarget target) {
@@ -327,49 +272,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
             replacePanel(defaultConfig, target);
         }
         target.add(detailsFragment);
-    }
-
-    public void showObjectTypeWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
-        fragment.setOutputMarkupId(true);
-        addOrReplace(fragment);
-        ResourceObjectTypeWizardPanel wizard = new ResourceObjectTypeWizardPanel(ID_WIZARD, getObjectDetailsModels(), valueModel) {
-
-            @Override
-            protected boolean isSavedAfterDetailsWizard() {
-                return false;
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                backToDetailsFromWizard(target);
-            }
-        };
-        wizard.setOutputMarkupId(true);
-        fragment.add(wizard);
-        target.add(fragment);
-    }
-
-    public void showAttributeMappingWizard(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
-        fragment.setOutputMarkupId(true);
-        addOrReplace(fragment);
-        AttributeMappingWizardPanel wizard = new AttributeMappingWizardPanel(
-                ID_WIZARD, getObjectDetailsModels(), valueModel) {
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                backToDetailsFromWizard(target);
-            }
-
-            @Override
-            protected boolean isSavedAfterWizard() {
-                return false;
-            }
-        };
-        wizard.setOutputMarkupId(true);
-        fragment.add(wizard);
-        target.add(fragment);
     }
 
     public List<Breadcrumb> getWizardBreadcrumbs() {
