@@ -7,18 +7,21 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.visualizer.*;
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.Serializable;
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.model.api.visualizer.Name;
+import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
+import com.evolveum.midpoint.model.api.visualizer.SceneItem;
+import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.web.util.PolyStringComparator;
 
 public class SceneItemDto implements Serializable {
 
@@ -54,7 +57,7 @@ public class SceneItemDto implements Serializable {
 
     public List<SceneItemLineDto> computeLines() {
         List<SceneItemLineDto> rv = new ArrayList<>();
-        Collator collator = WebComponentUtil.getCollator();
+
         if (!isDelta()) {
             for (SceneItemValue itemValue : sceneItem.getNewValues()) {
                 rv.add(new SceneItemLineDto(this, null, itemValue, false));
@@ -68,16 +71,10 @@ public class SceneItemDto implements Serializable {
             List<? extends SceneItemValue> addedValues = deltaItem.getAddedValues();
             Comparator<? super SceneItemValue> comparator =
                     (s1, s2) -> {
-                        String value1 = s1 == null ? null : s1.getText();
-                        String value2 = s2 == null ? null : s2.getText();
-                        if (value1 == null && value2 == null) {
-                            return 0;
-                        } else if (value1 == null) {
-                            return -1;
-                        } else if (value2 == null) {
-                            return 1;
-                        }
-                        return collator.compare(value1, value2);
+                        PolyString value1 = s1 == null ? null : s1.getText();
+                        PolyString value2 = s2 == null ? null : s2.getText();
+
+                        return PolyStringComparator.COMPARE_TRANSLATED.compare(value1, value2);
                     };
             deletedValues.sort(comparator);
             addedValues.sort(comparator);
@@ -97,16 +94,11 @@ public class SceneItemDto implements Serializable {
                     } else if (s2.isDelta()){
                         return -1;
                     }
-                    String value1 = s1.getNewValue() == null ? null : s1.getNewValue().getText();
-                    String value2 = s2.getNewValue() == null ? null : s2.getNewValue().getText();
-                    if (value1 == null && value2 == null) {
-                        return 0;
-                    } else if (value1 == null) {
-                        return -1;
-                    } else if (value2 == null) {
-                        return 1;
-                    }
-                    return collator.compare(value1, value2);
+
+                    PolyString value1 = s1.getNewValue() == null ? null : s1.getNewValue().getText();
+                    PolyString value2 = s2.getNewValue() == null ? null : s2.getNewValue().getText();
+
+                    return PolyStringComparator.COMPARE_TRANSLATED.compare(value1, value2);
                 };
         rv.sort(comparator);
         return rv;

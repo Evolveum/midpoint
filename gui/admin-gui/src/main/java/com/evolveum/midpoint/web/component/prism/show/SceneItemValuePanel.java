@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -95,7 +97,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
         link.add(visibleIfReference);
         add(link);
 
-        final Label additionalText = new Label(ID_ADDITIONAL_TEXT, () -> getModelObject() != null ? getModelObject().getAdditionalText() : null);
+        final Label additionalText = new Label(ID_ADDITIONAL_TEXT, () -> getModelObject() != null ? WebComponentUtil.getTranslatedPolyString(getModelObject().getAdditionalText()) : null);
         add(additionalText);
     }
 
@@ -144,11 +146,16 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
                     WebComponentUtil.getDisplayNameOrName(((Objectable) val.getSourceValue()).asPrismObject());
                 }
             }
-            String textValue = getModelObject() != null ? getModelObject().getText() : null;
-            if (textValue != null && textValue.isEmpty()) {
-                textValue = createStringResource("SceneItemLinePanel.emptyLabel").getString();
+            PolyString textValue = getModelObject().getText();
+            if (textValue == null) {
+                return null;
             }
-            return textValue;
+
+            if (textValue.getOrig().isEmpty()) {
+                return createStringResource("SceneItemLinePanel.emptyLabel").getString();
+            }
+
+            return WebComponentUtil.getTranslatedPolyString(textValue);
         }
     }
 }

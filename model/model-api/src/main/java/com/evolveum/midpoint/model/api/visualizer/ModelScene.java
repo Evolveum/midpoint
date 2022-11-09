@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.api.visualizer;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * Created by Viliam Repan (lazyman).
  */
-public class ModelScene {
+public class ModelScene implements Serializable {
 
     private List<Scene> primaryScenes;
 

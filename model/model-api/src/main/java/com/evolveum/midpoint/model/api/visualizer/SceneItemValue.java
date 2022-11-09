@@ -8,11 +8,12 @@
 package com.evolveum.midpoint.model.api.visualizer;
 
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import java.io.Serializable;
 
 public interface SceneItemValue extends Serializable {
-    String getText();
-    String getAdditionalText();            // this one should not be clickable (in case of references)
+    PolyString getText();
+    PolyString getAdditionalText();            // this one should not be clickable (in case of references)
     PrismValue getSourceValue();
 }
