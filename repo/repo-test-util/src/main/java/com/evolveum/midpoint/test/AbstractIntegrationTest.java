@@ -52,6 +52,9 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
+
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -1539,18 +1542,51 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return shadows.iterator().next();
     }
 
-    protected ObjectQuery createAccountShadowQuery(String identifier, PrismObject<ResourceType> resource)
+    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
+    protected @NotNull S_MatchingRuleEntry queryForAccountDefault(Resource resource)
             throws SchemaException, ConfigurationException {
-        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
-        ResourceObjectDefinition rAccount = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
-        assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
-        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-        //TODO: set matching rule instead of null
-        return prismContext.queryFor(ShadowType.class)
-                .itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getItemName()).eq(identifier)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassName())
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+        return resource.queryFor(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+    }
+
+    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
+    protected @NotNull S_MatchingRuleEntry queryForAccountDefault(ResourceType resource)
+            throws SchemaException, ConfigurationException {
+        return queryForAccountDefault(
+                Resource.of(resource));
+    }
+
+    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
+    protected @NotNull S_MatchingRuleEntry queryForAccountDefault(DummyTestResource resource)
+            throws SchemaException, ConfigurationException {
+        return queryForAccountDefault(resource.getObjectable());
+    }
+
+    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
+    protected ObjectQuery accountDefaultObjectsQuery(ResourceType resource, QName attributeName, Object attributeValue)
+            throws SchemaException, ConfigurationException {
+        return queryForAccountDefault(resource)
+                .and().item(ShadowType.F_ATTRIBUTES, attributeName).eq(attributeValue)
+                .build();
+    }
+
+    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
+    protected ObjectQuery accountDefaultObjectsQuery(DummyTestResource resource, QName attributeName, Object attributeValue)
+            throws SchemaException, ConfigurationException {
+        return queryForAccountDefault(resource.getObjectable())
+                .and().item(ShadowType.F_ATTRIBUTES, attributeName).eq(attributeValue)
+                .build();
+    }
+
+    /** Looks for the object class of default intent of `ACCOUNT`. */
+    protected ObjectQuery defaultAccountPrimaryIdentifierQuery(String identifier, PrismObject<ResourceType> resourceObject)
+            throws SchemaException, ConfigurationException {
+        Resource resource = Resource.of(resourceObject);
+        ResourceObjectDefinition defaultAccountDef =
+                resource.getCompleteSchemaRequired()
+                        .findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
+        ResourceAttributeDefinition<?> primaryIdentifierDef = defaultAccountDef.getPrimaryIdentifierRequired();
+        return resource.queryFor(defaultAccountDef.getObjectClassName())
+                .and().item(ShadowType.F_ATTRIBUTES, primaryIdentifierDef.getItemName()).eq(identifier)
                 .build();
     }
 

@@ -18,8 +18,6 @@ import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURC
 import java.io.File;
 import java.util.List;
 
-import com.evolveum.midpoint.provisioning.api.Resource;
-
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -208,7 +206,7 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
         var result = task.getResult();
         var accounts = provisioningService.searchObjects(
                 ShadowType.class,
-                Resource.of(resource.getResourceBean()).queryForAccountDefault()
+                queryForAccountDefault(resource)
                         .and().item(ShadowType.F_ATTRIBUTES, ICFS_NAME).contains(nameSubstring)
                         .build(),
                 null,

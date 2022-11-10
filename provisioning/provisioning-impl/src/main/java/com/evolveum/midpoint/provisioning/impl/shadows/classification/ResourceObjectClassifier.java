@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.provisioning.api.Resource;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;

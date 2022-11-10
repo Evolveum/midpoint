@@ -11,7 +11,7 @@ import com.evolveum.midpoint.model.api.context.ProjectionContextKeyFactory;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.Resource;
+import com.evolveum.midpoint.schema.util.Resource;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;

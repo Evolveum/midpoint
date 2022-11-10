@@ -31,8 +31,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 
-import com.evolveum.midpoint.provisioning.api.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -1880,9 +1878,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return findAccountByUsername(username, resource, task, result);
     }
 
+    /** Looks for default `ACCOUNT` object class. */
     protected PrismObject<ShadowType> findAccountByUsername(String username, PrismObject<ResourceType> resource,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ObjectQuery query = createAccountShadowQuery(username, resource);
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectQuery query = defaultAccountPrimaryIdentifierQuery(username, resource);
         List<PrismObject<ShadowType>> accounts = modelService.searchObjects(ShadowType.class, query, null, task, result);
         if (accounts.isEmpty()) {
             return null;
@@ -2001,10 +2001,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    /** Looks for default `ACCOUNT` object class. */
     protected void assertNoShadow(
             String username, PrismObject<ResourceType> resource, OperationResult result)
             throws SchemaException, ConfigurationException {
-        ObjectQuery query = createAccountShadowQuery(username, resource);
+        ObjectQuery query = defaultAccountPrimaryIdentifierQuery(username, resource);
         List<PrismObject<ShadowType>> accounts =
                 repositoryService.searchObjects(ShadowType.class, query, null, result);
         if (accounts.isEmpty()) {
@@ -2014,9 +2015,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assert false : "Found shadow for " + username + " on " + resource + " while not expecting it: " + accounts;
     }
 
+    /** Looks for default `ACCOUNT` object class. */
     protected ShadowAsserter<Void> assertShadow(String username, PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
-        ObjectQuery query = createAccountShadowQuery(username, resource);
+        ObjectQuery query = defaultAccountPrimaryIdentifierQuery(username, resource);
         OperationResult result = new OperationResult("assertShadow");
         List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
         if (accounts.isEmpty()) {
@@ -2045,16 +2047,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
         assert shadows.size() == 1 : "Too many shadows found for name " + name + " on " + resource + ": " + shadows;
         return shadows.iterator().next();
-    }
-
-    @Override
-    protected ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resourceObject)
-            throws SchemaException, ConfigurationException {
-        Resource resource = Resource.of(resourceObject);
-        ResourceAttributeDefinition<?> primaryIdentifier =
-                resource.getDefaultAccountDefinitionRequired()
-                        .getPrimaryIdentifierRequired();
-        return resource.accountDefaultObjectsQuery(primaryIdentifier.getItemName(), username);
     }
 
     protected <F extends FocusType> String getSingleLinkOid(PrismObject<F> focus) {
