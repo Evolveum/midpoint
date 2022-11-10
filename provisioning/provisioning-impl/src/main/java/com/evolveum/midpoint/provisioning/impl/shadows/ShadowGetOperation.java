@@ -9,8 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.validateShadow;
 import static com.evolveum.midpoint.schema.GetOperationOptions.*;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.util.MiscUtil.formatExceptionMessage;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.CONCEIVED;
@@ -20,10 +18,6 @@ import java.util.Collection;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-
-import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,8 +26,10 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -88,7 +84,7 @@ class ShadowGetOperation {
     @NotNull private final ShadowsLocalBeans localBeans;
     @NotNull private final XMLGregorianCalendar now;
 
-    /** Provisioning context derived from the repository shadow. */
+    /** Provisioning context derived from the repository shadow. May be updated after classification (if there's one). */
     private ProvisioningContext ctx;
 
     ShadowGetOperation(
@@ -266,8 +262,8 @@ class ShadowGetOperation {
             CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
         ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
         repositoryShadow = localBeans.refreshHelper
-                .refreshShadow(repositoryShadow.asPrismObject(), refreshOpts, task, result)
-                .getRefreshedShadowBean();
+                .refreshShadow(repositoryShadow, refreshOpts, task, result)
+                .getRefreshedShadow();
         LOGGER.trace("Refreshed repository shadow:\n{}", DebugUtil.debugDumpLazily(repositoryShadow, 1));
 
         if (repositoryShadow == null) {
@@ -390,8 +386,7 @@ class ShadowGetOperation {
             ExpressionEvaluationException {
         LOGGER.debug("Handling provisioning GET exception {}: {}", cause.getClass(), cause.getMessage());
         ErrorHandler handler = localBeans.errorHandlerLocator.locateErrorHandlerRequired(cause);
-        repositoryShadow = asObjectable(
-                handler.handleGetError(ctx, asPrismObject(repositoryShadow), rootOptions, cause, task, result));
+        repositoryShadow = handler.handleGetError(ctx, repositoryShadow, rootOptions, cause, task, result);
         if (repositoryShadow != null) {
             // We update the shadow lifecycle state because we are not sure if the shadow after handling the exception
             // is the same as it was before (that has its state set).
@@ -468,15 +463,15 @@ class ShadowGetOperation {
     }
 
     private void updateShadowInRepository(ShadowType resourceObject, @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
-            ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
             LOGGER.trace("Resource object fetched from resource:\n{}", resourceObject.debugDump(1));
         }
         repositoryShadow =
                 localBeans.shadowManager.updateShadowInRepository(
-                        ctx, resourceObject, null, repositoryShadow, repositoryShadow.getShadowLifecycleState(), result);
+                        ctx, resourceObject, null, repositoryShadow,
+                        repositoryShadow.getShadowLifecycleState(), result);
         LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDumpLazily(1));
     }
 

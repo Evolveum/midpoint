@@ -116,12 +116,6 @@ class Helper {
         return (ResourceAttribute<String>) primaryIdentifiers.iterator().next();
     }
 
-    void setKindIfNecessary(@NotNull ShadowType shadow, @NotNull ProvisioningContext ctx) {
-        if (shadow.getKind() == null && ctx.isTypeBased()) {
-            shadow.setKind(ctx.getObjectTypeDefinitionRequired().getKind());
-        }
-    }
-
     void normalizeAttributes(
             ShadowType shadow, ResourceObjectDefinition objectClassDefinition) throws SchemaException {
         for (ResourceAttribute<?> attribute : ShadowUtil.getAttributes(shadow)) {

@@ -9,17 +9,14 @@ package com.evolveum.midpoint.schema;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-
 public class RefreshShadowOperation implements DebugDumpable {
 
-    private PrismObject<ShadowType> refreshedShadow;
+    private ShadowType refreshedShadow;
 
     private Collection<ObjectDeltaOperation<ShadowType>> executedDeltas;
     private OperationResult refreshResult;
@@ -32,15 +29,11 @@ public class RefreshShadowOperation implements DebugDumpable {
         this.executedDeltas = executedDeltas;
     }
 
-    public PrismObject<ShadowType> getRefreshedShadow() {
+    public ShadowType getRefreshedShadow() {
         return refreshedShadow;
     }
 
-    public ShadowType getRefreshedShadowBean() {
-        return asObjectable(refreshedShadow);
-    }
-
-    public void setRefreshedShadow(PrismObject<ShadowType> refreshedShadow) {
+    public void setRefreshedShadow(ShadowType refreshedShadow) {
         this.refreshedShadow = refreshedShadow;
     }
 

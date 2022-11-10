@@ -175,7 +175,8 @@ public abstract class AbstractProvisioningIntegrationTest
     }
 
     protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws ConfigurationException {
-        rememberConnectorInstance(resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class));
+        rememberConnectorInstance(
+                resourceManager.getConfiguredConnectorInstanceFromCache(resource.asObjectable(), ReadCapabilityType.class));
     }
 
     protected void rememberConnectorInstance(ConnectorInstance currentConnectorInstance) {
@@ -189,7 +190,7 @@ public abstract class AbstractProvisioningIntegrationTest
             return;
         }
         ConnectorInstance currentConfiguredConnectorInstance =
-                resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class);
+                resourceManager.getConfiguredConnectorInstanceFromCache(resource.asObjectable(), ReadCapabilityType.class);
         assertSame("Connector instance has changed", lastConfiguredConnectorInstance, currentConfiguredConnectorInstance);
     }
 

@@ -182,8 +182,11 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
         try {
             if (ResourceType.class.equals(type)) {
                 //noinspection unchecked
-                completedObject = (PrismObject<T>) beans.resourceManager.getCompletedResource(
-                        (PrismObject<ResourceType>) object, rootOptions, task, result);
+                completedObject =
+                        (PrismObject<T>)
+                                beans.resourceManager.getCompletedResource(
+                                        (ResourceType) object.asObjectable(), rootOptions, task, result)
+                                        .asPrismObject();
             }
         } catch (Throwable t) {
             // FIXME: Strictly speaking, the runtime exceptions should not be handled here.

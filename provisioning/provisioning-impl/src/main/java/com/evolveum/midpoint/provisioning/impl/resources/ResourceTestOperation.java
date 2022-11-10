@@ -91,13 +91,13 @@ class ResourceTestOperation {
      * @param resource Must be mutable. Must be expanded. May or may not have OID.
      */
     ResourceTestOperation(
-            @NotNull PrismObject<ResourceType> resource,
+            @NotNull ResourceType resource,
             @Nullable ResourceTestOptions options,
             @NotNull Task task,
             @NotNull CommonBeans beans)
             throws ConfigurationException {
         resource.checkMutable();
-        this.resource = resource.asObjectable();
+        this.resource = resource;
         this.options = resolveDefaultsInOptions(this.resource, options);
         this.operationDesc = createOperationDesc(this.resource, this.options);
         this.task = task;

@@ -58,22 +58,18 @@ public class CreatorUpdaterHelper {
 
     // Just minimal metadata for now, maybe we need to expand that later
     // those are needed to properly manage dead shadows
-    void addModifyMetadataDeltas(PrismObject<ShadowType> repoShadow, Collection<ItemDelta<?, ?>> shadowChanges) {
+    void addModifyMetadataDeltas(ShadowType repoShadow, Collection<ItemDelta<?, ?>> shadowChanges) {
         PropertyDelta<XMLGregorianCalendar> modifyTimestampDelta = ItemDeltaCollectionsUtil
                 .findPropertyDelta(shadowChanges, SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
         if (modifyTimestampDelta != null) {
             return;
         }
         LOGGER.debug("Metadata not found, adding minimal metadata. Modifications:\n{}", DebugUtil.debugDumpLazily(shadowChanges, 1));
-        PrismPropertyDefinition<XMLGregorianCalendar> def = repoShadow.getDefinition().findPropertyDefinition(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
+        PrismPropertyDefinition<XMLGregorianCalendar> def =
+                repoShadow.asPrismObject().getDefinition()
+                        .findPropertyDefinition(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
         modifyTimestampDelta = def.createEmptyDelta(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
         modifyTimestampDelta.setRealValuesToReplace(clock.currentTimeXMLGregorianCalendar());
         shadowChanges.add(modifyTimestampDelta);
-    }
-
-    boolean isUseProposedShadows(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException {
-        ResourceConsistencyType consistency = ctx.getResource().getConsistency();
-        return consistency != null && BooleanUtils.isTrue(consistency.isUseProposedShadows());
     }
 }

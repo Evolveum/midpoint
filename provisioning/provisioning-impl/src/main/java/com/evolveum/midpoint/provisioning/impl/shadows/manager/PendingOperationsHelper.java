@@ -50,7 +50,7 @@ class PendingOperationsHelper {
     void addPendingOperationAdd(
             ShadowType repoShadow,
             ShadowType resourceShadow,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             String asyncOperationReference)
             throws SchemaException {
 
@@ -94,7 +94,7 @@ class PendingOperationsHelper {
             XMLGregorianCalendar now) {
 
         PrismContainerDefinition<PendingOperationType> containerDefinition =
-                opState.getRepoShadow().getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
+                opState.getRepoShadow().asPrismObject().getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
 
         OperationResultStatus opStateResultStatus = MiscUtil.getFirstNonNull(opState.getResultStatus(), implicitStatus);
         OperationResultStatusType opStateResultStatusType =
@@ -178,8 +178,9 @@ class PendingOperationsHelper {
         return propDelta;
     }
 
-    PendingOperationType findExistingPendingOperation(PrismObject<ShadowType> currentShadow, ObjectDelta<ShadowType> proposedDelta, boolean processInProgress) throws SchemaException {
-        for (PendingOperationType pendingOperation : currentShadow.asObjectable().getPendingOperation()) {
+    PendingOperationType findExistingPendingOperation(
+            ShadowType currentShadow, ObjectDelta<ShadowType> proposedDelta, boolean processInProgress) throws SchemaException {
+        for (PendingOperationType pendingOperation : currentShadow.getPendingOperation()) {
             OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
             if (!isInProgressOrRequested(resultStatus, processInProgress)) {
                 continue;

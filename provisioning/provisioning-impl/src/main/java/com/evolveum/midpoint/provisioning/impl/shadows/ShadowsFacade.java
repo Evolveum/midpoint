@@ -51,7 +51,7 @@ public class ShadowsFacade {
     static final String OP_DELAYED_OPERATION = ShadowsFacade.class.getName() + ".delayedOperation";
     static final String OP_HANDLE_OBJECT = ShadowsFacade.class.getName() + ".handleObject";
 
-    @Autowired private AddHelper addHelper;
+    @Autowired private ShadowAddHelper addHelper;
     @Autowired private RefreshHelper refreshHelper;
     @Autowired private ModifyHelper modifyHelper;
     @Autowired private DeleteHelper deleteHelper;
@@ -68,7 +68,7 @@ public class ShadowsFacade {
      * the ones (if any) in the shadow.
      * @param options "read only" option is ignored
      */
-    public @NotNull PrismObject<ShadowType> getShadow(
+    public @NotNull ShadowType getShadow(
             @NotNull String oid,
             @Nullable ShadowType repositoryShadow,
             @Nullable Collection<ResourceAttribute<?>> identifiersOverride,
@@ -77,12 +77,11 @@ public class ShadowsFacade {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
-        return asPrismObject(
-                new ShadowGetOperation(oid, repositoryShadow, identifiersOverride, options, task, localBeans)
-                        .execute(result));
+        return new ShadowGetOperation(oid, repositoryShadow, identifiersOverride, options, task, localBeans)
+                .execute(result);
     }
 
-    public String addResourceObject(PrismObject<ShadowType> resourceObjectToAdd, OperationProvisioningScriptsType scripts,
+    public String addResourceObject(ShadowType resourceObjectToAdd, OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options, Task task, OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
@@ -90,16 +89,21 @@ public class ShadowsFacade {
         return addHelper.addResourceObject(resourceObjectToAdd, scripts, options, task, result);
     }
 
-    public String modifyShadow(PrismObject<ShadowType> repoShadow,
-            Collection<? extends ItemDelta<?, ?>> modifications, OperationProvisioningScriptsType scripts,
-            ProvisioningOperationOptions options, Task task, OperationResult result)
+    public String modifyShadow(
+            ShadowType repoShadow,
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            OperationProvisioningScriptsType scripts,
+            ProvisioningOperationOptions options,
+            Task task,
+            OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
             EncryptionException, ObjectAlreadyExistsException {
         return modifyHelper.modifyShadow(repoShadow, modifications, scripts, options, task, result);
     }
 
-    public PrismObject<ShadowType> deleteShadow(PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options,
+    public ShadowType deleteShadow(
+            ShadowType repoShadow, ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts, Task task, OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
             SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
@@ -108,7 +112,7 @@ public class ShadowsFacade {
     }
 
     @Nullable
-    public RefreshShadowOperation refreshShadow(PrismObject<ShadowType> repoShadow, ProvisioningOperationOptions options,
+    public RefreshShadowOperation refreshShadow(ShadowType repoShadow, ProvisioningOperationOptions options,
             Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, EncryptionException {
         return refreshHelper.refreshShadow(repoShadow, options, task, result);
@@ -122,7 +126,7 @@ public class ShadowsFacade {
 
     public void applyDefinition(PrismObject<ShadowType> shadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        definitionsHelper.applyDefinition(shadow, task, result);
+        definitionsHelper.applyDefinition(shadow.asObjectable(), task, result);
     }
 
     public void applyDefinition(ObjectQuery query, Task task, OperationResult result)
@@ -193,14 +197,14 @@ public class ShadowsFacade {
                 .executeCount(result);
     }
 
-    public void propagateOperations(PrismObject<ResourceType> resource, PrismObject<ShadowType> shadow, Task task,
+    public void propagateOperations(ResourceType resource, ShadowType shadow, Task task,
             OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
             SecurityViolationException, PolicyViolationException, EncryptionException {
         propagateHelper.propagateOperations(resource, shadow, task, result);
     }
 
-    public <T> ItemComparisonResult compare(@NotNull PrismObject<ShadowType> repositoryShadow, ItemPath path, T expectedValue, Task task,
+    public <T> ItemComparisonResult compare(@NotNull ShadowType repositoryShadow, ItemPath path, T expectedValue, Task task,
             OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         return compareHelper.compare(repositoryShadow, path, expectedValue, task, result);

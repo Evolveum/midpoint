@@ -45,8 +45,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
-
 /**
  * Responsibilities of the shadow manager package:
  *
@@ -176,8 +174,8 @@ public class ShadowManager {
      * Returns dead shadows "compatible" (having the same primary identifier) as given shadow that is to be added.
      * Side effects: none.
      */
-    public Collection<PrismObject<ShadowType>> searchForPreviousDeadShadows(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowToAdd, OperationResult result) throws SchemaException {
+    public Collection<PrismObject<ShadowType>> searchForPreviousDeadShadows(
+            ProvisioningContext ctx, ShadowType shadowToAdd, OperationResult result) throws SchemaException {
         return shadowFinder.searchForPreviousDeadShadows(ctx, shadowToAdd, result);
     }
 
@@ -196,26 +194,29 @@ public class ShadowManager {
      * Adds new shadow in the `proposed` state (if proposed shadows processing is enabled).
      * The new shadow is recorded into the `opState`.
      */
-    public void addNewProposedShadow(ProvisioningContext ctx, ShadowType shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-            Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, ObjectAlreadyExistsException, EncryptionException {
-        shadowCreator.addNewProposedShadow(ctx, shadowToAdd, opState, task, result);
+    public void addNewProposedShadowIfNeeded(
+            ProvisioningContext ctx,
+            ShadowType shadowToAdd,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
+            OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
+        shadowCreator.addNewProposedShadowIfNeeded(ctx, shadowToAdd, opState, result);
     }
 
     /**
      * Record results of ADD operation to the shadow: creates a shadow or updates an existing one.
      */
-    public void recordAddResult(ProvisioningContext ctx, ShadowType shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-            OperationResult parentResult)
+    public void recordAddResult(
+            ProvisioningContext ctx,
+            ShadowType shadowToAdd,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
+            OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
-        shadowUpdater.recordAddResult(ctx, shadowToAdd, opState, parentResult);
+        shadowUpdater.recordAddResult(ctx, shadowToAdd, opState, result);
     }
 
-    public void addDeadShadowDeltas(PrismObject<ShadowType> repoShadow, List<ItemDelta<?, ?>> shadowModifications)
+    public void addDeadShadowDeltas(ShadowType repoShadow, List<ItemDelta<?, ?>> shadowModifications)
             throws SchemaException {
         shadowUpdater.addDeadShadowDeltas(repoShadow, shadowModifications);
     }
@@ -263,9 +264,12 @@ public class ShadowManager {
                 .checkAndRecordPendingModifyOperationBeforeExecution(ctx, modifications, opState, result);
     }
 
-    public <A extends AsynchronousOperationResult> void updatePendingOperations(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow, ProvisioningOperationState<A> opState,
-            List<PendingOperationType> pendingExecutionOperations, XMLGregorianCalendar now,
+    public <A extends AsynchronousOperationResult> void updatePendingOperations(
+            ProvisioningContext ctx,
+            ShadowType shadow,
+            ProvisioningOperationState<A> opState,
+            List<PendingOperationType> pendingExecutionOperations,
+            XMLGregorianCalendar now,
             OperationResult result) throws ObjectNotFoundException, SchemaException {
         shadowUpdater.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
     }
@@ -279,15 +283,18 @@ public class ShadowManager {
      * @throws ObjectAlreadyExistsException Only if `resolveConflicts` is `false`
      */
     public void refreshProvisioningIndexes(
-            ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, boolean resolveConflicts, OperationResult result)
+            ProvisioningContext ctx, ShadowType repoShadow, boolean resolveConflicts, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         shadowUpdater.refreshProvisioningIndexes(ctx, repoShadow, resolveConflicts, result);
     }
 
-    public void recordModifyResult(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow,
+    public void recordModifyResult(
+            ProvisioningContext ctx,
+            ShadowType oldRepoShadow,
             Collection<? extends ItemDelta> requestedModifications,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            XMLGregorianCalendar now, OperationResult parentResult)
+            XMLGregorianCalendar now,
+            OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             ExpressionEvaluationException {
         shadowUpdater.recordModifyResult(ctx, oldRepoShadow, requestedModifications, opState, now, parentResult);
@@ -298,7 +305,7 @@ public class ShadowManager {
      * applying the results of completed asynchronous operations.
      */
     public void modifyShadowAttributes(
-            ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> modifications,
+            ProvisioningContext ctx, ShadowType shadow, Collection<? extends ItemDelta> modifications,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         shadowUpdater.modifyShadowAttributes(ctx, shadow, modifications, parentResult);
@@ -316,6 +323,7 @@ public class ShadowManager {
      * - shadow name,
      * - aux object classes,
      * - exists flag,
+     * - "production" flag,
      * - caching metadata.
      *
      * Retrieves index-only attributes from repo if needed.
@@ -341,8 +349,10 @@ public class ShadowManager {
     /**
      * Returns updated repo shadow, or null if shadow is deleted from repository.
      */
-    public PrismObject<ShadowType> recordDeleteResult(ProvisioningContext ctx,
-            ProvisioningOperationState<AsynchronousOperationResult> opState, ProvisioningOperationOptions options,
+    public ShadowType recordDeleteResult(
+            ProvisioningContext ctx,
+            ProvisioningOperationState<AsynchronousOperationResult> opState,
+            ProvisioningOperationOptions options,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, EncryptionException {
@@ -350,7 +360,7 @@ public class ShadowManager {
     }
 
     public void deleteShadow(
-            @NotNull PrismObject<ShadowType> oldRepoShadow,
+            @NotNull ShadowType oldRepoShadow,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -358,14 +368,9 @@ public class ShadowManager {
         shadowUpdater.deleteShadow(oldRepoShadow, task, result);
     }
 
-    public PrismObject<ShadowType> markShadowTombstone(PrismObject<ShadowType> repoShadow, Task task,
-            OperationResult result) throws SchemaException {
-        return shadowUpdater.markShadowTombstone(repoShadow, task, result);
-    }
-
-    public void markShadowTombstone(
+    public ShadowType markShadowTombstone(
             ShadowType repoShadow, Task task, OperationResult result) throws SchemaException {
-        shadowUpdater.markShadowTombstone(asPrismObject(repoShadow), task, result);
+        return shadowUpdater.markShadowTombstone(repoShadow, task, result);
     }
 
     /**
@@ -379,12 +384,8 @@ public class ShadowManager {
             @NotNull ShadowType origRepoShadow,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
-        return shadowUpdater.fixShadow(ctx, origRepoShadow.asPrismObject(), result)
+        return shadowUpdater.fixShadow(ctx, origRepoShadow, result)
                 .asObjectable();
-    }
-
-    public void setKindIfNecessary(ShadowType repoShadowType, ProvisioningContext ctx) {
-        helper.setKindIfNecessary(repoShadowType, ctx);
     }
 
     /**

@@ -266,6 +266,12 @@ public interface ResourceObjectDefinitionDelegator extends ComplexTypeDefinition
     }
 
     @Override
+    @Nullable
+    default String getLifecycleState() {
+        return delegate().getLifecycleState();
+    };
+
+    @Override
     default Collection<QName> getConfiguredAuxiliaryObjectClassNames() {
         return delegate().getConfiguredAuxiliaryObjectClassNames();
     }

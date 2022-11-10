@@ -14,7 +14,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -49,10 +48,9 @@ class CommunicationExceptionHandler extends ErrorHandler {
     private static final Trace LOGGER = TraceManager.getTrace(CommunicationExceptionHandler.class);
 
     @Override
-    public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
-            Task task, OperationResult parentResult) throws SchemaException, CommunicationException, ObjectNotFoundException,
-            ConfigurationException, ExpressionEvaluationException {
+    public ShadowType handleGetError(ProvisioningContext ctx,
+            ShadowType repositoryShadow, GetOperationOptions rootOptions, Exception cause,
+            Task task, OperationResult parentResult) throws ObjectNotFoundException {
 
         ResourceType resource = ctx.getResource();
 
@@ -68,7 +66,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
         }
         result.recordPartialError("Could not get "+repositoryShadow+" from the resource "
                 + resource + ", because resource is unreachable. Returning shadow from the repository");
-        repositoryShadow.asObjectable().setFetchResult(result.createBeanReduced());
+        repositoryShadow.setFetchResult(result.createBeanReduced());
         return repositoryShadow;
     }
 
@@ -84,15 +82,14 @@ class CommunicationExceptionHandler extends ErrorHandler {
 
     @Override
     public OperationResultStatus handleAddError(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowToAdd,
+            ShadowType shadowToAdd,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             Exception cause,
             OperationResult failedOperationResult,
             Task task,
             OperationResult parentResult)
-                throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-                ExpressionEvaluationException {
+            throws CommunicationException, ObjectNotFoundException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
@@ -100,7 +97,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
             String stateChangeReason = "adding " + shadowToAdd + " ended with communication problem, " + cause.getMessage();
             markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
             handleRetriesAndAttempts(ctx, opState, options, cause, result);
-            return postponeAdd(ctx, shadowToAdd, opState, failedOperationResult, result);
+            return postponeAdd(shadowToAdd, opState, failedOperationResult, result);
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -110,18 +107,17 @@ class CommunicationExceptionHandler extends ErrorHandler {
     }
 
     @Override
-    public OperationResultStatus handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+    public OperationResultStatus handleModifyError(ProvisioningContext ctx, ShadowType repoShadow,
             Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
-            throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
-            ExpressionEvaluationException {
+            Exception cause, OperationResult failedOperationResult, OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_MODIFY_ERROR);
         result.addParam("exception", cause.getMessage());
         try {
             String stateChangeReason = "modifying " + repoShadow + " ended with communication problem, " + cause.getMessage();
-            markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
+            markResourceDown(ctx.getResourceOid(), stateChangeReason, result, ctx.getTask());
             handleRetriesAndAttempts(ctx, opState, options, cause, result);
             return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
         } catch (Throwable t) {
@@ -133,16 +129,20 @@ class CommunicationExceptionHandler extends ErrorHandler {
     }
 
     @Override
-    public OperationResultStatus handleDeleteError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
+    public OperationResultStatus handleDeleteError(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
-            OperationResult failedOperationResult, Task task, OperationResult parentResult)
+            ProvisioningOperationState<AsynchronousOperationResult> opState,
+            Exception cause,
+            OperationResult failedOperationResult,
+            OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_DELETE_ERROR);
         result.addParam("exception", cause.getMessage());
         try {
             String stateChangeReason = "deleting " + repoShadow + " ended with communication problem, " + cause.getMessage();
-            markResourceDown(ctx.getResourceOid(), stateChangeReason, result, task);
+            markResourceDown(ctx.getResourceOid(), stateChangeReason, result, ctx.getTask());
             handleRetriesAndAttempts(ctx, opState, options, cause, result);
             return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
         } catch (Throwable t) {

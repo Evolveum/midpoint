@@ -31,6 +31,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 
+import com.evolveum.midpoint.provisioning.api.Resource;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -2046,19 +2048,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     @Override
-    protected ObjectQuery createAccountShadowQuery(
-            String username, PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
-        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
-        ResourceObjectDefinition rAccount = rSchema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getPrimaryIdentifiers();
-        assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
-        ResourceAttributeDefinition<?> identifierDef = identifierDefs.iterator().next();
-        //TODO: set matching rule instead of null
-        return prismContext.queryFor(ShadowType.class)
-                .itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getItemName()).eq(username)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassName())
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
-                .build();
+    protected ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resourceObject)
+            throws SchemaException, ConfigurationException {
+        Resource resource = Resource.of(resourceObject);
+        ResourceAttributeDefinition<?> primaryIdentifier =
+                resource.getDefaultAccountDefinitionRequired()
+                        .getPrimaryIdentifierRequired();
+        return resource.accountDefaultObjectsQuery(primaryIdentifier.getItemName(), username);
     }
 
     protected <F extends FocusType> String getSingleLinkOid(PrismObject<F> focus) {

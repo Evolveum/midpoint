@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
 import java.util.Collection;
@@ -265,8 +266,11 @@ public class ProvisioningUtil {
         return false;
     }
 
-    public static <T> PropertyDelta<T> narrowPropertyDelta(PropertyDelta<T> propertyDelta,
-            PrismObject<ShadowType> currentShadow, QName overridingMatchingRuleQName, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+    public static <T> PropertyDelta<T> narrowPropertyDelta(
+            PropertyDelta<T> propertyDelta,
+            ShadowType currentShadow,
+            QName overridingMatchingRuleQName,
+            MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
         ItemDefinition propertyDef = propertyDelta.getDefinition();
 
         QName matchingRuleQName;
@@ -296,7 +300,8 @@ public class ProvisioningUtil {
         // We can safely narrow delta using real values, because we are not interested in value metadata here.
         // Because we are dealing with properties, container IDs are also out of questions, and operational items
         // as well.
-        PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, comparator, comparator, true); // MID-5280
+        PropertyDelta<T> filteredDelta =
+                propertyDelta.narrow(asPrismObject(currentShadow), comparator, comparator, true); // MID-5280
         if (filteredDelta == null || !filteredDelta.equals(propertyDelta)) {
             LOGGER.trace("Narrowed delta: {}", DebugUtil.debugDumpLazily(filteredDelta));
         }
@@ -551,14 +556,13 @@ public class ProvisioningUtil {
     }
 
     public static ResourceOperationDescription createResourceFailureDescription(
-            PrismObject<ShadowType> conflictedShadow, ResourceType resource, ObjectDelta<ShadowType> delta, OperationResult parentResult) {
+            ShadowType shadow, ResourceType resource, ObjectDelta<ShadowType> delta, String message) {
         ResourceOperationDescription failureDesc = new ResourceOperationDescription();
-        failureDesc.setCurrentShadow(conflictedShadow);
+        failureDesc.setCurrentShadow(asPrismObject(shadow));
         failureDesc.setObjectDelta(delta);
         failureDesc.setResource(resource.asPrismObject());
-        failureDesc.setResult(parentResult);
-        failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
-
+        failureDesc.setMessage(message);
+        failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY)); // ???
         return failureDesc;
     }
 
@@ -579,7 +583,7 @@ public class ProvisioningUtil {
 
     public static OperationResultStatus postponeModify(
             ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
+            ShadowType repoShadow,
             Collection<? extends ItemDelta> modifications,
             ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
             OperationResult failedOperationResult,
@@ -655,8 +659,8 @@ public class ProvisioningUtil {
 
     // TODO better place?
     @Nullable
-    public static PrismProperty<?> getSingleValuedPrimaryIdentifier(PrismObject<ShadowType> resourceObject) {
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
+    public static PrismProperty<?> getSingleValuedPrimaryIdentifier(ShadowType shadow) {
+        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
         PrismProperty<?> identifier = attributesContainer.getPrimaryIdentifier();
         if (identifier == null) {
             return null;

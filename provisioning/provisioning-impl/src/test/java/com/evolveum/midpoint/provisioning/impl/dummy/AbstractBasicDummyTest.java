@@ -1033,8 +1033,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
-                resource, ReadCapabilityType.class, false, result);
+        ConnectorInstance configuredConnectorInstance =
+                resourceManager.getConfiguredConnectorInstance(
+                        resourceBean, ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertNotNull("No resource schema", resourceSchema);
@@ -1084,8 +1085,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // Now we stick our nose deep inside the provisioning impl. But we need
         // to make sure that the
         // configured connector is properly cached
-        ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
-                resourceAgain, ReadCapabilityType.class, false, result);
+        ConnectorInstance configuredConnectorInstanceAgain =
+                resourceManager.getConfiguredConnectorInstance(
+                        resourceAgain.asObjectable(), ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
         assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
@@ -1096,8 +1098,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         TestUtil.assertSuccess("Connector test failed", testResult);
 
         // Test connection should also refresh the connector by itself. So check if it has been refreshed
-        ConnectorInstance configuredConnectorInstanceAfterTest = resourceManager.getConfiguredConnectorInstance(
-                resourceAgain, ReadCapabilityType.class, false, result);
+        ConnectorInstance configuredConnectorInstanceAfterTest =
+                resourceManager.getConfiguredConnectorInstance(
+                        resourceAgain.asObjectable(), ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAfterTest);
         assertTrue("Connector instance was not cached", configuredConnectorInstanceAgain == configuredConnectorInstanceAfterTest);
 
@@ -1109,8 +1112,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
-                resource, ReadCapabilityType.class, false, result);
+        ConnectorInstance configuredConnectorInstance =
+                resourceManager.getConfiguredConnectorInstance(
+                        resourceBean, ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertNotNull("No resource schema", resourceSchema);
@@ -1138,8 +1142,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // Now we stick our nose deep inside the provisioning impl. But we need
         // to make sure that the configured connector is properly refreshed
         // forceFresh = true
-        ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
-                resourceAgain, ReadCapabilityType.class, true, result);
+        ConnectorInstance configuredConnectorInstanceAgain =
+                resourceManager.getConfiguredConnectorInstance(
+                        resourceAgain.asObjectable(), ReadCapabilityType.class, true, result);
         assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
         // Connector instance should NOT be changed at this point. It should be only re-configured.
         assertTrue("Connector instance was changed", configuredConnectorInstance == configuredConnectorInstanceAgain);

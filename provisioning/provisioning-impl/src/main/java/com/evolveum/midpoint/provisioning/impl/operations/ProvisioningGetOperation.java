@@ -59,32 +59,31 @@ public class ProvisioningGetOperation<T extends ObjectType> {
         this.operationsHelper = operationsHelper;
     }
 
-    public @NotNull PrismObject<T> execute(@NotNull OperationResult result)
+    public @NotNull T execute(@NotNull OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             ObjectNotFoundException, SecurityViolationException {
 
         if (ResourceType.class.isAssignableFrom(type)) {
             //noinspection unchecked
-            return (PrismObject<T>)
-                    (isRawMode() ? getResourceRaw(result) : getResourceNonRaw(result));
+            return (T) (isRawMode() ? getResourceRaw(result) : getResourceNonRaw(result));
         } else if (ShadowType.class.isAssignableFrom(type)) {
             //noinspection unchecked
-            return (PrismObject<T>) getShadow(result);
+            return (T) getShadow(result);
         } else {
             return operationsHelper.getRepoObject(type, oid, options, result);
         }
     }
 
-    private @NotNull PrismObject<ResourceType> getResourceRaw(@NotNull OperationResult result)
+    private @NotNull ResourceType getResourceRaw(@NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        PrismObject<ResourceType> resource = operationsHelper.getRepoObject(ResourceType.class, oid, options, result);
+        ResourceType resource = operationsHelper.getRepoObject(ResourceType.class, oid, options, result);
         tryApplyingDefinition(resource, result);
         return resource;
     }
 
-    private void tryApplyingDefinition(PrismObject<ResourceType> resource, @NotNull OperationResult result) {
+    private void tryApplyingDefinition(ResourceType resource, @NotNull OperationResult result) {
         try {
-            beans.provisioningService.applyDefinition(resource, task, result);
+            beans.provisioningService.applyDefinition(resource.asPrismObject(), task, result);
         } catch (CommonException ex) {
             ProvisioningUtil.recordWarningNotRethrowing(
                     LOGGER, result, "Problem when applying definitions to " + resource + " fetched in raw mode", ex);
@@ -93,7 +92,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
         }
     }
 
-    private @NotNull PrismObject<ResourceType> getResourceNonRaw(@NotNull OperationResult result)
+    private @NotNull ResourceType getResourceNonRaw(@NotNull OperationResult result)
             throws ConfigurationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
         try {
             return beans.resourceManager.getCompletedResource(oid, rootOptions, task, result);
@@ -103,7 +102,7 @@ public class ProvisioningGetOperation<T extends ObjectType> {
         }
     }
 
-    private @NotNull PrismObject<ShadowType> getShadow(@NotNull OperationResult result)
+    private @NotNull ShadowType getShadow(@NotNull OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException {
         try {

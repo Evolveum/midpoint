@@ -95,8 +95,8 @@ public class ResourceManager {
      *
      * Typical use case: search operation.
      */
-    public @NotNull PrismObject<ResourceType> getCompletedResource(
-            @NotNull PrismObject<ResourceType> repositoryObject,
+    public @NotNull ResourceType getCompletedResource(
+            @NotNull ResourceType repositoryObject,
             @Nullable GetOperationOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -108,7 +108,7 @@ public class ResourceManager {
         PrismObject<ResourceType> cachedResource = resourceCache.get(oid, repositoryObject.getVersion(), readonly);
         if (cachedResource != null) {
             LOGGER.trace("Returning resource from cache:\n{}", cachedResource.debugDumpLazily());
-            return cachedResource;
+            return cachedResource.asObjectable();
         } else {
             return completeAndCacheResource(repositoryObject, options, task, result);
         }
@@ -120,11 +120,11 @@ public class ResourceManager {
      * If a cached version of the resource is available, it is used immediately.
      * Otherwise, resource is obtained from the repository, and its completion is requested.
      *
-     * For more information please see {@link #getCompletedResource(PrismObject, GetOperationOptions, Task, OperationResult)}.
+     * For more information please see {@link #getCompletedResource(ResourceType, GetOperationOptions, Task, OperationResult)}.
      *
      * Typical use case: get operation.
      */
-    public @NotNull PrismObject<ResourceType> getCompletedResource(
+    public @NotNull ResourceType getCompletedResource(
             @NotNull String oid,
             @Nullable GetOperationOptions options,
             @NotNull Task task,
@@ -134,25 +134,25 @@ public class ResourceManager {
         PrismObject<ResourceType> cachedResource = resourceCache.getIfLatest(oid, readonly, result);
         if (cachedResource != null) {
             LOGGER.trace("Returning resource from cache:\n{}", cachedResource.debugDumpLazily());
-            return cachedResource;
+            return cachedResource.asObjectable();
         } else {
             // We must obviously NOT fetch resource from repo as read-only. We are going to modify it.
-            PrismObject<ResourceType> repositoryObject = readResourceFromRepository(oid, result);
+            ResourceType repositoryObject = readResourceFromRepository(oid, result);
             return completeAndCacheResource(repositoryObject, options, task, result);
         }
     }
 
     /** The processing is described in {@link ProvisioningService#getObject(Class, String, Collection, Task, OperationResult)}. */
-    private @NotNull PrismObject<ResourceType> completeAndCacheResource(
-            @NotNull PrismObject<ResourceType> repositoryObject,
+    private @NotNull ResourceType completeAndCacheResource(
+            @NotNull ResourceType repositoryObject,
             @Nullable GetOperationOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, ConfigurationException {
         String oid = repositoryObject.getOid();
 
-        if (isAbstract(repositoryObject.asObjectable())) {
-            expandResource(repositoryObject.asObjectable(), result);
+        if (isAbstract(repositoryObject)) {
+            expandResource(repositoryObject, result);
             LOGGER.trace("Not putting {} into cache because it's abstract", repositoryObject);
             return repositoryObject;
         }
@@ -184,7 +184,7 @@ public class ResourceManager {
                 beans.resourceCache.put(completedResource, completionOperation.getAncestorsOids());
             }
         }
-        return completedResource.asPrismObject();
+        return completedResource;
     }
 
     private void logResourceAfterCompletion(ResourceType completedResource) {
@@ -200,10 +200,12 @@ public class ResourceManager {
         }
     }
 
-    @NotNull PrismObject<ResourceType> readResourceFromRepository(String oid, OperationResult parentResult)
+    @NotNull ResourceType readResourceFromRepository(String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_READ_COUNT);
-        return repositoryService.getObject(ResourceType.class, oid, null, parentResult);
+        return repositoryService
+                .getObject(ResourceType.class, oid, null, result)
+                .asObjectable();
     }
 
     public void deleteResource(@NotNull String oid, OperationResult parentResult) throws ObjectNotFoundException {
@@ -221,12 +223,12 @@ public class ResourceManager {
      * @param resource Resource object. Must NOT be immutable!
      */
     public @NotNull OperationResult testResource(
-            @NotNull PrismObject<ResourceType> resource,
+            @NotNull ResourceType resource,
             @Nullable ResourceTestOptions options,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
-        expandResource(resource.asObjectable(), result);
+        expandResource(resource, result);
         return new ResourceTestOperation(resource, options, task, beans)
                 .execute(result);
     }
@@ -298,7 +300,7 @@ public class ResourceManager {
 
         AvailabilityStatusType currentStatus;
         String resourceDesc;
-        PrismObject<ResourceType> resource;
+        ResourceType resource;
         if (skipGetResource) {
             resource = null;
             currentStatus = null;
@@ -311,15 +313,14 @@ public class ResourceManager {
                 result.recordFatalError("Unexpected exception: " + e.getMessage(), e);
                 throw new SystemException("Unexpected exception: " + e.getMessage(), e);
             }
-            ResourceType resourceBean = resource.asObjectable();
-            currentStatus = ResourceTypeUtil.getLastAvailabilityStatus(resourceBean);
+            currentStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource);
             resourceDesc = resource.toString();
         }
 
         if (newStatus != currentStatus && resource != null) {
             try {
                 List<ItemDelta<?, ?>> modifications = operationalStateManager.createAndLogOperationalStateDeltas(
-                        currentStatus, newStatus, resourceDesc, statusChangeReason, resource.asObjectable());
+                        currentStatus, newStatus, resourceDesc, statusChangeReason, resource);
                 repositoryService.modifyObject(ResourceType.class, resourceOid, modifications, result);
                 result.computeStatusIfUnknown();
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
@@ -370,13 +371,12 @@ public class ResourceManager {
     public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        PrismObject<ResourceType> resource = getCompletedResource(resourceOid, null, task, result);
+        ResourceType resource = getCompletedResource(resourceOid, null, task, result);
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, ScriptCapabilityType.class);
         ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
         ExecuteProvisioningScriptOperation scriptOperation = ProvisioningUtil.convertToScriptOperation(script, "script on " + resource, prismContext);
         try {
-            UcfExecutionContext ucfCtx = new UcfExecutionContext(
-                    lightweightIdentifierGenerator, resource.asObjectable(), task);
+            UcfExecutionContext ucfCtx = new UcfExecutionContext(lightweightIdentifierGenerator, resource, task);
             return connectorInstance.executeScript(scriptOperation, ucfCtx, result);
         } catch (GenericFrameworkException e) {
             // Not expected. Transform to system exception
@@ -385,12 +385,12 @@ public class ResourceManager {
         }
     }
 
-    public List<ConnectorOperationalStatus> getConnectorOperationalStatus(
-            PrismObject<ResourceType> resource, OperationResult result)
+    public List<ConnectorOperationalStatus> getConnectorOperationalStatus(ResourceType resource, OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
         List<ConnectorOperationalStatus> statuses = new ArrayList<>();
-        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource.asObjectable())) {
-            ConnectorInstance connectorInstance = connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
+        for (ConnectorSpec connectorSpec : ConnectorSpec.all(resource)) {
+            ConnectorInstance connectorInstance =
+                    connectorManager.getConfiguredAndInitializedConnectorInstance(connectorSpec, false, result);
             ConnectorOperationalStatus operationalStatus = connectorInstance.getOperationalStatus();
             if (operationalStatus != null) {
                 operationalStatus.setConnectorName(connectorSpec.getConnectorName());
@@ -401,7 +401,7 @@ public class ResourceManager {
     }
 
     public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstance(
-            PrismObject<ResourceType> resource,
+            ResourceType resource,
             Class<T> capabilityClass,
             boolean forceFresh,
             OperationResult parentResult)
@@ -414,7 +414,7 @@ public class ResourceManager {
     @SuppressWarnings("SameParameterValue")
     @VisibleForTesting
     public <T extends CapabilityType> ConnectorInstance getConfiguredConnectorInstanceFromCache(
-            PrismObject<ResourceType> resource, Class<T> operationCapabilityClass) throws ConfigurationException {
+            ResourceType resource, Class<T> operationCapabilityClass) throws ConfigurationException {
         ConnectorSpec connectorSpec = connectorSelector.selectConnectorRequired(resource, operationCapabilityClass);
         return connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec);
     }

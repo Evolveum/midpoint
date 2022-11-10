@@ -132,11 +132,11 @@ public class ShadowedObjectFound implements InitializableMixin {
         try {
 
             // This determines the definitions exactly. Now the repo shadow should have proper kind/intent.
-            ProvisioningContext preciseCtx = ictx.localBeans.shadowCaretaker.applyAttributesDefinition(ictx.ctx, repoShadow);
-            ictx.localBeans.shadowCaretaker.updateShadowState(preciseCtx, repoShadow);
+            ProvisioningContext shadowCtx = ictx.ctx.applyAttributesDefinition(repoShadow);
+            shadowCtx.updateShadowState(repoShadow);
 
-            ShadowType updatedRepoShadow = updateRepoShadow(preciseCtx, repoShadow, result);
-            shadowedObject = createShadowedObject(preciseCtx, updatedRepoShadow, result);
+            ShadowType updatedRepoShadow = updateShadowInRepository(shadowCtx, repoShadow, result);
+            shadowedObject = createShadowedObject(shadowCtx, updatedRepoShadow, result);
 
         } catch (Exception e) {
 
@@ -167,7 +167,7 @@ public class ShadowedObjectFound implements InitializableMixin {
         }
     }
 
-    private ShadowType updateRepoShadow(
+    private ShadowType updateShadowInRepository(
             ProvisioningContext ctx, ShadowType repoShadow, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         // TODO: provide shadowState - it is needed when updating exists attribute (because of quantum effects)

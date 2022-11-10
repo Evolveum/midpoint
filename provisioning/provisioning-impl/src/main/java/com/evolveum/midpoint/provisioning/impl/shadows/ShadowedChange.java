@@ -136,7 +136,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
 
             if (!isDelete()) {
                 ShadowType resourceObject = determineCurrentResourceObject(result);
-                updateRepoShadow(resourceObject, result);
+                updateShadowInRepository(resourceObject, result);
                 shadowedObject = constructShadowedObject(resourceObject, result);
             } else {
                 markRepoShadowTombstone(result);
@@ -316,7 +316,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
                             getIdentifiers(),
                             options,
                             context.getTask(),
-                            result).asObjectable();
+                            result);
                 } catch (ObjectNotFoundException e) {
                     // The object on the resource does not exist (any more?).
                     LOGGER.warn("Object {} does not exist on the resource any more", repoShadow);
@@ -336,7 +336,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
                 throw new IllegalStateException("Cannot get current resource object: read capability is not present and passive caching is not configured");
             }
         }
-        beans.shadowCaretaker.applyAttributesDefinition(context, resourceObject); // is this really needed?
+        context.applyAttributesDefinition(resourceObject); // is this really needed?
         return resourceObject;
     }
 
@@ -345,11 +345,10 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
                 ((ResourceObjectAsyncChange) resourceObjectChange).isNotificationOnly();
     }
 
-    private void applyAttributesDefinition() throws SchemaException, ConfigurationException,
-            ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
-        beans.shadowCaretaker.applyAttributesDefinition(context, repoShadow);
+    private void applyAttributesDefinition() throws SchemaException, ConfigurationException {
+        context.applyAttributesDefinition(repoShadow);
         if (objectDelta != null) {
-            beans.shadowCaretaker.applyAttributesDefinition(context, objectDelta);
+            context.applyAttributesDefinition(objectDelta);
         }
     }
 
@@ -404,7 +403,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
         return objectDelta;
     }
 
-    private void updateRepoShadow(@NotNull ShadowType resourceObject, OperationResult result)
+    private void updateShadowInRepository(@NotNull ShadowType resourceObject, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
 
         // TODO: shadowState MID-5834: We might not want to update exists flag in quantum states

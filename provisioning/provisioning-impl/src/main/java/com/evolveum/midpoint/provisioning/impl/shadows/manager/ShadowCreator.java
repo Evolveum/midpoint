@@ -7,46 +7,39 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import java.util.Collection;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.namespace.QName;
-import java.util.Collection;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Creates shadows as needed.
@@ -65,10 +58,8 @@ class ShadowCreator {
     private RepositoryService repositoryService;
 
     @Autowired private Clock clock;
-    @Autowired private PrismContext prismContext;
     @Autowired private Protector protector;
     @Autowired private Helper helper;
-    @Autowired private CreatorUpdaterHelper creatorUpdaterHelper;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
 
     @NotNull ShadowType addDiscoveredRepositoryShadow(
@@ -84,17 +75,18 @@ class ShadowCreator {
         return repoShadow;
     }
 
-    void addNewProposedShadow(ProvisioningContext ctx, ShadowType shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-            Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, ObjectAlreadyExistsException, EncryptionException {
+    void addNewProposedShadowIfNeeded(
+            ProvisioningContext ctx,
+            ShadowType shadowToAdd,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
+            OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
 
-        if (!creatorUpdaterHelper.isUseProposedShadows(ctx)) {
+        if (!ctx.shouldUseProposedShadows()) {
             return;
         }
 
-        PrismObject<ShadowType> existingRepoShadow = opState.getRepoShadow();
+        ShadowType existingRepoShadow = opState.getRepoShadow();
         if (existingRepoShadow != null) {
             // TODO: should we add pending operation here?
             return;
@@ -104,13 +96,14 @@ class ShadowCreator {
         ShadowType newRepoShadow = createRepositoryShadow(ctx, shadowToAdd);
         newRepoShadow.setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
         opState.setExecutionStatus(PendingOperationExecutionStatusType.REQUESTED);
-        pendingOperationsHelper.addPendingOperationAdd(newRepoShadow, shadowToAdd, opState, task.getTaskIdentifier());
+        pendingOperationsHelper.addPendingOperationAdd(
+                newRepoShadow, shadowToAdd, opState, ctx.getTask().getTaskIdentifier());
 
         ConstraintsChecker.onShadowAddOperation(newRepoShadow); // TODO migrate to cache invalidation process
         String oid = repositoryService.addObject(newRepoShadow.asPrismObject(), null, result);
         newRepoShadow.setOid(oid);
         LOGGER.trace("Proposed shadow added to the repository: {}", newRepoShadow);
-        opState.setRepoShadow(newRepoShadow.asPrismObject());
+        opState.setRepoShadow(newRepoShadow);
     }
 
     /**
@@ -169,9 +162,6 @@ class ShadowCreator {
             throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
         }
 
-        helper.setKindIfNecessary(repoShadow, ctx);
-//        setIntentIfNecessary(repoShadowType, objectClassDefinition);
-
         // Store only password meta-data in repo - unless there is explicit caching
         CredentialsType credentials = repoShadow.getCredentials();
         if (credentials != null) {
@@ -184,16 +174,14 @@ class ShadowCreator {
             // TODO: other credential types - later
         }
 
-        // if shadow does not contain resource or resource reference, create it
-        // now
+        // if shadow does not contain resource or resource reference, create it now
         if (repoShadow.getResourceRef() == null) {
-            repoShadow.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource(), prismContext));
+            repoShadow.setResourceRef(ctx.getResourceRef());
         }
 
         if (repoShadow.getName() == null) {
             repoShadow.setName(
-                    new PolyStringType(
-                            ShadowUtil.determineShadowNameRequired(asPrismObject(resourceObjectOrShadow))));
+                    ShadowUtil.determineShadowNameRequired(resourceObjectOrShadow));
         }
 
         if (repoShadow.getObjectClass() == null) {

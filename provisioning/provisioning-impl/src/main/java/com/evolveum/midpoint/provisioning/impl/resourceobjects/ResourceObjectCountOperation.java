@@ -99,7 +99,7 @@ class ResourceObjectCountOperation {
             return connector.count(
                     objectTypeDef,
                     clientQuery,
-                    objectTypeDef.getPagedSearches(ctx.getResource()),
+                    ctx.getEnabledCapability(PagedSearchCapabilityType.class),
                     ctx.getUcfExecutionContext(),
                     result);
         } catch (GenericFrameworkException e) {

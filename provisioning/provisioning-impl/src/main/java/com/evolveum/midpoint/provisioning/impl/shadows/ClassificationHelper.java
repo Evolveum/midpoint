@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -158,12 +157,18 @@ class ClassificationHelper {
         if (!ShadowUtil.isClassified(repoShadow)) {
             LOGGER.trace("Shadow is not classified -> we will do that");
             return true;
-        } else if (ctx.isInProduction()) {
-            LOGGER.trace("Resource is in production and the shadow is already classified -> will not re-classify");
-            return false;
-        } else {
+        } else if (!ctx.isResourceInProduction()) {
+            // This is actually a subset of the following "if-else" case.
+            // But we keep it here for better code understanding and for more precise logging.
             LOGGER.trace("Resource is NOT in production -> will re-classify the shadow");
             return true;
+        } else if (!ctx.isObjectDefinitionInProduction()) {
+            LOGGER.trace("Current object definition is NOT in production -> will re-classify the shadow");
+            return true;
+        } else {
+            LOGGER.trace("Resource and the current object definition is in production and the shadow is already classified -> "
+                    + "will not re-classify");
+            return false;
         }
     }
 }
