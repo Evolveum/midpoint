@@ -636,7 +636,6 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
         SearchBoxConfigurationType config = new SearchBoxConfigurationType();
         config.getAllowedMode().add(SearchBoxModeType.ADVANCED);
         config.setDefaultMode(SearchBoxModeType.ADVANCED);
-        //todo fix
-        return new SearchConfigurationWrapper(type, PageRepositoryQuery.this);
+        return new SearchConfigurationWrapper(type, config, PageRepositoryQuery.this);
     }
 }
