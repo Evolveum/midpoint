@@ -99,6 +99,5 @@ class CommonHelper {
         ResourceOperationDescription operationDescription =
                 ProvisioningUtil.createResourceFailureDescription(shadow, ctx.getResource(), delta, message);
         eventDispatcher.notifyFailure(operationDescription, ctx.getTask(), result);
-        result.computeStatusIfUnknown();
     }
 }

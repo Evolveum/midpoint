@@ -310,8 +310,7 @@ public class ResourceManager {
                 resource = getCompletedResource(resourceOid, GetOperationOptions.createNoFetch(), task, result);
             } catch (ConfigurationException | SchemaException | ExpressionEvaluationException e) {
                 // We actually do not expect any of these exceptions here. The resource is most probably in use
-                result.recordFatalError("Unexpected exception: " + e.getMessage(), e);
-                throw new SystemException("Unexpected exception: " + e.getMessage(), e);
+                throw SystemException.unexpected(e);
             }
             currentStatus = ResourceTypeUtil.getLastAvailabilityStatus(resource);
             resourceDesc = resource.toString();
@@ -322,10 +321,9 @@ public class ResourceManager {
                 List<ItemDelta<?, ?>> modifications = operationalStateManager.createAndLogOperationalStateDeltas(
                         currentStatus, newStatus, resourceDesc, statusChangeReason, resource);
                 repositoryService.modifyObject(ResourceType.class, resourceOid, modifications, result);
-                result.computeStatusIfUnknown();
                 InternalMonitor.recordCount(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT);
             } catch (SchemaException | ObjectAlreadyExistsException e) {
-                throw new SystemException("Unexpected exception while recording operation state change: " + e.getMessage(), e);
+                throw SystemException.unexpected(e, "while recording operation state change");
             }
         }
     }

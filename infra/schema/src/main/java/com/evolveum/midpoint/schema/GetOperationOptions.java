@@ -475,6 +475,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
                 getRaw(options), false);
     }
 
+    public static boolean isRaw(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
+        return isRaw(
+                SelectorOptions.findRootOptions(options));
+    }
+
     /**
      * Avoid any smart processing of the data except for schema application. Do not synchronize the data, do not apply
      * any expressions, etc.
@@ -548,6 +553,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
             return false;
         }
         return options.doNotDiscovery;
+    }
+
+    public static boolean isDoNotDiscovery(Collection<SelectorOptions<GetOperationOptions>> options) {
+        return isDoNotDiscovery(
+                SelectorOptions.findRootOptions(options));
     }
 
     /**

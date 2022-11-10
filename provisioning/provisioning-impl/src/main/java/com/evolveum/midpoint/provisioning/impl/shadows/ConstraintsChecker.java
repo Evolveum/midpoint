@@ -141,10 +141,10 @@ public class ConstraintsChecker {
             constraintsCheckingResult.setMessages(messageBuilder.toString());
             return constraintsCheckingResult;
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

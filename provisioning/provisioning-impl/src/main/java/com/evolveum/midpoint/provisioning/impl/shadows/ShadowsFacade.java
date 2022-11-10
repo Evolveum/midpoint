@@ -76,7 +76,8 @@ public class ShadowsFacade {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
-        return new ShadowGetOperation(oid, repositoryShadow, identifiersOverride, options, task, localBeans)
+        return ShadowGetOperation
+                .create(oid, repositoryShadow, identifiersOverride, options, task, result, localBeans)
                 .execute(result);
     }
 
@@ -89,12 +90,12 @@ public class ShadowsFacade {
     }
 
     public String modifyShadow(
-            ShadowType repoShadow,
-            Collection<? extends ItemDelta<?, ?>> modifications,
-            OperationProvisioningScriptsType scripts,
-            ProvisioningOperationOptions options,
-            Task task,
-            OperationResult result)
+            @NotNull ShadowType repoShadow,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable OperationProvisioningScriptsType scripts,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
             EncryptionException, ObjectAlreadyExistsException {

@@ -891,7 +891,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     //     (other identifiers are ignored on input and output of this method)
 
     @Override
-    public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
+    public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
             ResourceObjectIdentification identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,
@@ -935,7 +935,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     /**
      * Modifies object by using new delta update operations.
      */
-    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObjectDelta(
+    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObjectDelta(
                     ResourceObjectIdentification identification,
                     ObjectClass objClass,
                     Uid uid,
@@ -1032,32 +1032,34 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
         result.computeStatus();
 
-        Collection<PropertyModificationOperation> knownExecutedOperations =
+        Collection<PropertyModificationOperation<?>> knownExecutedOperations =
                 convertToExecutedOperations(knownExecutedChanges, identification, objectClassDef);
         return AsynchronousOperationReturnValue.wrap(knownExecutedOperations, result);
     }
 
-    private Collection<PropertyModificationOperation> convertToExecutedOperations(Set<AttributeDelta> knownExecutedChanges,
+    private Collection<PropertyModificationOperation<?>> convertToExecutedOperations(Set<AttributeDelta> knownExecutedChanges,
             ResourceObjectIdentification identification, ResourceObjectDefinition objectClassDef) throws SchemaException {
-        Collection<PropertyModificationOperation> knownExecutedOperations = new ArrayList<>();
+        Collection<PropertyModificationOperation<?>> knownExecutedOperations = new ArrayList<>();
         for (AttributeDelta executedDelta : knownExecutedChanges) {
             String name = executedDelta.getName();
             if (name.equals(Uid.NAME)) {
                 Uid newUid = new Uid((String)executedDelta.getValuesToReplace().get(0));
                 PropertyDelta<String> uidDelta = createUidDelta(newUid, getUidDefinition(identification));
-                PropertyModificationOperation uidMod = new PropertyModificationOperation(uidDelta);
+                PropertyModificationOperation<?> uidMod = new PropertyModificationOperation<>(uidDelta);
                 knownExecutedOperations.add(uidMod);
 
                 replaceUidValue(identification, newUid); // TODO why we are doing this? Do we do that for the caller?
             } else if (name.equals(Name.NAME)) {
                 Name newName = new Name((String)executedDelta.getValuesToReplace().get(0));
                 PropertyDelta<String> nameDelta = createNameDelta(newName, getNameDefinition(identification));
-                PropertyModificationOperation nameMod = new PropertyModificationOperation(nameDelta);
+                PropertyModificationOperation<?> nameMod = new PropertyModificationOperation<>(nameDelta);
                 knownExecutedOperations.add(nameMod);
 
                 replaceNameValue(identification, new Name((String)executedDelta.getValuesToReplace().get(0)));  // TODO why?
             } else {
-                ResourceAttributeDefinition definition = objectClassDef.findAttributeDefinition(name);
+                //noinspection unchecked
+                ResourceAttributeDefinition<Object> definition =
+                        (ResourceAttributeDefinition<Object>) objectClassDef.findAttributeDefinition(name);
 
                 if (definition == null) {
                     throw new SchemaException("Returned delta references attribute '" + name + "' that has no definition.");
@@ -1078,7 +1080,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                         }
                     }
                 }
-                knownExecutedOperations.add(new PropertyModificationOperation(delta));
+                knownExecutedOperations.add(new PropertyModificationOperation<>(delta));
             }
         }
         return knownExecutedOperations;
@@ -1087,7 +1089,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     /**
      * Modifies object by using old add/delete/replace attribute operations.
      */
-    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObjectUpdate(
+    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObjectUpdate(
             ResourceObjectIdentification identification,
             ObjectClass objClass,
             Uid uid,
@@ -1304,11 +1306,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         }
         result.computeStatus();
 
-        Collection<PropertyModificationOperation> sideEffectChanges = new ArrayList<>();
+        Collection<PropertyModificationOperation<?>> sideEffectChanges = new ArrayList<>();
         if (!originalUid.equals(uid.getUidValue())) {
             // UID was changed during the operation, this is most likely a rename
             PropertyDelta<String> uidDelta = createUidDelta(uid, getUidDefinition(identification));
-            PropertyModificationOperation uidMod = new PropertyModificationOperation(uidDelta);
+            PropertyModificationOperation<?> uidMod = new PropertyModificationOperation<>(uidDelta);
             // TODO what about matchingRuleQName ?
             sideEffectChanges.add(uidMod);
 
@@ -1334,15 +1336,19 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         secondaryIdentifier.setRealValue(newName.getNameValue());
     }
 
-    private PropertyDelta<String> createNameDelta(Name name, ResourceAttributeDefinition nameDefinition) {
-        PropertyDelta<String> uidDelta = PrismContext.get().deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getItemName()),
+    private PropertyDelta<String> createNameDelta(Name name, ResourceAttributeDefinition<String> nameDefinition) {
+        PropertyDelta<String> uidDelta =
+                PrismContext.get().deltaFactory().property()
+                        .create(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getItemName()),
                 nameDefinition);
         uidDelta.setRealValuesToReplace(name.getNameValue());
         return uidDelta;
     }
 
-    private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-        PropertyDelta<String> uidDelta = PrismContext.get().deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getItemName()),
+    private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition<String> uidDefinition) {
+        PropertyDelta<String> uidDelta =
+                PrismContext.get().deltaFactory().property()
+                        .create(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getItemName()),
                 uidDefinition);
         uidDelta.setRealValuesToReplace(uid.getUidValue());
         return uidDelta;
@@ -2012,12 +2018,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         String nameValue = null;
         for (ResourceAttribute<?> attr : identifiers) {
             if (objectDefinition.isPrimaryIdentifier(attr.getElementName())) {
+                //noinspection unchecked
                 uidValue = ((ResourceAttribute<String>) attr).getValue().getValue();
             }
             if (objectDefinition.isSecondaryIdentifier(attr.getElementName())) {
                 ResourceAttributeDefinition<?> attrDef = objectDefinition.findAttributeDefinitionRequired(attr.getElementName());
                 String frameworkAttributeName = attrDef.getFrameworkAttributeName();
                 if (Name.NAME.equals(frameworkAttributeName)) {
+                    //noinspection unchecked
                     nameValue = ((ResourceAttribute<String>) attr).getValue().getValue();
                 }
             }
@@ -2032,6 +2040,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         // fallback, compatibility
         for (ResourceAttribute<?> attr : identifiers) {
             if (attr.getElementName().equals(SchemaConstants.ICFS_UID)) {
+                //noinspection unchecked
                 return new Uid(((ResourceAttribute<String>) attr).getValue().getValue());
             }
         }
@@ -2056,13 +2065,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
         primaryIdentifier.setRealValue(newUid.getUidValue());
     }
 
-    private ResourceAttributeDefinition getNameDefinition(ResourceObjectIdentification identification) throws SchemaException {
+    private ResourceAttributeDefinition<String> getNameDefinition(ResourceObjectIdentification identification) throws SchemaException {
         ResourceAttribute<String> secondaryIdentifier = identification.getSecondaryIdentifier();
         if (secondaryIdentifier == null) {
             // fallback, compatibility
             for (ResourceAttribute<?> attr : identification.getAllIdentifiers()) {
                 if (attr.getElementName().equals(SchemaConstants.ICFS_NAME)) {
-                    return attr.getDefinition();
+                    //noinspection unchecked
+                    return (ResourceAttributeDefinition<String>) attr.getDefinition();
                 }
             }
             return null;
@@ -2272,15 +2282,17 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                 // This is quite a black magic. But we do not have a better way now.
                 for (Operation change : changes) {
                     if (change instanceof PropertyModificationOperation) {
-                        PropertyDelta propertyDelta = ((PropertyModificationOperation)change).getPropertyDelta();
+                        PropertyDelta<?> propertyDelta = ((PropertyModificationOperation<?>)change).getPropertyDelta();
                         if (!propertyDelta.getPath().equivalent(SchemaConstants.PATH_PASSWORD_VALUE)) {
                             continue;
                         }
-                        Collection<PrismPropertyValue<ProtectedStringType>> oldValues = propertyDelta.getEstimatedOldValues();
+                        Collection<? extends PrismValue> oldValues = propertyDelta.getEstimatedOldValues();
                         if (oldValues == null || oldValues.isEmpty()) {
                             continue;
                         }
-                        ProtectedStringType oldPassword = oldValues.iterator().next().getValue();
+                        //noinspection unchecked
+                        ProtectedStringType oldPassword =
+                                ((PrismPropertyValue<ProtectedStringType>) (oldValues.iterator().next())).getValue();
                         if (oldPassword != null) {
                             GuardedString oldPasswordGs = ConnIdUtil.toGuardedString(oldPassword, "runAs password", protector);
                             connIdOptionsBuilder.setRunWithPassword(oldPasswordGs);

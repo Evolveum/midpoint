@@ -1764,6 +1764,12 @@ public class OperationResult
         }
     }
 
+    public void muteAllSubresultErrors() {
+        for (OperationResult subresult : getSubresults()) {
+            subresult.muteError();
+        }
+    }
+
     public void muteLastSubresultError() {
         OperationResult lastSubresult = getLastSubresult();
         if (lastSubresult != null) {

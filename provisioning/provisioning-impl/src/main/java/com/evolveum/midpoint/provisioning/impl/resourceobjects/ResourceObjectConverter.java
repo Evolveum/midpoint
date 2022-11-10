@@ -536,7 +536,7 @@ public class ResourceObjectConverter {
      * Returns known executed deltas as reported by {@link ConnectorInstance#modifyObject(ResourceObjectIdentification,
      * PrismObject, Collection, ConnectorOperationOptions, UcfExecutionContext, OperationResult)}.
      */
-    public AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> modifyResourceObject(
+    public AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> modifyResourceObject(
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType repoShadow,
             OperationProvisioningScriptsType scripts,
@@ -631,7 +631,7 @@ public class ResourceObjectConverter {
                 LOGGER.trace("Pre-read object (applied pending operations):\n{}", DebugUtil.debugDumpLazily(preReadShadow, 1));
             }
 
-            AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyAsyncRet;
+            AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyAsyncRet;
             if (!operations.isEmpty()) {
                 assertNoDuplicates(operations);
                 // Execute primary ICF operation on this shadow
@@ -643,9 +643,9 @@ public class ResourceObjectConverter {
             }
 
             // Should contain side-effects. May contain explicitly requested and executed operations.
-            Collection<PropertyDelta<PrismPropertyValue>> knownExecutedDeltas;
+            Collection<PropertyDelta<PrismPropertyValue<?>>> knownExecutedDeltas;
             if (modifyAsyncRet != null) {
-                Collection<PropertyModificationOperation> knownExecutedOperations = modifyAsyncRet.getReturnValue();
+                Collection<PropertyModificationOperation<?>> knownExecutedOperations = modifyAsyncRet.getReturnValue();
                 knownExecutedDeltas = convertToPropertyDeltas(knownExecutedOperations);
             } else {
                 knownExecutedDeltas = emptyList();
@@ -702,7 +702,7 @@ public class ResourceObjectConverter {
 
             computeResultStatus(result);
 
-            AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>
+            AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>
                     aResult = AsynchronousOperationReturnValue.wrap(knownExecutedDeltas, result);
             if (modifyAsyncRet != null) {
                 aResult.setOperationType(modifyAsyncRet.getOperationType());
@@ -725,17 +725,17 @@ public class ResourceObjectConverter {
         }
     }
 
-    private Collection<PropertyDelta<PrismPropertyValue>> convertToPropertyDeltas(
-            @NotNull Collection<PropertyModificationOperation> operations) {
-        Collection<PropertyDelta<PrismPropertyValue>> deltas = new ArrayList<>();
-        for (PropertyModificationOperation mod : operations) {
-            deltas.add(mod.getPropertyDelta());
+    private Collection<PropertyDelta<PrismPropertyValue<?>>> convertToPropertyDeltas(
+            @NotNull Collection<PropertyModificationOperation<?>> operations) {
+        Collection<PropertyDelta<PrismPropertyValue<?>>> deltas = new ArrayList<>();
+        for (PropertyModificationOperation<?> mod : operations) {
+            //noinspection unchecked
+            deltas.add((PropertyDelta<PrismPropertyValue<?>>) mod.getPropertyDelta());
         }
         return deltas;
     }
 
-    @SuppressWarnings("rawtypes")
-    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> executeModify(
+    private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> executeModify(
             ProvisioningContext ctx,
             ShadowType currentShadow,
             Collection<? extends ResourceAttribute<?>> identifiers,
@@ -747,7 +747,7 @@ public class ResourceObjectConverter {
             PolicyViolationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 
         // Should include known side effects. May include also executed requested changes. See ConnectorInstance.modifyObject.
-        Collection<PropertyModificationOperation> knownExecutedChanges = new HashSet<>();
+        Collection<PropertyModificationOperation<?>> knownExecutedChanges = new HashSet<>();
 
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired();
         if (operations.isEmpty()) {
@@ -780,7 +780,7 @@ public class ResourceObjectConverter {
 
         // Invoke connector operation
         ConnectorInstance connector = ctx.getConnector(UpdateCapabilityType.class, result);
-        AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> connectorAsyncOpRet = null;
+        AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> connectorAsyncOpRet = null;
         try {
 
             if (ResourceTypeUtil.isAvoidDuplicateValues(ctx.getResource())) {
@@ -862,7 +862,7 @@ public class ResourceObjectConverter {
                     ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectDefinition, identifiersWorkingCopy);
                     connectorAsyncOpRet = connector.modifyObject(
                             identification, asPrismObject(currentShadow), operationsWave, connOptions, ctx.getUcfExecutionContext(), result);
-                    Collection<PropertyModificationOperation> currentKnownExecutedChanges = connectorAsyncOpRet.getReturnValue();
+                    Collection<PropertyModificationOperation<?>> currentKnownExecutedChanges = connectorAsyncOpRet.getReturnValue();
                     if (currentKnownExecutedChanges != null) {
                         knownExecutedChanges.addAll(currentKnownExecutedChanges);
                         // we accept that one attribute can be changed multiple times in sideEffectChanges; TODO: normalize
@@ -905,7 +905,7 @@ public class ResourceObjectConverter {
 
         executeProvisioningScripts(ctx, ProvisioningOperationTypeType.MODIFY, BeforeAfterType.AFTER, scripts, result);
 
-        AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> asyncOpRet =
+        AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> asyncOpRet =
                 AsynchronousOperationReturnValue.wrap(knownExecutedChanges, result);
         if (connectorAsyncOpRet != null) {
             asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());

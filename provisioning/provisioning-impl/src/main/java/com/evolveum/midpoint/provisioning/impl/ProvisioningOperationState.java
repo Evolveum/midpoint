@@ -20,6 +20,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.NotNull;
+
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
 
@@ -181,12 +183,12 @@ public class ProvisioningOperationState<A extends AsynchronousOperationResult> i
     }
 
     // TEMPORARY: TODO: remove
-    public static <A extends AsynchronousOperationResult> ProvisioningOperationState<A> fromPendingOperation(
+    public static <A extends AsynchronousOperationResult> @NotNull ProvisioningOperationState<A> fromPendingOperation(
             ShadowType repoShadow, PendingOperationType pendingOperation) {
         return fromPendingOperations(repoShadow, singletonList(pendingOperation));
     }
 
-    public static <A extends AsynchronousOperationResult> ProvisioningOperationState<A> fromPendingOperations(
+    public static <A extends AsynchronousOperationResult> @NotNull ProvisioningOperationState<A> fromPendingOperations(
             ShadowType repoShadow, List<PendingOperationType> pendingOperations) {
         ProvisioningOperationState<A> opState = new ProvisioningOperationState<>();
         if (pendingOperations == null || pendingOperations.isEmpty()) {

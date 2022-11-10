@@ -180,9 +180,11 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             return object;
         } else {
             // This must be done after the result is closed.
-            // TODO There may be fetch result stored in the object by lower layers. We overwrite it. We assume (hope) that
-            //  this parent result contains its value as one of the children (hence the overwriting does not cause loss
-            //  of information).
+            //
+            // There may be fetch result stored in the object by lower layers. We overwrite it. We assume that
+            // this parent result contains its value as one of the children (hence the overwriting does not cause loss
+            // of information).
+            //
             //noinspection unchecked
             T clone = (T) object.asPrismObject().cloneIfImmutable().asObjectable();
             clone.setFetchResult(result.createBeanReduced());
@@ -399,8 +401,14 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public <T extends ObjectType> String modifyObject(Class<T> type, String oid,
-            Collection<? extends ItemDelta<?, ?>> modifications, OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult)
+    public <T extends ObjectType> String modifyObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable OperationProvisioningScriptsType scripts,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
 

@@ -104,8 +104,8 @@ class ShadowUpdater {
             ShadowType shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            EncryptionException {
         if (opState.getRepoShadow() == null) {
             recordAddResultNewShadow(ctx, shadowToAdd, opState, result);
         } else {
@@ -196,8 +196,8 @@ class ShadowUpdater {
     void recordModifyResult(
             ProvisioningContext ctx,
             ShadowType oldRepoShadow,
-            Collection<? extends ItemDelta> requestedModifications,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            Collection<? extends ItemDelta<?, ?>> requestedModifications,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
             XMLGregorianCalendar now,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
@@ -407,7 +407,7 @@ class ShadowUpdater {
     void modifyShadowAttributes(
             ProvisioningContext ctx,
             ShadowType shadow,
-            Collection<? extends ItemDelta> modifications,
+            Collection<? extends ItemDelta<?, ?>> modifications,
             OperationResult result) throws SchemaException,
             ObjectNotFoundException, ConfigurationException {
         Collection<? extends ItemDelta<?, ?>> shadowChanges = extractRepoShadowChanges(ctx, shadow, modifications);
@@ -472,7 +472,7 @@ class ShadowUpdater {
     @SuppressWarnings("rawtypes")
     @NotNull
     private Collection<? extends ItemDelta<?, ?>> extractRepoShadowChanges(
-            ProvisioningContext ctx, ShadowType shadow, Collection<? extends ItemDelta> objectChange)
+            ProvisioningContext ctx, ShadowType shadow, Collection<? extends ItemDelta<?, ?>> objectChange)
             throws SchemaException, ConfigurationException {
 
         ResourceObjectDefinition objectDefinition = ctx.getObjectDefinitionRequired(); // If type is not present, OC def is fine
@@ -955,8 +955,8 @@ class ShadowUpdater {
      * BEWARE: updated repo shadow is raw. ApplyDefinitions must be called on it before any serious use.
      */
     PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(ProvisioningContext ctx,
-            Collection<? extends ItemDelta> modifications,
-            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
             OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ObjectDelta<ShadowType> proposedDelta = createProposedModifyDelta(opState.getRepoShadow(), modifications);
@@ -967,9 +967,9 @@ class ShadowUpdater {
     }
 
     private ObjectDelta<ShadowType> createProposedModifyDelta(
-            ShadowType repoShadow, Collection<? extends ItemDelta> modifications) {
-        Collection<ItemDelta> resourceModifications = new ArrayList<>(modifications.size());
-        for (ItemDelta modification : modifications) {
+            ShadowType repoShadow, Collection<? extends ItemDelta<?, ?>> modifications) {
+        Collection<ItemDelta<?, ?>> resourceModifications = new ArrayList<>(modifications.size());
+        for (ItemDelta<?, ?> modification : modifications) {
             if (ProvisioningUtil.isResourceModification(modification)) {
                 resourceModifications.add(modification);
             }
@@ -980,7 +980,7 @@ class ShadowUpdater {
         return createModifyDelta(repoShadow, resourceModifications);
     }
 
-    private ObjectDelta<ShadowType> createModifyDelta(ShadowType repoShadow, Collection<? extends ItemDelta> modifications) {
+    private ObjectDelta<ShadowType> createModifyDelta(ShadowType repoShadow, Collection<? extends ItemDelta<?, ?>> modifications) {
         ObjectDelta<ShadowType> delta = repoShadow.asPrismObject().createModifyDelta();
         delta.addModifications(ItemDeltaCollectionsUtil.cloneCollection(modifications));
         return delta;

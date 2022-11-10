@@ -159,10 +159,10 @@ class ShadowSearchLikeOperation {
             try {
                 return handler.handle(shadowedObject.asPrismObject(), lResult);
             } catch (Throwable t) {
-                lResult.recordFatalError(t);
+                lResult.recordException(t);
                 throw t;
             } finally {
-                lResult.computeStatusIfUnknown();
+                lResult.close();
             }
         };
 

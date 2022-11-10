@@ -66,12 +66,11 @@ class AccessChecker {
                             "Attempt to add shadow with non-creatable attribute " + attribute.getElementName());
                 }
             }
-            result.recordSuccess();
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

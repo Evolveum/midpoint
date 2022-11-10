@@ -213,8 +213,8 @@ public class ShadowManager {
             ShadowType shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            EncryptionException {
         shadowUpdater.recordAddResult(ctx, shadowToAdd, opState, result);
     }
 
@@ -258,7 +258,7 @@ public class ShadowManager {
      */
     public PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(ProvisioningContext ctx,
             Collection<? extends ItemDelta<?, ?>> modifications,
-            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
             OperationResult result)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
@@ -293,8 +293,8 @@ public class ShadowManager {
     public void recordModifyResult(
             ProvisioningContext ctx,
             ShadowType oldRepoShadow,
-            Collection<? extends ItemDelta> requestedModifications,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            Collection<? extends ItemDelta<?, ?>> requestedModifications,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
             XMLGregorianCalendar now,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
@@ -307,7 +307,7 @@ public class ShadowManager {
      * applying the results of completed asynchronous operations.
      */
     public void modifyShadowAttributes(
-            ProvisioningContext ctx, ShadowType shadow, Collection<? extends ItemDelta> modifications,
+            ProvisioningContext ctx, ShadowType shadow, Collection<? extends ItemDelta<?, ?>> modifications,
             OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         shadowUpdater.modifyShadowAttributes(ctx, shadow, modifications, parentResult);
@@ -356,8 +356,7 @@ public class ShadowManager {
             ProvisioningOperationState<AsynchronousOperationResult> opState,
             ProvisioningOperationOptions options,
             OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException, EncryptionException {
+            throws ObjectNotFoundException, SchemaException, ConfigurationException, EncryptionException {
         return shadowUpdater.recordDeleteResult(ctx, opState, options, parentResult);
     }
 

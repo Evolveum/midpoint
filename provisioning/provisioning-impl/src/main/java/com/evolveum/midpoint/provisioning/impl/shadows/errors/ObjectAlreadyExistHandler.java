@@ -12,6 +12,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -97,27 +100,26 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
 
     @Override
     public OperationResultStatus handleModifyError(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            Collection<? extends ItemDelta> modifications,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause,
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repoShadow,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult result)
+            @NotNull OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
             ShadowType newShadow = repoShadow.clone();
-            //noinspection unchecked
-            ObjectDeltaUtil.applyTo(newShadow.asPrismObject(), (Collection) modifications);
+            ObjectDeltaUtil.applyTo(newShadow.asPrismObject(), modifications);
             discoverConflictingShadow(ctx, newShadow, result);
         }
 
-        return super.handleModifyError(
-                ctx, repoShadow, modifications, options, opState, cause, failedOperationResult, result);
+        throwException(cause, opState, result);
+        throw new AssertionError("not here");
     }
 
     private void discoverConflictingShadow(
@@ -143,12 +145,12 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             PrismObject<ShadowType> conflictingShadow = selectLiveShadow(conflictingResourceShadows);
 
             LOGGER.trace("DISCOVERY: found conflicting shadow for {}:\n{}", newShadow,
-                    conflictingShadow==null?"  no conflicting shadow":conflictingShadow.debugDumpLazily(1));
+                    conflictingShadow == null ? "  no conflicting shadow" : conflictingShadow.debugDumpLazily(1));
             LOGGER.debug("DISCOVERY: discovered new shadow {}", ShadowUtil.shortDumpShadowLazily(conflictingShadow));
             LOGGER.trace("Processing \"already exists\" error for shadow:\n{}\nConflicting repo shadow:\n{}\nConflicting resource shadow:\n{}",
                     newShadow.debugDumpLazily(1),
-                    oldShadow==null ? "  null" : oldShadow.debugDumpLazily(1),
-                    conflictingShadow==null ? "  null" : conflictingShadow.debugDumpLazily(1));
+                    oldShadow == null ? "  null" : oldShadow.debugDumpLazily(1),
+                    conflictingShadow == null ? "  null" : conflictingShadow.debugDumpLazily(1));
 
             if (conflictingShadow != null) {
                 // Original object and found object share the same object class, therefore they must
@@ -162,8 +164,11 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
                 change.setShadowExistsInRepo(true);
                 eventDispatcher.notifyChange(change, ctx.getTask(), result);
             }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
         } finally {
-            result.computeStatus();
+            result.close();
         }
     }
 

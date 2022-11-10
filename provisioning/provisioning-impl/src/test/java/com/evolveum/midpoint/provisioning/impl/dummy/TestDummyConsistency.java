@@ -1732,7 +1732,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         // THEN
         then();
-        assertSuccess(result);
+        assertPartialError(result);
 
         // @formatter:off
         syncServiceMock

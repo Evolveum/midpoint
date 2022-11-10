@@ -12,6 +12,8 @@ import java.util.Collection;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.util.exception.*;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -24,7 +26,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -62,17 +63,18 @@ public abstract class ErrorHandler {
     @Autowired private ResourceManager resourceManager;
     @Autowired protected PrismContext prismContext;
 
+    /**
+     * @param failedOperationResult The operation result carrying the failed operation. Should be closed.
+     */
     public abstract ShadowType handleGetError(
-            ProvisioningContext ctx,
-            ShadowType repositoryShadow,
-            GetOperationOptions rootOptions,
-            Exception cause,
-            Task task,
-            OperationResult parentResult)
-                    throws SchemaException, GenericFrameworkException, CommunicationException,
-                    ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-                    SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
-
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repositoryShadow,
+            @NotNull Exception cause,
+            @NotNull OperationResult failedOperationResult,
+            @NotNull OperationResult parentResult)
+            throws SchemaException, GenericFrameworkException, CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
     public abstract OperationResultStatus handleAddError(
             ProvisioningContext ctx,
@@ -106,22 +108,22 @@ public abstract class ErrorHandler {
     }
 
     public abstract OperationResultStatus handleModifyError(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            Collection<? extends ItemDelta> modifications,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause,
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repoShadow,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult parentResult)
+            @NotNull OperationResult parentResult)
                 throws SchemaException, GenericFrameworkException, CommunicationException,
                 ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
                 SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
     OperationResultStatus postponeModify(ProvisioningContext ctx,
             ShadowType repoShadow,
-            Collection<? extends ItemDelta> modifications,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
             OperationResult failedOperationResult,
             OperationResult result) {
         return ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
@@ -173,16 +175,22 @@ public abstract class ErrorHandler {
      * Record error that completes the operation. If such error is recorded then this is definitive end of the operation.
      * No more retries, no more attempts.
      */
-    protected void recordCompletionError(Exception cause,
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result) {
-        result.recordFatalError(cause);
+    protected void recordCompletionError(
+            Exception cause,
+            ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+            OperationResult result) {
+        result.recordExceptionNotFinish(cause);
         if (opState != null) {
             opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
         }
     }
 
-    void markResourceDown(String resourceOid, String changeReason, OperationResult parentResult, Task task) throws ObjectNotFoundException {
-        resourceManager.modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, changeReason, task, parentResult, false);
+    void markResourceDown(
+            ProvisioningContext ctx,
+            String changeReason,
+            OperationResult result) throws ObjectNotFoundException {
+        resourceManager.modifyResourceAvailabilityStatus(
+                ctx.getResourceOid(), AvailabilityStatusType.DOWN, changeReason, ctx.getTask(), result, false);
     }
 
     protected boolean isOperationRetryEnabled(ResourceType resource) {

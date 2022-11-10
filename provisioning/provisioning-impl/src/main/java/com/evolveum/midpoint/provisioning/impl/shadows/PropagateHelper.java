@@ -136,7 +136,7 @@ class PropagateHelper {
 
         } else if (operationDelta.isModify()) {
             Collection<? extends ItemDelta<?,?>> modifications = operationDelta.getModifications();
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState =
+            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState =
                     modifyHelper.executeResourceModify(ctx, shadow, modifications, null, null, now, result);
             opState.determineExecutionStatusFromResult();
 

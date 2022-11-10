@@ -569,31 +569,25 @@ public class ProvisioningUtil {
         return failureDesc;
     }
 
-    public static boolean isDoDiscovery(ResourceType resource, GetOperationOptions rootOptions) {
-        return !GetOperationOptions.isDoNotDiscovery(rootOptions) && isDoDiscovery(resource);
+    public static boolean isDoDiscovery(@NotNull ResourceType resource, GetOperationOptions rootOptions) {
+        return !GetOperationOptions.isDoNotDiscovery(rootOptions) && ResourceTypeUtil.isDiscoveryAllowed(resource);
     }
 
-    public static boolean isDoDiscovery(ResourceType resource, ProvisioningOperationOptions options) {
-        return !ProvisioningOperationOptions.isDoNotDiscovery(options) && isDoDiscovery(resource);
-    }
-
-    public static boolean isDoDiscovery(ResourceType resource) {
-        return resource == null
-                || resource.getConsistency() == null
-                || resource.getConsistency().isDiscovery() == null
-                || resource.getConsistency().isDiscovery();
+    public static boolean isDoDiscovery(@NotNull ResourceType resource, ProvisioningOperationOptions options) {
+        return !ProvisioningOperationOptions.isDoNotDiscovery(options) && ResourceTypeUtil.isDiscoveryAllowed(resource);
     }
 
     public static OperationResultStatus postponeModify(
             ProvisioningContext ctx,
             ShadowType repoShadow,
-            Collection<? extends ItemDelta> modifications,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
             OperationResult failedOperationResult,
             OperationResult result) {
         LOGGER.trace("Postponing MODIFY operation for {}", repoShadow);
         opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
-        AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncResult = new AsynchronousOperationReturnValue<>();
+        AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> asyncResult =
+                new AsynchronousOperationReturnValue<>();
         asyncResult.setOperationResult(failedOperationResult);
         asyncResult.setOperationType(PendingOperationTypeType.RETRY);
         opState.setAsyncResult(asyncResult);

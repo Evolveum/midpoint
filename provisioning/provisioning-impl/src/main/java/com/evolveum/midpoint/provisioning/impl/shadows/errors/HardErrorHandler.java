@@ -17,7 +17,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,6 +32,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Handler for "hard" errors - error that cannot be handled in any smart way.
  * @author semancik
@@ -42,17 +44,16 @@ abstract class HardErrorHandler extends ErrorHandler {
 
     @Override
     public ShadowType handleGetError(
-            ProvisioningContext ctx,
-            ShadowType repositoryShadow,
-            GetOperationOptions rootOptions,
-            Exception cause,
-            Task task,
-            OperationResult parentResult) throws SchemaException, GenericFrameworkException,
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repositoryShadow,
+            @NotNull Exception cause,
+            @NotNull OperationResult failedOperationResult,
+            @NotNull OperationResult parentResult) throws SchemaException, GenericFrameworkException,
             CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
         throwException(cause, null, parentResult);
-        return null; // not reached
+        throw new AssertionError("not reached");
     }
 
     @Override
@@ -75,14 +76,14 @@ abstract class HardErrorHandler extends ErrorHandler {
 
     @Override
     public OperationResultStatus handleModifyError(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            Collection<? extends ItemDelta> modifications,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause,
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repoShadow,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {

@@ -21,7 +21,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
@@ -29,9 +28,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -51,26 +51,13 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     private RepositoryService repositoryService;
 
     @Override
-    public ShadowType handleGetError(ProvisioningContext ctx,
-            ShadowType repositoryShadow, GetOperationOptions rootOptions, Exception cause,
-            Task task, OperationResult parentResult) throws CommunicationException {
-
-        ResourceType resource = ctx.getResource();
-        if (!ProvisioningUtil.isDoDiscovery(resource, rootOptions)) {
-            throwException(cause, null, parentResult);
-        }
-
-        OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_GET_ERROR);
-        result.addParam("exception", cause.getMessage());
-
-        for (OperationResult subRes : parentResult.getSubresults()) {
-            subRes.muteError();
-        }
-
-        result.recordSuccess();
-        repositoryShadow.setFetchResult(result.createBeanReduced());
-
-        return repositoryShadow;
+    public ShadowType handleGetError(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repositoryShadow,
+            @NotNull Exception cause,
+            @NotNull OperationResult failedOperationResult,
+            @NotNull OperationResult parentResult) {
+        throw new UnsupportedOperationException("MaintenanceException cannot occur during GET operation.");
     }
 
     @Override
@@ -102,23 +89,23 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS); // this influences how pending operation resultStatus is saved
             return postponeAdd(shadowToAdd, opState, failedOperationResult, result);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
     @Override
     public OperationResultStatus handleModifyError(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            Collection<? extends ItemDelta> modifications,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause,
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repoShadow,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_MODIFY_ERROR);
         result.addParam("exception", cause.getMessage());
@@ -126,10 +113,10 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
             return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
@@ -148,10 +135,10 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
             return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

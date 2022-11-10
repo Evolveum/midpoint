@@ -15,6 +15,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingM
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,9 +29,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
@@ -38,20 +38,12 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.getErrorReportingMethod;
 
 @Component
 class ObjectNotFoundHandler extends HardErrorHandler {
@@ -64,60 +56,56 @@ class ObjectNotFoundHandler extends HardErrorHandler {
     @Autowired private ShadowCaretaker shadowCaretaker;
 
     @Override
-    public ShadowType handleGetError(ProvisioningContext ctx,
-            ShadowType repositoryShadow, GetOperationOptions rootOptions, Exception cause,
-            Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException,
-            CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+    public ShadowType handleGetError(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repositoryShadow,
+            @NotNull Exception cause,
+            @NotNull OperationResult failedOperationResult,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
 
-        if (getErrorReportingMethod(rootOptions) == FetchErrorReportingMethodType.FORCED_EXCEPTION) {
-            LOGGER.debug("Trying to handle {} but 'forced exception' mode is selected. Will rethrow it.",
-                    cause.getClass().getSimpleName());
+        // We do this before marking shadow as tombstone.
+        ShadowLifecycleStateType stateBefore = shadowCaretaker.determineShadowState(ctx, repositoryShadow);
 
-            if (repositoryShadow != null && ShadowUtil.isExists(repositoryShadow)) {
-                markShadowTombstoneUnlessInSimulationMode(repositoryShadow, task, parentResult);
-                return super.handleGetError(ctx, null, rootOptions, cause, task, parentResult);
-            }
+        ShadowType shadowToReturn = markShadowTombstoneIfApplicable(ctx, repositoryShadow, result);
+
+        if (ctx.getErrorReportingMethod() == FetchErrorReportingMethodType.FORCED_EXCEPTION) {
+            LOGGER.debug("Got {} but 'forced exception' mode is selected. Will rethrow it.", cause.getClass().getSimpleName());
+            throwException(cause, null, result);
+            throw new AssertionError("not reached");
         }
 
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), rootOptions)) {
-            discoverDeletedShadow(ctx, repositoryShadow, parentResult);
-        }
-
-        if (repositoryShadow != null) {
-            if (ShadowUtil.isExists(repositoryShadow)) {
-                repositoryShadow = markShadowTombstoneUnlessInSimulationMode(repositoryShadow, task, parentResult);
-            } else {
-                // We always want to return repository shadow it such shadow is available.
-                // The shadow may be dead, or it may be marked as "not exists", but we want
-                // to return something if shadow exists in the repo. Otherwise model may
-                // unlink the shadow or otherwise "forget" about it.
-                LOGGER.debug("Shadow {} not found on the resource. However still have it in the repository. "
-                        + "Therefore returning repository version.", repositoryShadow);
-            }
-            parentResult.setStatus(OperationResultStatus.HANDLED_ERROR);
-            return repositoryShadow;
-        } else {
-            return super.handleGetError(ctx, null, rootOptions, cause, task, parentResult);
-        }
+        notifyAboutMissingObjectIfApplicable(ctx, repositoryShadow, stateBefore, result);
+        failedOperationResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
+        return shadowToReturn;
     }
 
-    /**
-     * This is some kind of reality mismatch. We obviously have shadow that is supposed to be alive (exists=true). But it does
-     * not exist on resource. This is NOT gestation quantum state, as that is handled directly elsewhere in the shadow facade.
-     * This may be "lost shadow" - shadow which exists but the resource object has disappeared without trace.
-     * Or this may be a corpse - quantum state that has just collapsed to the tombstone. Either way, it should be
-     * safe to set exists=false.
-     *
-     * UNLESS we are in simulation mode (when doing thresholds evaluation). In that case we have to preserve the current status.
-     * Otherwise, the real execution will not work correctly, see 0a89ab6ace86eecfc27ea7afc026de0f4314311e. (Maybe this needs
-     * a different solution, though. We will see.)
-     *
-     * For the dry run, we want to mark the shadow as dead. See MID-7724.
-     */
-    private ShadowType markShadowTombstoneUnlessInSimulationMode(
-            ShadowType repositoryShadow, Task task, OperationResult result) throws SchemaException {
+    private ShadowType markShadowTombstoneIfApplicable(
+            ProvisioningContext ctx, ShadowType repositoryShadow, OperationResult result) throws SchemaException {
 
+        if (!ShadowUtil.isExists(repositoryShadow)) {
+            LOGGER.debug("Shadow {} not found on the resource. However still have it in the repository. "
+                    + "Therefore returning repository version.", repositoryShadow);
+            return repositoryShadow;
+        }
+
+        // This is some kind of reality mismatch. We obviously have shadow that is supposed to be alive (exists=true). But it does
+        // not exist on resource. This is NOT gestation quantum state, as that is handled directly elsewhere in the shadow facade.
+        // This may be "lost shadow" - shadow which exists but the resource object has disappeared without trace.
+        // Or this may be a corpse - quantum state that has just collapsed to the tombstone. Either way, it should be
+        // safe to set exists=false.
+        //
+        // UNLESS we are in simulation mode (when doing thresholds evaluation). In that case we have to preserve the current status.
+        // Otherwise, the real execution will not work correctly, see 0a89ab6ace86eecfc27ea7afc026de0f4314311e. (Maybe this needs
+        // a different solution, though. We will see.)
+        //
+        // For the dry run, we want to mark the shadow as dead. See MID-7724.
+
+        // FIXME FIXME FIXME This is not quite correct. We should decide if simulation really should not touch these dead
+        //  accounts, or (most probably) find a way how to ensure that they will be re-processed even if marked as tombstone
+        //  in the meantime.
+
+        Task task = ctx.getTask();
         if (TaskUtil.isExecute(task) || TaskUtil.isDryRun(task)) {
             LOGGER.trace("Setting {} as tombstone. This may be a quantum state collapse. Or maybe a lost shadow.",
                     repositoryShadow);
@@ -131,23 +119,26 @@ class ObjectNotFoundHandler extends HardErrorHandler {
 
     @Override
     public OperationResultStatus handleModifyError(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            Collection<? extends ItemDelta> modifications,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause,
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repoShadow,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult result)
-            throws SchemaException, GenericFrameworkException, CommunicationException,
-            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
 
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
-            discoverDeletedShadow(ctx, repoShadow, result);
+        // We do this before marking shadow as tombstone.
+        ShadowLifecycleStateType stateBefore = shadowCaretaker.determineShadowState(ctx, repoShadow);
+        markShadowTombstoneIfApplicable(ctx, repoShadow, result);
+
+        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) { // Put options to ctx
+            notifyAboutMissingObjectIfApplicable(ctx, repoShadow, stateBefore, result);
         }
 
-        return super.handleModifyError(ctx, repoShadow, modifications, options, opState, cause, failedOperationResult, result);
+        throwException(cause, opState, result);
+        throw new AssertionError("not here");
     }
 
     @Override
@@ -158,11 +149,14 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             ProvisioningOperationState<AsynchronousOperationResult> opState,
             Exception cause,
             OperationResult failedOperationResult,
-            OperationResult parentResult)
-            throws SchemaException {
+            OperationResult result) throws SchemaException {
 
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
-            discoverDeletedShadow(ctx, repoShadow, parentResult);
+        // We do this before marking shadow as tombstone.
+        ShadowLifecycleStateType stareBefore = shadowCaretaker.determineShadowState(ctx, repoShadow);
+        markShadowTombstoneIfApplicable(ctx, repoShadow, result);
+
+        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) { // Put options to ctx
+            notifyAboutMissingObjectIfApplicable(ctx, repoShadow, stareBefore, result);
         }
 
         // Error deleting shadow because the shadow is already deleted. This means someone has done our job already.
@@ -171,51 +165,39 @@ class ObjectNotFoundHandler extends HardErrorHandler {
         return OperationResultStatus.HANDLED_ERROR;
     }
 
-    private void discoverDeletedShadow(
-            ProvisioningContext ctx,
-            ShadowType repositoryShadow,
-            OperationResult parentResult) throws SchemaException {
-
-        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repositoryShadow);
-        if (shadowState != ShadowLifecycleStateType.LIVE) {
-            // Do NOT do discovery of shadow that can legally not exist. This is no discovery.
-            // We already know that the object are supposed not to exist yet or to dead already.
-            LOGGER.trace("Skipping discovery of shadow {} because it is {}, we expect that it might not exist", repositoryShadow, shadowState);
+    private void notifyAboutMissingObjectIfApplicable(
+            ProvisioningContext ctx, ShadowType repoShadow, ShadowLifecycleStateType stateBefore, OperationResult parentResult) {
+        if (!ctx.shouldDoDiscovery()) {
+            LOGGER.trace("Skipping discovery of shadow {} because the discovery is disabled", repoShadow);
             return;
         }
 
-        Task task = ctx.getTask();
+        if (stateBefore != ShadowLifecycleStateType.LIVE) {
+            // Do NOT do discovery of shadow that can legally not exist. This is no discovery.
+            // We already know that the object are supposed not to exist yet or to dead already.
+            LOGGER.trace("Skipping sending notification of missing {} because it is {}, we expect that it might not exist",
+                    repoShadow, stateBefore);
+            return;
+        }
+
         OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
         try {
-
-            LOGGER.debug("DISCOVERY: discovered deleted shadow {}", repositoryShadow);
-
-            // Do NOT use return value of the markShadowTombstone method.
-            // It may return null in case that the shadow is deleted from repository already.
-            // However, in that case we will have nothing to base notifications on.
-            // Using the "old" repo shadow is still a better option. (MID-6574)
-            if (TaskUtil.isExecute(task) || TaskUtil.isDryRun(task)) {
-                shadowManager.markShadowTombstone(repositoryShadow, task, result);
-            } else {
-                // The deleted shadow discovery should be repeatable in execution mode.
-                LOGGER.trace("Not marking shadow as tombstone because mode is {}", TaskUtil.getExecutionMode(task));
-            }
-
+            LOGGER.debug("DISCOVERY: the resource object seems to be missing: {}", repoShadow);
             ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
             change.setResource(ctx.getResource().asPrismObject());
             change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
-            change.setObjectDelta(repositoryShadow.asPrismObject().createDeleteDelta());
+            change.setObjectDelta(repoShadow.asPrismObject().createDeleteDelta());
             // Current shadow is a tombstone. This means that the object was deleted. But we need current shadow here.
             // Otherwise the synchronization situation won't be updated because SynchronizationService could think that
             // there is not shadow at all.
-            change.setShadowedResourceObject(repositoryShadow.asPrismObject());
-            change.setSimulate(TaskUtil.isPreview(task));
-            eventDispatcher.notifyChange(change, task, result);
+            change.setShadowedResourceObject(repoShadow.asPrismObject());
+            change.setSimulate(TaskUtil.isPreview(ctx.getTask()));
+            eventDispatcher.notifyChange(change, ctx.getTask(), result);
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 

@@ -47,6 +47,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isDiscoveryAllowed;
+
 /**
  * Context for provisioning operations. Contains key information like resolved resource,
  * object type and/or object class definitions, and so on.
@@ -372,8 +374,13 @@ public class ProvisioningContext {
         return contextFactory.spawnForShadow(this, shadow);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean hasDefinition() {
+        return resourceObjectDefinition != null;
+    }
+
     public void assertDefinition(String message) throws SchemaException {
-        if (resourceObjectDefinition == null) {
+        if (!hasDefinition()) {
             throw new SchemaException(message + " " + getDesc());
         }
     }
@@ -653,5 +660,15 @@ public class ProvisioningContext {
 
     public @NotNull ShadowCheckType getShadowConstraintsCheck() {
         return ResourceTypeUtil.getShadowConstraintsCheck(resource);
+    }
+
+    public boolean shouldDoDiscovery() {
+        return isDiscoveryAllowed(resource)
+                && !GetOperationOptions.isDoNotDiscovery(getOperationOptions);
+    }
+
+    public FetchErrorReportingMethodType getErrorReportingMethod() {
+        return GetOperationOptions.getErrorReportingMethod(
+                SelectorOptions.findRootOptions(getOperationOptions));
     }
 }

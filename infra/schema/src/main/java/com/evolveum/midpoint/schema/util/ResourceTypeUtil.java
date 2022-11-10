@@ -711,4 +711,9 @@ public class ResourceTypeUtil {
     public static boolean doesNeedExpansion(ResourceType resource) {
         return resource.getSuper() != null;
     }
+
+    public static boolean isDiscoveryAllowed(@NotNull ResourceType resource) {
+        ResourceConsistencyType consistency = resource.getConsistency();
+        return consistency == null || !Boolean.FALSE.equals(consistency.isDiscovery());
+    }
 }

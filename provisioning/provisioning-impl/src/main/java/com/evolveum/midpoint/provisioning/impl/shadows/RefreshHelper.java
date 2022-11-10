@@ -472,7 +472,7 @@ class RefreshHelper {
                 result.recordFatalError(e);
                 retryResult.recordFatalError(e);
             } finally {
-                result.computeStatusIfUnknown(); // Status should be set by now, we just want to close the result
+                result.close(); // Status should be set by now, we just want to close the result
             }
 
             objectDeltaOperation.setExecutionResult(result);
@@ -482,16 +482,17 @@ class RefreshHelper {
         RefreshShadowOperation rso = new RefreshShadowOperation();
         rso.setExecutedDeltas(executedDeltas);
         rso.setRefreshedShadow(repoShadow);
-        parentResult.computeStatus();
-
         rso.setRefreshResult(retryResult);
 
         LOGGER.trace("refreshShadowOperation {}", rso.debugDumpLazily());
         return rso;
     }
 
-    private void retryOperation(ProvisioningContext ctx, ObjectDelta<ShadowType> pendingDelta,
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
+    private void retryOperation(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ObjectDelta<ShadowType> pendingDelta,
+            @NotNull ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
@@ -510,7 +511,7 @@ class RefreshHelper {
             if (opState.objectExists()) {
                 //noinspection unchecked
                 modifyHelper.modifyShadowAttempt(ctx, pendingDelta.getModifications(), scripts, options,
-                        (ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>>) opState,
+                        (ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>>) opState,
                         true, result);
             } else {
                 result.recordFatalError("Object does not exist on the resource yet, modification attempt was skipped");

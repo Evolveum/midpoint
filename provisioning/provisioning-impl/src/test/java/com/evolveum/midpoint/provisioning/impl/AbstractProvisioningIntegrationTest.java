@@ -225,7 +225,8 @@ public abstract class AbstractProvisioningIntegrationTest
     protected ShadowAsserter<Void> assertShadowProvisioning(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = createSubresult("assertShadowProvisioning");
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, null, getTestTask(), result);
-        assertSuccess(result);
+        // We may have partial error here.
+        result.close();
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, "provisioning");
         asserter.display();
         return asserter;
