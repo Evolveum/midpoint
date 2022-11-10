@@ -461,10 +461,16 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 target.add(getFeedbackPanel());
                 return;
             }
+
+            SessionStorage sessionStorage = ((MidPointAuthWebSession) getSession()).getSessionStorage();
+            PageStorage storage = sessionStorage.getPageStorageMap().get(storageKey);
+            if (storage == null) {
+                storage = sessionStorage.initPageStorage(storageKey);
+            }
             // TODO add containerable option too
             //noinspection unchecked
             //createSearchConfigWrapper((Class<? extends ObjectType>) request.getType()),
-            Search<?> search = SearchFactory.createSearch(request.getType(),  this);
+            Search<?> search = storage.getSearch() != null ? storage.getSearch() : SearchFactory.createSearch(request.getType(),  this);
             AdvancedQueryWrapper wrapper = new AdvancedQueryWrapper();
             wrapper.setAdvancedQuery(filterAsString);
 //            search.setAdvancedQuery(filterAsString);
@@ -478,11 +484,6 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
                 return;
             }
 
-            SessionStorage sessionStorage = ((MidPointAuthWebSession) getSession()).getSessionStorage();
-            PageStorage storage = sessionStorage.getPageStorageMap().get(storageKey);
-            if (storage == null) {
-                storage = sessionStorage.initPageStorage(storageKey);
-            }
             storage.setSearch(search);
             setResponsePage(listPageClass);
         } catch (CommonException | RuntimeException e) {
