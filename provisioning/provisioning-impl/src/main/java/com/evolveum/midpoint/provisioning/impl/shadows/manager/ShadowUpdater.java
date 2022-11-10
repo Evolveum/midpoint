@@ -367,16 +367,6 @@ class ShadowUpdater {
             }
         }
 
-        // TODO: this is wrong. Provisioning should not change lifecycle states. Just for compatibility. MID-4833
-        if (ctx.shouldUseProposedShadows()) {
-            String currentLifecycleState = repoShadow.getLifecycleState();
-            if (currentLifecycleState != null && !currentLifecycleState.equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
-                shadowModifications.add(
-                        createShadowPropertyReplaceDelta(
-                                repoShadow, ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE));
-            }
-        }
-
         return shadowModifications;
     }
 

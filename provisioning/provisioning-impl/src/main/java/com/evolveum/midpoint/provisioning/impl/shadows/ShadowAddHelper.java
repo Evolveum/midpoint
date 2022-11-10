@@ -356,7 +356,7 @@ class ShadowAddHelper {
 
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
             for (PrismObject<ShadowType> previousDeadShadow : previousDeadShadows) {
-                if (shadowCaretaker.findPreviousPendingLifecycleOperationInGracePeriod(ctx, previousDeadShadow.asObjectable(), now) == ChangeTypeType.DELETE) {
+                if (shadowCaretaker.findPendingLifecycleOperationInGracePeriod(ctx, previousDeadShadow.asObjectable(), now) == ChangeTypeType.DELETE) {
                     return true;
                 }
             }

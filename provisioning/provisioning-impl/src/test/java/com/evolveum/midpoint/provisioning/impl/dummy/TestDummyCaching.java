@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -400,7 +401,8 @@ public class TestDummyCaching extends TestDummy {
     }
 
     @Override
-    protected void checkRepoAccountShadowWill(PrismObject<ShadowType> shadowRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+    protected void checkRepoAccountShadowWill(
+            PrismObject<ShadowType> shadowRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) throws CommonException {
         // Sometimes there are 6 and sometimes 7 attributes. Treasure is not returned by default. It is not normally in the cache.
         // So do not check for number of attributes here. Check for individual values.
         checkRepoAccountShadowWillBasic(shadowRepo, start, end, null);

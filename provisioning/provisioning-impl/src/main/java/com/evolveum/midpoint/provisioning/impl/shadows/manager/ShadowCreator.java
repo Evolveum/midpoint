@@ -88,9 +88,7 @@ class ShadowCreator {
             return;
         }
 
-        // This is wrong: MID-4833
         ShadowType newRepoShadow = createRepositoryShadow(ctx, shadowToAdd);
-        newRepoShadow.setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
         opState.setExecutionStatus(PendingOperationExecutionStatusType.REQUESTED);
         pendingOperationsHelper.addPendingOperationAdd(
                 newRepoShadow, shadowToAdd, opState, ctx.getTask().getTaskIdentifier());

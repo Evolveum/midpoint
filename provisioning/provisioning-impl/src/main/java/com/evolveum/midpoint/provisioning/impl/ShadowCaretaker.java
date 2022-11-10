@@ -19,6 +19,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
+import com.evolveum.midpoint.schema.util.PendingOperationTypeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -248,7 +250,7 @@ public class ShadowCaretaker {
                 continue;
             }
             if (PendingOperationExecutionStatusType.COMPLETED.equals(executionStatus)
-                    && ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
+                    && ProvisioningUtil.isCompletedAndOverPeriod(now, gracePeriod, pendingOperation)) {
                 // Completed operations over grace period. They have already affected current state. They are already "applied".
                 continue;
             }
@@ -315,7 +317,8 @@ public class ShadowCaretaker {
         return sortedList;
     }
 
-    public ChangeTypeType findPreviousPendingLifecycleOperationInGracePeriod(
+    /** Returns {@link ChangeTypeType#ADD}, {@link ChangeTypeType#DELETE}, or null. */
+    public ChangeTypeType findPendingLifecycleOperationInGracePeriod(
             @Nullable ProvisioningContext ctx,
             @NotNull ShadowType shadow,
             @NotNull XMLGregorianCalendar now) {
@@ -332,9 +335,9 @@ public class ShadowCaretaker {
             }
             ChangeTypeType changeType = delta.getChangeType();
             if (ChangeTypeType.MODIFY.equals(changeType)) {
-                continue;
+                continue; // MODIFY is not a lifecycle operation
             }
-            if (ProvisioningUtil.isOverPeriod(now, gracePeriod, pendingOperation)) {
+            if (ProvisioningUtil.isCompletedAndOverPeriod(now, gracePeriod, pendingOperation)) {
                 continue;
             }
             if (changeType == ChangeTypeType.DELETE) {
@@ -348,6 +351,13 @@ public class ShadowCaretaker {
         return found;
     }
 
+    private boolean hasPendingOrExecutingAdd(@NotNull ShadowType shadow) {
+        return shadow.getPendingOperation().stream()
+                .anyMatch(p ->
+                        PendingOperationTypeUtil.isAdd(p)
+                        && PendingOperationTypeUtil.isPendingOrExecuting(p));
+    }
+
     // NOTE: detection of quantum states (gestation, corpse) might not be precise. E.g. the shadow may already be
     // tombstone because it is not in the snapshot. But as long as the pending operation is in grace we will still
     // detect it as corpse. But that should not cause any big problems.
@@ -356,12 +366,16 @@ public class ShadowCaretaker {
         return determineShadowStateInternal(ctx, shadow, clock.currentTimeXMLGregorianCalendar());
    }
 
-    /** If emergency situations the context can be null. */
+    /**
+     * Determines the shadow lifecycle state according to https://docs.evolveum.com/midpoint/reference/resources/shadow/dead/.
+     *
+     * @param ctx Used to know the grace period. In emergency situations it can be null.
+     */
     private @NotNull ShadowLifecycleStateType determineShadowStateInternal(
             @Nullable ProvisioningContext ctx,
             @NotNull ShadowType shadow,
             @NotNull XMLGregorianCalendar now) {
-        ChangeTypeType pendingLifecycleOperation = findPreviousPendingLifecycleOperationInGracePeriod(ctx, shadow, now);
+        ChangeTypeType pendingLifecycleOperation = findPendingLifecycleOperationInGracePeriod(ctx, shadow, now);
         if (ShadowUtil.isDead(shadow)) {
             if (pendingLifecycleOperation == ChangeTypeType.DELETE) {
                 return ShadowLifecycleStateType.CORPSE;
@@ -378,12 +392,10 @@ public class ShadowCaretaker {
                 return ShadowLifecycleStateType.LIVE;
             }
         }
-        // FIXME This is wrong. Lifecycle is used for two independent purposes, see MID-4833.
-        // TODO we should use pending ADD instead
-        if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())) {
-            return ShadowLifecycleStateType.PROPOSED;
-        } else {
+        if (hasPendingOrExecutingAdd(shadow)) {
             return ShadowLifecycleStateType.CONCEIVED;
+        } else {
+            return ShadowLifecycleStateType.PROPOSED;
         }
     }
 

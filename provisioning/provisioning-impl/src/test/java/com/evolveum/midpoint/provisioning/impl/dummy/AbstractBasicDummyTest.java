@@ -35,7 +35,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.*;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -75,7 +75,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
@@ -1452,7 +1451,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     }
 
     protected void checkRepoAccountShadowWillBasic(PrismObject<ShadowType> accountRepo,
-            XMLGregorianCalendar start, XMLGregorianCalendar end, Integer expectedNumberOfAttributes) {
+            XMLGregorianCalendar start, XMLGregorianCalendar end, Integer expectedNumberOfAttributes) throws CommonException {
         display("Will account repo", accountRepo);
         ShadowType accountTypeRepo = accountRepo.asObjectable();
         assertShadowName(accountRepo, ACCOUNT_WILL_USERNAME);
@@ -1480,16 +1479,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         }
     }
 
-    // FIXME MID-4833
-    private boolean isProposedShadow(PrismObject<ShadowType> shadow) {
-        String lifecycleState = shadow.asObjectable().getLifecycleState();
-        if (lifecycleState == null) {
-            return false;
-        }
-        return SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState);
+    private boolean isProposedShadow(PrismObject<ShadowType> shadow) throws CommonException {
+        provisioningService.determineShadowState(shadow, getTestTask(), getTestOperationResult());
+        return shadow.asObjectable().getShadowLifecycleState() == ShadowLifecycleStateType.PROPOSED;
     }
 
-    protected void checkRepoAccountShadowWill(PrismObject<ShadowType> accountRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+    protected void checkRepoAccountShadowWill(
+            PrismObject<ShadowType> accountRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) throws CommonException {
         checkRepoAccountShadowWillBasic(accountRepo, start, end, 2);
         assertRepoShadowCacheActivation(accountRepo, null);
     }

@@ -487,7 +487,8 @@ public class ProvisioningUtil {
         return period;
     }
 
-    public static boolean isOverPeriod(XMLGregorianCalendar now, Duration period, PendingOperationType pendingOperation) {
+    public static boolean isCompletedAndOverPeriod(
+            XMLGregorianCalendar now, Duration period, PendingOperationType pendingOperation) {
         if (!isCompleted(pendingOperation.getResultStatus())) {
             return false;
         }
@@ -527,7 +528,9 @@ public class ProvisioningUtil {
     }
 
     public static boolean isCompleted(OperationResultStatusType statusType) {
-        return statusType != null && statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
+        return statusType != null
+                && statusType != OperationResultStatusType.IN_PROGRESS
+                && statusType != OperationResultStatusType.UNKNOWN;
     }
 
     public static boolean hasPendingAddOperation(ShadowType shadow) {

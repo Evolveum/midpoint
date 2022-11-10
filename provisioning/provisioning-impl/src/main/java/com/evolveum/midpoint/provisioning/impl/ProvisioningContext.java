@@ -590,11 +590,13 @@ public class ProvisioningContext {
 
     // Methods delegated to shadow caretaker (convenient to be here, but not sure if it's ok...)
 
+    /** Beware! Creates a new context based on the shadow kind/intent/OC. */
     public ProvisioningContext applyAttributesDefinition(@NotNull PrismObject<ShadowType> shadow)
             throws SchemaException, ConfigurationException {
         return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
     }
 
+    /** Beware! Creates a new context based on the shadow kind/intent/OC. */
     public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
         return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
