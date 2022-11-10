@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import java.util.*;
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -19,21 +24,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Objects;
-
 /**
  * TODO unify with PrettyPrinter somehow
  */
 public class ValueDisplayUtil {
 
     public static PolyString toStringValue(PrismPropertyValue propertyValue) {
-        if (propertyValue == null || propertyValue.getValue() == null){
+        if (propertyValue == null || propertyValue.getValue() == null) {
             return null;
         }
         return toStringValue(propertyValue.getValue());
@@ -46,14 +43,23 @@ public class ValueDisplayUtil {
             return poly;
         }
 
+        PolyStringTranslationType translation = createTranslation(key, orig, params);
+        poly.setTranslation(translation);
+
+        return poly;
+    }
+
+    private static PolyStringTranslationType createTranslation(String key, String fallback, Object... params) {
         PolyStringTranslationType translation = new PolyStringTranslationType();
         translation.setKey(key);
-        translation.fallback(orig);
+        translation.fallback(fallback);
         Arrays.stream(params).forEach(param -> {
 
             PolyStringTranslationArgumentType arg;
             if (param instanceof PolyStringTranslationArgumentType) {
                 arg = (PolyStringTranslationArgumentType) param;
+            } else if (param instanceof PolyStringTranslationType) {
+                arg = new PolyStringTranslationArgumentType((PolyStringTranslationType) param);
             } else {
                 String argKey = Objects.toString(param);
                 arg = new PolyStringTranslationArgumentType(argKey);
@@ -62,9 +68,7 @@ public class ValueDisplayUtil {
             translation.getArgument().add(arg);
         });
 
-        poly.setTranslation(translation);
-
-        return poly;
+        return translation;
     }
 
     private static String calendarToStringValue(XMLGregorianCalendar calendar) {
@@ -128,46 +132,7 @@ public class ValueDisplayUtil {
             return createPolyString(value.toString(), value.getClass().getSimpleName() + "." + ((Enum<?>) value).name());
         } else if (value instanceof ResourceAttributeDefinitionType) {
             ResourceAttributeDefinitionType radt = (ResourceAttributeDefinitionType) value;
-            ItemPathType ref = radt.getRef();
-            String path;
-            if (ref != null) {
-                path = ref.getItemPath().toString();
-            } else {
-                path = "(null)";
-            }
-            StringBuilder sb = new StringBuilder();
-            MappingType mappingType = radt.getOutbound();
-            if (mappingType != null) {
-                if (mappingType.getExpression() == null) {
-                    sb.append("Empty mapping for ").append(path);
-                } else {
-                    sb.append(path).append(" = ");
-                    boolean first = true;
-                    for (JAXBElement<?> evaluator : mappingType.getExpression().getExpressionEvaluator()) {
-                        if (first) {
-                            first = false;
-                        } else {
-                            sb.append(", ");
-                        }
-                        if (QNameUtil.match(SchemaConstants.C_VALUE, evaluator.getName()) && evaluator.getValue() instanceof RawType) {
-                            RawType raw = (RawType) evaluator.getValue();
-                            try {
-                                sb.append(raw.extractString("(a complex value)"));
-                            } catch (RuntimeException e) {
-                                sb.append("(an invalid value)");
-                            }
-                        } else {
-                            sb.append("(a complex expression)");
-                        }
-                    }
-                }
-                if (mappingType.getStrength() != null) {
-                    sb.append(" (").append(mappingType.getStrength().value()).append(")");
-                }
-            } else {
-                sb.append("Empty mapping for ").append(path);
-            }
-            return new PolyString(sb.toString()); // todo fix
+            return resourceAttributeDefinitionTypeToString(radt);
         } else if (value instanceof QName) {
             QName qname = (QName) value;
             return new PolyString(qname.getLocalPart());
@@ -227,6 +192,97 @@ public class ValueDisplayUtil {
         }
     }
 
+    private static PolyString resourceAttributeDefinitionTypeToString(ResourceAttributeDefinitionType radt) {
+        ItemPathType ref = radt.getRef();
+        String path;
+
+        PolyStringTranslationArgumentType pathArg;
+        if (ref != null) {
+            path = ref.getItemPath().toString();
+            pathArg = new PolyStringTranslationArgumentType(path);
+        } else {
+            path = "(null)";
+            pathArg = new PolyStringTranslationArgumentType(
+                    new PolyStringTranslationType()
+                            .key("ValueDisplayUtil.nullPath")
+                            .fallback(path)
+            );
+        }
+
+        StringBuilder sb = new StringBuilder();
+        MappingType mappingType = radt.getOutbound();
+
+        if (mappingType == null || mappingType.getExpression() == null) {
+            sb.append("Empty mapping for ").append(path);
+
+            PolyStringTranslationArgumentType strengthArg = new PolyStringTranslationArgumentType("");
+            if (mappingType.getStrength() != null) {
+                String strength = " (" + mappingType.getStrength().value() + ")";
+                sb.append(strength);
+                strengthArg = new PolyStringTranslationArgumentType(
+                        createTranslation("ValueDisplayUtil.mappingStrength", strength,
+                                MappingStrengthType.class.getSimpleName() + "." + mappingType.getStrength().value())
+                );
+            }
+
+            return createPolyString(sb.toString(), "ValueDisplayUtil.emptyMapping", pathArg, strengthArg);
+        }
+
+        PolyStringTranslationArgumentType arg = null;
+        PolyStringTranslationArgumentType childArg = null;
+
+        sb.append(path).append(" = ");
+        boolean first = true;
+        for (JAXBElement<?> evaluator : mappingType.getExpression().getExpressionEvaluator()) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(", ");
+            }
+
+            if (arg == null) {
+                 childArg = createExpressionEvaluatorArg(evaluator, sb, null);
+                 arg = childArg;
+            } else {
+                childArg = createExpressionEvaluatorArg(evaluator, sb, childArg);
+            }
+        }
+
+        if (childArg.getTranslation() != null) {
+            childArg.getTranslation().getArgument().add(new PolyStringTranslationArgumentType(""));
+        }
+
+        return createPolyString(sb.toString(), "ValueDisplayUtil.resourceAttributeDefinition", pathArg, arg);
+    }
+
+    private static PolyStringTranslationArgumentType createExpressionEvaluatorArg(JAXBElement<?> evaluator, StringBuilder sb, PolyStringTranslationArgumentType parent) {
+        PolyStringTranslationArgumentType child;
+        if (QNameUtil.match(SchemaConstants.C_VALUE, evaluator.getName()) && evaluator.getValue() instanceof RawType) {
+            RawType raw = (RawType) evaluator.getValue();
+            try {
+                String rawString = raw.extractString("(a complex value)");
+                sb.append(rawString);
+                child = new PolyStringTranslationArgumentType(createTranslation(rawString, rawString));
+            } catch (RuntimeException e) {
+                String invalid = "(an invalid value)";
+                sb.append(invalid);
+                child = new PolyStringTranslationArgumentType(createTranslation("ValueDisplayUtil.invalidValue", invalid));
+            }
+        } else {
+            String complex = "(a complex expression)";
+            sb.append(complex);
+            child = new PolyStringTranslationArgumentType(createTranslation("ValueDisplayUtil.complexExpression", complex));
+        }
+
+        if (parent == null) {
+            return child;
+        }
+
+        parent.getTranslation().getArgument().add(child);
+
+        return child;
+    }
+
     public static String toStringValue(PrismReferenceValue ref) {
         String rv = getReferredObjectInformation(ref);
         if (ref.getRelation() != null) {
@@ -239,7 +295,7 @@ public class ValueDisplayUtil {
         if (ref.getObject() != null) {
             return ref.getObject().toString();
         } else {
-            return (ref.getTargetType() != null ? ref.getTargetType().getLocalPart()+":" : "")
+            return (ref.getTargetType() != null ? ref.getTargetType().getLocalPart() + ":" : "")
                     + (ref.getTargetName() != null ? ref.getTargetName() : ref.getOid());
         }
     }
