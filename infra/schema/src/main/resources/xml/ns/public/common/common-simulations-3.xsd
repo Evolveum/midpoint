@@ -47,6 +47,7 @@
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="metric" type="tns:SimulationMetricType" maxOccurs="unbounded"/>
+                    <xsd:element name="processedObject" type="tns:SimulationResultProcessedObjectType" maxOccurs="unbounded" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -57,6 +58,53 @@
     </xsd:complexType>
     
     <xsd:complexType name="SimulationResultProcessedObjectType">
+       <xsd:sequence>
+          <xsd:element name="oid" type="xsd:string" />
+          <xsd:element name="type" type="xsd:QName" />
+          <xsd:element name="name" type="t:PolyStringType" />
+          <xsd:element name="state" type="tns:ObjectProcessingStateType" />
+       </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="ObjectProcessingStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="unmodified">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNMODIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="added">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="modified">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MODIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="deleted">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>

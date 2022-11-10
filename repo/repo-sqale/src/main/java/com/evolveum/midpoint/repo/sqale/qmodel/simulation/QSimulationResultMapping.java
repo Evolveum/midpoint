@@ -4,6 +4,7 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.qmodel.object.QObjectMapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
@@ -40,5 +41,10 @@ public class QSimulationResultMapping extends QObjectMapping<SimulationResultTyp
     @Override
     public MSimulationResult newRowObject() {
         return new MSimulationResult();
+    }
+
+    @Override
+    protected PathSet fullObjectItemsToSkip() {
+        return PathSet.of(SimulationResultType.F_PROCESSED_OBJECT);
     }
 }
