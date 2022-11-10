@@ -30,7 +30,9 @@ public class BasicSettingResourceObjectTypeStepPanel extends AbstractValueFormRe
 
     public static final String PANEL_TYPE = "rw-type-basic";
 
-    public BasicSettingResourceObjectTypeStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
+    public BasicSettingResourceObjectTypeStepPanel(
+            ResourceDetailsModel model,
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
         super(model, newValueModel);
     }
 

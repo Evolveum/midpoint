@@ -9,19 +9,17 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
@@ -32,11 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 @Experimental
 public class AssociationsWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
 
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
-
-    public AssociationsWizardPanel(String id, ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, model);
-        this.valueModel = valueModel;
+    public AssociationsWizardPanel(String id, ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> helper) {
+        super(id, helper);
     }
 
     protected void initLayout() {
@@ -44,60 +39,14 @@ public class AssociationsWizardPanel extends AbstractResourceWizardPanel<Resourc
     }
 
     protected AssociationsTableWizardPanel createTablePanel() {
-        return new AssociationsTableWizardPanel(getIdOfChoicePanel(), getResourceModel(), valueModel) {
-
-            @Override
-            protected void onSaveResourcePerformed(AjaxRequestTarget target) {
-                if (!isSavedAfterWizard()) {
-                    onExitPerformed(target);
-                    return;
-                }
-                OperationResult result = AssociationsWizardPanel.this.onSaveResourcePerformed(target);
-                if (result != null && !result.isError()) {
-                    new Toast()
-                            .success()
-                            .title(getString("ResourceWizardPanel.updateResource"))
-                            .icon("fas fa-circle-check")
-                            .autohide(true)
-                            .delay(5_000)
-                            .body(getString("ResourceWizardPanel.updateResource.text")).show(target);
-                    onExitPerformed(target);
-                }
-            }
-
-            @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                super.onExitPerformed(target);
-                AssociationsWizardPanel.this.onExitPerformed(target);
-            }
-
-            @Override
-            protected IModel<String> getSubmitLabelModel() {
-                if (isSavedAfterWizard()) {
-                    return super.getSubmitLabelModel();
-                }
-                return getPageBase().createStringResource("WizardPanel.confirm");
-            }
-
+        return new AssociationsTableWizardPanel(getIdOfChoicePanel(), getHelper()) {
             @Override
             protected void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> value, AjaxRequestTarget target) {
                 showWizardFragment(target, new WizardPanel(
                         getIdOfWizardPanel(),
                         new WizardModel(createAssociationsSteps(value))));
             }
-
-            @Override
-            protected String getSubmitIcon() {
-                if (isSavedAfterWizard()) {
-                    return super.getSubmitIcon();
-                }
-                return "fa fa-check";
-            }
         };
-    }
-
-    public IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> getValueModel() {
-        return valueModel;
     }
 
     private List<WizardStep> createAssociationsSteps(IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> valueModel) {
@@ -114,9 +63,5 @@ public class AssociationsWizardPanel extends AbstractResourceWizardPanel<Resourc
         steps.add(panel);
 
         return steps;
-    }
-
-    protected boolean isSavedAfterWizard() {
-        return true;
     }
 }

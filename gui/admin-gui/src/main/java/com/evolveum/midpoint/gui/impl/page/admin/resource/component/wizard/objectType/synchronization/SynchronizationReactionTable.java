@@ -6,6 +6,13 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
@@ -17,20 +24,11 @@ import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.model.IModel;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lskublik
@@ -41,12 +39,6 @@ public abstract class SynchronizationReactionTable extends AbstractResourceWizar
             String id,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         super(id, valueModel, SynchronizationReactionType.class);
-    }
-
-    protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
-        PrismContainerWrapper<SynchronizationReactionType> container = getContainerModel().getObject();
-        PrismContainerValue<SynchronizationReactionType> newReaction = container.getItem().createNewValue();
-        return createNewItemContainerValueWrapper(newReaction, container, target);
     }
 
     @Override

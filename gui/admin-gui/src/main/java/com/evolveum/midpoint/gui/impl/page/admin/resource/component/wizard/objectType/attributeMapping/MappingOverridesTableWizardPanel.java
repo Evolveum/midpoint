@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
@@ -21,18 +21,14 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public abstract class MappingOverridesTableWizardPanel extends AbstractWizardBasicPanel {
+public abstract class MappingOverridesTableWizardPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
 
     private static final String ID_TABLE = "table";
 
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
-
     public MappingOverridesTableWizardPanel(
             String id,
-            ResourceDetailsModel model,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, model);
-        this.valueModel = valueModel;
+            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> superHelper) {
+        super(id, superHelper);
     }
 
     @Override
@@ -43,7 +39,7 @@ public abstract class MappingOverridesTableWizardPanel extends AbstractWizardBas
 
     private void initLayout() {
 
-        MappingOverrideTable table = new MappingOverrideTable(ID_TABLE, valueModel) {
+        MappingOverrideTable table = new MappingOverrideTable(ID_TABLE, getValueModel()) {
             @Override
             protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> rowModel, List<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> listItems) {
                 inEditNewValue(rowModel, target);
@@ -55,26 +51,18 @@ public abstract class MappingOverridesTableWizardPanel extends AbstractWizardBas
     }
 
     @Override
-    protected void onSubmitPerformed(AjaxRequestTarget target) {
-        if (getTable().isValidFormComponents(target)) {
-            onSaveResourcePerformed(target);
-        }
-    }
-
-    @Override
-    protected boolean isSubmitButtonVisible() {
-        return true;
+    protected boolean isValid(AjaxRequestTarget target) {
+        return getTable().isValidFormComponents(target);
     }
 
     protected MappingOverrideTable getTable() {
         return (MappingOverrideTable) get(ID_TABLE);
     }
 
-    protected IModel<String> getSubmitLabelModel() {
-        return getPageBase().createStringResource("MappingOverridesTableWizardPanel.saveButton");
+    @Override
+    protected String getSaveLabelKey() {
+        return "MappingOverridesTableWizardPanel.saveButton";
     }
-
-    protected abstract void onSaveResourcePerformed(AjaxRequestTarget target);
 
     protected abstract void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> value, AjaxRequestTarget target);
 

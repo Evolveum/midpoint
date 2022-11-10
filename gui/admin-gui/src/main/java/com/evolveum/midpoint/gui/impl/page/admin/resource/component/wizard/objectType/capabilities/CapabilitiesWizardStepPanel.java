@@ -6,35 +6,27 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.capabilities;
 
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.CapabilitiesPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
  */
 @Experimental
-public abstract class CapabilitiesWizardStepPanel extends AbstractWizardBasicPanel {
+public abstract class CapabilitiesWizardStepPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
 
     private static final String ID_PANEL = "panel";
 
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
-
     public CapabilitiesWizardStepPanel(
             String id,
-            ResourceDetailsModel model,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, model);
-        this.valueModel = valueModel;
+            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> superHelper) {
+        super(id, superHelper);
     }
 
     @Override
@@ -44,26 +36,15 @@ public abstract class CapabilitiesWizardStepPanel extends AbstractWizardBasicPan
     }
 
     private void initLayout() {
-        CapabilitiesPanel panel = new CapabilitiesPanel(ID_PANEL, getResourceModel(), valueModel);
+        CapabilitiesPanel panel = new CapabilitiesPanel(ID_PANEL, getResourceModel(), getValueModel());
         panel.setOutputMarkupId(true);
         add(panel);
     }
 
-    protected IModel<String> getSubmitLabelModel() {
-        return getPageBase().createStringResource("CapabilitiesWizardStepPanel.saveButton");
-    }
-
     @Override
-    protected boolean isSubmitButtonVisible() {
-        return true;
+    protected String getSaveLabelKey() {
+        return "CapabilitiesWizardStepPanel.saveButton";
     }
-
-    @Override
-    protected void onSubmitPerformed(AjaxRequestTarget target) {
-        onSaveResourcePerformed(target);
-    }
-
-    protected abstract void onSaveResourcePerformed(AjaxRequestTarget target);
 
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {

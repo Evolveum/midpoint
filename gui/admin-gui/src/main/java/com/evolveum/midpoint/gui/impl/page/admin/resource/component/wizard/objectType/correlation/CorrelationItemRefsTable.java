@@ -66,12 +66,6 @@ public class CorrelationItemRefsTable extends AbstractResourceWizardTable<Correl
             List<PrismContainerValueWrapper<CorrelationItemType>> listItems) {
     }
 
-    protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
-        PrismContainerWrapper<CorrelationItemType> container = getContainerModel().getObject();
-        PrismContainerValue<CorrelationItemType> newReaction = container.getItem().createNewValue();
-        return createNewItemContainerValueWrapper(newReaction, container, target);
-    }
-
     @Override
     protected List<InlineMenuItem> createInlineMenu() {
         return Collections.singletonList(createDeleteItemMenu());

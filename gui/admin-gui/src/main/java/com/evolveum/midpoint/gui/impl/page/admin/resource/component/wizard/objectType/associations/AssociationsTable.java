@@ -12,7 +12,6 @@ import java.util.List;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.model.IModel;
 
@@ -22,7 +21,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -38,12 +36,6 @@ public abstract class AssociationsTable extends AbstractResourceWizardTable<Reso
             String id,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         super(id, valueModel, ResourceObjectAssociationType.class);
-    }
-
-    protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
-        PrismContainerWrapper<ResourceObjectAssociationType> container = getContainerModel().getObject();
-        PrismContainerValue<ResourceObjectAssociationType> newReaction = container.getItem().createNewValue();
-        return createNewItemContainerValueWrapper(newReaction, container, target);
     }
 
     @Override

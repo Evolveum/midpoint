@@ -55,22 +55,22 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
             @Override
             protected PrismContainerValueWrapper<Con> load() {
-                PrismContainerWrapperModel<T, Con> model1
+                PrismContainerWrapperModel<T, Con> model
                         = PrismContainerWrapperModel.fromContainerValueWrapper(
                         parentValue,
                         itemName);
-                if (model1.getObject().getValues().isEmpty()) {
+                if (model.getObject().getValues().isEmpty()) {
                     try {
-                        PrismContainerValue<Con> newItem = model1.getObject().getItem().createNewValue();
+                        PrismContainerValue<Con> newItem = model.getObject().getItem().createNewValue();
                         PrismContainerValueWrapper<Con> newItemWrapper = WebPrismUtil.createNewValueWrapper(
-                                model1.getObject(), newItem, getPageBase());
-                        model1.getObject().getValues().add(newItemWrapper);
+                                model.getObject(), newItem, getPageBase());
+                        model.getObject().getValues().add(newItemWrapper);
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't create new value for limitation container", e);
                         return null;
                     }
                 }
-                PrismContainerValueWrapper<Con> newItemWrapper = model1.getObject().getValues().get(0);
+                PrismContainerValueWrapper<Con> newItemWrapper = model.getObject().getValues().get(0);
                 newItemWrapper.setExpanded(true);
                 newItemWrapper.setShowEmpty(true);
                 return newItemWrapper;

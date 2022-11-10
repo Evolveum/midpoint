@@ -308,28 +308,4 @@ public class AttributeMappingItemPathPanelFactory extends ItemPathPanelFactory i
             return help;
         }
     }
-
-    @Override
-    public void configure(PrismPropertyPanelContext<ItemPathType> panelCtx, org.apache.wicket.Component component) {
-        if (!(component instanceof InputPanel)) {
-            panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(component));
-            return;
-        }
-        InputPanel panel = (InputPanel) component;
-        final List<FormComponent> formComponents = panel.getFormComponents();
-        for (FormComponent<ItemPathType> formComponent : formComponents) {
-            PrismPropertyWrapper<ItemPathType> propertyWrapper = panelCtx.unwrapWrapperModel();
-            IModel<String> label = LambdaModel.of(propertyWrapper::getDisplayName);
-            formComponent.setLabel(label);
-            if (panelCtx.isMandatory()) {
-                formComponent.add(new NotNullValidator<>("Required"));
-            }
-            formComponent.add(panelCtx.getAjaxEventBehavior());
-            formComponent.add(panelCtx.getVisibleEnableBehavior());
-        }
-
-        panel.getValidatableComponent().add(panelCtx.getExpressionValidator());
-        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getValidatableComponent()));
-    }
-
 }

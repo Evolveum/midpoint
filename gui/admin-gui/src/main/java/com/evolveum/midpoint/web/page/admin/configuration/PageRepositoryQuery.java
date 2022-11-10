@@ -462,20 +462,21 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             }
             // TODO add containerable option too
             //noinspection unchecked
-            Search<?> search = SearchFactory.createSearch(createSearchConfigWrapper((Class<? extends ObjectType>) request.getType()), this);
+            SessionStorage sessionStorage = ((MidPointAuthWebSession) getSession()).getSessionStorage();
+            PageStorage storage = sessionStorage.getPageStorageMap().get(storageKey);
+            if (storage == null) {
+                storage = sessionStorage.initPageStorage(storageKey);
+            }
+
+            Search<?> search = storage.getSearch() != null ? storage.getSearch() :
+                    SearchFactory.createSearch(new SearchConfigurationWrapper<>((Class<? extends ObjectType>) request.getType(), PageRepositoryQuery.this), this);
             search.setAdvancedQuery(filterAsString);
-//            search.setSearchType(SearchBoxModeType.ADVANCED);
+            search.setSearchMode(SearchBoxModeType.ADVANCED);
             if (!search.isAdvancedQueryValid(getPrismContext())) {
                 // shouldn't occur because the query was already parsed
                 error("Query is not valid: " + search.getAdvancedError());
                 target.add(getFeedbackPanel());
                 return;
-            }
-
-            SessionStorage sessionStorage = ((MidPointAuthWebSession) getSession()).getSessionStorage();
-            PageStorage storage = sessionStorage.getPageStorageMap().get(storageKey);
-            if (storage == null) {
-                storage = sessionStorage.initPageStorage(storageKey);
             }
             storage.setSearch(search);
             setResponsePage(listPageClass);
@@ -630,13 +631,5 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             }
         }
         return sb.toString();
-    }
-
-    private SearchConfigurationWrapper createSearchConfigWrapper(Class<? extends ObjectType> type) {
-        SearchBoxConfigurationType config = new SearchBoxConfigurationType();
-        config.getAllowedMode().add(SearchBoxModeType.ADVANCED);
-        config.setDefaultMode(SearchBoxModeType.ADVANCED);
-        //todo fix
-        return new SearchConfigurationWrapper(type, PageRepositoryQuery.this);
     }
 }

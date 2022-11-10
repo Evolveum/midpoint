@@ -62,12 +62,6 @@ public abstract class CorrelationItemsTable extends AbstractResourceWizardTable<
         super(id, valueModel, ItemsSubCorrelatorType.class);
     }
 
-    protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
-        PrismContainerWrapper<ItemsSubCorrelatorType> container = getContainerModel().getObject();
-        PrismContainerValue<ItemsSubCorrelatorType> newReaction = container.getItem().createNewValue();
-        return createNewItemContainerValueWrapper(newReaction, container, target);
-    }
-
     @Override
     protected IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> getContainerModel() {
         return PrismContainerWrapperModel.fromContainerValueWrapper(
@@ -89,7 +83,7 @@ public abstract class CorrelationItemsTable extends AbstractResourceWizardTable<
                 reactionDef,
                 ItemsSubCorrelatorType.F_NAME,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()){
+                getPageBase()) {
             @Override
             public String getCssClass() {
                 return "col-2";
@@ -107,7 +101,7 @@ public abstract class CorrelationItemsTable extends AbstractResourceWizardTable<
                 ItemsSubCorrelatorType realValue = (ItemsSubCorrelatorType) rowModel.getObject().getParent().getRealValue();
                 StringBuilder items = new StringBuilder();
                 String prefix = "";
-                for (CorrelationItemType item : realValue.getItem()){
+                for (CorrelationItemType item : realValue.getItem()) {
                     if (item != null && item.getRef() != null) {
                         items.append(prefix).append(item.getRef().toString());
                     }
@@ -140,7 +134,6 @@ public abstract class CorrelationItemsTable extends AbstractResourceWizardTable<
                 };
                 return panel;
             }
-
 
             @Override
             public String getCssClass() {
@@ -180,7 +173,7 @@ public abstract class CorrelationItemsTable extends AbstractResourceWizardTable<
                         ItemsSubCorrelatorType.F_COMPOSITION,
                         CorrelatorCompositionDefinitionType.F_IGNORE_IF_MATCHED_BY),
                 AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()){
+                getPageBase()) {
             @Override
             protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
                 IModel<Collection<String>> multiselectModel = new IModel<>() {
