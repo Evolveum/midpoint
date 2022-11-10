@@ -822,8 +822,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
-                SchemaConstants.LIFECYCLE_PROPOSED);
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_PROPOSED);
 
         loginJackGoodPasswordExpectDenied();
     }

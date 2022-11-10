@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
-import com.evolveum.midpoint.provisioning.api.Resource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -251,8 +250,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
             throws CommonException {
         List<PrismObject<ShadowType>> objects = provisioningService.searchObjects(
                 ShadowType.class,
-                Resource.of(DUMMY_RESOURCE_SOURCE.getObjectable())
-                        .accountDefaultObjectsQuery(SchemaConstants.ICFS_NAME, name),
+                accountDefaultObjectsQuery(DUMMY_RESOURCE_SOURCE, SchemaConstants.ICFS_NAME, name),
                 null,
                 task,
                 result);

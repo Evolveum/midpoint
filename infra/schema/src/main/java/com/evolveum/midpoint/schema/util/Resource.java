@@ -5,17 +5,18 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.provisioning.api;
+package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.QueryItemDefinitionResolver;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -27,7 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -35,6 +35,20 @@ import java.util.List;
 
 /**
  * "One stop shop" for accessing various aspects of a resource (defined by {@link ResourceType} object).
+ *
+ * Currently used for:
+ *
+ * - accessing the schema,
+ * - creating queries.
+ *
+ * Resides as low as in `schema` module, because it is used also in AbstractIntegrationTest class.
+ * This limits the functionality provided, though.
+ *
+ * Open questions:
+ *
+ * - Should we change the name to reflect that it is more schema-oriented?
+ * - Should we merge this class e.g. with {@link ResourceSchema}? Or {@link ResourceTypeUtil}?
+ * - Should we add more functionality here and move back to `provisioning-api`?
  *
  * HIGHLY EXPERIMENTAL (maybe not a good idea at all)
  */
@@ -96,39 +110,10 @@ public class Resource {
                 .and().item(ShadowType.F_OBJECT_CLASS).eq(objectClassName);
     }
 
-    // Beware, no kind/intent/OC filter is set here.
+    // Beware, no kind/intent/OC filter is set here. Must be private.
     private S_FilterExit queryFor(@NotNull ResourceObjectDefinition objectDefinition) {
         return PrismContext.get().queryFor(ShadowType.class, new ResourceItemDefinitionResolver(objectDefinition))
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceBean.getOid());
-    }
-
-    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. TODO better name? */
-    @VisibleForTesting
-    public @NotNull S_MatchingRuleEntry queryForAccountDefault() throws SchemaException, ConfigurationException {
-        return queryFor(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-    }
-
-    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. TODO better name? */
-    @VisibleForTesting
-    public ObjectQuery allAccountDefaultObjectsQuery() throws SchemaException, ConfigurationException {
-        return queryForAccountDefault()
-                .build();
-    }
-
-    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. TODO better name? */
-    @VisibleForTesting
-    public ObjectQuery accountDefaultObjectsQuery(QName attributeName, Object attributeValue)
-            throws SchemaException, ConfigurationException {
-        return queryForAccountDefault()
-                .and().item(ShadowType.F_ATTRIBUTES, attributeName).eq(attributeValue)
-                .build();
-    }
-
-    @VisibleForTesting
-    public @NotNull ResourceObjectDefinition getDefaultAccountDefinitionRequired()
-            throws SchemaException, ConfigurationException {
-        return getCompleteSchemaRequired()
-                .findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
     }
 
     private static class ResourceItemDefinitionResolver implements QueryItemDefinitionResolver {

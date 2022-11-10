@@ -540,11 +540,9 @@ public class ProvisioningContext {
                 getObjectDefinitionRequired());
     }
 
-    public void validateSchema(ShadowType shadow)
-            throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public void validateSchemaIfConfigured(ShadowType shadow) throws SchemaException {
         if (ResourceTypeUtil.isValidateSchema(resource)) {
-            ShadowUtil.validateAttributeSchema(shadow, getObjectDefinition());
+            ShadowUtil.validateAttributeSchema(shadow, resourceObjectDefinition);
         }
     }
 
@@ -592,16 +590,21 @@ public class ProvisioningContext {
 
     // Methods delegated to shadow caretaker (convenient to be here, but not sure if it's ok...)
 
+    /** Beware! Creates a new context based on the shadow kind/intent/OC. */
     public ProvisioningContext applyAttributesDefinition(@NotNull PrismObject<ShadowType> shadow)
             throws SchemaException, ConfigurationException {
-        return getCaretaker().applyAttributesDefinition(this, shadow);
+        return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
     }
 
+    /** Beware! Creates a new context based on the shadow kind/intent/OC. */
     public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
-        return getCaretaker().applyAttributesDefinition(this, shadow);
+        return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
     }
 
+    /**
+     * Beware! For shadows being added, this method creates a separate (child) provisioning context.
+     */
     public void applyAttributesDefinition(@NotNull ObjectDelta<ShadowType> delta)
             throws SchemaException, ConfigurationException {
         getCaretaker().applyAttributesDefinition(this, delta);

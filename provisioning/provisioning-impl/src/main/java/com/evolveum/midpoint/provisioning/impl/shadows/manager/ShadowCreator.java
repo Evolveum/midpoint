@@ -75,16 +75,12 @@ class ShadowCreator {
         return repoShadow;
     }
 
-    void addNewProposedShadowIfNeeded(
+    void addNewProposedShadow(
             ProvisioningContext ctx,
             ShadowType shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
-
-        if (!ctx.shouldUseProposedShadows()) {
-            return;
-        }
 
         ShadowType existingRepoShadow = opState.getRepoShadow();
         if (existingRepoShadow != null) {
@@ -92,9 +88,7 @@ class ShadowCreator {
             return;
         }
 
-        // This is wrong: MID-4833
         ShadowType newRepoShadow = createRepositoryShadow(ctx, shadowToAdd);
-        newRepoShadow.setLifecycleState(SchemaConstants.LIFECYCLE_PROPOSED);
         opState.setExecutionStatus(PendingOperationExecutionStatusType.REQUESTED);
         pendingOperationsHelper.addPendingOperationAdd(
                 newRepoShadow, shadowToAdd, opState, ctx.getTask().getTaskIdentifier());

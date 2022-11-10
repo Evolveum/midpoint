@@ -45,7 +45,6 @@ import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -59,7 +58,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
- * Helps with the `add` operation.
+ * Helps with the `add` operation. Wraps {@link AddOperation}, providing code to invoke it neatly via
+ * {@link #executeAddShadowAttempt(ProvisioningContext, ShadowType, OperationProvisioningScriptsType, ProvisioningOperationState,
+ * ProvisioningOperationOptions, OperationResult)} method.
+ *
+ * (Unlike {@link ShadowGetOperation} and {@link ShadowSearchLikeOperation}, the "add" operation is called from other
+ * parts of the shadows package. Hence the need.)
  */
 @Experimental
 @Component
@@ -147,6 +151,7 @@ class ShadowAddHelper {
         }
     }
 
+    // TODO why not call this right from the AddOperation execution?
     void notifyAfterAdd(
             ProvisioningContext ctx,
             ShadowType addedShadow,
@@ -195,23 +200,18 @@ class ShadowAddHelper {
                 ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
                 ExpressionEvaluationException, EncryptionException {
 
-            applyAttributesDefinitions();
+            checkAttributesPresent();
+            ctx.applyAttributesDefinition(resourceObjectToAdd);
+            ctx.validateSchemaIfConfigured(resourceObjectToAdd);
+
+            accessChecker.checkAdd(ctx, resourceObjectToAdd, result);
 
             setProductionFlag();
 
-            checkForConflictingShadowIfNeeded(result);
+            executeShadowConstraintsCheck(result); // To avoid shadow duplication (if configured so)
+            shadowManager.addNewProposedShadow(ctx, resourceObjectToAdd, opState, result); // If configured
 
-            ctx.validateSchema(resourceObjectToAdd);
-
-            shadowManager.addNewProposedShadowIfNeeded(ctx, resourceObjectToAdd, opState, result);
-
-            entitlementsHelper.preprocessEntitlements(ctx, resourceObjectToAdd, result);
-
-            ctx.applyAttributesDefinition(resourceObjectToAdd); // Why again?
-
-            //shadowManager.setKindIfNecessary(resourceObjectToAdd, ctx); // Why?
-
-            accessChecker.checkAdd(ctx, resourceObjectToAdd, result);
+            entitlementsHelper.provideEntitlementsIdentifiers(ctx, resourceObjectToAdd, result);
 
             if (ctx.shouldExecuteResourceOperationDirectly()) {
                 if (ctx.isInMaintenance()) {
@@ -336,13 +336,10 @@ class ShadowAddHelper {
             LOGGER.debug("ADD {}: resource operation executed, operation state: {}", resourceObjectToAdd, opState.shortDumpLazily());
         }
 
-        private void applyAttributesDefinitions() throws SchemaException, ConfigurationException {
+        private void checkAttributesPresent() throws SchemaException {
             PrismContainer<?> attributesContainer = resourceObjectToAdd.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
             if (attributesContainer == null || attributesContainer.isEmpty()) {
                 throw new SchemaException("Attempt to add resource object without any attributes: " + resourceObjectToAdd);
-            }
-            if (!(attributesContainer instanceof ResourceAttributeContainer)) {
-                ctx.applyAttributesDefinition(resourceObjectToAdd);
             }
         }
 
@@ -359,7 +356,7 @@ class ShadowAddHelper {
 
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
             for (PrismObject<ShadowType> previousDeadShadow : previousDeadShadows) {
-                if (shadowCaretaker.findPreviousPendingLifecycleOperationInGracePeriod(ctx, previousDeadShadow.asObjectable(), now) == ChangeTypeType.DELETE) {
+                if (shadowCaretaker.findPendingLifecycleOperationInGracePeriod(ctx, previousDeadShadow.asObjectable(), now) == ChangeTypeType.DELETE) {
                     return true;
                 }
             }
@@ -390,7 +387,7 @@ class ShadowAddHelper {
             }
         }
 
-        private void checkForConflictingShadowIfNeeded(OperationResult result)
+        private void executeShadowConstraintsCheck(OperationResult result)
                 throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
                 ExpressionEvaluationException, ObjectAlreadyExistsException, SecurityViolationException {
             ShadowCheckType shadowConstraintsCheck = ctx.getShadowConstraintsCheck();
@@ -423,17 +420,18 @@ class ShadowAddHelper {
             }
         }
 
-        private boolean isNotDeadOrReaping(PrismObject<ShadowType> shadow, ProvisioningContext ctx)
+        private boolean isNotDeadOrReaping(PrismObject<ShadowType> shadowObject, ProvisioningContext ctx)
                 throws SchemaException, ConfigurationException {
+            ShadowType shadow = shadowObject.asObjectable();
             if (ShadowUtil.isDead(shadow)) {
                 return false;
             }
-            ProvisioningContext shadowCtx = ctx.spawnForShadow(shadow.asObjectable());
-            shadowsFacade.determineShadowState(shadowCtx, shadow);
-            ShadowLifecycleStateType shadowLifecycleState = shadow.asObjectable().getShadowLifecycleState();
-            return shadowLifecycleState != REAPING
-                    && shadowLifecycleState != CORPSE
-                    && shadowLifecycleState != TOMBSTONE;
+            ProvisioningContext shadowCtx = ctx.spawnForShadow(shadow);
+            shadowCtx.updateShadowState(shadow);
+            ShadowLifecycleStateType state = shadow.getShadowLifecycleState();
+            return state != REAPING
+                    && state != CORPSE
+                    && state != TOMBSTONE;
         }
     }
 }

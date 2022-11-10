@@ -148,8 +148,8 @@ public class ConstraintsChecker {
         }
     }
 
-    @NotNull
-    private Collection<? extends ResourceAttributeDefinition<?>> getUniqueAttributesDefinitions() {
+    // What attributes should be used for uniqueness checking? Currently: all identifiers.
+    private @NotNull Collection<? extends ResourceAttributeDefinition<?>> getUniqueAttributesDefinitions() {
         return provisioningContext.getObjectDefinitionRequired().getAllIdentifiers();
     }
 

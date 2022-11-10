@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.notifications.impl.notifiers;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.notifications.api.events.ModelEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -149,8 +147,9 @@ public class AccountActivationNotifier extends ConfirmationNotifier<AccountActiv
     }
 
     private List<ShadowType> getShadowsToActivate(ModelEvent modelEvent) {
-        Collection<? extends ModelElementContext<?>> projectionContexts = modelEvent.getProjectionContexts();
-        return getMidpointFunctions().getShadowsToActivate(projectionContexts);
+        return getMidpointFunctions()
+                .getShadowsToActivate(
+                        modelEvent.getProjectionContexts());
     }
 
     @Override
