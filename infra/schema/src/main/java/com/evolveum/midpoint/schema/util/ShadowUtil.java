@@ -799,8 +799,8 @@ public class ShadowUtil {
     }
 
     // TODO: may be useful to move to ResourceObjectClassDefinition later?
-    public static void validateAttributeSchema(
-            ShadowType shadow, ResourceObjectDefinition objectDefinition) throws SchemaException {
+    public static void validateAttributeSchema(ShadowType shadow, ResourceObjectDefinition objectDefinition)
+            throws SchemaException {
         ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
         for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
             validateAttribute(attribute, objectDefinition);

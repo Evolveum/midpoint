@@ -160,7 +160,8 @@ class ModifyHelper {
 
         accessChecker.checkModify(ctx, modifications, result);
 
-        entitlementsHelper.preprocessEntitlements(ctx, modifications, "delta for shadow " + repoShadow.getOid(), result);
+        entitlementsHelper.provideEntitlementsIdentifiers(
+                ctx, modifications, "delta for shadow " + repoShadow.getOid(), result);
 
         OperationResultStatus finalOperationStatus = null;
 

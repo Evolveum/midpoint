@@ -75,16 +75,12 @@ class ShadowCreator {
         return repoShadow;
     }
 
-    void addNewProposedShadowIfNeeded(
+    void addNewProposedShadow(
             ProvisioningContext ctx,
             ShadowType shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
-
-        if (!ctx.shouldUseProposedShadows()) {
-            return;
-        }
 
         ShadowType existingRepoShadow = opState.getRepoShadow();
         if (existingRepoShadow != null) {

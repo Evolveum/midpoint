@@ -194,13 +194,15 @@ public class ShadowManager {
      * Adds new shadow in the `proposed` state (if proposed shadows processing is enabled).
      * The new shadow is recorded into the `opState`.
      */
-    public void addNewProposedShadowIfNeeded(
+    public void addNewProposedShadow(
             ProvisioningContext ctx,
             ShadowType shadowToAdd,
             ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
-        shadowCreator.addNewProposedShadowIfNeeded(ctx, shadowToAdd, opState, result);
+        if (ctx.shouldUseProposedShadows()) {
+            shadowCreator.addNewProposedShadow(ctx, shadowToAdd, opState, result);
+        }
     }
 
     /**

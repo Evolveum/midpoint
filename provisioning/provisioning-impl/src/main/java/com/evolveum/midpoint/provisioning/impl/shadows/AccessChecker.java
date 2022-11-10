@@ -16,7 +16,6 @@ import com.evolveum.midpoint.schema.processor.*;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -47,9 +46,9 @@ class AccessChecker {
             ResourceAttributeContainer attributeCont = ShadowUtil.getAttributesContainer(shadow);
 
             for (ResourceAttribute<?> attribute : attributeCont.getAttributes()) {
-                ResourceAttributeDefinition<?> attrDef = ctx.getObjectDefinitionRequired()
-                        .findAttributeDefinitionRequired(attribute.getElementName());
-                PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
+                PropertyLimitations limitations =
+                        ctx.findAttributeDefinitionRequired(attribute.getElementName())
+                                .getLimitations(LayerType.MODEL);
                 if (limitations == null) {
                     continue;
                 }

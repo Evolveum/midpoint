@@ -1480,6 +1480,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         }
     }
 
+    // FIXME MID-4833
     private boolean isProposedShadow(PrismObject<ShadowType> shadow) {
         String lifecycleState = shadow.asObjectable().getLifecycleState();
         if (lifecycleState == null) {

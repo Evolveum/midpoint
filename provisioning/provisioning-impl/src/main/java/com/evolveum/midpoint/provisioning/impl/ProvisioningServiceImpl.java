@@ -885,7 +885,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
         try {
             ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
-            shadowsFacade.determineShadowState(ctx, shadow);
+            ctx.updateShadowState(shadow.asObjectable());
         } catch (Throwable e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, null, e);
             throw e;

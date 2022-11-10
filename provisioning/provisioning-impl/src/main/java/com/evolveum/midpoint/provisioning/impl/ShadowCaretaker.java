@@ -59,10 +59,10 @@ public class ShadowCaretaker {
     @Autowired private Clock clock;
 
     // Please use this method only via ProvisioningContext
-    public void applyAttributesDefinition(ProvisioningContext ctx, ObjectDelta<ShadowType> delta)
+    void applyAttributesDefinition(ProvisioningContext ctx, ObjectDelta<ShadowType> delta)
             throws SchemaException, ConfigurationException {
         if (delta.isAdd()) {
-            applyAttributesDefinition(ctx, delta.getObjectToAdd());
+            applyAttributesDefinitionInNewContext(ctx, delta.getObjectToAdd());
         } else if (delta.isModify()) {
             for (ItemDelta<?, ?> itemDelta : delta.getModifications()) {
                 if (SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
@@ -137,36 +137,42 @@ public class ShadowCaretaker {
         }
     }
 
-    // Please use this method only via ProvisioningContext
-    public ProvisioningContext applyAttributesDefinition(
-            @NotNull ProvisioningContext ctx, @NotNull ShadowType shadow) throws SchemaException, ConfigurationException {
-        return applyAttributesDefinition(ctx, shadow.asPrismObject());
+    /** See {@link #applyAttributesDefinitionInNewContext(ProvisioningContext, ShadowType)}. */
+    ProvisioningContext applyAttributesDefinitionInNewContext(
+            @NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> shadow) throws SchemaException, ConfigurationException {
+        return applyAttributesDefinitionInNewContext(ctx, shadow.asObjectable());
     }
 
-    // Please use this method only via ProvisioningContext
-    public ProvisioningContext applyAttributesDefinition(
-            @NotNull ProvisioningContext ctx, @NotNull PrismObject<ShadowType> shadow)
+    /**
+     * Creates a new sub-context based on the kind/intent/class of the provided shadow, and applies the attribute definitions.
+     *
+     * TODO better name?
+     *
+     * @return the new sub-context
+     */
+    ProvisioningContext applyAttributesDefinitionInNewContext(
+            @NotNull ProvisioningContext ctx, @NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
-        ProvisioningContext subctx = ctx.spawnForShadow(shadow.asObjectable());
-        subctx.assertDefinition();
-        ResourceObjectDefinition objectDefinition = subctx.getObjectDefinitionRequired();
 
-        PrismContainer<ShadowAttributesType> attributesContainer = shadow
-                .findContainer(ShadowType.F_ATTRIBUTES);
+        PrismObject<ShadowType> shadowObject = shadow.asPrismObject();
+        ProvisioningContext subContext = ctx.spawnForShadow(shadow);
+        subContext.assertDefinition();
+        ResourceObjectDefinition objectDefinition = subContext.getObjectDefinitionRequired();
+
+        PrismContainer<ShadowAttributesType> attributesContainer = shadowObject.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer != null) {
             if (attributesContainer instanceof ResourceAttributeContainer) {
                 if (attributesContainer.getDefinition() == null) {
-                    attributesContainer
-                            .applyDefinition(objectDefinition.toResourceAttributeContainerDefinition());
+                    attributesContainer.applyDefinition(objectDefinition.toResourceAttributeContainerDefinition());
                 }
             } else {
                 try {
                     // We need to convert <attributes> to ResourceAttributeContainer
-                    ResourceAttributeContainer convertedContainer = ResourceAttributeContainer
-                            .convertFromContainer(attributesContainer, objectDefinition);
-                    shadow.getValue().replace(attributesContainer, convertedContainer);
+                    ResourceAttributeContainer convertedContainer =
+                            ResourceAttributeContainer.convertFromContainer(attributesContainer, objectDefinition);
+                    shadowObject.getValue().replace(attributesContainer, convertedContainer);
                 } catch (SchemaException e) {
-                    throw new SchemaException(e.getMessage() + " in " + shadow, e);
+                    throw e.wrap("Couldn't apply attributes definitions in " + shadow);
                 }
             }
         }
@@ -177,18 +183,18 @@ public class ShadowCaretaker {
         // correctly because it will not be able to
         // create the attribute container if needed.
 
-        PrismObjectDefinition<ShadowType> prismShadowDefinition = shadow.getDefinition();
+        PrismObjectDefinition<ShadowType> prismShadowDefinition = shadowObject.getDefinition();
         PrismContainerDefinition<ShadowAttributesType> origAttrContainerDef = prismShadowDefinition
                 .findContainerDefinition(ShadowType.F_ATTRIBUTES);
         if (!(origAttrContainerDef instanceof ResourceAttributeContainerDefinition)) {
             PrismObjectDefinition<ShadowType> clonedDefinition =
                     prismShadowDefinition.cloneWithReplacedDefinition(
                             ShadowType.F_ATTRIBUTES, objectDefinition.toResourceAttributeContainerDefinition());
-            shadow.setDefinition(clonedDefinition);
+            shadowObject.setDefinition(clonedDefinition);
             clonedDefinition.freeze();
         }
 
-        return subctx;
+        return subContext;
     }
 
     /**
@@ -278,7 +284,7 @@ public class ShadowCaretaker {
                     for (PendingOperationType pendingOperation2: repoShadow.getPendingOperation()) {
                         newPendingOperations.add(pendingOperation2.clone());
                     }
-                    applyAttributesDefinition(ctx, resultShadow);
+                    applyAttributesDefinitionInNewContext(ctx, resultShadow);
                 }
             }
             if (pendingDelta.isModify()) {
@@ -342,20 +348,11 @@ public class ShadowCaretaker {
         return found;
     }
 
-
     // NOTE: detection of quantum states (gestation, corpse) might not be precise. E.g. the shadow may already be
     // tombstone because it is not in the snapshot. But as long as the pending operation is in grace we will still
     // detect it as corpse. But that should not cause any big problems.
     public @NotNull ShadowLifecycleStateType determineShadowState(
-            @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType shadow,
-            @NotNull XMLGregorianCalendar now) {
-        return determineShadowStateInternal(ctx, shadow, now);
-   }
-
-    public @NotNull ShadowLifecycleStateType determineShadowState(
-            @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType shadow) {
+            @NotNull ProvisioningContext ctx, @NotNull ShadowType shadow) {
         return determineShadowStateInternal(ctx, shadow, clock.currentTimeXMLGregorianCalendar());
    }
 
@@ -381,8 +378,8 @@ public class ShadowCaretaker {
                 return ShadowLifecycleStateType.LIVE;
             }
         }
-        // FIXME currently we don't work correctly with the object lifecycle for shadows. E.g. some shadows are marked
-        //  as proposed, even if they are active in fact. So be careful with this.
+        // FIXME This is wrong. Lifecycle is used for two independent purposes, see MID-4833.
+        // TODO we should use pending ADD instead
         if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())) {
             return ShadowLifecycleStateType.PROPOSED;
         } else {
@@ -391,14 +388,9 @@ public class ShadowCaretaker {
     }
 
     /** Determines and updates the shadow state. */
-    public void updateShadowState(ProvisioningContext ctx, PrismObject<ShadowType> shadow) {
-        updateShadowState(ctx, shadow.asObjectable());
-    }
-
-    /** Determines and updates the shadow state. */
-    public void updateShadowState(ProvisioningContext ctx, ShadowType shadow) {
-        ShadowLifecycleStateType state = determineShadowState(ctx, shadow);
-        shadow.setShadowLifecycleState(state);
+    void updateShadowState(ProvisioningContext ctx, ShadowType shadow) {
+        shadow.setShadowLifecycleState(
+                determineShadowState(ctx, shadow));
     }
 
     /** Determines and updates the shadow state - in situations where we don't have the context. */

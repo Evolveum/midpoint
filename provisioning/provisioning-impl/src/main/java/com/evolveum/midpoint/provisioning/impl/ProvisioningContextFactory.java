@@ -253,6 +253,8 @@ public class ProvisioningContextFactory {
      * Spawns the context for given shadow.
      *
      * Currently assumes that the resource OID is the same.
+     *
+     * TODO what if the shadow is "less-classified" (no kind/intent) than the original context?
      */
     ProvisioningContext spawnForShadow(
             @NotNull ProvisioningContext originalCtx,
