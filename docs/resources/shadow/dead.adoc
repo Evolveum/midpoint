@@ -108,7 +108,7 @@ In this case it is state of the resource, not its "snapshot" (used in semi-manua
 
 [%autowidth,cols="h,1,1,1,1,1,1,1,1,1"]
 |===
-| State | shadow/dead | shadow/exists | shadow/lifecycleState | shadow/pendingOperation | Resource/connector operation(e.g. ticket, async operation) | Resource database | Resource snapshot (CSV export) | Description | Notable transitions
+| State | shadow/dead | shadow/exists | shadow/lifecycleStatefootnote:[Not used since 4.7] | shadow/pendingOperation | Resource/connector operation(e.g. ticket, async operation) | Resource database | Resource snapshot (CSV export) | Description | Notable transitions
 
 | Proposed
 | false
