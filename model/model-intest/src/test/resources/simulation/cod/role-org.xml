@@ -121,5 +121,17 @@
             </association>
         </construction>
         <order>2</order>
+        <condition>
+            <source>
+                <path>$immediateRole/description</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        description != "no-provisioning"
+                    </code>
+                </script>
+            </expression>
+        </condition>
     </inducement>
 </role>

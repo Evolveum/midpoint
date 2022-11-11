@@ -40,6 +40,10 @@
         <source>
             <path>extension/pc:parentIdentifier</path>
         </source>
+        <source>
+            <name>parentDescription</name>
+            <path>description</path>
+        </source>
         <expression>
             <assignmentTargetSearch>
                 <targetType>OrgType</targetType>
@@ -83,6 +87,18 @@
                         </expression>
                         <target>
                             <path>extension/pc:parentIdentifier</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    parentDescription
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>description</path>
                         </target>
                     </populateItem>
                 </populateObject>
