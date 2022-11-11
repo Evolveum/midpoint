@@ -16,13 +16,12 @@ import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.visualizer.ModelScene;
+import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 
-import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -2091,12 +2090,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         then("Delta should be marked as broken and preview should show add shadow delta");
 
-        ModelScene modelScene = modelInteractionService.visualizeModelContext(modelContext, task, result);
-        List<? extends Scene> secondaryScenes = modelScene.getSecondaryScenes();
+        ModelContextVisualization modelScene = modelInteractionService.visualizeModelContext(modelContext, task, result);
+        List<? extends Visualization> secondaryScenes = modelScene.getSecondary();
 
         AssertJUnit.assertEquals(1, secondaryScenes.size());
 
-        Scene scene = secondaryScenes.get(0);
+        Visualization scene = secondaryScenes.get(0);
         AssertJUnit.assertTrue(scene.isBroken());
         AssertJUnit.assertEquals(ChangeType.ADD, scene.getChangeType());
 

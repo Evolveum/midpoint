@@ -8,8 +8,8 @@
 package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.model.api.visualizer.Name;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
-import com.evolveum.midpoint.model.api.visualizer.SceneItem;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -26,13 +26,13 @@ import java.util.List;
  * Artificial implementation of a scene used to hold a list of deltas.
  * (A bit of hack, unfortunately.)
  */
-public class WrapperScene implements Scene {
+public class WrapperScene implements Visualization {
 
     private String displayNameKey;
     private Object[] displayNameParameters;
-    private List<? extends Scene> partialScenes;
+    private List<? extends Visualization> partialScenes;
 
-    public WrapperScene(List<? extends Scene> partialScenes, String displayNameKey, Object... displayNameParameters) {
+    public WrapperScene(List<? extends Visualization> partialScenes, String displayNameKey, Object... displayNameParameters) {
         this.partialScenes = partialScenes;
         this.displayNameKey = displayNameKey;
         this.displayNameParameters = displayNameParameters;
@@ -84,13 +84,13 @@ public class WrapperScene implements Scene {
 
     @NotNull
     @Override
-    public List<? extends Scene> getPartialScenes() {
+    public List<? extends Visualization> getPartialVisualizations() {
         return partialScenes;
     }
 
     @NotNull
     @Override
-    public List<? extends SceneItem> getItems() {
+    public List<? extends VisualizationItem> getItems() {
         return Collections.emptyList();
     }
 
@@ -100,7 +100,7 @@ public class WrapperScene implements Scene {
     }
 
     @Override
-    public Scene getOwner() {
+    public Visualization getOwner() {
         return null;
     }
 
@@ -139,7 +139,7 @@ public class WrapperScene implements Scene {
         if (partialScenes == null) {
             return true;
         }
-        for (Scene scene : partialScenes) {
+        for (Visualization scene : partialScenes) {
             if (!scene.isEmpty()) {
                 return false;
             }

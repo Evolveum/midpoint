@@ -27,7 +27,7 @@ import com.evolveum.midpoint.schema.util.ValueDisplayUtil;
 /**
  * Created by Viliam Repan (lazyman).
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ValueDisplayUtilTest extends AbstractInternalModelIntegrationTest {
 
@@ -46,7 +46,7 @@ public class ValueDisplayUtilTest extends AbstractInternalModelIntegrationTest {
         AssertJUnit.assertEquals("resource object on 123: some description", value);
     }
 
-    @Test
+    @Test(enabled = false)
     public void test020ResourceAttributeDefinitionType() {
         ResourceAttributeDefinitionType def = new ResourceAttributeDefinitionType();
         def.ref(new ItemPathType(ItemPath.create(UserType.F_ASSIGNMENT)));

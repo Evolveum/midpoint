@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -18,7 +19,6 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -33,14 +33,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * TODO make this parametric (along with SceneItemValue)
  */
-public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
+public class SceneItemValuePanel extends BasePanel<VisualizationItemValue> {
 
     private static final String ID_ICON = "icon";
     private static final String ID_LABEL = "label";
     private static final String ID_LINK = "link";
     private static final String ID_ADDITIONAL_TEXT = "additionalText";
 
-    public SceneItemValuePanel(String id, IModel<SceneItemValue> model) {
+    public SceneItemValuePanel(String id, IModel<VisualizationItemValue> model) {
         super(id, model);
     }
 
@@ -52,11 +52,11 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 
     private void initLayout() {
         final VisibleBehaviour visibleIfReference = new VisibleBehaviour(() -> {
-            SceneItemValue object = getModelObject();
+            VisualizationItemValue object = getModelObject();
             return hasValidReferenceValue(object);
         });
         final VisibleBehaviour visibleIfNotReference = new VisibleBehaviour(() -> {
-            SceneItemValue object = getModelObject();
+            VisualizationItemValue object = getModelObject();
             return !hasValidReferenceValue(object);
         });
 
@@ -101,7 +101,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
         add(additionalText);
     }
 
-    private boolean hasValidReferenceValue(SceneItemValue object) {
+    private boolean hasValidReferenceValue(VisualizationItemValue object) {
         PrismReferenceValue target = null;
         if (object != null && object.getSourceValue() != null
                 && object.getSourceValue() instanceof PrismReferenceValue
@@ -123,7 +123,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
     }
 
     private ObjectTypeGuiDescriptor getObjectTypeDescriptor() {
-        SceneItemValue value = getModelObject();
+        VisualizationItemValue value = getModelObject();
         if (value != null && value.getSourceValue() != null && value.getSourceValue() instanceof PrismReferenceValue) {
             QName targetType = ((PrismReferenceValue) value.getSourceValue()).getTargetType();
             return ObjectTypeGuiDescriptor.getDescriptor(ObjectTypes.getObjectTypeFromTypeQName(targetType));
@@ -135,7 +135,7 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
     private class LabelModel implements IModel<String> {
         @Override
         public String getObject() {
-            SceneItemValue val = getModelObject();
+            VisualizationItemValue val = getModelObject();
             if (val == null) {
                 return null;
             }

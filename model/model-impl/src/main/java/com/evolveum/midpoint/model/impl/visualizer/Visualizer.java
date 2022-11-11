@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.model.impl.visualizer.output.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -127,7 +127,7 @@ public class Visualizer {
         return scene;
     }
 
-    public List<Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+    public List<Visualization> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDeltas");
         try {
             resolver.resolve(deltas, task, result);
@@ -140,15 +140,15 @@ public class Visualizer {
         }
     }
 
-    public List<Scene> visualizeProjectionContexts(List<? extends ModelProjectionContext> projectionContexts, Task task, OperationResult parentResult)
+    public List<Visualization> visualizeProjectionContexts(List<? extends ModelProjectionContext> projectionContexts, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
-        final List<Scene> scenes = new ArrayList<>();
+        final List<Visualization> scenes = new ArrayList<>();
         final OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeProjectionContexts");
 
         try {
             for (ModelProjectionContext ctx : projectionContexts) {
-                Scene scene = visualizeProjectionContext(ctx, task, result);
+                Visualization scene = visualizeProjectionContext(ctx, task, result);
                 if (!scene.isEmpty()) {
                     scenes.add(scene);
                 }
@@ -212,9 +212,9 @@ public class Visualizer {
         return scene;
     }
 
-    private List<Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, VisualizationContext context, Task task, OperationResult result)
+    private List<Visualization> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, VisualizationContext context, Task task, OperationResult result)
             throws SchemaException {
-        List<Scene> rv = new ArrayList<>(deltas.size());
+        List<Visualization> rv = new ArrayList<>(deltas.size());
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
             if (delta.isEmpty()) {
                 continue;
@@ -420,7 +420,7 @@ public class Visualizer {
     }
 
     private void sortPartialScenes(SceneImpl scene) {
-        scene.getPartialScenes().sort((Comparator<SceneImpl>) (s1, s2) -> {
+        scene.getPartialVisualizations().sort((Comparator<SceneImpl>) (s1, s2) -> {
 
             final PrismContainerDefinition<?> def1 = s1.getSourceDefinition();
             final PrismContainerDefinition<?> def2 = s2.getSourceDefinition();
@@ -654,7 +654,7 @@ public class Visualizer {
     }
 
     private SceneImpl findPartialSceneByPath(SceneImpl scene, ItemPath deltaParentPath) {
-        for (SceneImpl subscene : scene.getPartialScenes()) {
+        for (SceneImpl subscene : scene.getPartialVisualizations()) {
             if (subscene.getSourceAbsPath().equivalent(deltaParentPath) && subscene.getChangeType() == MODIFY) {
                 return subscene;
             }

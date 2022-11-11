@@ -13,17 +13,17 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import java.io.Serializable;
 import java.util.List;
 
-public interface SceneItem extends Serializable {
+public interface VisualizationItem extends Serializable {
 
     Name getName();
-    List<? extends SceneItemValue> getNewValues();
+    List<? extends VisualizationItemValue> getNewValues();
 
     boolean isOperational();
 
     Item<?,?> getSourceItem();
 
     /**
-     * Item path, relative to the scene root path.
+     * Item path, relative to the visualization root path.
      */
     ItemPath getSourceRelPath();
 

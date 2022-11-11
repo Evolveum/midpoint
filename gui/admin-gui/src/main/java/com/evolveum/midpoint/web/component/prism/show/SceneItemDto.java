@@ -13,13 +13,14 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.visualizer.Name;
-import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
-import com.evolveum.midpoint.model.api.visualizer.SceneItem;
-import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.util.PolyStringComparator;
 
@@ -28,11 +29,11 @@ public class SceneItemDto implements Serializable {
     public static final String F_NAME = "name";
     public static final String F_LINES  = "lines";
 
-    @NotNull private final SceneItem sceneItem;
+    @NotNull private final VisualizationItem sceneItem;
     @NotNull private final SceneDto sceneDto;
     @NotNull private List<SceneItemLineDto> lines;
 
-    public SceneItemDto(@NotNull SceneDto sceneDto, @NotNull SceneItem sceneItem) {
+    public SceneItemDto(@NotNull SceneDto sceneDto, @NotNull VisualizationItem sceneItem) {
         Validate.notNull(sceneDto);
         Validate.notNull(sceneItem);
         this.sceneDto = sceneDto;
@@ -59,17 +60,17 @@ public class SceneItemDto implements Serializable {
         List<SceneItemLineDto> rv = new ArrayList<>();
 
         if (!isDelta()) {
-            for (SceneItemValue itemValue : sceneItem.getNewValues()) {
+            for (VisualizationItemValue itemValue : sceneItem.getNewValues()) {
                 rv.add(new SceneItemLineDto(this, null, itemValue, false));
             }
         } else {
-            SceneDeltaItem deltaItem = (SceneDeltaItem) sceneItem;
-            for (SceneItemValue itemValue : deltaItem.getUnchangedValues()) {
+            VisualizationDeltaItem deltaItem = (VisualizationDeltaItem) sceneItem;
+            for (VisualizationItemValue itemValue : deltaItem.getUnchangedValues()) {
                 rv.add(new SceneItemLineDto(this, null, itemValue, false));
             }
-            List<? extends SceneItemValue> deletedValues = deltaItem.getDeletedValues();
-            List<? extends SceneItemValue> addedValues = deltaItem.getAddedValues();
-            Comparator<? super SceneItemValue> comparator =
+            List<? extends VisualizationItemValue> deletedValues = deltaItem.getDeletedValues();
+            List<? extends VisualizationItemValue> addedValues = deltaItem.getAddedValues();
+            Comparator<? super VisualizationItemValue> comparator =
                     (s1, s2) -> {
                         PolyString value1 = s1 == null ? null : s1.getText();
                         PolyString value2 = s2 == null ? null : s2.getText();
@@ -79,11 +80,11 @@ public class SceneItemDto implements Serializable {
             deletedValues.sort(comparator);
             addedValues.sort(comparator);
 
-            Iterator<? extends SceneItemValue> deletedValuesIter = deletedValues.iterator();
-            Iterator<? extends SceneItemValue> addedValuesIter = addedValues.iterator();
+            Iterator<? extends VisualizationItemValue> deletedValuesIter = deletedValues.iterator();
+            Iterator<? extends VisualizationItemValue> addedValuesIter = addedValues.iterator();
             while (deletedValuesIter.hasNext() || addedValuesIter.hasNext()) {
-                SceneItemValue deletedValue = deletedValuesIter.hasNext() ? deletedValuesIter.next() : null;
-                SceneItemValue addedValue = addedValuesIter.hasNext() ? addedValuesIter.next() : null;
+                VisualizationItemValue deletedValue = deletedValuesIter.hasNext() ? deletedValuesIter.next() : null;
+                VisualizationItemValue addedValue = addedValuesIter.hasNext() ? addedValuesIter.next() : null;
                 rv.add(new SceneItemLineDto(this, deletedValue, addedValue, true));
             }
         }
@@ -110,23 +111,23 @@ public class SceneItemDto implements Serializable {
     }
 
     public boolean isDelta() {
-        return sceneItem instanceof SceneDeltaItem;
+        return sceneItem instanceof VisualizationDeltaItem;
     }
 
     public boolean isNullEstimatedOldValues(){
-        return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().getEstimatedOldValues() == null;
+        return isDelta() && ((VisualizationDeltaItem)sceneItem).getSourceDelta() != null && ((VisualizationDeltaItem)sceneItem).getSourceDelta().getEstimatedOldValues() == null;
     }
 
     public boolean isAdd(){
-        return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().isAdd();
+        return isDelta() && ((VisualizationDeltaItem)sceneItem).getSourceDelta() != null && ((VisualizationDeltaItem)sceneItem).getSourceDelta().isAdd();
     }
 
     public boolean isDelete(){
-        return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().isDelete();
+        return isDelta() && ((VisualizationDeltaItem)sceneItem).getSourceDelta() != null && ((VisualizationDeltaItem)sceneItem).getSourceDelta().isDelete();
     }
 
     public boolean isReplace(){
-        return isDelta() && ((SceneDeltaItem)sceneItem).getSourceDelta() != null && ((SceneDeltaItem)sceneItem).getSourceDelta().isReplace();
+        return isDelta() && ((VisualizationDeltaItem)sceneItem).getSourceDelta() != null && ((VisualizationDeltaItem)sceneItem).getSourceDelta().isReplace();
     }
 
     public boolean isDeltaScene() {

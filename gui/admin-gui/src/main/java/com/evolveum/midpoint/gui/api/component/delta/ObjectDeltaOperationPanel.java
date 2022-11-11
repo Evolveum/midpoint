@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.component.delta;
 
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -18,8 +20,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -164,7 +164,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
     }
 
     private SceneDto loadSceneForDelta() throws SchemaException, ExpressionEvaluationException {
-        Scene scene;
+        Visualization scene;
 
         ObjectDelta<? extends ObjectType> delta;
         ObjectDeltaType deltaType = getModel().getObject().getObjectDelta();

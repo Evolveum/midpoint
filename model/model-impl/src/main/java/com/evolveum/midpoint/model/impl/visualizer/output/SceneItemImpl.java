@@ -7,9 +7,9 @@
 
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
-import com.evolveum.midpoint.model.api.visualizer.SceneItem;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.model.api.visualizer.Name;
-import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -21,7 +21,7 @@ import java.util.List;
 
 import static org.apache.commons.lang3.Validate.notNull;
 
-public class SceneItemImpl implements SceneItem, DebugDumpable {
+public class SceneItemImpl implements VisualizationItem, DebugDumpable {
 
     protected final NameImpl name;
     protected List<SceneItemValueImpl> newValues;
@@ -41,7 +41,7 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
     }
 
     @Override
-    public List<? extends SceneItemValue> getNewValues() {
+    public List<? extends VisualizationItemValue> getNewValues() {
         return newValues;
     }
 

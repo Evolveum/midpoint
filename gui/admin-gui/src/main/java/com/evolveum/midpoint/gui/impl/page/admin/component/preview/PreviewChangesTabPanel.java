@@ -18,8 +18,8 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusPreviewChanges;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.visualizer.ModelScene;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -73,7 +73,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
     }
 
     private void initModels() {
-        ModelScene modelScene;
+        ModelContextVisualization modelScene;
 
         ModelContext<O> modelContext = getModelObject();
         try {
@@ -85,8 +85,8 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             throw new SystemException(e);        // TODO
         }
 
-        final List<? extends Scene> primaryScenes = modelScene.getPrimaryScenes();
-        final List<? extends Scene> secondaryScenes = modelScene.getSecondaryScenes();
+        final List<? extends Visualization> primaryScenes = modelScene.getPrimary();
+        final List<? extends Visualization> secondaryScenes = modelScene.getSecondary();
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Creating context DTO for primary deltas:\n{}", DebugUtil.debugDump(primaryScenes));
