@@ -7,20 +7,22 @@
 
 package com.evolveum.midpoint.repo.cache.local;
 
+import static com.evolveum.midpoint.schema.cache.CacheType.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static com.evolveum.midpoint.schema.cache.CacheType.*;
 
 /**
  * Set of three thread-local repo caches (object, version, query).
@@ -46,6 +48,13 @@ public class LocalRepoCacheCollection {
 
     public static LocalQueryCache getLocalQueryCache() {
         return LOCAL_QUERY_CACHE_INSTANCE.get(Thread.currentThread());
+    }
+
+    public static List<LocalQueryCache> getLocalQueryCaches() {
+        List<LocalQueryCache> caches = new ArrayList<>();
+        caches.addAll(LOCAL_QUERY_CACHE_INSTANCE.values());
+
+        return Collections.unmodifiableList(caches);
     }
 
     public static void destroy() {

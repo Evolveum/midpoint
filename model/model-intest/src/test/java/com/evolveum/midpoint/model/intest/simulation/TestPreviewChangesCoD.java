@@ -203,22 +203,23 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     /**
      * MID-6166
      */
-    @Test(enabled = false)
+    @Test
     public void test400MultiThreadSupportForCreateOnDemand() throws Exception {
         given();
 
         Task task = getTestTask();
+        OperationResult result= task.getResult();
 
-        List<PrismObject<OrgType>> orgs = repositoryService.searchObjects(OrgType.class, null, null, task.getResult());
+        List<PrismObject<OrgType>> orgs = repositoryService.searchObjects(OrgType.class, null, null, result);
         orgs.forEach(org -> {
             try {
-                repositoryService.deleteObject(OrgType.class, org.getOid(), task.getResult());
+                repositoryService.deleteObject(OrgType.class, org.getOid(), result);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         });
 
-        int count = repositoryService.countObjects(OrgType.class, null, null, task.getResult());
+        int count = repositoryService.countObjects(OrgType.class, null, null, result);
         AssertJUnit.assertEquals("There shouldn't be org units", 0, count);
 
         when();
@@ -243,18 +244,28 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
             exceptions.add(ex);
         }
 
+        result.computeStatusIfUnknown();
+
         then();
 
-        exceptions.forEach(ex -> System.out.println(ex.getClass().getName() + ":" + ex.getMessage()));
+        exceptions.forEach(ex -> LOGGER.error("Error occured ", ex));
+
+        int orgCount = repositoryService.countObjects(OrgType.class, null, null, result);
+        AssertJUnit.assertEquals("Two org should be present", 2, orgCount);
+
+        int userCount = repositoryService.countObjects(UserType.class, null, null, result);
+        // user is created in each thread + administrator
+        AssertJUnit.assertEquals("Two users should be present", MAX_WORKERS + 1, userCount);
 
         AssertJUnit.assertEquals("Exception happened during processing", 0, exceptions.size());
     }
 
     private Callable<Exception> createMultithreadedTask(int id, Task task) {
         return () -> {
-            try {
-                OperationResult result = new OperationResult("CoD runnable " + id);
 
+            OperationResult result = task.getResult().createSubresult("CoD runnable " + id);
+
+            try {
                 login(userAdministrator.clone());
 
                 PrismObject<UserType> bob = USER_BOB.getObject().clone();
@@ -267,6 +278,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
                 modelService.executeChanges(Collections.singletonList(delta), ModelExecuteOptions.create(), task, result);
             } catch (Exception ex) {
                 return ex;
+            } finally {
+                result.computeStatusIfUnknown();
             }
 
             return null;

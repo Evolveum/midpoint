@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
+import com.evolveum.midpoint.repo.cache.handlers.AddObjectResult;
 import com.evolveum.midpoint.repo.cache.local.LocalObjectCache;
 import com.evolveum.midpoint.repo.cache.local.LocalQueryCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
@@ -108,7 +109,11 @@ public class Invalidator {
             }
             LocalQueryCache localQueryCache = getLocalQueryCache();
             if (localQueryCache != null) {
-                clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
+                if (additionalInfo instanceof AddObjectResult) {
+                    clearQueryResultsLocallyAfterAdd(type);
+                } else {
+                    clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
+                }
             }
             boolean clusterwide = TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE.contains(type) ||
                     globalObjectCache.hasClusterwideInvalidationFor(type) ||
@@ -121,6 +126,39 @@ public class Invalidator {
             throw t; // Really? We want the operation to proceed anyway. But OTOH we want to be sure devel team gets notified about this.
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    /**
+     * Clears all local caches (not only query cache for current thread) after object was added.
+     * Needed for multithreaded createOnDemand to work.
+     *
+     * TODO possibly global query cache should be updated if task that can invoke createOnDemand runs on multiple nodes
+     * TODO will be improved: only queries matching current query should be removed from all local query caches
+     * TODO also use PointInTime.CURRENT to force search to repository and therefore update local cache
+     *
+     * @param type
+     * @param <T>
+     */
+    private <T extends ObjectType> void clearQueryResultsLocallyAfterAdd(Class<T> type) {
+        List<LocalQueryCache> allLocalQueryCaches = getLocalQueryCaches();
+
+        for (LocalQueryCache cache : allLocalQueryCaches) {
+            long start = System.currentTimeMillis();
+            int all = 0;
+            int removed = 0;
+            Iterator<Map.Entry<QueryKey, SearchResultList>> iterator = cache.getEntryIterator();
+            while (iterator.hasNext()) {
+                Map.Entry<QueryKey, SearchResultList> entry = iterator.next();
+                QueryKey<?> queryKey = entry.getKey();
+                all++;
+                if (type.isAssignableFrom(queryKey.getType())) {
+                    LOGGER.trace("Removing (from local cache) query for type={}: {}", type, queryKey.getQuery());
+                    iterator.remove();
+                    removed++;
+                }
+            }
+            LOGGER.trace("Removed (from local cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
         }
     }
 

@@ -521,9 +521,14 @@ public abstract class AbstractSearchExpressionEvaluator<
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges;
         try {
             executedChanges = modelService.executeChanges(deltas, null, task, result);
-        } catch (ObjectAlreadyExistsException | CommunicationException | ConfigurationException
-                | PolicyViolationException | SecurityViolationException e) {
-            throw new ExpressionEvaluationException(e.getMessage(), e);
+        } catch (ObjectAlreadyExistsException | CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
+            ExpressionEvaluationException ex = new ExpressionEvaluationException(e.getMessage(), e);
+            if (e instanceof ObjectAlreadyExistsException) {
+                // create on demand failed, object was created in meantime, restart evaluator
+                ex.setShouldRestartEvaluation(true);
+            }
+
+            throw ex;
         }
 
         ObjectDeltaOperation deltaOperation = ObjectDeltaOperation.findAddDelta(executedChanges, newObject);
