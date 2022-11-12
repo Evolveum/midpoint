@@ -16,7 +16,7 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,7 +60,7 @@ public class ModelOperationStatusDto implements Serializable {
             // primaryDelta
             final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
 //            final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
-            final List<? extends Scene> primaryScenes;
+            final List<? extends Visualization> primaryScenes;
 //            final List<? extends Scene> secondaryScenes;
             try {
                 addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());

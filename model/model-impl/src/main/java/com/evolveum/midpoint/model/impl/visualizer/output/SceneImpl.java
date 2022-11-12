@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
-import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SceneImpl implements Scene, DebugDumpable {
+public class SceneImpl implements Visualization, DebugDumpable {
 
     private NameImpl name;
     private ChangeType changeType;
@@ -62,7 +62,7 @@ public class SceneImpl implements Scene, DebugDumpable {
 
     @NotNull
     @Override
-    public List<? extends SceneImpl> getPartialScenes() {
+    public List<? extends SceneImpl> getPartialVisualizations() {
         return partialScenes;
     }
 
@@ -223,7 +223,7 @@ public class SceneImpl implements Scene, DebugDumpable {
             }
             return false;
         }
-        for (SceneImpl partialScene : getPartialScenes()) {
+        for (SceneImpl partialScene : getPartialVisualizations()) {
             if (!partialScene.isEmpty()) {
                 return false;
             }

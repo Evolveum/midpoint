@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
-import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 
-public class SceneItemValueImpl implements SceneItemValue {
+public class SceneItemValueImpl implements VisualizationItemValue {
 
     private final PolyString text;
     private final PolyString additionalText;

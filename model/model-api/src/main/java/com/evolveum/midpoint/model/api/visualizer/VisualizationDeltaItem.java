@@ -13,12 +13,12 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
-public interface SceneDeltaItem extends SceneItem, Serializable {
+public interface VisualizationDeltaItem extends VisualizationItem, Serializable {
 
-    @NotNull List<? extends SceneItemValue> getOldValues();
-    @NotNull List<? extends SceneItemValue> getAddedValues();
-    @NotNull List<? extends SceneItemValue> getDeletedValues();
-    @NotNull List<? extends SceneItemValue> getUnchangedValues();
+    @NotNull List<? extends VisualizationItemValue> getOldValues();
+    @NotNull List<? extends VisualizationItemValue> getAddedValues();
+    @NotNull List<? extends VisualizationItemValue> getDeletedValues();
+    @NotNull List<? extends VisualizationItemValue> getUnchangedValues();
 
     /**
      * Item delta (if applicable). It should contain the original path (not a relative one).

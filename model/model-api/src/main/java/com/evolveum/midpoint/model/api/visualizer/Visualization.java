@@ -18,20 +18,20 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
-public interface Scene extends Serializable, DebugDumpable {
+public interface Visualization extends Serializable, DebugDumpable {
 
     Name getName();
     ChangeType getChangeType();
 
-    @NotNull List<? extends Scene> getPartialScenes();
-    @NotNull List<? extends SceneItem> getItems();
+    @NotNull List<? extends Visualization> getPartialVisualizations();
+    @NotNull List<? extends VisualizationItem> getItems();
 
     boolean isOperational();
 
-    Scene getOwner();
+    Visualization getOwner();
 
     /**
-     * Scene root path, relative to the owning scene root path.
+     * Visualization root path, relative to the owning visualization root path.
      */
     ItemPath getSourceRelPath();
 
@@ -39,7 +39,7 @@ public interface Scene extends Serializable, DebugDumpable {
 
     /**
      * Source container value where more details can be found.
-     * (For scenes that display object or value add.)
+     * (For visualizations that display object or value add.)
      */
     PrismContainerValue<?> getSourceValue();
 
@@ -47,7 +47,7 @@ public interface Scene extends Serializable, DebugDumpable {
 
     /**
      * Source object delta where more details can be found.
-     * (For scenes that display an object delta.)
+     * (For visualization that display an object delta.)
      */
     ObjectDelta<?> getSourceDelta();
 

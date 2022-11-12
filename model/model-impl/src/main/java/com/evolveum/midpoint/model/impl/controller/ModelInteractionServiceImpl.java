@@ -23,6 +23,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 import com.evolveum.midpoint.prism.delta.*;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -46,8 +47,7 @@ import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
-import com.evolveum.midpoint.model.api.visualizer.ModelScene;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
@@ -822,18 +822,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public List<Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
+    public List<Visualization> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException {
 
         return visualizer.visualizeDeltas(deltas, task, result);
     }
 
     @Override
-    public <O extends ObjectType> ModelScene visualizeModelContext(ModelContext<O> context, Task task, OperationResult result)
+    public <O extends ObjectType> ModelContextVisualization visualizeModelContext(ModelContext<O> context, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         if (context == null) {
-            return new ModelScene();
+            return new ModelContextVisualization();
         }
 
         final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
@@ -841,8 +841,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         final List<ModelProjectionContext> projectionContexts = new ArrayList<>();
 
-        final List<Scene> primaryScenes;
-        final List<Scene> secondaryScenes;
+        final List<Visualization> primaryScenes;
+        final List<Visualization> secondaryScenes;
 
         if (context.getFocusContext() != null) {
             addIgnoreNull(primaryDeltas, CloneUtil.clone(context.getFocusContext().getPrimaryDelta()));
@@ -869,10 +869,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         primaryScenes = visualizeDeltas(primaryDeltas, task, result);
         secondaryScenes = visualizeDeltas(secondaryDeltas, task, result);
 
-        List<Scene> projectionScenes = visualizer.visualizeProjectionContexts(projectionContexts, task, result);
+        List<Visualization> projectionScenes = visualizer.visualizeProjectionContexts(projectionContexts, task, result);
         secondaryScenes.addAll(projectionScenes);
 
-        return new ModelScene(primaryScenes, secondaryScenes);
+        return new ModelContextVisualization(primaryScenes, secondaryScenes);
     }
 
     private boolean isEquivalentWithoutOperationAttr(ObjectDelta<ShadowType> primaryDelta, ObjectDelta<ShadowType> secondaryDelta) {
@@ -895,25 +895,25 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     @NotNull
-    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         return visualizer.visualizeDelta(delta, task, result);
     }
 
     @Override
     @NotNull
-    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         return visualizer.visualizeDelta(delta, null, includeOperationalItems, true, task, result);
     }
 
     @Override
     @NotNull
-    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         return visualizer.visualizeDelta(delta, null, includeOperationalItems, includeOriginalObject, task, result);
     }
 
     @Override
     @NotNull
-    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         return visualizer.visualizeDelta(delta, objectRef, task, result);
     }
 
