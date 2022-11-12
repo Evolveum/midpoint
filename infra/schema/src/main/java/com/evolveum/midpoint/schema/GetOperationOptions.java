@@ -424,6 +424,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return options.noFetch;
     }
 
+    public static boolean isNoFetch(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
+        return isNoFetch(
+                SelectorOptions.findRootOptions(options));
+    }
+
     /**
      * No not fetch any information from external sources, e.g. do not fetch account data from resource,
      * do not fetch resource schema, etc.

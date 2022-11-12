@@ -12,43 +12,45 @@
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
+
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectLiveShadow;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
 @Component
 class MaintenanceExceptionHandler extends ErrorHandler {
+
+    private static final Trace LOGGER = TraceManager.getTrace(MaintenanceExceptionHandler.class);
 
     private static final String OPERATION_HANDLE_GET_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleGetError";
     private static final String OPERATION_HANDLE_ADD_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleAddError";
     private static final String OPERATION_HANDLE_MODIFY_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleModifyError";
     private static final String OPERATION_HANDLE_DELETE_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleDeleteError";
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
+    @Autowired private ShadowManager shadowManager;
 
     @Override
     public ShadowType handleGetError(
@@ -57,14 +59,16 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             @NotNull Exception cause,
             @NotNull OperationResult failedOperationResult,
             @NotNull OperationResult parentResult) {
+        // TODO maybe I should put the code back here...
         throw new UnsupportedOperationException("MaintenanceException cannot occur during GET operation.");
     }
 
     @Override
-    public OperationResultStatus handleAddError(ProvisioningContext ctx,
+    public OperationResultStatus handleAddError(
+            ProvisioningContext ctx,
             ShadowType shadowToAdd,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
+            AddOperationState opState,
             Exception cause,
             OperationResult failedOperationResult,
             Task task,
@@ -73,21 +77,42 @@ class MaintenanceExceptionHandler extends ErrorHandler {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
         try {
-            if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
-                ObjectQuery query = ObjectAlreadyExistHandler.createQueryBySecondaryIdentifier(shadowToAdd, prismContext);
-                SearchResultList<PrismObject<ShadowType>> conflictingShadows =
-                        repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+            OperationResultStatus status;
 
-                if (!conflictingShadows.isEmpty()) {
-                    opState.setRepoShadow(conflictingShadows.get(0).asObjectable()); // there is already repo shadow in mp
-                    failedOperationResult.setStatus(OperationResultStatus.SUCCESS);
-                    result.recordSuccess();
-                    return OperationResultStatus.SUCCESS;
+            // TODO why querying by secondary identifiers? Maybe because the primary identifier is usually generated by the
+            //  resource ... but is it always the case?
+
+            // TODO shouldn't we have similar code for CommunicationException handling?
+            //  For operation grouping, etc?
+
+            // Think again if this is the best place for this functionality.
+
+            ObjectQuery query = ObjectAlreadyExistHandler.createQueryBySecondaryIdentifier(shadowToAdd);
+            LOGGER.trace("Going to find matching shadows using the query:\n{}", query.debugDumpLazily(1));
+            List<PrismObject<ShadowType>> matchingShadows = shadowManager.searchShadows(ctx, query, null, result);
+            LOGGER.trace("Found {}: {}", matchingShadows.size(), matchingShadows);
+            ShadowType liveShadow = asObjectable(selectLiveShadow(matchingShadows));
+            LOGGER.trace("Live shadow found: {}", liveShadow);
+
+            if (liveShadow != null) {
+                if (ShadowUtil.isExists(liveShadow)) {
+                    LOGGER.trace("Found a live shadow that seems to exist on the resource: {}", liveShadow);
+                    status = OperationResultStatus.SUCCESS;
+                } else {
+                    LOGGER.trace("Found a live shadow that was probably not yet created on the resource: {}", liveShadow);
+                    status = OperationResultStatus.IN_PROGRESS;
                 }
+                opState.setRepoShadow(liveShadow);
+            } else {
+                status = OperationResultStatus.IN_PROGRESS;
             }
 
-            failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS); // this influences how pending operation resultStatus is saved
-            return postponeAdd(shadowToAdd, opState, failedOperationResult, result);
+            failedOperationResult.setStatus(status);
+            result.setStatus(status); // TODO
+            if (status == OperationResultStatus.IN_PROGRESS) {
+                opState.markToRetry(failedOperationResult);
+            }
+            return status;
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -102,7 +127,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             @NotNull ShadowType repoShadow,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable ProvisioningOperationOptions options,
-            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull ModifyOperationState opState,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             @NotNull OperationResult parentResult) {
@@ -111,7 +136,8 @@ class MaintenanceExceptionHandler extends ErrorHandler {
         result.addParam("exception", cause.getMessage());
         try {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
-            return postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
+            result.setInProgress();
+            return opState.markToRetry(failedOperationResult);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -125,7 +151,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             ProvisioningContext ctx,
             ShadowType repoShadow,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationResult> opState,
+            ProvisioningOperationState.DeleteOperationState opState,
             Exception cause,
             OperationResult failedOperationResult,
             OperationResult parentResult) {
@@ -133,7 +159,8 @@ class MaintenanceExceptionHandler extends ErrorHandler {
         result.addParam("exception", cause.getMessage());
         try {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
-            return postponeDelete(ctx, repoShadow, opState, failedOperationResult, result);
+            result.setInProgress();
+            return opState.markToRetry(failedOperationResult);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -143,7 +170,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     }
 
     @Override
-    protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result) throws MaintenanceException {
+    protected void throwException(Exception cause, ProvisioningOperationState<?> opState, OperationResult result) throws MaintenanceException {
         recordCompletionError(cause, opState, result);
         if (cause instanceof MaintenanceException) {
             throw (MaintenanceException)cause;

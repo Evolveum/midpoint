@@ -1515,7 +1515,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 continue;
             }
             if (determineDeputyValidity(potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, task, result)) {
-                deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy, prismContext));
+                deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
             }
         }
@@ -1535,7 +1535,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 continue;
             }
             if (determineDeputyValidity(potentialDeputy, Collections.singletonList(assigneeRef), null, limitationItemName, task, result)) {
-                deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy, prismContext));
+                deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
             }
         }

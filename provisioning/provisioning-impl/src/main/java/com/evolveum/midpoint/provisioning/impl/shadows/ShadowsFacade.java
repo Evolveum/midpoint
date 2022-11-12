@@ -193,8 +193,11 @@ public class ShadowsFacade {
                 .executeCount(result);
     }
 
-    public void propagateOperations(ResourceType resource, ShadowType shadow, Task task,
-            OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
+    public void propagateOperations(
+            @NotNull ResourceType resource,
+            @NotNull ShadowType shadow,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
             SecurityViolationException, PolicyViolationException, EncryptionException {
         propagateHelper.propagateOperations(resource, shadow, task, result);

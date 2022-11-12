@@ -133,10 +133,9 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .end();
         addObject(user, task, result);
 
-        modifyResourceMaintenance(resourceOid, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+        turnMaintenanceModeOn(resourceOid, result);
         deleteObject(UserType.class, user.getOid(), task, result);
-
-        modifyResourceMaintenance(resourceOid, AdministrativeAvailabilityStatusType.OPERATIONAL, task, result);
+        turnMaintenanceModeOff(resourceOid, result);
     }
 
     @Test

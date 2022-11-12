@@ -78,7 +78,7 @@ class GetObjectOpExecution<O extends ObjectType>
     private void recordResult(PrismObject<O> objectToReturn) {
         if (objectToReturn != null) {
             if (trace != null && tracingAtLeastNormal) {
-                trace.setObjectRef(ObjectTypeUtil.createObjectRefWithFullObject(objectToReturn.clone(), prismContext));
+                trace.setObjectRef(ObjectTypeUtil.createObjectRefWithFullObject(objectToReturn.clone()));
             }
             if (objectToReturn.getName() != null) {
                 result.addContext("objectName", objectToReturn.getName().getOrig());

@@ -12,6 +12,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 
@@ -31,7 +32,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.*;
@@ -51,8 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Manage repository shadows, including:
  *
  * 1. Lookup, create, and update shadows (as part of the provisioning process).
- * 2. Getting and searching shadows (as part of get/search operations in higher layers).
- * 3. Management of pending operations
+ * 2. Getting and searching shadows (e.g. as part of get/search operations in higher layers).
+ * 3. Management of pending operations.
  *
  * Limitations:
  *
@@ -60,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  * Naming conventions:
  *
- * - _Search_ = plain search in the repository (no modifications)
+ * - _Search_ = plain search in the repository (no modifications of repo objects)
  * - _Lookup_ = looking up single shadow in the repository; name = "lookup [Live] Shadow By [What]"
  * - _Acquire_ = lookup + create if needed
  * - When talking about _shadow_ we always mean _repository shadow_ here.
@@ -209,10 +210,7 @@ public class ShadowManager {
      * Record results of ADD operation to the shadow: creates a shadow or updates an existing one.
      */
     public void recordAddResult(
-            ProvisioningContext ctx,
-            ShadowType shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
-            OperationResult result)
+            ProvisioningContext ctx, ShadowType shadowToAdd, AddOperationState opState, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             EncryptionException {
         shadowUpdater.recordAddResult(ctx, shadowToAdd, opState, result);
@@ -220,7 +218,7 @@ public class ShadowManager {
 
     public void addDeadShadowDeltas(ShadowType repoShadow, List<ItemDelta<?, ?>> shadowModifications)
             throws SchemaException {
-        shadowUpdater.addDeadShadowDeltas(repoShadow, shadowModifications);
+        shadowUpdater.addTombstoneDeltas(repoShadow, shadowModifications);
     }
 
     /**

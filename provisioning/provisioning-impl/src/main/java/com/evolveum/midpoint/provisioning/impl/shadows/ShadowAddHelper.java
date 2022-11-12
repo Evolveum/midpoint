@@ -8,13 +8,14 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
-import static com.evolveum.midpoint.provisioning.impl.shadows.Util.*;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -33,9 +34,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
-import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandler;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
@@ -59,7 +58,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * Helps with the `add` operation. Wraps {@link AddOperation}, providing code to invoke it neatly via
- * {@link #executeAddShadowAttempt(ProvisioningContext, ShadowType, OperationProvisioningScriptsType, ProvisioningOperationState,
+ * {@link #executeAddShadowAttempt(ProvisioningContext, ShadowType, OperationProvisioningScriptsType, AddOperationState,
  * ProvisioningOperationOptions, OperationResult)} method.
  *
  * (Unlike {@link ShadowGetOperation} and {@link ShadowSearchLikeOperation}, the "add" operation is called from other
@@ -103,7 +102,7 @@ class ShadowAddHelper {
                 resourceObjectToAdd.debugDumpLazily(1));
 
         ProvisioningContext ctx = establishProvisioningContext(resourceObjectToAdd, task, result);
-        ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState = new ProvisioningOperationState<>();
+        AddOperationState opState = new AddOperationState();
         return executeAddShadowAttempt(ctx, resourceObjectToAdd, scripts, opState, options, result);
     }
 
@@ -130,7 +129,7 @@ class ShadowAddHelper {
             ProvisioningContext ctx,
             ShadowType resourceObjectToAdd,
             OperationProvisioningScriptsType scripts,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
+            AddOperationState opState,
             ProvisioningOperationOptions options,
             OperationResult result)
             throws CommunicationException, GenericFrameworkException,
@@ -160,7 +159,7 @@ class ShadowAddHelper {
             OperationResult parentResult) {
         ObjectDelta<ShadowType> delta = DeltaFactory.Object.createAddDelta(addedShadow.asPrismObject());
         ResourceOperationDescription operationDescription =
-                Util.createSuccessOperationDescription(ctx, addedShadow, delta, null);
+                ShadowsUtil.createSuccessOperationDescription(ctx, addedShadow, delta, null);
 
         if (opState.isExecuting()) {
             eventDispatcher.notifyInProgress(operationDescription, task, parentResult);
@@ -174,7 +173,7 @@ class ShadowAddHelper {
         private final ProvisioningContext ctx;
         private final ShadowType resourceObjectToAdd;
         private final OperationProvisioningScriptsType scripts;
-        private final ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState;
+        private final AddOperationState opState;
         private final ProvisioningOperationOptions options;
         private final Task task;
 
@@ -185,7 +184,7 @@ class ShadowAddHelper {
                 ProvisioningContext ctx,
                 ShadowType resourceObjectToAdd,
                 OperationProvisioningScriptsType scripts,
-                ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
+                AddOperationState opState,
                 ProvisioningOperationOptions options) {
             this.ctx = ctx;
             this.resourceObjectToAdd = resourceObjectToAdd;
@@ -221,14 +220,9 @@ class ShadowAddHelper {
                     subresult.recordException(e);
                     subresult.close();
                     finalOperationStatus = handleAddError(e, subresult, result);
-                    if (opState.getRepoShadow() != null) { // Should be the case
-                        setParentOperationStatus(result, opState, finalOperationStatus); // TODO
-                        return opState.getRepoShadow().getOid();
-                    } else {
-                        throw e; // ???
-                    }
+                } else {
+                    executeAddOperationDirectly(result);
                 }
-                executeAddOperationDirectly(result);
             } else {
                 markExecutionAsPending(result);
             }
@@ -272,11 +266,11 @@ class ShadowAddHelper {
             LOGGER.trace("ADD {}: resource operation, execution starting", resourceObjectToAdd);
 
             try {
-                var asyncReturnValue =
+                var asyncResult =
                         resourceObjectConverter.addResourceObject(
                                 ctx, resourceObjectToAdd, scripts, connOptions, false, result);
-                opState.processAsyncResult(asyncReturnValue);
-                addedShadow = asyncReturnValue.getReturnValue();
+                opState.recordRealAsynchronousResult(asyncResult);
+                addedShadow = asyncResult.getReturnValue();
 
             } catch (ObjectAlreadyExistsException e) {
 
@@ -302,11 +296,11 @@ class ShadowAddHelper {
                     try {
 
                         LOGGER.trace("ADD {}: retrying resource operation without uniqueness check (previous dead shadow found), execution starting", resourceObjectToAdd);
-                        AsynchronousOperationReturnValue<ShadowType> asyncReturnValue =
+                        AsynchronousOperationReturnValue<ShadowType> asyncResult =
                                 resourceObjectConverter
                                         .addResourceObject(ctx, resourceObjectToAdd, scripts, connOptions, true, result);
-                        opState.processAsyncResult(asyncReturnValue);
-                        addedShadow = asyncReturnValue.getReturnValue();
+                        opState.recordRealAsynchronousResult(asyncResult);
+                        addedShadow = asyncResult.getReturnValue();
 
                     } catch (ObjectAlreadyExistsException innerException) {
                         // Mark shadow dead before we handle the error. ADD operation obviously failed. Therefore this particular
@@ -371,12 +365,11 @@ class ShadowAddHelper {
 
             // TODO: record operationExecution
 
-            ErrorHandler handler = errorHandlerLocator.locateErrorHandlerRequired(cause);
             LOGGER.debug("Handling provisioning ADD exception {}: {}", cause.getClass(), cause.getMessage());
             try {
-                OperationResultStatus finalStatus =
-                        handler.handleAddError(
-                                ctx, resourceObjectToAdd, options, opState, cause, failedOperationResult, task, result);
+                OperationResultStatus finalStatus = errorHandlerLocator
+                        .locateErrorHandlerRequired(cause)
+                        .handleAddError(ctx, resourceObjectToAdd, options, opState, cause, failedOperationResult, task, result);
                 LOGGER.debug("Handled provisioning ADD exception, final status: {}, operation state: {}", finalStatus, opState.shortDumpLazily());
                 return finalStatus;
             } catch (CommonException e) {

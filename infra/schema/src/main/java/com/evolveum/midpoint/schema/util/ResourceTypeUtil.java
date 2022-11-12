@@ -8,6 +8,7 @@ package com.evolveum.midpoint.schema.util;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.xml.datatype.Duration;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
@@ -715,5 +716,10 @@ public class ResourceTypeUtil {
     public static boolean isDiscoveryAllowed(@NotNull ResourceType resource) {
         ResourceConsistencyType consistency = resource.getConsistency();
         return consistency == null || !Boolean.FALSE.equals(consistency.isDiscovery());
+    }
+
+    public static Duration getGroupingInterval(ResourceType resource) {
+        ResourceConsistencyType resourceConsistency = resource.getConsistency();
+        return resourceConsistency != null ? resourceConsistency.getOperationGroupingInterval() : null;
     }
 }

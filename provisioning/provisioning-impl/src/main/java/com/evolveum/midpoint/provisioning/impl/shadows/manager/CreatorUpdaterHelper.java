@@ -10,25 +10,20 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
@@ -46,7 +41,7 @@ public class CreatorUpdaterHelper {
 
     // Just minimal metadata for now, maybe we need to expand that later
     // those are needed to properly manage dead shadows
-    void addCreateMetadata(ShadowType repoShadow) {
+    void addCreationMetadata(ShadowType repoShadow) {
         MetadataType metadata = repoShadow.getMetadata();
         if (metadata != null) {
             return;
@@ -58,13 +53,14 @@ public class CreatorUpdaterHelper {
 
     // Just minimal metadata for now, maybe we need to expand that later
     // those are needed to properly manage dead shadows
-    void addModifyMetadataDeltas(ShadowType repoShadow, Collection<ItemDelta<?, ?>> shadowChanges) {
-        PropertyDelta<XMLGregorianCalendar> modifyTimestampDelta = ItemDeltaCollectionsUtil
-                .findPropertyDelta(shadowChanges, SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
+    void addModificationMetadataDeltas(ShadowType repoShadow, Collection<ItemDelta<?, ?>> shadowChanges) {
+        PropertyDelta<XMLGregorianCalendar> modifyTimestampDelta =
+                ItemDeltaCollectionsUtil.findPropertyDelta(shadowChanges, SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
         if (modifyTimestampDelta != null) {
             return;
         }
-        LOGGER.debug("Metadata not found, adding minimal metadata. Modifications:\n{}", DebugUtil.debugDumpLazily(shadowChanges, 1));
+        LOGGER.debug("Metadata not found, adding minimal metadata. Modifications:\n{}",
+                DebugUtil.debugDumpLazily(shadowChanges, 1));
         PrismPropertyDefinition<XMLGregorianCalendar> def =
                 repoShadow.asPrismObject().getDefinition()
                         .findPropertyDefinition(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);

@@ -2121,8 +2121,7 @@ public class TaskQuartzImpl implements Task {
     public @NotNull ObjectReferenceType getSelfReferenceFull() {
         if (getOid() != null) {
             return ObjectTypeUtil.createObjectRefWithFullObject(
-                    getRawTaskObjectClonedIfNecessary(),
-                    PrismContext.get());
+                    getRawTaskObjectClonedIfNecessary());
         } else {
             throw new IllegalStateException("Reference cannot be created for a transient task: " + this);
         }

@@ -38,7 +38,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
@@ -47,9 +46,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -344,7 +341,7 @@ public class ProvisioningUtil {
         // Should we log the exception? Actually, there's no reason to do it if the exception is rethrown.
         // Therefore we'll log the exception only on debug level here.
         LoggingUtils.logExceptionOnDebugLevel(logger, message, ex);
-        opResult.recordFatalErrorNotFinish(message, ex); // We are not the one who created the result, so we shouldn't close it
+        opResult.setFatalError(message, ex); // We are not the one who created the result, so we shouldn't close it
         opResult.markExceptionRecorded();
     }
 
@@ -569,33 +566,8 @@ public class ProvisioningUtil {
         return failureDesc;
     }
 
-    public static boolean isDoDiscovery(@NotNull ResourceType resource, GetOperationOptions rootOptions) {
-        return !GetOperationOptions.isDoNotDiscovery(rootOptions) && ResourceTypeUtil.isDiscoveryAllowed(resource);
-    }
-
     public static boolean isDoDiscovery(@NotNull ResourceType resource, ProvisioningOperationOptions options) {
         return !ProvisioningOperationOptions.isDoNotDiscovery(options) && ResourceTypeUtil.isDiscoveryAllowed(resource);
-    }
-
-    public static OperationResultStatus postponeModify(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            Collection<? extends ItemDelta<?, ?>> modifications,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
-            OperationResult failedOperationResult,
-            OperationResult result) {
-        LOGGER.trace("Postponing MODIFY operation for {}", repoShadow);
-        opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
-        AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> asyncResult =
-                new AsynchronousOperationReturnValue<>();
-        asyncResult.setOperationResult(failedOperationResult);
-        asyncResult.setOperationType(PendingOperationTypeType.RETRY);
-        opState.setAsyncResult(asyncResult);
-        if (opState.getAttemptNumber() == null) {
-            opState.setAttemptNumber(1);
-        }
-        result.setInProgress();
-        return OperationResultStatus.IN_PROGRESS;
     }
 
     // TODO better place?

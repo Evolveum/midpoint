@@ -9,8 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 
@@ -18,7 +17,7 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 class PolicyViolationHandler extends HardErrorHandler {
 
     @Override
-    protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
+    protected void throwException(Exception cause, ProvisioningOperationState<?> opState, OperationResult result)
             throws PolicyViolationException {
         recordCompletionError(cause, opState, result);
         if (cause instanceof PolicyViolationException) {

@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE;
+
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -4276,5 +4279,27 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (!isNativeRepository()) {
             throw new SkipException("Skipping the test designed for the native repository only.");
         }
+    }
+
+    private void setMaintenanceMode(String resourceOid, AdministrativeAvailabilityStatusType value, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                ResourceType.class,
+                resourceOid,
+                deltaFor(ResourceType.class)
+                        .item(F_ADMINISTRATIVE_OPERATIONAL_STATE, F_ADMINISTRATIVE_AVAILABILITY_STATUS)
+                        .replace(value)
+                        .asItemDeltas(),
+                result);
+    }
+
+    protected void turnMaintenanceModeOn(String resourceOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        setMaintenanceMode(resourceOid, AdministrativeAvailabilityStatusType.MAINTENANCE, result);
+    }
+
+    protected void turnMaintenanceModeOff(String resourceOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        setMaintenanceMode(resourceOid, AdministrativeAvailabilityStatusType.OPERATIONAL, result);
     }
 }

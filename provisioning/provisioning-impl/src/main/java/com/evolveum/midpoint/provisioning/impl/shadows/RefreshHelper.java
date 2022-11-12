@@ -7,9 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.Util.createSuccessOperationDescription;
-import static com.evolveum.midpoint.provisioning.impl.shadows.Util.needsRetry;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.createSuccessOperationDescription;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.needsRetry;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,6 +20,9 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +43,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
@@ -51,11 +54,9 @@ import com.evolveum.midpoint.schema.RefreshShadowOperation;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.OperationResultUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -136,7 +137,7 @@ class RefreshHelper {
             return rso;
         }
 
-        if (ResourceTypeUtil.isInMaintenance(ctx.getResource())) {
+        if (ctx.isInMaintenance()) {
             LOGGER.trace("Skipping refresh of {} pending operations because resource shadow is in the maintenance.", repoShadow);
             RefreshShadowOperation rso = new RefreshShadowOperation();
             rso.setRefreshedShadow(repoShadow);
@@ -394,7 +395,7 @@ class RefreshHelper {
         Duration retryPeriod = ProvisioningUtil.getRetryPeriod(ctx);
 
         Collection<ObjectDeltaOperation<ShadowType>> executedDeltas = new ArrayList<>();
-        for (PendingOperationType pendingOperation: sortedOperations) {
+        for (PendingOperationType pendingOperation : sortedOperations) {
 
             if (!needsRetry(pendingOperation)) {
                 continue;
@@ -402,7 +403,7 @@ class RefreshHelper {
             // We really want to get "now" here. Retrying operation may take some time. We want good timestamps that do not lie.
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
             if (!isAfterRetryPeriod(pendingOperation, retryPeriod, now)) {
-                if (PendingOperationTypeType.RETRY != pendingOperation.getType()) {
+                if (pendingOperation.getType() != RETRY) {
                     continue;
                 }
                 if (!ProvisioningOperationOptions.isForceRetry(options)) {
@@ -436,17 +437,14 @@ class RefreshHelper {
             shadowDelta.applyTo(repoShadow.asPrismObject());
 
             ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
-            ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
-
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState =
-                    ProvisioningOperationState.fromPendingOperation(repoShadow, pendingOperation);
+            ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType);
 
             LOGGER.debug("Retrying operation {} on {}, attempt #{}", pendingDelta, repoShadow, attemptNumber);
 
             ObjectDeltaOperation<ShadowType> objectDeltaOperation = new ObjectDeltaOperation<>(pendingDelta);
             OperationResult result = parentResult.createSubresult(OP_OPERATION_RETRY);
             try {
-                retryOperation(ctx, pendingDelta, opState, result);
+                ProvisioningOperationState<?> opState = retryOperation(ctx, pendingDelta, repoShadow, pendingOperation, result);
                 repoShadow = opState.getRepoShadow();
                 result.computeStatus();
                 if (result.isError()) {
@@ -488,10 +486,11 @@ class RefreshHelper {
         return rso;
     }
 
-    private void retryOperation(
+    private @NotNull ProvisioningOperationState<?> retryOperation(
             @NotNull ProvisioningContext ctx,
             @NotNull ObjectDelta<ShadowType> pendingDelta,
-            @NotNull ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+            ShadowType repoShadow,
+            PendingOperationType pendingOperation,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
@@ -500,34 +499,34 @@ class RefreshHelper {
         ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(false);
         OperationProvisioningScriptsType scripts = null; // TODO
         if (pendingDelta.isAdd()) {
+            AddOperationState opState = AddOperationState.fromPendingOperation(repoShadow, pendingOperation);
             PrismObject<ShadowType> resourceObjectToAdd = pendingDelta.getObjectToAdd();
-            //noinspection unchecked
-            addHelper.executeAddShadowAttempt(ctx, resourceObjectToAdd.asObjectable(), scripts,
-                    (ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>>) opState,
-                    options, result);
+            addHelper.executeAddShadowAttempt(ctx, resourceObjectToAdd.asObjectable(), scripts, opState, options, result);
+            return opState;
         }
 
         if (pendingDelta.isModify()) {
+            ModifyOperationState opState = ModifyOperationState.fromPendingOperation(repoShadow, pendingOperation);
             if (opState.objectExists()) {
-                //noinspection unchecked
-                modifyHelper.modifyShadowAttempt(ctx, pendingDelta.getModifications(), scripts, options,
-                        (ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>>) opState,
-                        true, result);
+                modifyHelper.modifyShadowAttempt(
+                        ctx, pendingDelta.getModifications(), scripts, options, opState, true, result);
             } else {
                 result.recordFatalError("Object does not exist on the resource yet, modification attempt was skipped");
             }
+            return opState;
         }
 
         if (pendingDelta.isDelete()) {
+            DeleteOperationState opState = DeleteOperationState.fromPendingOperation(repoShadow, pendingOperation);
             if (opState.objectExists()) {
-                //noinspection unchecked
-                deleteHelper.deleteShadowAttempt(ctx, options, scripts,
-                        (ProvisioningOperationState<AsynchronousOperationResult>) opState,
-                        result);
+                deleteHelper.deleteShadowAttempt(ctx, options, scripts, opState, result);
             } else {
                 result.recordFatalError("Object does not exist on the resource yet, deletion attempt was skipped");
             }
+            return opState;
         }
+
+        throw new IllegalStateException("Unknown type of delta: " + pendingDelta);
     }
 
     private boolean isAfterRetryPeriod(PendingOperationType pendingOperation, Duration retryPeriod, XMLGregorianCalendar now) {

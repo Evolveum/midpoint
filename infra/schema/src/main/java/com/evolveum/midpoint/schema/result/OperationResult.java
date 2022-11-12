@@ -1248,6 +1248,10 @@ public class OperationResult
         recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
     }
 
+    public void setNotApplicable(String message) {
+        setStatus(OperationResultStatus.NOT_APPLICABLE, message, null);
+    }
+
     public boolean isMinor() {
         return importance == MINOR;
     }
@@ -1711,7 +1715,7 @@ public class OperationResult
     /** As {@link #recordException(String, Throwable)} but does not mark operation as finished. */
     public void recordExceptionNotFinish(String message, @NotNull Throwable cause) {
         if (!exceptionRecorded) {
-            recordStatusNotFinish(
+            setStatus(
                     OperationResultStatus.forThrowable(cause),
                     message,
                     cause);
@@ -1746,12 +1750,12 @@ public class OperationResult
         exceptionRecorded = false;
     }
 
-    public void recordFatalErrorNotFinish(Throwable cause) {
-        recordStatusNotFinish(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
+    public void setFatalError(Throwable cause) {
+        setStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
     }
 
-    public void recordFatalErrorNotFinish(String message, Throwable cause) {
-        recordStatusNotFinish(OperationResultStatus.FATAL_ERROR, message, cause);
+    public void setFatalError(String message, Throwable cause) {
+        setStatus(OperationResultStatus.FATAL_ERROR, message, cause);
     }
 
     /**
@@ -1822,7 +1826,7 @@ public class OperationResult
     }
 
     public void recordWarningNotFinish(String message, Throwable cause) {
-        recordStatusNotFinish(OperationResultStatus.WARNING, message, cause);
+        setStatus(OperationResultStatus.WARNING, message, cause);
     }
 
     public void recordHandledError(String message) {
@@ -1839,17 +1843,17 @@ public class OperationResult
 
     public void recordStatus(OperationResultStatus status, String message, Throwable cause) {
         recordEnd();
-        recordStatusNotFinish(status, message, cause);
+        setStatus(status, message, cause);
     }
 
-    private void recordStatusNotFinish(OperationResultStatus status, String message, Throwable cause) {
+    private void setStatus(OperationResultStatus status, String message, Throwable cause) {
         this.status = status;
         this.message = message;
         this.cause = cause;
-        recordUserFriendlyMessage(cause);
+        setUserFriendlyMessage(cause);
     }
 
-    private void recordUserFriendlyMessage(Throwable cause) {
+    private void setUserFriendlyMessage(Throwable cause) {
         if (cause instanceof CommonException) {
             setUserFriendlyMessage(((CommonException) cause).getUserFriendlyMessage());
         }
@@ -1861,6 +1865,10 @@ public class OperationResult
 
     public void recordPartialError(String message) {
         recordStatus(OperationResultStatus.PARTIAL_ERROR, message);
+    }
+
+    public void setPartialError(String message) {
+        setStatus(OperationResultStatus.PARTIAL_ERROR, message, null);
     }
 
     public void recordWarning(String message) {

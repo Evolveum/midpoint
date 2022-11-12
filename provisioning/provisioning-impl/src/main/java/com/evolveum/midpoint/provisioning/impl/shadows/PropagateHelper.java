@@ -7,40 +7,42 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import java.util.ArrayList;
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.getGroupingInterval;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTION_PENDING;
+
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Implements operations propagation.
@@ -52,7 +54,6 @@ class PropagateHelper {
     private static final Trace LOGGER = TraceManager.getTrace(PropagateHelper.class);
 
     @Autowired private Clock clock;
-    @Autowired private PrismContext prismContext;
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired protected ShadowManager shadowManager;
     @Autowired private ProvisioningContextFactory ctxFactory;
@@ -62,111 +63,105 @@ class PropagateHelper {
     @Autowired private DeleteHelper deleteHelper;
 
     void propagateOperations(
-            ResourceType resource,
-            ShadowType shadow,
-            Task task,
-            OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
+            @NotNull ResourceType resource,
+            @NotNull ShadowType shadow,
+            @NotNull Task task,
+            @NotNull OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
             SecurityViolationException, PolicyViolationException, EncryptionException {
 
-        ResourceConsistencyType resourceConsistencyType = resource.getConsistency();
-        if (resourceConsistencyType == null) {
-            LOGGER.warn("Skipping propagation of {} because no there is no consistency definition in resource", shadow);
-            return;
-        }
-        Duration operationGroupingInterval = resourceConsistencyType.getOperationGroupingInterval();
+        Duration operationGroupingInterval = getGroupingInterval(resource);
         if (operationGroupingInterval == null) {
             LOGGER.warn("Skipping propagation of {} because no there is no operationGroupingInterval defined in resource", shadow);
             return;
         }
+
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
-        List<PendingOperationType> pendingExecutionOperations = new ArrayList<>();
-        boolean triggered = false;
-        for (PendingOperationType pendingOperation : shadow.getPendingOperation()) {
-            PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();
-            if (executionStatus == PendingOperationExecutionStatusType.EXECUTION_PENDING) {
-                pendingExecutionOperations.add(pendingOperation);
-                if (isPropagationTriggered(pendingOperation, operationGroupingInterval, now)) {
-                    triggered = true;
-                }
-            }
-        }
-        if (!triggered) {
-            LOGGER.debug("Skipping propagation of {} because no pending operation triggered propagation", shadow);
-            return;
-        }
-        if (pendingExecutionOperations.isEmpty()) {
+        List<PendingOperationType> execPendingOperations = shadow.getPendingOperation().stream()
+                .filter(op -> op.getExecutionStatus() == EXECUTION_PENDING)
+                .collect(Collectors.toList());
+
+        if (execPendingOperations.isEmpty()) {
             LOGGER.debug("Skipping propagation of {} because there are no pending executions", shadow);
             return;
         }
-        LOGGER.debug("Propagating {} pending operations in {} ", pendingExecutionOperations.size(), shadow);
-
-        ObjectDelta<ShadowType> operationDelta = null;
-        List<PendingOperationType> sortedOperations = shadowCaretaker.sortPendingOperations(pendingExecutionOperations);
-        for (PendingOperationType pendingOperation: sortedOperations) {
-            ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
-            ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
-            definitionsHelper.applyDefinition(pendingDelta, shadow, task, result);
-            if (operationDelta == null) {
-                operationDelta = pendingDelta;
-            } else {
-                operationDelta.merge(pendingDelta);
-            }
+        if (!isPropagationTriggered(execPendingOperations, operationGroupingInterval, now)) {
+            LOGGER.debug("Skipping propagation of {} because no pending operation triggered propagation", shadow);
+            return;
         }
-        assert operationDelta != null; // there is at least one pending operation
+        LOGGER.debug("Propagating {} pending operations in {}", execPendingOperations.size(), shadow);
+
+        List<PendingOperationType> sortedOperations = shadowCaretaker.sortPendingOperations(execPendingOperations);
+        ObjectDelta<ShadowType> aggregateDelta = computeAggregatedDelta(sortedOperations, shadow, task, result);
 
         ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
         ctx.setPropagation(true);
         ctx.applyAttributesDefinition(shadow);
-        ctx.applyAttributesDefinition(operationDelta);
-        LOGGER.trace("Merged operation for {}:\n{} ", shadow, operationDelta.debugDumpLazily(1));
+        ctx.applyAttributesDefinition(aggregateDelta);
+        LOGGER.trace("Merged operation for {}:\n{} ", shadow, aggregateDelta.debugDumpLazily(1));
 
-        if (operationDelta.isAdd()) {
-            ShadowType shadowToAdd = operationDelta.getObjectToAdd().asObjectable();
-            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState =
-                    ProvisioningOperationState.fromPendingOperations(shadow, sortedOperations);
+        if (aggregateDelta.isAdd()) {
+            ShadowType shadowToAdd = aggregateDelta.getObjectToAdd().asObjectable();
+            AddOperationState opState = AddOperationState.fromPendingOperations(shadow, sortedOperations);
             shadowToAdd.setOid(shadow.getOid());
             addHelper.executeAddShadowAttempt(ctx, shadowToAdd, null, opState, null, result);
             opState.determineExecutionStatusFromResult();
 
-            shadowManager.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
+            shadowManager.updatePendingOperations(ctx, shadow, opState, execPendingOperations, now, result);
+            addHelper.notifyAfterAdd(ctx, opState.getReturnedShadow(), opState, task, result);
 
-            addHelper.notifyAfterAdd(ctx, opState.getAsyncResult().getReturnValue(), opState, task, result);
-
-        } else if (operationDelta.isModify()) {
-            Collection<? extends ItemDelta<?,?>> modifications = operationDelta.getModifications();
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState =
+        } else if (aggregateDelta.isModify()) {
+            Collection<? extends ItemDelta<?,?>> modifications = aggregateDelta.getModifications();
+            ModifyOperationState opState =
                     modifyHelper.executeResourceModify(ctx, shadow, modifications, null, null, now, result);
             opState.determineExecutionStatusFromResult();
 
-            shadowManager.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
-
+            shadowManager.updatePendingOperations(ctx, shadow, opState, execPendingOperations, now, result);
             modifyHelper.notifyAfterModify(ctx, shadow, modifications, opState, result);
 
-        } else if (operationDelta.isDelete()) {
-            ProvisioningOperationState<AsynchronousOperationResult> opState =
-                    deleteHelper.executeResourceDelete(ctx, shadow, null, null, task, result);
+        } else if (aggregateDelta.isDelete()) {
+            DeleteOperationState opState = deleteHelper.executeResourceDelete(ctx, shadow, null, null, result);
             opState.determineExecutionStatusFromResult();
 
-            shadowManager.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
-
+            shadowManager.updatePendingOperations(ctx, shadow, opState, execPendingOperations, now, result);
             deleteHelper.notifyAfterDelete(ctx, shadow, opState, result);
 
         } else {
-            throw new IllegalStateException("Delta from outer space: "+operationDelta);
+            throw new IllegalStateException("Delta from outer space: " + aggregateDelta);
         }
-
         // do we need to modify exists/dead flags?
-
     }
 
-    private boolean isPropagationTriggered(PendingOperationType pendingOperation, Duration operationGroupingInterval, XMLGregorianCalendar now) {
-        XMLGregorianCalendar requestTimestamp = pendingOperation.getRequestTimestamp();
-        if (requestTimestamp == null) {
-            return false;
+    @NotNull
+    private ObjectDelta<ShadowType> computeAggregatedDelta(
+            @NotNull List<PendingOperationType> sortedOperations,
+            @NotNull ShadowType shadow,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        ObjectDelta<ShadowType> aggregateDelta = null;
+        for (PendingOperationType pendingOperation : sortedOperations) {
+            ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
+            // TODO Shadow is retrieved from the repository here!
+            definitionsHelper.applyDefinition(pendingDelta, shadow, task, result);
+            if (aggregateDelta == null) {
+                aggregateDelta = pendingDelta;
+            } else {
+                aggregateDelta.merge(pendingDelta);
+            }
         }
-        return XmlTypeConverter.isAfterInterval(requestTimestamp, operationGroupingInterval, now);
+        assert aggregateDelta != null; // there is at least one pending operation
+        return aggregateDelta;
     }
 
+    private boolean isPropagationTriggered(
+            List<PendingOperationType> operations, Duration operationGroupingInterval, XMLGregorianCalendar now) {
+        return operations.stream()
+                .map(PendingOperationType::getRequestTimestamp)
+                .anyMatch(
+                        timestamp -> timestamp != null
+                                && XmlTypeConverter.isAfterInterval(timestamp, operationGroupingInterval, now));
+    }
 }

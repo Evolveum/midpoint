@@ -86,7 +86,7 @@ public class MissingShadowContextRefresher<F extends ObjectType> {
             LOGGER.trace(" -> The dead context was unclassified: there is no hope of matching any (re-created) shadow found"
                     + " with it. So we won't even try.");
             compensated = false;
-        } else if (!GetOperationOptions.isDoNotDiscovery(SelectorOptions.findRootOptions(options))) {
+        } else if (!GetOperationOptions.isDoNotDiscovery(options)) {
             // The account might have been re-created by the discovery.
             // Reload focus, try to find out if there is a new matching link (and the old is gone)
             LOGGER.trace(" -> reloading the focus with the goal of finding matching link");

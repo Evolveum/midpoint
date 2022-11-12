@@ -77,7 +77,11 @@ public final class MultiPropagationActivityRun
         return true;
     }
 
-    private void propagateOperationsOnShadow(ShadowType shadow, ResourceType resource, Task workerTask, OperationResult result) {
+    private void propagateOperationsOnShadow(
+            @NotNull ShadowType shadow,
+            @NotNull ResourceType resource,
+            @NotNull Task workerTask,
+            @NotNull OperationResult result) {
         try {
             getActivityHandler().shadowsFacade.propagateOperations(resource, shadow, workerTask, result);
         } catch (CommonException | GenericFrameworkException | EncryptionException e) {
