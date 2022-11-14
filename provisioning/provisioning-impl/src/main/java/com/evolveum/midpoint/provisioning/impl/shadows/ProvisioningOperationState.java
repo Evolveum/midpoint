@@ -7,15 +7,18 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType.RETRY;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -57,6 +60,12 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
     private A asyncResult;
 
     /**
+     * Status of the [pending] operation that is to be applied if nothing can be determined from {@link #asyncResult}.
+     * Used for error handling.
+     */
+    private OperationResultStatus defaultResultStatus;
+
+    /**
      * Current status of this operation: requested, pending, executing, completed.
      * Corresponds to pending operation bean connected to this operation.
      */
@@ -74,9 +83,25 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
     private Integer attemptNumber;
 
     /**
-     * TODO - this is a bit incomprehensible... analyze & document it!
+     * The timestamp of the last executed attempt - set only if it has to be updated in the repository.
      */
-    private List<PendingOperationType> pendingOperations;
+    private XMLGregorianCalendar lastAttemptTimestamp;
+
+    /**
+     * The pending operation in the shadow that this operation is an execution of (first or repeated).
+     * It will be updated with the actual result of the execution.
+     *
+     * NOTE: This _excludes_ the propagation operation. In that case, we aggregate all waiting operations and execute them
+     * as a single delta. The code for updating the shadow is (currently) distinct from the one that uses this field.
+     * See {@link #propagatedPendingOperations}.
+     */
+    private PendingOperationType currentPendingOperation;
+
+    /**
+     * List of pending operations executed during a propagation operation.
+     * These are updated in a special way.
+     */
+    private List<PendingOperationType> propagatedPendingOperations;
 
     public ProvisioningOperationState() {
     }
@@ -98,26 +123,39 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         return operationResult != null ? operationResult.getStatus() : null;
     }
 
+    public void setDefaultResultStatus(OperationResultStatus defaultResultStatus) {
+        this.defaultResultStatus = defaultResultStatus;
+    }
+
+    private OperationResultStatus getResultStatusOrDefault() {
+        return MiscUtil.getFirstNonNull(getResultStatus(), defaultResultStatus);
+    }
+
     public boolean isSuccess() {
         return getResultStatus() == OperationResultStatus.SUCCESS;
     }
 
-    public OperationResultStatusType getResultStatusType() {
+    public OperationResultStatusType getResultStatusTypeOrDefault() {
         return createStatusType(
-                getResultStatus());
+                getResultStatusOrDefault());
     }
 
     public PendingOperationTypeType getOperationType() {
         return asyncResult != null ? asyncResult.getOperationType() : null;
     }
 
-    void markToRetry(A asyncResult, OperationResult failedOperationResult) {
+    public abstract OperationResultStatus markAsPostponed(OperationResult failedOperationResult);
+
+    void markAsPostponed(A asyncResult, OperationResult failedOperationResult) {
         asyncResult.setOperationResult(failedOperationResult);
-        asyncResult.setOperationType(PendingOperationTypeType.RETRY);
+        asyncResult.setOperationType(RETRY);
         this.asyncResult = asyncResult;
         executionStatus = EXECUTING;
         if (attemptNumber == null) {
             attemptNumber = 1;
+        }
+        if (lastAttemptTimestamp == null) {
+            lastAttemptTimestamp = ShadowsLocalBeans.get().clock.currentTimeXMLGregorianCalendar();
         }
     }
 
@@ -133,27 +171,53 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         return repoShadow;
     }
 
+    String getRepoShadowOid() {
+        return repoShadow != null ? repoShadow.getOid() : null;
+    }
+
     public void setRepoShadow(ShadowType repoShadow) {
         this.repoShadow = repoShadow;
     }
 
-    public List<PendingOperationType> getPendingOperations() {
-        return pendingOperations;
+    public PendingOperationType getCurrentPendingOperation() {
+        return currentPendingOperation;
     }
 
-    public boolean hasPendingOperations() {
-        return pendingOperations != null;
+    public boolean hasCurrentPendingOperation() {
+        return currentPendingOperation != null;
     }
 
-    public void addPendingOperation(PendingOperationType pendingOperation) {
-        if (pendingOperations == null) {
-            pendingOperations = new ArrayList<>();
-        }
-        pendingOperations.add(pendingOperation);
+    public void setCurrentPendingOperation(@NotNull PendingOperationType pendingOperation) {
+        stateCheck(currentPendingOperation == null,
+                "Current pending operation is already set! %s in %s", currentPendingOperation, repoShadow);
+        stateCheck(propagatedPendingOperations == null,
+                "Propagated and 'regular' pending operations cannot be mixed: %s vs %s",
+                propagatedPendingOperations, pendingOperation);
+        currentPendingOperation = pendingOperation;
+    }
+
+    public List<PendingOperationType> getPropagatedPendingOperations() {
+        return propagatedPendingOperations;
+    }
+
+    void setPropagatedPendingOperations(List<PendingOperationType> propagatedPendingOperations) {
+        this.propagatedPendingOperations = propagatedPendingOperations;
+    }
+
+    public Integer getAttemptNumber() {
+        return attemptNumber;
+    }
+
+    void setAttemptNumber(Integer attemptNumber) {
+        this.attemptNumber = attemptNumber;
     }
 
     public int getRealAttemptNumber() {
         return Objects.requireNonNullElse(attemptNumber, 1);
+    }
+
+    public XMLGregorianCalendar getLastAttemptTimestamp() {
+        return lastAttemptTimestamp;
     }
 
     /**
@@ -203,8 +267,8 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         if (attemptNumber != null) {
             sb.append(", attempt #").append(attemptNumber);
         }
-        if (pendingOperations != null) {
-            sb.append(", ").append(pendingOperations.size()).append(" pending operations");
+        if (currentPendingOperation != null) {
+            sb.append(", ").append(" has current pending operation");
         }
         if (asyncResult != null) {
             sb.append(", result: ");
@@ -212,37 +276,16 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         }
     }
 
-    void determineExecutionStatusFromResult() {
-        if (asyncResult == null) {
-            throw new IllegalStateException("Cannot determine execution status from null result");
-        }
-        OperationResult operationResult = asyncResult.getOperationResult();
-        if (operationResult == null) {
-            throw new IllegalStateException("Cannot determine execution status from null result");
-        }
-        OperationResultStatus status = operationResult.getStatus();
-        if (status == null) {
-            executionStatus = PendingOperationExecutionStatusType.REQUESTED;
-        } else if (status == OperationResultStatus.IN_PROGRESS) {
-            executionStatus = EXECUTING;
-        } else {
-            executionStatus = COMPLETED;
-        }
-    }
-
-    private static <X extends ProvisioningOperationState<?>> X fromPendingOperationsInternal(
-            ShadowType repoShadow, List<PendingOperationType> pendingOperations, Function<ShadowType, X> supplier) {
-        if (pendingOperations == null || pendingOperations.isEmpty()) {
+    private static <X extends ProvisioningOperationState<?>> X fromPendingOperationInternal(
+            ShadowType repoShadow, PendingOperationType pendingOperation, Function<ShadowType, X> newOpStateSupplier) {
+        if (pendingOperation == null) {
             throw new IllegalArgumentException("Empty list of pending operations, cannot create ProvisioningOperationState");
         }
-        X typedOpState = supplier.apply(repoShadow);
-        ProvisioningOperationState<?> opState = typedOpState;
-        opState.pendingOperations = new ArrayList<>(pendingOperations);
-        // TODO: check that they have the same status
-        opState.executionStatus = pendingOperations.get(0).getExecutionStatus();
-        // TODO: better algorithm
-        opState.attemptNumber = pendingOperations.get(0).getAttemptNumber();
-        return typedOpState;
+        X newOpState = newOpStateSupplier.apply(repoShadow);
+        newOpState.setCurrentPendingOperation(pendingOperation);
+        newOpState.setExecutionStatus(pendingOperation.getExecutionStatus());
+        newOpState.setAttemptNumber(pendingOperation.getAttemptNumber());
+        return newOpState;
     }
 
     boolean objectExists() {
@@ -253,7 +296,10 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         }
     }
 
-    /** Creates a {@link PendingOperationType} that represents the result/status of this operation. */
+    /**
+     * Creates a {@link PendingOperationType} that represents the result/status of this operation. This is one of channels
+     * of serializing that information.
+     */
     public PendingOperationType toPendingOperation(
             ObjectDelta<ShadowType> requestDelta, String asyncOperationReferenceOverride, XMLGregorianCalendar now) throws SchemaException {
         ObjectDeltaType deltaType = DeltaConvertor.toObjectDeltaType(requestDelta);
@@ -265,17 +311,16 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
             pendingOperation.setOperationStartTimestamp(now);
         }
         pendingOperation.setExecutionStatus(executionStatus);
-        pendingOperation.setResultStatus(getResultStatusType());
-        if (attemptNumber != null) {
-            pendingOperation.setAttemptNumber(attemptNumber);
-            pendingOperation.setLastAttemptTimestamp(now);
-        }
-        if (asyncOperationReferenceOverride != null) {
-            pendingOperation.setAsynchronousOperationReference(asyncOperationReferenceOverride);
-        } else {
-            pendingOperation.setAsynchronousOperationReference(getAsynchronousOperationReference());
-        }
+        pendingOperation.setResultStatus(getResultStatusTypeOrDefault());
+        pendingOperation.setAttemptNumber(attemptNumber);
+        pendingOperation.setLastAttemptTimestamp(lastAttemptTimestamp);
+        pendingOperation.setAsynchronousOperationReference(
+                asyncOperationReferenceOverride != null ? asyncOperationReferenceOverride : getAsynchronousOperationReference());
         return pendingOperation;
+    }
+
+    public boolean hasRepoShadow() {
+        return repoShadow != null;
     }
 
     public static class AddOperationState
@@ -288,22 +333,18 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
             super(repoShadow);
         }
 
-        static @NotNull AddOperationState fromPendingOperations(
-                @NotNull ShadowType repoShadow, @NotNull List<PendingOperationType> pendingOperations) {
-            return fromPendingOperationsInternal(repoShadow, pendingOperations, AddOperationState::new);
-        }
-
         static @NotNull AddOperationState fromPendingOperation(
                 @NotNull ShadowType repoShadow, @NotNull PendingOperationType pendingOperation) {
-            return fromPendingOperations(repoShadow, List.of(pendingOperation));
+            return fromPendingOperationInternal(repoShadow, pendingOperation, AddOperationState::new);
         }
 
-        public OperationResultStatus markToRetry(OperationResult failedOperationResult) {
-            this.markToRetry(new AsynchronousOperationReturnValue<>(), failedOperationResult);
+        public OperationResultStatus markAsPostponed(OperationResult failedOperationResult) {
+            this.markAsPostponed(new AsynchronousOperationReturnValue<>(), failedOperationResult);
             return OperationResultStatus.IN_PROGRESS;
         }
 
-        public ShadowType getReturnedShadow() {
+        /** This is a shadow that was created on the resource by the operation. */
+        public ShadowType getCreatedShadow() {
             AsynchronousOperationReturnValue<ShadowType> aResult = getAsyncResult();
             return aResult != null ? aResult.getReturnValue() : null;
         }
@@ -318,11 +359,11 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
 
         static @NotNull ModifyOperationState fromPendingOperation(
                 @NotNull ShadowType repoShadow, @NotNull PendingOperationType pendingOperation) {
-            return fromPendingOperationsInternal(repoShadow, List.of(pendingOperation), ModifyOperationState::new);
+            return fromPendingOperationInternal(repoShadow, pendingOperation, ModifyOperationState::new);
         }
 
-        public OperationResultStatus markToRetry(OperationResult failedOperationResult) {
-            this.markToRetry(
+        public OperationResultStatus markAsPostponed(OperationResult failedOperationResult) {
+            this.markAsPostponed(
                     new AsynchronousOperationReturnValue<>(),
                     failedOperationResult);
             return OperationResultStatus.IN_PROGRESS;
@@ -338,11 +379,11 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
 
         static @NotNull DeleteOperationState fromPendingOperation(
                 @NotNull ShadowType repoShadow, @NotNull PendingOperationType pendingOperation) {
-            return fromPendingOperationsInternal(repoShadow, List.of(pendingOperation), DeleteOperationState::new);
+            return fromPendingOperationInternal(repoShadow, pendingOperation, DeleteOperationState::new);
         }
 
-        public OperationResultStatus markToRetry(OperationResult failedOperationResult) {
-            this.markToRetry(new AsynchronousOperationResult(), failedOperationResult);
+        public OperationResultStatus markAsPostponed(OperationResult failedOperationResult) {
+            this.markAsPostponed(new AsynchronousOperationResult(), failedOperationResult);
             return OperationResultStatus.IN_PROGRESS;
         }
     }

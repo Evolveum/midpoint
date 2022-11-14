@@ -21,6 +21,10 @@ public class RefreshShadowOperation implements DebugDumpable {
     private Collection<ObjectDeltaOperation<ShadowType>> executedDeltas;
     private OperationResult refreshResult;
 
+    public RefreshShadowOperation(ShadowType refreshedShadow) {
+        this.refreshedShadow = refreshedShadow;
+    }
+
     public Collection<ObjectDeltaOperation<ShadowType>> getExecutedDeltas() {
         return executedDeltas;
     }

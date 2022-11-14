@@ -9,22 +9,18 @@ package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
-
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
-
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -32,7 +28,6 @@ import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @Component
@@ -83,9 +78,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
         result.addParam("exception", cause.getMessage());
         try {
             markResourceDown(ctx, reasonMessage("adding", shadowToAdd, cause), result);
-            handleRetriesAndAttempts(ctx, opState, options, cause, result);
-            result.setInProgress();
-            return opState.markToRetry(failedOperationResult);
+            return postponeOrThrow(ctx, opState, options, cause, failedOperationResult, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -109,9 +102,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
         result.addParam("exception", cause.getMessage());
         try {
             markResourceDown(ctx, reasonMessage("modifying", repoShadow, cause), result);
-            handleRetriesAndAttempts(ctx, opState, options, cause, result);
-            result.setInProgress();
-            return opState.markToRetry(failedOperationResult);
+            return postponeOrThrow(ctx, opState, options, cause, failedOperationResult, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -134,9 +125,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
         result.addParam("exception", cause.getMessage());
         try {
             markResourceDown(ctx, reasonMessage("deleting", repoShadow, cause), result);
-            handleRetriesAndAttempts(ctx, opState, options, cause, result);
-            result.setInProgress();
-            return opState.markToRetry(failedOperationResult);
+            return postponeOrThrow(ctx, opState, options, cause, failedOperationResult, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -145,24 +134,43 @@ class CommunicationExceptionHandler extends ErrorHandler {
         }
     }
 
-    private void handleRetriesAndAttempts(
+    private OperationResultStatus postponeOrThrow(
             ProvisioningContext ctx,
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+            ProvisioningOperationState<?> opState,
             ProvisioningOperationOptions options,
             Exception cause,
+            OperationResult failedOperationResult,
             OperationResult result) throws CommunicationException {
-        ResourceType resource = ctx.getResource();
-        if (!isOperationRetryEnabled(resource) || !isCompletePostponedOperations(options)) {
-            LOGGER.trace("Operation retry turned off for {}", resource);
+        if (shouldThrowImmediately(ctx, opState, options)) {
             throwException(cause, opState, result);
+            throw new AssertionError("not here");
+        } else {
+            result.setInProgress();
+            return opState.markAsPostponed(failedOperationResult);
+        }
+    }
+
+    private boolean shouldThrowImmediately(
+            ProvisioningContext ctx, ProvisioningOperationState<?> opState, ProvisioningOperationOptions options) {
+
+        if (!isOperationRetryEnabled(ctx.getResource())) {
+            LOGGER.trace("Operation retry turned off for the resource");
+            return true;
+        }
+
+        if (!isCompletePostponedOperations(options)) {
+            LOGGER.trace("Completion of postponed operations is not requested");
+            return true;
         }
 
         int maxRetryAttempts = ProvisioningUtil.getMaxRetryAttempts(ctx);
         int attemptNumber = opState.getRealAttemptNumber();
         if (attemptNumber >= maxRetryAttempts) {
             LOGGER.debug("Maximum number of retry attempts ({}) reached for operation on {}", attemptNumber, ctx.getResource());
-            throwException(cause, opState, result);
+            return true;
         }
+        LOGGER.trace("Will postpone the operation");
+        return false;
     }
 
     @Override

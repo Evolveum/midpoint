@@ -7,21 +7,26 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import java.util.List;
-
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
 
 /**
  * Misc utils for the `shadows` package.
@@ -30,53 +35,68 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 class ShadowsUtil {
 
-    static boolean needsRetry(PendingOperationType pendingOperation) {
-        return PendingOperationExecutionStatusType.EXECUTING.equals(pendingOperation.getExecutionStatus()) &&
-                pendingOperation.getAttemptNumber() != null;
+    /**
+     * The `true` return value currently implies the operation type is {@link PendingOperationTypeType#RETRY}.
+     * (Manual nor asynchronous operation have no attempt number set.)
+     */
+    static boolean isRetryableOperation(PendingOperationType pendingOperation) {
+        return pendingOperation.getExecutionStatus() == EXECUTING
+                && pendingOperation.getAttemptNumber() != null;
     }
 
-    static boolean shouldRefresh(ShadowType repoShadow) {
-        if (repoShadow == null) {
-            return false;
-        }
-
-        List<PendingOperationType> pendingOperations = repoShadow.getPendingOperation();
-        if (pendingOperations == null || pendingOperations.isEmpty()) {
-            return false;
-        }
-
-        for (PendingOperationType pendingOperationType : pendingOperations) {
-            if (needsRetry(pendingOperationType)) {
-                return true;
-            }
-        }
-
-        return false;
+    static boolean hasRetryableOperation(@NotNull ShadowType repoShadow) {
+        return emptyIfNull(repoShadow.getPendingOperation()).stream()
+                .anyMatch(ShadowsUtil::isRetryableOperation);
     }
 
-    static ResourceOperationDescription createSuccessOperationDescription(ProvisioningContext ctx,
-            ShadowType shadowType, ObjectDelta<? extends ShadowType> delta, String message) {
+    static void notifyAboutSuccessOperation(
+            ProvisioningContext ctx,
+            ShadowType shadow,
+            ProvisioningOperationState<?> opState,
+            ObjectDelta<ShadowType> delta,
+            OperationResult result) {
+        ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow, delta);
+        EventDispatcher eventDispatcher = ShadowsLocalBeans.get().eventDispatcher;
+        if (opState.isExecuting()) {
+            eventDispatcher.notifyInProgress(operationDescription, ctx.getTask(), result);
+        } else {
+            eventDispatcher.notifySuccess(operationDescription, ctx.getTask(), result);
+        }
+    }
+
+    static ResourceOperationDescription createSuccessOperationDescription(
+            ProvisioningContext ctx, ShadowType shadowType, ObjectDelta<? extends ShadowType> delta) {
         ResourceOperationDescription operationDescription = new ResourceOperationDescription();
         operationDescription.setCurrentShadow(shadowType.asPrismObject());
         operationDescription.setResource(ctx.getResource().asPrismObject());
         operationDescription.setSourceChannel(ctx.getChannel());
         operationDescription.setObjectDelta(delta);
-        operationDescription.setMessage(message);
         return operationDescription;
     }
 
-    // FIXME!
-    static void setParentOperationStatus(OperationResult parentResult,
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+    static ResourceOperationDescription createResourceFailureDescription(
+            ShadowType shadow, ResourceType resource, ObjectDelta<ShadowType> delta, String message) {
+        ResourceOperationDescription failureDesc = new ResourceOperationDescription();
+        failureDesc.setCurrentShadow(asPrismObject(shadow));
+        failureDesc.setObjectDelta(delta);
+        failureDesc.setResource(resource.asPrismObject());
+        failureDesc.setMessage(message);
+        failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY)); // ???
+        return failureDesc;
+    }
+
+    /**
+     * This is quite an ugly hack - setting the status/message in the root {@link ProvisioningService} operation result.
+     */
+    static void setParentOperationStatus(
+            OperationResult parentResult,
+            ProvisioningOperationState<?> opState,
             OperationResultStatus finalOperationStatus) {
+        parentResult.computeStatus(true); // To provide the error message from the subresults
         if (finalOperationStatus != null) {
             parentResult.setStatus(finalOperationStatus);
-        } else {
-            if (opState.isCompleted()) {
-                parentResult.computeStatus(true);
-            } else {
-                parentResult.setInProgress();
-            }
+        } else if (!opState.isCompleted()) {
+            parentResult.setInProgress();
         }
         parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
     }

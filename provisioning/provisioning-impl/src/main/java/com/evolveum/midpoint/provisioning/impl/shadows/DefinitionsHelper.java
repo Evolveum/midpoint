@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
@@ -47,8 +46,11 @@ class DefinitionsHelper {
     @Autowired protected ShadowManager shadowManager;
     @Autowired private ProvisioningContextFactory ctxFactory;
 
-    public void applyDefinition(ObjectDelta<ShadowType> delta, @Nullable ShadowType repoShadow,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
+    public void applyDefinition(
+            ObjectDelta<ShadowType> delta,
+            @Nullable ShadowType repoShadow,
+            Task task,
+            OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> shadow = null;
         ResourceShadowCoordinates coordinates = null;

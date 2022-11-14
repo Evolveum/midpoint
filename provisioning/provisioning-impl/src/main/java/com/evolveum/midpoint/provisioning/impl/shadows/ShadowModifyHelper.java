@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
+import static com.evolveum.midpoint.util.exception.CommonException.Severity.PARTIAL_ERROR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +21,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
-import com.evolveum.midpoint.util.exception.CommonException.Severity;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Contract;
@@ -36,9 +37,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
@@ -67,21 +66,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @Component
 @Experimental
-class ModifyHelper {
+class ShadowModifyHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ModifyHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowModifyHelper.class);
 
     @Autowired private ErrorHandlerLocator errorHandlerLocator;
     @Autowired private Clock clock;
     @Autowired private PrismContext prismContext;
     @Autowired private ResourceObjectConverter resourceObjectConverter;
     @Autowired protected ShadowManager shadowManager;
-    @Autowired private EventDispatcher eventDispatcher;
     @Autowired private AccessChecker accessChecker;
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private EntitlementsHelper entitlementsHelper;
     @Autowired private CommonHelper commonHelper;
-    @Autowired private RefreshHelper refreshHelper;
+    @Autowired private ShadowRefreshHelper refreshHelper;
 
     String modifyShadow(
             @NotNull ShadowType repoShadow,
@@ -121,7 +119,7 @@ class ModifyHelper {
             options.setForceRetry(Boolean.TRUE);
         }
 
-        return modifyShadowAttempt(ctx, modifications, scripts, options, opState, false, result);
+        return executeModifyAttempt(ctx, modifications, options, scripts, opState, false, result);
     }
 
     @NotNull
@@ -142,13 +140,13 @@ class ModifyHelper {
     /**
      * @param inRefresh True if we are already in refresh shadow method. This means we shouldn't refresh ourselves!
      */
-    String modifyShadowAttempt(
+    String executeModifyAttempt(
             @NotNull ProvisioningContext ctx,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
+            @Nullable OperationProvisioningScriptsType scripts,
             @NotNull ModifyOperationState opState,
-            boolean inRefresh,
+            boolean inRefresh, // TODO better name
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
@@ -158,11 +156,15 @@ class ModifyHelper {
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
-        PendingOperationType duplicateOperation =
-                shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, modifications, opState, result);
-        if (duplicateOperation != null) {
-            result.setInProgress();
-            return repoShadow.getOid();
+        if (!inRefresh) {
+            PendingOperationType duplicateOperation =
+                    shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, modifications, opState, result);
+            if (duplicateOperation != null) {
+                result.setInProgress();
+                return repoShadow.getOid();
+            }
+        } else {
+            LOGGER.trace("Not checking for duplicate pending operation, as we are already doing the refresh");
         }
 
         ctx.applyAttributesDefinition(repoShadow);
@@ -174,21 +176,22 @@ class ModifyHelper {
 
         OperationResultStatus finalOperationStatus = null;
 
-        if (shadowManager.isRepositoryOnlyModification(modifications)) {
-            opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
+        if (shadowManager.containsNoResourceModification(modifications)) {
+            opState.setExecutionStatus(COMPLETED);
             LOGGER.debug("MODIFY {}: repository-only modification", repoShadow);
         } else {
             if (ctx.shouldExecuteResourceOperationDirectly()) {
-                LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}", repoShadow, DebugUtil.debugDumpLazily(modifications));
+                LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}",
+                        repoShadow, DebugUtil.debugDumpLazily(modifications));
 
                 RefreshShadowOperation refreshShadowOperation;
-                if (!inRefresh && ShadowsUtil.shouldRefresh(repoShadow)) {
+                if (!inRefresh && ShadowsUtil.hasRetryableOperation(repoShadow)) {
                     refreshShadowOperation = refreshHelper.refreshShadow(repoShadow, options, ctx.getTask(), result);
                     ShadowType shadowAfterRefresh = refreshShadowOperation.getRefreshedShadow();
                     if (shadowAfterRefresh == null) {
                         LOGGER.trace("Shadow is gone. Nothing more to do");
                         throw new ObjectNotFoundException(
-                                "Shadow disappeared during modify.", null, ShadowType.class, repoShadow.getOid(), Severity.PARTIAL_ERROR);
+                                "Shadow disappeared during modify.", null, ShadowType.class, repoShadow.getOid(), PARTIAL_ERROR);
                     } else {
                         repoShadow = shadowAfterRefresh;
                     }
@@ -204,9 +207,9 @@ class ModifyHelper {
                     }
 
                     if (!shouldExecuteModify(refreshShadowOperation)) {
-                        opState.markToRetry(refreshShadowOperation.getRefreshResult());
-                        shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, now, result);
-                        result.setInProgress();
+                        opState.markAsPostponed(refreshShadowOperation.getRefreshResult());
+                        shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, result);
+                        setParentOperationStatus(result, opState, null);
                         return repoShadow.getOid();
                     } else {
                         LOGGER.trace("Shadow exists: {}", repoShadow.debugDump());
@@ -223,8 +226,7 @@ class ModifyHelper {
                     }
 
                 } catch (Exception ex) {
-                    LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
-                            ex.getClass(), ex.getMessage(), ex);
+                    LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it", ex.getClass(), ex.getMessage(), ex);
                     finalOperationStatus =
                             handleModifyError(
                                     ctx, repoShadow, modifications, options, opState, ex, result.getLastSubresult(), result);
@@ -242,7 +244,7 @@ class ModifyHelper {
             }
         }
 
-        shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, now, result);
+        shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, result);
 
         notifyAfterModify(ctx, repoShadow, modifications, opState, result);
 
@@ -279,69 +281,15 @@ class ModifyHelper {
         return true;
     }
 
-    void notifyAfterModify(
+    private void notifyAfterModify(
             ProvisioningContext ctx,
             ShadowType repoShadow,
             Collection<? extends ItemDelta<?, ?>> modifications,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            ProvisioningOperationState<?> opState,
             OperationResult result) {
-
         ObjectDelta<ShadowType> delta =
                 prismContext.deltaFactory().object().createModifyDelta(repoShadow.getOid(), modifications, ShadowType.class);
-        ResourceOperationDescription operationDescription =
-                createSuccessOperationDescription(ctx, repoShadow, delta, null);
-
-        if (opState.isExecuting()) {
-            eventDispatcher.notifyInProgress(operationDescription, ctx.getTask(), result);
-        } else {
-            eventDispatcher.notifySuccess(operationDescription, ctx.getTask(), result);
-        }
-    }
-
-    /**
-     * Used to execute delayed operations.
-     * Mostly copy&paste from modifyShadow(). But as consistency (handleError()) branch expects to return immediately
-     * I could not find a more elegant way to structure this without complicating the code too much.
-     */
-    ModifyOperationState executeResourceModify(
-            @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            OperationProvisioningScriptsType scripts, // We may provide the value here later
-            ProvisioningOperationOptions options, // We may provide the value here later
-            XMLGregorianCalendar now,
-            OperationResult result)
-            throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        ModifyOperationState opState = new ModifyOperationState(repoShadow);
-
-        ConnectorOperationOptions connOptions = commonHelper.createConnectorOperationOptions(ctx, options, result);
-
-        try {
-
-            LOGGER.trace("Applying change: {}", DebugUtil.debugDumpLazily(modifications));
-
-            AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> asyncResult =
-                    resourceObjectConverter
-                            .modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, result);
-            opState.recordRealAsynchronousResult(asyncResult);
-
-            Collection<PropertyDelta<PrismPropertyValue<?>>> knownExecutedDeltas = asyncResult.getReturnValue();
-            if (knownExecutedDeltas != null) {
-                ItemDeltaCollectionsUtil.addNotEquivalent(modifications, knownExecutedDeltas);
-            }
-
-        } catch (Exception ex) {
-            LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it",
-                    ex.getClass(), ex.getMessage(), ex);
-            try {
-                handleModifyError(ctx, repoShadow, modifications, options, opState, ex, result.getLastSubresult(), result);
-            } catch (ObjectAlreadyExistsException e) {
-                throw SystemException.unexpected(e, "while compensating communication problem for modify operation");
-            }
-        }
-
-        return opState;
+        notifyAboutSuccessOperation(ctx, repoShadow, opState, delta, result);
     }
 
     private OperationResultStatus handleModifyError(

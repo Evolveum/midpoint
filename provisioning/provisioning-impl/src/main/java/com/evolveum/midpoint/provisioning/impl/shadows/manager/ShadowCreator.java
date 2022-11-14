@@ -10,6 +10,11 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +25,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.shadows.ConstraintsChecker;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -28,13 +32,9 @@ import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -75,28 +75,49 @@ class ShadowCreator {
     }
 
     void addNewProposedShadow(
-            ProvisioningContext ctx,
-            ShadowType shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
-            OperationResult result)
+            ProvisioningContext ctx, ShadowType shadowToAdd, AddOperationState opState, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
 
         ShadowType existingRepoShadow = opState.getRepoShadow();
         if (existingRepoShadow != null) {
-            // TODO: should we add pending operation here?
+            if (ctx.isPropagation()) {
+                // In propagation we already have pending operation present in opState.
+            } else {
+                // The pending operation is most probably already in the shadow
+                opState.setCurrentPendingOperation(
+                        pendingOperationsHelper.findPendingAddOperation(existingRepoShadow));
+            }
             return;
         }
 
         ShadowType newRepoShadow = createRepositoryShadow(ctx, shadowToAdd);
+        assert newRepoShadow.getPendingOperation().isEmpty();
+
         opState.setExecutionStatus(PendingOperationExecutionStatusType.REQUESTED);
-        pendingOperationsHelper.addPendingOperationAdd(
+        pendingOperationsHelper.addPendingOperationIntoNewShadow(
                 newRepoShadow, shadowToAdd, opState, ctx.getTask().getTaskIdentifier());
 
         ConstraintsChecker.onShadowAddOperation(newRepoShadow); // TODO migrate to cache invalidation process
         String oid = repositoryService.addObject(newRepoShadow.asPrismObject(), null, result);
-        newRepoShadow.setOid(oid);
-        LOGGER.trace("Proposed shadow added to the repository: {}", newRepoShadow);
-        opState.setRepoShadow(newRepoShadow);
+
+        ShadowType shadowAfter;
+        try {
+            shadowAfter = repositoryService
+                    .getObject(ShadowType.class, oid, null, result)
+                    .asObjectable();
+            ctx.applyAttributesDefinition(shadowAfter);
+            opState.setRepoShadow(shadowAfter);
+        } catch (ObjectNotFoundException e) {
+            throw SystemException.unexpected(e, "when reading newly-created shadow back");
+        }
+
+        LOGGER.trace("Proposed shadow added to the repository (and read back): {}", shadowAfter);
+        // We need the operation ID, hence the repo re-reading
+        opState.setCurrentPendingOperation(
+                MiscUtil.extractSingletonRequired(
+                        shadowAfter.getPendingOperation(),
+                        () -> new IllegalStateException("multiple pending operations"),
+                        () -> new IllegalStateException("no pending operations")));
     }
 
     /**

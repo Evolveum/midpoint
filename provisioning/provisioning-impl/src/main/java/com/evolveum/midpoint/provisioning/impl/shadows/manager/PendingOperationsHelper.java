@@ -7,37 +7,33 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.Collection;
-
-import static com.evolveum.midpoint.schema.result.OperationResultStatus.createStatusType;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
+import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Helps with the management of pending operations.
@@ -51,11 +47,8 @@ class PendingOperationsHelper {
     @Autowired private Clock clock;
     @Autowired private PrismContext prismContext;
 
-    void addPendingOperationAdd(
-            ShadowType repoShadow,
-            ShadowType resourceShadow,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
-            String asyncOperationReference)
+    void addPendingOperationIntoNewShadow(
+            ShadowType repoShadow, ShadowType resourceShadow, AddOperationState opState, String asyncOperationReference)
             throws SchemaException {
 
         PendingOperationType pendingOperation =
@@ -64,106 +57,117 @@ class PendingOperationsHelper {
                         asyncOperationReference,
                         clock.currentTimeXMLGregorianCalendar());
         repoShadow.getPendingOperation().add(pendingOperation);
-        opState.addPendingOperation(pendingOperation);
-        repoShadow.setExists(false);
+
+        repoShadow.setExists(false); // TODO why here?!
     }
 
-    void collectPendingOperationUpdates(
+    void addPendingOperationForExistingShadow(
             Collection<ItemDelta<?, ?>> shadowChanges,
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
-            OperationResultStatus implicitStatus,
-            XMLGregorianCalendar now) {
+            ProvisioningOperationState<?> opState,
+            ObjectDelta<ShadowType> requestDelta,
+            XMLGregorianCalendar now) throws SchemaException {
+            shadowChanges.add(
+                    prismContext.deltaFor(ShadowType.class)
+                            .item(ShadowType.F_PENDING_OPERATION)
+                            .add(opState.toPendingOperation(
+                                    requestDelta, null, now))
+                            .asItemDelta());
+    }
 
-        PrismContainerDefinition<PendingOperationType> containerDef =
-                opState.getRepoShadow().asPrismObject().getDefinition().findContainerDefinition(ShadowType.F_PENDING_OPERATION);
+    void collectCurrentPendingOperationUpdates(
+            Collection<ItemDelta<?, ?>> shadowChanges,
+            ProvisioningOperationState<?> opState,
+            XMLGregorianCalendar now) throws SchemaException {
+        PendingOperationType shadowPendingOp = opState.getCurrentPendingOperation();
+        if (shadowPendingOp != null) {
+            PrismContainerValue<?> pendingOpValue = shadowPendingOp.asPrismContainerValue();
+            assert pendingOpValue.getId() != null;
+            ItemPath pendingOpValuePath = pendingOpValue.getPath();
 
-        OperationResultStatusType opStateResultStatusType =
-                createStatusType(
-                        MiscUtil.getFirstNonNull(opState.getResultStatus(), implicitStatus));
+            PendingOperationExecutionStatusType realExecStatus = opState.getExecutionStatus();
+            if (shadowPendingOp.getExecutionStatus() != realExecStatus) {
+                shadowChanges.add(
+                        createPendingOperationDelta(
+                                pendingOpValuePath, PendingOperationType.F_EXECUTION_STATUS, realExecStatus));
 
-        // TODO is this correct? What if there are multiple pending operations - will not they get overwritten by the current
-        //  opState properties?
-        for (PendingOperationType pendingOperation : opState.getPendingOperations()) {
-            if (pendingOperation.asPrismContainerValue().getId() == null) {
-                // This must be a new operation
-                ContainerDelta<PendingOperationType> delta =
-                        prismContext.deltaFactory().container().create(ShadowType.F_PENDING_OPERATION, containerDef);
-                delta.addValuesToAdd(pendingOperation.asPrismContainerValue().clone());
-                shadowChanges.add(delta);
-            } else {
-                ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
-
-                if (opState.getExecutionStatus() != pendingOperation.getExecutionStatus()) {
+                if (realExecStatus == EXECUTING
+                        && shadowPendingOp.getOperationStartTimestamp() == null) {
                     shadowChanges.add(
                             createPendingOperationDelta(
-                                    containerDef,
-                                    containerPath,
-                                    PendingOperationType.F_EXECUTION_STATUS,
-                                    opState.getExecutionStatus()));
-
-                    if (opState.getExecutionStatus() == EXECUTING
-                            && pendingOperation.getOperationStartTimestamp() == null) {
-                        shadowChanges.add(
-                                createPendingOperationDelta(
-                                        containerDef, containerPath, PendingOperationType.F_OPERATION_START_TIMESTAMP, now));
-                    }
-
-                    if (opState.getExecutionStatus() == COMPLETED
-                            && pendingOperation.getCompletionTimestamp() == null) {
-                        shadowChanges.add(
-                                createPendingOperationDelta(
-                                        containerDef, containerPath, PendingOperationType.F_COMPLETION_TIMESTAMP, now));
-                    }
+                                    pendingOpValuePath, PendingOperationType.F_OPERATION_START_TIMESTAMP, now));
                 }
 
-                if (pendingOperation.getRequestTimestamp() == null) {
-                    // This is mostly failsafe. We do not want operations without timestamps. Those would be quite difficult to cleanup.
-                    // Therefore imprecise timestamp is better than no timestamp.
+                if (realExecStatus == COMPLETED
+                        && shadowPendingOp.getCompletionTimestamp() == null) {
                     shadowChanges.add(
                             createPendingOperationDelta(
-                                    containerDef, containerPath, PendingOperationType.F_REQUEST_TIMESTAMP, now));
+                                    pendingOpValuePath, PendingOperationType.F_COMPLETION_TIMESTAMP, now));
                 }
+            }
 
-                if (pendingOperation.getResultStatus() != opStateResultStatusType) {
-                    shadowChanges.add(
-                            createPendingOperationDelta(
-                                    containerDef, containerPath, PendingOperationType.F_RESULT_STATUS, opStateResultStatusType));
-                }
+            if (shadowPendingOp.getRequestTimestamp() == null) {
+                // This is mostly failsafe. We do not want operations without timestamps. Those would be quite difficult to cleanup.
+                // Therefore imprecise timestamp is better than no timestamp.
+                shadowChanges.add(
+                        createPendingOperationDelta(
+                                pendingOpValuePath, PendingOperationType.F_REQUEST_TIMESTAMP, now));
+            }
 
-                String asynchronousOperationReference = opState.getAsynchronousOperationReference();
-                if (asynchronousOperationReference != null
-                        && !asynchronousOperationReference.equals(pendingOperation.getAsynchronousOperationReference())) {
-                    shadowChanges.add(
-                            createPendingOperationDelta(
-                                    containerDef, containerPath, PendingOperationType.F_ASYNCHRONOUS_OPERATION_REFERENCE, asynchronousOperationReference));
-                }
+            OperationResultStatusType realResultStatus = opState.getResultStatusTypeOrDefault();
+            if (shadowPendingOp.getResultStatus() != realResultStatus) {
+                shadowChanges.add(
+                        createPendingOperationDelta(
+                                pendingOpValuePath, PendingOperationType.F_RESULT_STATUS, realResultStatus));
+            }
 
-                if (opState.getOperationType() != null && opState.getOperationType() != pendingOperation.getType()) {
-                    shadowChanges.add(
-                            createPendingOperationDelta(
-                                    containerDef, containerPath, PendingOperationType.F_TYPE, opState.getOperationType()));
-                }
+            String realAsyncOpRef = opState.getAsynchronousOperationReference();
+            if (realAsyncOpRef == null) {
+                // Not sure about the reason for this. Can the operation reference be cleared?
+            } else if (!Objects.equals(shadowPendingOp.getAsynchronousOperationReference(), realAsyncOpRef)) {
+                shadowChanges.add(
+                        createPendingOperationDelta(
+                                pendingOpValuePath, PendingOperationType.F_ASYNCHRONOUS_OPERATION_REFERENCE, realAsyncOpRef));
+            }
+
+            PendingOperationTypeType realOpType = opState.getOperationType();
+            if (realOpType == null) {
+                // We will not push the null value to the shadow. The reason is that sometimes the original value of `RETRY`
+                // is cleared by the successful execution of the operation.
+            } else if (realOpType != shadowPendingOp.getType()) {
+                shadowChanges.add(
+                        createPendingOperationDelta(
+                                pendingOpValuePath, PendingOperationType.F_TYPE, realOpType));
+            }
+
+            Integer realAttemptNumber = opState.getAttemptNumber();
+            if (!Objects.equals(shadowPendingOp.getAttemptNumber(), realAttemptNumber)) {
+                shadowChanges.add(
+                        createPendingOperationDelta(
+                                pendingOpValuePath, PendingOperationType.F_ATTEMPT_NUMBER, realAttemptNumber));
+            }
+
+            XMLGregorianCalendar realLastAttemptTimestamp = opState.getLastAttemptTimestamp();
+            if (realLastAttemptTimestamp == null) {
+                // null means "do not change"
+            } else if (!Objects.equals(shadowPendingOp.getLastAttemptTimestamp(), realLastAttemptTimestamp)) {
+                shadowChanges.add(
+                        createPendingOperationDelta(
+                                pendingOpValuePath, PendingOperationType.F_LAST_ATTEMPT_TIMESTAMP, realLastAttemptTimestamp));
             }
         }
     }
 
-    private <T> PropertyDelta<T> createPendingOperationDelta(
-            PrismContainerDefinition<PendingOperationType> containerDefinition,
+    private ItemDelta<?, ?> createPendingOperationDelta(
             ItemPath containerPath,
             QName propName,
-            T valueToReplace) {
-        PrismPropertyDefinition<T> propDef = containerDefinition.findPropertyDefinition(ItemName.fromQName(propName));
-        PropertyDelta<T> propDelta = prismContext.deltaFactory().property().create(containerPath.append(propName), propDef);
-        if (valueToReplace == null) {
-            propDelta.setValueToReplace();
-        } else {
-            //noinspection unchecked
-            propDelta.setRealValuesToReplace(valueToReplace);
-        }
-        return propDelta;
+            Object valueToReplace) throws SchemaException {
+        return prismContext.deltaFor(ShadowType.class)
+                .item(containerPath.append(propName))
+                .replace(valueToReplace)
+                .asItemDelta();
     }
 
-    PendingOperationType findExistingPendingOperation(ShadowType currentShadow, ObjectDelta<ShadowType> proposedDelta)
+    PendingOperationType findEquivalentPendingOperation(ShadowType currentShadow, ObjectDelta<ShadowType> proposedDelta)
             throws SchemaException {
         for (PendingOperationType pendingOperation : currentShadow.getPendingOperation()) {
             OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
@@ -181,5 +185,61 @@ class PendingOperationsHelper {
             return pendingOperation;
         }
         return null;
+    }
+
+    PendingOperationType findPendingAddOperation(ShadowType shadow) {
+        for (PendingOperationType pendingOperation : shadow.getPendingOperation()) {
+            OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
+            if (resultStatus != null && resultStatus != OperationResultStatusType.IN_PROGRESS) {
+                continue;
+            }
+            ObjectDeltaType deltaBean = pendingOperation.getDelta();
+            if (deltaBean == null) {
+                continue;
+            }
+            if (deltaBean.getChangeType() != ChangeTypeType.ADD) {
+                continue;
+            }
+            return pendingOperation;
+        }
+        return null;
+    }
+
+    void collectPendingOperationUpdates(
+            List<ItemDelta<?, ?>> shadowDeltas, ProvisioningOperationState<?> opState, XMLGregorianCalendar now)
+            throws SchemaException {
+        OperationResultStatusType resultStatus = opState.getResultStatusTypeOrDefault();
+        String asynchronousOpReference = opState.getAsynchronousOperationReference();
+        PendingOperationExecutionStatusType executionStatus = opState.getExecutionStatus();
+
+        List<PendingOperationType> pendingOperations = opState.getPropagatedPendingOperations();
+        // We bravely expect these have been set before ;)
+
+        // TODO what about retries in the case of e.g. communication failures?
+        // Compare with collectCurrentPendingOperationUpdates method
+        for (PendingOperationType existingPendingOperation : pendingOperations) {
+            ItemPath containerPath = existingPendingOperation.asPrismContainerValue().getPath();
+            shadowDeltas.add(
+                    createPendingOperationDelta(containerPath, PendingOperationType.F_EXECUTION_STATUS, executionStatus));
+            shadowDeltas.add(
+                    createPendingOperationDelta(containerPath, PendingOperationType.F_RESULT_STATUS, resultStatus));
+            shadowDeltas.add(
+                    createPendingOperationDelta(
+                            containerPath, PendingOperationType.F_ASYNCHRONOUS_OPERATION_REFERENCE, asynchronousOpReference));
+            if (existingPendingOperation.getRequestTimestamp() == null) {
+                // This is mostly failsafe. We do not want operations without timestamps. Those would be quite difficult to cleanup.
+                // Therefore imprecise timestamp is better than no timestamp.
+                shadowDeltas.add(
+                        createPendingOperationDelta(containerPath, PendingOperationType.F_REQUEST_TIMESTAMP, now));
+            }
+            if (executionStatus == COMPLETED && existingPendingOperation.getCompletionTimestamp() == null) {
+                shadowDeltas.add(
+                        createPendingOperationDelta(containerPath, PendingOperationType.F_COMPLETION_TIMESTAMP, now));
+            }
+            if (executionStatus == EXECUTING && existingPendingOperation.getOperationStartTimestamp() == null) {
+                shadowDeltas.add(
+                        createPendingOperationDelta(containerPath, PendingOperationType.F_OPERATION_START_TIMESTAMP, now));
+            }
+        }
     }
 }

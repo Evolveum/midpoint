@@ -9,10 +9,11 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import java.util.Collection;
 import java.util.List;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 
@@ -24,11 +25,9 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -39,7 +38,6 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -88,6 +86,7 @@ public class ShadowManager {
     @Autowired private ShadowUpdater shadowUpdater;
     @Autowired private Helper helper;
     @Autowired private QueryHelper queryHelper;
+    @Autowired private PendingOperationsHelper pendingOperationsHelper;
 
     /** Simply gets a repo shadow from the repository. No magic here. No side effects. */
     public PrismObject<ShadowType> getShadow(String oid, OperationResult result)
@@ -196,10 +195,7 @@ public class ShadowManager {
      * The new shadow is recorded into the `opState`.
      */
     public void addNewProposedShadow(
-            ProvisioningContext ctx,
-            ShadowType shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
-            OperationResult result)
+            ProvisioningContext ctx, ShadowType shadowToAdd, AddOperationState opState, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectAlreadyExistsException, EncryptionException {
         if (ctx.shouldUseProposedShadows()) {
             shadowCreator.addNewProposedShadow(ctx, shadowToAdd, opState, result);
@@ -226,11 +222,9 @@ public class ShadowManager {
      * This happens after the error handler is processed - and only for those
      * cases when the handler has re-thrown the exception.
      */
-    public void recordOperationException(ProvisioningContext ctx,
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState, ObjectDelta<ShadowType> delta,
-            OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+    public void recordOperationException(
+            ProvisioningContext ctx, ProvisioningOperationState<?> opState, ObjectDelta<ShadowType> delta, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
         shadowUpdater.recordOperationException(ctx, opState, delta, result);
     }
 
@@ -240,11 +234,9 @@ public class ShadowManager {
      *
      * BEWARE: updated repo shadow is raw. ApplyDefinitions must be called on it before any serious use.
      */
-    public PendingOperationType checkAndRecordPendingDeleteOperationBeforeExecution(ProvisioningContext ctx,
-            @NotNull ProvisioningOperationState<AsynchronousOperationResult> opState,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+    public PendingOperationType checkAndRecordPendingDeleteOperationBeforeExecution(
+            ProvisioningContext ctx, @NotNull DeleteOperationState opState, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
         return shadowUpdater.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, opState, result);
     }
 
@@ -254,24 +246,14 @@ public class ShadowManager {
      *
      * BEWARE: updated repo shadow is raw. ApplyDefinitions must be called on it before any serious use.
      */
-    public PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(ProvisioningContext ctx,
+    public PendingOperationType checkAndRecordPendingModifyOperationBeforeExecution(
+            ProvisioningContext ctx,
             Collection<? extends ItemDelta<?, ?>> modifications,
-            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull ModifyOperationState opState,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException {
         return shadowUpdater
                 .checkAndRecordPendingModifyOperationBeforeExecution(ctx, modifications, opState, result);
-    }
-
-    public <A extends AsynchronousOperationResult> void updatePendingOperations(
-            ProvisioningContext ctx,
-            ShadowType shadow,
-            ProvisioningOperationState<A> opState,
-            List<PendingOperationType> pendingExecutionOperations,
-            XMLGregorianCalendar now,
-            OperationResult result) throws ObjectNotFoundException, SchemaException {
-        shadowUpdater.updatePendingOperations(ctx, shadow, opState, pendingExecutionOperations, now, result);
     }
 
     public <T> T determinePrimaryIdentifierValue(ProvisioningContext ctx, ShadowType shadow)
@@ -292,27 +274,27 @@ public class ShadowManager {
             ProvisioningContext ctx,
             ShadowType oldRepoShadow,
             Collection<? extends ItemDelta<?, ?>> requestedModifications,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
-            XMLGregorianCalendar now,
+            ModifyOperationState opState,
             OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
-            ExpressionEvaluationException {
-        shadowUpdater.recordModifyResult(ctx, oldRepoShadow, requestedModifications, opState, now, parentResult);
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+        shadowUpdater.recordModifyResult(ctx, oldRepoShadow, requestedModifications, opState, parentResult);
     }
 
     /**
      * Really modifies shadow attributes. It applies the changes. It is used for synchronous operations and also for
      * applying the results of completed asynchronous operations.
+     *
+     * TODO try to describe it better
      */
     public void modifyShadowAttributes(
             ProvisioningContext ctx, ShadowType shadow, Collection<? extends ItemDelta<?, ?>> modifications,
-            OperationResult parentResult)
+            OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
-        shadowUpdater.modifyShadowAttributes(ctx, shadow, modifications, parentResult);
+        shadowUpdater.modifyShadowAttributes(ctx, shadow, modifications, result);
     }
 
-    public boolean isRepositoryOnlyModification(Collection<? extends ItemDelta<?, ?>> modifications) {
-        return helper.isRepositoryOnlyModification(modifications);
+    public boolean containsNoResourceModification(Collection<? extends ItemDelta<?, ?>> modifications) {
+        return helper.containsNoResourceModification(modifications);
     }
 
     /**
@@ -353,17 +335,15 @@ public class ShadowManager {
             ProvisioningContext ctx,
             ProvisioningOperationState<AsynchronousOperationResult> opState,
             ProvisioningOperationOptions options,
-            OperationResult parentResult)
+            OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException, EncryptionException {
-        return shadowUpdater.recordDeleteResult(ctx, opState, options, parentResult);
+        return shadowUpdater.recordDeleteResult(ctx, opState, options, result);
     }
 
     public void deleteShadow(
             @NotNull ShadowType oldRepoShadow,
             @NotNull Task task,
-            @NotNull OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            ExpressionEvaluationException {
+            @NotNull OperationResult result) {
         shadowUpdater.deleteShadow(oldRepoShadow, task, result);
     }
 
@@ -405,5 +385,10 @@ public class ShadowManager {
             // And it also avoids shadow duplication.
             return shadowUpdater.markShadowExists(liveShadow, result);
         }
+    }
+
+    // TODO is this good place?
+    public PendingOperationType findPendingAddOperation(ShadowType liveShadow) {
+        return pendingOperationsHelper.findPendingAddOperation(liveShadow);
     }
 }

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
@@ -22,12 +23,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+
 /**
  * Beans useful for non-Spring components within this package.
  */
 @Experimental
 @Component
 class ShadowsLocalBeans {
+
+    private static ShadowsLocalBeans instance;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    public static ShadowsLocalBeans get() {
+        return instance;
+    }
 
     @Autowired AccessChecker accessChecker;
     @Autowired ShadowedObjectConstructionHelper shadowedObjectConstructionHelper;
@@ -48,5 +62,6 @@ class ShadowsLocalBeans {
     @Autowired Clock clock;
     @Autowired ResourceObjectConverter resourceObjectConverter;
     @Autowired ProvisioningContextFactory ctxFactory;
-    @Autowired RefreshHelper refreshHelper;
+    @Autowired ShadowRefreshHelper refreshHelper;
+    @Autowired EventDispatcher eventDispatcher;
 }

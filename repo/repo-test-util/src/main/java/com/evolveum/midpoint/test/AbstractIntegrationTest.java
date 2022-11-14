@@ -2472,6 +2472,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertThat(result.getMessage()).as("message in operation result").isNull();
     }
 
+    protected void assertMessageContains(OperationResult result, String text) {
+        assertThat(result.getMessage()).as("message in operation result").contains(text);
+    }
+
     protected String assertInProgress(OperationResult result) {
         if (result.isUnknown()) {
             result.computeStatus();

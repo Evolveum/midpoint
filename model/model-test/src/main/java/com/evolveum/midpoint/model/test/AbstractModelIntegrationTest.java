@@ -4458,14 +4458,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertEnableTimestampFocus(PrismObject<? extends FocusType> focus,
             XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
         XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getEnableTimestamp();
-        TestUtil.assertBetween("Wrong user enableTimestamp in " + focus,
+        TestUtil.assertBetween("User enableTimestamp in " + focus,
                 startTime, endTime, userDisableTimestamp);
     }
 
     protected void assertDisableTimestampFocus(PrismObject<? extends FocusType> focus,
             XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
         XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getDisableTimestamp();
-        TestUtil.assertBetween("Wrong user disableTimestamp in " + focus,
+        TestUtil.assertBetween("User disableTimestamp in " + focus,
                 startTime, endTime, userDisableTimestamp);
     }
 
@@ -4474,14 +4474,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ActivationType activationType = shadow.asObjectable().getActivation();
         assertNotNull("No activation in " + shadow, activationType);
         XMLGregorianCalendar userDisableTimestamp = activationType.getEnableTimestamp();
-        TestUtil.assertBetween("Wrong shadow enableTimestamp in " + shadow,
+        TestUtil.assertBetween("Shadow enableTimestamp in " + shadow,
                 startTime, endTime, userDisableTimestamp);
     }
 
     protected void assertDisableTimestampShadow(PrismObject<? extends ShadowType> shadow,
             XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
         XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getDisableTimestamp();
-        TestUtil.assertBetween("Wrong shadow disableTimestamp in " + shadow,
+        TestUtil.assertBetween("Shadow disableTimestamp in " + shadow,
                 startTime, endTime, userDisableTimestamp);
     }
 
@@ -5876,7 +5876,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertNotNull("No delta in pending operation in " + shadow, deltaType);
         // TODO: check content of pending operations in the shadow
 
-        TestUtil.assertBetween("No request timestamp in pending operation in " + shadow, requestStart, requestEnd, pendingOperation.getRequestTimestamp());
+        TestUtil.assertBetween("Request timestamp in pending operation in " + shadow, requestStart, requestEnd, pendingOperation.getRequestTimestamp());
 
         PendingOperationExecutionStatusType executiontStatus = pendingOperation.getExecutionStatus();
         assertEquals("Wrong execution status in pending operation in " + shadow, expectedExecutionStatus, executiontStatus);
@@ -5887,7 +5887,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         // TODO: assert other timestamps
 
         if (expectedExecutionStatus == PendingOperationExecutionStatusType.COMPLETED) {
-            TestUtil.assertBetween("No completion timestamp in pending operation in " + shadow, completionStart, completionEnd, pendingOperation.getCompletionTimestamp());
+            TestUtil.assertBetween("Completion timestamp in pending operation in " + shadow, completionStart, completionEnd, pendingOperation.getCompletionTimestamp());
         }
 
         return pendingOperation;

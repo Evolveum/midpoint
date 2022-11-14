@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
-
 import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Facade for the whole "shadows" package.
  *
  * Basically, it only dispatches method calls to a set of helper classes, like {@link ShadowGetOperation}, {@link ShadowSearchLikeOperation},
- * {@link ModifyHelper}, {@link DeleteHelper}, and so on.
+ * {@link ShadowModifyHelper}, {@link ShadowDeleteHelper}, and so on.
  *
  * @see com.evolveum.midpoint.provisioning.impl.shadows
  *
@@ -52,12 +50,12 @@ public class ShadowsFacade {
     static final String OP_HANDLE_OBJECT = ShadowsFacade.class.getName() + ".handleObject";
 
     @Autowired private ShadowAddHelper addHelper;
-    @Autowired private RefreshHelper refreshHelper;
-    @Autowired private ModifyHelper modifyHelper;
-    @Autowired private DeleteHelper deleteHelper;
+    @Autowired private ShadowRefreshHelper refreshHelper;
+    @Autowired private ShadowModifyHelper modifyHelper;
+    @Autowired private ShadowDeleteHelper deleteHelper;
     @Autowired private DefinitionsHelper definitionsHelper;
     @Autowired private PropagateHelper propagateHelper;
-    @Autowired private CompareHelper compareHelper;
+    @Autowired private ShadowCompareHelper compareHelper;
     @Autowired private ShadowsLocalBeans localBeans;
 
     /**

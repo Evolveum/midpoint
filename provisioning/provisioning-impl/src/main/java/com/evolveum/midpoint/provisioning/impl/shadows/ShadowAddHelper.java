@@ -7,12 +7,14 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
+import static com.evolveum.midpoint.prism.delta.DeltaFactory.Object.createAddDelta;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
 
 import java.util.Collection;
+import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
@@ -26,12 +28,10 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
@@ -40,11 +40,9 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCon
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -58,8 +56,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 /**
  * Helps with the `add` operation. Wraps {@link AddOperation}, providing code to invoke it neatly via
- * {@link #executeAddShadowAttempt(ProvisioningContext, ShadowType, OperationProvisioningScriptsType, AddOperationState,
- * ProvisioningOperationOptions, OperationResult)} method.
+ * {@link #executeAddAttempt(ProvisioningContext, ShadowType, ProvisioningOperationOptions,
+ * OperationProvisioningScriptsType, AddOperationState, OperationResult)} method.
  *
  * (Unlike {@link ShadowGetOperation} and {@link ShadowSearchLikeOperation}, the "add" operation is called from other
  * parts of the shadows package. Hence the need.)
@@ -103,7 +101,7 @@ class ShadowAddHelper {
 
         ProvisioningContext ctx = establishProvisioningContext(resourceObjectToAdd, task, result);
         AddOperationState opState = new AddOperationState();
-        return executeAddShadowAttempt(ctx, resourceObjectToAdd, scripts, opState, options, result);
+        return executeAddAttempt(ctx, resourceObjectToAdd, options, scripts, opState, result);
     }
 
     private @NotNull ProvisioningContext establishProvisioningContext(
@@ -117,7 +115,7 @@ class ShadowAddHelper {
             return ctx;
         } catch (SchemaException e) { // TODO why only for this kind of exception?
             eventDispatcher.notifyFailure(
-                    ProvisioningUtil.createResourceFailureDescription(
+                    createResourceFailureDescription(
                             resourceObjectToAdd, resource, resourceObjectToAdd.asPrismObject().createAddDelta(), e.getMessage()),
                     task,
                     result);
@@ -125,12 +123,12 @@ class ShadowAddHelper {
         }
     }
 
-    String executeAddShadowAttempt(
+    String executeAddAttempt(
             ProvisioningContext ctx,
-            ShadowType resourceObjectToAdd,
+            @NotNull ShadowType resourceObjectToAdd,
+            ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
             AddOperationState opState,
-            ProvisioningOperationOptions options,
             OperationResult result)
             throws CommunicationException, GenericFrameworkException,
             ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
@@ -140,7 +138,7 @@ class ShadowAddHelper {
                     .execute(result);
         } catch (SchemaException e) { // TODO why only for this kind of exception?
             eventDispatcher.notifyFailure(
-                    ProvisioningUtil.createResourceFailureDescription(
+                    createResourceFailureDescription(
                             resourceObjectToAdd,
                             ctx.getResource(),
                             resourceObjectToAdd.asPrismObject().createAddDelta(),
@@ -150,39 +148,20 @@ class ShadowAddHelper {
         }
     }
 
-    // TODO why not call this right from the AddOperation execution?
-    void notifyAfterAdd(
-            ProvisioningContext ctx,
-            ShadowType addedShadow,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
-            Task task,
-            OperationResult parentResult) {
-        ObjectDelta<ShadowType> delta = DeltaFactory.Object.createAddDelta(addedShadow.asPrismObject());
-        ResourceOperationDescription operationDescription =
-                ShadowsUtil.createSuccessOperationDescription(ctx, addedShadow, delta, null);
-
-        if (opState.isExecuting()) {
-            eventDispatcher.notifyInProgress(operationDescription, task, parentResult);
-        } else if (opState.isCompleted()) {
-            eventDispatcher.notifySuccess(operationDescription, task, parentResult);
-        }
-    }
-
     private class AddOperation {
 
         private final ProvisioningContext ctx;
-        private final ShadowType resourceObjectToAdd;
+        @NotNull private final ShadowType resourceObjectToAdd;
         private final OperationProvisioningScriptsType scripts;
         private final AddOperationState opState;
         private final ProvisioningOperationOptions options;
         private final Task task;
 
-        private ShadowType addedShadow;
-        private OperationResultStatus finalOperationStatus;
+        private OperationResultStatus statusFromErrorHandling;
 
         AddOperation(
                 ProvisioningContext ctx,
-                ShadowType resourceObjectToAdd,
+                @NotNull ShadowType resourceObjectToAdd,
                 OperationProvisioningScriptsType scripts,
                 AddOperationState opState,
                 ProvisioningOperationOptions options) {
@@ -208,7 +187,7 @@ class ShadowAddHelper {
             setProductionFlag();
 
             executeShadowConstraintsCheck(result); // To avoid shadow duplication (if configured so)
-            shadowManager.addNewProposedShadow(ctx, resourceObjectToAdd, opState, result); // If configured
+            shadowManager.addNewProposedShadow(ctx, resourceObjectToAdd, opState, result); // If configured & if not existing yet
 
             entitlementsHelper.provideEntitlementsIdentifiers(ctx, resourceObjectToAdd, result);
 
@@ -219,7 +198,7 @@ class ShadowAddHelper {
                     OperationResult subresult = result.createMinorSubresult(OP_ADD_RESOURCE_OBJECT_FAKE);
                     subresult.recordException(e);
                     subresult.close();
-                    finalOperationStatus = handleAddError(e, subresult, result);
+                    statusFromErrorHandling = handleAddError(e, subresult, result);
                 } else {
                     executeAddOperationDirectly(result);
                 }
@@ -231,16 +210,11 @@ class ShadowAddHelper {
             // This is where the repo shadow is created or updated (if needed)
             shadowManager.recordAddResult(ctx, resourceObjectToAdd, opState, result);
 
-            if (addedShadow == null) {
-                addedShadow = resourceObjectToAdd;
-            }
-            addedShadow.setOid(opState.getRepoShadow().getOid());
+            notifyAfterAdd(result);
 
-            notifyAfterAdd(ctx, addedShadow, opState, task, result);
+            setParentOperationStatus(result, opState, statusFromErrorHandling);
 
-            setParentOperationStatus(result, opState, finalOperationStatus);
-
-            return opState.getRepoShadow().getOid();
+            return opState.getRepoShadowOid();
         }
 
         private void setProductionFlag() {
@@ -266,11 +240,8 @@ class ShadowAddHelper {
             LOGGER.trace("ADD {}: resource operation, execution starting", resourceObjectToAdd);
 
             try {
-                var asyncResult =
-                        resourceObjectConverter.addResourceObject(
-                                ctx, resourceObjectToAdd, scripts, connOptions, false, result);
-                opState.recordRealAsynchronousResult(asyncResult);
-                addedShadow = asyncResult.getReturnValue();
+
+                doExecuteAddOperation(connOptions, false, result);
 
             } catch (ObjectAlreadyExistsException e) {
 
@@ -295,12 +266,9 @@ class ShadowAddHelper {
                     // Try again, this time without explicit uniqueness check
                     try {
 
-                        LOGGER.trace("ADD {}: retrying resource operation without uniqueness check (previous dead shadow found), execution starting", resourceObjectToAdd);
-                        AsynchronousOperationReturnValue<ShadowType> asyncResult =
-                                resourceObjectConverter
-                                        .addResourceObject(ctx, resourceObjectToAdd, scripts, connOptions, true, result);
-                        opState.recordRealAsynchronousResult(asyncResult);
-                        addedShadow = asyncResult.getReturnValue();
+                        LOGGER.trace("ADD {}: retrying resource operation without uniqueness check (previous dead shadow found), "
+                                + "execution starting", resourceObjectToAdd);
+                        doExecuteAddOperation(connOptions, true, result);
 
                     } catch (ObjectAlreadyExistsException innerException) {
                         // Mark shadow dead before we handle the error. ADD operation obviously failed. Therefore this particular
@@ -308,9 +276,9 @@ class ShadowAddHelper {
                         // this shadow with the conflicting shadow that it is going to discover.
                         // This may also be a gestation quantum state collapsing to tombstone
                         shadowManager.markShadowTombstone(opState.getRepoShadow(), task, result);
-                        finalOperationStatus = handleAddError(innerException, failedOperationResult, result);
+                        statusFromErrorHandling = handleAddError(innerException, failedOperationResult, result);
                     } catch (Exception innerException) {
-                        finalOperationStatus = handleAddError(innerException, result.getLastSubresult(), result);
+                        statusFromErrorHandling = handleAddError(innerException, result.getLastSubresult(), result);
                     }
 
                 } else {
@@ -319,15 +287,24 @@ class ShadowAddHelper {
                     // this shadow with the conflicting shadow that it is going to discover.
                     // This may also be a gestation quantum state collapsing to tombstone
                     shadowManager.markShadowTombstone(opState.getRepoShadow(), task, result);
-                    finalOperationStatus = handleAddError(e, failedOperationResult,  result);
+                    statusFromErrorHandling = handleAddError(e, failedOperationResult,  result);
                 }
 
             } catch (Exception e) {
-                finalOperationStatus =
-                        handleAddError(e, result.getLastSubresult(), result);
+                statusFromErrorHandling = handleAddError(e, result.getLastSubresult(), result);
             }
 
             LOGGER.debug("ADD {}: resource operation executed, operation state: {}", resourceObjectToAdd, opState.shortDumpLazily());
+        }
+
+        private void doExecuteAddOperation(
+                ConnectorOperationOptions connOptions, boolean skipExplicitUniquenessCheck, OperationResult result)
+                throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
+                ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            var asyncResult =
+                    resourceObjectConverter.addResourceObject(
+                            ctx, resourceObjectToAdd, scripts, connOptions, skipExplicitUniquenessCheck, result);
+            opState.recordRealAsynchronousResult(asyncResult);
         }
 
         private void checkAttributesPresent() throws SchemaException {
@@ -390,7 +367,7 @@ class ShadowAddHelper {
 
             String shadowOid;
             if (opState.getRepoShadow() != null) {
-                shadowOid = opState.getRepoShadow().getOid();
+                shadowOid = opState.getRepoShadowOid();
             } else {
                 shadowOid = resourceObjectToAdd.getOid();
             }
@@ -425,6 +402,16 @@ class ShadowAddHelper {
             return state != REAPING
                     && state != CORPSE
                     && state != TOMBSTONE;
+        }
+
+        private void notifyAfterAdd(OperationResult result) {
+            // Not sure if the shadow provided is "precise enough".
+            ShadowType newShadow = Objects.requireNonNullElse(opState.getCreatedShadow(), resourceObjectToAdd);
+            if (newShadow.getOid() == null) {
+                newShadow.setOid(opState.getRepoShadowOid());
+            }
+            ObjectDelta<ShadowType> delta = createAddDelta(newShadow.asPrismObject());
+            notifyAboutSuccessOperation(ctx, newShadow, opState, delta, result);
         }
     }
 }

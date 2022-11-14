@@ -35,7 +35,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 @Experimental
 @Component
-class CompareHelper {
+class ShadowCompareHelper {
 
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private Protector protector;

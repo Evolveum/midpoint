@@ -103,6 +103,11 @@ class MaintenanceExceptionHandler extends ErrorHandler {
                     status = OperationResultStatus.IN_PROGRESS;
                 }
                 opState.setRepoShadow(liveShadow);
+                // TODO shouldn't we do something similar for other cases like this?
+                if (!opState.hasCurrentPendingOperation()) {
+                    opState.setCurrentPendingOperation(
+                            shadowManager.findPendingAddOperation(liveShadow));
+                }
             } else {
                 status = OperationResultStatus.IN_PROGRESS;
             }
@@ -110,7 +115,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             failedOperationResult.setStatus(status);
             result.setStatus(status); // TODO
             if (status == OperationResultStatus.IN_PROGRESS) {
-                opState.markToRetry(failedOperationResult);
+                opState.markAsPostponed(failedOperationResult);
             }
             return status;
         } catch (Throwable t) {
@@ -137,7 +142,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
         try {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
             result.setInProgress();
-            return opState.markToRetry(failedOperationResult);
+            return opState.markAsPostponed(failedOperationResult);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -160,7 +165,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
         try {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
             result.setInProgress();
-            return opState.markToRetry(failedOperationResult);
+            return opState.markAsPostponed(failedOperationResult);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;

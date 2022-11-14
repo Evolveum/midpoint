@@ -13,7 +13,7 @@
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>Dummy Resource: Failure and Retry</name>
+    <name>Dummy Resource: Failure and Retry - Recording All Operations</name>
     <connectorRef oid="will-be-supplied-by-the-test-code"/>
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
@@ -191,5 +191,7 @@
     </schemaHandling>
     <consistency>
         <operationRetryPeriod>PT15M</operationRetryPeriod>
+        <recordPendingOperations>all</recordPendingOperations>
+        <avoidDuplicateOperations>true</avoidDuplicateOperations>
     </consistency>
 </resource>

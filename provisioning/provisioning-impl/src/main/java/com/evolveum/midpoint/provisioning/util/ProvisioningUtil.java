@@ -27,7 +27,6 @@ import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
@@ -76,8 +74,9 @@ public class ProvisioningUtil {
             ProvisioningScriptType scriptType, String desc, PrismContext prismContext) throws SchemaException {
         ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
-        MutablePrismPropertyDefinition scriptArgumentDefinition = prismContext.definitionFactory().createPropertyDefinition(
-                FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
+        MutablePrismPropertyDefinition<?> scriptArgumentDefinition =
+                prismContext.definitionFactory().createPropertyDefinition(
+                        FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
         scriptArgumentDefinition.setMinOccurs(0);
         scriptArgumentDefinition.setMaxOccurs(-1);
 
@@ -268,7 +267,7 @@ public class ProvisioningUtil {
             ShadowType currentShadow,
             QName overridingMatchingRuleQName,
             MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        ItemDefinition propertyDef = propertyDelta.getDefinition();
+        ItemDefinition<?> propertyDef = propertyDelta.getDefinition();
 
         QName matchingRuleQName;
         if (overridingMatchingRuleQName != null) {
@@ -449,7 +448,8 @@ public class ProvisioningUtil {
         }
     }
 
-    public static boolean isResourceModification(ItemDelta modification) {
+    /** TODO reconcile with {@link com.evolveum.midpoint.provisioning.impl.shadows.manager.Helper#isResourceModification(ItemDelta)}. */
+    public static boolean isResourceModification(ItemDelta<?, ?> modification) {
         QName firstPathName = modification.getPath().firstName();
         return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
     }
@@ -459,8 +459,10 @@ public class ProvisioningUtil {
     }
 
     public static boolean isNonAttributeResourceModification(QName firstPathName) {
-        return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
-                QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
+        return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION)
+                || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS)
+                || QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION)
+                || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
 
     public static Duration getGracePeriod(ProvisioningContext ctx) {
@@ -553,17 +555,6 @@ public class ProvisioningUtil {
     public static boolean isFuturePointInTime(Collection<SelectorOptions<GetOperationOptions>> options) {
         PointInTimeType pit = GetOperationOptions.getPointInTimeType(SelectorOptions.findRootOptions(options));
         return pit == PointInTimeType.FUTURE;
-    }
-
-    public static ResourceOperationDescription createResourceFailureDescription(
-            ShadowType shadow, ResourceType resource, ObjectDelta<ShadowType> delta, String message) {
-        ResourceOperationDescription failureDesc = new ResourceOperationDescription();
-        failureDesc.setCurrentShadow(asPrismObject(shadow));
-        failureDesc.setObjectDelta(delta);
-        failureDesc.setResource(resource.asPrismObject());
-        failureDesc.setMessage(message);
-        failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY)); // ???
-        return failureDesc;
     }
 
     public static boolean isDoDiscovery(@NotNull ResourceType resource, ProvisioningOperationOptions options) {

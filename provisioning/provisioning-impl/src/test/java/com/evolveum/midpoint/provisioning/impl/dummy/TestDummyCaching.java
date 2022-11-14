@@ -440,7 +440,7 @@ public class TestDummyCaching extends TestDummy {
         CachingMetadataType cachingMetadata = shadowFromRepo.asObjectable().getCachingMetadata();
         assertNotNull("No caching metadata in " + shadowFromRepo, cachingMetadata);
 
-        TestUtil.assertBetween("Wrong retrieval timestamp in caching metadata in " + shadowFromRepo,
+        TestUtil.assertBetween("retrieval timestamp in caching metadata in " + shadowFromRepo,
                 start, end, cachingMetadata.getRetrievalTimestamp());
     }
 
@@ -449,7 +449,7 @@ public class TestDummyCaching extends TestDummy {
         CachingMetadataType cachingMetadata = shadow.asObjectable().getCachingMetadata();
         if (expectedCached) {
             assertNotNull("No caching metadata in " + shadow, cachingMetadata);
-            TestUtil.assertBetween("Wrong retrievalTimestamp in caching metadata in " + shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
+            TestUtil.assertBetween("retrievalTimestamp in caching metadata in " + shadow, startTs, endTs, cachingMetadata.getRetrievalTimestamp());
         } else {
             super.assertCachingMetadata(shadow, expectedCached, startTs, endTs);
         }

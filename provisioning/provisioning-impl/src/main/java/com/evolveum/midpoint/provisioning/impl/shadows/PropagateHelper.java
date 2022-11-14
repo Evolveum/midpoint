@@ -59,8 +59,8 @@ class PropagateHelper {
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private DefinitionsHelper definitionsHelper;
     @Autowired private ShadowAddHelper addHelper;
-    @Autowired private ModifyHelper modifyHelper;
-    @Autowired private DeleteHelper deleteHelper;
+    @Autowired private ShadowModifyHelper modifyHelper;
+    @Autowired private ShadowDeleteHelper deleteHelper;
 
     void propagateOperations(
             @NotNull ResourceType resource,
@@ -103,30 +103,19 @@ class PropagateHelper {
 
         if (aggregateDelta.isAdd()) {
             ShadowType shadowToAdd = aggregateDelta.getObjectToAdd().asObjectable();
-            AddOperationState opState = AddOperationState.fromPendingOperations(shadow, sortedOperations);
             shadowToAdd.setOid(shadow.getOid());
-            addHelper.executeAddShadowAttempt(ctx, shadowToAdd, null, opState, null, result);
-            opState.determineExecutionStatusFromResult();
-
-            shadowManager.updatePendingOperations(ctx, shadow, opState, execPendingOperations, now, result);
-            addHelper.notifyAfterAdd(ctx, opState.getReturnedShadow(), opState, task, result);
-
+            AddOperationState opState = new AddOperationState(shadow);
+            opState.setPropagatedPendingOperations(sortedOperations);
+            addHelper.executeAddAttempt(ctx, shadowToAdd, null, null, opState, result);
         } else if (aggregateDelta.isModify()) {
             Collection<? extends ItemDelta<?,?>> modifications = aggregateDelta.getModifications();
-            ModifyOperationState opState =
-                    modifyHelper.executeResourceModify(ctx, shadow, modifications, null, null, now, result);
-            opState.determineExecutionStatusFromResult();
-
-            shadowManager.updatePendingOperations(ctx, shadow, opState, execPendingOperations, now, result);
-            modifyHelper.notifyAfterModify(ctx, shadow, modifications, opState, result);
-
+            ModifyOperationState opState = new ModifyOperationState(shadow);
+            opState.setPropagatedPendingOperations(sortedOperations);
+            modifyHelper.executeModifyAttempt(ctx, modifications, null, null, opState, true, result);
         } else if (aggregateDelta.isDelete()) {
-            DeleteOperationState opState = deleteHelper.executeResourceDelete(ctx, shadow, null, null, result);
-            opState.determineExecutionStatusFromResult();
-
-            shadowManager.updatePendingOperations(ctx, shadow, opState, execPendingOperations, now, result);
-            deleteHelper.notifyAfterDelete(ctx, shadow, opState, result);
-
+            DeleteOperationState opState = new DeleteOperationState(shadow);
+            opState.setPropagatedPendingOperations(sortedOperations);
+            deleteHelper.executeDeleteAttempt(ctx, null, null, opState, true, result);
         } else {
             throw new IllegalStateException("Delta from outer space: " + aggregateDelta);
         }

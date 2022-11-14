@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecyc
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -167,15 +169,12 @@ class Helper {
         }
     }
 
-    boolean isRepositoryOnlyModification(Collection<? extends ItemDelta<?, ?>> modifications) {
-        for (ItemDelta<?, ?> itemDelta : modifications) {
-            if (isResourceModification(itemDelta)) {
-                return false;
-            }
-        }
-        return true;
+    boolean containsNoResourceModification(Collection<? extends ItemDelta<?, ?>> modifications) {
+        return modifications.stream()
+                .noneMatch(this::isResourceModification);
     }
 
+    /** TODO reconcile with {@link ProvisioningUtil#isResourceModification(ItemDelta)}. */
     private boolean isResourceModification(ItemDelta<?, ?> itemDelta) {
         ItemPath path = itemDelta.getPath();
         ItemPath parentPath = itemDelta.getParentPath();

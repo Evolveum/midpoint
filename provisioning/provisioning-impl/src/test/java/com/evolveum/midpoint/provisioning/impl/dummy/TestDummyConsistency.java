@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.Collection;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.test.asserter.PendingOperationsAsserter;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -1828,14 +1830,20 @@ public class TestDummyConsistency extends AbstractDummyTest {
                         .end()
                     .end();
 
-        assertRepoShadow(ACCOUNT_WILL_OID)
+        var asserter = assertRepoShadow(ACCOUNT_WILL_OID)
             .assertDead()
             .assertIsNotExists()
-            .pendingOperations()
-                .assertNone();
+            .pendingOperations();
         // @formatter:on
 
+        assertPendingOperationsAfter812(asserter);
+
         assertSteadyResources();
+    }
+
+    void assertPendingOperationsAfter812(PendingOperationsAsserter<Void> asserter) {
+        // Normally, the no operation should not be pending.
+        asserter.assertNone();
     }
 
     /**
@@ -1864,7 +1872,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertHandledError(result);
 
         // @formatter:off
-        syncServiceMock
+        var asserter1 = syncServiceMock
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
             .lastNotifyChange()
@@ -1881,20 +1889,23 @@ public class TestDummyConsistency extends AbstractDummyTest {
                     .attributes()
                         .assertHasPrimaryIdentifier()
                         .assertHasSecondaryIdentifier()
-                        .end()
-                    .pendingOperations()
-                        .assertNone()
-                        .end()
-                    .end();
+                    .end()
+                    .pendingOperations();
 
-        assertRepoShadow(ACCOUNT_ELIZABETH_OID)
+        var asserter2 = assertRepoShadow(ACCOUNT_ELIZABETH_OID)
             .assertDead()
             .assertIsNotExists()
-            .pendingOperations()
-                .assertNone();
+            .pendingOperations();
         // @formatter:on
 
+        assertPendingOperationsAfter814(asserter1, asserter2);
+
         assertSteadyResources();
+    }
+
+    void assertPendingOperationsAfter814(PendingOperationsAsserter<?> asserter1, PendingOperationsAsserter<?> asserter2) {
+        asserter1.assertNone();
+        asserter2.assertNone();
     }
 
     /**
@@ -2963,8 +2974,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         OperationResult result = createSubresult("getShadowFuture");
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
-        PrismObject<ShadowType> shadow = provisioningService.getObject(
-                ShadowType.class, oid, options, getTestTask(), result);
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, getTestTask(), result);
         assertSuccess(result);
         return shadow;
     }

@@ -19,9 +19,7 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -79,7 +77,7 @@ class CommonHelper {
 
     void handleErrorHandlerException(
             ProvisioningContext ctx,
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+            ProvisioningOperationState<?> opState,
             ObjectDelta<ShadowType> delta,
             String message,
             OperationResult result)
@@ -96,7 +94,7 @@ class CommonHelper {
             shadow = opState.getRepoShadow();
         }
         ResourceOperationDescription operationDescription =
-                ProvisioningUtil.createResourceFailureDescription(shadow, ctx.getResource(), delta, message);
+                ShadowsUtil.createResourceFailureDescription(shadow, ctx.getResource(), delta, message);
         eventDispatcher.notifyFailure(operationDescription, ctx.getTask(), result);
     }
 }

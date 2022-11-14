@@ -1593,7 +1593,7 @@ public class TestMapping extends AbstractMappingTest {
         assertTrigger(accountRed, RecomputeTriggerHandler.HANDLER_URI, trigStart, trigEnd);
 
         XMLGregorianCalendar disableTimestamp = accountRed.asObjectable().getActivation().getDisableTimestamp();
-        TestUtil.assertBetween("Wrong disableTimestamp", start, end, disableTimestamp);
+        TestUtil.assertBetween("disableTimestamp", start, end, disableTimestamp);
 
         assertAccountShip(userJack, CAPTAIN_JACK_FULL_NAME, "Brethren of the Coast / Black Pearl", false, getDummyResourceController(RESOURCE_DUMMY_RED_NAME), task);
 

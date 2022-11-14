@@ -26,12 +26,9 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
@@ -54,8 +51,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  *
  */
 public abstract class ErrorHandler {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ErrorHandler.class);
 
     @Autowired protected EventDispatcher eventDispatcher;
     @Autowired private ResourceManager resourceManager;
@@ -129,7 +124,7 @@ public abstract class ErrorHandler {
      */
     protected void recordCompletionError(
             Exception cause,
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState,
+            ProvisioningOperationState<?> opState,
             OperationResult result) {
         result.recordExceptionNotFinish(cause);
         if (opState != null) {
@@ -145,7 +140,7 @@ public abstract class ErrorHandler {
                 ctx.getResourceOid(), AvailabilityStatusType.DOWN, changeReason, ctx.getTask(), result, false);
     }
 
-    protected boolean isOperationRetryEnabled(ResourceType resource) {
+    boolean isOperationRetryEnabled(ResourceType resource) {
         ResourceConsistencyType consistency = resource.getConsistency();
         if (consistency == null) {
             return true;
@@ -157,7 +152,7 @@ public abstract class ErrorHandler {
         return operationRetryMaxAttempts != 0;
     }
 
-    protected boolean isCompletePostponedOperations(ProvisioningOperationOptions options) {
+    boolean isCompletePostponedOperations(ProvisioningOperationOptions options) {
         return ProvisioningOperationOptions.isCompletePostponed(options);
     }
 

@@ -18,31 +18,34 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
+import static java.util.Objects.requireNonNull;
+
 /**
  * @author semancik
  */
 public final class OptimisticLockingRunner<O extends ObjectType, R> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OptimisticLockingRunner.class);
-    protected static final Random RND = new Random();
+    private static final Random RND = new Random();
 
-    private PrismObject<O> object;
+    @NotNull private PrismObject<O> object;
     private final OperationResult result;
     private final RepositoryService repositoryService;
     private final int maxNumberOfAttempts;
     private final Integer delayRange;
 
-    private OptimisticLockingRunner(PrismObject<O> object, OperationResult result,
+    private OptimisticLockingRunner(@NotNull PrismObject<O> object, OperationResult result,
             RepositoryService repositoryService, int maxNumberOfAttempts, Integer delayRange) {
-        super();
-        this.object = object;
+        this.object = requireNonNull(object);
         this.result = result;
         this.repositoryService = repositoryService;
         this.maxNumberOfAttempts = maxNumberOfAttempts;
         this.delayRange = delayRange;
     }
 
-    public PrismObject<O> getObject() {
+    public @NotNull PrismObject<O> getObject() {
         return object;
     }
 
@@ -51,14 +54,9 @@ public final class OptimisticLockingRunner<O extends ObjectType, R> {
         int numberOfAttempts = 0;
         while (true) {
             try {
-
                 R ret = lambda.run(object);
-
-                LOGGER.trace("Finished repository operation (attempt {} of {})",
-                        numberOfAttempts, maxNumberOfAttempts);
-
+                LOGGER.trace("Finished repository operation (attempt {} of {})", numberOfAttempts, maxNumberOfAttempts);
                 return ret;
-
             } catch (PreconditionViolationException e) {
                 if (numberOfAttempts < maxNumberOfAttempts) {
                     LOGGER.trace("Restarting repository operation due to optimistic locking conflict (attempt {} of {})",
@@ -68,8 +66,9 @@ public final class OptimisticLockingRunner<O extends ObjectType, R> {
                     if (delayRange != null) {
                         int delay = RND.nextInt(delayRange);
                         try {
+                            //noinspection BusyWait
                             Thread.sleep(delay);
-                        } catch (InterruptedException eint) {
+                        } catch (InterruptedException ie) {
                             // nothing to do, just go on
                         }
                     }
@@ -77,8 +76,7 @@ public final class OptimisticLockingRunner<O extends ObjectType, R> {
                     object = repositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
 
                 } else {
-                    LOGGER.trace("Optimistic locking conflict and maximum attempts exceeded ({})",
-                            maxNumberOfAttempts);
+                    LOGGER.trace("Optimistic locking conflict and maximum attempts exceeded ({})", maxNumberOfAttempts);
                     throw new SystemException("Repository optimistic locking conflict and maximum attempts exceeded");
                 }
             }

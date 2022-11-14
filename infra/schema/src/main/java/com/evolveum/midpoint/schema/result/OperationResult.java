@@ -872,10 +872,11 @@ public class OperationResult
                 continue;
             }
 
-            if (sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
+            OperationResultStatus subStatus = sub.getStatus();
+            if (subStatus != OperationResultStatus.NOT_APPLICABLE) {
                 allNotApplicable = false;
             }
-            if (sub.getStatus() == OperationResultStatus.FATAL_ERROR) {
+            if (subStatus == OperationResultStatus.FATAL_ERROR) {
                 status = OperationResultStatus.FATAL_ERROR;
                 if (message == null) {
                     message = sub.getMessage();
@@ -885,7 +886,7 @@ public class OperationResult
                 updateLocalizableMessage(sub);
                 return;
             }
-            if (sub.getStatus() == OperationResultStatus.IN_PROGRESS) {
+            if (subStatus == OperationResultStatus.IN_PROGRESS) {
                 status = OperationResultStatus.IN_PROGRESS;
                 if (message == null) {
                     message = sub.getMessage();
@@ -898,24 +899,24 @@ public class OperationResult
                 }
                 return;
             }
-            if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
+            if (subStatus == OperationResultStatus.PARTIAL_ERROR) {
                 newStatus = OperationResultStatus.PARTIAL_ERROR;
                 newMessage = sub.getMessage();
                 newUserFriendlyMessage = sub.getUserFriendlyMessage();
             }
             if (newStatus != OperationResultStatus.PARTIAL_ERROR) {
-                if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
+                if (subStatus == OperationResultStatus.HANDLED_ERROR) {
                     newStatus = OperationResultStatus.HANDLED_ERROR;
                     newMessage = sub.getMessage();
                     newUserFriendlyMessage = sub.getUserFriendlyMessage();
                 }
             }
-            if (sub.getStatus() != OperationResultStatus.SUCCESS
-                    && sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
+            if (subStatus != OperationResultStatus.SUCCESS
+                    && subStatus != OperationResultStatus.NOT_APPLICABLE) {
                 allSuccess = false;
             }
             if (newStatus != OperationResultStatus.HANDLED_ERROR) {
-                if (sub.getStatus() == OperationResultStatus.WARNING) {
+                if (subStatus == OperationResultStatus.WARNING) {
                     newStatus = OperationResultStatus.WARNING;
                     newMessage = sub.getMessage();
                     newUserFriendlyMessage = sub.getUserFriendlyMessage();

@@ -43,6 +43,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.LIVE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.REAPING;
+
 @Component
 class ObjectNotFoundHandler extends HardErrorHandler {
 
@@ -170,9 +173,12 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             return;
         }
 
-        if (stateBefore != ShadowLifecycleStateType.LIVE) {
+        if (stateBefore != LIVE && stateBefore != REAPING) {
             // Do NOT do discovery of shadow that can legally not exist. This is no discovery.
             // We already know that the object are supposed not to exist yet or to dead already.
+            // Note: The shadow may be in REAPING state e.g. if "record all pending operations" is in effect.
+            // (That is a technicality. But maybe even without that we should consider shadows being reaped
+            // as legitimate candidates for discovery notifications.)
             LOGGER.trace("Skipping sending notification of missing {} because it is {}, we expect that it might not exist",
                     repoShadow, stateBefore);
             return;
