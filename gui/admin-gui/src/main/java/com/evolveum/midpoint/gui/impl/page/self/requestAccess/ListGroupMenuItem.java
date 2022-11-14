@@ -11,9 +11,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -36,7 +36,13 @@ public class ListGroupMenuItem<T extends Serializable> implements Serializable {
 
     private T value;
 
-    private IModel<List<ListGroupMenuItem<T>>> items = Model.ofList(new ArrayList<>());
+    private LoadableModel<List<ListGroupMenuItem<T>>> items = new LoadableModel<>() {
+
+        @Override
+        protected List<ListGroupMenuItem<T>> load() {
+            return new ArrayList<>();
+        }
+    };
 
     public ListGroupMenuItem() {
     }
@@ -114,11 +120,7 @@ public class ListGroupMenuItem<T extends Serializable> implements Serializable {
         this.items.setObject(items);
     }
 
-    public IModel<List<ListGroupMenuItem<T>>> getItemsModel() {
-        return this.items;
-    }
-
-    public void setItemsModel(@NotNull IModel<List<ListGroupMenuItem<T>>> items) {
+    public void setItemsModel(@NotNull LoadableModel<List<ListGroupMenuItem<T>>> items) {
         this.items = items;
     }
 
@@ -138,7 +140,11 @@ public class ListGroupMenuItem<T extends Serializable> implements Serializable {
         this.open = open;
     }
 
+    public boolean isLoaded() {
+        return items.isLoaded();
+    }
+
     public boolean isEmpty() {
-        return getItems().isEmpty();
+        return items.isLoaded() && getItems().isEmpty();
     }
 }

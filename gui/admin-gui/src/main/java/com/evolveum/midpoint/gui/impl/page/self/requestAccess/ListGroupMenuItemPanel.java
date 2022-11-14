@@ -64,7 +64,7 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
 
         WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS_CONTAINER);
         itemsContainer.add(AttributeAppender.append("style", () -> !getModelObject().isOpen() ? "display: none;" : null));
-        itemsContainer.add(new VisibleBehaviour(() -> !getModelObject().isEmpty()));
+        itemsContainer.add(new VisibleBehaviour(() -> getModelObject().isOpen() && !getModelObject().isEmpty()));
         add(itemsContainer);
 
         ListView<ListGroupMenuItem<T>> items = new ListView<>(ID_ITEMS, () -> getModelObject().getItems()) {

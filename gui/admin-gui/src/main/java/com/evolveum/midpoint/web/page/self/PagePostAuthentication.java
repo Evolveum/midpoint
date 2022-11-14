@@ -79,6 +79,10 @@ public class PagePostAuthentication extends PageAbstractFlow {
     private IModel<UserType> userModel;
     private PrismObjectWrapper<UserType> objectWrapper;
 
+    public PagePostAuthentication() {
+        super(null);
+    }
+
     public PagePostAuthentication(PageParameters pageParameters) {
         super(pageParameters);
     }
