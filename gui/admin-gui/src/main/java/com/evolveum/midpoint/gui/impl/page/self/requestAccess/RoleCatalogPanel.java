@@ -137,14 +137,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             throw new RestartResponseException(new PageRequestAccess(params, getWizard()));
         }
 
-        ListGroupMenu menu = menuModel.getObject();
-        if (menu.getActiveMenu() == null) {
-            menu.activateFirstAvailableItem();
-        }
-
-        ListGroupMenuItem<RoleCatalogQueryItem> active = menu.getActiveMenu();
-        updateQueryModel(active);
-
         super.onBeforeRender();
     }
 
@@ -346,7 +338,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected ListGroupMenu<RoleCatalogQueryItem> load() {
-                return loadRoleCatalogMenu();
+                ListGroupMenu<RoleCatalogQueryItem> menu = loadRoleCatalogMenu();
+
+                ListGroupMenuItem<RoleCatalogQueryItem> active = menu.activateFirstAvailableItem();
+                updateQueryModel(active);
+
+                return menu;
             }
         };
     }
