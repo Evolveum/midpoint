@@ -507,7 +507,7 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         task.getSubtaskRef().clear();
         children.forEach(child ->
                 task.getSubtaskRef().add(
-                        ObjectTypeUtil.createObjectRefWithFullObject(child, PrismContext.get())));
+                        ObjectTypeUtil.createObjectRefWithFullObject(child)));
     }
 
     /**

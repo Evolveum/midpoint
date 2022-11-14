@@ -171,6 +171,15 @@ public interface ProvisioningService {
      * (Fetched either from the resource or from repository.) The current implementation is not 100% correct, as it tries
      * to apply all attribute deltas even if the base object does not have all the attributes available.
      *
+     * === Shadow fetch result specifics
+     *
+     * When the resource object is being fetched from the resource, and:
+     *
+     * . {@link CommunicationException} occurs, the status is `PARTIAL_ERROR` (and repo shadow is returned),
+     * . resource is in maintenance, the status is `PARTIAL_ERROR` (and repo shadow is returned),
+     * . {@link ObjectNotFoundException} occurs, the status is `HANDLED_ERROR` (and repo shadow with the `dead` flag is returned).
+     * The reason is that the exception was, in fact, handled. The current state of the object is correctly reported.
+     *
      * === Potential side effects
      *
      * . Quick or full shadow refresh - before the GET issued against resource (or after the repo load if noFetch is set).

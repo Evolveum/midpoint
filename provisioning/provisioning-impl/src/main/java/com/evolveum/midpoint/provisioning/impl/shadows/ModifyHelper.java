@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
-import static com.evolveum.midpoint.provisioning.impl.shadows.Util.*;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +18,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 import com.evolveum.midpoint.util.exception.CommonException.Severity;
 
 import org.apache.commons.lang3.Validate;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocato
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.RefreshShadowOperation;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -51,7 +51,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -112,9 +111,7 @@ class ModifyHelper {
                 result);
         ctx.assertDefinition();
 
-        ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState =
-                new ProvisioningOperationState<>();
-        opState.setRepoShadow(repoShadow);
+        ModifyOperationState opState = new ModifyOperationState(repoShadow);
 
         // if not explicitly we want to force retry operations during modify
         // it is quite cheap and probably more safe than not do it
@@ -150,7 +147,7 @@ class ModifyHelper {
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable OperationProvisioningScriptsType scripts,
             @Nullable ProvisioningOperationOptions options,
-            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull ModifyOperationState opState,
             boolean inRefresh,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
@@ -185,7 +182,7 @@ class ModifyHelper {
                 LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}", repoShadow, DebugUtil.debugDumpLazily(modifications));
 
                 RefreshShadowOperation refreshShadowOperation;
-                if (!inRefresh && Util.shouldRefresh(repoShadow)) {
+                if (!inRefresh && ShadowsUtil.shouldRefresh(repoShadow)) {
                     refreshShadowOperation = refreshHelper.refreshShadow(repoShadow, options, ctx.getTask(), result);
                     ShadowType shadowAfterRefresh = refreshShadowOperation.getRefreshedShadow();
                     if (shadowAfterRefresh == null) {
@@ -202,24 +199,25 @@ class ModifyHelper {
                 ConnectorOperationOptions connOptions = commonHelper.createConnectorOperationOptions(ctx, options, result);
 
                 try {
-                    if (ResourceTypeUtil.isInMaintenance(ctx.getResource())) {
+                    if (ctx.isInMaintenance()) {
                         throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance");
                     }
 
                     if (!shouldExecuteModify(refreshShadowOperation)) {
-                        ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, refreshShadowOperation.getRefreshResult(), result);
+                        opState.markToRetry(refreshShadowOperation.getRefreshResult());
                         shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, now, result);
+                        result.setInProgress();
                         return repoShadow.getOid();
                     } else {
                         LOGGER.trace("Shadow exists: {}", repoShadow.debugDump());
                     }
 
-                    AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> asyncReturnValue =
+                    AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> asyncResult =
                             resourceObjectConverter
                                     .modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, result);
-                    opState.processAsyncResult(asyncReturnValue);
+                    opState.recordRealAsynchronousResult(asyncResult);
 
-                    Collection<PropertyDelta<PrismPropertyValue<?>>> knownExecutedDeltas = asyncReturnValue.getReturnValue();
+                    Collection<PropertyDelta<PrismPropertyValue<?>>> knownExecutedDeltas = asyncResult.getReturnValue();
                     if (knownExecutedDeltas != null) {
                         ItemDeltaCollectionsUtil.addNotEquivalent(modifications, knownExecutedDeltas);
                     }
@@ -305,18 +303,17 @@ class ModifyHelper {
      * Mostly copy&paste from modifyShadow(). But as consistency (handleError()) branch expects to return immediately
      * I could not find a more elegant way to structure this without complicating the code too much.
      */
-    ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> executeResourceModify(
+    ModifyOperationState executeResourceModify(
             @NotNull ProvisioningContext ctx,
             @NotNull ShadowType repoShadow,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            OperationProvisioningScriptsType scripts,
-            ProvisioningOperationOptions options,
+            OperationProvisioningScriptsType scripts, // We may provide the value here later
+            ProvisioningOperationOptions options, // We may provide the value here later
             XMLGregorianCalendar now,
             OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState = new ProvisioningOperationState<>();
-        opState.setRepoShadow(repoShadow);
+        ModifyOperationState opState = new ModifyOperationState(repoShadow);
 
         ConnectorOperationOptions connOptions = commonHelper.createConnectorOperationOptions(ctx, options, result);
 
@@ -324,12 +321,12 @@ class ModifyHelper {
 
             LOGGER.trace("Applying change: {}", DebugUtil.debugDumpLazily(modifications));
 
-            AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> asyncReturnValue =
+            AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> asyncResult =
                     resourceObjectConverter
                             .modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, result);
-            opState.processAsyncResult(asyncReturnValue);
+            opState.recordRealAsynchronousResult(asyncResult);
 
-            Collection<PropertyDelta<PrismPropertyValue<?>>> knownExecutedDeltas = asyncReturnValue.getReturnValue();
+            Collection<PropertyDelta<PrismPropertyValue<?>>> knownExecutedDeltas = asyncResult.getReturnValue();
             if (knownExecutedDeltas != null) {
                 ItemDeltaCollectionsUtil.addNotEquivalent(modifications, knownExecutedDeltas);
             }
@@ -352,7 +349,7 @@ class ModifyHelper {
             @NotNull ShadowType repoShadow,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable ProvisioningOperationOptions options,
-            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull ModifyOperationState opState,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             @NotNull OperationResult result)

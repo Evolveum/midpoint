@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 import com.evolveum.midpoint.task.api.TaskUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
@@ -20,19 +22,15 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -76,7 +74,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
         }
 
         notifyAboutMissingObjectIfApplicable(ctx, repositoryShadow, stateBefore, result);
-        failedOperationResult.setStatus(OperationResultStatus.PARTIAL_ERROR);
+        failedOperationResult.setStatus(OperationResultStatus.HANDLED_ERROR);
         return shadowToReturn;
     }
 
@@ -123,7 +121,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             @NotNull ShadowType repoShadow,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable ProvisioningOperationOptions options,
-            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull ModifyOperationState opState,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             @NotNull OperationResult result)
@@ -146,7 +144,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             ProvisioningContext ctx,
             ShadowType repoShadow,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationResult> opState,
+            DeleteOperationState opState,
             Exception cause,
             OperationResult failedOperationResult,
             OperationResult result) throws SchemaException {
@@ -203,7 +201,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
 
     @Override
     protected void throwException(
-            Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
+            Exception cause, ProvisioningOperationState<?> opState, OperationResult result)
             throws ObjectNotFoundException {
         recordCompletionError(cause, opState, result);
         if (cause instanceof ObjectNotFoundException) {

@@ -146,6 +146,7 @@ class ShadowGetOperation {
         checkReadCapability();
 
         if (ctx.isInMaintenance()) {
+            parentResult.setPartialError("Resource is in maintenance mode");
             return returnCached("maintenance mode");
         }
 

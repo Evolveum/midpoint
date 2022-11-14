@@ -79,17 +79,18 @@ public class DeltaConvertor {
      * Object delta: XML -> native
      */
     @NotNull
-    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(@NotNull ObjectDeltaType deltaBean)
+    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(
+            @NotNull ObjectDeltaType deltaBean, PrismContext ignored)
             throws SchemaException {
-        return createObjectDelta(deltaBean, PrismContext.get());
+        return createObjectDelta(deltaBean);
     }
 
     /**
      * Object delta: XML -> native
      */
     @NotNull
-    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(
-            @NotNull ObjectDeltaType objectDeltaBean, PrismContext prismContext1) throws SchemaException {
+    public static <T extends Objectable> ObjectDelta<T> createObjectDelta(@NotNull ObjectDeltaType objectDeltaBean)
+            throws SchemaException {
         PrismContext prismContext = PrismContext.get();
         QName objectTypeName =
                 requireNonNull(objectDeltaBean.getObjectType(),

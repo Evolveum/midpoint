@@ -7,60 +7,46 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectLiveShadow;
+
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectLiveShadow;
 
 @Component
 class ObjectAlreadyExistHandler extends HardErrorHandler {
@@ -70,32 +56,28 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectAlreadyExistHandler.class);
 
     @Autowired ProvisioningService provisioningService;
-    @Autowired ShadowCaretaker shadowCaretaker;
     @Autowired ShadowManager shadowManager;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
 
     @Override
     public OperationResultStatus handleAddError(
             ProvisioningContext ctx,
             ShadowType shadowToAdd,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<ShadowType>> opState,
+            AddOperationState opState,
             Exception cause,
             OperationResult failedOperationResult,
             Task task,
             OperationResult parentResult)
-            throws SchemaException, GenericFrameworkException, CommunicationException,
+            throws SchemaException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SecurityViolationException, ExpressionEvaluationException {
 
         if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
             discoverConflictingShadow(ctx, shadowToAdd, parentResult);
         }
 
-        return super.handleAddError(ctx, shadowToAdd, options, opState, cause, failedOperationResult, task, parentResult);
+        throwException(cause, opState, parentResult);
+        throw new AssertionError("not here");
     }
 
     @Override
@@ -104,13 +86,12 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
             @NotNull ShadowType repoShadow,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
             @Nullable ProvisioningOperationOptions options,
-            @NotNull ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>>> opState,
+            @NotNull ModifyOperationState opState,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             @NotNull OperationResult result)
-            throws SchemaException, GenericFrameworkException, CommunicationException,
-            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            throws SchemaException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
             ShadowType newShadow = repoShadow.clone();
@@ -130,9 +111,8 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
         OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
         try {
 
-            ObjectQuery query = createQueryBySecondaryIdentifier(newShadow, prismContext);
-
-            final List<PrismObject<ShadowType>> conflictingRepoShadows = findConflictingShadowsInRepo(query, result);
+            ObjectQuery query = createQueryBySecondaryIdentifier(newShadow);
+            List<PrismObject<ShadowType>> conflictingRepoShadows = shadowManager.searchShadows(ctx, query, null, result);
             PrismObject<ShadowType> oldShadow = selectLiveShadow(conflictingRepoShadows);
             if (oldShadow != null) {
                 ctx.applyAttributesDefinition(oldShadow);
@@ -172,17 +152,11 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
         }
     }
 
-    // TODO: maybe move to ShadowManager?
-    private boolean isFresher(PrismObject<ShadowType> theShadow, PrismObject<ShadowType> refShadow) {
-        return XmlTypeConverter.isFresher(
-                ObjectTypeUtil.getLastTouchTimestamp(theShadow), ObjectTypeUtil.getLastTouchTimestamp(refShadow));
-    }
-
-    protected static ObjectQuery createQueryBySecondaryIdentifier(ShadowType shadow, PrismContext prismContext) {
-        // TODO ensure that the identifiers are normalized here
+    static ObjectQuery createQueryBySecondaryIdentifier(ShadowType shadow) {
         // Note that if the query is to be used against the repository, we should not provide matching rules here. See MID-5547.
+        // We also do not need to deal with normalization, as shadow manager will be used to execute the query.
         Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
-        S_FilterEntry q = prismContext.queryFor(ShadowType.class);
+        S_FilterEntry q = PrismContext.get().queryFor(ShadowType.class);
         q = q.block();
         if (secondaryIdentifiers.isEmpty()) {
             for (ResourceAttribute<?> primaryIdentifier: ShadowUtil.getPrimaryIdentifiers(shadow)) {
@@ -201,14 +175,6 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     }
 
     /**
-     * Note: this may return dead shadow.
-     */
-    private List<PrismObject<ShadowType>> findConflictingShadowsInRepo(ObjectQuery query, OperationResult parentResult)
-            throws SchemaException {
-        return repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
-    }
-
-    /**
      * Looks for conflicting account on the resource (not just repository). We will get conflicting shadow.
      * But a side-effect of this search is that the shadow for the conflicting account is created in the repo.
      */
@@ -221,7 +187,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     }
 
     @Override
-    protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
+    protected void throwException(Exception cause, ProvisioningOperationState<?> opState, OperationResult result)
             throws ObjectAlreadyExistsException {
         recordCompletionError(cause, opState, result);
         if (cause instanceof ObjectAlreadyExistsException) {

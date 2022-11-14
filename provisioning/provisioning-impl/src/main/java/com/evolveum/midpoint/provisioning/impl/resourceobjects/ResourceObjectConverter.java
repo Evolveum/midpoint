@@ -883,23 +883,23 @@ public class ResourceObjectConverter {
             }
 
         } catch (ObjectNotFoundException ex) {
-            result.recordFatalErrorNotFinish("Object to modify not found: " + ex.getMessage(), ex);
+            result.setFatalError("Object to modify not found: " + ex.getMessage(), ex);
             throw ex.wrap("Object to modify was not found");
         } catch (CommunicationException ex) {
-            result.recordFatalErrorNotFinish(
+            result.setFatalError(
                     "Error communicating with the connector " + connector + ": " + ex.getMessage(), ex);
             throw new CommunicationException("Error communicating with connector " + connector + ": "
                     + ex.getMessage(), ex);
         } catch (GenericFrameworkException ex) {
-            result.recordFatalErrorNotFinish(
+            result.setFatalError(
                     "Generic error in the connector " + connector + ": " + ex.getMessage(), ex);
             throw new GenericConnectorException("Generic error in connector connector " + connector + ": "
                     + ex.getMessage(), ex);
         } catch (ObjectAlreadyExistsException ex) {
-            result.recordFatalErrorNotFinish("Conflict during modify: " + ex.getMessage(), ex);
+            result.setFatalError("Conflict during modify: " + ex.getMessage(), ex);
             throw new ObjectAlreadyExistsException("Conflict during modify: " + ex.getMessage(), ex);
         } catch (SchemaException | ConfigurationException | ExpressionEvaluationException | SecurityViolationException | PolicyViolationException | RuntimeException | Error ex) {
-            result.recordFatalErrorNotFinish(ex.getMessage(), ex);
+            result.setFatalError(ex.getMessage(), ex);
             throw ex;
         }
 
@@ -1803,8 +1803,8 @@ public class ResourceObjectConverter {
         return operations;
     }
 
-    public AsynchronousOperationResult refreshOperationStatus(ProvisioningContext ctx,
-            ShadowType shadow, String asyncRef, OperationResult parentResult)
+    public AsynchronousOperationResult refreshOperationStatus(
+            ProvisioningContext ctx, ShadowType shadow, String asyncRef, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
 

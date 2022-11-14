@@ -309,6 +309,7 @@ class ShadowIntegrityCheckItemProcessor {
             Task task, OperationResult result) {
         try {
             return getProvisioningService().getObject(ShadowType.class, shadow.getOid(),
+                    // TODO consider using forced exception mode as well
                     SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
                     task, result);
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException |

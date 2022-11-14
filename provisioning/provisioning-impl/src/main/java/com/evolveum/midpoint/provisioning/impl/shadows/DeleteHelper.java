@@ -8,11 +8,14 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
-import static com.evolveum.midpoint.provisioning.impl.shadows.Util.*;
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +33,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
@@ -108,9 +110,7 @@ class DeleteHelper {
 
         cancelAllPendingOperations(ctx, repoShadow, result);
 
-        ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
-        opState.setRepoShadow(repoShadow);
-
+        DeleteOperationState opState = new DeleteOperationState(repoShadow);
         return deleteShadowAttempt(ctx, options, scripts, opState, result);
     }
 
@@ -118,7 +118,7 @@ class DeleteHelper {
             ProvisioningContext ctx,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
-            ProvisioningOperationState<AsynchronousOperationResult> opState,
+            DeleteOperationState opState,
             OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
@@ -148,7 +148,7 @@ class DeleteHelper {
         try {
             resultShadow = shadowManager.recordDeleteResult(ctx, opState, options, result);
         } catch (ObjectNotFoundException ex) {
-            result.recordFatalErrorNotFinish("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(), ex);
+            result.setFatalError("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(), ex);
             throw ex.wrap("An error occurred while deleting resource object " + repoShadow);
         } catch (EncryptionException e) {
             throw new SystemException(e.getMessage(), e);
@@ -178,7 +178,7 @@ class DeleteHelper {
             ProvisioningContext ctx,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
-            ProvisioningOperationState<AsynchronousOperationResult> opState,
+            DeleteOperationState opState,
             ShadowLifecycleStateType shadowState,
             OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
@@ -193,7 +193,7 @@ class DeleteHelper {
             // If we try to delete dead shadow then we might delete existing object by mistake
             LOGGER.trace("DELETE {}: skipping resource deletion on tombstone shadow", repoShadow);
 
-            opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
+            opState.setExecutionStatus(COMPLETED);
             result.createSubresult(OP_RESOURCE_OPERATION)
                     .recordNotApplicable(); // using "record" to immediately close the result
             return null;
@@ -207,9 +207,9 @@ class DeleteHelper {
         try {
             ctx.checkNotInMaintenance();
 
-            AsynchronousOperationResult asyncReturnValue =
+            AsynchronousOperationResult asyncResult =
                     resourceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, connOptions, result);
-            opState.processAsyncResult(asyncReturnValue);
+            opState.recordRealAsynchronousResult(asyncResult);
 
             resourceManager.modifyResourceAvailabilityStatus(ctx.getResourceOid(), AvailabilityStatusType.UP,
                     "deleting " + repoShadow + " finished successfully.", ctx.getTask(), result, false);
@@ -228,23 +228,21 @@ class DeleteHelper {
         }
     }
 
-    ProvisioningOperationState<AsynchronousOperationResult> executeResourceDelete(
+    DeleteOperationState executeResourceDelete(
             ProvisioningContext ctx,
             ShadowType shadow,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
-            Task task,
             OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-        ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
-        opState.setRepoShadow(shadow);
+        DeleteOperationState opState = new DeleteOperationState(shadow);
         ConnectorOperationOptions connOptions = commonHelper.createConnectorOperationOptions(ctx, options, result);
         try {
 
-            AsynchronousOperationResult asyncReturnValue =
+            AsynchronousOperationResult asyncResult =
                     resourceObjectConverter.deleteResourceObject(ctx, shadow, scripts, connOptions, result);
-            opState.processAsyncResult(asyncReturnValue);
+            opState.recordRealAsynchronousResult(asyncResult);
 
         } catch (Exception ex) {
             try {
@@ -288,7 +286,7 @@ class DeleteHelper {
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
         ObjectDelta<ShadowType> shadowDelta = repoShadow.asPrismObject().createModifyDelta();
         for (PendingOperationType pendingOperation: pendingOperations) {
-            if (pendingOperation.getExecutionStatus() == PendingOperationExecutionStatusType.COMPLETED) {
+            if (pendingOperation.getExecutionStatus() == COMPLETED) {
                 continue;
             }
             if (pendingOperation.getType() != PendingOperationTypeType.RETRY) {
@@ -298,7 +296,7 @@ class DeleteHelper {
             ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
             PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta =
                     shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_EXECUTION_STATUS));
-            executionStatusDelta.setRealValuesToReplace(PendingOperationExecutionStatusType.COMPLETED);
+            executionStatusDelta.setRealValuesToReplace(COMPLETED);
             shadowDelta.addModification(executionStatusDelta);
             PropertyDelta<XMLGregorianCalendar> completionTimestampDelta =
                     shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_COMPLETION_TIMESTAMP));
@@ -317,10 +315,11 @@ class DeleteHelper {
         shadowDelta.applyTo(repoShadow.asPrismObject());
     }
 
-    private OperationResultStatus handleDeleteError(ProvisioningContext ctx,
+    private OperationResultStatus handleDeleteError(
+            ProvisioningContext ctx,
             ShadowType repoShadow,
             ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationResult> opState,
+            DeleteOperationState opState,
             Exception cause,
             OperationResult failedOperationResult,
             OperationResult result)

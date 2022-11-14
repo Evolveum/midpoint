@@ -79,10 +79,14 @@ public class ReconciliationProcessor implements ProjectorProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
     @ProcessorMethod
-    <F extends FocusType> void processReconciliation(LensContext<F> context, LensProjectionContext projectionContext,
-            String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException, ExpressionEvaluationException {
+    <F extends FocusType> void processReconciliation(
+            LensContext<F> context,
+            LensProjectionContext projectionContext,
+            String activityDescription,
+            XMLGregorianCalendar now,
+            Task task,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         processReconciliation(projectionContext, task, result);
 
@@ -114,8 +118,11 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             return;
         }
 
+        contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
         if (!projCtx.isFullShadow()) {
-            contextLoader.loadFullShadowNoDiscovery(projCtx, "projection reconciliation", task, result);
+            LOGGER.trace("Full shadow is not available, skipping the reconciliation of {}", projCtx.getHumanReadableName());
+            result.recordNotApplicable("Full shadow is not available");
+            return;
         }
 
         LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());

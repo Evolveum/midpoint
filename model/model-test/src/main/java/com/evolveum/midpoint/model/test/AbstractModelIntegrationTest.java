@@ -6847,18 +6847,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         };
     }
 
-    protected void modifyResourceMaintenance(String resourceOid, AdministrativeAvailabilityStatusType mode,
-            Task task, OperationResult result)
-            throws CommonException {
-        ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
-                .createModificationReplaceProperty(ResourceType.class, resourceOid,
-                        PATH_ADMINISTRATIVE_AVAILABILITY_STATUS_PATH, mode);
-
-        provisioningService.applyDefinition(objectDelta, task, result);
-        provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(),
-                objectDelta.getModifications(), null, null, task, result);
-    }
-
     protected ActivityProgressInformationAsserter<Void> assertProgress(String rootOid, String message)
             throws SchemaException, ObjectNotFoundException {
         return assertProgress(rootOid, InformationSource.TREE_OVERVIEW_PREFERRED, message);

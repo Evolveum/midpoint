@@ -45,7 +45,12 @@ class QueryHelper {
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
     /**
-     * Visits the query and normalizes values (or set matching rules) as needed
+     * Visits the query and normalizes values according to matching rules set.
+     *
+     * This is because the repository shadows have attribute values stored in the normalized form.
+     * Hence, when querying, we must query the normalized forms as well.
+     *
+     * Does not modify input query, creates a clone instead.
      */
     @Contract("null, _ -> null; !null, _ -> !null")
     ObjectQuery applyMatchingRules(ObjectQuery originalQuery, ResourceObjectDefinition objectDef) {
@@ -55,6 +60,10 @@ class QueryHelper {
 
         ObjectQuery processedQuery = originalQuery.clone();
         ObjectFilter filter = processedQuery.getFilter();
+        if (filter == null) {
+            return originalQuery;
+        }
+
         Visitor visitor = f -> {
             try {
                 if (f instanceof EqualFilter) {
@@ -86,13 +95,15 @@ class QueryHelper {
 
         MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
 
-        if (eqFilter.getValues() != null) {
+        List<PrismPropertyValue<T>> valuesList = eqFilter.getValues();
+        if (valuesList != null) {
             List<PrismPropertyValue<T>> newValues = new ArrayList<>();
-            for (PrismPropertyValue<T> oldValue : eqFilter.getValues()) {
-                newValues.add(normalizeValue(matchingRule, oldValue));
+            for (PrismPropertyValue<T> oldValue : valuesList) {
+                newValues.add(
+                        normalizeValue(matchingRule, oldValue));
             }
-            eqFilter.getValues().clear();
-            eqFilter.getValues().addAll(newValues);
+            valuesList.clear();
+            valuesList.addAll(newValues);
             LOGGER.trace("Replacing values for attribute {} in search filter with normalized values because there "
                     + "is a matching rule. Normalized values: {}", attrName, newValues);
         }
@@ -106,5 +117,4 @@ class QueryHelper {
         newValue.setValue(normalizedRealValue);
         return newValue;
     }
-
 }

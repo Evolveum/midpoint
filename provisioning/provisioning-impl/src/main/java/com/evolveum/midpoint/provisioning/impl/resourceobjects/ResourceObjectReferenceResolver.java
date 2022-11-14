@@ -243,22 +243,22 @@ class ResourceObjectReferenceResolver {
             parentResult.recordExceptionNotFinish(objectNotFoundException);
             throw objectNotFoundException;
         } catch (CommunicationException e) {
-            parentResult.recordFatalErrorNotFinish("Error communication with the connector " + connector
+            parentResult.setFatalError("Error communication with the connector " + connector
                     + ": " + e.getMessage(), e);
             throw e;
         } catch (GenericFrameworkException e) {
-            parentResult.recordFatalErrorNotFinish(
+            parentResult.setFatalError(
                     "Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
             throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
                     + e.getMessage(), e);
         } catch (SchemaException ex) {
-            parentResult.recordFatalErrorNotFinish("Can't get resource object, schema error: " + ex.getMessage(), ex);
+            parentResult.setFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
             throw ex;
         } catch (ExpressionEvaluationException ex) {
-            parentResult.recordFatalErrorNotFinish("Can't get resource object, expression error: " + ex.getMessage(), ex);
+            parentResult.setFatalError("Can't get resource object, expression error: " + ex.getMessage(), ex);
             throw ex;
         } catch (ConfigurationException e) {
-            parentResult.recordFatalErrorNotFinish(e);
+            parentResult.setFatalError(e);
             throw e;
         }
     }

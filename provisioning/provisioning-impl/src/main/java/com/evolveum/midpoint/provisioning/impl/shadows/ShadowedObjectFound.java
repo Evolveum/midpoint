@@ -208,7 +208,7 @@ public class ShadowedObjectFound implements InitializableMixin {
     private ShadowType shadowResourceObjectInUltraEmergency(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
-        ShadowType minimalResourceObject = Util.minimize(resourceObject, ictx.ctx.getObjectDefinitionRequired());
+        ShadowType minimalResourceObject = ShadowsUtil.minimize(resourceObject, ictx.ctx.getObjectDefinitionRequired());
         LOGGER.trace("Minimal resource object to acquire a shadow for:\n{}",
                 DebugUtil.debugDumpLazily(minimalResourceObject, 1));
         if (minimalResourceObject != null) {

@@ -2787,7 +2787,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         AssignmentType assignment = userBefore.getAssignment().get(0).clone();
         AssignmentType assignmentNoId = userBefore.getAssignment().get(0).cloneWithoutId();
 
-        modifyResourceMaintenance(RESOURCE_OPENDJ_OID, MAINTENANCE, task, result);
+        turnMaintenanceModeOn(RESOURCE_OPENDJ_OID, result);
 
         // --- deleting the assignment ---
         when("deleting account by unassigning the construction");
@@ -2798,7 +2798,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // --- re-creating the assignment ---
         when("re-creating the account by re-assigning the construction");
-        modifyResourceMaintenance(RESOURCE_OPENDJ_OID, OPERATIONAL, task, result);
+        turnMaintenanceModeOff(RESOURCE_OPENDJ_OID, result);
         recreateAssignment(userOid, assignmentNoId, task, result);
 
         then("re-creating the account by re-assigning the construction");
