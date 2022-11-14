@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.schema.SelectorOptions.findRootOptions;
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import com.evolveum.midpoint.repo.cache.other.MonitoringUtil;
 
@@ -71,12 +72,15 @@ public class SearchOpHandler extends CachedOpHandler {
             }
             QueryKey<T> key = new QueryKey<>(type, query);
 
+            final GetOperationOptions rootOption = SelectorOptions.findRootOptions(options);
+            final boolean skipCaches = rootOption != null && Objects.equals(PointInTimeType.CURRENT, rootOption.getPointInTimeType());
+
             // Let's try local cache
             if (!exec.local.available) {
                 exec.reportLocalNotAvailable();
             } else if (!exec.local.supports) {
                 exec.reportLocalPass();
-            } else {
+            } else if (!skipCaches) {
                 SearchResultList<PrismObject<T>> cachedResult = exec.local.getCache().get(key);
                 if (cachedResult != null) {
                     exec.reportLocalHit();
@@ -97,16 +101,19 @@ public class SearchOpHandler extends CachedOpHandler {
                 return exec.prepareReturnValueAsIs(objects);
             }
 
-            SearchResultList<PrismObject<T>> cachedResult = globalQueryCache.get(key);
-            if (cachedResult != null) {
-                exec.reportGlobalHit();
-                cacheUpdater.storeImmutableSearchResultToAllLocal(key, cachedResult, exec.caches);
-                return exec.prepareReturnValueWhenImmutable(cachedResult);
-            } else {
-                exec.reportGlobalMiss();
-                SearchResultList<PrismObject<T>> objects = executeAndCacheSearch(exec, key);
-                return exec.prepareReturnValueAsIs(objects);
+            if (!skipCaches) {
+                SearchResultList<PrismObject<T>> cachedResult = globalQueryCache.get(key);
+
+                if (cachedResult != null) {
+                    exec.reportGlobalHit();
+                    cacheUpdater.storeImmutableSearchResultToAllLocal(key, cachedResult, exec.caches);
+                    return exec.prepareReturnValueWhenImmutable(cachedResult);
+                }
             }
+
+            exec.reportGlobalMiss();
+            SearchResultList<PrismObject<T>> objects = executeAndCacheSearch(exec, key);
+            return exec.prepareReturnValueAsIs(objects);
         } catch (Throwable t) {
             exec.result.recordFatalError(t);
             throw t;

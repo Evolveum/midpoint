@@ -277,6 +277,9 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
                     if (!e.isShouldRestartEvaluation()) {
                         throw e;
                     }
+
+                    // we'll try to reevaluate because createOnDemandFailed
+                    context.setCreateOnDemandRetry(true);
                     transformationResult = evaluateTransformation(staticVariables);
                 }
             } else {

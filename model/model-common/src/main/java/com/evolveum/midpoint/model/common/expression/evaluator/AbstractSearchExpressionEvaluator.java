@@ -14,6 +14,10 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.delta.*;
+
+import com.evolveum.midpoint.schema.*;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,19 +33,11 @@ import com.evolveum.midpoint.model.common.expression.evaluator.transformation.Ab
 import com.evolveum.midpoint.model.common.util.PopulatorUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -401,6 +397,10 @@ public abstract class AbstractSearchExpressionEvaluator<
         options = GetOperationOptions.updateToReadOnly(options);
         extendOptions(options, searchOnResource);
 
+        if (params.isCreateOnDemandRetry()) {
+            options = GetOperationOptions.updateRootOptions(options, opt -> opt.pointInTimeType(PointInTimeType.CURRENT));
+        }
+
         try {
             executeSearch(valueResults, rawResults, targetTypeClass, targetTypeQName, query, options, task, result, params, additionalAttributeDeltas);
         } catch (IllegalStateException e) { // this comes from checkConsistence methods
@@ -564,5 +564,15 @@ public abstract class AbstractSearchExpressionEvaluator<
 
     private void log(String message, boolean info, Object... params) {
         CacheUtil.log(LOGGER, PERFORMANCE_ADVISOR, message, info, params);
+    }
+
+    @Override
+    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+        try {
+            return super.evaluate(context, parentResult);
+        } finally {
+            // reset createOnDemandRetry flag
+            context.setCreateOnDemandRetry(false);
+        }
     }
 }

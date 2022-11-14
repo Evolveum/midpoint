@@ -120,6 +120,8 @@ public class ExpressionEvaluationContext {
      */
     private TransformationValueMetadataComputer valueMetadataComputer;
 
+    private boolean createOnDemandRetry;
+
     public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
             VariablesMap variables, String contextDescription, Task task) {
         super();
@@ -251,6 +253,14 @@ public class ExpressionEvaluationContext {
         this.valueMetadataComputer = valueMetadataComputer;
     }
 
+    public boolean isCreateOnDemandRetry() {
+        return createOnDemandRetry;
+    }
+
+    public void setCreateOnDemandRetry(boolean createOnDemandRetry) {
+        this.createOnDemandRetry = createOnDemandRetry;
+    }
+
     public boolean hasDeltas() {
         return hasDeltas(sources) || variables != null && variables.haveDeltas();
     }
@@ -277,6 +287,7 @@ public class ExpressionEvaluationContext {
         clone.variableProducer = this.variableProducer;
         clone.valueMetadataComputer = this.valueMetadataComputer;
         clone.localContextDescription = this.localContextDescription;
+        clone.createOnDemandRetry = this.createOnDemandRetry;
         return clone;
     }
 }

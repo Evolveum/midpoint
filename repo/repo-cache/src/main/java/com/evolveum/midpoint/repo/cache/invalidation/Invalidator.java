@@ -7,22 +7,32 @@
 
 package com.evolveum.midpoint.repo.cache.invalidation;
 
+import static com.evolveum.midpoint.repo.cache.RepositoryCache.CLASS_NAME_WITH_DOT;
+import static com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection.*;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.global.GlobalObjectCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalQueryCache;
 import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
-import com.evolveum.midpoint.repo.cache.handlers.AddObjectResult;
 import com.evolveum.midpoint.repo.cache.local.LocalObjectCache;
 import com.evolveum.midpoint.repo.cache.local.LocalQueryCache;
 import com.evolveum.midpoint.repo.cache.local.LocalVersionCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.repo.api.RepositoryOperationResult;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -30,19 +40,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.evolveum.midpoint.repo.cache.RepositoryCache.*;
-import static com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection.*;
 
 /**
  * Contains functionality related to cache entry invalidation.
@@ -109,11 +107,7 @@ public class Invalidator {
             }
             LocalQueryCache localQueryCache = getLocalQueryCache();
             if (localQueryCache != null) {
-                if (additionalInfo instanceof AddObjectResult) {
-                    clearQueryResultsLocallyAfterAdd(type);
-                } else {
-                    clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
-                }
+                clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
             }
             boolean clusterwide = TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE.contains(type) ||
                     globalObjectCache.hasClusterwideInvalidationFor(type) ||
@@ -126,39 +120,6 @@ public class Invalidator {
             throw t; // Really? We want the operation to proceed anyway. But OTOH we want to be sure devel team gets notified about this.
         } finally {
             result.computeStatusIfUnknown();
-        }
-    }
-
-    /**
-     * Clears all local caches (not only query cache for current thread) after object was added.
-     * Needed for multithreaded createOnDemand to work.
-     *
-     * TODO possibly global query cache should be updated if task that can invoke createOnDemand runs on multiple nodes
-     * TODO will be improved: only queries matching current query should be removed from all local query caches
-     * TODO also use PointInTime.CURRENT to force search to repository and therefore update local cache
-     *
-     * @param type
-     * @param <T>
-     */
-    private <T extends ObjectType> void clearQueryResultsLocallyAfterAdd(Class<T> type) {
-        List<LocalQueryCache> allLocalQueryCaches = getLocalQueryCaches();
-
-        for (LocalQueryCache cache : allLocalQueryCaches) {
-            long start = System.currentTimeMillis();
-            int all = 0;
-            int removed = 0;
-            Iterator<Map.Entry<QueryKey, SearchResultList>> iterator = cache.getEntryIterator();
-            while (iterator.hasNext()) {
-                Map.Entry<QueryKey, SearchResultList> entry = iterator.next();
-                QueryKey<?> queryKey = entry.getKey();
-                all++;
-                if (type.isAssignableFrom(queryKey.getType())) {
-                    LOGGER.trace("Removing (from local cache) query for type={}: {}", type, queryKey.getQuery());
-                    iterator.remove();
-                    removed++;
-                }
-            }
-            LOGGER.trace("Removed (from local cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
         }
     }
 

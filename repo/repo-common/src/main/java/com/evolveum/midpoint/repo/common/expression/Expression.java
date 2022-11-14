@@ -213,6 +213,9 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
                     throw ex;
                 }
 
+                // we'll try to reevaluate because createOnDemandFailed
+                contextWithProcessedVariables.setCreateOnDemandRetry(true);
+
                 //noinspection unchecked
                 outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(contextWithProcessedVariables, result);
             }
