@@ -8932,7 +8932,22 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
+                    <xsd:element name="securityPolicyRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Reference to the security policy settings which will be applied to the objects
+                                    with this archetype assigned. For now only structural archetypes can have a link to
+                                    the security policy.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:SecurityPolicyType</a:objectReferenceTargetType>
+                                <a:displayName>ArchetypeType.securityPolicy</a:displayName>
+                                <a:since>4.7</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
