@@ -13,6 +13,9 @@ import java.util.Objects;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,6 +62,8 @@ public class ModelObjectResolver implements ObjectResolver {
 
     @Autowired(required = false)
     private HookRegistry hookRegistry;
+
+    @Autowired private ArchetypeManager archetypeManager;
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 
@@ -241,7 +246,7 @@ public class ModelObjectResolver implements ObjectResolver {
     public <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,
             Function<PrismObject<OrgType>, ObjectReferenceType> function, String shortDesc, Task task, OperationResult result) throws SchemaException {
         if (object == null) {
-            LOGGER.trace("No object provided. Cannost find security policy specific for an object.");
+            LOGGER.trace("No object provided. Cannot find security policy specific for an object.");
             return null;
         }
         PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
@@ -341,6 +346,30 @@ public class ModelObjectResolver implements ObjectResolver {
         }
 
         return null;
+    }
+
+    public <O extends ObjectType> PrismObject<SecurityPolicyType> searchSecurityPolicyFromArchetype(PrismObject<O> object,
+            String shortDesc, Task task, OperationResult result) throws SchemaException {
+        if (object == null) {
+            LOGGER.trace("No object provided. Cannot find security policy specific for an object.");
+            return null;
+        }
+        ArchetypeType structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(archetypeManager.determineArchetypes(object.asObjectable(), result));
+        if (structuralArchetype == null) {
+            return null;
+        }
+        ObjectReferenceType securityPolicyRef = structuralArchetype.getSecurityPolicyRef();
+        if (securityPolicyRef == null) {
+            return null;
+        }
+        PrismObject<SecurityPolicyType> securityPolicy;
+        try {
+            securityPolicy = resolve(securityPolicyRef.asReferenceValue(), shortDesc, task, result);
+        } catch (ObjectNotFoundException ex) {
+            LOGGER.warn("Cannot find security policy referenced in archetype {}, oid {}", structuralArchetype.getName(), structuralArchetype.getOid());
+            return null;
+        }
+        return securityPolicy;
     }
 
     @Experimental

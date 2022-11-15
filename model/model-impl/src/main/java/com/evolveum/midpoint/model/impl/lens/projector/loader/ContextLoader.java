@@ -424,7 +424,7 @@ public class ContextLoader implements ProjectorProcessor {
         if (existingPolicy != null && !forceReload) {
             return existingPolicy;
         } else {
-            SecurityPolicyType loadedPolicy = securityHelper.locateFocusSecurityPolicy(focus, task, result);
+            SecurityPolicyType loadedPolicy = securityHelper.locateFocusSecurityPolicyFromOrgs(focus, task, result);
             SecurityPolicyType resultingPolicy;
             if (loadedPolicy != null) {
                 resultingPolicy = loadedPolicy;

@@ -10,7 +10,6 @@ import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 
 import org.jetbrains.annotations.NotNull;
@@ -141,7 +140,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> focus, PrismObject<SystemConfigurationType> systemConfiguration,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        SecurityPolicyType focusSecurityPolicy = locateFocusSecurityPolicy(focus, task, result);
+        SecurityPolicyType focusSecurityPolicy = locateFocusSecurityPolicyFromOrgs(focus, task, result);
         if (focusSecurityPolicy != null) {
             traceSecurityPolicy(focusSecurityPolicy, focus);
             return focusSecurityPolicy;
@@ -156,7 +155,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         return null;
     }
 
-    public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicy(PrismObject<F> focus, Task task,
+    public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromOrgs(PrismObject<F> focus, Task task,
             OperationResult result) throws SchemaException {
         PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(focus,
                 o -> o.asObjectable().getSecurityPolicyRef(), "security policy", task, result);
@@ -165,6 +164,20 @@ public class SecurityHelper implements ModelAuditRecorder {
             SecurityPolicyType orgSecurityPolicyType = orgSecurityPolicy.asObjectable();
             postProcessSecurityPolicy(orgSecurityPolicyType, task, result);
             return orgSecurityPolicyType;
+        } else {
+            return null;
+        }
+    }
+
+    public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromArchetypes(PrismObject<F> focus, Task task,
+            OperationResult result) throws SchemaException {
+        PrismObject<SecurityPolicyType> archetypeSecurityPolicy = objectResolver.searchSecurityPolicyFromArchetype(focus,
+                "security policy", task, result);
+        LOGGER.trace("Found archetype security policy: {}", archetypeSecurityPolicy);
+        if (archetypeSecurityPolicy != null) {
+            SecurityPolicyType securityPolicyType = archetypeSecurityPolicy.asObjectable();
+            postProcessSecurityPolicy(securityPolicyType, task, result);
+            return securityPolicyType;
         } else {
             return null;
         }
