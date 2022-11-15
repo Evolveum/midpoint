@@ -1409,6 +1409,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="previousSequenceIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                    <xsd:documentation>
+                        This element is intended to point to the previous sequence (which should be processed before
+                        the current one). In other words the current sequence can be considered as the next step after the sequence
+                        which is mentioned in previousSequenceIdentifier.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
