@@ -9,11 +9,12 @@ package com.evolveum.midpoint.model.api.visualizer;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.LocalizableMessage;
 
 import java.io.Serializable;
 
 public interface VisualizationItemValue extends Serializable {
-    PolyString getText();
-    PolyString getAdditionalText();            // this one should not be clickable (in case of references)
+    LocalizableMessage getText();
+    LocalizableMessage getAdditionalText();            // this one should not be clickable (in case of references)
     PrismValue getSourceValue();
 }

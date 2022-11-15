@@ -13,16 +13,15 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
-import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
-
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.visualizer.Name;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.web.util.PolyStringComparator;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.web.util.LocalizationMessageComparator;
 
 public class SceneItemDto implements Serializable {
 
@@ -72,10 +71,10 @@ public class SceneItemDto implements Serializable {
             List<? extends VisualizationItemValue> addedValues = deltaItem.getAddedValues();
             Comparator<? super VisualizationItemValue> comparator =
                     (s1, s2) -> {
-                        PolyString value1 = s1 == null ? null : s1.getText();
-                        PolyString value2 = s2 == null ? null : s2.getText();
+                        LocalizableMessage value1 = s1 == null ? null : s1.getText();
+                        LocalizableMessage value2 = s2 == null ? null : s2.getText();
 
-                        return PolyStringComparator.COMPARE_TRANSLATED.compare(value1, value2);
+                        return LocalizationMessageComparator.COMPARE_MESSAGE_TRANSLATED.compare(value1, value2);
                     };
             deletedValues.sort(comparator);
             addedValues.sort(comparator);
@@ -96,10 +95,10 @@ public class SceneItemDto implements Serializable {
                         return -1;
                     }
 
-                    PolyString value1 = s1.getNewValue() == null ? null : s1.getNewValue().getText();
-                    PolyString value2 = s2.getNewValue() == null ? null : s2.getNewValue().getText();
+                    LocalizableMessage value1 = s1.getNewValue() == null ? null : s1.getNewValue().getText();
+                    LocalizableMessage value2 = s2.getNewValue() == null ? null : s2.getNewValue().getText();
 
-                    return PolyStringComparator.COMPARE_TRANSLATED.compare(value1, value2);
+                    return LocalizationMessageComparator.COMPARE_MESSAGE_TRANSLATED.compare(value1, value2);
                 };
         rv.sort(comparator);
         return rv;
