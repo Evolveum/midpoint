@@ -7,25 +7,18 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
-import java.util.List;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
@@ -33,7 +26,6 @@ import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandler;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
@@ -63,7 +55,6 @@ class ShadowDeleteHelper {
 
     @Autowired private ErrorHandlerLocator errorHandlerLocator;
     @Autowired private ResourceManager resourceManager;
-    @Autowired private Clock clock;
     @Autowired private PrismContext prismContext;
     @Autowired private ResourceObjectConverter resourceObjectConverter;
     @Autowired private ShadowCaretaker shadowCaretaker;
@@ -77,8 +68,9 @@ class ShadowDeleteHelper {
             OperationProvisioningScriptsType scripts,
             Task task,
             OperationResult result)
-            throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
-            SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            EncryptionException {
 
         Validate.notNull(repoShadow, "Object to delete must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
@@ -104,206 +96,165 @@ class ShadowDeleteHelper {
             }
         }
 
-        cancelAllPendingOperations(ctx, repoShadow, result);
+        shadowManager.cancelAllPendingOperations(ctx, repoShadow, result);
 
         DeleteOperationState opState = new DeleteOperationState(repoShadow);
         return executeDeleteAttempt(ctx, options, scripts, opState, false, result);
     }
 
+    /** Called also from refresh and propagation operations. */
     ShadowType executeDeleteAttempt(
             ProvisioningContext ctx,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
             DeleteOperationState opState,
-            boolean inRefresh, // TODO better name
+            boolean inRefreshOrPropagation,
             OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+            EncryptionException {
 
-        ctx.applyAttributesDefinition(opState.getRepoShadow());
+        return new DeleteOperation(ctx, options, scripts, opState, inRefreshOrPropagation)
+                .execute(result);
+    }
 
-        if (!inRefresh) {
-            PendingOperationType duplicateOperation =
-                    shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, opState, result);
-            if (duplicateOperation != null) {
-                result.setInProgress();
-                return opState.getRepoShadow();
+    class DeleteOperation {
+
+        @NotNull private final ProvisioningContext ctx;
+        private final ProvisioningOperationOptions options;
+        private final OperationProvisioningScriptsType scripts;
+        @NotNull private final DeleteOperationState opState;
+        private final boolean inRefreshOrPropagation;
+
+        OperationResultStatus statusFromErrorHandling;
+
+        DeleteOperation(
+                @NotNull ProvisioningContext ctx,
+                ProvisioningOperationOptions options,
+                OperationProvisioningScriptsType scripts,
+                @NotNull DeleteOperationState opState,
+                boolean inRefreshOrPropagation) {
+            this.ctx = ctx;
+            this.options = options;
+            this.scripts = scripts;
+            this.opState = opState;
+            this.inRefreshOrPropagation = inRefreshOrPropagation;
+        }
+
+        ShadowType execute(OperationResult result)
+                throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
+                ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, EncryptionException {
+
+            if (!inRefreshOrPropagation) {
+                PendingOperationType duplicateOperation =
+                        shadowManager.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, opState, result);
+                if (duplicateOperation != null) {
+                    result.setInProgress();
+                    return opState.getRepoShadow();
+                }
+            } else {
+                LOGGER.trace("Not checking for duplicate pending operation, as we are already doing the refresh");
             }
-        } else {
-            LOGGER.trace("Not checking for duplicate pending operation, as we are already doing the refresh");
+
+            ShadowType repoShadow = opState.getRepoShadow(); // The shadow may have changed in opState during "checkAndRecord" op.
+            ctx.applyAttributesDefinition(repoShadow);
+
+            ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow);
+
+            LOGGER.trace("Deleting object {} from {}, options={}, shadowState={}",
+                    repoShadow, ctx.getResource(), options, shadowState);
+
+            if (ctx.shouldExecuteResourceOperationDirectly()) {
+                executeDeletionOperationDirectly(repoShadow, shadowState, result);
+            } else {
+                markOperationExecutionAsPending(LOGGER, "DELETE", opState, result);
+            }
+
+            ShadowType resultingShadow = shadowManager.recordDeleteResult(ctx, opState, options, result);
+            // Since here opState.repoShadow may be erased
+
+            notifyAfterDelete(ctx, repoShadow, opState, result);
+            setParentOperationStatus(result, opState, statusFromErrorHandling); // FIXME
+
+            LOGGER.trace("Delete operation for {} finished, resulting shadow: {}", repoShadow, resultingShadow);
+            return resultingShadow;
         }
 
-        ShadowType repoShadow = opState.getRepoShadow();
-        ShadowLifecycleStateType shadowState = shadowCaretaker.determineShadowState(ctx, repoShadow);
+        private void executeDeletionOperationDirectly(
+                ShadowType repoShadow, ShadowLifecycleStateType shadowState, OperationResult result)
+                throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+                ExpressionEvaluationException, GenericFrameworkException, SecurityViolationException, PolicyViolationException {
 
-        LOGGER.trace("Deleting object {} from {}, options={}, shadowState={}", repoShadow, ctx.getResource(), options, shadowState);
+            if (shadowState == ShadowLifecycleStateType.TOMBSTONE) {
 
-        OperationResultStatus finalOperationStatus;
-        if (ctx.shouldExecuteResourceOperationDirectly()) {
-            finalOperationStatus = deleteShadowDirectly(ctx, options, scripts, opState, shadowState, result);
-        } else {
-            finalOperationStatus = delayShadowDeletion(opState, result);
-        }
+                // Do not even try to delete resource object for tombstone shadows.
+                // There may be dead shadow and live shadow for the resource object with the same identifiers.
+                // If we try to delete dead shadow then we might delete existing object by mistake
+                LOGGER.trace("DELETE {}: skipping resource deletion on tombstone shadow", repoShadow);
 
-        ShadowType resultShadow;
-        try {
-            resultShadow = shadowManager.recordDeleteResult(ctx, opState, options, result);
-        } catch (ObjectNotFoundException ex) {
-            result.setFatalError("Can't delete object " + repoShadow + ". Reason: " + ex.getMessage(), ex);
-            throw ex.wrap("An error occurred while deleting resource object " + repoShadow);
-        } catch (EncryptionException e) {
-            throw new SystemException(e.getMessage(), e);
-        }
+                opState.setExecutionStatus(COMPLETED);
+                result.createSubresult(OP_RESOURCE_OPERATION) // FIXME this hack
+                        .recordNotApplicable(); // using "record" to immediately close the result
+                return;
+            }
 
-        notifyAfterDelete(ctx, repoShadow, opState, result);
+            ConnectorOperationOptions connOptions = commonHelper.createConnectorOperationOptions(ctx, options, result);
 
-        setParentOperationStatus(result, opState, finalOperationStatus);
+            LOGGER.trace("DELETE {}: resource deletion, execution starting", repoShadow);
 
-        LOGGER.trace("Delete operation for {} finished, result shadow: {}", repoShadow, resultShadow);
-        return resultShadow;
-    }
-
-    @Nullable
-    private OperationResultStatus delayShadowDeletion(ProvisioningOperationState<AsynchronousOperationResult> opState,
-            OperationResult result) {
-        opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
-        // Create dummy subresult with IN_PROGRESS state.
-        // This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
-        result.createSubresult(OP_DELAYED_OPERATION)
-                .recordInProgress(); // using "record" to immediately close the result
-        LOGGER.debug("DELETE {}: resource operation NOT executed, execution pending", opState.getRepoShadow());
-        return null;
-    }
-
-    private OperationResultStatus deleteShadowDirectly(
-            ProvisioningContext ctx,
-            ProvisioningOperationOptions options,
-            OperationProvisioningScriptsType scripts,
-            DeleteOperationState opState,
-            ShadowLifecycleStateType shadowState,
-            OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException, GenericFrameworkException, SecurityViolationException, PolicyViolationException {
-
-        ShadowType repoShadow = opState.getRepoShadow();
-
-        if (shadowState == ShadowLifecycleStateType.TOMBSTONE) {
-
-            // Do not even try to delete resource object for tombstone shadows.
-            // There may be dead shadow and live shadow for the resource object with the same identifiers.
-            // If we try to delete dead shadow then we might delete existing object by mistake
-            LOGGER.trace("DELETE {}: skipping resource deletion on tombstone shadow", repoShadow);
-
-            opState.setExecutionStatus(COMPLETED);
-            result.createSubresult(OP_RESOURCE_OPERATION)
-                    .recordNotApplicable(); // using "record" to immediately close the result
-            return null;
-
-        }
-
-        ConnectorOperationOptions connOptions = commonHelper.createConnectorOperationOptions(ctx, options, result);
-
-        LOGGER.trace("DELETE {}: resource deletion, execution starting", repoShadow);
-
-        try {
-            ctx.checkNotInMaintenance();
-
-            AsynchronousOperationResult asyncResult =
-                    resourceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, connOptions, result);
-            opState.recordRealAsynchronousResult(asyncResult);
-
-            resourceManager.modifyResourceAvailabilityStatus(ctx.getResourceOid(), AvailabilityStatusType.UP,
-                    "deleting " + repoShadow + " finished successfully.", ctx.getTask(), result, false);
-
-            return null;
-
-        } catch (Exception ex) {
             try {
-                return handleDeleteError(ctx, repoShadow, options, opState, ex, result.getLastSubresult(), result);
-            } catch (ObjectAlreadyExistsException e) {
-                result.recordFatalError(e);
-                throw new SystemException(e.getMessage(), e);
+                ctx.checkNotInMaintenance();
+
+                AsynchronousOperationResult asyncResult =
+                        resourceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, connOptions, result);
+                opState.recordRealAsynchronousResult(asyncResult);
+
+                // TODO why we don't do this after MODIFY operation?
+                resourceManager.modifyResourceAvailabilityStatus(ctx.getResourceOid(), AvailabilityStatusType.UP,
+                        "deleting " + repoShadow + " finished successfully.", ctx.getTask(), result, false);
+
+            } catch (Exception ex) {
+                try {
+                    statusFromErrorHandling = handleDeleteError(repoShadow, ex, result.getLastSubresult(), result);
+                } catch (ObjectAlreadyExistsException e) {
+                    throw SystemException.unexpected(e);
+                }
+            } finally {
+                LOGGER.debug("DELETE {}: resource operation executed, operation state: {}",
+                        repoShadow, opState.shortDumpLazily());
             }
-        } finally {
-            LOGGER.debug("DELETE {}: resource operation executed, operation state: {}", repoShadow, opState.shortDumpLazily());
         }
-    }
 
-    private void notifyAfterDelete(
-            ProvisioningContext ctx, ShadowType shadow, ProvisioningOperationState<?> opState, OperationResult result) {
-        ObjectDelta<ShadowType> delta =
-                prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, shadow.getOid());
-        notifyAboutSuccessOperation(ctx, shadow, opState, delta, result);
-    }
-
-    // This is very simple code that essentially works only for postponed operations (retries).
-    // TODO: better support for async and manual operations
-    private void cancelAllPendingOperations(
-            ProvisioningContext ctx, ShadowType repoShadow, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ConfigurationException {
-
-        List<PendingOperationType> pendingOperations = repoShadow.getPendingOperation();
-        if (pendingOperations.isEmpty()) {
-            return;
+        private void notifyAfterDelete(
+                ProvisioningContext ctx, ShadowType shadow, ProvisioningOperationState<?> opState, OperationResult result) {
+            ObjectDelta<ShadowType> delta =
+                    prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, shadow.getOid());
+            notifyAboutSuccessOperation(ctx, shadow, opState, delta, result);
         }
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        ObjectDelta<ShadowType> shadowDelta = repoShadow.asPrismObject().createModifyDelta();
-        for (PendingOperationType pendingOperation: pendingOperations) {
-            if (pendingOperation.getExecutionStatus() == COMPLETED) {
-                continue;
+
+        private OperationResultStatus handleDeleteError(
+                ShadowType repoShadow, Exception cause, OperationResult failedOperationResult, OperationResult result)
+                throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
+                ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+                ExpressionEvaluationException {
+
+            LOGGER.debug("Handling provisioning DELETE exception {}: {}", cause.getClass(), cause.getMessage());
+            try {
+                OperationResultStatus finalStatus = errorHandlerLocator
+                        .locateErrorHandlerRequired(cause)
+                        .handleDeleteError(ctx, repoShadow, options, opState, cause, failedOperationResult, result);
+                LOGGER.debug("Handled provisioning DELETE exception, final status: {}, operation state: {}",
+                        finalStatus, opState.shortDumpLazily());
+                return finalStatus;
+            } catch (CommonException e) {
+                LOGGER.debug("Handled provisioning DELETE exception, final exception: {}, operation state: {}",
+                        e, opState.shortDumpLazily());
+                ObjectDelta<ShadowType> delta = repoShadow.asPrismObject().createDeleteDelta();
+                commonHelper.handleErrorHandlerException(ctx, opState, delta, e.getMessage(), result);
+                throw e;
             }
-            if (pendingOperation.getType() != PendingOperationTypeType.RETRY) {
-                // Other operations are not cancellable now
-                continue;
-            }
-            ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
-            PropertyDelta<PendingOperationExecutionStatusType> executionStatusDelta =
-                    shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_EXECUTION_STATUS));
-            executionStatusDelta.setRealValuesToReplace(COMPLETED);
-            shadowDelta.addModification(executionStatusDelta);
-            PropertyDelta<XMLGregorianCalendar> completionTimestampDelta =
-                    shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_COMPLETION_TIMESTAMP));
-            completionTimestampDelta.setRealValuesToReplace(now);
-            shadowDelta.addModification(completionTimestampDelta);
-            PropertyDelta<OperationResultStatusType> resultStatusDelta =
-                    shadowDelta.createPropertyModification(containerPath.append(PendingOperationType.F_RESULT_STATUS));
-            resultStatusDelta.setRealValuesToReplace(OperationResultStatusType.NOT_APPLICABLE);
-            shadowDelta.addModification(resultStatusDelta);
         }
-        if (shadowDelta.isEmpty()) {
-            return;
-        }
-        LOGGER.debug("Cancelling pending operations on {}", repoShadow);
-        shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), result);
-        shadowDelta.applyTo(repoShadow.asPrismObject());
+
+        // Repository shadow may be replaced in opState, hence we want to get it always from there
     }
-
-    private OperationResultStatus handleDeleteError(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            ProvisioningOperationOptions options,
-            DeleteOperationState opState,
-            Exception cause,
-            OperationResult failedOperationResult,
-            OperationResult result)
-            throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException {
-
-        ErrorHandler handler = errorHandlerLocator.locateErrorHandlerRequired(cause);
-        LOGGER.debug("Handling provisioning DELETE exception {}: {}", cause.getClass(), cause.getMessage());
-        try {
-
-            OperationResultStatus finalStatus = handler.handleDeleteError(ctx, repoShadow, options, opState, cause, failedOperationResult, result);
-            LOGGER.debug("Handled provisioning DELETE exception, final status: {}, operation state: {}", finalStatus, opState.shortDumpLazily());
-            return finalStatus;
-
-        } catch (CommonException e) {
-            LOGGER.debug("Handled provisioning DELETE exception, final exception: {}, operation state: {}", e, opState.shortDumpLazily());
-            ObjectDelta<ShadowType> delta = repoShadow.asPrismObject().createDeleteDelta();
-            commonHelper.handleErrorHandlerException(ctx, opState, delta, e.getMessage(), result);
-            throw e;
-        }
-    }
-
 }

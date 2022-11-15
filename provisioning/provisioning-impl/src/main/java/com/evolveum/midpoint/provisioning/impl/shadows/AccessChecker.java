@@ -39,7 +39,7 @@ class AccessChecker {
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessChecker.class);
 
-    void checkAdd(ProvisioningContext ctx, ShadowType shadow, OperationResult parentResult)
+    void checkAddAccess(ProvisioningContext ctx, ShadowType shadow, OperationResult parentResult)
             throws SecurityViolationException, SchemaException {
         OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
         try {
@@ -74,7 +74,7 @@ class AccessChecker {
         }
     }
 
-    void checkModify(
+    void checkModifyAccess(
             ProvisioningContext ctx,
             Collection<? extends ItemDelta<?, ?>> modifications,
             OperationResult parentResult)

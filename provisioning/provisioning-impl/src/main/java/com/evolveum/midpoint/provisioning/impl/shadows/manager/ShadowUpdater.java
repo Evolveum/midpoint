@@ -1155,5 +1155,14 @@ class ShadowUpdater {
                 (Collection) PrismValueCollectionsUtil.cloneCollection(attrProperty.getValues()));
         shadowDelta.addModification(oldRepoAttrPropDelta);
     }
+
+    void cancelAllPendingOperations(ProvisioningContext ctx, ShadowType repoShadow, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        List<ItemDelta<?, ?>> shadowDeltas = pendingOperationsHelper.cancelAllPendingOperations(repoShadow);
+        if (!shadowDeltas.isEmpty()) {
+            LOGGER.debug("Cancelling pending operations on {}", repoShadow);
+            modifyShadowAttributes(ctx, repoShadow, shadowDeltas, result);
+        }
+    }
 }
 

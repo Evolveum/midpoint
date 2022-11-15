@@ -33,7 +33,7 @@ public class TestDummyConsistencyRecordingAll extends TestDummyConsistency {
     }
 
     @Override
-    void assertPendingOperationsAfter812(PendingOperationsAsserter<Void> asserter) {
+    void assertPendingOperationsAfter812(PendingOperationsAsserter<?> asserter) {
         // @formatter:off
         asserter.singleOperation()
                     .delta()
@@ -46,8 +46,7 @@ public class TestDummyConsistencyRecordingAll extends TestDummyConsistency {
     }
 
     @Override
-    void assertPendingOperationsAfter814(PendingOperationsAsserter<?> asserter1, PendingOperationsAsserter<?> asserter2) {
-        asserter1.assertOperations(3);
-        asserter2.assertOperations(3);
+    void assertPendingOperationsAfter814(PendingOperationsAsserter<?> asserter) {
+        asserter.assertOperations(3);
     }
 }

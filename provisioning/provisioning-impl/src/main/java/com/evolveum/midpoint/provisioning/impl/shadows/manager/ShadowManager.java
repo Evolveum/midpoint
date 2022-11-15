@@ -391,4 +391,9 @@ public class ShadowManager {
     public PendingOperationType findPendingAddOperation(ShadowType liveShadow) {
         return pendingOperationsHelper.findPendingAddOperation(liveShadow);
     }
+
+    public void cancelAllPendingOperations(ProvisioningContext ctx, ShadowType repoShadow, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException {
+        shadowUpdater.cancelAllPendingOperations(ctx, repoShadow, result);
+    }
 }

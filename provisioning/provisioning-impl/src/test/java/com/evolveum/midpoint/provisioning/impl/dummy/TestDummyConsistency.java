@@ -1807,7 +1807,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertFailure(result);
 
         // @formatter:off
-        syncServiceMock
+        var asserter1 = syncServiceMock
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
             .lastNotifyChange()
@@ -1825,23 +1825,21 @@ public class TestDummyConsistency extends AbstractDummyTest {
                         .assertHasPrimaryIdentifier()
                         .assertHasSecondaryIdentifier()
                         .end()
-                    .pendingOperations()
-                        .assertNone()
-                        .end()
-                    .end();
+                    .pendingOperations();
 
-        var asserter = assertRepoShadow(ACCOUNT_WILL_OID)
+        var asserter2 = assertRepoShadow(ACCOUNT_WILL_OID)
             .assertDead()
             .assertIsNotExists()
             .pendingOperations();
         // @formatter:on
 
-        assertPendingOperationsAfter812(asserter);
+        assertPendingOperationsAfter812(asserter1);
+        assertPendingOperationsAfter812(asserter2);
 
         assertSteadyResources();
     }
 
-    void assertPendingOperationsAfter812(PendingOperationsAsserter<Void> asserter) {
+    void assertPendingOperationsAfter812(PendingOperationsAsserter<?> asserter) {
         // Normally, the no operation should not be pending.
         asserter.assertNone();
     }
@@ -1898,14 +1896,14 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .pendingOperations();
         // @formatter:on
 
-        assertPendingOperationsAfter814(asserter1, asserter2);
+        assertPendingOperationsAfter814(asserter1);
+        assertPendingOperationsAfter814(asserter2);
 
         assertSteadyResources();
     }
 
-    void assertPendingOperationsAfter814(PendingOperationsAsserter<?> asserter1, PendingOperationsAsserter<?> asserter2) {
-        asserter1.assertNone();
-        asserter2.assertNone();
+    void assertPendingOperationsAfter814(PendingOperationsAsserter<?> asserter) {
+        asserter.assertNone();
     }
 
     /**

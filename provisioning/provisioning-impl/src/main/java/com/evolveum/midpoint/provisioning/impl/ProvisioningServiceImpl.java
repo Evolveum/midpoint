@@ -555,6 +555,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         } catch (ExpressionEvaluationException e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't delete object: expression error: " + e.getMessage(), e);
             throw e;
+        } catch (EncryptionException e) {
+            ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
+            throw new SystemException(e.getMessage(), e);
         } catch (Throwable e) {
             ProvisioningUtil.recordFatalErrorWhileRethrowing(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
             throw e;

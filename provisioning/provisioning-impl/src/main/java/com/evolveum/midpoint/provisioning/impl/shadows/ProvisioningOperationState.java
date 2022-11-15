@@ -171,6 +171,10 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
         return repoShadow;
     }
 
+    @NotNull ShadowType getRepoShadowRequired() {
+        return Objects.requireNonNull(repoShadow, "No repo shadow");
+    }
+
     String getRepoShadowOid() {
         return repoShadow != null ? repoShadow.getOid() : null;
     }

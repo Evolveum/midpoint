@@ -7,14 +7,12 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
 import static com.evolveum.midpoint.util.exception.CommonException.Severity.PARTIAL_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -23,7 +21,6 @@ import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectCon
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 
 import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +54,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -111,26 +107,35 @@ class ShadowModifyHelper {
 
         ModifyOperationState opState = new ModifyOperationState(repoShadow);
 
-        // if not explicitly we want to force retry operations during modify
-        // it is quite cheap and probably more safe than not do it
-        if (options == null) {
-            options = ProvisioningOperationOptions.createForceRetry(Boolean.TRUE);
-        } else if (options.getForceRetry() == null) {
-            options.setForceRetry(Boolean.TRUE);
-        }
+        options = setForceRetryIfNotDisabled(options);
 
         return executeModifyAttempt(ctx, modifications, options, scripts, opState, false, result);
     }
 
+    /**
+     * If not explicitly disabled, we want to force retry operations during modify.
+     * It is quite cheap and probably safer than not doing it.
+     */
+    private static ProvisioningOperationOptions setForceRetryIfNotDisabled(ProvisioningOperationOptions options) {
+        if (options == null) {
+            return ProvisioningOperationOptions.createForceRetry(Boolean.TRUE);
+        }
+        if (options.getForceRetry() == null) {
+            options.setForceRetry(Boolean.TRUE);
+        }
+        return options;
+    }
+
     @NotNull
-    private static Collection<QName> getAdditionalAuxObjectClassNames(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+    private static Collection<QName> getAdditionalAuxObjectClassNames(
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
         Collection<QName> additionalAuxiliaryObjectClassQNames = new ArrayList<>();
         for (ItemDelta<?, ?> modification : modifications) {
             if (ShadowType.F_AUXILIARY_OBJECT_CLASS.equivalent(modification.getPath())) {
                 //noinspection unchecked
                 PropertyDelta<QName> auxDelta = (PropertyDelta<QName>) modification;
-                for (PrismPropertyValue<QName> pval : auxDelta.getValues(QName.class)) {
-                    additionalAuxiliaryObjectClassQNames.add(pval.getValue());
+                for (PrismPropertyValue<QName> pVal : auxDelta.getValues(QName.class)) {
+                    additionalAuxiliaryObjectClassQNames.add(pVal.getValue());
                 }
             }
         }
@@ -138,7 +143,9 @@ class ShadowModifyHelper {
     }
 
     /**
-     * @param inRefresh True if we are already in refresh shadow method. This means we shouldn't refresh ourselves!
+     * This is called also from refresh or propagation operations.
+     *
+     * @param inRefreshOrPropagation True if we are in refresh or propagation operation
      */
     String executeModifyAttempt(
             @NotNull ProvisioningContext ctx,
@@ -146,183 +153,207 @@ class ShadowModifyHelper {
             @Nullable ProvisioningOperationOptions options,
             @Nullable OperationProvisioningScriptsType scripts,
             @NotNull ModifyOperationState opState,
-            boolean inRefresh, // TODO better name
+            boolean inRefreshOrPropagation,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
             EncryptionException, ObjectAlreadyExistsException {
-
-        ShadowType repoShadow = Objects.requireNonNull(opState.getRepoShadow());
-
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-
-        if (!inRefresh) {
-            PendingOperationType duplicateOperation =
-                    shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, modifications, opState, result);
-            if (duplicateOperation != null) {
-                result.setInProgress();
-                return repoShadow.getOid();
-            }
-        } else {
-            LOGGER.trace("Not checking for duplicate pending operation, as we are already doing the refresh");
-        }
-
-        ctx.applyAttributesDefinition(repoShadow);
-
-        accessChecker.checkModify(ctx, modifications, result);
-
-        entitlementsHelper.provideEntitlementsIdentifiers(
-                ctx, modifications, "delta for shadow " + repoShadow.getOid(), result);
-
-        OperationResultStatus finalOperationStatus = null;
-
-        if (shadowManager.containsNoResourceModification(modifications)) {
-            opState.setExecutionStatus(COMPLETED);
-            LOGGER.debug("MODIFY {}: repository-only modification", repoShadow);
-        } else {
-            if (ctx.shouldExecuteResourceOperationDirectly()) {
-                LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}",
-                        repoShadow, DebugUtil.debugDumpLazily(modifications));
-
-                RefreshShadowOperation refreshShadowOperation;
-                if (!inRefresh && ShadowsUtil.hasRetryableOperation(repoShadow)) {
-                    refreshShadowOperation = refreshHelper.refreshShadow(repoShadow, options, ctx.getTask(), result);
-                    ShadowType shadowAfterRefresh = refreshShadowOperation.getRefreshedShadow();
-                    if (shadowAfterRefresh == null) {
-                        LOGGER.trace("Shadow is gone. Nothing more to do");
-                        throw new ObjectNotFoundException(
-                                "Shadow disappeared during modify.", null, ShadowType.class, repoShadow.getOid(), PARTIAL_ERROR);
-                    } else {
-                        repoShadow = shadowAfterRefresh;
-                    }
-                } else {
-                    refreshShadowOperation = null;
-                }
-
-                ConnectorOperationOptions connOptions = commonHelper.createConnectorOperationOptions(ctx, options, result);
-
-                try {
-                    if (ctx.isInMaintenance()) {
-                        throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance");
-                    }
-
-                    if (!shouldExecuteModify(refreshShadowOperation)) {
-                        opState.markAsPostponed(refreshShadowOperation.getRefreshResult());
-                        shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, result);
-                        setParentOperationStatus(result, opState, null);
-                        return repoShadow.getOid();
-                    } else {
-                        LOGGER.trace("Shadow exists: {}", repoShadow.debugDump());
-                    }
-
-                    AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> asyncResult =
-                            resourceObjectConverter
-                                    .modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, result);
-                    opState.recordRealAsynchronousResult(asyncResult);
-
-                    Collection<PropertyDelta<PrismPropertyValue<?>>> knownExecutedDeltas = asyncResult.getReturnValue();
-                    if (knownExecutedDeltas != null) {
-                        ItemDeltaCollectionsUtil.addNotEquivalent(modifications, knownExecutedDeltas);
-                    }
-
-                } catch (Exception ex) {
-                    LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it", ex.getClass(), ex.getMessage(), ex);
-                    finalOperationStatus =
-                            handleModifyError(
-                                    ctx, repoShadow, modifications, options, opState, ex, result.getLastSubresult(), result);
-                }
-
-                LOGGER.debug("MODIFY {}: resource operation executed, operation state: {}", repoShadow, opState.shortDumpLazily());
-
-            } else {
-                opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
-                // Create dummy subresult with IN_PROGRESS state.
-                // This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
-                result.createSubresult(OP_DELAYED_OPERATION)
-                        .recordInProgress(); // using "record" to immediately close the result
-                LOGGER.debug("MODIFY {}: Resource operation NOT executed, execution pending", repoShadow);
-            }
-        }
-
-        shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, result);
-
-        notifyAfterModify(ctx, repoShadow, modifications, opState, result);
-
-        setParentOperationStatus(result, opState, finalOperationStatus);
-
-        return repoShadow.getOid();
+        return new ModifyOperation(ctx, modifications, options, scripts, opState, inRefreshOrPropagation)
+                .execute(result);
     }
 
-    @Contract("null -> true")
-    private boolean shouldExecuteModify(RefreshShadowOperation refreshShadowOperation) {
-        if (refreshShadowOperation == null) {
-            LOGGER.trace("Nothing refreshed, modify can continue.");
-            return true;
+    class ModifyOperation {
+
+        @NotNull private final ProvisioningContext ctx;
+
+        /** Note that the modifications are update with known ones obtained from the {@link ResourceObjectConverter}. */
+        @NotNull private final Collection<? extends ItemDelta<?, ?>> modifications;
+
+        private final ProvisioningOperationOptions options;
+        private final OperationProvisioningScriptsType scripts;
+        @NotNull private final ModifyOperationState opState;
+        private final boolean inRefreshOrPropagation;
+        private final XMLGregorianCalendar now;
+        OperationResultStatus statusFromErrorHandling;
+
+        /** Result of "refresh-before-modify" operation (if executed). */
+        RefreshShadowOperation refreshShadowOperation;
+
+        ModifyOperation(
+                @NotNull ProvisioningContext ctx,
+                @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+                ProvisioningOperationOptions options,
+                OperationProvisioningScriptsType scripts,
+                @NotNull ModifyOperationState opState,
+                boolean inRefreshOrPropagation) {
+            this.ctx = ctx;
+            this.modifications = modifications;
+            this.options = options;
+            this.scripts = scripts;
+            this.opState = opState;
+            this.inRefreshOrPropagation = inRefreshOrPropagation;
+            this.now = clock.currentTimeXMLGregorianCalendar();
         }
 
-        if (refreshShadowOperation.getExecutedDeltas() == null || refreshShadowOperation.getExecutedDeltas().isEmpty()) {
-            LOGGER.trace("No executed deltas after refresh. Continue with modify operation.");
-            return true;
+        String execute(OperationResult result)
+                throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
+                ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
+                EncryptionException, ObjectAlreadyExistsException {
+
+            if (!inRefreshOrPropagation) {
+                PendingOperationType duplicateOperation =
+                        shadowManager.checkAndRecordPendingModifyOperationBeforeExecution(ctx, modifications, opState, result);
+                if (duplicateOperation != null) {
+                    result.setInProgress(); // suspicious
+                    return opState.getRepoShadowOid();
+                }
+            } else {
+                LOGGER.trace("Not checking for duplicate pending operation, as we are already doing the refresh/propagation");
+            }
+
+            ShadowType repoShadow = opState.getRepoShadowRequired(); // Shadow in opState was updated in the above call!
+            ctx.applyAttributesDefinition(repoShadow);
+
+            accessChecker.checkModifyAccess(ctx, modifications, result);
+
+            entitlementsHelper.provideEntitlementsIdentifiers(
+                    ctx, modifications, "delta for shadow " + repoShadow.getOid(), result);
+
+            if (shadowManager.containsNoResourceModification(modifications)) {
+                opState.setExecutionStatus(COMPLETED);
+                LOGGER.trace("MODIFY {}: repository-only modification", repoShadow);
+            } else {
+                if (ctx.shouldExecuteResourceOperationDirectly()) {
+                    LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}",
+                            repoShadow, DebugUtil.debugDumpLazily(modifications));
+
+                    refreshBeforeExecution(result); // Will be skipped in maintenance mode
+                    if (wasRefreshOperationSuccessful()) {
+                        executeModifyOperationDirectly(result);
+                    } else {
+                        opState.markAsPostponed(refreshShadowOperation.getRefreshResult());
+                    }
+
+                } else {
+                    markOperationExecutionAsPending(LOGGER, "MODIFY", opState, result);
+                }
+            }
+
+            shadowManager.recordModifyResult(ctx, repoShadow, modifications, opState, result);
+            notifyAfterModify(result);
+            setParentOperationStatus(result, opState, statusFromErrorHandling); // FIXME
+
+            return repoShadow.getOid();
         }
 
-        if (refreshShadowOperation.getRefreshedShadow() == null) {
-            LOGGER.trace("Shadow is gone. Probably it was deleted during refresh. Finishing modify operation now.");
-            return false;
+        private void refreshBeforeExecution(OperationResult result)
+                throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+                ExpressionEvaluationException, EncryptionException {
+            ShadowType repoShadow = opState.getRepoShadowRequired();
+            if (inRefreshOrPropagation || !ShadowsUtil.hasRetryableOperation(repoShadow)) {
+                return;
+            }
+            LOGGER.trace("Refreshing shadow before executing the modification operation");
+            refreshShadowOperation = refreshHelper.refreshShadow(repoShadow, options, ctx.getTask(), result);
+            ShadowType shadowAfterRefresh = refreshShadowOperation.getRefreshedShadow();
+            if (shadowAfterRefresh == null) {
+                LOGGER.trace("Shadow is gone. Nothing more to do");
+                throw new ObjectNotFoundException(
+                        "Shadow disappeared during modify", null, ShadowType.class, repoShadow.getOid(), PARTIAL_ERROR);
+            } else {
+                opState.setRepoShadow(shadowAfterRefresh);
+            }
         }
 
-        Collection<ObjectDeltaOperation<ShadowType>> objectDeltaOperations = refreshShadowOperation.getExecutedDeltas();
-        for (ObjectDeltaOperation<ShadowType> shadowDelta : objectDeltaOperations) {
-            if (!shadowDelta.getExecutionResult().isSuccess()) {
-                LOGGER.trace("Refresh operation not successful. Finishing modify operation now.");
+        private boolean wasRefreshOperationSuccessful() {
+            if (refreshShadowOperation == null) {
+                LOGGER.trace("Nothing refreshed, modify can continue.");
+                return true;
+            }
+
+            if (refreshShadowOperation.getExecutedDeltas() == null || refreshShadowOperation.getExecutedDeltas().isEmpty()) {
+                LOGGER.trace("No executed deltas after refresh. Continue with modify operation.");
+                return true;
+            }
+
+            if (refreshShadowOperation.getRefreshedShadow() == null) {
+                LOGGER.trace("Shadow is gone. Probably it was deleted during refresh. Finishing modify operation now.");
                 return false;
             }
+
+            Collection<ObjectDeltaOperation<ShadowType>> objectDeltaOperations = refreshShadowOperation.getExecutedDeltas();
+            for (ObjectDeltaOperation<ShadowType> shadowDelta : objectDeltaOperations) {
+                OperationResult result = shadowDelta.getExecutionResult();
+                if (result == null || !result.isSuccess()) {
+                    LOGGER.trace("Refresh operation not successful. Current modify operation will be postponed.");
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        return true;
-    }
+        private void executeModifyOperationDirectly(OperationResult result)
+                throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
+                ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+                ExpressionEvaluationException {
+            ShadowType repoShadow = opState.getRepoShadowRequired();
+            try {
+                ctx.checkNotInMaintenance();
 
-    private void notifyAfterModify(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            Collection<? extends ItemDelta<?, ?>> modifications,
-            ProvisioningOperationState<?> opState,
-            OperationResult result) {
-        ObjectDelta<ShadowType> delta =
-                prismContext.deltaFactory().object().createModifyDelta(repoShadow.getOid(), modifications, ShadowType.class);
-        notifyAboutSuccessOperation(ctx, repoShadow, opState, delta, result);
-    }
+                ConnectorOperationOptions connOptions = commonHelper.createConnectorOperationOptions(ctx, options, result);
+                AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> asyncResult =
+                        resourceObjectConverter
+                                .modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, result);
+                opState.recordRealAsynchronousResult(asyncResult);
 
-    private OperationResultStatus handleModifyError(
-            @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @Nullable ProvisioningOperationOptions options,
-            @NotNull ModifyOperationState opState,
-            @NotNull Exception cause,
-            OperationResult failedOperationResult,
-            @NotNull OperationResult result)
-            throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException {
+                // TODO should we mark the resource as UP here, as we do for ADD and DELETE?
 
-        // TODO: record operationExecution
+                Collection<PropertyDelta<PrismPropertyValue<?>>> knownExecutedDeltas = asyncResult.getReturnValue();
+                if (knownExecutedDeltas != null) {
+                    ItemDeltaCollectionsUtil.addNotEquivalent(modifications, knownExecutedDeltas);
+                }
 
-        LOGGER.debug("Handling provisioning MODIFY exception {}: {}", cause.getClass(), cause.getMessage());
-        try {
+            } catch (Exception ex) {
+                LOGGER.debug("Provisioning exception: {}:{}, attempting to handle it", ex.getClass(), ex.getMessage(), ex);
+                statusFromErrorHandling = handleModifyError(ex, result.getLastSubresult(), result);
+            }
 
-            OperationResultStatus finalStatus = errorHandlerLocator
-                    .locateErrorHandlerRequired(cause)
-                    .handleModifyError(ctx, repoShadow, modifications, options, opState, cause, failedOperationResult, result);
-            LOGGER.debug("Handled provisioning MODIFY exception, final status: {}, operation state: {}", finalStatus, opState.shortDumpLazily());
-            return finalStatus;
+            LOGGER.debug("MODIFY {}: resource operation executed, operation state: {}", repoShadow, opState.shortDumpLazily());
+        }
 
-        } catch (CommonException e) {
-            LOGGER.debug("Handled provisioning MODIFY exception, final exception: {}, operation state: {}", e, opState.shortDumpLazily());
-            ObjectDelta<ShadowType> delta = repoShadow.asPrismObject().createModifyDelta();
-            delta.addModifications(modifications);
-            commonHelper.handleErrorHandlerException(ctx, opState, delta, e.getMessage(), result);
-            throw e;
+        private void notifyAfterModify(OperationResult result) {
+            ShadowType repoShadow = opState.getRepoShadowRequired();
+            ObjectDelta<ShadowType> delta =
+                    prismContext.deltaFactory().object().createModifyDelta(repoShadow.getOid(), modifications, ShadowType.class);
+            notifyAboutSuccessOperation(ctx, repoShadow, opState, delta, result);
+        }
+
+        private OperationResultStatus handleModifyError(
+                @NotNull Exception cause, OperationResult failedOperationResult, @NotNull OperationResult result)
+                throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException,
+                ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+                ExpressionEvaluationException {
+
+            ShadowType repoShadow = opState.getRepoShadowRequired();
+            LOGGER.debug("Handling provisioning MODIFY exception {}: {}", cause.getClass(), cause.getMessage());
+            try {
+
+                OperationResultStatus finalStatus = errorHandlerLocator
+                        .locateErrorHandlerRequired(cause)
+                        .handleModifyError(ctx, repoShadow, modifications, options, opState, cause, failedOperationResult, result);
+                LOGGER.debug("Handled provisioning MODIFY exception, final status: {}, operation state: {}",
+                        finalStatus, opState.shortDumpLazily());
+                return finalStatus;
+
+            } catch (CommonException e) {
+                LOGGER.debug("Handled provisioning MODIFY exception, final exception: {}, operation state: {}",
+                        e, opState.shortDumpLazily());
+                ObjectDelta<ShadowType> delta = repoShadow.asPrismObject().createModifyDelta();
+                delta.addModifications(modifications);
+                commonHelper.handleErrorHandlerException(ctx, opState, delta, e.getMessage(), result);
+                throw e;
+            }
         }
     }
-
 }

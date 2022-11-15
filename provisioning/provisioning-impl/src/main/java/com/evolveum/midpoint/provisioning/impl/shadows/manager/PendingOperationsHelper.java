@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -241,5 +242,37 @@ class PendingOperationsHelper {
                         createPendingOperationDelta(containerPath, PendingOperationType.F_OPERATION_START_TIMESTAMP, now));
             }
         }
+    }
+
+    /**
+     * Creates deltas that marks all "RETRY"-typed pending operations as completed.
+     *
+     * This is very simple code that essentially works only for postponed operations (retries).
+     * TODO: better support for async and manual operations
+     */
+    List<ItemDelta<?, ?>> cancelAllPendingOperations(ShadowType repoShadow) throws SchemaException {
+        List<ItemDelta<?, ?>> shadowDeltas = new ArrayList<>();
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+
+        for (PendingOperationType pendingOperation : repoShadow.getPendingOperation()) {
+            if (pendingOperation.getExecutionStatus() == COMPLETED) {
+                continue;
+            }
+            if (pendingOperation.getType() != PendingOperationTypeType.RETRY) {
+                // Other operations are not cancellable now
+                continue;
+            }
+            ItemPath containerPath = pendingOperation.asPrismContainerValue().getPath();
+            shadowDeltas.addAll(
+                    prismContext.deltaFor(ShadowType.class)
+                            .item(containerPath.append(PendingOperationType.F_EXECUTION_STATUS))
+                            .replace(COMPLETED)
+                            .item(containerPath.append(PendingOperationType.F_COMPLETION_TIMESTAMP))
+                            .replace(now)
+                            .item(containerPath.append(PendingOperationType.F_RESULT_STATUS))
+                            .replace(OperationResultStatusType.NOT_APPLICABLE)
+                            .asItemDeltas());
+        }
+        return shadowDeltas;
     }
 }

@@ -105,7 +105,7 @@ public class ShadowsFacade {
             OperationProvisioningScriptsType scripts, Task task, OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
             SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
-            ExpressionEvaluationException {
+            ExpressionEvaluationException, EncryptionException {
         return deleteHelper.deleteShadow(repoShadow, options, scripts, task, result);
     }
 

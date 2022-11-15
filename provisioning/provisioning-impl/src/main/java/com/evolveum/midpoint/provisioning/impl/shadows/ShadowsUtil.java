@@ -15,15 +15,16 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
@@ -132,5 +133,18 @@ class ShadowsUtil {
         } else {
             return null;
         }
+    }
+
+    static void markOperationExecutionAsPending(
+            Trace logger, String operation, ProvisioningOperationState<?> opState, OperationResult parentResult) {
+        opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
+
+        // Create dummy subresult with IN_PROGRESS state.
+        // This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
+        OperationResult result = parentResult.createSubresult(OP_DELAYED_OPERATION);
+        result.recordInProgress();
+        result.close();
+
+        logger.debug("{}: Resource operation NOT executed, execution pending", operation);
     }
 }

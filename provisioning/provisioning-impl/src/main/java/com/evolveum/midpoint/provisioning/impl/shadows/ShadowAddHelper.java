@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.prism.delta.DeltaFactory.Object.createAddDelta;
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.*;
@@ -18,6 +17,7 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
+import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -67,9 +67,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 class ShadowAddHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAddHelper.class);
-
-    /** Used to create a fake operation result necessary to handle a {@link MaintenanceException} */
-    private static final String OP_ADD_RESOURCE_OBJECT_FAKE = ShadowAddHelper.class + ".addResourceObject";
 
     @Autowired private ErrorHandlerLocator errorHandlerLocator;
     @Autowired private Clock clock;
@@ -123,16 +120,17 @@ class ShadowAddHelper {
         }
     }
 
+    /** Called also during refresh or propagation. */
     String executeAddAttempt(
-            ProvisioningContext ctx,
+            @NotNull ProvisioningContext ctx,
             @NotNull ShadowType resourceObjectToAdd,
             ProvisioningOperationOptions options,
             OperationProvisioningScriptsType scripts,
-            AddOperationState opState,
-            OperationResult result)
-            throws CommunicationException, GenericFrameworkException,
-            ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException,
-            ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, EncryptionException {
+            @NotNull AddOperationState opState,
+            @NotNull OperationResult result)
+            throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
+            ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
+            ExpressionEvaluationException, EncryptionException {
         try {
             return new AddOperation(ctx, resourceObjectToAdd, scripts, opState, options)
                     .execute(result);
@@ -150,20 +148,20 @@ class ShadowAddHelper {
 
     private class AddOperation {
 
-        private final ProvisioningContext ctx;
+        @NotNull private final ProvisioningContext ctx;
         @NotNull private final ShadowType resourceObjectToAdd;
         private final OperationProvisioningScriptsType scripts;
-        private final AddOperationState opState;
+        @NotNull private final AddOperationState opState;
         private final ProvisioningOperationOptions options;
-        private final Task task;
+        @NotNull private final Task task;
 
         private OperationResultStatus statusFromErrorHandling;
 
         AddOperation(
-                ProvisioningContext ctx,
+                @NotNull ProvisioningContext ctx,
                 @NotNull ShadowType resourceObjectToAdd,
                 OperationProvisioningScriptsType scripts,
-                AddOperationState opState,
+                @NotNull AddOperationState opState,
                 ProvisioningOperationOptions options) {
             this.ctx = ctx;
             this.resourceObjectToAdd = resourceObjectToAdd;
@@ -182,7 +180,7 @@ class ShadowAddHelper {
             ctx.applyAttributesDefinition(resourceObjectToAdd);
             ctx.validateSchemaIfConfigured(resourceObjectToAdd);
 
-            accessChecker.checkAdd(ctx, resourceObjectToAdd, result);
+            accessChecker.checkAddAccess(ctx, resourceObjectToAdd, result);
 
             setProductionFlag();
 
@@ -192,27 +190,15 @@ class ShadowAddHelper {
             entitlementsHelper.provideEntitlementsIdentifiers(ctx, resourceObjectToAdd, result);
 
             if (ctx.shouldExecuteResourceOperationDirectly()) {
-                if (ctx.isInMaintenance()) {
-                    // this tells mp to create pending delta
-                    MaintenanceException e = new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance");
-                    OperationResult subresult = result.createMinorSubresult(OP_ADD_RESOURCE_OBJECT_FAKE);
-                    subresult.recordException(e);
-                    subresult.close();
-                    statusFromErrorHandling = handleAddError(e, subresult, result);
-                } else {
-                    executeAddOperationDirectly(result);
-                }
+                executeAddOperationDirectly(result);
             } else {
-                markExecutionAsPending(result);
+                markOperationExecutionAsPending(LOGGER, "ADD", opState, result);
             }
 
-            // REPO OPERATION: add
             // This is where the repo shadow is created or updated (if needed)
             shadowManager.recordAddResult(ctx, resourceObjectToAdd, opState, result);
-
             notifyAfterAdd(result);
-
-            setParentOperationStatus(result, opState, statusFromErrorHandling);
+            setParentOperationStatus(result, opState, statusFromErrorHandling); // FIXME
 
             return opState.getRepoShadowOid();
         }
@@ -220,15 +206,6 @@ class ShadowAddHelper {
         private void setProductionFlag() {
             resourceObjectToAdd.setSimulated(
                     !ctx.isObjectDefinitionInProduction());
-        }
-
-        private void markExecutionAsPending(OperationResult result) {
-            opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
-            // Create dummy subresult with IN_PROGRESS state.
-            // This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
-            result.createSubresult(OP_DELAYED_OPERATION)
-                    .recordInProgress(); // using "record" to immediately close the result
-            LOGGER.debug("ADD {}: resource operation NOT executed, execution pending", resourceObjectToAdd);
         }
 
         private void executeAddOperationDirectly(OperationResult result)
@@ -241,6 +218,7 @@ class ShadowAddHelper {
 
             try {
 
+                ctx.checkNotInMaintenance();
                 doExecuteAddOperation(connOptions, false, result);
 
             } catch (ObjectAlreadyExistsException e) {
@@ -255,7 +233,7 @@ class ShadowAddHelper {
                 // period. Obviously, attempt to add such object would fail.
                 // So, we need to handle this case specially. (MID-4414)
 
-                OperationResult failedOperationResult = result.getLastSubresult();
+                OperationResult failedOperationResult = result.getLastSubresult(); // This may or may not be correct
 
                 if (hasDeadShadowWithDeleteOperation(ctx, resourceObjectToAdd, result)) {
 
@@ -282,6 +260,7 @@ class ShadowAddHelper {
                     }
 
                 } else {
+
                     // Mark shadow dead before we handle the error. ADD operation obviously failed. Therefore this particular
                     // shadow was not created as resource object. It is dead on the spot. Make sure that error handler won't confuse
                     // this shadow with the conflicting shadow that it is going to discover.
@@ -301,7 +280,7 @@ class ShadowAddHelper {
                 ConnectorOperationOptions connOptions, boolean skipExplicitUniquenessCheck, OperationResult result)
                 throws ObjectNotFoundException, SchemaException, CommunicationException, ObjectAlreadyExistsException,
                 ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-            var asyncResult =
+            AsynchronousOperationReturnValue<ShadowType> asyncResult =
                     resourceObjectConverter.addResourceObject(
                             ctx, resourceObjectToAdd, scripts, connOptions, skipExplicitUniquenessCheck, result);
             opState.recordRealAsynchronousResult(asyncResult);
