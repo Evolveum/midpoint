@@ -172,7 +172,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromArchetypes(PrismObject<F> focus, Task task,
             OperationResult result) throws SchemaException {
         PrismObject<SecurityPolicyType> archetypeSecurityPolicy = objectResolver.searchSecurityPolicyFromArchetype(focus,
-                "security policy", task, result);
+                "security policy", task, result);   //todo may be use objectResolver.mergeSecurityPolicyWithSuperArchetype here
         LOGGER.trace("Found archetype security policy: {}", archetypeSecurityPolicy);
         if (archetypeSecurityPolicy != null) {
             SecurityPolicyType securityPolicyType = archetypeSecurityPolicy.asObjectable();

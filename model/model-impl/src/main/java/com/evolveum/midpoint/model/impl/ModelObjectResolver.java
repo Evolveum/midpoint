@@ -372,6 +372,62 @@ public class ModelObjectResolver implements ObjectResolver {
         return securityPolicy;
     }
 
+    public PrismObject<SecurityPolicyType> mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        PrismObject<SecurityPolicyType> archetypeSecurityPolicy = archetype.getSecurityPolicyRef() != null ?
+                resolve(archetype.getSecurityPolicyRef().asReferenceValue(), "resolving security policy ref", task, result)
+                : null;
+        return mergeSecurityPolicyWithSuperArchetype(archetype, archetypeSecurityPolicy, task, result);
+    }
+
+    public PrismObject<SecurityPolicyType> mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, PrismObject<SecurityPolicyType> securityPolicy,
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        ArchetypeType superArchetype = null;
+        try {
+            superArchetype = archetype.getSuperArchetypeRef() != null ?
+                    resolve(archetype.getSuperArchetypeRef(), ArchetypeType.class, null, "resolving super archetype ref", task, result)
+                    : null;
+        } catch (Exception ex) {
+            LOGGER.warn("Cannot resolve super archetype reference for archetype {}, oid {}", archetype.getName(), archetype.getOid());
+            return securityPolicy;
+        }
+        if (superArchetype == null) {
+            return securityPolicy;
+        }
+        SecurityPolicyType superArchetypeSecurityPolicy = null;
+        try {
+            superArchetypeSecurityPolicy = superArchetype.getSecurityPolicyRef() != null ?
+                    resolve(superArchetype.getSecurityPolicyRef(), SecurityPolicyType.class, null, "resolving security policy ref", task, result)
+                    : null;
+        } catch (Exception ex) {
+            LOGGER.warn("Cannot resolve security policy reference for archetype {}, oid {}", superArchetype.getName(), superArchetype.getOid());
+            return securityPolicy;
+        }
+        if (superArchetypeSecurityPolicy == null) {
+            return securityPolicy;
+        }
+        PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(securityPolicy, superArchetypeSecurityPolicy.asPrismObject());
+        return mergeSecurityPolicyWithSuperArchetype(superArchetype, mergedSecurityPolicy, task, result);
+    }
+
+    /**
+     *
+     * @param lowLevelSecurityPolicy    means the security policy referenced from child archetype
+     * @param topLevelSecurityPolicy    means the security policy referenced from super archetype
+     * @return
+     */
+    public PrismObject<SecurityPolicyType> mergeSecurityPolicies(PrismObject<SecurityPolicyType> lowLevelSecurityPolicy,
+            PrismObject<SecurityPolicyType> topLevelSecurityPolicy) {
+        //todo implement merge algorithm; for now probably only authentication and credentialsReset merge is needed (may be name this method
+        // as "mergeAuthentications" then)
+        if (lowLevelSecurityPolicy == null && topLevelSecurityPolicy == null) {
+            return null;
+        }
+        if (topLevelSecurityPolicy == null) {
+            return lowLevelSecurityPolicy.clone();
+        }
+        return Objects.requireNonNullElse(lowLevelSecurityPolicy, topLevelSecurityPolicy).clone();
+    }
+
     @Experimental
     @Override
     public void resolveAllReferences(Collection<PrismContainerValue<?>> pcvs, Object taskObject, OperationResult result) {
