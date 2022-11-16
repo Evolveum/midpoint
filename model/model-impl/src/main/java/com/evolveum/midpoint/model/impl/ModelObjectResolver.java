@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -372,7 +373,7 @@ public class ModelObjectResolver implements ObjectResolver {
         return mergeSecurityPolicyWithSuperArchetype(structuralArchetype, securityPolicy, task, result);
     }
 
-    public PrismObject<SecurityPolicyType> mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, PrismObject<SecurityPolicyType> securityPolicy,
+    private PrismObject<SecurityPolicyType> mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, PrismObject<SecurityPolicyType> securityPolicy,
             Task task, OperationResult result) {
         ArchetypeType superArchetype = null;
         try {
@@ -408,7 +409,7 @@ public class ModelObjectResolver implements ObjectResolver {
      * @param topLevelSecurityPolicy    means the security policy referenced from super archetype
      * @return
      */
-    public PrismObject<SecurityPolicyType> mergeSecurityPolicies(PrismObject<SecurityPolicyType> lowLevelSecurityPolicy,
+    private PrismObject<SecurityPolicyType> mergeSecurityPolicies(PrismObject<SecurityPolicyType> lowLevelSecurityPolicy,
             PrismObject<SecurityPolicyType> topLevelSecurityPolicy) {
         //todo implement merge algorithm; for now probably only authentication and credentialsReset merge is needed (may be name this method
         // as "mergeAuthentications" then)
@@ -419,6 +420,93 @@ public class ModelObjectResolver implements ObjectResolver {
             return lowLevelSecurityPolicy.clone();
         }
         return Objects.requireNonNullElse(lowLevelSecurityPolicy, topLevelSecurityPolicy).clone();
+    }
+
+    //todo think about better location for merge methods
+    private AuthenticationsPolicyType mergeSecurityPolicyAuthentication(AuthenticationsPolicyType lowLevelAuthentication, AuthenticationsPolicyType topLevelAuthentication) {
+        if (lowLevelAuthentication == null && topLevelAuthentication == null) {
+            return null;
+        }
+        if (lowLevelAuthentication == null) {
+            return topLevelAuthentication.clone();
+        }
+        if (topLevelAuthentication == null) {
+            return lowLevelAuthentication;
+        }
+        AuthenticationsPolicyType mergedAuthentication = lowLevelAuthentication.clone();
+        mergeAuthenticationModules(mergedAuthentication, topLevelAuthentication.getModules());
+        mergeSequences(mergedAuthentication, topLevelAuthentication.getSequence());
+        if (CollectionUtils.isEmpty(mergedAuthentication.getIgnoredLocalPath())) {
+            mergedAuthentication.getIgnoredLocalPath().addAll(topLevelAuthentication.getIgnoredLocalPath());
+        } else {
+            mergedAuthentication.getIgnoredLocalPath().addAll(CollectionUtils.union(mergedAuthentication.getIgnoredLocalPath(), topLevelAuthentication.getIgnoredLocalPath()));
+        }
+        return mergedAuthentication;
+    }
+
+    private void mergeAuthenticationModules(AuthenticationsPolicyType mergedAuthentication, AuthenticationModulesType modules) {
+        if (modules == null) {
+            return;
+        }
+        if (mergedAuthentication.getModules() == null) {
+            mergedAuthentication.setModules(modules);
+            return;
+        }
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHttpBasic(), modules.getHttpBasic());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHttpHeader(), modules.getHttpHeader());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHttpSecQ(), modules.getHttpSecQ());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getLdap(), modules.getLdap());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getLoginForm(), modules.getLoginForm());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getMailNonce(), modules.getMailNonce());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getOidc(), modules.getOidc());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getOther(), modules.getOther());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getSaml2(), modules.getSaml2());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getSecurityQuestionsForm(), modules.getSecurityQuestionsForm());
+        mergeAuthenticationModuleList(mergedAuthentication.getModules().getSmsNonce(), modules.getSmsNonce());
+    }
+
+    private <AM extends AbstractAuthenticationModuleType> void mergeAuthenticationModuleList(List<AM> mergedList, List<AM> listToProceed) {
+        if (CollectionUtils.isEmpty(listToProceed)) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(mergedList)) {
+            mergedList.addAll(listToProceed);
+            return;
+        }
+        listToProceed.forEach(itemToProceed -> {
+            boolean exist = false;
+            for (AM item : mergedList) {
+                if (StringUtils.equals(item.getName(), itemToProceed.getName())) {
+                    exist = true;
+                    break;
+                }
+            }
+            if (!exist) {
+                mergedList.add(itemToProceed);
+            }
+        });
+    }
+
+    private void mergeSequences(AuthenticationsPolicyType mergedAuthentication, List<AuthenticationSequenceType> sequences) {
+        if (CollectionUtils.isEmpty(sequences)) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(mergedAuthentication.getSequence())) {
+            mergedAuthentication.getSequence().addAll(sequences);
+            return;
+        }
+        sequences.forEach(sequenceToProceed -> {
+            boolean exist = false;
+            for (AuthenticationSequenceType sequence : mergedAuthentication.getSequence()) {
+                if (StringUtils.equals(sequenceToProceed.getIdentifier(), sequence.getIdentifier())) {
+                    exist = true;
+                    break;
+                }
+            }
+            if (!exist) {
+                mergedAuthentication.getSequence().add(sequenceToProceed);
+            }
+        });
     }
 
     @Experimental
