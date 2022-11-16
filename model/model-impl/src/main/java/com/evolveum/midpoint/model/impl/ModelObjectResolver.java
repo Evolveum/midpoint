@@ -358,29 +358,22 @@ public class ModelObjectResolver implements ObjectResolver {
         if (structuralArchetype == null) {
             return null;
         }
+        PrismObject<SecurityPolicyType> securityPolicy = null;
         ObjectReferenceType securityPolicyRef = structuralArchetype.getSecurityPolicyRef();
-        if (securityPolicyRef == null) {
-            return null;
+        if (securityPolicyRef != null) {
+            try {
+                securityPolicy = resolve(securityPolicyRef.asReferenceValue(), shortDesc, task, result);
+            } catch (ObjectNotFoundException ex) {
+                LOGGER.warn("Cannot find security policy referenced in archetype {}, oid {}", structuralArchetype.getName(), structuralArchetype.getOid());
+                return null;
+            }
         }
-        PrismObject<SecurityPolicyType> securityPolicy;
-        try {
-            securityPolicy = resolve(securityPolicyRef.asReferenceValue(), shortDesc, task, result);
-        } catch (ObjectNotFoundException ex) {
-            LOGGER.warn("Cannot find security policy referenced in archetype {}, oid {}", structuralArchetype.getName(), structuralArchetype.getOid());
-            return null;
-        }
-        return securityPolicy;
-    }
 
-    public PrismObject<SecurityPolicyType> mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        PrismObject<SecurityPolicyType> archetypeSecurityPolicy = archetype.getSecurityPolicyRef() != null ?
-                resolve(archetype.getSecurityPolicyRef().asReferenceValue(), "resolving security policy ref", task, result)
-                : null;
-        return mergeSecurityPolicyWithSuperArchetype(archetype, archetypeSecurityPolicy, task, result);
+        return mergeSecurityPolicyWithSuperArchetype(structuralArchetype, securityPolicy, task, result);
     }
 
     public PrismObject<SecurityPolicyType> mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, PrismObject<SecurityPolicyType> securityPolicy,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+            Task task, OperationResult result) {
         ArchetypeType superArchetype = null;
         try {
             superArchetype = archetype.getSuperArchetypeRef() != null ?
