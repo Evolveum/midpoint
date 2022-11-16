@@ -173,7 +173,7 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
         // But the only way how to detect the OC is to read existing repo shadow. So we must take the risk
         // of guessing identifiers' definition correctly - in other words, assuming that these definitions are
         // the same for all the object classes on the given resource.
-        repoShadow = beans.shadowManager.lookupLiveOrAnyShadowByPrimaryIds(context, resourceObjectChange.getIdentifiers(), result);
+        repoShadow = beans.shadowFinder.lookupLiveOrAnyShadowByPrimaryIds(context, resourceObjectChange.getIdentifiers(), result);
         if (repoShadow == null) {
             LOGGER.debug("No old shadow for delete synchronization event {}, we probably did not know about "
                     + "that object anyway, so well be ignoring this event", this);
@@ -408,12 +408,12 @@ public abstract class ShadowedChange<ROC extends ResourceObjectChange> implement
 
         // TODO: shadowState MID-5834: We might not want to update exists flag in quantum states
         // TODO should we update the repo even if we obtained current resource object from the cache? (except for e.g. metadata)
-        beans.shadowManager.updateShadowInRepository(context, resourceObject, objectDelta, repoShadow, null, result);
+        beans.shadowUpdater.updateShadowInRepository(context, resourceObject, objectDelta, repoShadow, null, result);
     }
 
     private void markRepoShadowTombstone(OperationResult result) throws SchemaException {
         if (!ShadowUtil.isDead(repoShadow) || ShadowUtil.isExists(repoShadow)) {
-            beans.shadowManager.markShadowTombstone(repoShadow, context.getTask(), result);
+            beans.shadowUpdater.markShadowTombstone(repoShadow, context.getTask(), result);
         }
     }
 

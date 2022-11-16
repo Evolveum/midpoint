@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
 import static com.evolveum.midpoint.schema.util.ShadowUtil.shortDumpShadowLazily;
 
 /**
@@ -124,7 +125,7 @@ class ShadowAcquisition {
         localBeans.classificationHelper.classify(ctx, repoShadow, getResourceObject(), result);
 
         // TODO We probably can avoid re-reading the shadow
-        return beans.shadowManager.fixShadow(ctx, repoShadow, result);
+        return localBeans.shadowUpdater.normalizeShadowAttributesInRepository(ctx, repoShadow, result);
     }
 
     // TODO is it OK to do it here? OID maybe. But resourceRef should have been there already (although without full object)
@@ -143,11 +144,11 @@ class ShadowAcquisition {
             throws SchemaException, ConfigurationException, EncryptionException {
 
         ShadowType existingLiveRepoShadow =
-                beans.shadowManager.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
+                localBeans.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
 
         if (existingLiveRepoShadow != null) {
             LOGGER.trace("Found live shadow object in the repository {}", shortDumpShadowLazily(existingLiveRepoShadow));
-            if (beans.shadowManager.markLiveShadowExistingIfNotMarkedSo(existingLiveRepoShadow, result)) {
+            if (localBeans.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(existingLiveRepoShadow, result)) {
                 return existingLiveRepoShadow;
             } else {
                 LOGGER.trace("The shadow disappeared, we will create a new one: {}", existingLiveRepoShadow);
@@ -163,7 +164,7 @@ class ShadowAcquisition {
         // We need to create the shadow to align repo state to the reality (resource).
 
         try {
-            return beans.shadowManager.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
+            return localBeans.shadowCreator.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
         } catch (ObjectAlreadyExistsException e) {
             return findConflictingShadow(resourceObject, e, result);
         }
@@ -183,10 +184,10 @@ class ShadowAcquisition {
         LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow",
                 resourceObject);
         ShadowType conflictingLiveShadow =
-                beans.shadowManager.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
+                localBeans.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
 
         if (conflictingLiveShadow != null) {
-            if (beans.shadowManager.markLiveShadowExistingIfNotMarkedSo(conflictingLiveShadow, result)) {
+            if (localBeans.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(conflictingLiveShadow, result)) {
                 originalRepoAddSubresult.muteError();
                 return conflictingLiveShadow;
             } else {
@@ -198,9 +199,9 @@ class ShadowAcquisition {
         // Maybe we have broken "indexes"? (e.g. primaryIdentifierValue column)
 
         // Do some "research" and log the results, so we have good data to diagnose this situation.
-        String determinedPrimaryIdentifierValue = beans.shadowManager.determinePrimaryIdentifierValue(ctx, resourceObject);
-        PrismObject<ShadowType> potentialConflictingShadow = beans.shadowManager.lookupShadowByIndexedPrimaryIdValue(ctx,
-                determinedPrimaryIdentifierValue, result);
+        String determinedPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceObject);
+        PrismObject<ShadowType> potentialConflictingShadow =
+                localBeans.shadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, determinedPrimaryIdentifierValue, result);
 
         LOGGER.error("Unexpected repository behavior: object already exists error even after we double-checked "
                 + "shadow uniqueness: {}", e.getMessage(), e);

@@ -22,9 +22,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +45,6 @@ import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -84,12 +81,9 @@ class ShadowRefreshHelper {
     @Autowired private PrismContext prismContext;
     @Autowired private ResourceObjectConverter resourceObjectConverter;
     @Autowired private ShadowCaretaker shadowCaretaker;
-    @Autowired protected ShadowManager shadowManager;
+    @Autowired protected ShadowUpdater shadowUpdater;
     @Autowired private EventDispatcher operationListener;
     @Autowired private ProvisioningContextFactory ctxFactory;
-    @Autowired private ShadowAddHelper addHelper;
-    @Autowired private ShadowModifyHelper modifyHelper;
-    @Autowired private ShadowDeleteHelper deleteHelper;
     @Autowired private DefinitionsHelper definitionsHelper;
 
     public @NotNull RefreshShadowOperation refreshShadow(
@@ -103,7 +97,7 @@ class ShadowRefreshHelper {
         ctx.applyAttributesDefinition(repoShadow);
 
         try {
-            shadowManager.refreshProvisioningIndexes(ctx, repoShadow, true, result);
+            shadowUpdater.refreshProvisioningIndexes(ctx, repoShadow, true, result);
         } catch (ObjectAlreadyExistsException e) {
             throw SystemException.unexpected(e, "when refreshing provisioning indexes");
         }
@@ -112,7 +106,7 @@ class ShadowRefreshHelper {
 
         XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 
-        ShadowType shadowAfterCleanup = deleteDeadShadowIfPossible(ctx, repoShadow, now, task, result);
+        ShadowType shadowAfterCleanup = deleteDeadShadowIfPossible(ctx, repoShadow, now, result);
         if (shadowAfterCleanup == null) {
             refreshShadowOperation.setRefreshedShadow(null);
         }
@@ -158,19 +152,20 @@ class ShadowRefreshHelper {
     /**
      * Used to quickly and efficiently refresh shadow before GET operations.
      */
-    ShadowType refreshShadowQuick(ProvisioningContext ctx, ShadowType repoShadow,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    ShadowType refreshShadowQuick(
+            ProvisioningContext ctx, ShadowType repoShadow, XMLGregorianCalendar now, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
 
         ObjectDelta<ShadowType> shadowDelta = repoShadow.asPrismObject().createModifyDelta();
         expirePendingOperations(ctx, repoShadow, shadowDelta, now);
 
         if (!shadowDelta.isEmpty()) {
-            shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), result);
+            shadowUpdater.executeRepoShadowModifications(ctx, repoShadow, shadowDelta.getModifications(), result);
             shadowDelta.applyTo(repoShadow.asPrismObject());
         }
 
-        return deleteDeadShadowIfPossible(ctx, repoShadow, now, task, result);
+        return deleteDeadShadowIfPossible(ctx, repoShadow, now, result);
     }
 
     /**
@@ -243,7 +238,7 @@ class ShadowRefreshHelper {
                 if (pendingDelta.isDelete()) {
                     shadowInception = false;
                     //noinspection unchecked
-                    shadowManager.addDeadShadowDeltas(repoShadow, (List)shadowDelta.getModifications());
+                    shadowUpdater.addTombstoneDeltas(repoShadow, (List)shadowDelta.getModifications());
                 }
                 continue;
 
@@ -326,7 +321,7 @@ class ShadowRefreshHelper {
                 if (pendingDelta.isDelete()) {
                     shadowInception = false;
                     //noinspection unchecked
-                    shadowManager.addDeadShadowDeltas(repoShadow, (List)shadowDelta.getModifications());
+                    shadowUpdater.addTombstoneDeltas(repoShadow, (List)shadowDelta.getModifications());
                 }
 
                 notificationDeltas.add(pendingDelta);
@@ -352,7 +347,7 @@ class ShadowRefreshHelper {
 
         if (!shadowDelta.isEmpty()) {
             ctx.applyAttributesDefinition(shadowDelta);
-            shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
+            shadowUpdater.modifyRepoShadow(ctx, repoShadow, shadowDelta.getModifications(), parentResult);
         }
 
         for (ObjectDelta<ShadowType> notificationDelta : notificationDeltas) {
@@ -433,7 +428,7 @@ class ShadowRefreshHelper {
                     .replace(OperationResultStatusType.IN_PROGRESS)
                     .asItemDeltas();
 
-            shadowManager.modifyShadowAttributes(ctx, repoShadow, shadowDeltas, parentResult);
+            shadowUpdater.executeRepoShadowModifications(ctx, repoShadow, shadowDeltas, parentResult);
             // The pending operation should be updated as part of the above call
             assert pendingOperation.getAttemptNumber() == attemptNumber;
 
@@ -488,44 +483,25 @@ class ShadowRefreshHelper {
     private @NotNull ProvisioningOperationState<?> retryOperation(
             @NotNull ProvisioningContext ctx,
             @NotNull ObjectDelta<ShadowType> pendingDelta,
-            ShadowType repoShadow,
+            @NotNull ShadowType repoShadow,
             PendingOperationType pendingOperation,
             @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
 
+        // TODO scripts, options
         ProvisioningOperationOptions options = ProvisioningOperationOptions.createForceRetry(false);
-        OperationProvisioningScriptsType scripts = null; // TODO
         if (pendingDelta.isAdd()) {
-            AddOperationState opState = AddOperationState.fromPendingOperation(repoShadow, pendingOperation);
-            PrismObject<ShadowType> resourceObjectToAdd = pendingDelta.getObjectToAdd();
-            addHelper.executeAddAttempt(ctx, resourceObjectToAdd.asObjectable(), options, scripts, opState, result);
-            return opState;
+            return ShadowAddOperation.executeInRefresh(ctx, repoShadow, pendingDelta, pendingOperation, options, result);
+        } else if (pendingDelta.isModify()) {
+            return ShadowModifyOperation.executeInRefresh(
+                    ctx, repoShadow, pendingDelta.getModifications(), pendingOperation, options, result);
+        } else if (pendingDelta.isDelete()) {
+            return ShadowDeleteOperation.executeInRefresh(ctx, repoShadow, pendingOperation, options, result);
+        } else {
+            throw new IllegalStateException("Unknown type of delta: " + pendingDelta);
         }
-
-        if (pendingDelta.isModify()) {
-            ModifyOperationState opState = ModifyOperationState.fromPendingOperation(repoShadow, pendingOperation);
-            if (opState.objectExists()) {
-                modifyHelper.executeModifyAttempt(
-                        ctx, pendingDelta.getModifications(), options, scripts, opState, true, result);
-            } else {
-                result.recordFatalError("Object does not exist on the resource yet, modification attempt was skipped");
-            }
-            return opState;
-        }
-
-        if (pendingDelta.isDelete()) {
-            DeleteOperationState opState = DeleteOperationState.fromPendingOperation(repoShadow, pendingOperation);
-            if (opState.objectExists()) {
-                deleteHelper.executeDeleteAttempt(ctx, options, scripts, opState, true, result);
-            } else {
-                result.recordFatalError("Object does not exist on the resource yet, deletion attempt was skipped");
-            }
-            return opState;
-        }
-
-        throw new IllegalStateException("Unknown type of delta: " + pendingDelta);
     }
 
     private boolean isAfterRetryPeriod(PendingOperationType pendingOperation, Duration retryPeriod, XMLGregorianCalendar now) {
@@ -533,8 +509,11 @@ class ShadowRefreshHelper {
         return XmlTypeConverter.compare(now, scheduledRetryTime) == DatatypeConstants.GREATER;
     }
 
-    private ShadowType deleteDeadShadowIfPossible(ProvisioningContext ctx, ShadowType repoShadow,
-            XMLGregorianCalendar now, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+    private ShadowType deleteDeadShadowIfPossible(
+            ProvisioningContext ctx,
+            ShadowType repoShadow,
+            XMLGregorianCalendar now,
+            OperationResult result) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (!ShadowUtil.isDead(repoShadow)) {
             return repoShadow;
@@ -565,11 +544,12 @@ class ShadowRefreshHelper {
                 lastActivityTimestamp == null || XmlTypeConverter.isAfterInterval(lastActivityTimestamp, expirationPeriod, now)) {
             // Perish you stinking corpse!
             LOGGER.debug("Deleting dead {} because it is expired", repoShadow);
-            shadowManager.deleteShadow(repoShadow, task, parentResult);
-            definitionsHelper.applyDefinition(repoShadow, task, parentResult);
+            Task task = ctx.getTask();
+            shadowUpdater.deleteShadow(repoShadow, task, result);
+            definitionsHelper.applyDefinition(repoShadow, task, result);
             ResourceOperationDescription operationDescription =
                     createSuccessOperationDescription(ctx, repoShadow, repoShadow.asPrismObject().createDeleteDelta());
-            operationListener.notifySuccess(operationDescription, task, parentResult);
+            operationListener.notifySuccess(operationDescription, task, result);
             return null;
         }
 
@@ -618,11 +598,11 @@ class ShadowRefreshHelper {
             return;
         }
         try {
-            shadowManager.refreshProvisioningIndexes(ctx, shadow, false, result);
+            shadowUpdater.refreshProvisioningIndexes(ctx, shadow, false, result);
         } catch (ObjectAlreadyExistsException e) {
             LOGGER.debug("Couldn't set `primaryIdentifierValue` for {} - probably a new one was created in the meanwhile. "
                     + "Marking this one as dead.", shadow, e);
-            shadowManager.markShadowTombstone(shadow, ctx.getTask(), result);
+            shadowUpdater.markShadowTombstone(shadow, ctx.getTask(), result);
         }
     }
 }

@@ -360,7 +360,7 @@ class ShadowedObjectConstruction {
 
         try {
             ShadowType existingLiveRepoShadow =
-                    beans.shadowManager.lookupLiveShadowByAllIds(ctxEntitlement, identifierContainer, result);
+                    localBeans.shadowFinder.lookupLiveShadowByAllIds(ctxEntitlement, identifierContainer, result);
 
             if (existingLiveRepoShadow != null) {
                 return existingLiveRepoShadow;

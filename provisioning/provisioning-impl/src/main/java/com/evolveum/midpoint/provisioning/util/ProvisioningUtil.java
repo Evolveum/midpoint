@@ -377,15 +377,13 @@ public class ProvisioningUtil {
         }
     }
 
-    public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStrategyType cachingStrategy) {    // MID-2585
-        if (cachingStrategy == CachingStrategyType.PASSIVE) {
-            return true;
-        } else {
-            return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP) ||
-                    QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP) ||
-                    QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP) ||
-                    QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON);
-        }
+    // MID-2585
+    public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStrategyType cachingStrategy) {
+        return cachingStrategy == CachingStrategyType.PASSIVE
+                || QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP)
+                || QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP)
+                || QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP)
+                || QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON);
     }
 
     public static void cleanupShadowActivation(ShadowType repoShadowType) {
@@ -448,7 +446,11 @@ public class ProvisioningUtil {
         }
     }
 
-    /** TODO reconcile with {@link com.evolveum.midpoint.provisioning.impl.shadows.manager.Helper#isResourceModification(ItemDelta)}. */
+    public static boolean containsNoResourceModification(Collection<? extends ItemDelta<?, ?>> modifications) {
+        return modifications.stream()
+                .noneMatch(ProvisioningUtil::isResourceModification);
+    }
+
     public static boolean isResourceModification(ItemDelta<?, ?> modification) {
         QName firstPathName = modification.getPath().firstName();
         return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);

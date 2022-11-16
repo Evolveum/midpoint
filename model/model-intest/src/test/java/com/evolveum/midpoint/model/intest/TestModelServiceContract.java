@@ -3003,7 +3003,15 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         ObjectDeltaOperation<ShadowType> auditShadowDelta = dummyAuditService.assertHasDelta(ChangeType.MODIFY, ShadowType.class);
 
-        assertEquals("Unexpected number of modifications in shadow audit delta: " + auditShadowDelta.debugDump(), 8, auditShadowDelta.getObjectDelta().getModifications().size());
+        assertEquals(
+                "Unexpected number of modifications in shadow audit delta: " + auditShadowDelta.debugDump(),
+                8,
+                auditShadowDelta.getObjectDelta().getModifications().size());
+
+        // The modifications are following:
+        //  metadata/modifyChannel, modifyTimestamp, modifierRef, modifyTaskRef, modifyApproverRef, modifyApprovalComment
+        //  attributes/icfs:name: morgan -> sirhenry
+        //  attributes/icfs:uid: morgan -> sirhenry - this is a change induced by the connector/resource
 
         dummyAuditService.assertOldValue(ChangeType.MODIFY, UserType.class,
                 UserType.F_NAME, PrismTestUtil.createPolyString("morgan"));

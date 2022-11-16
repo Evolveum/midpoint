@@ -12,9 +12,10 @@ import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectLiv
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
-
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowAddOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,16 +24,12 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -56,50 +53,46 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     private static final Trace LOGGER = TraceManager.getTrace(ObjectAlreadyExistHandler.class);
 
     @Autowired ProvisioningService provisioningService;
-    @Autowired ShadowManager shadowManager;
+    @Autowired ShadowFinder shadowFinder;
 
     @Override
     public OperationResultStatus handleAddError(
-            ProvisioningContext ctx,
-            ShadowType shadowToAdd,
-            ProvisioningOperationOptions options,
-            AddOperationState opState,
-            Exception cause,
+            @NotNull ShadowAddOperation operation,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            Task task,
-            OperationResult parentResult)
+            OperationResult result)
             throws SchemaException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
-            discoverConflictingShadow(ctx, shadowToAdd, parentResult);
+        ProvisioningContext ctx = operation.getCtx();
+
+        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), operation.getOptions())) {
+            discoverConflictingShadow(ctx, operation.getResourceObjectToAdd(), result);
         }
 
-        throwException(cause, opState, parentResult);
+        throwException(operation, cause, result);
         throw new AssertionError("not here");
     }
 
     @Override
     public OperationResultStatus handleModifyError(
-            @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @Nullable ProvisioningOperationOptions options,
-            @NotNull ModifyOperationState opState,
+            @NotNull ShadowModifyOperation operation,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             @NotNull OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) {
-            ShadowType newShadow = repoShadow.clone();
-            ObjectDeltaUtil.applyTo(newShadow.asPrismObject(), modifications);
+        ProvisioningContext ctx = operation.getCtx();
+
+        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), operation.getOptions())) {
+            ShadowType newShadow = operation.getOpState().getRepoShadow().clone();
+            ObjectDeltaUtil.applyTo(newShadow.asPrismObject(), operation.getRequestedModifications());
             discoverConflictingShadow(ctx, newShadow, result);
         }
 
-        throwException(cause, opState, result);
+        throwException(operation, cause, result);
         throw new AssertionError("not here");
     }
 
@@ -112,7 +105,7 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
         try {
 
             ObjectQuery query = createQueryBySecondaryIdentifier(newShadow);
-            List<PrismObject<ShadowType>> conflictingRepoShadows = shadowManager.searchShadows(ctx, query, null, result);
+            List<PrismObject<ShadowType>> conflictingRepoShadows = shadowFinder.searchShadows(ctx, query, null, result);
             PrismObject<ShadowType> oldShadow = selectLiveShadow(conflictingRepoShadows);
             if (oldShadow != null) {
                 ctx.applyAttributesDefinition(oldShadow);
@@ -187,14 +180,13 @@ class ObjectAlreadyExistHandler extends HardErrorHandler {
     }
 
     @Override
-    protected void throwException(Exception cause, ProvisioningOperationState<?> opState, OperationResult result)
+    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
             throws ObjectAlreadyExistsException {
-        recordCompletionError(cause, opState, result);
+        recordCompletionError(operation, cause, result);
         if (cause instanceof ObjectAlreadyExistsException) {
             throw (ObjectAlreadyExistsException)cause;
         } else {
             throw new ObjectAlreadyExistsException(cause.getMessage(), cause);
         }
     }
-
 }

@@ -7,23 +7,16 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
-import java.util.Collection;
+import com.evolveum.midpoint.provisioning.impl.shadows.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,10 +38,10 @@ class CommunicationExceptionHandler extends ErrorHandler {
             @NotNull ShadowType repositoryShadow,
             @NotNull Exception cause,
             @NotNull OperationResult failedOperationResult,
-            @NotNull OperationResult parentResult) throws ObjectNotFoundException {
+            @NotNull OperationResult result) throws ObjectNotFoundException {
 
         // TODO should we mark the resource also when in preview mode?
-        markResourceDown(ctx, reasonMessage("getting", repositoryShadow, cause), parentResult);
+        markResourceDown(ctx, reasonMessage("getting", repositoryShadow, cause), result);
 
         // We have very little to do here. Just change the result status to the partial error, provide more information
         // to the message, and return the repository shadow. Even the fetchResult will be set by the provisioning service itself.
@@ -64,21 +57,17 @@ class CommunicationExceptionHandler extends ErrorHandler {
 
     @Override
     public OperationResultStatus handleAddError(
-            ProvisioningContext ctx,
-            ShadowType shadowToAdd,
-            ProvisioningOperationOptions options,
-            AddOperationState opState,
-            Exception cause,
+            @NotNull ShadowAddOperation operation,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            Task task,
             OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
         try {
-            markResourceDown(ctx, reasonMessage("adding", shadowToAdd, cause), result);
-            return postponeOrThrow(ctx, opState, options, cause, failedOperationResult, result);
+            markResourceDown(operation.getCtx(), reasonMessage(operation, cause), result);
+            return throwOrPostpone(operation, cause, failedOperationResult, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -89,11 +78,7 @@ class CommunicationExceptionHandler extends ErrorHandler {
 
     @Override
     public OperationResultStatus handleModifyError(
-            @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @Nullable ProvisioningOperationOptions options,
-            @NotNull ModifyOperationState opState,
+            @NotNull ShadowModifyOperation operation,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             @NotNull OperationResult parentResult)
@@ -101,8 +86,8 @@ class CommunicationExceptionHandler extends ErrorHandler {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_MODIFY_ERROR);
         result.addParam("exception", cause.getMessage());
         try {
-            markResourceDown(ctx, reasonMessage("modifying", repoShadow, cause), result);
-            return postponeOrThrow(ctx, opState, options, cause, failedOperationResult, result);
+            markResourceDown(operation.getCtx(), reasonMessage(operation, cause), result);
+            return throwOrPostpone(operation, cause, failedOperationResult, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -113,19 +98,16 @@ class CommunicationExceptionHandler extends ErrorHandler {
 
     @Override
     public OperationResultStatus handleDeleteError(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            ProvisioningOperationOptions options,
-            DeleteOperationState opState,
-            Exception cause,
+            @NotNull ShadowDeleteOperation operation,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws CommunicationException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_DELETE_ERROR);
         result.addParam("exception", cause.getMessage());
         try {
-            markResourceDown(ctx, reasonMessage("deleting", repoShadow, cause), result);
-            return postponeOrThrow(ctx, opState, options, cause, failedOperationResult, result);
+            markResourceDown(operation.getCtx(), reasonMessage(operation, cause), result);
+            return throwOrPostpone(operation, cause, failedOperationResult, result);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -134,37 +116,35 @@ class CommunicationExceptionHandler extends ErrorHandler {
         }
     }
 
-    private OperationResultStatus postponeOrThrow(
-            ProvisioningContext ctx,
-            ProvisioningOperationState<?> opState,
-            ProvisioningOperationOptions options,
+    private OperationResultStatus throwOrPostpone(
+            ShadowProvisioningOperation<?> operation,
             Exception cause,
             OperationResult failedOperationResult,
             OperationResult result) throws CommunicationException {
-        if (shouldThrowImmediately(ctx, opState, options)) {
-            throwException(cause, opState, result);
+        if (shouldThrowImmediately(operation)) {
+            throwException(operation, cause, result);
             throw new AssertionError("not here");
         } else {
             result.setInProgress();
-            return opState.markAsPostponed(failedOperationResult);
+            return operation.getOpState().markAsPostponed(failedOperationResult);
         }
     }
 
-    private boolean shouldThrowImmediately(
-            ProvisioningContext ctx, ProvisioningOperationState<?> opState, ProvisioningOperationOptions options) {
+    private boolean shouldThrowImmediately(ShadowProvisioningOperation<?> operation) {
 
+        var ctx = operation.getCtx();
         if (!isOperationRetryEnabled(ctx.getResource())) {
             LOGGER.trace("Operation retry turned off for the resource");
             return true;
         }
 
-        if (!isCompletePostponedOperations(options)) {
+        if (!isCompletePostponedOperations(operation.getOptions())) {
             LOGGER.trace("Completion of postponed operations is not requested");
             return true;
         }
 
         int maxRetryAttempts = ProvisioningUtil.getMaxRetryAttempts(ctx);
-        int attemptNumber = opState.getRealAttemptNumber();
+        int attemptNumber = operation.getOpState().getRealAttemptNumber();
         if (attemptNumber >= maxRetryAttempts) {
             LOGGER.debug("Maximum number of retry attempts ({}) reached for operation on {}", attemptNumber, ctx.getResource());
             return true;
@@ -175,9 +155,9 @@ class CommunicationExceptionHandler extends ErrorHandler {
 
     @Override
     protected void throwException(
-            Exception cause, ProvisioningOperationState<?> opState, OperationResult result)
+            @Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
             throws CommunicationException {
-        recordCompletionError(cause, opState, result);
+        recordCompletionError(operation, cause, result);
         if (cause instanceof CommunicationException) {
             throw (CommunicationException) cause;
         } else {
@@ -185,7 +165,11 @@ class CommunicationExceptionHandler extends ErrorHandler {
         }
     }
 
-    private static String reasonMessage(String op, @NotNull ShadowType repositoryShadow, @NotNull Exception cause) {
-        return op + " " + repositoryShadow + " ended with communication problem, " + cause.getMessage();
+    private static String reasonMessage(@NotNull ShadowProvisioningOperation<?> operation, @NotNull Exception cause) {
+        return reasonMessage(operation.getGerund(), operation.getOpState().getRepoShadow(), cause);
+    }
+
+    private static String reasonMessage(String opName, ShadowType repoShadow, @NotNull Exception cause) {
+        return String.format("%s %s ended with communication problem, %s", opName, repoShadow, cause.getMessage());
     }
 }

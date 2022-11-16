@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
-import java.util.Collection;
+import static com.evolveum.midpoint.prism.Referencable.getOid;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.getAllIdentifiers;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
-import com.evolveum.midpoint.util.MiscUtil;
+import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,24 +25,23 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import static com.evolveum.midpoint.prism.Referencable.getOid;
-import static com.evolveum.midpoint.schema.util.ShadowUtil.*;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * Contains entitlements-related methods. (Or should that methods be distributed more closely to their clients?)
@@ -52,7 +53,6 @@ class EntitlementsHelper {
     private static final Trace LOGGER = TraceManager.getTrace(EntitlementsHelper.class);
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-    @Autowired protected ShadowManager shadowManager;
 
     /**
      * Makes sure that all the entitlements have identifiers in them so this is

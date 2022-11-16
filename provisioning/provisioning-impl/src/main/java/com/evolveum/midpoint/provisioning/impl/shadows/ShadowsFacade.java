@@ -35,8 +35,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * Facade for the whole "shadows" package.
  *
- * Basically, it only dispatches method calls to a set of helper classes, like {@link ShadowGetOperation}, {@link ShadowSearchLikeOperation},
- * {@link ShadowModifyHelper}, {@link ShadowDeleteHelper}, and so on.
+ * Basically, it only dispatches method calls to a set of helper classes, like {@link ShadowGetOperation},
+ * {@link ShadowSearchLikeOperation}, {@link ShadowAddOperation}, {@link ShadowModifyOperation}, {@link ShadowDeleteOperation},
+ * {@link ShadowRefreshHelper}, {@link ShadowOperationPropagationHelper}, and so on.
  *
  * @see com.evolveum.midpoint.provisioning.impl.shadows
  *
@@ -49,12 +50,9 @@ public class ShadowsFacade {
     static final String OP_DELAYED_OPERATION = ShadowsFacade.class.getName() + ".delayedOperation";
     static final String OP_HANDLE_OBJECT = ShadowsFacade.class.getName() + ".handleObject";
 
-    @Autowired private ShadowAddHelper addHelper;
     @Autowired private ShadowRefreshHelper refreshHelper;
-    @Autowired private ShadowModifyHelper modifyHelper;
-    @Autowired private ShadowDeleteHelper deleteHelper;
     @Autowired private DefinitionsHelper definitionsHelper;
-    @Autowired private PropagateHelper propagateHelper;
+    @Autowired private ShadowOperationPropagationHelper propagationHelper;
     @Autowired private ShadowCompareHelper compareHelper;
     @Autowired private ShadowsLocalBeans localBeans;
 
@@ -79,12 +77,16 @@ public class ShadowsFacade {
                 .execute(result);
     }
 
-    public String addResourceObject(ShadowType resourceObjectToAdd, OperationProvisioningScriptsType scripts,
-            ProvisioningOperationOptions options, Task task, OperationResult result)
+    public String addResourceObject(
+            @NotNull ShadowType resourceObjectToAdd,
+            OperationProvisioningScriptsType scripts,
+            ProvisioningOperationOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectAlreadyExistsException, SchemaException,
             ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
-        return addHelper.addResourceObject(resourceObjectToAdd, scripts, options, task, result);
+        return ShadowAddOperation.executeDirectly(resourceObjectToAdd, scripts, options, task, result);
     }
 
     public String modifyShadow(
@@ -97,16 +99,19 @@ public class ShadowsFacade {
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
             EncryptionException, ObjectAlreadyExistsException {
-        return modifyHelper.modifyShadow(repoShadow, modifications, scripts, options, task, result);
+        return ShadowModifyOperation.executeDirectly(repoShadow, modifications, scripts, options, task, result);
     }
 
     public ShadowType deleteShadow(
-            ShadowType repoShadow, ProvisioningOperationOptions options,
-            OperationProvisioningScriptsType scripts, Task task, OperationResult result)
+            @NotNull ShadowType repoShadow,
+            ProvisioningOperationOptions options,
+            OperationProvisioningScriptsType scripts,
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
             SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException,
             ExpressionEvaluationException, EncryptionException {
-        return deleteHelper.deleteShadow(repoShadow, options, scripts, task, result);
+        return ShadowDeleteOperation.executeDirectly(repoShadow, options, scripts, task, result);
     }
 
     @Nullable
@@ -198,7 +203,7 @@ public class ShadowsFacade {
             @NotNull OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, GenericFrameworkException, ObjectAlreadyExistsException,
             SecurityViolationException, PolicyViolationException, EncryptionException {
-        propagateHelper.propagateOperations(resource, shadow, task, result);
+        propagationHelper.propagateOperations(resource, shadow, task, result);
     }
 
     public <T> ItemComparisonResult compare(@NotNull ShadowType repositoryShadow, ItemPath path, T expectedValue, Task task,

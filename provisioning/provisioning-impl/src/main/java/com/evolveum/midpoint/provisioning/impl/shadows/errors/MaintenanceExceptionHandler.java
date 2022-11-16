@@ -5,25 +5,17 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-/*
- * @author Martin Lizner
-*/
-
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
+import com.evolveum.midpoint.provisioning.impl.shadows.*;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -34,12 +26,15 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.List;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.*;
 import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.selectLiveShadow;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 
+/**
+ * @author Martin Lizner
+ */
 @Component
 class MaintenanceExceptionHandler extends ErrorHandler {
 
@@ -50,7 +45,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     private static final String OPERATION_HANDLE_MODIFY_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleModifyError";
     private static final String OPERATION_HANDLE_DELETE_ERROR = MaintenanceExceptionHandler.class.getName() + ".handleDeleteError";
 
-    @Autowired private ShadowManager shadowManager;
+    @Autowired private ShadowFinder shadowFinder;
 
     @Override
     public ShadowType handleGetError(
@@ -58,21 +53,20 @@ class MaintenanceExceptionHandler extends ErrorHandler {
             @NotNull ShadowType repositoryShadow,
             @NotNull Exception cause,
             @NotNull OperationResult failedOperationResult,
-            @NotNull OperationResult parentResult) {
+            @NotNull OperationResult result) {
         // TODO maybe I should put the code back here...
         throw new UnsupportedOperationException("MaintenanceException cannot occur during GET operation.");
     }
 
     @Override
     public OperationResultStatus handleAddError(
-            ProvisioningContext ctx,
-            ShadowType shadowToAdd,
-            ProvisioningOperationOptions options,
-            AddOperationState opState,
-            Exception cause,
+            @NotNull ShadowAddOperation operation,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            Task task,
             OperationResult parentResult) throws SchemaException {
+
+        AddOperationState opState = operation.getOpState();
+        ProvisioningContext ctx = operation.getCtx();
 
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_ADD_ERROR);
         result.addParam("exception", cause.getMessage());
@@ -87,9 +81,9 @@ class MaintenanceExceptionHandler extends ErrorHandler {
 
             // Think again if this is the best place for this functionality.
 
-            ObjectQuery query = ObjectAlreadyExistHandler.createQueryBySecondaryIdentifier(shadowToAdd);
+            ObjectQuery query = ObjectAlreadyExistHandler.createQueryBySecondaryIdentifier(operation.getResourceObjectToAdd());
             LOGGER.trace("Going to find matching shadows using the query:\n{}", query.debugDumpLazily(1));
-            List<PrismObject<ShadowType>> matchingShadows = shadowManager.searchShadows(ctx, query, null, result);
+            List<PrismObject<ShadowType>> matchingShadows = shadowFinder.searchShadows(ctx, query, null, result);
             LOGGER.trace("Found {}: {}", matchingShadows.size(), matchingShadows);
             ShadowType liveShadow = asObjectable(selectLiveShadow(matchingShadows));
             LOGGER.trace("Live shadow found: {}", liveShadow);
@@ -106,7 +100,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
                 // TODO shouldn't we do something similar for other cases like this?
                 if (!opState.hasCurrentPendingOperation()) {
                     opState.setCurrentPendingOperation(
-                            shadowManager.findPendingAddOperation(liveShadow));
+                            findPendingAddOperation(liveShadow));
                 }
             } else {
                 status = OperationResultStatus.IN_PROGRESS;
@@ -128,11 +122,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
 
     @Override
     public OperationResultStatus handleModifyError(
-            @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @Nullable ProvisioningOperationOptions options,
-            @NotNull ModifyOperationState opState,
+            @NotNull ShadowModifyOperation operation,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             @NotNull OperationResult parentResult) {
@@ -142,7 +132,7 @@ class MaintenanceExceptionHandler extends ErrorHandler {
         try {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
             result.setInProgress();
-            return opState.markAsPostponed(failedOperationResult);
+            return operation.getOpState().markAsPostponed(failedOperationResult);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -153,19 +143,16 @@ class MaintenanceExceptionHandler extends ErrorHandler {
 
     @Override
     public OperationResultStatus handleDeleteError(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState.DeleteOperationState opState,
-            Exception cause,
+            @NotNull ShadowDeleteOperation operation,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_HANDLE_DELETE_ERROR);
         result.addParam("exception", cause.getMessage());
         try {
             failedOperationResult.setStatus(OperationResultStatus.IN_PROGRESS);
             result.setInProgress();
-            return opState.markAsPostponed(failedOperationResult);
+            return operation.getOpState().markAsPostponed(failedOperationResult);
         } catch (Throwable t) {
             result.recordException(t);
             throw t;
@@ -175,8 +162,9 @@ class MaintenanceExceptionHandler extends ErrorHandler {
     }
 
     @Override
-    protected void throwException(Exception cause, ProvisioningOperationState<?> opState, OperationResult result) throws MaintenanceException {
-        recordCompletionError(cause, opState, result);
+    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
+            throws MaintenanceException {
+        recordCompletionError(operation, cause, result);
         if (cause instanceof MaintenanceException) {
             throw (MaintenanceException)cause;
         } else {

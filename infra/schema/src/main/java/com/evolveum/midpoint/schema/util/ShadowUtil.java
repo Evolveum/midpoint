@@ -132,13 +132,23 @@ public class ShadowUtil {
         return attributesContainer.getNamingAttribute();
     }
 
-    public static Collection<ResourceAttribute<?>> getAttributes(ShadowType shadowType) {
+    public static @NotNull Collection<ResourceAttribute<?>> getAttributes(ShadowType shadowType) {
         return getAttributes(shadowType.asPrismObject());
     }
 
-    // TODO what if there's no attributes container?
-    public static Collection<ResourceAttribute<?>> getAttributes(PrismObject<? extends ShadowType> shadow) {
-        return getAttributesContainer(shadow).getAttributes();
+    public static @NotNull Collection<ResourceAttribute<?>> getAttributes(PrismObject<? extends ShadowType> shadow) {
+        ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);
+        return attributesContainer != null ? attributesContainer.getAttributes() : List.of();
+    }
+
+    /** Here we assume that the definition may not be applied yet. */
+    public static @NotNull Collection<Item<?, ?>> getAttributesRaw(PrismObject<? extends ShadowType> shadow) {
+        PrismContainer<?> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+        if (attributesContainer != null && attributesContainer.hasAnyValue()) {
+            return attributesContainer.getValue().getItems();
+        } else {
+            return List.of();
+        }
     }
 
     public static <T> ResourceAttribute<T> getAttribute(ShadowType shadow, QName attrName) {

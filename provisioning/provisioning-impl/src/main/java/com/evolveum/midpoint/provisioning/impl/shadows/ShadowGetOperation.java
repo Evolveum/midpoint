@@ -245,6 +245,7 @@ class ShadowGetOperation {
 
     private void updateShadowState() {
         ctx.updateShadowState(repositoryShadow);
+        LOGGER.trace("shadow state is {}", repositoryShadow.getShadowLifecycleState());
     }
 
     private void checkReadCapability() {
@@ -269,7 +270,7 @@ class ShadowGetOperation {
 
     private void doQuickShadowRefresh(OperationResult result) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        repositoryShadow = localBeans.refreshHelper.refreshShadowQuick(ctx, repositoryShadow, now, ctx.getTask(), result);
+        repositoryShadow = localBeans.refreshHelper.refreshShadowQuick(ctx, repositoryShadow, now, result);
         if (repositoryShadow == null) {
             throw new ObjectNotFoundException(
                     "Resource object not found (after quick refresh)",
@@ -461,7 +462,7 @@ class ShadowGetOperation {
             if (classification.isKnown()) {
                 // TODO deduplicate this code somehow
                 LOGGER.debug("Classified {} as {}", repositoryShadow, classification.getDefinition());
-                repositoryShadow = localBeans.shadowManager.fixShadow(ctx, repositoryShadow, result);
+                repositoryShadow = localBeans.shadowUpdater.normalizeShadowAttributesInRepository(ctx, repositoryShadow, result);
                 updateShadowState();
                 ProvisioningContext tempCtx = ctx.spawnForShadow(repositoryShadow);
                 tempCtx.applyAttributesDefinition(repositoryShadow);
@@ -478,17 +479,18 @@ class ShadowGetOperation {
     private void updateShadowInRepository(ShadowType resourceObject, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump(1));
+            LOGGER.trace("updateShadowInRepository starting; shadow from repository:\n{}", repositoryShadow.debugDump(1));
             LOGGER.trace("Resource object fetched from resource:\n{}", resourceObject.debugDump(1));
         }
         repositoryShadow =
-                localBeans.shadowManager.updateShadowInRepository(
+                localBeans.shadowUpdater.updateShadowInRepository(
                         ctx, resourceObject, null, repositoryShadow,
                         repositoryShadow.getShadowLifecycleState(), result);
         LOGGER.trace("Repository shadow after update:\n{}", repositoryShadow.debugDumpLazily(1));
     }
 
     private String getReasonForReturningCachedShadow() throws ConfigurationException {
+        LOGGER.trace("Determining if we have a reason for returning cached shadow"); // the non-null result will be logged later
         if (ctx.isReadingCachingOnly()) {
             return "resource is caching only";
         }
@@ -509,7 +511,7 @@ class ShadowGetOperation {
         }
         switch (pit) {
             case CURRENT:
-                LOGGER.trace("We need current reliable state  -> we will NOT return cached data.");
+                LOGGER.trace("We need current reliable state -> we will NOT return cached data.");
                 return null;
             case CACHED:
                 if (isCachedShadowFreshEnough()) {
@@ -519,8 +521,8 @@ class ShadowGetOperation {
                     return null;
                 }
             case FUTURE:
-                LOGGER.trace("We could return cached, e.g. if there is a pending create operation. "
-                        + "But let's try real get operation first.");
+                LOGGER.trace("We were asked for future point in time. We could return cached, e.g. if there was a pending "
+                        + "create operation. But let's try real get operation first and then we'll see.");
                 return null;
             default:
                 throw new IllegalArgumentException("Unknown point in time: " + pit);

@@ -1501,6 +1501,10 @@ public class ResourceObjectConverter {
         return resourceObject;
     }
 
+    /**
+     * Attributes returned by the connector update the original shadow: they are either added (if not present before),
+     * or they replace their previous versions.
+     */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private void applyAfterOperationAttributes(ShadowType shadow,
             Collection<ResourceAttribute<?>> resourceAttributesAfterAdd) throws SchemaException {

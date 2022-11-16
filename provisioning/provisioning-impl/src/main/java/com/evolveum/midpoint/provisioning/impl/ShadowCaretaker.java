@@ -404,12 +404,4 @@ public class ShadowCaretaker {
         shadow.setShadowLifecycleState(
                 determineShadowState(ctx, shadow));
     }
-
-    /** Determines and updates the shadow state - in situations where we don't have the context. */
-    public void updateShadowStateInEmergency(ShadowType shadow)
-            throws SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
-            ObjectNotFoundException {
-        ShadowLifecycleStateType state = determineShadowStateInternal(null, shadow, clock.currentTimeXMLGregorianCalendar());
-        shadow.setShadowLifecycleState(state);
-    }
 }

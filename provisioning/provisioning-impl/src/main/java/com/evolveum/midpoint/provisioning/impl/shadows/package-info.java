@@ -14,8 +14,7 @@
  *
  * 1. {@link com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter}: executes operations on resource
  * (resides in `resourceobjects` sibling package)
- * 2. {@link com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager}: executes operations in the repository
- * (resides in `manager` child package)
+ * 2. {@link com.evolveum.midpoint.provisioning.impl.shadows.manager}: executes operations in the repository
  *
  * The `shadows` package itself is structured like this:
  *

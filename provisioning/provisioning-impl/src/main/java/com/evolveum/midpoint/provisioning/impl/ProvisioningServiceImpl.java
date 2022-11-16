@@ -997,8 +997,6 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
         OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
         try {
             ConstraintsChecker checker = new ConstraintsChecker();
-            checker.setCacheConfigurationManager(cacheConfigurationManager);
-            checker.setShadowsFacade(shadowsFacade);
             checker.setShadowObjectOld(shadowObjectOld);
             // "Whole class": we should not need it here. We do not invoke the search on resource here.
             ProvisioningContext ctx = ctxFactory.createForDefinition(resource, objectDefinition, null, task);

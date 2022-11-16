@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
+
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
@@ -17,9 +19,9 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 class ConfigurationExceptionHandler extends HardErrorHandler {
 
     @Override
-    protected void throwException(Exception cause, ProvisioningOperationState<?> opState, OperationResult result)
+    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
             throws ConfigurationException {
-        recordCompletionError(cause, opState, result);
+        recordCompletionError(operation, cause, result);
         if (cause instanceof ConfigurationException) {
             throw (ConfigurationException)cause;
         } else {

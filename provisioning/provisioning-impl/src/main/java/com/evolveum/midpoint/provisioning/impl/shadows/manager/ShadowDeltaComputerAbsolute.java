@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsNormalizationUtil;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -43,17 +44,28 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
+
 /**
  * Computes deltas to be applied to repository shadows.
- * This functionality grew too large to deserve special implementation class, to offload {@link ShadowUpdater}.
  *
- * @see ShadowManager#updateShadowInRepository(ProvisioningContext, ShadowType, ObjectDelta, ShadowType,
+ * Works in two situations:
+ *
+ * . When an object (optionally with the delta) was obtained from the resource. Here the computation uses the absolute state
+ * of the resource object as the information source (helped with the observed delta from the resource).
+ * . When an object was created (or attempted to be created) on the resource, and the result is to be written to an existing
+ * shadow. So we have to compute deltas for that shadow.
+ *
+ * These two situations are discriminated by {@link DeltaComputation#fromResource} flag.
+ *
+ * @see ShadowDeltaComputerRelative
+ * @see ShadowUpdater#updateShadowInRepository(ProvisioningContext, ShadowType, ObjectDelta, ShadowType,
  * ShadowLifecycleStateType, OperationResult)
  */
 @Component
-class ShadowDeltaComputer {
+class ShadowDeltaComputerAbsolute {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ShadowDeltaComputer.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowDeltaComputerAbsolute.class);
 
     @Autowired private Clock clock;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
@@ -64,9 +76,10 @@ class ShadowDeltaComputer {
             @NotNull ShadowType repoShadow,
             @NotNull ShadowType resourceObject,
             @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
-            ShadowLifecycleStateType shadowState) // TODO ensure this is filled-in
+            ShadowLifecycleStateType shadowState, // TODO ensure this is filled-in
+            boolean fromResource)
             throws SchemaException, ConfigurationException {
-        return new DeltaComputation(ctx, repoShadow, resourceObject, resourceObjectDelta, shadowState)
+        return new DeltaComputation(ctx, repoShadow, resourceObject, resourceObjectDelta, shadowState, fromResource)
                 .execute();
     }
 
@@ -82,13 +95,19 @@ class ShadowDeltaComputer {
         private final ShadowLifecycleStateType shadowState;
         @NotNull private final ObjectDelta<ShadowType> computedShadowDelta;
         @NotNull private final CachingStrategyType cachingStrategy;
+        /**
+         * True if the information we deal with (resource object, resource object delta) comes from the resource.
+         * False if the shadow was sent to the resource, and the operation might or might not succeeded.
+         */
+        private final boolean fromResource;
 
         private DeltaComputation(
                 @NotNull ProvisioningContext ctx,
                 @NotNull ShadowType repoShadow,
                 @NotNull ShadowType resourceObject,
                 @Nullable ObjectDelta<ShadowType> resourceObjectDelta,
-                ShadowLifecycleStateType shadowState) {
+                ShadowLifecycleStateType shadowState,
+                boolean fromResource) {
             this.ctx = ctx;
             this.repoShadow = repoShadow;
             this.resourceObject = resourceObject;
@@ -96,6 +115,7 @@ class ShadowDeltaComputer {
             this.shadowState = shadowState;
             this.computedShadowDelta = repoShadow.asPrismObject().createModifyDelta();
             this.cachingStrategy = ctx.getCachingStrategy();
+            this.fromResource = fromResource;
         }
 
         private @NotNull ObjectDelta<ShadowType> execute()
@@ -109,16 +129,24 @@ class ShadowDeltaComputer {
             updateAttributes(incompleteCacheableItems);
             updateShadowName();
             updateAuxiliaryObjectClasses();
-            updateExistsFlag();
+
+            if (fromResource) {
+                updateExistsFlag();
+            } else {
+                updatePrimaryIdentifierValue();
+            }
+
             updateProductionModeFlag();
 
-            if (cachingStrategy == CachingStrategyType.NONE) {
-                clearCachingMetadata();
-            } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
-                updateCachedActivation();
-                updateCachingMetadata(incompleteCacheableItems);
-            } else {
-                throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
+            if (fromResource) { // TODO reconsider this
+                if (cachingStrategy == CachingStrategyType.NONE) {
+                    clearCachingMetadata();
+                } else if (cachingStrategy == CachingStrategyType.PASSIVE) {
+                    updateCachedActivation();
+                    updateCachingMetadata(incompleteCacheableItems);
+                } else {
+                    throw new ConfigurationException("Unknown caching strategy " + cachingStrategy);
+                }
             }
             return computedShadowDelta;
         }
@@ -150,6 +178,20 @@ class ShadowDeltaComputer {
                 PropertyDelta<Boolean> existsDelta = computedShadowDelta.createPropertyModification(ShadowType.F_EXISTS);
                 existsDelta.setRealValuesToReplace(true);
                 computedShadowDelta.addModification(existsDelta);
+            }
+        }
+
+        private void updatePrimaryIdentifierValue() throws SchemaException {
+            String newPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceObject);
+            String existingPrimaryIdentifierValue = repoShadow.getPrimaryIdentifierValue();
+            if (!Objects.equals(existingPrimaryIdentifierValue, newPrimaryIdentifierValue)) {
+                LOGGER.trace("Existing primary identifier value: {}, new: {}",
+                        existingPrimaryIdentifierValue, newPrimaryIdentifierValue);
+                computedShadowDelta.addModification(
+                        prismContext.deltaFor(ShadowType.class)
+                                .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace(newPrimaryIdentifierValue)
+                                .asItemDelta()
+                );
             }
         }
 
@@ -314,8 +356,8 @@ class ShadowDeltaComputer {
                     if (!Objects.equals(currentResourceNormalizedRealValue, oldRepoAttributeProperty.getRealValue())) {
                         PropertyDelta<Object> delta;
                         if (currentResourceNormalizedRealValue != null) {
-                            delta = computedShadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(),
-                                    currentResourceNormalizedRealValue);
+                            delta = computedShadowDelta.addModificationReplaceProperty(
+                                    currentResourceAttrProperty.getPath(), currentResourceNormalizedRealValue);
                         } else {
                             delta = computedShadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath());
                         }
@@ -335,6 +377,7 @@ class ShadowDeltaComputer {
             }
         }
 
+        /** See also {@link ShadowsNormalizationUtil}. */
         private void setNormalizedValuesToReplace(
                 PropertyDelta<Object> attrAddDelta,
                 List<PrismPropertyValue<Object>> currentValues,

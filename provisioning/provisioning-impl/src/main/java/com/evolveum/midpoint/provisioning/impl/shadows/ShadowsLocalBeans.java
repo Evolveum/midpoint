@@ -14,9 +14,13 @@ import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
 import com.evolveum.midpoint.provisioning.impl.resourceobjects.ResourceObjectConverter;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.impl.shadows.errors.ErrorHandlerLocator;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.OperationResultRecorder;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,11 +50,14 @@ class ShadowsLocalBeans {
     @Autowired AccessChecker accessChecker;
     @Autowired ShadowedObjectConstructionHelper shadowedObjectConstructionHelper;
     @Autowired ShadowAcquisitionHelper shadowAcquisitionHelper;
-    @Autowired CommonHelper commonHelper;
     @Autowired ClassificationHelper classificationHelper;
     @Autowired ShadowsFacade shadowsFacade;
     @Autowired ShadowCaretaker shadowCaretaker;
-    @Autowired ShadowManager shadowManager;
+    @Autowired ShadowFinder shadowFinder;
+    @Autowired OperationResultRecorder operationResultRecorder;
+    @Autowired ShadowUpdater shadowUpdater;
+    @Autowired ShadowCreator shadowCreator;
+    @Autowired EntitlementsHelper entitlementsHelper;
     @Autowired ExpressionFactory expressionFactory;
 
     @Autowired
@@ -64,4 +71,6 @@ class ShadowsLocalBeans {
     @Autowired ProvisioningContextFactory ctxFactory;
     @Autowired ShadowRefreshHelper refreshHelper;
     @Autowired EventDispatcher eventDispatcher;
+
+    @Autowired CacheConfigurationManager cacheConfigurationManager;
 }

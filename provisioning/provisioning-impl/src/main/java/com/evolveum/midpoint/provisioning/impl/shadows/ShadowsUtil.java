@@ -8,23 +8,17 @@
 package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade.OP_DELAYED_OPERATION;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
@@ -50,21 +44,6 @@ class ShadowsUtil {
                 .anyMatch(ShadowsUtil::isRetryableOperation);
     }
 
-    static void notifyAboutSuccessOperation(
-            ProvisioningContext ctx,
-            ShadowType shadow,
-            ProvisioningOperationState<?> opState,
-            ObjectDelta<ShadowType> delta,
-            OperationResult result) {
-        ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, shadow, delta);
-        EventDispatcher eventDispatcher = ShadowsLocalBeans.get().eventDispatcher;
-        if (opState.isExecuting()) {
-            eventDispatcher.notifyInProgress(operationDescription, ctx.getTask(), result);
-        } else {
-            eventDispatcher.notifySuccess(operationDescription, ctx.getTask(), result);
-        }
-    }
-
     static ResourceOperationDescription createSuccessOperationDescription(
             ProvisioningContext ctx, ShadowType shadowType, ObjectDelta<? extends ShadowType> delta) {
         ResourceOperationDescription operationDescription = new ResourceOperationDescription();
@@ -84,22 +63,6 @@ class ShadowsUtil {
         failureDesc.setMessage(message);
         failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY)); // ???
         return failureDesc;
-    }
-
-    /**
-     * This is quite an ugly hack - setting the status/message in the root {@link ProvisioningService} operation result.
-     */
-    static void setParentOperationStatus(
-            OperationResult parentResult,
-            ProvisioningOperationState<?> opState,
-            OperationResultStatus finalOperationStatus) {
-        parentResult.computeStatus(true); // To provide the error message from the subresults
-        if (finalOperationStatus != null) {
-            parentResult.setStatus(finalOperationStatus);
-        } else if (!opState.isCompleted()) {
-            parentResult.setInProgress();
-        }
-        parentResult.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
     }
 
     static String getAdditionalOperationDesc(
@@ -133,18 +96,5 @@ class ShadowsUtil {
         } else {
             return null;
         }
-    }
-
-    static void markOperationExecutionAsPending(
-            Trace logger, String operation, ProvisioningOperationState<?> opState, OperationResult parentResult) {
-        opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTION_PENDING);
-
-        // Create dummy subresult with IN_PROGRESS state.
-        // This will force the entire result (parent) to be IN_PROGRESS rather than SUCCESS.
-        OperationResult result = parentResult.createSubresult(OP_DELAYED_OPERATION);
-        result.recordInProgress();
-        result.close();
-
-        logger.debug("{}: Resource operation NOT executed, execution pending", operation);
     }
 }

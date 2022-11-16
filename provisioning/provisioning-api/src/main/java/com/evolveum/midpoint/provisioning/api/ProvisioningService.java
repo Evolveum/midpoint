@@ -647,6 +647,9 @@ public interface ProvisioningService {
      *
      * TODO: optimistic locking
      *
+     * TODO decide if it's OK that the callee modifies the `modifications` collection by adding side-effects provided
+     *  by the connector.
+     *
      * @param scripts
      *            scripts that should be executed before of after operation
      * @param parentResult

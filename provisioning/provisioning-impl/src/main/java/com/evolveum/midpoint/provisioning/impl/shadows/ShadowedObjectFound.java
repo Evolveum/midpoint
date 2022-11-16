@@ -171,7 +171,7 @@ public class ShadowedObjectFound implements InitializableMixin {
             ProvisioningContext ctx, ShadowType repoShadow, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         // TODO: provide shadowState - it is needed when updating exists attribute (because of quantum effects)
-        return ictx.localBeans.shadowManager
+        return ictx.localBeans.shadowUpdater
                 .updateShadowInRepository(ctx, resourceObject, null, repoShadow, null, result);
     }
 

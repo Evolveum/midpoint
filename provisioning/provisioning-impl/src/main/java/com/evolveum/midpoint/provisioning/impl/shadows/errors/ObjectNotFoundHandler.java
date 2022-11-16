@@ -7,44 +7,39 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
-import java.util.Collection;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.LIVE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.REAPING;
 
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
-import com.evolveum.midpoint.task.api.TaskUtil;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowDeleteOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowUpdater;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.LIVE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.REAPING;
 
 @Component
 class ObjectNotFoundHandler extends HardErrorHandler {
@@ -53,7 +48,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectNotFoundHandler.class);
 
-    @Autowired private ShadowManager shadowManager;
+    @Autowired private ShadowUpdater shadowUpdater;
     @Autowired private ShadowCaretaker shadowCaretaker;
 
     @Override
@@ -72,7 +67,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
 
         if (ctx.getErrorReportingMethod() == FetchErrorReportingMethodType.FORCED_EXCEPTION) {
             LOGGER.debug("Got {} but 'forced exception' mode is selected. Will rethrow it.", cause.getClass().getSimpleName());
-            throwException(cause, null, result);
+            throwException(null, cause, result);
             throw new AssertionError("not reached");
         }
 
@@ -110,7 +105,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
         if (TaskUtil.isExecute(task) || TaskUtil.isDryRun(task)) {
             LOGGER.trace("Setting {} as tombstone. This may be a quantum state collapse. Or maybe a lost shadow.",
                     repositoryShadow);
-            return shadowManager.markShadowTombstone(repositoryShadow, task, result);
+            return shadowUpdater.markShadowTombstone(repositoryShadow, task, result);
         } else {
             LOGGER.trace("Not in execute or dry-run mode ({}). Keeping shadow marked as 'exists'.",
                     TaskUtil.getExecutionMode(task));
@@ -120,49 +115,47 @@ class ObjectNotFoundHandler extends HardErrorHandler {
 
     @Override
     public OperationResultStatus handleModifyError(
-            @NotNull ProvisioningContext ctx,
-            @NotNull ShadowType repoShadow,
-            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
-            @Nullable ProvisioningOperationOptions options,
-            @NotNull ModifyOperationState opState,
+            @NotNull ShadowModifyOperation operation,
             @NotNull Exception cause,
             OperationResult failedOperationResult,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
+        ProvisioningContext ctx = operation.getCtx();
+        ShadowType repoShadow = operation.getOpState().getRepoShadowRequired();
+
         // We do this before marking shadow as tombstone.
         ShadowLifecycleStateType stateBefore = shadowCaretaker.determineShadowState(ctx, repoShadow);
         markShadowTombstoneIfApplicable(ctx, repoShadow, result);
 
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) { // Put options to ctx
+        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), operation.getOptions())) { // Put options to ctx
             notifyAboutMissingObjectIfApplicable(ctx, repoShadow, stateBefore, result);
         }
 
-        throwException(cause, opState, result);
+        throwException(operation, cause, result);
         throw new AssertionError("not here");
     }
 
     @Override
     public OperationResultStatus handleDeleteError(
-            ProvisioningContext ctx,
-            ShadowType repoShadow,
-            ProvisioningOperationOptions options,
-            DeleteOperationState opState,
-            Exception cause,
+            @NotNull ShadowDeleteOperation operation, @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult result) throws SchemaException {
+            @NotNull OperationResult result) throws SchemaException {
+
+        ProvisioningContext ctx = operation.getCtx();
+        ShadowType repoShadow = operation.getOpState().getRepoShadowRequired();
 
         // We do this before marking shadow as tombstone.
         ShadowLifecycleStateType stareBefore = shadowCaretaker.determineShadowState(ctx, repoShadow);
         markShadowTombstoneIfApplicable(ctx, repoShadow, result);
 
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), options)) { // Put options to ctx
+        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), operation.getOptions())) { // Put options to ctx
             notifyAboutMissingObjectIfApplicable(ctx, repoShadow, stareBefore, result);
         }
 
         // Error deleting shadow because the shadow is already deleted. This means someone has done our job already.
         failedOperationResult.setStatus(OperationResultStatus.HANDLED_ERROR);
-        opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
+        operation.getOpState().setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
         return OperationResultStatus.HANDLED_ERROR;
     }
 
@@ -207,9 +200,9 @@ class ObjectNotFoundHandler extends HardErrorHandler {
 
     @Override
     protected void throwException(
-            Exception cause, ProvisioningOperationState<?> opState, OperationResult result)
+            @Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
             throws ObjectNotFoundException {
-        recordCompletionError(cause, opState, result);
+        recordCompletionError(operation, cause, result);
         if (cause instanceof ObjectNotFoundException) {
             throw (ObjectNotFoundException)cause;
         } else {

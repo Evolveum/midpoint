@@ -625,6 +625,10 @@ public class ProvisioningContext {
         getCaretaker().updateShadowState(this, shadow);
     }
 
+    public ShadowLifecycleStateType determineShadowState(ShadowType shadow) {
+        return getCaretaker().determineShadowState(this, shadow);
+    }
+
     // TODO not sure if it's ok here
     public @NotNull ShadowType futurizeShadow(
             @NotNull ShadowType repoShadow,

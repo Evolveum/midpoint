@@ -10,7 +10,6 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.getGroupingInterval;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTION_PENDING;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
@@ -22,16 +21,11 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
 import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.DeleteOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.ModifyOperationState;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -49,18 +43,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @Component
 @Experimental
-class PropagateHelper {
+class ShadowOperationPropagationHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PropagateHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ShadowOperationPropagationHelper.class);
 
     @Autowired private Clock clock;
     @Autowired private ShadowCaretaker shadowCaretaker;
-    @Autowired protected ShadowManager shadowManager;
     @Autowired private ProvisioningContextFactory ctxFactory;
     @Autowired private DefinitionsHelper definitionsHelper;
-    @Autowired private ShadowAddHelper addHelper;
-    @Autowired private ShadowModifyHelper modifyHelper;
-    @Autowired private ShadowDeleteHelper deleteHelper;
 
     void propagateOperations(
             @NotNull ResourceType resource,
@@ -103,19 +93,11 @@ class PropagateHelper {
 
         if (aggregateDelta.isAdd()) {
             ShadowType shadowToAdd = aggregateDelta.getObjectToAdd().asObjectable();
-            shadowToAdd.setOid(shadow.getOid());
-            AddOperationState opState = new AddOperationState(shadow);
-            opState.setPropagatedPendingOperations(sortedOperations);
-            addHelper.executeAddAttempt(ctx, shadowToAdd, null, null, opState, result);
+            ShadowAddOperation.executeInPropagation(ctx, shadow, shadowToAdd, sortedOperations, result);
         } else if (aggregateDelta.isModify()) {
-            Collection<? extends ItemDelta<?,?>> modifications = aggregateDelta.getModifications();
-            ModifyOperationState opState = new ModifyOperationState(shadow);
-            opState.setPropagatedPendingOperations(sortedOperations);
-            modifyHelper.executeModifyAttempt(ctx, modifications, null, null, opState, true, result);
+            ShadowModifyOperation.executeInPropagation(ctx, shadow, aggregateDelta.getModifications(), sortedOperations, result);
         } else if (aggregateDelta.isDelete()) {
-            DeleteOperationState opState = new DeleteOperationState(shadow);
-            opState.setPropagatedPendingOperations(sortedOperations);
-            deleteHelper.executeDeleteAttempt(ctx, null, null, opState, true, result);
+            ShadowDeleteOperation.executeInPropagation(ctx, shadow, sortedOperations, result);
         } else {
             throw new IllegalStateException("Delta from outer space: " + aggregateDelta);
         }
