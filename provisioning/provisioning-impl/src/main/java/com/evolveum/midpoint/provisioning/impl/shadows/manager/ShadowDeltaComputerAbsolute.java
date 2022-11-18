@@ -136,8 +136,6 @@ class ShadowDeltaComputerAbsolute {
                 updatePrimaryIdentifierValue();
             }
 
-            updateProductionModeFlag();
-
             if (fromResource) { // TODO reconsider this
                 if (cachingStrategy == CachingStrategyType.NONE) {
                     clearCachingMetadata();
@@ -192,18 +190,6 @@ class ShadowDeltaComputerAbsolute {
                                 .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace(newPrimaryIdentifierValue)
                                 .asItemDelta()
                 );
-            }
-        }
-
-        private void updateProductionModeFlag() throws SchemaException {
-            boolean existingProductionMode = ShadowUtil.isInProduction(repoShadow);
-            boolean newProductionMode = ctx.isObjectDefinitionInProduction();
-            if (newProductionMode != existingProductionMode) {
-                computedShadowDelta.addModification(
-                        prismContext.deltaFor(ShadowType.class)
-                                .item(ShadowType.F_SIMULATED)
-                                .replace(!newProductionMode)
-                                .asItemDelta());
             }
         }
 

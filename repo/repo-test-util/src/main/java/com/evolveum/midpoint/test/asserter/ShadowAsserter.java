@@ -495,14 +495,22 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
                 Set.of();
     }
 
-    public ShadowAsserter<RA> assertInProduction(boolean expected) {
-        assertThat(isInProduction())
-                .as("shadow 'is-in-production' status")
+    public ShadowAsserter<RA> assertSimulated() {
+        return assertSimulated(true);
+    }
+
+    public ShadowAsserter<RA> assertNotSimulated() {
+        return assertSimulated(false);
+    }
+
+    public ShadowAsserter<RA> assertSimulated(boolean expected) {
+        assertThat(isSimulated())
+                .as("shadow 'is simulated' status")
                 .isEqualTo(expected);
         return this;
     }
 
-    private boolean isInProduction() {
-        return ShadowUtil.isInProduction(getObjectable());
+    private boolean isSimulated() {
+        return ShadowUtil.isSimulated(getObjectable());
     }
 }

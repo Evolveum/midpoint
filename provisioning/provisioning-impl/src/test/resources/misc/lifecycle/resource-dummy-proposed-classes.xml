@@ -6,17 +6,17 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<resource oid="7e07397d-392d-438b-91ea-00e53a6e521c"
+<resource oid="68c10e8e-3d4a-42ff-9916-3f4ba8317fde"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>dummy-active</name>
-    <!-- No lifecycle means "active" -->
+    <name>dummy-proposed-classes</name>
+    <lifecycleState>active</lifecycleState> <!-- but some object classes are proposed -->
     <connectorRef oid="will-be-supplied-by-the-test-code"/>
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>active</icfi:instanceId>
+            <icfi:instanceId>proposed-classes</icfi:instanceId>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -76,5 +76,39 @@
                 <classificationOrder>3</classificationOrder>
             </delineation>
         </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>mail-group</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>m_</q:value>
+                    </q:substring>
+                </filter>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>security-group</intent>
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>s_</q:value>
+                    </q:substring>
+                </filter>
+            </delineation>
+        </objectType>
+        <objectClass>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <lifecycleState>proposed</lifecycleState>
+        </objectClass>
+        <objectClass>
+            <objectClass>ri:CustomprivilegeObjectClass</objectClass>
+            <lifecycleState>proposed</lifecycleState>
+        </objectClass>
     </schemaHandling>
 </resource>

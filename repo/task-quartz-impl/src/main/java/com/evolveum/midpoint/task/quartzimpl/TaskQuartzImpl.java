@@ -103,6 +103,8 @@ public class TaskQuartzImpl implements Task {
 
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
+    @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
+
     /** Synchronizes Quartz-related operations. */
     private final Object quartzAccess = new Object();
 
@@ -2293,6 +2295,16 @@ public class TaskQuartzImpl implements Task {
         stateCheck(actionsExecutedCollector != null, "Actions executed collector not set in %s", this);
         actionsExecutedCollector.stop();
         actionsExecutedCollector = null;
+    }
+
+    @NotNull
+    @Override
+    public TaskExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public void setExecutionMode(@NotNull TaskExecutionMode executionMode) {
+        this.executionMode = Objects.requireNonNull(executionMode);
     }
     //endregion
 }

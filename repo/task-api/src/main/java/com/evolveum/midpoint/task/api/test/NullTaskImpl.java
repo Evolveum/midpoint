@@ -539,6 +539,15 @@ public class NullTaskImpl implements Task {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public @NotNull TaskExecutionMode getExecutionMode() {
+        return TaskExecutionMode.PRODUCTION;
+    }
+
+    @Override
+    public void setExecutionMode(@NotNull TaskExecutionMode mode) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public Long getExpectedTotal() {

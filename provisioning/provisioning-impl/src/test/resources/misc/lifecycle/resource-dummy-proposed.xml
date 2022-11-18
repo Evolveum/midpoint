@@ -28,22 +28,52 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
+            <default>true</default>
+            <!-- Not used. It is here just to have any default. -->
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
             </delineation>
         </objectType>
         <objectType>
             <kind>account</kind>
-            <intent>testing</intent>
+            <intent>employee</intent>
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
                 <filter>
                     <q:substring>
                         <q:path>attributes/name</q:path>
-                        <q:value>_</q:value>
+                        <q:value>e_</q:value>
                     </q:substring>
                 </filter>
                 <classificationOrder>1</classificationOrder>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>admin</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>a_</q:value>
+                    </q:substring>
+                </filter>
+                <classificationOrder>2</classificationOrder>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>demo</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>d_</q:value>
+                    </q:substring>
+                </filter>
+                <classificationOrder>3</classificationOrder>
             </delineation>
         </objectType>
     </schemaHandling>

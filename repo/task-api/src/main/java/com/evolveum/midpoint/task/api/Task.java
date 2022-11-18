@@ -994,5 +994,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     default boolean isIndestructible() {
         return Boolean.TRUE.equals(getPropertyRealValue(TaskType.F_INDESTRUCTIBLE, Boolean.class));
     }
+
+    /** Returns the execution mode of this task. */
+    @NotNull TaskExecutionMode getExecutionMode();
+
+    void setExecutionMode(@NotNull TaskExecutionMode mode);
     //endregion
 }

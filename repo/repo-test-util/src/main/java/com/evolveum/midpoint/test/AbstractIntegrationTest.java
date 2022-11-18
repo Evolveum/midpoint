@@ -1564,6 +1564,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return queryForAccountDefault(resource.getObjectable());
     }
 
+    /** This looks for `ri:AccountObjectClass`. */
+    protected @NotNull S_MatchingRuleEntry queryForRiAccountObjectClass(DummyTestResource resource)
+            throws SchemaException, ConfigurationException {
+        return Resource.of(resource.getObjectable())
+                .queryFor(RI_ACCOUNT_OBJECT_CLASS);
+    }
+
     /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
     protected ObjectQuery accountDefaultObjectsQuery(ResourceType resource, QName attributeName, Object attributeValue)
             throws SchemaException, ConfigurationException {

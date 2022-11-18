@@ -10,13 +10,13 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-    <name>dummy-semi-active</name>
+    <name>dummy-proposed-types</name>
     <lifecycleState>active</lifecycleState> <!-- but some object types are proposed -->
     <connectorRef oid="will-be-supplied-by-the-test-code"/>
     <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
-            <icfi:instanceId>semi-active</icfi:instanceId>
+            <icfi:instanceId>proposed-types</icfi:instanceId>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -28,24 +28,54 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
-            <!-- no lifecycle state = derives from the resource -->
+            <default>true</default>
+            <!-- Not used. It is here just to have any default. -->
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
             </delineation>
         </objectType>
         <objectType>
             <kind>account</kind>
-            <intent>testing</intent>
+            <intent>employee</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>e_</q:value>
+                    </q:substring>
+                </filter>
+                <classificationOrder>1</classificationOrder>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>admin</intent>
             <lifecycleState>proposed</lifecycleState>
             <delineation>
                 <objectClass>ri:AccountObjectClass</objectClass>
                 <filter>
                     <q:substring>
                         <q:path>attributes/name</q:path>
-                        <q:value>_</q:value>
+                        <q:value>a_</q:value>
                     </q:substring>
                 </filter>
-                <classificationOrder>1</classificationOrder>
+                <classificationOrder>2</classificationOrder>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>demo</intent>
+            <lifecycleState>proposed</lifecycleState>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>d_</q:value>
+                    </q:substring>
+                </filter>
+                <classificationOrder>3</classificationOrder>
             </delineation>
         </objectType>
     </schemaHandling>

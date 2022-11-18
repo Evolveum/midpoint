@@ -151,8 +151,6 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
 
             accessChecker.checkAddAccess(ctx, resourceObjectToAdd, result);
 
-            setProductionFlag();
-
             executeShadowConstraintsCheck(result); // To avoid shadow duplication (if configured so)
             shadowCreator.addNewProposedShadow(ctx, resourceObjectToAdd, opState, result); // If configured & if not existing yet
 
@@ -185,11 +183,6 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
                     ctx.getTask(), result);
             throw e;
         }
-    }
-
-    private void setProductionFlag() {
-        resourceObjectToAdd.setSimulated(
-                !ctx.isObjectDefinitionInProduction());
     }
 
     private void executeAddOperationDirectly(OperationResult result)

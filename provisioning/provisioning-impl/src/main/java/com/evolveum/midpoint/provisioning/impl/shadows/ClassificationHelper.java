@@ -152,23 +152,28 @@ class ClassificationHelper {
      * (reclassified) or not.
      *
      * But for now, let us keep it simple.
+     *
+     * See https://docs.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/#shadow-classification.
      */
-    boolean shouldClassify(ProvisioningContext ctx, ShadowType repoShadow) {
+    boolean shouldClassify(ProvisioningContext ctx, ShadowType repoShadow) throws SchemaException, ConfigurationException {
         if (!ShadowUtil.isClassified(repoShadow)) {
             LOGGER.trace("Shadow is not classified -> we will do that");
             return true;
-        } else if (!ctx.isResourceInProduction()) {
-            // This is actually a subset of the following "if-else" case.
-            // But we keep it here for better code understanding and for more precise logging.
-            LOGGER.trace("Resource is NOT in production -> will re-classify the shadow");
-            return true;
-        } else if (!ctx.isObjectDefinitionInProduction()) {
-            LOGGER.trace("Current object definition is NOT in production -> will re-classify the shadow");
-            return true;
-        } else {
-            LOGGER.trace("Resource and the current object definition is in production and the shadow is already classified -> "
-                    + "will not re-classify");
+        }
+
+        ProvisioningContext subCtx = ctx.spawnForShadow(repoShadow);
+        if (subCtx.isObjectDefinitionInProduction()) {
+            LOGGER.trace("Current object definition is in production and the shadow is already classified "
+                    + "-> will NOT re-classify the shadow");
             return false;
+        } else if (subCtx.isProductionConfigurationTask()) {
+            LOGGER.trace("Current object definition is NOT in production but the task is using production configuration "
+                    + "-> will NOT re-classify the shadow");
+            return false;
+        } else {
+            LOGGER.trace("Current object definition is NOT in production and the task is using development configuration "
+                    + "-> will re-classify the shadow");
+            return true;
         }
     }
 }

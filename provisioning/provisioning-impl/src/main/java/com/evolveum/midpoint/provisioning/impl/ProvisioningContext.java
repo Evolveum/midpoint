@@ -478,12 +478,15 @@ public class ProvisioningContext {
 
     // Preliminary code
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean isResourceInProduction() {
+    private boolean isResourceInProduction() {
         return LifecycleUtil.isInProduction(
                 resource.getLifecycleState());
     }
 
     // Preliminary code
+    // FIXME implement checking for refined object class LC state - currently it is overridden by respective object type
+    //  state, which is not always what is needed (most probably we want the 'proposed' state at OC level to override
+    //  anything that could be set at the type level ... we should decide on this)
     public boolean isObjectDefinitionInProduction() {
         if (!isResourceInProduction()) {
             return false; // We ignore any object class/type level settings here.
@@ -655,5 +658,9 @@ public class ProvisioningContext {
     public FetchErrorReportingMethodType getErrorReportingMethod() {
         return GetOperationOptions.getErrorReportingMethod(
                 SelectorOptions.findRootOptions(getOperationOptions));
+    }
+
+    public boolean isProductionConfigurationTask() {
+        return task.getExecutionMode().isProductionConfiguration();
     }
 }

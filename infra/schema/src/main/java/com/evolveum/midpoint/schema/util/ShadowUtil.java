@@ -1047,7 +1047,7 @@ public class ShadowUtil {
     }
 
     // Temporary code
-    public static boolean isInProduction(@NotNull ShadowType shadow) {
-        return !Boolean.TRUE.equals(shadow.isSimulated());
+    public static boolean isSimulated(@NotNull ShadowType shadow) {
+        return Boolean.TRUE.equals(shadow.isSimulated());
     }
 }
