@@ -9,6 +9,9 @@ package com.evolveum.midpoint.provisioning.impl.shadows.manager;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTING;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.RecordPendingOperationsType.ALL;
+
+import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,13 +20,22 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 
 import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
+import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
@@ -51,6 +63,7 @@ class PendingOperationsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(PendingOperationsHelper.class);
 
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private Clock clock;
     @Autowired private PrismContext prismContext;
 
@@ -69,7 +82,7 @@ class PendingOperationsHelper {
             collectCurrentPendingOperationUpdates(shadowModifications, opState, now);
         } else if (!opState.isCompleted()) {
             LOGGER.trace("Collecting pending operation updates for 'new' pending operation");
-            addPendingOperationForExistingShadow(shadowModifications, opState, operation.getRequestedDelta(), now);
+            addPendingOperationForExistingShadow(shadowModifications, opState, operation.getResourceDelta(), now);
         } else {
             LOGGER.trace("Operation is complete -> no pending operation updates");
         }
@@ -92,13 +105,12 @@ class PendingOperationsHelper {
     private void addPendingOperationForExistingShadow(
             Collection<ItemDelta<?, ?>> shadowModifications,
             ProvisioningOperationState<?> opState,
-            ObjectDelta<ShadowType> requestDelta,
+            ObjectDelta<ShadowType> delta,
             XMLGregorianCalendar now) throws SchemaException {
             shadowModifications.add(
                     prismContext.deltaFor(ShadowType.class)
                             .item(ShadowType.F_PENDING_OPERATION)
-                            .add(opState.toPendingOperation(
-                                    requestDelta, null, now))
+                            .add(opState.toPendingOperation(delta, null, now))
                             .asItemDelta());
     }
 
@@ -301,5 +313,143 @@ class PendingOperationsHelper {
                             .asItemDeltas());
         }
         return shadowDeltas;
+    }
+
+    /**
+     * The goal of this operation is to _atomically_ store the pending operation into the shadow.
+     *
+     * If there is a conflicting pending operation there, we may return it: depending on the situation (see the code).
+     * The repo shadow in opState is updated.
+     *
+     * BEWARE: updated repo shadow is raw. ApplyDefinitions must be called on it before any serious use.
+     *
+     * In the future we may perhaps use the newer {@link RepositoryService#modifyObjectDynamically(Class, String, Collection,
+     * RepositoryService.ModificationsSupplier, RepoModifyOptions, OperationResult)} instead of the optimistic locking runner.
+     */
+    PendingOperationType checkAndRecordPendingOperationBeforeExecution(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ObjectDelta<ShadowType> proposedDelta,
+            @NotNull ProvisioningOperationState<?> opState,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        ResourceType resource = ctx.getResource();
+        ResourceConsistencyType consistency = resource.getConsistency();
+
+        boolean avoidDuplicateOperations;
+        if (ctx.isInMaintenance()) {
+            LOGGER.trace("Maintenance mode => we always check for duplicate pending operations");
+            avoidDuplicateOperations = true;
+        } else if (consistency == null) {
+            LOGGER.trace("No consistency section exists => we do not pre-record pending operations at all");
+            return null;
+        } else {
+            avoidDuplicateOperations = Boolean.TRUE.equals(consistency.isAvoidDuplicateOperations());
+            LOGGER.trace("Consistency section exists, we will pre-record pending operations; "
+                    + "with the duplicate operations avoidance flag set to: {}", avoidDuplicateOperations);
+        }
+
+        assert opState.hasRepoShadow();
+
+        OptimisticLockingRunner<ShadowType, PendingOperationType> runner =
+                new OptimisticLockingRunner.Builder<ShadowType, PendingOperationType>()
+                        .object(opState.getRepoShadow().asPrismObject())
+                        .result(result)
+                        .repositoryService(repositoryService)
+                        .maxNumberOfAttempts(10)
+                        .delayRange(20)
+                        .build();
+
+        try {
+
+            return runner.run(
+                    (object) -> {
+
+                        // The runner itself could have updated the shadow (in case of precondition violation).
+                        opState.setRepoShadow(
+                                runner.getObject().asObjectable());
+
+                        if (avoidDuplicateOperations) {
+                            PendingOperationType existingPendingOperation =
+                                    findEquivalentPendingOperation(object.asObjectable(), proposedDelta);
+                            if (existingPendingOperation != null) {
+                                LOGGER.debug("Found equivalent pending operation for {} of {}: {}",
+                                        proposedDelta.getChangeType(), object, existingPendingOperation);
+                                // Not storing into opState, as we won't execute it.
+                                return existingPendingOperation;
+                            }
+                        }
+
+                        if (ResourceTypeUtil.getRecordPendingOperations(resource) != ALL) {
+                            return null;
+                        }
+
+                        LOGGER.trace("Storing pending operation for {} of {}", proposedDelta.getChangeType(), object);
+
+                        PendingOperationType currentPendingOperation;
+                        try {
+                            currentPendingOperation =
+                                    recordRequestedPendingOperationDelta(
+                                            object, proposedDelta, opState, object.getVersion(), result);
+                        } catch (PreconditionViolationException e) {
+                            LOGGER.trace("Couldn't store the requested operation as a pending one because of an update conflict"
+                                    + " from another thread. Will try again, if the optimistic locking runner allows.");
+                            throw e;
+                        }
+
+                        // If we are here, we were able to store the pending operation without conflict from another thread.
+                        // So, we can return.
+                        LOGGER.trace("Successfully stored pending operation for {} of {}", proposedDelta.getChangeType(), object);
+
+                        opState.setCurrentPendingOperation(currentPendingOperation);
+
+                        // Yes, really return null. We are supposed to return conflicting operation (if found).
+                        // But in this case there is no conflict. This operation does not conflict with itself.
+                        return null;
+                    }
+            );
+
+        } catch (ObjectAlreadyExistsException e) {
+            // should not happen
+            throw new SystemException(e);
+        }
+    }
+
+    private @NotNull PendingOperationType recordRequestedPendingOperationDelta(
+            PrismObject<ShadowType> shadow,
+            ObjectDelta<ShadowType> pendingDelta,
+            @NotNull ProvisioningOperationState<?> opState,
+            String currentObjectVersion,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, PreconditionViolationException {
+
+        PendingOperationType pendingOperation = new PendingOperationType();
+        pendingOperation.setDelta(DeltaConvertor.toObjectDeltaType(pendingDelta));
+        pendingOperation.setRequestTimestamp(clock.currentTimeXMLGregorianCalendar());
+        pendingOperation.setExecutionStatus(opState.getExecutionStatus());
+        pendingOperation.setResultStatus(opState.getResultStatusTypeOrDefault());
+        pendingOperation.setAsynchronousOperationReference(opState.getAsynchronousOperationReference());
+
+        var repoDeltas = prismContext.deltaFor(ShadowType.class)
+                .item(ShadowType.F_PENDING_OPERATION).add(pendingOperation)
+                .asItemDeltas();
+
+        ModificationPrecondition<ShadowType> precondition =
+                currentObjectVersion != null ? new VersionPrecondition<>(currentObjectVersion) : null;
+
+        try {
+            repositoryService.modifyObject(ShadowType.class, shadow.getOid(), repoDeltas, precondition, null, result);
+        } catch (ObjectAlreadyExistsException e) {
+            // should not happen
+            throw new SystemException(e);
+        }
+
+        // We have to re-read shadow here. We need to get the pending operation in a form as it was stored.
+        // We need id in the operation. Otherwise we won't be able to update it.
+        ShadowType updatedShadow = repositoryService
+                .getObject(ShadowType.class, shadow.getOid(), null, result)
+                .asObjectable();
+        opState.setRepoShadow(updatedShadow);
+        return requireNonNull(
+                findEquivalentPendingOperation(updatedShadow, pendingDelta),
+                "Cannot find my own operation " + pendingOperation + " in " + updatedShadow);
     }
 }

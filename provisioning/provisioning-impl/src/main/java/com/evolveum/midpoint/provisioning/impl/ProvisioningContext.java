@@ -12,6 +12,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.util.*;
@@ -591,6 +592,10 @@ public class ProvisioningContext {
     public void applyAttributesDefinition(@NotNull ObjectDelta<ShadowType> delta)
             throws SchemaException, ConfigurationException {
         getCaretaker().applyAttributesDefinition(this, delta);
+    }
+
+    public void applyAttributesDefinition(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) throws SchemaException {
+        getCaretaker().applyAttributesDefinition(this, modifications);
     }
 
     private @NotNull ShadowCaretaker getCaretaker() {

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javax.xml.datatype.Duration;
@@ -66,19 +67,25 @@ public class ShadowCaretaker {
         if (delta.isAdd()) {
             applyAttributesDefinitionInNewContext(ctx, delta.getObjectToAdd());
         } else if (delta.isModify()) {
-            for (ItemDelta<?, ?> itemDelta : delta.getModifications()) {
-                if (SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
-                    applyAttributeDefinition(ctx, delta, itemDelta);
-                } else if (SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getPath())) {
-                    if (itemDelta.isAdd()) {
-                        for (PrismValue value : itemDelta.getValuesToAdd()) {
-                            applyAttributeDefinition(ctx, value);
-                        }
+            applyAttributesDefinition(ctx, delta.getModifications());
+        }
+    }
+
+    // Please use this method only via ProvisioningContext
+    void applyAttributesDefinition(ProvisioningContext ctx, Collection<? extends ItemDelta<?, ?>> modifications)
+            throws SchemaException {
+        for (ItemDelta<?, ?> itemDelta : modifications) {
+            if (SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
+                applyAttributeDefinition(ctx, itemDelta);
+            } else if (SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getPath())) {
+                if (itemDelta.isAdd()) {
+                    for (PrismValue value : itemDelta.getValuesToAdd()) {
+                        applyAttributeDefinition(ctx, value);
                     }
-                    if (itemDelta.isReplace()) {
-                        for (PrismValue value : itemDelta.getValuesToReplace()) {
-                            applyAttributeDefinition(ctx, value);
-                        }
+                }
+                if (itemDelta.isReplace()) {
+                    for (PrismValue value : itemDelta.getValuesToReplace()) {
+                        applyAttributeDefinition(ctx, value);
                     }
                 }
             }
@@ -114,7 +121,7 @@ public class ShadowCaretaker {
     }
 
     private <V extends PrismValue, D extends ItemDefinition<?>> void applyAttributeDefinition(
-            ProvisioningContext ctx, ObjectDelta<ShadowType> delta, ItemDelta<V, D> itemDelta)
+            ProvisioningContext ctx, ItemDelta<V, D> itemDelta)
             throws SchemaException {
         if (!SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getParentPath())) {
             // just to be sure
@@ -124,7 +131,7 @@ public class ShadowCaretaker {
         if (!(itemDef instanceof ResourceAttributeDefinition)) {
             QName attributeName = itemDelta.getElementName();
             ResourceAttributeDefinition<?> attributeDefinition =
-                    ctx.findAttributeDefinitionRequired(attributeName, () -> " in object delta " + delta);
+                    ctx.findAttributeDefinitionRequired(attributeName, () -> " in object delta");
             if (itemDef != null) {
                 // We are going to rewrite the definition anyway. Let's just do
                 // some basic checks first

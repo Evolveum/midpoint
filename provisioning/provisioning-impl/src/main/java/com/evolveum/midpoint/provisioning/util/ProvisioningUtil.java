@@ -449,12 +449,14 @@ public class ProvisioningUtil {
         }
     }
 
-    public static boolean containsNoResourceModification(Collection<? extends ItemDelta<?, ?>> modifications) {
+    public static @NotNull List<ItemDelta<?, ?>> getResourceModifications(
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
         return modifications.stream()
-                .noneMatch(ProvisioningUtil::isResourceModification);
+                .filter(ProvisioningUtil::isResourceModification)
+                .collect(Collectors.toList());
     }
 
-    public static boolean isResourceModification(ItemDelta<?, ?> modification) {
+    private static boolean isResourceModification(ItemDelta<?, ?> modification) {
         QName firstPathName = modification.getPath().firstName();
         return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
     }

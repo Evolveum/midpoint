@@ -300,12 +300,12 @@ public abstract class ProvisioningOperationState<A extends AsynchronousOperation
      * of serializing that information.
      */
     public PendingOperationType toPendingOperation(
-            ObjectDelta<ShadowType> requestDelta, String asyncOperationReferenceOverride, XMLGregorianCalendar now)
+            ObjectDelta<ShadowType> delta, String asyncOperationReferenceOverride, XMLGregorianCalendar now)
             throws SchemaException {
-        ObjectDeltaType deltaType = DeltaConvertor.toObjectDeltaType(requestDelta);
         PendingOperationType pendingOperation = new PendingOperationType();
         pendingOperation.setType(getOperationType());
-        pendingOperation.setDelta(deltaType);
+        pendingOperation.setDelta(
+                DeltaConvertor.toObjectDeltaType(delta));
         pendingOperation.setRequestTimestamp(now);
         if (executionStatus == EXECUTING) {
             pendingOperation.setOperationStartTimestamp(now);

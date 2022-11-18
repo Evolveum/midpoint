@@ -48,7 +48,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.provisioning.impl.shadows.ShadowsUtil.*;
-import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.containsNoResourceModification;
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.getResourceModifications;
 import static com.evolveum.midpoint.util.exception.CommonException.Severity.PARTIAL_ERROR;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
@@ -73,6 +73,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
     /** Result of "refresh-before-modify" operation (if executed). */
     private RefreshShadowOperation refreshShadowOperation;
 
+    /** modifications must have appropriate definitions */
     private ShadowModifyOperation(
             @NotNull ProvisioningContext ctx,
             @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
@@ -80,7 +81,9 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             OperationProvisioningScriptsType scripts,
             @NotNull ModifyOperationState opState,
             boolean inRefreshOrPropagation) {
-        super(ctx, opState, scripts, options, createModificationDelta(opState, modifications));
+        super(ctx, opState, scripts, options,
+                createModificationDelta(opState, modifications),
+                createModificationDelta(opState, getResourceModifications(modifications)));
         this.requestedModifications = ImmutableList.copyOf(modifications);
         // TODO To be discussed: should we append the executed modifications to the original list of requested modifications?
         //  This has an interesting side effect: when auditing, midPoint stores not only computed (requested) modifications,
@@ -94,10 +97,10 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
     private static ObjectDelta<ShadowType> createModificationDelta(
             ModifyOperationState opState, Collection<? extends ItemDelta<?, ?>> modifications) {
-        ObjectDelta<ShadowType> requestDelta = opState.getRepoShadowRequired().asPrismObject().createModifyDelta();
-        requestDelta.addModifications(
+        ObjectDelta<ShadowType> delta = opState.getRepoShadowRequired().asPrismObject().createModifyDelta();
+        delta.addModifications(
                 ItemDeltaCollectionsUtil.cloneCollection(modifications));
-        return requestDelta;
+        return delta;
     }
 
     /** Executes when called explicitly from the client. */
@@ -132,6 +135,15 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
         ModifyOperationState opState = new ModifyOperationState(repoShadow);
 
         options = setForceRetryIfNotDisabled(options);
+
+        ctx.applyAttributesDefinition(modifications);
+
+        // We have to resolve entitlements here. For example, we want them to be stored in the pending operation list,
+        // should the execution fail. (Because the shadow OIDs may be volatile.) Before 4.7, the inclusion to the pending
+        // list was automatic, because the list of modifications was shared throughout the operation. However, now it is
+        // no longer the case: we have separate "requested delta", "resource delta", and "executed delta" there.
+        ShadowsLocalBeans.get().entitlementsHelper.provideEntitlementsIdentifiers(
+                ctx, modifications, "delta for shadow " + repoShadow.getOid(), result);
 
         return new ShadowModifyOperation(ctx, modifications, options, scripts, opState, false)
                 .execute(result);
@@ -179,6 +191,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             EncryptionException, ObjectAlreadyExistsException {
         ModifyOperationState opState = ModifyOperationState.fromPendingOperation(repoShadow, pendingOperation);
         if (ShadowUtil.isExists(repoShadow)) {
+            ctx.applyAttributesDefinition(modifications);
             new ShadowModifyOperation(ctx, modifications, options, null, opState, true)
                 .execute(result);
         } else {
@@ -198,6 +211,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             PolicyViolationException, ObjectAlreadyExistsException {
         ModifyOperationState opState = new ModifyOperationState(repoShadow);
         opState.setPropagatedPendingOperations(pendingOperations);
+        ctx.applyAttributesDefinition(modifications);
         new ShadowModifyOperation(ctx, modifications, null, null, opState, true)
                 .execute(result);
     }
@@ -207,15 +221,8 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException,
             EncryptionException, ObjectAlreadyExistsException {
 
-        if (!inRefreshOrPropagation) {
-            PendingOperationType duplicateOperation =
-                    shadowUpdater.checkAndRecordPendingModifyOperationBeforeExecution(ctx, requestedModifications, opState, result);
-            if (duplicateOperation != null) {
-                result.setInProgress(); // suspicious
-                return opState.getRepoShadowOid();
-            }
-        } else {
-            LOGGER.trace("Not checking for duplicate pending operation, as we are already doing the refresh/propagation");
+        if (!inRefreshOrPropagation && checkAndRecordPendingOperationBeforeExecution(result)) {
+            return opState.getRepoShadowOid();
         }
 
         ShadowType repoShadow = opState.getRepoShadowRequired(); // Shadow in opState was updated in the above call!
@@ -223,10 +230,7 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
 
         accessChecker.checkModifyAccess(ctx, requestedModifications, result);
 
-        entitlementsHelper.provideEntitlementsIdentifiers(
-                ctx, requestedModifications, "delta for shadow " + repoShadow.getOid(), result);
-
-        if (containsNoResourceModification(requestedModifications)) {
+        if (resourceDelta.isEmpty()) {
             opState.setExecutionStatus(COMPLETED);
             LOGGER.trace("MODIFY {}: repository-only modification", repoShadow);
         } else {
@@ -312,7 +316,8 @@ public class ShadowModifyOperation extends ShadowProvisioningOperation<ModifyOpe
             ConnectorOperationOptions connOptions = createConnectorOperationOptions(result);
             AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue<?>>>> asyncResult =
                     resourceObjectConverter
-                            .modifyResourceObject(ctx, repoShadow, scripts, connOptions, requestedModifications, now, result);
+                            .modifyResourceObject(
+                                    ctx, repoShadow, scripts, connOptions, resourceDelta.getModifications(), now, result);
             opState.recordRealAsynchronousResult(asyncResult);
 
             // TODO should we mark the resource as UP here, as we do for ADD and DELETE?

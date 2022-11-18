@@ -133,15 +133,8 @@ public class ShadowDeleteOperation extends ShadowProvisioningOperation<DeleteOpe
             throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        if (!inRefreshOrPropagation) {
-            PendingOperationType duplicateOperation =
-                    shadowUpdater.checkAndRecordPendingDeleteOperationBeforeExecution(ctx, opState, result);
-            if (duplicateOperation != null) {
-                result.setInProgress();
-                return opState.getRepoShadow();
-            }
-        } else {
-            LOGGER.trace("Not checking for duplicate pending operation, as we are already doing the refresh");
+        if (!inRefreshOrPropagation && checkAndRecordPendingOperationBeforeExecution(result)) {
+            return opState.getRepoShadow();
         }
 
         ShadowType repoShadow = opState.getRepoShadow(); // The shadow may have changed in opState during "checkAndRecord" op.

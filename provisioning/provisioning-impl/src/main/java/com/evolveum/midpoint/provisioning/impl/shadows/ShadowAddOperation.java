@@ -156,6 +156,7 @@ public class ShadowAddOperation extends ShadowProvisioningOperation<AddOperation
             executeShadowConstraintsCheck(result); // To avoid shadow duplication (if configured so)
             shadowCreator.addNewProposedShadow(ctx, resourceObjectToAdd, opState, result); // If configured & if not existing yet
 
+            // Changes made here will go to the pending operation, should the operation fail.
             entitlementsHelper.provideEntitlementsIdentifiers(ctx, resourceObjectToAdd, result);
 
             if (ctx.shouldExecuteResourceOperationDirectly()) {

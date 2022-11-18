@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
@@ -74,6 +75,15 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     /** A delta that represents the original request. */
     @NotNull final ObjectDelta<ShadowType> requestedDelta;
 
+    /**
+     * A delta that represents the original request, narrowed down to operation(s) to be executed on the resource.
+     *
+     * - For ADD operation, we allow it to be the same as {@link #requestedDelta}.
+     * - For DELETE op, they are obviously the same.
+     * - But for MODIFY op, only resource-level modifications are transferred there.
+     */
+    @NotNull final ObjectDelta<ShadowType> resourceDelta;
+
     /** A delta that represents what was executed. */
     ObjectDelta<ShadowType> executedDelta;
 
@@ -84,13 +94,24 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
             @NotNull OS opState,
             OperationProvisioningScriptsType scripts,
             ProvisioningOperationOptions options,
-            @NotNull ObjectDelta<ShadowType> requestedDelta) {
+            @NotNull ObjectDelta<ShadowType> requestedDelta,
+            @NotNull ObjectDelta<ShadowType> resourceDelta) {
         this.ctx = ctx;
         this.scripts = scripts;
         this.opState = opState;
         this.options = options;
         this.task = ctx.getTask();
         this.requestedDelta = requestedDelta;
+        this.resourceDelta = resourceDelta;
+    }
+
+    ShadowProvisioningOperation(
+            @NotNull ProvisioningContext ctx,
+            @NotNull OS opState,
+            OperationProvisioningScriptsType scripts,
+            ProvisioningOperationOptions options,
+            @NotNull ObjectDelta<ShadowType> requestedDelta) {
+        this(ctx, opState, scripts, options, requestedDelta, requestedDelta);
     }
 
     public @NotNull ProvisioningContext getCtx() {
@@ -114,8 +135,16 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
     abstract Trace getLogger();
 
     /** Returns the delta that was requested to be executed. */
-    public @NotNull ObjectDelta<ShadowType> getRequestedDelta() {
+    @NotNull ObjectDelta<ShadowType> getRequestedDelta() {
         return requestedDelta;
+    }
+
+    /**
+     * Returns the delta that represents the operation on the resource.
+     * E.g. for modify op it should contain only resource modifications.
+     */
+    public @NotNull ObjectDelta<ShadowType> getResourceDelta() {
+        return resourceDelta;
     }
 
     void setExecutedDelta(ObjectDelta<ShadowType> executedDelta) {
@@ -214,5 +243,20 @@ public abstract class ShadowProvisioningOperation<OS extends ProvisioningOperati
         getLogger().trace("RunAs identification: {}", runAsIdentification);
         connOptions.setRunAsIdentification(runAsIdentification);
         return connOptions;
+    }
+
+    boolean checkAndRecordPendingOperationBeforeExecution(OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        if (resourceDelta.isEmpty()) {
+            return false;
+        }
+        PendingOperationType duplicateOperation =
+                shadowUpdater.checkAndRecordPendingOperationBeforeExecution(ctx, resourceDelta, opState, result);
+        if (duplicateOperation != null) {
+            result.setInProgress();
+            return true;
+        } else {
+            return false;
+        }
     }
 }
