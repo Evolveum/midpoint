@@ -42,7 +42,7 @@ import java.util.List;
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SELF_CREDENTIALS_URL,
                         label = "PageSelfCredentials.auth.credentials.label",
                         description = "PageSelfCredentials.auth.credentials.description")})
-public class PageSelfCredentials extends PageBase {
+public class PageSelfCredentials extends PageSelf {
 
     private static final long serialVersionUID = 1L;
 

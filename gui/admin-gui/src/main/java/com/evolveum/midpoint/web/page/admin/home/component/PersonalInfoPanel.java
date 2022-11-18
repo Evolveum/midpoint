@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -16,7 +15,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
-import com.evolveum.midpoint.web.page.self.PageSelfCredentials;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationBehavioralDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -42,7 +40,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     private static final String ID_LAST_FAIL_FROM = "lastFailFrom";
     private static final String ID_PASSWORD_EXP = "passwordExp";
 
-    private static final String DOT_CLASS = PageSelfCredentials.class.getName() + ".";
+    private static final String DOT_CLASS = PersonalInfoPanel.class.getName() + ".";
     private static final String OPERATION_GET_CREDENTIALS_POLICY = DOT_CLASS + "getCredentialsPolicy";
 
     public PersonalInfoPanel(String id) {
