@@ -13,10 +13,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.schema.util.ArchetypeTypeUtil;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,8 +59,6 @@ public class ModelObjectResolver implements ObjectResolver {
 
     @Autowired(required = false)
     private HookRegistry hookRegistry;
-
-    @Autowired private ArchetypeManager archetypeManager;
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 
@@ -347,166 +341,6 @@ public class ModelObjectResolver implements ObjectResolver {
         }
 
         return null;
-    }
-
-    public <O extends ObjectType> PrismObject<SecurityPolicyType> searchSecurityPolicyFromArchetype(PrismObject<O> object,
-            String shortDesc, Task task, OperationResult result) throws SchemaException {
-        if (object == null) {
-            LOGGER.trace("No object provided. Cannot find security policy specific for an object.");
-            return null;
-        }
-        ArchetypeType structuralArchetype = ArchetypeTypeUtil.getStructuralArchetype(archetypeManager.determineArchetypes(object.asObjectable(), result));
-        if (structuralArchetype == null) {
-            return null;
-        }
-        PrismObject<SecurityPolicyType> securityPolicy = null;
-        ObjectReferenceType securityPolicyRef = structuralArchetype.getSecurityPolicyRef();
-        if (securityPolicyRef != null) {
-            try {
-                securityPolicy = resolve(securityPolicyRef.asReferenceValue(), shortDesc, task, result);
-            } catch (ObjectNotFoundException ex) {
-                LOGGER.warn("Cannot find security policy referenced in archetype {}, oid {}", structuralArchetype.getName(), structuralArchetype.getOid());
-                return null;
-            }
-        }
-
-        return mergeSecurityPolicyWithSuperArchetype(structuralArchetype, securityPolicy, task, result);
-    }
-
-    private PrismObject<SecurityPolicyType> mergeSecurityPolicyWithSuperArchetype(ArchetypeType archetype, PrismObject<SecurityPolicyType> securityPolicy,
-            Task task, OperationResult result) {
-        ArchetypeType superArchetype = null;
-        try {
-            superArchetype = archetype.getSuperArchetypeRef() != null ?
-                    resolve(archetype.getSuperArchetypeRef(), ArchetypeType.class, null, "resolving super archetype ref", task, result)
-                    : null;
-        } catch (Exception ex) {
-            LOGGER.warn("Cannot resolve super archetype reference for archetype {}, oid {}", archetype.getName(), archetype.getOid());
-            return securityPolicy;
-        }
-        if (superArchetype == null) {
-            return securityPolicy;
-        }
-        SecurityPolicyType superArchetypeSecurityPolicy = null;
-        try {
-            superArchetypeSecurityPolicy = superArchetype.getSecurityPolicyRef() != null ?
-                    resolve(superArchetype.getSecurityPolicyRef(), SecurityPolicyType.class, null, "resolving security policy ref", task, result)
-                    : null;
-        } catch (Exception ex) {
-            LOGGER.warn("Cannot resolve security policy reference for archetype {}, oid {}", superArchetype.getName(), superArchetype.getOid());
-            return securityPolicy;
-        }
-        if (superArchetypeSecurityPolicy == null) {
-            return securityPolicy;
-        }
-        PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(securityPolicy, superArchetypeSecurityPolicy.asPrismObject());
-        return mergeSecurityPolicyWithSuperArchetype(superArchetype, mergedSecurityPolicy, task, result);
-    }
-
-    /**
-     *
-     * @param lowLevelSecurityPolicy    means the security policy referenced from child archetype
-     * @param topLevelSecurityPolicy    means the security policy referenced from super archetype
-     * @return
-     */
-    private PrismObject<SecurityPolicyType> mergeSecurityPolicies(PrismObject<SecurityPolicyType> lowLevelSecurityPolicy,
-            PrismObject<SecurityPolicyType> topLevelSecurityPolicy) {
-        //todo implement merge algorithm; for now probably only authentication and credentialsReset merge is needed (may be name this method
-        // as "mergeAuthentications" then)
-        if (lowLevelSecurityPolicy == null && topLevelSecurityPolicy == null) {
-            return null;
-        }
-        if (topLevelSecurityPolicy == null) {
-            return lowLevelSecurityPolicy.clone();
-        }
-        return Objects.requireNonNullElse(lowLevelSecurityPolicy, topLevelSecurityPolicy).clone();
-    }
-
-    //todo think about better location for merge methods
-    private AuthenticationsPolicyType mergeSecurityPolicyAuthentication(AuthenticationsPolicyType lowLevelAuthentication, AuthenticationsPolicyType topLevelAuthentication) {
-        if (lowLevelAuthentication == null && topLevelAuthentication == null) {
-            return null;
-        }
-        if (lowLevelAuthentication == null) {
-            return topLevelAuthentication.clone();
-        }
-        if (topLevelAuthentication == null) {
-            return lowLevelAuthentication;
-        }
-        AuthenticationsPolicyType mergedAuthentication = lowLevelAuthentication.clone();
-        mergeAuthenticationModules(mergedAuthentication, topLevelAuthentication.getModules());
-        mergeSequences(mergedAuthentication, topLevelAuthentication.getSequence());
-        if (CollectionUtils.isEmpty(mergedAuthentication.getIgnoredLocalPath())) {
-            mergedAuthentication.getIgnoredLocalPath().addAll(topLevelAuthentication.getIgnoredLocalPath());
-        } else {
-            mergedAuthentication.getIgnoredLocalPath().addAll(CollectionUtils.union(mergedAuthentication.getIgnoredLocalPath(), topLevelAuthentication.getIgnoredLocalPath()));
-        }
-        return mergedAuthentication;
-    }
-
-    private void mergeAuthenticationModules(AuthenticationsPolicyType mergedAuthentication, AuthenticationModulesType modules) {
-        if (modules == null) {
-            return;
-        }
-        if (mergedAuthentication.getModules() == null) {
-            mergedAuthentication.setModules(modules);
-            return;
-        }
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHttpBasic(), modules.getHttpBasic());
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHttpHeader(), modules.getHttpHeader());
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getHttpSecQ(), modules.getHttpSecQ());
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getLdap(), modules.getLdap());
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getLoginForm(), modules.getLoginForm());
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getMailNonce(), modules.getMailNonce());
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getOidc(), modules.getOidc());
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getOther(), modules.getOther());
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getSaml2(), modules.getSaml2());
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getSecurityQuestionsForm(), modules.getSecurityQuestionsForm());
-        mergeAuthenticationModuleList(mergedAuthentication.getModules().getSmsNonce(), modules.getSmsNonce());
-    }
-
-    private <AM extends AbstractAuthenticationModuleType> void mergeAuthenticationModuleList(List<AM> mergedList, List<AM> listToProceed) {
-        if (CollectionUtils.isEmpty(listToProceed)) {
-            return;
-        }
-        if (CollectionUtils.isEmpty(mergedList)) {
-            mergedList.addAll(listToProceed);
-            return;
-        }
-        listToProceed.forEach(itemToProceed -> {
-            boolean exist = false;
-            for (AM item : mergedList) {
-                if (StringUtils.equals(item.getName(), itemToProceed.getName())) {
-                    exist = true;
-                    break;
-                }
-            }
-            if (!exist) {
-                mergedList.add(itemToProceed);
-            }
-        });
-    }
-
-    private void mergeSequences(AuthenticationsPolicyType mergedAuthentication, List<AuthenticationSequenceType> sequences) {
-        if (CollectionUtils.isEmpty(sequences)) {
-            return;
-        }
-        if (CollectionUtils.isEmpty(mergedAuthentication.getSequence())) {
-            mergedAuthentication.getSequence().addAll(sequences);
-            return;
-        }
-        sequences.forEach(sequenceToProceed -> {
-            boolean exist = false;
-            for (AuthenticationSequenceType sequence : mergedAuthentication.getSequence()) {
-                if (StringUtils.equals(sequenceToProceed.getIdentifier(), sequence.getIdentifier())) {
-                    exist = true;
-                    break;
-                }
-            }
-            if (!exist) {
-                mergedAuthentication.getSequence().add(sequenceToProceed);
-            }
-        });
     }
 
     @Experimental
