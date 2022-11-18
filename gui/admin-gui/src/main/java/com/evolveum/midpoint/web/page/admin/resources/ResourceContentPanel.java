@@ -10,6 +10,7 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
@@ -226,9 +227,15 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 return provider;
             }
 
+//            @Override
+//            protected Search createSearch(Class<ShadowType> type) {
+//                return ResourceContentPanel.this.createSearch();
+//            }
+
             @Override
-            protected Search createSearch(Class<ShadowType> type) {
-                return ResourceContentPanel.this.createSearch();
+            protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<ShadowType> type) {
+                return super.getDefaultSearchBoxConfiguration(type);
+//                return ResourceContentPanel.this.getDefaultSearchBoxConfiguration();
             }
 
             @Override
@@ -508,7 +515,8 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
         return baseQuery;
     }
 
-    protected abstract Search createSearch();
+    protected abstract SearchBoxConfigurationType getDefaultSearchBoxConfiguration();
+//    protected abstract Search createSearch();
 
     private Collection<SelectorOptions<GetOperationOptions>> createSearchOptions() {
         GetOperationOptionsBuilder builder = getPageBase().getOperationOptionsBuilder()

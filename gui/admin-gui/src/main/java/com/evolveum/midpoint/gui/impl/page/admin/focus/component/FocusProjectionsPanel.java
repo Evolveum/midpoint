@@ -243,11 +243,11 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                         super.editItemPerformed(target, rowModel, listItems);
                     }
 
-                    @Override
-                    protected Search createSearch(Class<ShadowType> type) {
-                        Search search = SearchFactory.createProjectionsTabSearch(getObjectCollectionView(), getPageBase());
-                        return search;
-                    }
+//                    @Override
+//                    protected Search createSearch(Class<ShadowType> type) {
+//                        Search search = SearchFactory.createProjectionsTabSearch(getObjectCollectionView(), getPageBase());
+//                        return search;
+//                    }
 
 
                     @Override

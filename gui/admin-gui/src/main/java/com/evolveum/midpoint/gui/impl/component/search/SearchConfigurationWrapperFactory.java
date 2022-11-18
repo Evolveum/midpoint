@@ -31,26 +31,26 @@ import java.util.regex.Pattern;
 
 public class SearchConfigurationWrapperFactory {
 
-    public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(Class<C> type,
+    public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(PrismContainerDefinition<C> definition,
             SearchItemType item, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
 //        ItemPath itemPath = null;
-        ItemDefinition<?> itemDef = null;
-        if (item.getPath() != null) {
-            PrismContainerDefinition<C> def;
-            if (ObjectType.class.isAssignableFrom(type) && modelServiceLocator != null) {
-                def = PredefinedSearchableItems.findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
-            } else {
-                def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-            }
-            itemDef = def.findItemDefinition(item.getPath().getItemPath());
-        }
+        ItemDefinition<?> itemDef = itemDef = definition.findItemDefinition(item.getPath().getItemPath());
+//        if (item.getPath() != null) {
+//            PrismContainerDefinition<C> def;
+//            if (ObjectType.class.isAssignableFrom(type) && modelServiceLocator != null) {
+//                def = PredefinedSearchableItems.findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
+//            } else {
+//                def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+//            }
+//            itemDef = def.findItemDefinition(item.getPath().getItemPath());
+//        }
 
         if (itemDef == null && !hasParameter(item) && item.getFilter() == null) {
             return null;
         }
 
         PropertySearchItemWrapper<?> searchItemWrapper =
-                createPropertySearchItemWrapper(type, item, itemDef, modelServiceLocator); //
+                createPropertySearchItemWrapper(definition, item, itemDef, modelServiceLocator); //
         //type, itemDef, itemPath, valueTypeName, availableValues, lookupTable, item.getFilter());
 
         searchItemWrapper.setVisible(BooleanUtils.isTrue(item.isVisibleByDefault()) || hasParameter(item));
@@ -162,7 +162,8 @@ public class SearchConfigurationWrapperFactory {
     }
 
     private static <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(
-            Class<C> type, SearchItemType item, ItemDefinition<?> itemDef, ModelServiceLocator modelServiceLocator) {
+            PrismContainerDefinition<C> definition,
+            SearchItemType item, ItemDefinition<?> itemDef, ModelServiceLocator modelServiceLocator) {
 //            Class<C> type,
 //            ItemDefinition<?> itemDef, ItemPath path, QName valueTypeName, List<DisplayableValue<?>> availableValues,
 //            LookupTableType lookupTable, SearchFilterType predefinedFilter) {
@@ -183,7 +184,7 @@ public class SearchConfigurationWrapperFactory {
             return new AutoCompleteSearchItemWrapper(path, lookupTable);
         }
         if (itemDef instanceof PrismReferenceDefinition) {
-            ReferenceSearchItemWrapper itemWrapper = new ReferenceSearchItemWrapper((PrismReferenceDefinition)itemDef, type);
+            ReferenceSearchItemWrapper itemWrapper = new ReferenceSearchItemWrapper((PrismReferenceDefinition)itemDef, definition.getTypeClass());
             itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null));
             return itemWrapper;
         }

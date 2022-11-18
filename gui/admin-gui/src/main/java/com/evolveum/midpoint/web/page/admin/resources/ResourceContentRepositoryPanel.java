@@ -165,21 +165,27 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
         return true;
     }
 
+//    @Override
+//    protected Search createSearch() {
+//        //TODO compuled object coolection view
+//        //createSearchConfigWrapper()
+//        return SearchFactory.createSearch(ShadowType.class, getPageBase());
+//    }
+
+    //TODO
     @Override
-    protected Search createSearch() {
-        //TODO compuled object coolection view
-        //createSearchConfigWrapper()
-        return SearchFactory.createSearch(ShadowType.class, getPageBase());
+    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration() {
+        return null;
     }
 
-    private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
-        SearchConfigurationWrapper<ShadowType> config = SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
-        config
-                .removePropertySearchItem(ShadowType.F_RESOURCE_REF)
-                .removePropertySearchItem(ShadowType.F_OBJECT_CLASS)
-                .removePropertySearchItem(ShadowType.F_INTENT);
-        return config;
-    }
+//    private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
+//        SearchConfigurationWrapper<ShadowType> config = SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
+//        config
+//                .removePropertySearchItem(ShadowType.F_RESOURCE_REF)
+//                .removePropertySearchItem(ShadowType.F_OBJECT_CLASS)
+//                .removePropertySearchItem(ShadowType.F_INTENT);
+//        return config;
+//    }
 
     @Override
     protected ModelExecuteOptions createModelOptions() {

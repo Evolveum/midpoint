@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -48,17 +49,30 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
         return null;
     }
 
+//    @Override
+//    protected Search createSearch(Class<O> type) {
+//        Search search = SearchFactory.createMemberSearch(type, getSupportedTypes(), getSupportedRelations(), getAbstractRoleType(),  getObjectCollectionView(), getPageBase());
+//        search.getAllowedTypeList()
+//                .addAll(Arrays.asList(
+//                        AbstractRoleType.class,
+//                        OrgType.class,
+//                        ArchetypeType.class,
+//                        RoleType.class,
+//                        ServiceType.class));
+//        return search;
+//    }
+
     @Override
-    protected Search createSearch(Class<O> type) {
-        Search search = SearchFactory.createMemberSearch(type, getSupportedTypes(), getSupportedRelations(), getAbstractRoleType(),  getObjectCollectionView(), getPageBase());
-        search.getAllowedTypeList()
-                .addAll(Arrays.asList(
-                        AbstractRoleType.class,
-                        OrgType.class,
-                        ArchetypeType.class,
-                        RoleType.class,
-                        ServiceType.class));
-        return search;
+    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<O> type) {
+        SearchBoxConfigurationType searchBoxConfigurationType = super.getDefaultSearchBoxConfiguration(type);
+        searchBoxConfigurationType.setObjectTypeConfiguration(SearchBoxConfigurationUtil.createObjectTypeSearchItemConfiguration(type, Arrays.asList(
+                        AbstractRoleType.COMPLEX_TYPE,
+                        OrgType.COMPLEX_TYPE,
+                        ArchetypeType.COMPLEX_TYPE,
+                        RoleType.COMPLEX_TYPE,
+                        ServiceType.COMPLEX_TYPE)));
+        return searchBoxConfigurationType;
+
     }
 
     protected List<QName> getSupportedTypes() {

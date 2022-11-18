@@ -243,18 +243,18 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
                 return getPreselectedObjectList();
             }
 
-            @Override
-            protected Search createSearch(Class<O> type) {
-//                String collectionName = isCollectionViewPanelForCompiledView() ?
-//                        WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
-//                //TODO special items
-                Set<SearchItemType> specialItems = getSpecialItems();
-                return SearchFactory.createSearch(type, getObjectCollectionView(), getPageBase());
-//                Search search = super.createSearch(type);
-//                getSpecialSearchItemWrappers()
-//                        .forEach(function -> search.addSpecialItem(function.apply(search)));
-//                return search;
-            }
+//            @Override
+//            protected Search createSearch(Class<O> type) {
+////                String collectionName = isCollectionViewPanelForCompiledView() ?
+////                        WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
+////                //TODO special items
+//                Set<SearchItemType> specialItems = getSpecialItems();
+//                return SearchFactory.createSearch(type, getObjectCollectionView(), getPageBase());
+////                Search search = super.createSearch(type);
+////                getSpecialSearchItemWrappers()
+////                        .forEach(function -> search.addSpecialItem(function.apply(search)));
+////                return search;
+//            }
         };
         listPanel.setOutputMarkupId(true);
         return listPanel;

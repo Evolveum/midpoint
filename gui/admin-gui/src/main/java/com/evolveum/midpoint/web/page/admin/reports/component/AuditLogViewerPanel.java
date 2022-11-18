@@ -14,6 +14,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -129,6 +131,24 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         }
         return search;
     }
+
+//    @Override
+//    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<AuditEventRecordType> type) {
+//
+//        SearchBoxConfigurationType defaultSearchBoxConfig = super.getDefaultSearchBoxConfiguration(type);
+//        SearchItemsType searchItemsType = defaultSearchBoxConfig.getSearchItems();
+//        if (searchItemsType == null) {
+//            return defaultSearchBoxConfig;
+//        }
+//        List<SearchItemType> predefinedSearchItems = searchItemsType.getSearchItem();
+//        predefinedSearchItems.iterator().next().get
+//
+//        if (timestampItem != null && timestampItem.getSingleDate() == null && timestampItem.getIntervalSecondDate() == null
+//                && !isCollectionViewPanelForWidget() && !isPreview()) {
+//            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+//            timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
+//        }
+//    }
 
     @Override
     protected UserProfileStorage.TableId getTableId() {

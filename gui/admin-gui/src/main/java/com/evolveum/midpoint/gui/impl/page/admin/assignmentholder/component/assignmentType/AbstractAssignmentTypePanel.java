@@ -12,8 +12,10 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.prism.path.ObjectReferencePathSegment;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -585,14 +587,32 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     @Override
     protected abstract UserProfileStorage.TableId getTableId();
 
-    @Override
-    protected Search createSearch(Class<AssignmentType> type) {
-        Search search =  SearchFactory.createAssignmnetSearch(getAssignmentType(), isRepositorySearchEnabled(), getObjectCollectionView(), getPageBase());
+//    @Override
+//    protected Search createSearch(Class<AssignmentType> type) {
+//        Search search =  SearchFactory.createAssignmnetSearch(getAssignmentType(), isRepositorySearchEnabled(), getObjectCollectionView(), getPageBase());
+//
+//        return search;
+//    }
 
-        return search;
+    @Override
+    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<AssignmentType> type) {
+        QName targetType = getAssignmentType();
+        PrismContainerDefinition<AssignmentType> definitionOverwrite;
+        PrismContainerDefinition<AssignmentType> orig = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+        if (targetType == null) {
+            definitionOverwrite = orig;
+        } else {
+            // We have more concrete assignment type, we should replace targetRef definition
+            // with one with concrete assignment type.
+            definitionOverwrite = getPageBase().getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, targetType);
+        }
+
+        var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(targetType), ObjectType.F_EXTENSION);
+        return SearchBoxConfigurationUtil.getDefaultAssignmentSearchBoxConfiguration(getAssignmentType(), definitionOverwrite,
+                Arrays.asList(ObjectType.F_EXTENSION, targetExtensionPath), getPageBase());
     }
 
-//    @Deprecated
+    //    @Deprecated
 //    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
 //        List<SearchItemDefinition> defs = new ArrayList<>();
 //

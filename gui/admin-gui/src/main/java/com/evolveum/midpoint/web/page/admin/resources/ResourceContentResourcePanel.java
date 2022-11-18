@@ -52,19 +52,26 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
         return ResourceTypeUtil.isCountObjectsCapabilityEnabled(getResourceModel().getObject().asObjectable());
     }
 
+//    @Override
+//    protected Search createSearch() {
+//        //createSearchConfigWrapper()
+//        //TODO compiled object collection view
+//        return SearchFactory.createSearch(ShadowType.class, getPageBase());
+//    }
+
+    //TODO
+
     @Override
-    protected Search createSearch() {
-        //createSearchConfigWrapper()
-        //TODO compiled object collection view
-        return SearchFactory.createSearch(ShadowType.class, getPageBase());
+    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration() {
+        return null;
     }
 
-    private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
-        SearchConfigurationWrapper<ShadowType> config = SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
-        config.getItemsList().clear();
-        config.getItemsList().addAll(createAttributeSearchItemWrappers());
-        return config;
-    }
+//    private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
+//        SearchConfigurationWrapper<ShadowType> config = SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
+//        config.getItemsList().clear();
+//        config.getItemsList().addAll(createAttributeSearchItemWrappers());
+//        return config;
+//    }
 
 
     private <T extends ObjectType> List<AbstractSearchItemWrapper> createAttributeSearchItemWrappers() {

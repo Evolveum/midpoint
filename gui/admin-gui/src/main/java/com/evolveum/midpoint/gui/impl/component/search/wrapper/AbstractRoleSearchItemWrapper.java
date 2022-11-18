@@ -47,10 +47,10 @@ public class AbstractRoleSearchItemWrapper extends AbstractSearchItemWrapper {
     private TenantSearchItemWrapper tenantSearchItemWrapper;
     private ProjectSearchItemWrapper projectSearchItemWrapper;
 
-    private QName abstractRoleType;
+//    private QName abstractRoleType;
 
-    public AbstractRoleSearchItemWrapper(QName absctratRoleType, SearchBoxConfigurationType config) {
-        this.abstractRoleType = absctratRoleType;
+    public AbstractRoleSearchItemWrapper(SearchBoxConfigurationType config) {
+//        this.abstractRoleType = absctratRoleType;
         if (config.getRelationConfiguration() != null) {
             relationSearchItemWrapper = new RelationSearchItemWrapper(config.getRelationConfiguration());
         }
@@ -176,7 +176,8 @@ public class AbstractRoleSearchItemWrapper extends AbstractSearchItemWrapper {
     }
 
     public boolean isSearchScopeVisible() {
-        return QNameUtil.match(OrgType.COMPLEX_TYPE, abstractRoleType);
+        return scopeSearchItemWrapper != null;
+//        return QNameUtil.match(OrgType.COMPLEX_TYPE, abstractRoleType);
     }
 
     public boolean isRelationVisible() {
@@ -188,7 +189,7 @@ public class AbstractRoleSearchItemWrapper extends AbstractSearchItemWrapper {
     }
 
     public boolean isParameterSearchVisible() {
-        return !isIndirect() && QNameUtil.match(RoleType.COMPLEX_TYPE, abstractRoleType);
+        return !isIndirect();// && QNameUtil.match(RoleType.COMPLEX_TYPE, abstractRoleType);
     }
 
     public List<QName> getSupportedRelations() {

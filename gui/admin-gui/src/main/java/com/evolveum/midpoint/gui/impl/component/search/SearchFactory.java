@@ -43,29 +43,30 @@ public class SearchFactory {
     private static final String LOAD_ADMIN_GUI_CONFIGURATION = DOT_CLASS + "loadAdminGuiConfiguration";
     protected static final String OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION = DOT_CLASS + "loadFullTextSearchConfiguration";
 
-    public static <C extends Containerable> Search<C> createMemberSearch(Class<C> type, List<QName> supportedTypes, List<QName> supportedRelations,
-            QName abstractRoleType, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
-        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultOrgMembersSearchBoxConfiguration(type, supportedTypes, supportedRelations, modelServiceLocator);
+//    public static <C extends Containerable> Search<C> createMemberSearch(Class<C> type, List<QName> supportedTypes, List<QName> supportedRelations,
+//            QName abstractRoleType, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
+//        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultOrgMembersSearchBoxConfiguration(type, supportedTypes, supportedRelations, modelServiceLocator);
+//
+//        SearchBoxConfigurationType mergedConfig = getMergedConfiguration(defaultSearchBox, collectionView);
+//        SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(type, collectionView, mergedConfig, modelServiceLocator);
+//
+//
+//        return createSearch(type, mergedConfig, collectionView, basicSearchWrapper, modelServiceLocator);
+//
+//    }
+//    public static <C extends Containerable> Search<C> createSearch(Class<C> type, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
+//        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, modelServiceLocator);
+//        return createSearch(type,  defaultSearchBox, collectionView, modelServiceLocator);
+//    }
 
-        SearchBoxConfigurationType mergedConfig = getMergedConfiguration(defaultSearchBox, collectionView);
-        SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(type, collectionView, mergedConfig, modelServiceLocator);
-
-        if (abstractRoleType != null) {
-            createAbstractRoleSearchItemWrapperList(abstractRoleType, basicSearchWrapper, mergedConfig);
-        }
-        return createSearch(type, mergedConfig, collectionView, basicSearchWrapper, modelServiceLocator);
-
-    }
-    public static <C extends Containerable> Search<C> createSearch(Class<C> type, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
-        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, modelServiceLocator);
-        return createSearch(type,  defaultSearchBox, collectionView, modelServiceLocator);
-    }
-
-    private static <C extends Containerable> Search<C> createSearch(Class<C> type, SearchBoxConfigurationType defaultSearchBoxConfig, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> Search<C> createSearch(PrismContainerDefinition<C> definition, SearchBoxConfigurationType defaultSearchBoxConfig, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
         SearchBoxConfigurationType mergedConfig = getMergedConfiguration(defaultSearchBoxConfig, collectionView);
 
-        SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(type, collectionView, mergedConfig, modelServiceLocator);
-        return createSearch(type, mergedConfig, collectionView, basicSearchWrapper, modelServiceLocator);
+        SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(definition, collectionView, mergedConfig, modelServiceLocator);
+
+        createAbstractRoleSearchItemWrapperList(basicSearchWrapper, mergedConfig);
+
+        return createSearch(definition, mergedConfig, collectionView, basicSearchWrapper, modelServiceLocator);
     }
 
     private static SearchBoxConfigurationType getMergedConfiguration(SearchBoxConfigurationType defaultSearchBoxConfig, CompiledObjectCollectionView collectionView) {
@@ -74,13 +75,14 @@ public class SearchFactory {
         return mergedConfig;
     }
 
-    private static <C extends Containerable> Search<C> createSearch(Class<C> type, SearchBoxConfigurationType mergedConfig, CompiledObjectCollectionView collectionView, SearchConfigurationWrapper<C> basicSearchWrapper, ModelServiceLocator modelServiceLocator) {
+    private static <C extends Containerable> Search<C> createSearch(PrismContainerDefinition<C> definition, SearchBoxConfigurationType mergedConfig, CompiledObjectCollectionView collectionView, SearchConfigurationWrapper<C> basicSearchWrapper, ModelServiceLocator modelServiceLocator) {
         AxiomQueryWrapper<C> axiomWrapper = new AxiomQueryWrapper<>();
         AdvancedQueryWrapper advancedQueryWrapper = new AdvancedQueryWrapper();
         FulltextQueryWrapper fulltextQueryWrapper = new FulltextQueryWrapper();
 
-        Search<C> search = new Search<>(type, mergedConfig);
-        search.setTypeClass(type);
+        Class<C> type = definition.getTypeClass();
+        Search<C> search = new Search<>(definition.getTypeClass(), mergedConfig);
+        search.setTypeClass(definition.getTypeClass());
 
         if (mergedConfig.getObjectTypeConfiguration() != null) {
             search.setAllowedTypeList(mergedConfig.getObjectTypeConfiguration()
@@ -107,63 +109,63 @@ public class SearchFactory {
 //        return getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
 //    }
 
-    public static Search<AssignmentType> createAssignmnetSearch(QName targetType, boolean isRepoSearchEnabled, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
-
-        PrismContainerDefinition<AssignmentType> definitionOverwrite;
-        PrismContainerDefinition<AssignmentType> orig = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
-        if (targetType == null) {
-            definitionOverwrite = orig;
-        } else {
-            // We have more concrete assignment type, we should replace targetRef definition
-            // with one with concrete assignment type.
-            definitionOverwrite = modelServiceLocator.getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, targetType);
-        }
-
-        var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(targetType), ObjectType.F_EXTENSION);
-        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultAssignmentSearchBoxConfiguration(targetType, definitionOverwrite, Arrays.asList(ObjectType.F_EXTENSION, targetExtensionPath), modelServiceLocator);
-
-        SearchBoxConfigurationType mergedConfig = getMergedConfiguration(defaultSearchBox, collectionView);
-
-        SearchConfigurationWrapper<AssignmentType> basicSearchWrapper = createBasicSearchWrapper(AssignmentType.class, collectionView, mergedConfig, modelServiceLocator);
-//        addAssignmentTargetSpecificItems(targetType, definitionOverwrite, basicSearchWrapper, modelServiceLocator);
-
-        Search<AssignmentType> search = createSearch(AssignmentType.class, mergedConfig, collectionView, basicSearchWrapper, modelServiceLocator);
-
-        search.setContainerDefinition(definitionOverwrite);
-        if (isRepoSearchEnabled) {
-            OperationResult result = new OperationResult(OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION);
-            try {
-                FullTextSearchConfigurationType config = modelServiceLocator.getModelInteractionService().getSystemConfiguration(result).getFullTextSearch();
-                if (config != null && FullTextSearchUtil.isEnabledFor(config, Collections.singletonList(targetType == null ? AbstractRoleType.COMPLEX_TYPE : targetType))) {
-                    defaultSearchBox.getAllowedMode().add(SearchBoxModeType.FULLTEXT);
-                    defaultSearchBox.setDefaultMode(SearchBoxModeType.FULLTEXT);
-                }
-            } catch (Exception e) {
-                LOGGER.debug("Unable to load full text search configuration from system configuration, {}", e.getMessage());
-            }
-        }
-        //TODo allowed mode list
-        search.setAllowedModeList(createAllowedModeList(AssignmentType.class, modelServiceLocator));
-
-        return search;
-    }
+//    public static Search<AssignmentType> createAssignmnetSearch(QName targetType, boolean isRepoSearchEnabled, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
+//
+//        PrismContainerDefinition<AssignmentType> definitionOverwrite;
+//        PrismContainerDefinition<AssignmentType> orig = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+//        if (targetType == null) {
+//            definitionOverwrite = orig;
+//        } else {
+//            // We have more concrete assignment type, we should replace targetRef definition
+//            // with one with concrete assignment type.
+//            definitionOverwrite = modelServiceLocator.getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, targetType);
+//        }
+//
+//        var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(targetType), ObjectType.F_EXTENSION);
+//        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultAssignmentSearchBoxConfiguration(targetType, definitionOverwrite, Arrays.asList(ObjectType.F_EXTENSION, targetExtensionPath), modelServiceLocator);
+//
+//        SearchBoxConfigurationType mergedConfig = getMergedConfiguration(defaultSearchBox, collectionView);
+//
+//        SearchConfigurationWrapper<AssignmentType> basicSearchWrapper = createBasicSearchWrapper(AssignmentType.class, collectionView, mergedConfig, modelServiceLocator);
+////        addAssignmentTargetSpecificItems(targetType, definitionOverwrite, basicSearchWrapper, modelServiceLocator);
+//
+//        Search<AssignmentType> search = createSearch(AssignmentType.class, mergedConfig, collectionView, basicSearchWrapper, modelServiceLocator);
+//
+//        search.setContainerDefinition(definitionOverwrite);
+//        if (isRepoSearchEnabled) {
+//            OperationResult result = new OperationResult(OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION);
+//            try {
+//                FullTextSearchConfigurationType config = modelServiceLocator.getModelInteractionService().getSystemConfiguration(result).getFullTextSearch();
+//                if (config != null && FullTextSearchUtil.isEnabledFor(config, Collections.singletonList(targetType == null ? AbstractRoleType.COMPLEX_TYPE : targetType))) {
+//                    defaultSearchBox.getAllowedMode().add(SearchBoxModeType.FULLTEXT);
+//                    defaultSearchBox.setDefaultMode(SearchBoxModeType.FULLTEXT);
+//                }
+//            } catch (Exception e) {
+//                LOGGER.debug("Unable to load full text search configuration from system configuration, {}", e.getMessage());
+//            }
+//        }
+//        //TODo allowed mode list
+//        search.setAllowedModeList(createAllowedModeList(AssignmentType.class, modelServiceLocator));
+//
+//        return search;
+//    }
 
     //TODO REVIEW NEEDED!!!!
-    private static <C extends Containerable> SearchConfigurationWrapper<C> createBasicSearchWrapper(Class<C> type,
+    private static <C extends Containerable> SearchConfigurationWrapper<C> createBasicSearchWrapper(PrismContainerDefinition<C> definition,
             CompiledObjectCollectionView collectionView, SearchBoxConfigurationType configuredSearchBox, ModelServiceLocator modelServiceLocator) {
-        SearchConfigurationWrapper<C> basicSearchWrapper = createDefaultSearchBoxConfigurationWrapper(type, configuredSearchBox, modelServiceLocator);
+        SearchConfigurationWrapper<C> basicSearchWrapper = createDefaultSearchBoxConfigurationWrapper(definition, configuredSearchBox, modelServiceLocator);
         basicSearchWrapper.setAllowToConfigureSearchItems(isAllowToConfigureSearchItems(configuredSearchBox));
 
 
         if (collectionView == null) {
             //todo we need to get saved searches here for the specified type
             List<CompiledObjectCollectionView> views = modelServiceLocator.getCompiledGuiProfile()
-                    .findAllApplicableObjectCollectionViews(WebComponentUtil.containerClassToQName(PrismContext.get(), type))
+                    .findAllApplicableObjectCollectionViews(definition.getTypeName())
                     .stream()
                     .filter(v -> v.getFilter() != null)     //todo should we check also collectionRef?
                     .collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(views)) {
-                ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(type,
+                ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(definition.getTypeClass(),
                         views);
                 viewListItem.setVisible(true);
                 basicSearchWrapper.getItemsList().add(viewListItem);
@@ -197,34 +199,14 @@ public class SearchFactory {
         return collectionView.getSearchBoxConfiguration();
     }
 
+    //TODO
     public static <C extends Containerable> Search<C> createSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
-        return createSearch(type, null, modelServiceLocator);
+        PrismContainerDefinition<C> def = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+        return createSearch(def, SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, modelServiceLocator), null, modelServiceLocator);
     }
 
-    public static <C extends Containerable> Search<ShadowType> createProjectionsTabSearch(CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
-        Search<ShadowType> search = createSearch(ShadowType.class, collectionView, modelServiceLocator);
-        search.getItems().forEach(item -> {
-            if (!(item instanceof PropertySearchItemWrapper)) {
-                return;
-            }
-            //on the projections tab we have by default just DEAD search item, therefore we hide all others
-            item.setVisible(false);
-            if (((PropertySearchItemWrapper) item).getPath() != null
-                    && ShadowType.F_DEAD.equivalent(((PropertySearchItemWrapper<?>) item).getPath())) {
-                item.setVisible(true);
-                item.setCanConfigure(false);
-            }
-        });
 
-//        List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
-//
-//        addSearchRefWrapper(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, modelServiceLocator);
-//        addSearchPropertyWrapper(containerDef, ShadowType.F_NAME, defs, modelServiceLocator);
-//        addSearchPropertyWrapper(containerDef, ShadowType.F_INTENT, defs, modelServiceLocator);
-//        addSearchPropertyWrapper(containerDef, ShadowType.F_KIND, defs, modelServiceLocator);
-
-        return search;
-    }
+    //
 
     private static <C extends Containerable> List<SearchBoxModeType> createAllowedModeList(Class<C> type, ModelServiceLocator modelServiceLocator) {
         List<SearchBoxModeType> allowedModeTypes = Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY);
@@ -242,30 +224,30 @@ public class SearchFactory {
         }
         return false;
     }
-    public static void createAbstractRoleSearchItemWrapperList(QName abstractRoleType, SearchConfigurationWrapper searchConfigWrapper, SearchBoxConfigurationType config) {
-        AbstractRoleSearchItemWrapper roleSearchWrapper = new AbstractRoleSearchItemWrapper(abstractRoleType, config);
+    public static void createAbstractRoleSearchItemWrapperList(SearchConfigurationWrapper searchConfigWrapper, SearchBoxConfigurationType config) {
+        AbstractRoleSearchItemWrapper roleSearchWrapper = new AbstractRoleSearchItemWrapper(config);
         if (roleSearchWrapper.isNotEmpty()){
             searchConfigWrapper.getItemsList().add(roleSearchWrapper);
         }
 
     }
 
-    public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(Class<C> type,
-            ModelServiceLocator modelServiceLocator) {
-        return createDefaultSearchBoxConfigurationWrapper(type, null, modelServiceLocator);
-    }
+//    public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(PrismContainerDefinition<C> type,
+//            ModelServiceLocator modelServiceLocator) {
+//        return createDefaultSearchBoxConfigurationWrapper(type, null, modelServiceLocator);
+//    }
 
-    public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(Class<C> type,
+    public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(PrismContainerDefinition<C> definition,
             SearchBoxConfigurationType mergedConfig, ModelServiceLocator modelServiceLocator) {
-        return createDefaultSearchBoxConfigurationWrapper(type, mergedConfig, null, modelServiceLocator);
+        return createDefaultSearchBoxConfigurationWrapper(definition, mergedConfig, null, modelServiceLocator);
     }
 
     public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(
-            Class<C> type, @NotNull SearchBoxConfigurationType mergedConfig, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
+            PrismContainerDefinition<C> definition, @NotNull SearchBoxConfigurationType mergedConfig, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
         SearchConfigurationWrapper searchConfigWrapper = new SearchConfigurationWrapper();
         SearchItemsType searchItems = mergedConfig.getSearchItems();
         for (SearchItemType searchItem : searchItems.getSearchItem()) {
-            searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(type, searchItem,  coordinates, modelServiceLocator));
+            searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(definition, searchItem,  coordinates, modelServiceLocator));
         }
         return searchConfigWrapper;
     }

@@ -8,6 +8,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -62,7 +63,7 @@ public class SearchBoxConfigurationUtil {
     private static <C extends Containerable> SearchItemsType createSearchItemsForType(Class<C> type, Collection<ItemPath> extensionPaths, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
         Map<ItemPath, ItemDefinition<?>> availableDefs = PredefinedSearchableItems.getAvailableSearchItems(type, extensionPaths, coordinates, modelServiceLocator);//getSearchableDefinitionMap(def, modelServiceLocator);
 
-        List<SearchItemType> searchItems = createSearchItemList(availableDefs);
+        List<SearchItemType> searchItems = createSearchItemList(type, availableDefs);
         SearchItemsType searchItemsType = new SearchItemsType();
         searchItemsType.getSearchItem().addAll(searchItems);
         return searchItemsType;
@@ -71,19 +72,19 @@ public class SearchBoxConfigurationUtil {
     private static <C extends Containerable> SearchItemsType createSearchItemsForAssignments(QName assignmentTargetType, PrismContainerDefinition<AssignmentType> definitionOverride, Collection<ItemPath> extensionPaths, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
         Map<ItemPath, ItemDefinition<?>> availableDefs = PredefinedSearchableItems.getAvailableAssignmentSearchItems(assignmentTargetType, definitionOverride, extensionPaths, modelServiceLocator);//getSearchableDefinitionMap(def, modelServiceLocator);
 
-        List<SearchItemType> searchItems = createSearchItemList(availableDefs);
+        List<SearchItemType> searchItems = createSearchItemList(AssignmentType.class, availableDefs);
         SearchItemsType searchItemsType = new SearchItemsType();
         searchItemsType.getSearchItem().addAll(searchItems);
         return searchItemsType;
     }
 
-    private static List<SearchItemType> createSearchItemList(Map<ItemPath, ItemDefinition<?>> availableDefinitions) {
+    private static <C extends Containerable> List<SearchItemType> createSearchItemList(Class<C> type, Map<ItemPath, ItemDefinition<?>> availableDefinitions) {
         List<SearchItemType> searchItems = new ArrayList<>();
 //        List<ItemPath> fixedItems = collectFixedItems(type);
         for (ItemPath path : availableDefinitions.keySet()) {
             SearchItemType searchItem = new SearchItemType();
             searchItem.setPath(new ItemPathType(path));
-            if (PredefinedSearchableItems.isFixedItem(AssignmentType.class, path)) {
+            if (PredefinedSearchableItems.isFixedItem(type, path)) {
                 searchItem.setVisibleByDefault(true);
             }
             searchItems.add(searchItem);
@@ -92,13 +93,11 @@ public class SearchBoxConfigurationUtil {
     }
 
     public static <C extends Containerable> SearchBoxConfigurationType getDefaultOrgMembersSearchBoxConfiguration(Class<C> defaultType,
+            QName abstractRoleType,
             List<QName> supportedTypes, List<QName> supportedRelations, ModelServiceLocator modelServiceLocator) {
         SearchBoxConfigurationType searchBoxConfig = createDefaultSearchBoxConfig();
-        ObjectTypeSearchItemConfigurationType objectTypeItem = new ObjectTypeSearchItemConfigurationType();
-        objectTypeItem.setDefaultValue(WebComponentUtil.containerClassToQName(PrismContext.get(), defaultType));
-        objectTypeItem.getSupportedTypes().addAll(supportedTypes);
-        objectTypeItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
-        searchBoxConfig.setObjectTypeConfiguration(objectTypeItem);
+
+        searchBoxConfig.setObjectTypeConfiguration(createObjectTypeSearchItemConfiguration(defaultType, supportedTypes));
 
         RelationSearchItemConfigurationType relationSearchItem = new RelationSearchItemConfigurationType();
         relationSearchItem.getSupportedRelations().addAll(supportedRelations);
@@ -106,17 +105,19 @@ public class SearchBoxConfigurationUtil {
         relationSearchItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
         searchBoxConfig.setRelationConfiguration(relationSearchItem);
 
-        ScopeSearchItemConfigurationType scopeSearchItem = new ScopeSearchItemConfigurationType();
-        scopeSearchItem.setDefaultValue(SearchBoxScopeType.ONE_LEVEL);
-        scopeSearchItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
-        searchBoxConfig.setScopeConfiguration(scopeSearchItem);
+        if (QNameUtil.match(OrgType.COMPLEX_TYPE, abstractRoleType)) {
+            ScopeSearchItemConfigurationType scopeSearchItem = new ScopeSearchItemConfigurationType();
+            scopeSearchItem.setDefaultValue(SearchBoxScopeType.ONE_LEVEL);
+            scopeSearchItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
+            searchBoxConfig.setScopeConfiguration(scopeSearchItem);
+        }
 
         IndirectSearchItemConfigurationType indirectItem = new IndirectSearchItemConfigurationType();
         indirectItem.setIndirect(false);
         indirectItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
         searchBoxConfig.setIndirectConfiguration(indirectItem);
 
-        //TODO tenant and project
+        //TODO tenant and project only for roles
 //        defaultScope = searchBoxConfig.getScopeConfiguration() != null ? searchBoxConfig.getScopeConfiguration().getDefaultValue()
 //                : searchBoxConfig.getDefaultScope();
 //        if (searchBoxConfig.getRelationConfiguration() != null) {
@@ -138,6 +139,14 @@ public class SearchBoxConfigurationUtil {
         SearchItemsType searchItemsType = createSearchItemsForType(defaultType, Arrays.asList(ObjectType.F_EXTENSION), null, modelServiceLocator);
         searchBoxConfig.searchItems(searchItemsType);
         return searchBoxConfig;
+    }
+
+    public static <C extends Containerable> ObjectTypeSearchItemConfigurationType createObjectTypeSearchItemConfiguration(Class<C> defaultType, List<QName> supportedTypes) {
+        ObjectTypeSearchItemConfigurationType objectTypeItem = new ObjectTypeSearchItemConfigurationType();
+        objectTypeItem.setDefaultValue(WebComponentUtil.containerClassToQName(PrismContext.get(), defaultType));
+        objectTypeItem.getSupportedTypes().addAll(supportedTypes);
+        objectTypeItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
+        return objectTypeItem;
     }
 
     private static QName getDefaultRelationAllowAny(List<QName> availableRelationList) {

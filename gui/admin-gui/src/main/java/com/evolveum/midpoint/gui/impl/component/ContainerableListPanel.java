@@ -229,7 +229,13 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected Search<C> createSearch(Class<C> type) {
-        return SearchFactory.createSearch(getType(), getObjectCollectionView(), getPageBase());
+        Class<C> defaultType = getType();
+
+        return SearchFactory.createSearch(getContainerDefinitionForColumns(), getDefaultSearchBoxConfiguration(defaultType), getObjectCollectionView(), getPageBase());
+    }
+
+    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<C> type) {
+        return SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, getPageBase());
     }
 
     private void initLayout() {

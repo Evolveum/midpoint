@@ -238,9 +238,14 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             @Override
-            protected Search<AH> createSearch(Class<AH> type) {
-                return createMemberSearch(type);
+            protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<AH> type) {
+                return SearchBoxConfigurationUtil.getDefaultOrgMembersSearchBoxConfiguration(type, getAbstractRoleType(), getDefaultSupportedObjectTypes(true), getSupportedRelations(), getPageBase());
             }
+
+//            @Override
+//            protected Search<AH> createSearch(Class<AH> type) {
+//                return createMemberSearch(type);
+//            }
 
             @Override
             protected SelectableBeanObjectDataProvider<AH> createProvider() {
@@ -388,23 +393,24 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return ObjectTypes.getObjectTypeClass(objectTypeQname);
     }
 
-    private <AH extends AssignmentHolderType> Search<AH> createMemberSearch(Class<AH> type) {
-        MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
-        CompiledObjectCollectionView objectCollectionView = getCompiledCollectionViewFromPanelConfiguration();
-        if (memberPanelStorage == null) { //normally, this should not happen
-            //new SearchConfigurationWrapper<>(type, getPageBase())
-            return SearchFactory.createMemberSearch(type, getDefaultSupportedObjectTypes(true), getSupportedRelations(), getAbstractRoleType(), objectCollectionView, getPageBase());
-        }
 
-        if (memberPanelStorage.getSearch() != null && type.equals(memberPanelStorage.getSearch().getTypeClass())) {
-            return memberPanelStorage.getSearch();
-        }
-
-        //createSearchConfigWrapper(type)
-        Search<AH> search = SearchFactory.createMemberSearch(type, getDefaultSupportedObjectTypes(true), getSupportedRelations(), getAbstractRoleType(), objectCollectionView, getPageBase());
-        memberPanelStorage.setSearch(search);
-        return search;
-    }
+//    private <AH extends AssignmentHolderType> Search<AH> createMemberSearch(Class<AH> type) {
+//        MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
+//        CompiledObjectCollectionView objectCollectionView = getCompiledCollectionViewFromPanelConfiguration();
+//        if (memberPanelStorage == null) { //normally, this should not happen
+//            //new SearchConfigurationWrapper<>(type, getPageBase())
+//            return SearchFactory.createMemberSearch(type, getDefaultSupportedObjectTypes(true), getSupportedRelations(), getAbstractRoleType(), objectCollectionView, getPageBase());
+//        }
+//
+//        if (memberPanelStorage.getSearch() != null && type.equals(memberPanelStorage.getSearch().getTypeClass())) {
+//            return memberPanelStorage.getSearch();
+//        }
+//
+//        //createSearchConfigWrapper(type)
+//        Search<AH> search = SearchFactory.createMemberSearch(type, getDefaultSupportedObjectTypes(true), getSupportedRelations(), getAbstractRoleType(), objectCollectionView, getPageBase());
+//        memberPanelStorage.setSearch(search);
+//        return search;
+//    }
 
     private QName getAbstractRoleType() {
         return getModelObject().asPrismObject().getDefinition().getTypeName();
