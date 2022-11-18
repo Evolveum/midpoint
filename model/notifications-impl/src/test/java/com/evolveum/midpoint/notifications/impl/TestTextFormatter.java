@@ -85,7 +85,7 @@ public class TestTextFormatter extends AbstractSpringTest {
     }
 
     @SuppressWarnings("SimplifiedTestNGAssertion")
-    @Test
+    @Test(enabled = false)
     public void test010FormatUser() throws Exception {
 
         // GIVEN
@@ -204,7 +204,7 @@ public class TestTextFormatter extends AbstractSpringTest {
     }
 
     @SuppressWarnings("SimplifiedTestNGAssertion")
-    @Test
+    @Test(enabled = false)
     public void test030FormatAccount() throws Exception {
 
         given();
