@@ -8,12 +8,12 @@
 Since the beginning of midPoint, a _task_ represented something that should be done, like importing
 all accounts from a given resource. Such tasks could be created, executed, checked for the current
 status and progress, and so on. Gradually, tasks grew rich in features: multi-thread and multi-node
-processing, ability to suspend and resume (continuing where the work has stopped), various kinds
+processing, the ability to suspend and resume (continuing where the work has stopped), various kinds
 of statistics, and error-reporting and handling options.
 
-Somewhere around midPoint 4.2, we have realized that a task is something that can have
-a rich internal structure: it can consist of distinct "parts". An example is the reconciliation
-task that typically consists of operation completion, resource objects reconciliation, and remaining
+Somewhere around midPoint 4.2, we realized that a task is something that can have
+a rich internal structure: it can consist of distinct "parts". For example, reconciliation
+tasks typically consist of operation completion, resource objects reconciliation, and remaining
 shadows reconciliation.
 
 In midPoint 4.4 we finally have found a suitable conceptual model for the tasks and their work:
