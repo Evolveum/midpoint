@@ -1769,9 +1769,24 @@
                     <xsd:documentation>
                         Name of the password reset scheme. This is a short name that acts both as an
                         identifier of the scheme and also as a short name used for diagnostics.
+
+                        DEPRECATED: use identifier attribute instead of name
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.7.1</a:since>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="identifier" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique credentials reset identifier. Can be used for overriding credentials reset in different security
+                        policies. Can be also used as a short name used for diagnostics (instead of name attribute).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
