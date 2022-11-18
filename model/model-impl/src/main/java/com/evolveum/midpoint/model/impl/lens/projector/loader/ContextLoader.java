@@ -388,7 +388,7 @@ public class ContextLoader implements ProjectorProcessor {
         PrismObject<FocusType> focus = focusContext.getObjectAny();
         SecurityPolicyType globalSecurityPolicy = determineAndSetGlobalSecurityPolicy(context, focus, task, result);
         SecurityPolicyType focusSecurityPolicy =
-                determineAndSetFocusSecurityPolicy(focusContext, focus, globalSecurityPolicy, forceReload, task, result);
+                determineAndSetFocusSecurityPolicy(focusContext, focus, context.getSystemConfiguration(), forceReload, task, result);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Security policies:\n  Global:\n{}\n  Focus:\n{}",
@@ -418,24 +418,28 @@ public class ContextLoader implements ProjectorProcessor {
     }
 
     private SecurityPolicyType determineAndSetFocusSecurityPolicy(LensFocusContext<FocusType> focusContext,
-            PrismObject<FocusType> focus, SecurityPolicyType globalSecurityPolicy, boolean forceReload, Task task,
-            OperationResult result) throws SchemaException {
+            PrismObject<FocusType> focus, PrismObject<SystemConfigurationType> systemConfiguration, boolean forceReload, Task task,
+            OperationResult result) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, SchemaException {
         SecurityPolicyType existingPolicy = focusContext.getSecurityPolicy();
         if (existingPolicy != null && !forceReload) {
             return existingPolicy;
         } else {
-            SecurityPolicyType loadedPolicy = securityHelper.locateFocusSecurityPolicyFromOrgs(focus, task, result);
-            SecurityPolicyType resultingPolicy;
-            if (loadedPolicy != null) {
-                resultingPolicy = loadedPolicy;
-            } else {
-                // Not very clean. In fact we should store focus security policy separate from global
-                // policy to avoid confusion. But need to do this to fix MID-4793 and backport the fix.
-                // Therefore avoiding big changes. TODO: fix properly later
-                resultingPolicy = globalSecurityPolicy;
-            }
-            focusContext.setSecurityPolicy(resultingPolicy);
-            return resultingPolicy;
+            SecurityPolicyType loadedPolicy = securityHelper.locateSecurityPolicy(focus, systemConfiguration, task, result); //todo review please
+                                                                                    // locateSecurityPolicy tries to load security policy from org
+                                                                                    //and archetypes at first but if no one is found, return global security policy. therefore the usage
+                                                                                    //method locateFocusSecurityPolicyFromOrgs was replaced with locateSecurityPolicy and the following
+                                                                                    //peace of code was commented
+//            SecurityPolicyType resultingPolicy;
+//            if (loadedPolicy != null) {
+//                resultingPolicy = loadedPolicy;
+//            } else {
+//                // Not very clean. In fact we should store focus security policy separate from global
+//                // policy to avoid confusion. But need to do this to fix MID-4793 and backport the fix.
+//                // Therefore avoiding big changes. TODO: fix properly later
+//                resultingPolicy = globalSecurityPolicy;
+//            }
+            focusContext.setSecurityPolicy(loadedPolicy);
+            return loadedPolicy;
         }
     }
 }

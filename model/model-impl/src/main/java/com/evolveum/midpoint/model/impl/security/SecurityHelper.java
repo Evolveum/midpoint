@@ -146,10 +146,12 @@ public class SecurityHelper implements ModelAuditRecorder {
     public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> focus, PrismObject<SystemConfigurationType> systemConfiguration,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        SecurityPolicyType focusSecurityPolicy = locateFocusSecurityPolicyFromOrgs(focus, task, result);
-        if (focusSecurityPolicy != null) {
-            traceSecurityPolicy(focusSecurityPolicy, focus);
-            return focusSecurityPolicy;
+        SecurityPolicyType securityPolicyFromOrgs = locateFocusSecurityPolicyFromOrgs(focus, task, result);
+        SecurityPolicyType securityPolicyFromArchetypes = locateFocusSecurityPolicyFromArchetypes(focus, task, result);
+        SecurityPolicyType mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromArchetypes, securityPolicyFromOrgs);  //sec policy from archetypes overrides sec policy from org
+        if (mergedSecurityPolicy != null) {
+            traceSecurityPolicy(mergedSecurityPolicy, focus);
+            return mergedSecurityPolicy;
         }
 
         SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(focus, systemConfiguration, task, result);
@@ -161,7 +163,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         return null;
     }
 
-    public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromOrgs(PrismObject<F> focus, Task task,
+    private <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromOrgs(PrismObject<F> focus, Task task,
             OperationResult result) throws SchemaException {
         PrismObject<SecurityPolicyType> orgSecurityPolicy = objectResolver.searchOrgTreeWidthFirstReference(focus,
                 o -> o.asObjectable().getSecurityPolicyRef(), "security policy", task, result);
@@ -175,7 +177,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
     }
 
-    public <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromArchetypes(PrismObject<F> focus, Task task,
+    private <F extends FocusType> SecurityPolicyType locateFocusSecurityPolicyFromArchetypes(PrismObject<F> focus, Task task,
             OperationResult result) throws SchemaException {
         PrismObject<SecurityPolicyType> archetypeSecurityPolicy = searchSecurityPolicyFromArchetype(focus,
                 "security policy", task, result);
@@ -189,7 +191,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
     }
 
-    public <O extends ObjectType> PrismObject<SecurityPolicyType> searchSecurityPolicyFromArchetype(PrismObject<O> object,
+    private <O extends ObjectType> PrismObject<SecurityPolicyType> searchSecurityPolicyFromArchetype(PrismObject<O> object,
             String shortDesc, Task task, OperationResult result) throws SchemaException {
         if (object == null) {
             LOGGER.trace("No object provided. Cannot find security policy specific for an object.");
@@ -241,6 +243,21 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
         PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(securityPolicy, superArchetypeSecurityPolicy.asPrismObject());
         return mergeSecurityPolicyWithSuperArchetype(superArchetype, mergedSecurityPolicy, task, result);
+    }
+
+    private SecurityPolicyType mergeSecurityPolicies(SecurityPolicyType lowLevelSecurityPolicy,
+            SecurityPolicyType topLevelSecurityPolicy) {
+        if (lowLevelSecurityPolicy == null && topLevelSecurityPolicy == null) {
+            return null;
+        }
+        if (topLevelSecurityPolicy == null) {
+            return lowLevelSecurityPolicy.clone();
+        }
+        if (lowLevelSecurityPolicy == null) {
+            return topLevelSecurityPolicy.clone();
+        }
+        PrismObject<SecurityPolicyType> mergedSecurityPolicy = mergeSecurityPolicies(lowLevelSecurityPolicy.asPrismObject(), topLevelSecurityPolicy.asPrismObject());
+        return mergedSecurityPolicy != null ? mergedSecurityPolicy.asObjectable() : null;
     }
 
     /**
