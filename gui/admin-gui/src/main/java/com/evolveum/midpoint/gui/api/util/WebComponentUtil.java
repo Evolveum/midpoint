@@ -5431,4 +5431,17 @@ public final class WebComponentUtil {
                 .delay(5_000)
                 .body(panel.getString(key + ".text")).show(target);
     }
+
+    public static String translateMessage(LocalizableMessage msg) {
+        if (msg == null) {
+            return null;
+        }
+
+        MidPointApplication application = MidPointApplication.get();
+        if (application == null) {
+            return msg.getFallbackMessage();
+        }
+
+        return application.getLocalizationService().translate(msg, getCurrentLocale());
+    }
 }

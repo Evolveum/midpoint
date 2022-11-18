@@ -30,7 +30,8 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
     }
 
     public void onItemChevronClickPerformed(ListGroupMenuItem item) {
-        if (item.isEmpty()) {
+        if (item.getItems().isEmpty()) {    // force load of items, calling item.isEmpty() would return false if items are not loaded
+            item.setOpen(false);
             return;
         }
 
@@ -44,37 +45,28 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
         item.setActive(true);
     }
 
-    public void activateFirstAvailableItem() {
-        for (ListGroupMenuItem i : getItems()) {
-            if (activateFirstAvailableItem(i)) {
-                i.setOpen(true);
-                break;
-            }
-        }
-    }
-
-    public boolean activateFirstAvailableItem(ListGroupMenuItem item) {
-        List<ListGroupMenuItem> items = item.getItems();
-        if (items.isEmpty() && !item.isDisabled()) {
-            item.setActive(true);
-
-            return true;
+    public ListGroupMenuItem<T> activateFirstAvailableItem() {
+        List<ListGroupMenuItem<T>> items = getItems();
+        if (items.isEmpty()) {
+            return null;
         }
 
-        for (ListGroupMenuItem i : items) {
-            if (activateFirstAvailableItem(i)) {
-                i.setOpen(true);
-                return true;
+        for (ListGroupMenuItem<T> i : items) {
+            if (!i.isDisabled()) {
+                i.setActive(true);
+                return i;
             }
         }
 
-        return false;
+        return null;
     }
 
     private void deactivateItem(ListGroupMenuItem<T> item) {
         item.setActive(false);
 
-        item.getItems().forEach(this::deactivateItem);
+        if (item.isLoaded()) {
+            item.getItems().forEach(this::deactivateItem);
+        }
     }
 
     public ListGroupMenuItem<T> getActiveMenu() {
@@ -91,6 +83,10 @@ public class ListGroupMenu<T extends Serializable> implements Serializable {
     private ListGroupMenuItem getActiveMenu(ListGroupMenuItem<T> item) {
         if (item.isActive()) {
             return item;
+        }
+
+        if (!item.isLoaded()) {
+            return null;
         }
 
         for (ListGroupMenuItem i : item.getItems()) {

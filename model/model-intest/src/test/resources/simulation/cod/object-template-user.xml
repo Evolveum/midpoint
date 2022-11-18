@@ -16,6 +16,9 @@
         <source>
             <path>organization</path>
         </source>
+        <source>
+            <path>description</path>
+        </source>
         <expression>
             <assignmentTargetSearch>
                 <targetType>OrgType</targetType>
@@ -58,10 +61,19 @@
                             <path>extension/pc:parentIdentifier</path>
                         </target>
                     </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    description
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>description</path>
+                        </target>
+                    </populateItem>
                 </populateObject>
-                <assignmentProperties>
-                    <subtype>org</subtype>
-                </assignmentProperties>
             </assignmentTargetSearch>
         </expression>
         <target>

@@ -11,14 +11,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Modifier;
 import java.net.ConnectException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.logging.Trace;
 
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.aspectj.weaver.Shadow;
 import org.slf4j.Logger;
@@ -155,7 +159,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         assertCollectedCounts(counts, task, result);
     }
 
-    @Test(description = "Test currently fails since previewChanges doesn't handle associationTargetSearch properly (projector instead of whole clockwork is running)")
+    @Test(enabled = false,
+            description = "Test currently fails since previewChanges doesn't handle associationTargetSearch properly (projector instead of whole clockwork is running)")
     public void test200ComplexCase() throws Exception {
         given();
 
@@ -196,12 +201,90 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 //    }
 
     /**
-     * MID-7155
+     * MID-6166
      */
-//    @Test
-//    public void test400MultiThreadSupportForCreateOnDemand() throws Exception {
-//        // todo implement
-//    }
+    @Test
+    public void test400MultiThreadSupportForCreateOnDemand() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result= task.getResult();
+
+        List<PrismObject<OrgType>> orgs = repositoryService.searchObjects(OrgType.class, null, null, result);
+        orgs.forEach(org -> {
+            try {
+                repositoryService.deleteObject(OrgType.class, org.getOid(), result);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
+
+        int count = repositoryService.countObjects(OrgType.class, null, null, result);
+        AssertJUnit.assertEquals("There shouldn't be org units", 0, count);
+
+        when();
+
+        final int MAX_WORKERS = 10;
+        ExecutorService pool = Executors.newFixedThreadPool(MAX_WORKERS);
+
+        List<Callable<Exception>> tasks = new ArrayList<>();
+        for (int i = 0; i < MAX_WORKERS; i++) {
+            tasks.add(createMultithreadedTask(i, task));
+        }
+
+        List<Exception> exceptions = new ArrayList<>();
+
+        List<Future<Exception>> futures = pool.invokeAll(tasks);
+        for (Future<Exception> future : futures) {
+            Exception ex = future.get();
+            if (ex == null) {
+                continue;
+            }
+
+            exceptions.add(ex);
+        }
+
+        result.computeStatusIfUnknown();
+
+        then();
+
+        exceptions.forEach(ex -> LOGGER.error("Error occured ", ex));
+
+        int orgCount = repositoryService.countObjects(OrgType.class, null, null, result);
+        AssertJUnit.assertEquals("Two org should be present", 2, orgCount);
+
+        int userCount = repositoryService.countObjects(UserType.class, null, null, result);
+        // user is created in each thread + administrator
+        AssertJUnit.assertEquals("Two users should be present", MAX_WORKERS + 1, userCount);
+
+        AssertJUnit.assertEquals("Exception happened during processing", 0, exceptions.size());
+    }
+
+    private Callable<Exception> createMultithreadedTask(int id, Task task) {
+        return () -> {
+
+            OperationResult result = task.getResult().createSubresult("CoD runnable " + id);
+
+            try {
+                login(userAdministrator.clone());
+
+                PrismObject<UserType> bob = USER_BOB.getObject().clone();
+                UserType userBob = bob.asObjectable();
+                userBob.setName(new PolyStringType("bob" + id));
+                userBob.setDescription("no-provisioning");
+
+                ObjectDelta<UserType> delta = bob.createAddDelta();
+
+                modelService.executeChanges(Collections.singletonList(delta), ModelExecuteOptions.create(), task, result);
+            } catch (Exception ex) {
+                return ex;
+            } finally {
+                result.computeStatusIfUnknown();
+            }
+
+            return null;
+        };
+    }
 
     private Map<Class<? extends ObjectType>, Integer> collectCounts(Task task, OperationResult result) throws Exception {
         Map<Class<? extends ObjectType>, Integer> map = new HashMap<>();

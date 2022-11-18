@@ -11,9 +11,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.text.DateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +34,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationArgumentType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * @author Viliam Repan (lazyman).
@@ -194,12 +195,27 @@ public class LocalizationServiceImpl implements LocalizationService {
                 param = translate((PolyStringTranslationType) param, locale);
             } else if (param instanceof PolyStringTranslationArgumentType) {
                 param = translate((PolyStringTranslationArgumentType) param, locale);
+            } else if (param instanceof Date) {
+                param = translateDate((Date) param, locale);
+            } else if (param instanceof XMLGregorianCalendar) {
+                param = translateDate(((XMLGregorianCalendar) param).toGregorianCalendar().getTime(), locale);
+            } else if (param instanceof GregorianCalendar) {
+                param = translateDate(((GregorianCalendar) param).getTime(), locale);
             }
 
             translated[i] = param;
         }
 
         return translated;
+    }
+
+    private String translateDate(Date date, Locale locale) {
+        if (date == null) {
+            return null;
+        }
+
+        DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG, locale);
+        return df.format(date);
     }
 
     @Override

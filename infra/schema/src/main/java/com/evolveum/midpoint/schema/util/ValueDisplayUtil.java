@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import java.util.*;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -17,105 +20,73 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * TODO unify with PrettyPrinter somehow
  */
 public class ValueDisplayUtil {
 
-    public static PolyString toStringValue(PrismPropertyValue propertyValue) {
+    public static LocalizableMessage toStringValue(PrismPropertyValue propertyValue) {
         if (propertyValue == null || propertyValue.getValue() == null) {
             return null;
         }
         return toStringValue(propertyValue.getValue());
     }
 
-    private static PolyString createPolyString(String orig, String key, Object... params) {
-        PolyString poly = new PolyString(orig);
-
-        if (key == null) {
-            return poly;
-        }
-
-        PolyStringTranslationType translation = createTranslation(key, orig, params);
-        poly.setTranslation(translation);
-
-        return poly;
+    private static LocalizableMessage createMessage(String fallback) {
+        return createMessage(fallback, null);
     }
 
-    private static PolyStringTranslationType createTranslation(String key, String fallback, Object... params) {
-        PolyStringTranslationType translation = new PolyStringTranslationType();
-        translation.setKey(key);
-        translation.fallback(fallback);
-        Arrays.stream(params).forEach(param -> {
-
-            PolyStringTranslationArgumentType arg;
-            if (param instanceof PolyStringTranslationArgumentType) {
-                arg = (PolyStringTranslationArgumentType) param;
-            } else if (param instanceof PolyStringTranslationType) {
-                arg = new PolyStringTranslationArgumentType((PolyStringTranslationType) param);
-            } else {
-                String argKey = Objects.toString(param);
-                arg = new PolyStringTranslationArgumentType(argKey);
-            }
-
-            translation.getArgument().add(arg);
-        });
-
-        return translation;
+    private static LocalizableMessage createMessage(String fallback, String key, Object... params) {
+        return new SingleLocalizableMessage(key, params, fallback);
     }
 
-    private static String calendarToStringValue(XMLGregorianCalendar calendar) {
+    private static Date calendarToStringValue(XMLGregorianCalendar calendar) {
         if (calendar == null) {
             return null;
         }
 
-        return dateToStringValue(calendar.toGregorianCalendar().getTime());
+        return calendar.toGregorianCalendar().getTime();
     }
 
-    private static String dateToStringValue(Date date) {
-        if (date == null) {
-            return null;
-        }
-
-        return date.toLocaleString();  // todo fix localization
-    }
-
-    private static PolyString toStringValue(Object value) {
+    private static LocalizableMessage toStringValue(Object value) {
         String param = value.getClass().getSimpleName();
-        PolyString defaultStr = createPolyString("(a value of type " + param + ")", "ValueDisplayUtil.defaultStr", param);
+        LocalizableMessage msg = createMessage("(a value of type " + param + ")", "ValueDisplayUtil.defaultStr", param);
 
         if (value instanceof String) {
-            return new PolyString((String) value);
+            return createMessage((String) value);
         } else if (value instanceof PolyString) {
-            return (PolyString) value;
+            return createMessage(((PolyString) value).getOrig(), "ValueDisplayUtil.singleValue", value);
         } else if (value instanceof ProtectedStringType) {
-            return createPolyString("(protected string)", "ValueDisplayUtil.protectedString");
-        } else if (value instanceof Boolean || value instanceof Integer || value instanceof Long) {
-            return new PolyString(value.toString());
+            return createMessage("(protected string)", "ValueDisplayUtil.protectedString");
+        } else if (value instanceof Boolean) {
+            return createMessage(Boolean.toString((boolean) value), "Boolean." + value);
+        } else if (value instanceof Integer || value instanceof Long) {
+            return createMessage(value.toString());
         } else if (value instanceof XMLGregorianCalendar) {
-            String text = calendarToStringValue((XMLGregorianCalendar) value);
-            return new PolyString(text);
+            Date date = calendarToStringValue((XMLGregorianCalendar) value);
+            return createMessage(DateFormat.getDateTimeInstance().format(date), "ValueDisplayUtil.singleValue", date);
         } else if (value instanceof Date) {
-            return new PolyString(dateToStringValue((Date) value));
+            return createMessage(DateFormat.getDateTimeInstance().format((Date) value), "ValueDisplayUtil.singleValue", value);
         } else if (value instanceof LoginEventType) {
             LoginEventType loginEventType = (LoginEventType) value;
             if (loginEventType.getTimestamp() != null) {
-                return new PolyString(calendarToStringValue(loginEventType.getTimestamp()));
+                return toStringValue(loginEventType.getTimestamp());
             } else {
-                return new PolyString("");
+                return createMessage("");
             }
         } else if (value instanceof ScheduleType) {
-            return new PolyString(SchemaDebugUtil.prettyPrint((ScheduleType) value));
+            // todo fix translation
+            return createMessage(SchemaDebugUtil.prettyPrint((ScheduleType) value));
         } else if (value instanceof ApprovalSchemaType) {
             ApprovalSchemaType as = (ApprovalSchemaType) value;
-            return new PolyString(as.getName() + (as.getDescription() != null ? (": " + as.getDescription()) : "") + " (...)");
+            return createMessage(as.getName() + (as.getDescription() != null ? (": " + as.getDescription()) : "") + " (...)");
         } else if (value instanceof ConstructionType) {
             ConstructionType ct = (ConstructionType) value;
             String resourceOid = ct.getResourceRef() != null ? ct.getResourceRef().getOid() : null;
@@ -124,28 +95,27 @@ public class ValueDisplayUtil {
             String paramDescription = ct.getDescription() != null ? ": " + ct.getDescription() : "";
             String defaultValue = "resource object" + paramResource + paramDescription;
 
-            PolyStringTranslationType resourceArg = new PolyStringTranslationType().key("ValueDisplayUtil.constructionTypeResource");
-            resourceArg.getArgument().add(new PolyStringTranslationArgumentType(resourceOid != null ? resourceOid : ""));
-
-            return createPolyString(defaultValue, "ValueDisplayUtil.constructionType", new PolyStringTranslationArgumentType(resourceArg), paramDescription);
+            return createMessage(defaultValue, "ValueDisplayUtil.constructionType",
+                    createMessage(paramResource, "ValueDisplayUtil.constructionTypeResource", resourceOid),
+                    paramDescription);
         } else if (value instanceof Enum) {
-            return createPolyString(value.toString(), value.getClass().getSimpleName() + "." + ((Enum<?>) value).name());
+            return createMessage(value.toString(), value.getClass().getSimpleName() + "." + ((Enum<?>) value).name());
         } else if (value instanceof ResourceAttributeDefinitionType) {
             ResourceAttributeDefinitionType radt = (ResourceAttributeDefinitionType) value;
             return resourceAttributeDefinitionTypeToString(radt);
         } else if (value instanceof QName) {
             QName qname = (QName) value;
-            return new PolyString(qname.getLocalPart());
+            return createMessage(qname.getLocalPart());
         } else if (value instanceof Number) {
-            return new PolyString(String.valueOf(value));
+            return createMessage(String.valueOf(value));
         } else if (value instanceof byte[]) {
-            return createPolyString("(binary data)", "ValueDisplayUtil.binaryData");
+            return createMessage("(binary data)", "ValueDisplayUtil.binaryData");
         } else if (value instanceof RawType) {
             try {
                 Object parsedValue = ((RawType) value).getValue();
                 return toStringValue(parsedValue);
             } catch (SchemaException e) {
-                return new PolyString(PrettyPrinter.prettyPrint(value));
+                return createMessage(PrettyPrinter.prettyPrint(value));
             }
         } else if (value instanceof ItemPathType) {
             ItemPath itemPath = ((ItemPathType) value).getItemPath();
@@ -160,7 +130,7 @@ public class ValueDisplayUtil {
                 }
                 sb.append("; ");
             });
-            return new PolyString(sb.toString());
+            return createMessage(sb.toString());
         } else if (value instanceof ExpressionType) {
             ExpressionType expression = (ExpressionType) value;
             StringBuilder expressionString = new StringBuilder();
@@ -182,31 +152,27 @@ public class ValueDisplayUtil {
                             }
                         }
                     } else {
-                        expressionString.append(defaultStr);
+                        expressionString.append(msg);
                     }
                 });
             }
-            return new PolyString(expressionString.toString());
+            return createMessage(expressionString.toString());
         } else {
-            return defaultStr;
+            return msg;
         }
     }
 
-    private static PolyString resourceAttributeDefinitionTypeToString(ResourceAttributeDefinitionType radt) {
+    private static LocalizableMessage resourceAttributeDefinitionTypeToString(ResourceAttributeDefinitionType radt) {
         ItemPathType ref = radt.getRef();
         String path;
 
-        PolyStringTranslationArgumentType pathArg;
+        LocalizableMessage pathArg;
         if (ref != null) {
             path = ref.getItemPath().toString();
-            pathArg = new PolyStringTranslationArgumentType(path);
+            pathArg = createMessage(path);
         } else {
             path = "(null)";
-            pathArg = new PolyStringTranslationArgumentType(
-                    new PolyStringTranslationType()
-                            .key("ValueDisplayUtil.nullPath")
-                            .fallback(path)
-            );
+            pathArg = createMessage(path, "ValueDisplayUtil.nullPath");
         }
 
         StringBuilder sb = new StringBuilder();
@@ -215,21 +181,18 @@ public class ValueDisplayUtil {
         if (mappingType == null || mappingType.getExpression() == null) {
             sb.append("Empty mapping for ").append(path);
 
-            PolyStringTranslationArgumentType strengthArg = new PolyStringTranslationArgumentType("");
+            LocalizableMessage strengthArg = createMessage("");
             if (mappingType.getStrength() != null) {
                 String strength = " (" + mappingType.getStrength().value() + ")";
                 sb.append(strength);
-                strengthArg = new PolyStringTranslationArgumentType(
-                        createTranslation("ValueDisplayUtil.mappingStrength", strength,
-                                MappingStrengthType.class.getSimpleName() + "." + mappingType.getStrength().value())
-                );
+                strengthArg = createMessage(strength, "ValueDisplayUtil.mappingStrength",
+                        createMessage(mappingType.getStrength().value(), MappingStrengthType.class.getSimpleName() + "." + mappingType.getStrength().value()));
             }
 
-            return createPolyString(sb.toString(), "ValueDisplayUtil.emptyMapping", pathArg, strengthArg);
+            return createMessage(sb.toString(), "ValueDisplayUtil.emptyMapping", pathArg, strengthArg);
         }
 
-        PolyStringTranslationArgumentType arg = null;
-        PolyStringTranslationArgumentType childArg = null;
+        List<LocalizableMessage> msgs = new ArrayList<>();
 
         sb.append(path).append(" = ");
         boolean first = true;
@@ -240,47 +203,38 @@ public class ValueDisplayUtil {
                 sb.append(", ");
             }
 
-            if (arg == null) {
-                 childArg = createExpressionEvaluatorArg(evaluator, sb, null);
-                 arg = childArg;
-            } else {
-                childArg = createExpressionEvaluatorArg(evaluator, sb, childArg);
-            }
+            msgs.add(createExpressionEvaluatorArg(evaluator, sb));
         }
 
-        if (childArg.getTranslation() != null) {
-            childArg.getTranslation().getArgument().add(new PolyStringTranslationArgumentType(""));
-        }
+        return new LocalizableMessageList(
+                msgs,
+                createMessage(", ", "ValueDisplayUtil.resourceAttributeDefinitionSeparator"),
+                createMessage(path + " = ", "ValueDisplayUtil.resourceAttributeDefinition", pathArg),
+                null);
 
-        return createPolyString(sb.toString(), "ValueDisplayUtil.resourceAttributeDefinition", pathArg, arg);
     }
 
-    private static PolyStringTranslationArgumentType createExpressionEvaluatorArg(JAXBElement<?> evaluator, StringBuilder sb, PolyStringTranslationArgumentType parent) {
-        PolyStringTranslationArgumentType child;
+    private static LocalizableMessage createExpressionEvaluatorArg(JAXBElement<?> evaluator, StringBuilder sb) {
+        LocalizableMessage msg;
+
         if (QNameUtil.match(SchemaConstants.C_VALUE, evaluator.getName()) && evaluator.getValue() instanceof RawType) {
             RawType raw = (RawType) evaluator.getValue();
             try {
                 String rawString = raw.extractString("(a complex value)");
                 sb.append(rawString);
-                child = new PolyStringTranslationArgumentType(createTranslation(rawString, rawString));
+                msg = createMessage(rawString, rawString);
             } catch (RuntimeException e) {
                 String invalid = "(an invalid value)";
                 sb.append(invalid);
-                child = new PolyStringTranslationArgumentType(createTranslation("ValueDisplayUtil.invalidValue", invalid));
+                msg = createMessage(invalid, "ValueDisplayUtil.invalidValue");
             }
         } else {
             String complex = "(a complex expression)";
             sb.append(complex);
-            child = new PolyStringTranslationArgumentType(createTranslation("ValueDisplayUtil.complexExpression", complex));
+            msg = createMessage(complex, "ValueDisplayUtil.complexExpression");
         }
 
-        if (parent == null) {
-            return child;
-        }
-
-        parent.getTranslation().getArgument().add(child);
-
-        return child;
+        return msg;
     }
 
     public static String toStringValue(PrismReferenceValue ref) {

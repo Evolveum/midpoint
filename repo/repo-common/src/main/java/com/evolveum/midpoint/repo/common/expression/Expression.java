@@ -204,9 +204,21 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
         for (ExpressionEvaluator<?> evaluator : evaluators) {
             processEvaluatorProfile(contextWithProcessedVariables, evaluator);
 
-            //noinspection unchecked
-            PrismValueDeltaSetTriple<V> outputTriple =
-                    (PrismValueDeltaSetTriple<V>) evaluator.evaluate(contextWithProcessedVariables, result);
+            PrismValueDeltaSetTriple<V> outputTriple;
+            try {
+                //noinspection unchecked
+                outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(contextWithProcessedVariables, result);
+            } catch (ExpressionEvaluationException ex) {
+                if (!ex.isShouldRestartEvaluation()) {
+                    throw ex;
+                }
+
+                // we'll try to reevaluate because createOnDemandFailed
+                contextWithProcessedVariables.setCreateOnDemandRetry(true);
+
+                //noinspection unchecked
+                outputTriple = (PrismValueDeltaSetTriple<V>) evaluator.evaluate(contextWithProcessedVariables, result);
+            }
 
             if (outputTriple != null) {
                 boolean allowEmptyRealValues = false;
