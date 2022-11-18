@@ -30,7 +30,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,7 +44,6 @@ import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowMana
  * Creates shadows as needed. This is one of public classes of this package.
  */
 @Component
-@Experimental
 public class ShadowCreator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowCreator.class);
@@ -134,6 +132,8 @@ public class ShadowCreator {
 
     /**
      * Create a copy of a resource object (or another shadow) that is suitable for repository storage.
+     *
+     * @see ProvisioningUtil#shouldStoreAttributeInShadow(ResourceObjectDefinition, QName, CachingStrategyType)
      */
     @NotNull ShadowType createShadowForRepoStorage(ProvisioningContext ctx, ShadowType resourceObjectOrShadow)
             throws SchemaException, ConfigurationException, EncryptionException {

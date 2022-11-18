@@ -53,7 +53,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -62,12 +61,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Updates shadows as needed. This is one of public classes of this package.
- *
- * This class is quite connected to {@link ProvisioningOperationState} and its subclasses.
- * It even updates their instances. Is that good or bad?
  */
 @Component
-@Experimental
 public class ShadowUpdater {
 
     @Autowired

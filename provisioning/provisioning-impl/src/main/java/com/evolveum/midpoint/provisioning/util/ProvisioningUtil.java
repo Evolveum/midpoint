@@ -19,6 +19,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -353,6 +355,7 @@ public class ProvisioningUtil {
         opResult.markExceptionRecorded();
     }
 
+    /** See {@link ShadowCreator#createShadowForRepoStorage(ProvisioningContext, ShadowType)}. */
     public static boolean shouldStoreAttributeInShadow(ResourceObjectDefinition objectDefinition, QName attributeName,
             CachingStrategyType cachingStrategy) throws ConfigurationException {
         if (cachingStrategy == null || cachingStrategy == CachingStrategyType.NONE) {

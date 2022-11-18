@@ -40,7 +40,6 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -218,22 +217,6 @@ public class ProvisioningContext {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Returns the object type definition, or fails if there's none (because of being wildcard or being OC-based).
-     */
-    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinitionRequired() {
-        return MiscUtil.requireNonNull(
-                getObjectTypeDefinitionIfPresent(),
-                () -> new IllegalStateException("No resource object type definition in " + this));
-    }
-
-    /**
-     * Returns the object type definition, if applicable. (Null otherwise.)
-     */
-    private @Nullable ResourceObjectTypeDefinition getObjectTypeDefinitionIfPresent() {
-        return resourceObjectDefinition != null ? resourceObjectDefinition.getTypeDefinition() : null;
     }
 
     /**
@@ -431,7 +414,7 @@ public class ProvisioningContext {
      */
     public <T extends CapabilityType> T getCapability(@NotNull Class<T> capabilityClass) {
         return getResourceManager().getCapability(
-                resource, getObjectTypeDefinitionIfPresent(), capabilityClass);
+                resource, getObjectDefinition(), capabilityClass);
     }
 
     public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass) {
@@ -533,13 +516,6 @@ public class ProvisioningContext {
     public @NotNull String getResourceOid() {
         return Objects.requireNonNull(
                 resource.getOid());
-    }
-
-    /**
-     * Returns true if the object definition is "refined" (i.e. object type based).
-     */
-    public boolean isTypeBased() {
-        return resourceObjectDefinition instanceof ResourceObjectTypeDefinition;
     }
 
     public @Nullable CachingStrategyType getPasswordCachingStrategy() {
@@ -666,7 +642,7 @@ public class ProvisioningContext {
         return ResourceTypeUtil.getShadowConstraintsCheck(resource);
     }
 
-    public boolean shouldDoDiscovery() {
+    public boolean shouldDoDiscoveryOnGet() {
         return isDiscoveryAllowed(resource)
                 && !GetOperationOptions.isDoNotDiscovery(getOperationOptions);
     }

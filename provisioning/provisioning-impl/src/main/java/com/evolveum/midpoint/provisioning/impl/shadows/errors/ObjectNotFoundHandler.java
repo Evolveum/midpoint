@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType.FORCED_EXCEPTION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.LIVE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType.REAPING;
 
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowLifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -65,13 +65,16 @@ class ObjectNotFoundHandler extends HardErrorHandler {
 
         ShadowType shadowToReturn = markShadowTombstoneIfApplicable(ctx, repositoryShadow, result);
 
-        if (ctx.getErrorReportingMethod() == FetchErrorReportingMethodType.FORCED_EXCEPTION) {
+        if (ctx.getErrorReportingMethod() == FORCED_EXCEPTION) {
             LOGGER.debug("Got {} but 'forced exception' mode is selected. Will rethrow it.", cause.getClass().getSimpleName());
             throwException(null, cause, result);
             throw new AssertionError("not reached");
         }
 
-        notifyAboutMissingObjectIfApplicable(ctx, repositoryShadow, stateBefore, result);
+        if (ctx.shouldDoDiscoveryOnGet()) {
+            notifyAboutDisappearedObject(ctx, repositoryShadow, stateBefore, result);
+        }
+
         failedOperationResult.setStatus(OperationResultStatus.HANDLED_ERROR);
         return shadowToReturn;
     }
@@ -80,8 +83,7 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             ProvisioningContext ctx, ShadowType repositoryShadow, OperationResult result) throws SchemaException {
 
         if (!ShadowUtil.isExists(repositoryShadow)) {
-            LOGGER.debug("Shadow {} not found on the resource. However still have it in the repository. "
-                    + "Therefore returning repository version.", repositoryShadow);
+            LOGGER.debug("Shadow {} not found on the resource. No point in marking it as dead here.", repositoryShadow);
             return repositoryShadow;
         }
 
@@ -121,6 +123,32 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
+        markShadowAndNotify(operation, result);
+
+        // There is nothing reasonable we can do here, only to throw the exception.
+        throwException(operation, cause, result);
+        throw new AssertionError("not here");
+    }
+
+    @Override
+    public OperationResultStatus handleDeleteError(
+            @NotNull ShadowDeleteOperation operation,
+            @NotNull Exception cause,
+            OperationResult failedOperationResult,
+            @NotNull OperationResult result) throws SchemaException {
+
+        markShadowAndNotify(operation, result);
+
+        // "Error deleting shadow because the shadow is already deleted."
+        // This means someone has done our job already.
+        failedOperationResult.setStatus(OperationResultStatus.HANDLED_ERROR);
+        operation.getOpState().setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
+        return OperationResultStatus.HANDLED_ERROR;
+    }
+
+    private void markShadowAndNotify(
+            @NotNull ShadowProvisioningOperation<?> operation, @NotNull OperationResult result) throws SchemaException {
+
         ProvisioningContext ctx = operation.getCtx();
         ShadowType repoShadow = operation.getOpState().getRepoShadowRequired();
 
@@ -129,43 +157,12 @@ class ObjectNotFoundHandler extends HardErrorHandler {
         markShadowTombstoneIfApplicable(ctx, repoShadow, result);
 
         if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), operation.getOptions())) { // Put options to ctx
-            notifyAboutMissingObjectIfApplicable(ctx, repoShadow, stateBefore, result);
+            notifyAboutDisappearedObject(ctx, repoShadow, stateBefore, result);
         }
-
-        throwException(operation, cause, result);
-        throw new AssertionError("not here");
     }
 
-    @Override
-    public OperationResultStatus handleDeleteError(
-            @NotNull ShadowDeleteOperation operation, @NotNull Exception cause,
-            OperationResult failedOperationResult,
-            @NotNull OperationResult result) throws SchemaException {
-
-        ProvisioningContext ctx = operation.getCtx();
-        ShadowType repoShadow = operation.getOpState().getRepoShadowRequired();
-
-        // We do this before marking shadow as tombstone.
-        ShadowLifecycleStateType stareBefore = shadowCaretaker.determineShadowState(ctx, repoShadow);
-        markShadowTombstoneIfApplicable(ctx, repoShadow, result);
-
-        if (ProvisioningUtil.isDoDiscovery(ctx.getResource(), operation.getOptions())) { // Put options to ctx
-            notifyAboutMissingObjectIfApplicable(ctx, repoShadow, stareBefore, result);
-        }
-
-        // Error deleting shadow because the shadow is already deleted. This means someone has done our job already.
-        failedOperationResult.setStatus(OperationResultStatus.HANDLED_ERROR);
-        operation.getOpState().setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
-        return OperationResultStatus.HANDLED_ERROR;
-    }
-
-    private void notifyAboutMissingObjectIfApplicable(
+    private void notifyAboutDisappearedObject(
             ProvisioningContext ctx, ShadowType repoShadow, ShadowLifecycleStateType stateBefore, OperationResult parentResult) {
-        if (!ctx.shouldDoDiscovery()) {
-            LOGGER.trace("Skipping discovery of shadow {} because the discovery is disabled", repoShadow);
-            return;
-        }
-
         if (stateBefore != LIVE && stateBefore != REAPING) {
             // Do NOT do discovery of shadow that can legally not exist. This is no discovery.
             // We already know that the object are supposed not to exist yet or to dead already.

@@ -13,6 +13,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.provisioning.api.DiscoveredConfiguration;
 import com.evolveum.midpoint.provisioning.api.ResourceTestOptions;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -42,7 +43,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
@@ -422,8 +422,8 @@ public class ResourceManager {
      */
     public <T extends CapabilityType> T getCapability(
             @NotNull ResourceType resource,
-            @Nullable ResourceObjectTypeDefinition objectTypeDefinition,
+            @Nullable ResourceObjectDefinition objectDefinition,
             @NotNull Class<T> operationCapabilityClass) {
-        return capabilitiesHelper.getCapability(resource, objectTypeDefinition, operationCapabilityClass);
+        return capabilitiesHelper.getCapability(resource, objectDefinition, operationCapabilityClass);
     }
 }

@@ -36,7 +36,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -48,7 +47,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * TODO clean up
  */
 @Component
-@Experimental
 class PendingOperationsHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(PendingOperationsHelper.class);
