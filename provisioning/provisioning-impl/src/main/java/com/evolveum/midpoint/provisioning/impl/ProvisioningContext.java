@@ -476,26 +476,33 @@ public class ProvisioningContext {
         return ResourceTypeUtil.isInMaintenance(resource);
     }
 
-    // Preliminary code
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean isResourceInProduction() {
-        return LifecycleUtil.isInProduction(
-                resource.getLifecycleState());
-    }
-
-    // Preliminary code
-    // FIXME implement checking for refined object class LC state - currently it is overridden by respective object type
-    //  state, which is not always what is needed (most probably we want the 'proposed' state at OC level to override
-    //  anything that could be set at the type level ... we should decide on this)
+    /**
+     * Returns true if the definition of the current resource object is in "production" lifecycle state
+     * (`active` or `deprecated`). This determines the behavior of some processing components, as described in
+     * https://docs.lab.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/.
+     */
     public boolean isObjectDefinitionInProduction() {
-        if (!isResourceInProduction()) {
-            return false; // We ignore any object class/type level settings here.
+        // Level 1: resource
+        if (!LifecycleUtil.isInProduction(resource.getLifecycleState())) {
+            // The whole resource is in development mode. We ignore any object class/type level settings in this case.
+            return false;
         }
-        // Note that the object type/class lifecycle state may be null. This means that it should inherit the value
-        // of the resource LC state. In that case it means that it should be considered as "production", because the resource
-        // itself is in production state (per above condition). Hence the following code is OK.
-        return resourceObjectDefinition == null
-                || LifecycleUtil.isInProduction(resourceObjectDefinition.getLifecycleState());
+        if (resourceObjectDefinition == null) {
+            // Resource is in production, and we have no further information.
+            throw new IllegalStateException(
+                    "Asked for production state of the object definition, but there is no object definition: " + this);
+        }
+        // Level 2: object class
+        ResourceObjectClassDefinition classDefinition = resourceObjectDefinition.getObjectClassDefinition();
+        if (!LifecycleUtil.isInProduction(classDefinition.getLifecycleState())) {
+            return false;
+        }
+        // Level 3: object type (if there's any)
+        ResourceObjectTypeDefinition typeDefinition = resourceObjectDefinition.getTypeDefinition();
+        if (typeDefinition == null) {
+            return true;
+        }
+        return LifecycleUtil.isInProduction(typeDefinition.getLifecycleState());
     }
 
     public void checkNotInMaintenance() throws MaintenanceException {

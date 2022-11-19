@@ -79,6 +79,7 @@
         <objectType>
             <kind>entitlement</kind>
             <intent>mail-group</intent>
+            <lifecycleState>active</lifecycleState> <!-- will be ignored, as the whole class is "proposed" -->
             <delineation>
                 <objectClass>ri:GroupObjectClass</objectClass>
                 <filter>
@@ -92,6 +93,7 @@
         <objectType>
             <kind>entitlement</kind>
             <intent>security-group</intent>
+            <lifecycleState>active</lifecycleState> <!-- will be ignored, as the whole class is "proposed" -->
             <delineation>
                 <objectClass>ri:GroupObjectClass</objectClass>
                 <filter>
