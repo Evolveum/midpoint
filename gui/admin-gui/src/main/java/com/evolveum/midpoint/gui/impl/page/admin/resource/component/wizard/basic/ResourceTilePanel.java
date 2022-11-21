@@ -8,8 +8,11 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -18,10 +21,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serializable;
+import java.util.List;
+
 /**
  * @author lskublik
  */
-public class ResourceTilePanel<O> extends BasePanel<TemplateTile<O>> {
+public class ResourceTilePanel<O extends Serializable> extends BasePanel<TemplateTile<O>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -61,10 +67,10 @@ public class ResourceTilePanel<O> extends BasePanel<TemplateTile<O>> {
         add(descriptionPanel);
 
         Label tagPanel = new Label(ID_TAG, () -> {
-            String tag = getModelObject().getTag();
-            return tag != null ? getString(tag, null, tag) : null;
+            DisplayType tag = getModelObject().getTags().iterator().next();
+            return tag != null ? WebComponentUtil.getTranslatedPolyString(tag.getLabel()) : null;
         });
-        tagPanel.add(new VisibleBehaviour(() -> getModelObject().getTag() != null));
+        tagPanel.add(new VisibleBehaviour(() -> getModelObject().getTags() != null));
         add(tagPanel);
 
         add(new AjaxEventBehavior("click") {

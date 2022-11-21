@@ -8,14 +8,19 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <wicket:enclosure child="tilesContainer">
-        <div class="d-flex flex-column flex-grow-1 gap-3">
+        <div class="d-flex flex-column flex-grow-1">
             <div wicket:id="tilesHeader"/>
-            <div class="row" wicket:id="tilesContainer">
+            <div class="row pt-3" wicket:id="tilesContainer">
                 <div wicket:id="tiles">
                     <div wicket:id="tile"/>
                 </div>
             </div>
-            <div class="align-self-end" wicket:id="tilesPaging"/>
+            <div class="d-flex" wicket:id="footerContainer">
+                <div class="d-flex">
+                    <div wicket:id="buttonToolbar"/>
+                </div>
+                <div class="ml-auto align-self-end" wicket:id="tilesPaging"/>
+            </div>
         </div>
     </wicket:enclosure>
 

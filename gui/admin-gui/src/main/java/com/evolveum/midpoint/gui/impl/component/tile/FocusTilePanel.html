@@ -1,0 +1,20 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="logo mt-3" wicket:id="logo"/>
+    <div class="mt-4 gap-1 d-flex align-items-center justify-content-center w-100">
+        <i wicket:id="icon"></i>
+        <div class="font-weight-bold text-truncate" wicket:id="title"/>
+    </div>
+    <div class="tile-description mt-2 text-center text-secondary flex-grow-1" style="display: -webkit-box; text-overflow: ellipsis;" wicket:id="description"/>
+    <a class="btn btn-link text-lightblue mt-3" wicket:id="details">
+        <wicket:message key="CatalogTilePanel.details"/>
+    </a>
+</wicket:panel>
+</html>
