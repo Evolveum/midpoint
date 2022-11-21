@@ -220,9 +220,16 @@ public class ValueDisplayUtil {
         if (QNameUtil.match(SchemaConstants.C_VALUE, evaluator.getName()) && evaluator.getValue() instanceof RawType) {
             RawType raw = (RawType) evaluator.getValue();
             try {
+                String fallback = raw.extractString("(a complex value)");
+                try {
+                    msg = toStringValue(raw.getValue());
+                } catch (SchemaException ex) {
+                    // intentionally ignore
+                    msg = createMessage(fallback, fallback);
+                }
+
                 String rawString = raw.extractString("(a complex value)");
                 sb.append(rawString);
-                msg = createMessage(rawString, rawString);
             } catch (RuntimeException e) {
                 String invalid = "(an invalid value)";
                 sb.append(invalid);

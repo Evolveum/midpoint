@@ -12,7 +12,10 @@ import java.util.Date;
 import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
+
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,6 +57,11 @@ public class ValueDisplayUtilTest extends AbstractEmptyModelIntegrationTest {
 
     @Test
     public void test020ResourceAttributeDefinitionType() {
+        final Date date = new Date();
+
+        DateFormat df = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.LONG);
+        final String formattedDate = df.format(date);
+
         ResourceAttributeDefinitionType def = new ResourceAttributeDefinitionType();
         def.ref(new ItemPathType(ItemPath.create(UserType.F_ASSIGNMENT)));
         def.outbound(new MappingType()
@@ -63,6 +71,11 @@ public class ValueDisplayUtilTest extends AbstractEmptyModelIntegrationTest {
                                 .expressionEvaluator(new ObjectFactory().createScript(new ScriptExpressionEvaluatorType()
                                         .code("some code here")))
                                 .expressionEvaluator(new ObjectFactory().createAsIs(new AsIsExpressionEvaluatorType()))
+                                .expressionEvaluator(new ObjectFactory().createValue(
+                                        new RawType(new PrismPropertyValueImpl<>(
+                                                XmlTypeConverter.createXMLGregorianCalendar(date)), DOMUtil.XSD_DATETIME, prismContext)
+                                ))
+                                .expressionEvaluator(new ObjectFactory().createValue(new byte[] { 1, 2, 3 }))
                 )
         );
 
@@ -71,7 +84,7 @@ public class ValueDisplayUtilTest extends AbstractEmptyModelIntegrationTest {
         LocalizableMessage msg = ValueDisplayUtil.toStringValue(ppv);
 
         String value = localizationService.translate(msg);
-        AssertJUnit.assertEquals("assignment = (a complex expression), (a complex expression)", value);
+        AssertJUnit.assertEquals("assignment = (a complex expression), (a complex expression), " + formattedDate + ", (a complex expression)", value);
     }
 
     @Test
