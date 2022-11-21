@@ -26,6 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -103,7 +106,7 @@ public class ResourceTemplateProvider
                     title,
                     new ResourceTemplate(obj.getOid(), ConnectorType.COMPLEX_TYPE))
                     .description(getDescriptionForConnectorType(connectorObject))
-                    .tag(connectorObject.getConnectorVersion());
+                    .addTag(new DisplayType().label(connectorObject.getConnectorVersion()));
         }
 
         String title = WebComponentUtil.getDisplayNameOrName(obj);
@@ -112,12 +115,15 @@ public class ResourceTemplateProvider
 
         DisplayType display =
                 GuiDisplayTypeUtil.getDisplayTypeForObject(obj, result, getPageBase());
+        PolyStringType tag = new PolyStringType("template");
+        tag.setTranslation(new PolyStringTranslationType().key("CreateResourceTemplatePanel.template"));
         return new TemplateTile(
                 GuiDisplayTypeUtil.getIconCssClass(display),
                 title,
                 new ResourceTemplate(obj.getOid(), ResourceType.COMPLEX_TYPE))
                 .description(obj.asObjectable().getDescription())
-                .tag(getPageBase().createStringResource("CreateResourceTemplatePanel.template").getString());
+                .addTag(new DisplayType().label(tag));
+
     }
 
     private String getDescriptionForConnectorType(@NotNull ConnectorType connectorObject) {

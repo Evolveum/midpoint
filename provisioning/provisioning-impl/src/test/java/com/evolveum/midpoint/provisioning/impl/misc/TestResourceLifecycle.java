@@ -14,7 +14,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindTyp
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.task.api.TaskExecutionMode.*;
+import static com.evolveum.midpoint.schema.TaskExecutionMode.*;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 
 import java.io.File;
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionMode;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -210,7 +210,9 @@ public class TestResourceLifecycle extends AbstractProvisioningIntegrationTest {
                 I_SECURITY_GROUP); // no reclassification (production-like mode)
 
         // The non-production object type with "simulated development" task
-        // Note that the lifecycle state is of the type "entitlement/mail-group" is "proposed" because of the type inheritance.
+        // Note that the lifecycle state is of the type "entitlement/mail-group" is "proposed" in spite of the type inheritance,
+        // because the class "proposed" state makes the whole class proposed, without considering the declared states of
+        // individual object types.
         checkClassification(
                 RESOURCE_DUMMY_PROPOSED_CLASSES,
                 SIMULATED_DEVELOPMENT,

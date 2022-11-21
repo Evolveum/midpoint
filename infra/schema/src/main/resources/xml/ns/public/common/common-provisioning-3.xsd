@@ -621,6 +621,20 @@
             <xsd:element ref="tns:documentation" minOccurs="0"/>
             <xsd:element ref="tns:lifecycleState" minOccurs="0">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        Lifecycle state of the object class or object type. First, it drives the visibility of the configuration
+                        for production-like or simulation tasks. Second, it influences the behavior of specific provisioning
+                        operations (like shadow classification).
+
+                        The lifecycle state is propagated downwards, from the level of a resource, down to the level
+                        of an object class, and finally to the level of an object type. If the state is evaluated
+                        as "non-matching" at a given level, all lower levels are ignored. For example, if an object class
+                        has a "proposed" lifecycle state, all its object types are considered to be in non-production
+                        development state, regardless of their own lifecycle state values.
+
+                        See https://docs.lab.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/ for more
+                        information.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ObjectType.lifecycleState</a:displayName>
                         <a:since>4.7</a:since>

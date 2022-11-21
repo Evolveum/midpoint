@@ -14,8 +14,6 @@ import java.io.Serializable;
  */
 public class CatalogTile<T extends Serializable> extends Tile<T> {
 
-    private String description;
-
     private String info;
 
     private RoundedIconPanel.State checkState;
@@ -28,14 +26,6 @@ public class CatalogTile<T extends Serializable> extends Tile<T> {
 
     public CatalogTile(String icon, String title) {
         super(icon, title);
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public String getInfo() {

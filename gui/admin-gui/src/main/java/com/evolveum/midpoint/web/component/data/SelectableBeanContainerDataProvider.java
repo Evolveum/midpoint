@@ -92,7 +92,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         getAvailableData().clear();
     }
 
-    private void preprocessSelectedDataInternal() {
+    protected void preprocessSelectedDataInternal() {
         for (SelectableBean<C> available : getAvailableData()) {
             if (available.isSelected() && available.getValue() != null) {
                 ((Set) selected).add(available.getValue());
@@ -301,7 +301,7 @@ public class SelectableBeanContainerDataProvider<C extends Containerable> extend
         this.defaultCountIfNull = defaultCountIfNull;
     }
 
-    protected Set<? extends C> getSelected() {
+    public Set<? extends C> getSelected() {
         return selected;
     }
 

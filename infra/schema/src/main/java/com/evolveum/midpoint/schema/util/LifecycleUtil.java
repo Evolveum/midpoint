@@ -74,7 +74,16 @@ public class LifecycleUtil {
         return virtualAssignmenetSpecification;
     }
 
-    @Experimental // The behavior should be configurable
+    /**
+     * Returns true if the specified configuration item (e.g. resource, object class, object type, item, mapping, ...)
+     * is in "production" lifecycle state.
+     *
+     * The idea is that configuration items in `active` and `deprecated` states will have a different behavior
+     * than the ones in `proposed` state. (The behavior of other states is going to be determined later.)
+     *
+     * TODO Preliminary code.
+     */
+    @Experimental
     public static boolean isInProduction(String lifecycleState) {
         return lifecycleState == null
                 || SchemaConstants.LIFECYCLE_ACTIVE.equals(lifecycleState)

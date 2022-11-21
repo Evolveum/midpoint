@@ -187,7 +187,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
             PrismObjectDefinition<ResourceType> def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(getType());
             PrismObject<ResourceType> obj = def.instantiate();
 
-            ResourceTemplate resourceTemplate = tile.getTemplateObject();
+            ResourceTemplate resourceTemplate = tile.getValue();
             if (resourceTemplate != null) {
                 if (QNameUtil.match(ConnectorType.COMPLEX_TYPE, resourceTemplate.getType())) {
                     obj.asObjectable().beginConnectorRef()

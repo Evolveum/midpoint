@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.task.api;
+package com.evolveum.midpoint.schema;
 
 /**
  * Describes the execution mode this task runs in. For example, if it is a "full execution" or a preview/simulation.
