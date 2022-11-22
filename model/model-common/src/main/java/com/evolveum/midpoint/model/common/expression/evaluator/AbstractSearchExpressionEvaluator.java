@@ -14,10 +14,6 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.*;
-
-import com.evolveum.midpoint.schema.*;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,11 +29,16 @@ import com.evolveum.midpoint.model.common.expression.evaluator.transformation.Ab
 import com.evolveum.midpoint.model.common.util.PopulatorUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -161,6 +162,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                     targetTypeClass,
                     targetTypeQName,
                     query,
+                    false,
                     additionalAttributeDeltas,
                     context,
                     contextDescription,
@@ -180,14 +182,24 @@ public abstract class AbstractSearchExpressionEvaluator<
         if (resultValues.isEmpty()
                 && Boolean.TRUE.equals(expressionEvaluatorBean.isCreateOnDemand())
                 && (valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
-//            String createdObjectOid =
-//                    createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, result);
-//            resultValues.add(
-//                    createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, context));
 
-            PrismObject createdObject = createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, result);
-            resultValues.add(
-                    createPrismValue(createdObject.getOid(), createdObject, targetTypeQName, additionalAttributeDeltas, context));
+            try {
+                PrismObject createdObject = createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, result);
+                resultValues.add(
+                        createPrismValue(createdObject.getOid(), createdObject, targetTypeQName, additionalAttributeDeltas, context));
+            } catch (ObjectAlreadyExistsException ex) {
+                // object was created in the meantime, so we should try to search for it once more
+                resultValues = executeSearchUsingCache(
+                        targetTypeClass,
+                        targetTypeQName,
+                        query,
+                        true,
+                        additionalAttributeDeltas,
+                        context,
+                        contextDescription,
+                        task,
+                        result);
+            }
         }
 
         LOGGER.trace("Search expression {} (valueDestination={}) got {} results for query {}",
@@ -250,6 +262,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             Class<O> targetTypeClass,
             final QName targetTypeQName,
             ObjectQuery query,
+            boolean createOnDemandRetry,
             List<ItemDelta<V, D>> additionalAttributeDeltas,
             final ExpressionEvaluationContext params,
             String contextDescription,
@@ -275,7 +288,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 log("Cache: NULL {} ({})", false, query, targetTypeClass.getSimpleName());
                 collector.registerNotAvailable(cacheClass, targetTypeClass, statisticsLevel);
             }
-            return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy,
+            return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, createOnDemandRetry,
                     additionalAttributeDeltas, params, contextDescription, task, result);
         }
 
@@ -285,7 +298,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             log("Cache: PASS {} ({})", tracePass, query, targetTypeClass.getSimpleName());
             cache.registerPass();
             collector.registerPass(cacheClass, targetTypeClass, statisticsLevel);
-            return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy,
+            return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, createOnDemandRetry,
                     additionalAttributeDeltas, params, contextDescription, task, result);
         }
 
@@ -306,6 +319,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 targetTypeQName,
                 query,
                 searchStrategy,
+                createOnDemandRetry,
                 additionalAttributeDeltas,
                 params,
                 contextDescription,
@@ -338,6 +352,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             final QName targetTypeQName,
             ObjectQuery query,
             ObjectSearchStrategyType searchStrategy,
+            boolean createOnDemandRetry,
             List<ItemDelta<V, D>> additionalAttributeDeltas,
             ExpressionEvaluationContext params,
             String contextDescription,
@@ -355,13 +370,13 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         switch (searchStrategy) {
             case IN_REPOSITORY:
-                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false,
+                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false, createOnDemandRetry,
                         additionalAttributeDeltas, params, contextDescription, task, result);
             case ON_RESOURCE:
-                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, true,
+                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, true,createOnDemandRetry,
                         additionalAttributeDeltas, params, contextDescription, task, result);
             case ON_RESOURCE_IF_NEEDED:
-                List<V> inRepo = executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false,
+                List<V> inRepo = executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false,createOnDemandRetry,
                         additionalAttributeDeltas, params, contextDescription, task, result);
                 if (!inRepo.isEmpty()) {
                     return inRepo;
@@ -369,7 +384,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 if (rawResult != null) {
                     rawResult.clear();
                 }
-                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, false, additionalAttributeDeltas, params, contextDescription, task, result);
+                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, false, createOnDemandRetry, additionalAttributeDeltas, params, contextDescription, task, result);
             default:
                 throw new IllegalArgumentException("Unknown search strategy: " + searchStrategy);
         }
@@ -382,6 +397,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             ObjectQuery query,
             boolean searchOnResource,
             boolean tryAlsoRepository,
+            boolean createOnDemandRetry,
             List<ItemDelta<V, D>> additionalAttributeDeltas,
             ExpressionEvaluationContext params,
             String contextDescription,
@@ -397,7 +413,7 @@ public abstract class AbstractSearchExpressionEvaluator<
         options = GetOperationOptions.updateToReadOnly(options);
         extendOptions(options, searchOnResource);
 
-        if (params.isCreateOnDemandRetry()) {
+        if (createOnDemandRetry) {
             options = GetOperationOptions.updateRootOptions(options, opt -> opt.pointInTimeType(PointInTimeType.CURRENT));
         }
 
@@ -481,7 +497,8 @@ public abstract class AbstractSearchExpressionEvaluator<
 
     private PrismObject createOnDemand(Class<O> targetTypeClass, VariablesMap variables,
             ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
+
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Going to create assignment targets on demand, variables:\n{}", variables.formatVariables());
         }
@@ -521,14 +538,9 @@ public abstract class AbstractSearchExpressionEvaluator<
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges;
         try {
             executedChanges = modelService.executeChanges(deltas, null, task, result);
-        } catch (ObjectAlreadyExistsException | CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
-            ExpressionEvaluationException ex = new ExpressionEvaluationException(e.getMessage(), e);
-            if (e instanceof ObjectAlreadyExistsException) {
-                // create on demand failed, object was created in meantime, restart evaluator
-                ex.setShouldRestartEvaluation(true);
-            }
-
-            throw ex;
+        } catch (CommunicationException | ConfigurationException
+                | PolicyViolationException | SecurityViolationException e) {
+            throw new ExpressionEvaluationException(e.getMessage(), e);
         }
 
         ObjectDeltaOperation deltaOperation = ObjectDeltaOperation.findAddDelta(executedChanges, newObject);
@@ -564,15 +576,5 @@ public abstract class AbstractSearchExpressionEvaluator<
 
     private void log(String message, boolean info, Object... params) {
         CacheUtil.log(LOGGER, PERFORMANCE_ADVISOR, message, info, params);
-    }
-
-    @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        try {
-            return super.evaluate(context, parentResult);
-        } finally {
-            // reset createOnDemandRetry flag
-            context.setCreateOnDemandRetry(false);
-        }
     }
 }

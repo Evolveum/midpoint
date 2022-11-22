@@ -23,6 +23,8 @@ import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -143,6 +145,14 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         modifyUserAddAccountImplicitExplicitEqualReverse(accountSource, checker);
         modifyUserAddAccountImplicitExplicitNotEqual(accountSource);
         modifyUserAddAccountImplicitExplicitNotEqualReverse(accountSource);
+    }
+
+    @Override
+    protected Task createPlainTask(String operation) {
+        Task task = super.createPlainTask(operation);
+        task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
+
+        return task;
     }
 
     private void modifyUserAddAccountImplicit(ObjectSource<PrismObject<ShadowType>> accountSource,

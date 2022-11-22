@@ -271,17 +271,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         try {
             conditionResult = evaluateCondition(staticVariables);
             if (conditionResult) {
-                try {
                     transformationResult = evaluateTransformation(staticVariables);
-                } catch (ExpressionEvaluationException e) {
-                    if (!e.isShouldRestartEvaluation()) {
-                        throw e;
-                    }
-
-                    // we'll try to reevaluate because createOnDemandFailed
-                    context.setCreateOnDemandRetry(true);
-                    transformationResult = evaluateTransformation(staticVariables);
-                }
             } else {
                 setTraceComment("Skipping value transformation because condition evaluated to false.");
                 transformationResult = emptySet();

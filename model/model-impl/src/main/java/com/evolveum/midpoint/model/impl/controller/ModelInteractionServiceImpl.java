@@ -23,9 +23,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
-import com.evolveum.midpoint.prism.delta.*;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -47,6 +44,7 @@ import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
+import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -69,6 +67,7 @@ import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -182,6 +181,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Collection<ProgressListener> listeners, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+        if (task.getExecutionMode() == null || TaskExecutionMode.PRODUCTION.equals(task.getExecutionMode())) {
+            throw new SystemException("Can't call preview changes with task execution mode that's undefined or PRODUCTION");
+        }
+
         if (ModelExecuteOptions.isRaw(options)) {
             throw new UnsupportedOperationException("previewChanges is not supported in raw mode");
         }
@@ -193,8 +196,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         if (options.getSimulationOptions() == null) {
             SimulationOptionsType simulation = new SimulationOptionsType();
 
-            simulation.setCreateOnDemand(SimulationOptionType.SAFE);
-            simulation.setSequence(SimulationOptionType.SAFE);
+            TaskExecutionMode mode = task.getExecutionMode();
+            SimulationOptionType option = mode.isPersistent() ? SimulationOptionType.UNSAFE : SimulationOptionType.SAFE;
+            simulation.setCreateOnDemand(option);
+            simulation.setSequence(option);
 
             options.simulationOptions(simulation);
         }
@@ -883,7 +888,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         List<ItemDelta> modifications = new ArrayList<>();
         modifications.addAll(secondaryDelta.getModifications());
 
-        for (ItemDelta secondaryModification : modifications){
+        for (ItemDelta secondaryModification : modifications) {
             ItemDefinition def = secondaryModification.getDefinition();
             if (def != null && def.isOperational()) {
                 secondaryDelta.removeModification(secondaryModification);

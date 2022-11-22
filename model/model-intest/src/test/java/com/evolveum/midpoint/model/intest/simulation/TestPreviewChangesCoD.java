@@ -17,15 +17,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.aspectj.weaver.Shadow;
-import org.slf4j.Logger;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -48,7 +41,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -101,6 +97,13 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
         addObject(ROLE_META_ASSIGNMENT_SEARCH, initTask, initResult);
         addObject(ROLE_ORG, initTask, initResult);
+    }
+
+    @Override
+    public Task getTestTask() {
+        Task task = super.getTestTask();
+        task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
+        return task;
     }
 
     private static void createAttributeDefinitions(DummyResourceContoller controller)
@@ -208,7 +211,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         given();
 
         Task task = getTestTask();
-        OperationResult result= task.getResult();
+        OperationResult result = task.getResult();
 
         List<PrismObject<OrgType>> orgs = repositoryService.searchObjects(OrgType.class, null, null, result);
         orgs.forEach(org -> {

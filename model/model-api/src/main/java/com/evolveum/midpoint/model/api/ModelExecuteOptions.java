@@ -431,6 +431,15 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
                 && simulationOptions.getSequence() == SimulationOptionType.SAFE;
     }
 
+    public static boolean isCreateOnDemandSafe(@Nullable ModelExecuteOptions options) {
+        if (options == null) {
+            return false;
+        }
+        SimulationOptionsType simulationOptions = options.getSimulationOptions();
+        return simulationOptions != null
+                && simulationOptions.getCreateOnDemand() == SimulationOptionType.SAFE;
+    }
+
     public ModelExecuteOptions simulationOptions(SimulationOptionsType options) {
         content.setSimulation(options);
         return this;
