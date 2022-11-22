@@ -181,8 +181,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Collection<ProgressListener> listeners, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        if (task.getExecutionMode() == null || TaskExecutionMode.PRODUCTION.equals(task.getExecutionMode())) {
-            throw new SystemException("Can't call preview changes with task execution mode that's undefined or PRODUCTION");
+        TaskExecutionMode executionMode = task.getExecutionMode();
+        if (executionMode == null || TaskExecutionMode.PRODUCTION.equals(executionMode)) {
+            task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
         }
 
         if (ModelExecuteOptions.isRaw(options)) {
@@ -222,6 +223,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
 
             RepositoryCache.exitLocalCaches();
+
+            task.setExecutionMode(executionMode);
         }
 
         return context;

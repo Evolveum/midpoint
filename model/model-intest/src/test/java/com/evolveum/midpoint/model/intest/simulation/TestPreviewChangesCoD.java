@@ -17,8 +17,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -97,13 +95,6 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
         addObject(ROLE_META_ASSIGNMENT_SEARCH, initTask, initResult);
         addObject(ROLE_ORG, initTask, initResult);
-    }
-
-    @Override
-    public Task getTestTask() {
-        Task task = super.getTestTask();
-        task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
-        return task;
     }
 
     private static void createAttributeDefinitions(DummyResourceContoller controller)

@@ -6,35 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static java.util.Collections.singleton;
-import static org.testng.AssertJUnit.*;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-import static com.evolveum.midpoint.test.DummyResourceContoller.*;
-import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-
-import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
-
-import com.evolveum.midpoint.model.api.visualizer.Visualization;
-
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -53,6 +30,25 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
+import static java.util.Collections.singleton;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -145,14 +141,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         modifyUserAddAccountImplicitExplicitEqualReverse(accountSource, checker);
         modifyUserAddAccountImplicitExplicitNotEqual(accountSource);
         modifyUserAddAccountImplicitExplicitNotEqualReverse(accountSource);
-    }
-
-    @Override
-    protected Task createPlainTask(String operation) {
-        Task task = super.createPlainTask(operation);
-        task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
-
-        return task;
     }
 
     private void modifyUserAddAccountImplicit(ObjectSource<PrismObject<ShadowType>> accountSource,

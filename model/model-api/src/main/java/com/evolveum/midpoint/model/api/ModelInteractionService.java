@@ -91,12 +91,14 @@ public interface ModelInteractionService {
      * The supplied delta will be used as a primary change. The resulting context will reflect both this primary change and
      * any resulting secondary changes.
      * <p>
-     * The changes are only computed, NOT EXECUTED. It also does not change any state of any repository object or task. Therefore
-     * this method is safe to use anytime. However it is reading the data from the repository and possibly also from the resources
+     * The changes are only computed, NOT EXECUTED. It also does not change any state of any repository object or task. Therefore,
+     * this method is safe to use anytime. However, it is reading the data from the repository and possibly also from the resources
      * therefore there is still potential for communication (and other) errors and invocation of this method may not be cheap.
      * However, as no operations are really executed there may be issues with resource dependencies. E.g. identifier that are generated
      * by the resource are not taken into account while recomputing the values. This may also cause errors if some expressions depend
      * on the generated values.
+     *
+     * @param task Task is expected to have execution mode != {@link com.evolveum.midpoint.schema.TaskExecutionMode#PRODUCTION} otherwise exception is thrown
      */
     <F extends ObjectType> ModelContext<F> previewChanges(
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
