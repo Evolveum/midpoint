@@ -154,6 +154,7 @@
             <xsd:element name="securityQuestionsForm" type="tns:SecurityQuestionsFormAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="httpSecQ" type="tns:HttpSecQAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="ldap" type="tns:LdapAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="attributeVerification" type="tns:AttributeVerificationAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="other" type="tns:OtherAuthenticationModuleType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -425,6 +426,35 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="search" type="tns:LdapSearchAuthenticationModuleType" minOccurs="0" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AttributeVerificationAuthenticationModuleType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The module can be used as an additional verification of the already authenticated user.
+                Intended for interactive user verification by comparing the specified attribute with the value provided by the user.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+                <xsd:sequence>
+                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The path to the user attribute which should be verified.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AttributeVerificationAuthenticationModuleType.path</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
