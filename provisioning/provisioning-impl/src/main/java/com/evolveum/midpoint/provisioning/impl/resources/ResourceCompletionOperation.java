@@ -191,9 +191,7 @@ class ResourceCompletionOperation {
 
         // Now we need to re-read the resource from the repository and re-apply the schemas. This ensures that we will
         // cache the correct version and that we avoid race conditions, etc.
-        ResourceType reloaded =
-                beans.resourceManager
-                        .readResourceFromRepository(resource.getOid(), result);
+        ResourceType reloaded = beans.resourceManager.readResourceFromRepository(resource.getOid(), result);
 
         expand(reloaded);
 

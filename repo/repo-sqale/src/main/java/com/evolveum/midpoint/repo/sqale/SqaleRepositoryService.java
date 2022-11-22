@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.SequenceHelper;
+import com.evolveum.midpoint.common.SequenceUtil;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
@@ -1407,7 +1407,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
             logger.trace("OBJECT before:\n{}", sequence.debugDumpLazily());
 
-            long returnValue = SequenceHelper.advanceSequence(sequence);
+            long returnValue = SequenceUtil.advanceSequence(sequence);
 
             logger.trace("Return value = {}, OBJECT after:\n{}",
                     returnValue, sequence.debugDumpLazily());

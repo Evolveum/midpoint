@@ -28,5 +28,4 @@ class SchemaExceptionHandler extends HardErrorHandler {
             throw new SchemaException(cause.getMessage(), cause);
         }
     }
-
 }

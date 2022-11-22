@@ -112,7 +112,7 @@ public class ModelImplUtils {
         recordException(result, e.getMessage(), e);
     }
 
-    public static void recordException(OperationResult result, String message, Throwable e) {
+    private static void recordException(OperationResult result, String message, Throwable e) {
         // Do not log at ERROR level. This is too harsh. Especially in object not found case.
         // What model considers an error may be just a normal situation for the code is using model API.
         // If this is really an error then it should be logged by the invoking code.

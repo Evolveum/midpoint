@@ -36,10 +36,24 @@ public class TaskExecutionMode {
         this.productionConfiguration = productionConfiguration;
     }
 
+    /** Should the effects of this task be persistent or not? The latter means "simulation", "preview", etc. */
     public boolean isPersistent() {
         return persistent;
     }
 
+    /**
+     * What configuration should the actions take into account? Production or "development" one?
+     *
+     * - Production usually means `active` and `deprecated` lifecycle states.
+     * - Development usually means `active` and `proposed` states.
+     *
+     * However, in the future we may provide more customization options here (e.g. explicit enumeration of livecycle states
+     * to use, or even a set of specific deltas to apply).
+     *
+     * If {@link #persistent} is `true` then {@link #productionConfiguration} should be `true` as well.
+     *
+     * See https://docs.evolveum.com/midpoint/devel/design/simulations/ for more information.
+     */
     public boolean isProductionConfiguration() {
         return productionConfiguration;
     }

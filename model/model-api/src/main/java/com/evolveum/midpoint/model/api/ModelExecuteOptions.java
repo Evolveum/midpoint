@@ -25,6 +25,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Options for execution of Model operations. These options influence the way how the operations are executed.
  * The options are not mandatory. All options have reasonable default values. They may not be specified at all.
@@ -418,6 +420,15 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 
     public SimulationOptionsType getSimulationOptions() {
         return content.getSimulation();
+    }
+
+    public static boolean isAdvanceSequenceSafe(@Nullable ModelExecuteOptions options) {
+        if (options == null) {
+            return false;
+        }
+        SimulationOptionsType simulationOptions = options.getSimulationOptions();
+        return simulationOptions != null
+                && simulationOptions.getSequence() == SimulationOptionType.SAFE;
     }
 
     public ModelExecuteOptions simulationOptions(SimulationOptionsType options) {

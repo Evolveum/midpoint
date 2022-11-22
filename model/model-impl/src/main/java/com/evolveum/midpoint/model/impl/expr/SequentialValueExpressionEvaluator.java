@@ -6,13 +6,11 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
-import java.util.Collection;
-import java.util.Collections;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.common.SequenceHelper;
+import com.evolveum.midpoint.common.SequenceUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
@@ -24,8 +22,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -86,9 +82,11 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
             if (!isAdvanceSequenceSafe()) {
                 freshValue = repositoryService.advanceSequence(sequenceOid, result);
             } else {
-                Collection<SelectorOptions<GetOperationOptions>> options = Collections.emptyList();
-                SequenceType seq = repositoryService.getObject(SequenceType.class, sequenceOid, options, result).asObjectable();
-                freshValue = SequenceHelper.advanceSequence(seq);
+                SequenceType seq =
+                        repositoryService
+                                .getObject(SequenceType.class, sequenceOid, null, result)
+                                .asObjectable();
+                freshValue = SequenceUtil.advanceSequence(seq);
             }
 
             ctx.setSequenceCounter(sequenceOid, freshValue);
@@ -98,23 +96,13 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
     }
 
     private static boolean isAdvanceSequenceSafe() {
-        return isAdvanceSequenceSafe(ModelExpressionThreadLocalHolder.getLensContextRequired());
+        return isAdvanceSequenceSafe(
+                ModelExpressionThreadLocalHolder.getLensContextRequired());
     }
 
-    public static boolean isAdvanceSequenceSafe(ModelContext context) {
-        boolean isAdvanceSequenceSafe = false;
-
-        ModelExecuteOptions options = context.getOptions();
-        if (options == null || options.getSimulationOptions() == null) {
-            return isAdvanceSequenceSafe;
-        }
-
-        SimulationOptionsType simulation = options.getSimulationOptions();
-        if (simulation.getSequence() == null) {
-            return isAdvanceSequenceSafe;
-        }
-
-        return SimulationOptionType.SAFE.equals(simulation.getSequence());
+    public static boolean isAdvanceSequenceSafe(ModelContext<?> context) {
+        return ModelExecuteOptions.isAdvanceSequenceSafe(
+                context.getOptions());
     }
 
     @NotNull

@@ -9,9 +9,6 @@ package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.evolveum.midpoint.schema.internals.InternalCounters;
-import com.evolveum.midpoint.schema.internals.InternalMonitor;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

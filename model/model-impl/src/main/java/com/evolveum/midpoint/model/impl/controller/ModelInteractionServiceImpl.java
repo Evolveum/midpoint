@@ -1319,7 +1319,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         for (String newValue : valuesToValidate) {
             OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
-            if (path != null) {result.addParam("path", path.toString());}
+            if (path != null) {
+                result.addParam("path", path.toString());
+            }
             result.addParam("valueToValidate", newValue);
 
             ObjectValuePolicyEvaluator.Builder evaluatorBuilder = new ObjectValuePolicyEvaluator.Builder()
@@ -1742,8 +1744,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         try {
             Collection<ObjectDeltaOperation<? extends ObjectType>> result = modelService.executeChanges(
                     MiscUtil.createCollection(userDelta), ModelExecuteOptions.create().raw(), task, parentResult);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
-                | SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
+                SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
                 PolicyViolationException e) {
             response.message(LocalizationUtil.createForFallbackMessage("Failed to reset credential: " + e.getMessage()));
             throw e;
@@ -2050,7 +2052,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     query, options, task, result);
             processContainerByHandler(auditRecords, handler);
         } else if (ObjectType.class.isAssignableFrom(type)) {
-            ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test((PrismContainer) value);
+            ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test(value);
             checkOrdering(query, ObjectType.F_NAME);
             modelService.searchObjectsIterative((Class<ObjectType>) type, query, resultHandler, options, task, result);
         } else {

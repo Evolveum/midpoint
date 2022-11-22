@@ -12,29 +12,29 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class SequenceHelper {
+public class SequenceUtil {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SequenceHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SequenceUtil.class);
 
     public static long advanceSequence(SequenceType sequence) {
-        long returnValue;
-        if (!sequence.getUnusedValues().isEmpty()) {
-            returnValue = sequence.getUnusedValues().remove(0);
+        List<Long> unusedValues = sequence.getUnusedValues();
+        if (!unusedValues.isEmpty()) {
+            return unusedValues.remove(0);
         } else {
-            returnValue = advanceSequence(sequence, sequence.getOid());
+            return reallyAdvanceSequence(sequence);
         }
-
-        return returnValue;
     }
 
-    private static long advanceSequence(SequenceType sequence, String oid) {
+    private static long reallyAdvanceSequence(SequenceType sequence) {
         long returnValue;
-        long counter = sequence.getCounter() != null ? sequence.getCounter() : 0L;
-        long maxCounter = sequence.getMaxCounter() != null
-                ? sequence.getMaxCounter() : Long.MAX_VALUE;
+        long counter = Objects.requireNonNullElse(sequence.getCounter(), 0L);
+        long maxCounter = Objects.requireNonNullElse(sequence.getMaxCounter(), Long.MAX_VALUE);
         boolean allowRewind = Boolean.TRUE.equals(sequence.isAllowRewind());
 
         if (counter < maxCounter) {
@@ -47,15 +47,16 @@ public class SequenceHelper {
             } else {
                 sequence.setCounter(counter + 1); // will produce exception during next run
             }
-        } else { // i.e. counter > maxCounter
+        } else {
+            assert counter > maxCounter;
             if (allowRewind) { // shouldn't occur but...
-                LOGGER.warn("Sequence {} overflown with allowRewind set to true. Rewinding.", oid);
+                LOGGER.warn("Sequence {} overflown with allowRewind set to true. Rewinding.", sequence.getOid());
                 returnValue = 0;
                 sequence.setCounter(1L);
             } else {
-                throw new SystemException("No (next) value available from sequence " + oid
-                        + ". Current counter = " + sequence.getCounter()
-                        + ", max value = " + sequence.getMaxCounter());
+                throw new SystemException(
+                        String.format("No (next) value available from sequence %s. Current counter = %d, max value = %d.",
+                                sequence.getOid(), sequence.getCounter(), sequence.getMaxCounter()));
             }
         }
         return returnValue;
