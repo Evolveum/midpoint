@@ -58,7 +58,7 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
                     return;
                 }
 
-                ListGroupMenuItemPanel menu = new ListGroupMenuItemPanel(ID_ITEM, item.getModel()) {
+                ListGroupMenuItemPanel menu = new ListGroupMenuItemPanel(ID_ITEM, item.getModel(), 0) {
 
                     @Override
                     protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {

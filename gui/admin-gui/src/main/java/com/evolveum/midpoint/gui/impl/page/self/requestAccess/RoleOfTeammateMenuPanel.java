@@ -76,7 +76,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
         container.add(new VisibleBehaviour(() -> getModelObject().isActive()));
         add(container);
 
-        MenuItemLinkPanel link = new MenuItemLinkPanel(ID_LINK, getModel()) {
+        MenuItemLinkPanel link = new MenuItemLinkPanel(ID_LINK, getModel(), 0) {
 
             @Override
             protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {

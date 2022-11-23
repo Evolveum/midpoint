@@ -32,10 +32,10 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
 
-    public ListGroupMenuItemPanel(String id, IModel<ListGroupMenuItem<T>> model) {
+    public ListGroupMenuItemPanel(String id, IModel<ListGroupMenuItem<T>> model, int level) {
         super(id, model);
 
-        initLayout();
+        initLayout(level);
     }
 
     @Override
@@ -45,10 +45,10 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
         checkComponentTag(tag, "li");
     }
 
-    private void initLayout() {
+    private void initLayout(int level) {
         add(AttributeAppender.append("class", () -> getModelObject().isOpen() ? "open" : null));
 
-        MenuItemLinkPanel link = new MenuItemLinkPanel(ID_LINK, getModel()) {
+        MenuItemLinkPanel link = new MenuItemLinkPanel(ID_LINK, getModel(), level) {
 
             @Override
             protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
@@ -80,7 +80,7 @@ public class ListGroupMenuItemPanel<T extends Serializable> extends BasePanel<Li
                     return;
                 }
 
-                item.add(new ListGroupMenuItemPanel(ID_ITEM, item.getModel()) {
+                item.add(new ListGroupMenuItemPanel(ID_ITEM, item.getModel(), level + 1) {
 
                     @Override
                     protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {

@@ -35,14 +35,18 @@ public abstract class MenuItemLinkPanel<T extends Serializable> extends BasePane
     private static final String ID_CHEVRON = "chevron";
     private static final String ID_CHEVRON_LINK = "chevronLink";
 
-    public MenuItemLinkPanel(String id, IModel<ListGroupMenuItem<T>> model) {
+    private int level;
+
+    public MenuItemLinkPanel(String id, IModel<ListGroupMenuItem<T>> model, int level) {
         super(id, model);
+
+        this.level = level;
 
         initLayout();
     }
 
     private void initLayout() {
-        add(AttributeAppender.append("class", "item"));
+        add(AttributeAppender.append("class", "item " + "level-" + (level + 1)));
         add(AttributeAppender.append("class", () -> getModelObject().isActive() ? "active" : null));
         add(AttributeAppender.append("class", () -> getModelObject().isDisabled() ? "disabled" : null));
         AjaxLink link = new AjaxLink<>(ID_LINK) {
