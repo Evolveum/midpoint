@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.menu;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.cases.api.util.QueryUtils;
@@ -179,7 +180,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 setResponsePage(page);
             }
         };
-        logo.add(new VisibleEnableBehaviour(() ->  !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
+        logo.add(new VisibleEnableBehaviour(() -> !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
         logo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
         add(logo);
 
@@ -528,9 +529,36 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private void createBasicAssignmentHolderMenuItems(MainMenuItem mainMenuItem, PageTypes pageDesc) {
-        MenuItem objectListMenuItem = createObjectListPageMenuItem(
-                "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list", pageDesc.getIcon(), pageDesc.getListClass());
-        mainMenuItem.addMenuItem(objectListMenuItem);
+        String label = "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list";
+        String icon = pageDesc.getIcon();
+        Class<? extends PageBase> page = pageDesc.getListClass();
+        boolean isDefaultViewVisible = true;
+
+        Optional<CompiledObjectCollectionView> defaultViewOptional = getPageBase().getCompiledGuiProfile().findAllApplicableObjectCollectionViews(pageDesc.getTypeName()).stream()
+                .filter(view -> view.isDefaultView()).findFirst();
+
+        if (defaultViewOptional.isPresent()) {
+            CompiledObjectCollectionView defaultView = defaultViewOptional.get();
+            isDefaultViewVisible = WebComponentUtil.getElementVisibility(defaultView.getVisibility());
+            if (isDefaultViewVisible) {
+                DisplayType viewDisplayType = defaultView.getDisplay();
+
+                PolyStringType display = WebComponentUtil.getCollectionLabel(viewDisplayType);
+                if (display != null) {
+                    label = WebComponentUtil.getTranslatedPolyString(display);
+                }
+
+                String iconClass = GuiDisplayTypeUtil.getIconCssClass(viewDisplayType);
+                if (StringUtils.isNotEmpty(iconClass)) {
+                    icon = iconClass;
+                }
+            }
+        }
+
+        if (isDefaultViewVisible) {
+            mainMenuItem.addMenuItem(createObjectListPageMenuItem(label, icon, page));
+        }
+
         addCollectionsMenuItems(mainMenuItem, pageDesc.getTypeName(), pageDesc.getListClass());
 
         if (PageTypes.CASE != pageDesc) {
