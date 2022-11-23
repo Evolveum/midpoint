@@ -38,7 +38,10 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -414,7 +417,7 @@ public abstract class AbstractSearchExpressionEvaluator<
         extendOptions(options, searchOnResource);
 
         if (createOnDemandRetry) {
-            options = GetOperationOptions.updateRootOptions(options, opt -> opt.pointInTimeType(PointInTimeType.CURRENT));
+            options = GetOperationOptions.updateRootOptions(options, opt -> opt.setStaleness(0L));
         }
 
         try {

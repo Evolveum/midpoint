@@ -15,9 +15,6 @@ import static com.evolveum.midpoint.schema.SelectorOptions.findRootOptions;
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
 
 import java.util.Collection;
-import java.util.Objects;
-
-import com.evolveum.midpoint.repo.cache.other.MonitoringUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -27,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
+import com.evolveum.midpoint.repo.cache.other.MonitoringUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -65,22 +63,21 @@ public class SearchOpHandler extends CachedOpHandler {
         try {
             // Checks related to both caches
             PassReason passReason = PassReason.determine(options, type);
-            if (passReason != null) {
+            if (passReason != null && !passReason.isSoft()) {
                 exec.reportLocalAndGlobalPass(passReason);
                 SearchResultList<PrismObject<T>> objects = searchObjectsInternal(type, query, options, exec.result);
                 return exec.prepareReturnValueAsIs(objects);
             }
             QueryKey<T> key = new QueryKey<>(type, query);
 
-            final GetOperationOptions rootOption = SelectorOptions.findRootOptions(options);
-            final boolean skipCaches = rootOption != null && Objects.equals(PointInTimeType.CURRENT, rootOption.getPointInTimeType());
+            final boolean softPass = passReason != null && passReason.isSoft();
 
             // Let's try local cache
             if (!exec.local.available) {
                 exec.reportLocalNotAvailable();
             } else if (!exec.local.supports) {
                 exec.reportLocalPass();
-            } else if (!skipCaches) {
+            } else if (!softPass) {
                 SearchResultList<PrismObject<T>> cachedResult = exec.local.getCache().get(key);
                 if (cachedResult != null) {
                     exec.reportLocalHit();
@@ -101,7 +98,7 @@ public class SearchOpHandler extends CachedOpHandler {
                 return exec.prepareReturnValueAsIs(objects);
             }
 
-            if (!skipCaches) {
+            if (!softPass) {
                 SearchResultList<PrismObject<T>> cachedResult = globalQueryCache.get(key);
 
                 if (cachedResult != null) {

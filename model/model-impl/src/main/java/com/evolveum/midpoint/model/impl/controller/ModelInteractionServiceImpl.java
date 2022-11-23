@@ -183,6 +183,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         TaskExecutionMode executionMode = task.getExecutionMode();
         if (executionMode == null || TaskExecutionMode.PRODUCTION.equals(executionMode)) {
+            LOGGER.warn("Task {} has execution mode undefined or set to PRODUCTION when executing previewChanges, setting to SIMULATED_PRODUCTION", task.getName());
+
             task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
         }
 
