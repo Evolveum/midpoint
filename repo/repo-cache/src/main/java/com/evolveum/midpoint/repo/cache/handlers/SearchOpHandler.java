@@ -61,23 +61,29 @@ public class SearchOpHandler extends CachedOpHandler {
         SearchOpExecution<T> exec = initializeExecution(type, query, options, parentResult, SEARCH_OBJECTS);
 
         try {
-            // Checks related to both caches
-            PassReason passReason = PassReason.determine(options, type);
-            if (passReason != null && !passReason.isSoft()) {
-                exec.reportLocalAndGlobalPass(passReason);
-                SearchResultList<PrismObject<T>> objects = searchObjectsInternal(type, query, options, exec.result);
-                return exec.prepareReturnValueAsIs(objects);
-            }
             QueryKey<T> key = new QueryKey<>(type, query);
 
-            final boolean softPass = passReason != null && passReason.isSoft();
+            // Checks related to both caches
+            PassReason passReason = PassReason.determine(options, type);
+            if (passReason != null) {
+                exec.reportLocalAndGlobalPass(passReason);
+                SearchResultList<PrismObject<T>> objects;
+                if (passReason.isSoft()) {
+                    // Soft = execute the search but remember the result
+                    objects = executeAndCacheSearch(exec, key);
+                } else {
+                    // Hard = pass the cache altogether - most probably because the objects differ from "standard" ones
+                    objects = searchObjectsInternal(type, query, options, exec.result);
+                }
+                return exec.prepareReturnValueAsIs(objects);
+            }
 
             // Let's try local cache
             if (!exec.local.available) {
                 exec.reportLocalNotAvailable();
             } else if (!exec.local.supports) {
                 exec.reportLocalPass();
-            } else if (!softPass) {
+            } else {
                 SearchResultList<PrismObject<T>> cachedResult = exec.local.getCache().get(key);
                 if (cachedResult != null) {
                     exec.reportLocalHit();
@@ -98,19 +104,16 @@ public class SearchOpHandler extends CachedOpHandler {
                 return exec.prepareReturnValueAsIs(objects);
             }
 
-            if (!softPass) {
-                SearchResultList<PrismObject<T>> cachedResult = globalQueryCache.get(key);
-
-                if (cachedResult != null) {
-                    exec.reportGlobalHit();
-                    cacheUpdater.storeImmutableSearchResultToAllLocal(key, cachedResult, exec.caches);
-                    return exec.prepareReturnValueWhenImmutable(cachedResult);
-                }
+            SearchResultList<PrismObject<T>> cachedResult = globalQueryCache.get(key);
+            if (cachedResult != null) {
+                exec.reportGlobalHit();
+                cacheUpdater.storeImmutableSearchResultToAllLocal(key, cachedResult, exec.caches);
+                return exec.prepareReturnValueWhenImmutable(cachedResult);
+            } else {
+                exec.reportGlobalMiss();
+                SearchResultList<PrismObject<T>> objects = executeAndCacheSearch(exec, key);
+                return exec.prepareReturnValueAsIs(objects);
             }
-
-            exec.reportGlobalMiss();
-            SearchResultList<PrismObject<T>> objects = executeAndCacheSearch(exec, key);
-            return exec.prepareReturnValueAsIs(objects);
         } catch (Throwable t) {
             exec.result.recordFatalError(t);
             throw t;
@@ -194,7 +197,7 @@ public class SearchOpHandler extends CachedOpHandler {
         TracingLevelType level = result.getTracingLevel(RepositorySearchObjectsTraceType.class);
         RepositorySearchObjectsTraceType trace;
         if (isAtLeastMinimal(level)) {
-            trace = new RepositorySearchObjectsTraceType(prismContext)
+            trace = new RepositorySearchObjectsTraceType()
                     .cache(true)
                     .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
                     .query(prismContext.getQueryConverter().createQueryType(query))
