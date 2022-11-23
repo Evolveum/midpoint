@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sqale.update;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.querydsl.core.types.Expression;
@@ -15,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.delta.ItemDeltaValueProcessor;
 import com.evolveum.midpoint.repo.sqale.delta.item.UriItemDeltaProcessor;
@@ -75,8 +75,11 @@ public abstract class SqaleUpdateContext<S, Q extends FlexibleRelationalPathBase
     /**
      * Map of subcontext for known {@link ItemPath} sub-paths relative to this context.
      * {@link ItemName} is not enough to represent multi-value container paths like `assignment/1`.
+     *
+     * PathKeyedMap is used to ignore rare, but possible, namespace discrepancies (MID-8258).
+     * Ignoring namespaces here is acceptable, because it is only used for known built-in containers.
      */
-    protected final Map<ItemPath, SqaleUpdateContext<?, ?, ?>> subcontexts = new LinkedHashMap<>();
+    protected final Map<ItemPath, SqaleUpdateContext<?, ?, ?>> subcontexts = new PathKeyedMap<>();
 
     public SqaleUpdateContext(
             SqaleRepoContext repositoryContext,
