@@ -936,16 +936,16 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
      * Modifies object by using new delta update operations.
      */
     private AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObjectDelta(
-                    ResourceObjectIdentification identification,
-                    ObjectClass objClass,
-                    Uid uid,
-                    PrismObject<ShadowType> shadow,
-                    Collection<Operation> changes,
-                    ConnectorOperationOptions options,
-                    UcfExecutionContext reporter,
-                    OperationResult result)
-                            throws ObjectNotFoundException, CommunicationException,
-                                GenericFrameworkException, SchemaException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
+            ResourceObjectIdentification identification,
+            ObjectClass objClass,
+            Uid uid,
+            PrismObject<ShadowType> shadow,
+            Collection<Operation> changes,
+            ConnectorOperationOptions options,
+            UcfExecutionContext reporter,
+            OperationResult result)
+            throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
+            SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
 
         ResourceObjectDefinition objectClassDef = identification.getResourceObjectDefinition();
 

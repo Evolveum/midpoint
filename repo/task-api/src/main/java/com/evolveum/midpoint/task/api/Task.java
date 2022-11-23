@@ -999,6 +999,7 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /** Returns the execution mode of this task. */
     @NotNull TaskExecutionMode getExecutionMode();
 
+    /** Sets the execution mode of this task. Use with care - preferably only for new tasks. */
     void setExecutionMode(@NotNull TaskExecutionMode mode);
     //endregion
 }

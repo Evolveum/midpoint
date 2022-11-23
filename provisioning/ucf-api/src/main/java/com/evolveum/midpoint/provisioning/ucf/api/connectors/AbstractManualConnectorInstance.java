@@ -129,7 +129,8 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
         result.recordInProgress();
         result.setAsynchronousOperationReference(ticketIdentifier);
 
-        AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> ret = new AsynchronousOperationReturnValue<>();
+        AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> ret =
+                new AsynchronousOperationReturnValue<>();
         ret.setOperationType(PendingOperationTypeType.MANUAL);
         ret.setOperationResult(result);
         return ret;

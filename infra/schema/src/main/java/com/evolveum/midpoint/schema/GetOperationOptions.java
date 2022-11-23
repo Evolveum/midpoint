@@ -146,14 +146,27 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     private PointInTimeType pointInTimeType;
 
     /**
-     * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in millisecods.
+     * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in milliseconds.
+     *
+     * *Meaning for Provisioning service*
+     *
      * The default value is zero, which means that a fresh value must always be returned. This means that caches that do
      * not guarantee fresh value cannot be used. If non-zero value is specified then such caches may be used. In case that
-     * Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.
-     * <p>
+     * {@link Long#MAX_VALUE} is specified then the caches are always used and fresh value is never retrieved.
+     *
      * Null value is special in one more aspect: it allows to return partial cached data in case that the original is not
      * accessible. E.g. in that case provisioning can return repository shadow in case that the resource is not reachable.
      * Explicit specification of staleness=0 disables this behavior.
+     *
+     * *Meaning for Repository cache*
+     *
+     * The default value means that the cache may be used, if other options do not preclude the use. An explicit value of zero
+     * disables the cache.
+     *
+     * *Open question*
+     *
+     * We should somehow unify these meanings. When the client calls `getObject` at the level of the model API, it does not
+     * know whether provisioning and/or repository will be ultimately called.
      */
     private Long staleness;
 
