@@ -64,11 +64,13 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             Fragment templateFragment  = createTemplateFragment();
             add(templateFragment);
         } else {
-            Collection<CompiledObjectCollectionView> allApplicableArchetypeViews = findAllApplicableArchetypeViews();
-            if (allApplicableArchetypeViews.size() == 1) {
-                CompiledObjectCollectionView view = allApplicableArchetypeViews.iterator().next();
-                if (!view.isDefaultView()) {
-                    applyTemplate(allApplicableArchetypeViews.iterator().next());
+            if (isAdd()) {
+                Collection<CompiledObjectCollectionView> allApplicableArchetypeViews = findAllApplicableArchetypeViews();
+                if (allApplicableArchetypeViews.size() == 1) {
+                    CompiledObjectCollectionView view = allApplicableArchetypeViews.iterator().next();
+                    if (!view.isDefaultView()) {
+                        applyTemplate(allApplicableArchetypeViews.iterator().next());
+                    }
                 }
             }
             super.initLayout();
