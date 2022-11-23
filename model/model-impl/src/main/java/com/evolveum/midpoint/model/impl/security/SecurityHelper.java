@@ -149,12 +149,15 @@ public class SecurityHelper implements ModelAuditRecorder {
         SecurityPolicyType securityPolicyFromOrgs = locateFocusSecurityPolicyFromOrgs(focus, task, result);
         SecurityPolicyType securityPolicyFromArchetypes = locateFocusSecurityPolicyFromArchetypes(focus, task, result);
         SecurityPolicyType mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromArchetypes, securityPolicyFromOrgs);  //sec policy from archetypes overrides sec policy from org
+
+        SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(focus, systemConfiguration, task, result);
+        mergedSecurityPolicy = mergeSecurityPolicies(mergedSecurityPolicy, globalSecurityPolicy);
+
         if (mergedSecurityPolicy != null) {
             traceSecurityPolicy(mergedSecurityPolicy, focus);
             return mergedSecurityPolicy;
         }
 
-        SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(focus, systemConfiguration, task, result);
         if (globalSecurityPolicy != null) {
             traceSecurityPolicy(globalSecurityPolicy, focus);
             return globalSecurityPolicy;
@@ -330,24 +333,24 @@ public class SecurityHelper implements ModelAuditRecorder {
         mergeAuthenticationModuleList(mergedAuthentication.getModules().getSmsNonce(), modules.getSmsNonce());
     }
 
-    private <AM extends AbstractAuthenticationModuleType> void mergeAuthenticationModuleList(List<AM> mergedList, List<AM> listToProceed) {
-        if (CollectionUtils.isEmpty(listToProceed)) {
+    private <AM extends AbstractAuthenticationModuleType> void mergeAuthenticationModuleList(List<AM> mergedList, List<AM> listToProcess) {
+        if (CollectionUtils.isEmpty(listToProcess)) {
             return;
         }
         if (CollectionUtils.isEmpty(mergedList)) {
-            mergedList.addAll(listToProceed);
+            mergedList.addAll(listToProcess);
             return;
         }
-        listToProceed.forEach(itemToProceed -> {
+        listToProcess.forEach(itemToProcess -> {
             boolean exist = false;
             for (AM item : mergedList) {
-                if (StringUtils.equals(item.getName(), itemToProceed.getName())) {
+                if (StringUtils.equals(item.getName(), itemToProcess.getName())) {
                     exist = true;
                     break;
                 }
             }
             if (!exist) {
-                mergedList.add(itemToProceed);
+                mergedList.add(itemToProcess);
             }
         });
     }
@@ -360,18 +363,63 @@ public class SecurityHelper implements ModelAuditRecorder {
             mergedAuthentication.getSequence().addAll(sequences);
             return;
         }
-        sequences.forEach(sequenceToProceed -> {
+        sequences.forEach(sequenceToProcess -> {
             boolean exist = false;
             for (AuthenticationSequenceType sequence : mergedAuthentication.getSequence()) {
-                if (StringUtils.equals(sequenceToProceed.getIdentifier(), sequence.getIdentifier())) {
+                if (StringUtils.equals(sequenceToProcess.getIdentifier(), sequence.getIdentifier())) {
+                    mergeSequence(sequence, sequenceToProcess);
                     exist = true;
                     break;
                 }
             }
             if (!exist) {
-                mergedAuthentication.getSequence().add(sequenceToProceed);
+                mergedAuthentication.getSequence().add(sequenceToProcess);
             }
         });
+    }
+
+    private void mergeSequence(AuthenticationSequenceType sequence, AuthenticationSequenceType sequenceToProcess) {
+        if (sequence == null || sequenceToProcess == null || sequence.getIdentifier() == null
+                || !sequence.getIdentifier().equals(sequenceToProcess.getIdentifier())) {
+            return;
+        }
+        if (sequence.getChannel() == null) {
+            sequence.setChannel(sequenceToProcess.getChannel());
+        }
+        if (StringUtils.isEmpty(sequence.getDescription())) {
+            sequence.setDescription(sequenceToProcess.getDescription());
+        }
+        if (CollectionUtils.isNotEmpty(sequenceToProcess.getModule())) {
+            if (CollectionUtils.isEmpty(sequence.getModule())) {
+                sequence.getModule().addAll(sequenceToProcess.getModule());
+            } else {
+                sequenceToProcess.getModule().forEach(sequenceModule -> {
+                    if (findSequenceModuleByIdentifier(sequence.getModule(), sequenceModule) != null) {
+                        sequence.getModule().add(sequenceModule);
+                    }
+                });
+            }
+        }
+        if (CollectionUtils.isNotEmpty(sequenceToProcess.getNodeGroup()) && CollectionUtils.isEmpty(sequence.getNodeGroup())) {
+            sequence.getNodeGroup().addAll(sequenceToProcess.getNodeGroup());
+        }
+        if (CollectionUtils.isNotEmpty(sequenceToProcess.getRequireAssignmentTarget())
+                && CollectionUtils.isEmpty(sequence.getRequireAssignmentTarget())) {
+            sequence.getRequireAssignmentTarget().addAll(sequenceToProcess.getRequireAssignmentTarget());
+        }
+    }
+
+    private AuthenticationSequenceModuleType findSequenceModuleByIdentifier(List<AuthenticationSequenceModuleType> sequenceModules,
+            AuthenticationSequenceModuleType moduleToFind) {
+        if (CollectionUtils.isEmpty(sequenceModules) || moduleToFind == null || StringUtils.isEmpty(moduleToFind.getIdentifier())) {
+            return null;
+        }
+        for (AuthenticationSequenceModuleType module : sequenceModules) {
+            if (moduleToFind.getIdentifier().equals(module.getIdentifier())) {
+                return module;
+            }
+        }
+        return null;
     }
 
     private CredentialsResetPolicyType mergeCredentialsReset(CredentialsResetPolicyType lowLevelCredentialsReset, CredentialsResetPolicyType topLevelCredentialsReset) {
