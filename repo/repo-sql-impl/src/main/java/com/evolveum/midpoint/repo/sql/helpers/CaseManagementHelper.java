@@ -42,8 +42,10 @@ public class CaseManagementHelper {
 
     // TODO find a better name
     CaseWorkItemType updateLoadedCaseWorkItem(
-            GetContainerableIdOnlyResult result, Map<String, PrismObject<CaseType>> ownersMap,
-            Session session, Collection<SelectorOptions<GetOperationOptions>> options)
+            GetContainerableIdOnlyResult result,
+            Map<String, PrismObject<CaseType>> ownersMap,
+            Session session,
+            Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException, ObjectNotFoundException, DtoTranslationException {
 
         String ownerOid = result.getOwnerOid();
