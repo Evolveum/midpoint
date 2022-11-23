@@ -178,7 +178,24 @@
                         It is supposed to give some idea about nature of the module to system administrator.
                         But it is not supposed to be used as a user-friendly label for the module.
                         Module name must be unique.
+                        <p>
+                            Deprecated, use identifier instead
+                        </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:deprecated/>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="identifier" type="xsd:string" >
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unique module identifier. Can be used to reference the module.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0">
