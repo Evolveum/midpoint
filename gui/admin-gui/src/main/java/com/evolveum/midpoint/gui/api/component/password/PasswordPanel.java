@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -47,18 +49,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.self.PageOrgSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageRoleSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageServiceSelfProfile;
-import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -74,7 +67,8 @@ public class PasswordPanel extends InputPanel {
     private static final String ID_PASSWORD_REMOVE = "passwordRemove";
     private static final String ID_CHANGE_PASSWORD_LINK = "changePasswordLink";
     private static final String ID_REMOVE_PASSWORD_LINK = "removePasswordLink";
-    private static final String ID_REMOVE_BUTTON_CONTAINER = "removeButtonContainer";
+
+    private static final String ID_BUTTON_BAR = "buttonBar";
     private static final String ID_INPUT_CONTAINER = "inputContainer";
     private static final String ID_PASSWORD_ONE = "password1";
     private static final String ID_PASSWORD_TWO = "password2";
@@ -85,6 +79,8 @@ public class PasswordPanel extends InputPanel {
     private static boolean clearPasswordInput = false;
     private static boolean setPasswordInput = false;
     private final IModel<ProtectedStringType> model;
+
+    private boolean isReadOnly;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
         this(id, model, false, model == null || model.getObject() == null);
@@ -103,7 +99,8 @@ public class PasswordPanel extends InputPanel {
         super(id);
         this.passwordInputVisible = isInputVisible;
         this.model = model;
-        initLayout(isReadOnly, object);
+        this.isReadOnly = isReadOnly;
+        initLayout(object);
     }
 
     @Override
@@ -111,23 +108,22 @@ public class PasswordPanel extends InputPanel {
         super.onInitialize();
     }
 
-    private <F extends FocusType> void initLayout(final boolean isReadOnly, PrismObject<F> object) {
+    private <F extends FocusType> void initLayout(PrismObject<F> object) {
         setOutputMarkupId(true);
-        final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER) {
-            private static final long serialVersionUID = 1L;
 
-            @Override
-            public boolean isVisible() {
-                return passwordInputVisible;
-            }
-        };
+        final WebMarkupContainer inputContainer = new WebMarkupContainer(ID_INPUT_CONTAINER);
+        inputContainer.add(new VisibleBehaviour(() -> passwordInputVisible));
         inputContainer.setOutputMarkupId(true);
         add(inputContainer);
 
         LoadableDetachableModel<List<StringLimitationResult>> limitationsModel = new LoadableDetachableModel<>() {
             @Override
             protected List<StringLimitationResult> load() {
-                ValuePolicyType valuePolicy = getValuePolicy(object);
+                ValuePolicyType valuePolicy = null;
+                if (object == null || !object.canRepresent(ResourceType.class)) {
+                    //we skip getting value policy for ResourceType because it is some protected string from connector configuration
+                    valuePolicy = getValuePolicy(object);
+                }
                 return getLimitationsForActualPassword(valuePolicy, object);
             }
         };
@@ -213,15 +209,8 @@ public class PasswordPanel extends InputPanel {
             }
         });
 
-        final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !passwordInputVisible;
-            }
-        };
-        inputContainer.setOutputMarkupId(true);
+        final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER);
+        linkContainer.add(new VisibleBehaviour(() -> !passwordInputVisible));
         linkContainer.setOutputMarkupId(true);
         add(linkContainer);
 
@@ -232,57 +221,54 @@ public class PasswordPanel extends InputPanel {
         passwordRemoveLabel.setVisible(false);
         linkContainer.add(passwordRemoveLabel);
 
-        AjaxLink<Void> link = new AjaxLink<>(ID_CHANGE_PASSWORD_LINK) {
+        WebMarkupContainer buttonBar = new WebMarkupContainer(ID_BUTTON_BAR);
+        buttonBar.add(new VisibleBehaviour(() -> isChangePasswordVisible() || isRemovePasswordVisible()));
+        add(buttonBar);
+
+        AjaxLink<Void> changePassword = new AjaxLink<>(ID_CHANGE_PASSWORD_LINK) {
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 clearPasswordInput = true;
                 setPasswordInput = false;
                 onLinkClick(target);
             }
-
-            @Override
-            public boolean isVisible() {
-                return !passwordInputVisible && model != null && model.getObject() != null;
-            }
         };
-        link.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !isReadOnly;
+        changePassword.add(new VisibleBehaviour(() ->  isChangePasswordVisible()));
+        changePassword.setBody(new ResourceModel("passwordPanel.passwordChange"));
+        changePassword.setOutputMarkupId(true);
+        buttonBar.add(changePassword);
 
-            }
-        });
-        link.setBody(new ResourceModel("passwordPanel.passwordChange"));
-        link.setOutputMarkupId(true);
-        linkContainer.add(link);
-
-        final WebMarkupContainer removeButtonContainer = new WebMarkupContainer(ID_REMOVE_BUTTON_CONTAINER);
         AjaxLink<Void> removePassword = new AjaxLink<>(ID_REMOVE_PASSWORD_LINK) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onRemovePassword(model, target);
             }
-
         };
-        removePassword.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                PageBase pageBase = getPageBase();
-                if (pageBase == null) {
-                    return false;
-                }
-                if (pageBase instanceof PageUserSelfProfile || pageBase instanceof PageOrgSelfProfile
-                        || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
-                    return false;
-                }
-                return pageBase instanceof PageAdminFocus && !((PageAdminFocus) pageBase).isLoggedInFocusPage()
-                        && model.getObject() != null;
-            }
-        });
+        removePassword.add(new VisibleBehaviour(() -> isRemovePasswordVisible()));
         removePassword.setBody(new ResourceModel("passwordPanel.passwordRemove"));
         removePassword.setOutputMarkupId(true);
-        removeButtonContainer.add(removePassword);
-        add(removeButtonContainer);
+        buttonBar.add(removePassword);
+    }
+
+    private boolean isChangePasswordVisible() {
+        return !isReadOnly && !passwordInputVisible && model != null && model.getObject() != null;
+    }
+
+    protected boolean isRemovePasswordVisible() {
+        // todo wrong code, panel should be stupid, it must not know about different pages and subpages...
+//        PageBase pageBase = getPageBase();
+//        if (pageBase == null) {
+//            return false;
+//        }
+//        if (pageBase instanceof PageUserSelfProfile || pageBase instanceof PageOrgSelfProfile
+//                || pageBase instanceof PageRoleSelfProfile || pageBase instanceof PageServiceSelfProfile) {
+//            return false;
+//        }
+//        return pageBase instanceof PageAdminFocus && !((PageAdminFocus) pageBase).isLoggedInFocusPage()
+//                && model.getObject() != null;
+
+        return !isReadOnly && model.getObject() != null && SecurityUtils.getPrincipalUser() != null;
     }
 
     private String initPasswordValidation() {
