@@ -46,6 +46,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Context of the synchronization operation. It is created in the early stages of {@link ResourceObjectShadowChangeDescription}
  * progressing in {@link SynchronizationServiceImpl}.
@@ -136,6 +138,7 @@ public abstract class SynchronizationContext<F extends FocusType>
     private final boolean forceClassificationUpdate;
 
     @NotNull private final PrismContext prismContext = PrismContext.get();
+
     @NotNull private final ModelBeans beans;
 
     /** TODO maybe will be removed */
@@ -268,6 +271,10 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     public @NotNull ResourceType getResource() {
         return resource;
+    }
+
+    public @NotNull String getResourceOid() {
+        return requireNonNull(getResource().getOid());
     }
 
     public @NotNull Class<F> getFocusClass() throws SchemaException {
@@ -469,6 +476,10 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     public abstract boolean isComplete();
 
+    boolean isPersistentExecution() {
+        return task.isPersistentExecution();
+    }
+
     /**
      * Synchronization context ready for the synchronization, i.e. it has type identification and synchronization policy present.
      */
@@ -487,12 +498,12 @@ public abstract class SynchronizationContext<F extends FocusType>
 
         @Override
         public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
-            return Objects.requireNonNull(super.getTypeIdentification());
+            return requireNonNull(super.getTypeIdentification());
         }
 
         @Override
         public @NotNull SynchronizationPolicy getSynchronizationPolicy() {
-            return Objects.requireNonNull(super.getSynchronizationPolicy());
+            return requireNonNull(super.getSynchronizationPolicy());
         }
 
         @Override

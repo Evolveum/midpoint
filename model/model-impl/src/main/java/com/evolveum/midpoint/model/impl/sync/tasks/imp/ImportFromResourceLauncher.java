@@ -63,7 +63,6 @@ public class ImportFromResourceLauncher {
                     new NullPostSearchFilterImpl(),
                     eventDispatcher,
                     SchemaConstants.CHANNEL_IMPORT,
-                    false,
                     true);
             synchronizer.synchronize(shadow.asPrismObject(), null, task, result);
             result.computeStatusIfUnknown();

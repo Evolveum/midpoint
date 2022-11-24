@@ -296,7 +296,7 @@ public abstract class SearchBasedActivityRun<
             return query;
         } else {
             ObjectFilter failedObjectsFilter =
-                    new FailedObjectsFilterCreator(selector, getRunningTask(), getPrismContext())
+                    new FailedObjectsFilterCreator(selector, getRunningTask())
                             .createFilter();
 
             FailedObjectsSelectionMethodType selectionMethod = getFailedObjectsSelectionMethod(selector);

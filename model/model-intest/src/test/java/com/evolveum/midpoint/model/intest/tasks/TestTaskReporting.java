@@ -67,9 +67,17 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
     public static final String PROJECTOR_FATAL_ERROR = "projector-fatal-error";
 
     // Numbers of accounts with various kinds of errors
+
+    /** u-000000: good account */
     private static final int IDX_GOOD_ACCOUNT = 0;
+
+    /** u-000001: null resource object name in {@link #test090ImportWithSearchFailing()} */
     private static final int IDX_MALFORMED_SHADOW = 1;
+
+    /** u-000002: fatal error in projector */
     private static final int IDX_PROJECTOR_FATAL_ERROR = 2;
+
+    /** u-000003: uid too long to be stored in the repository */
     private static final int IDX_LONG_UID = 3;
 
     private static final String MALFORMED_SHADOW_NAME = formatAccountName(IDX_MALFORMED_SHADOW);
@@ -434,7 +442,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .displayOperationResult()
                     .assertPartialError()
                     .assertClosed()
-                    .assertProgress(11)
+                    .assertProgress(12)
                     .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                         .display()
                         .itemProcessingStatistics()
@@ -452,6 +460,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                         .display()
                         .itemProcessingStatistics()
                             .assertFailureCount(1) // u-000001 failed once in 2nd part, and once in 3rd part
+                            .assertSkipCount(1) // u-000002 - repeated because fullSynchronizationTimestamp is still null
                             .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
                         .end()
                     .end();
@@ -463,7 +472,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .displayOperationResult()
                     .assertPartialError()
                     .assertClosed()
-                    .assertProgress(11)
+                    .assertProgress(12)
                     .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                         .display()
                         .itemProcessingStatistics()
@@ -482,6 +491,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                         .display()
                         .itemProcessingStatistics()
                             .assertFailureCount(1) // u-000001 failed once in 2nd part, and once in 3rd part
+                            .assertSkipCount(1) // u-000002 - repeated because fullSynchronizationTimestamp is still null
                             .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
                         .end()
                     .end();

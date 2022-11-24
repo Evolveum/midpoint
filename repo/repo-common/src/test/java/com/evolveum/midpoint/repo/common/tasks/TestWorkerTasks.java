@@ -110,7 +110,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
         then();
         try {
-            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT);
 
             root.refresh(result);
             String workerOid1 = assertTaskTreeAfter100("after 1st run", root, result);
@@ -120,7 +120,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
             taskManager.scheduleTasksNow(List.of(root.getOid()), result);
 
             then("second run");
-            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT);
 
             root.refresh(result);
             String workerOid2 = assertTaskTreeAfter100("after 2nd run", root, result);
@@ -184,7 +184,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
         then();
         try {
-            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT);
 
             root.refresh(result);
             assertTaskTreeAfter110("after 1st run", root, result);
@@ -194,7 +194,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
             taskManager.scheduleTasksNow(List.of(root.getOid()), result);
 
             then("second run");
-            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT);
 
             root.refresh(result);
             assertTaskTreeAfter110("after 2nd run", root, result);
@@ -269,7 +269,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
         then();
         try {
-            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT);
 
             root.refresh(result);
             assertTaskTreeAfter120("after 1st run", root, result);
@@ -279,7 +279,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
             taskManager.scheduleTasksNow(List.of(root.getOid()), result);
 
             then("second run");
-            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT);
 
             root.refresh(result);
             assertTaskTreeAfter120("after 2nd run", root, result);
@@ -354,7 +354,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -781,7 +781,7 @@ public class TestWorkerTasks extends AbstractRepoCommonTest {
 
         then();
         try {
-            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT);
 
             root.refresh(result);
             assertTaskTreeAfter170(root, result);

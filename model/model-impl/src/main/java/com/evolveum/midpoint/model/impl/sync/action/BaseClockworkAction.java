@@ -68,10 +68,11 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
             beans.medic.enterModelMethod(false);
             try {
                 Task task = syncCtx.getTask();
-                if (change.isSimulate()) {
-                    beans.clockwork.previewChanges(lensContext, null, task, result);
-                } else {
+                // Temporary code - we'll have a single entry point in the future
+                if (task.isPersistentExecution()) {
                     beans.clockwork.run(lensContext, task, result);
+                } else {
+                    beans.clockwork.previewChanges(lensContext, null, task, result);
                 }
             } finally {
                 beans.medic.exitModelMethod(false);

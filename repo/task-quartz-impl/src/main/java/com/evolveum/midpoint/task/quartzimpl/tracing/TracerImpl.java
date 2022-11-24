@@ -132,7 +132,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
                     }
 
                     if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
-                        ReportDataType reportDataObject = new ReportDataType(prismContext)
+                        ReportDataType reportDataObject = new ReportDataType()
                                 .name(createObjectName(tracingProfile, templateParameters))
                                 .archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
                                 .filePath(file.getAbsolutePath())
@@ -306,7 +306,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
     public TracingProfileType getDefaultProfile() {
         TracingConfigurationType tracingConfiguration = getTracingConfiguration();
         if (tracingConfiguration == null || tracingConfiguration.getProfile().isEmpty()) {
-            return new TracingProfileType(prismContext);
+            return new TracingProfileType();
         } else {
             List<TracingProfileType> defaultProfiles = tracingConfiguration.getProfile().stream()
                     .filter(p -> Boolean.TRUE.equals(p.isDefault()))

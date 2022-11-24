@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.evolveum.midpoint.repo.common.activity.run.IterativeActivityRun;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.task.api.RunningLightweightTask;
 
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -169,6 +170,9 @@ public class ProcessingCoordinator<I> {
             subtask.setResult(new OperationResult(OP_EXECUTE_WORKER, OperationResultStatus.IN_PROGRESS, (String) null));
             subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
             subtask.setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getExecutionEnvironment()));
+            // TODO implement more seriously
+            subtask.setExecutionMode(
+                    activityRun.isPreview() ? TaskExecutionMode.SIMULATED_PRODUCTION : TaskExecutionMode.PRODUCTION);
             subtask.startLightweightHandler();
             LOGGER.trace("Worker subtask {} created", subtask);
         }
@@ -245,7 +249,8 @@ public class ProcessingCoordinator<I> {
                         LOGGER.trace("Queue is empty and nothing more is expected - exiting");
                         break;
                     } else {
-                        LOGGER.trace("No requests to be processed but expecting some to come. Waiting for {} msec", WORKER_THREAD_WAIT_FOR_REQUEST);
+                        LOGGER.trace("No requests to be processed but expecting some to come. Waiting for {} msecs",
+                                WORKER_THREAD_WAIT_FOR_REQUEST);
                         try {
                             //noinspection BusyWait
                             Thread.sleep(WORKER_THREAD_WAIT_FOR_REQUEST);
@@ -269,22 +274,7 @@ public class ProcessingCoordinator<I> {
             // We do NOT try to summarize/cleanup the whole results hierarchy.
             // There could be some accesses to the request's subresult from the thread that originated it.
             workerSpecificResult.summarize(false);
-            workerSpecificResult.cleanupResult();
-        }
-    }
-
-    // TODO decide on this
-    void updateOperationResult(OperationResult opResult) {
-        if (multithreaded) {
-            assert workerSpecificResults != null;
-            for (OperationResult workerSpecificResult : workerSpecificResults) {
-                workerSpecificResult.computeStatus();
-                workerSpecificResult.summarize(true);
-                workerSpecificResult.cleanupResultDeeply();
-                opResult.addSubresult(workerSpecificResult);
-            }
-            // In single-threaded case the status should be already computed
-            opResult.computeStatus("Issues during processing");
+            workerSpecificResult.cleanup();
         }
     }
 }

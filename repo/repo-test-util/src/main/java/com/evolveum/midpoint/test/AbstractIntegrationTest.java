@@ -3229,6 +3229,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         OperationResult result = createSubresult("markShadowTombstone");
         List<ItemDelta<?, ?>> deadModifications = deltaFor(ShadowType.class)
                 .item(ShadowType.F_DEAD).replace(true)
+                .item(ShadowType.F_DEATH_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
                 .item(ShadowType.F_EXISTS).replace(false)
                 .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
                 .asItemDeltas();
@@ -3447,11 +3448,19 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .orElseThrow(() -> new AssertionError("Account '" + name + "' was not found"));
     }
 
-    protected void waitForTaskStatusUpdated(String taskOid, String message, Checker checker, long timeoutInterval, long sleepInterval) throws CommonException {
+    protected void waitForTaskStatusUpdated(
+            String taskOid, String message, Checker checker, long timeoutInterval) throws CommonException {
         var statusQueue = new ArrayBlockingQueue<Task>(10);
         TaskUpdatedListener waitListener = (task, result) -> {
-            if (Objects.equals(taskOid, task.getOid())) {
-                statusQueue.add(task);
+            try {
+                List<Task> pathToRootTask = task.getPathToRootTask(result);
+                if (TaskUtil.tasksToOids(pathToRootTask).contains(taskOid)) {
+                    statusQueue.add(task);
+                } else {
+                    System.out.println("Missed update; waiting for " + taskOid + ", got " + task);
+                }
+            } catch (SchemaException e) {
+                throw SystemException.unexpected(e);
             }
         };
         try {
@@ -3462,13 +3471,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 long currentTime = System.currentTimeMillis();
 
                 if (currentTime > endTime) {
-                    // Cicle timeouted
+                    // Cycle timeouted
                     checker.timeout();
                     break;
                 }
                 try {
                     var timeout = endTime - currentTime;
-                    var currentTask = statusQueue.poll(timeout, TimeUnit.MILLISECONDS);
+                    statusQueue.poll(timeout, TimeUnit.MILLISECONDS);
                     boolean done = checker.check();
                     if (done) {
                         IntegrationTestTools.println("... done");
@@ -3484,13 +3493,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    protected void waitForTaskClose(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+    protected void waitForTaskClose(String taskOid, OperationResult result, long timeoutInterval)
             throws CommonException {
         waitForTaskStatusUpdated(taskOid, "Waiting for task to close", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
             displaySingleTask("Task while waiting for it to close", task);
             return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
-        }, timeoutInterval, sleepInterval);
+        }, timeoutInterval);
     }
 
     protected void displaySingleTask(String label, Task task) {
@@ -3568,7 +3577,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void waitForTaskTreeCloseCheckingSuspensionWithError(String taskOid, OperationResult result,
-            long timeoutInterval, long sleepInterval) throws CommonException {
+            long timeoutInterval) throws CommonException {
         waitForTaskStatusUpdated(taskOid, "Waiting for task manager to finish the task", () -> {
             Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                     .item(TaskType.F_RESULT).retrieve()
@@ -3587,7 +3596,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 return true;
             }
             return false;
-        }, timeoutInterval, sleepInterval);
+        }, timeoutInterval);
     }
 
     protected void waitForTaskTreeCloseOrCondition(String taskOid, OperationResult result,

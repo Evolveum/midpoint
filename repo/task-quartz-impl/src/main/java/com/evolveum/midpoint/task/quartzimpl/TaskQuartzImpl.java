@@ -387,7 +387,6 @@ public class TaskQuartzImpl implements Task {
         if (recreateQuartzTrigger) { // just in case there were no pending modifications
             synchronizeWithQuartz(result);
         }
-        beans.listenerRegistry.notifyTaskStatusFlushed(this, result);
     }
 
     int getPendingModificationsCount() {
@@ -403,13 +402,14 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
-    private void modifyRepository(Collection<ItemDelta<?, ?>> deltas, OperationResult parentResult)
+    private void modifyRepository(Collection<ItemDelta<?, ?>> deltas, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         if (isPersistent() && !deltas.isEmpty()) {
             try {
-                beans.repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
+                beans.repositoryService.modifyObject(TaskType.class, getOid(), deltas, result);
+                beans.listenerRegistry.notifyTaskUpdated(this, result);
             } finally {
-                synchronizeWithQuartzIfNeeded(deltas, parentResult);
+                synchronizeWithQuartzIfNeeded(deltas, result);
             }
         }
     }
@@ -419,6 +419,7 @@ public class TaskQuartzImpl implements Task {
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
         if (isPersistent()) {
             beans.repositoryService.modifyObject(TaskType.class, getOid(), deltas, precondition, null, result);
+            beans.listenerRegistry.notifyTaskUpdated(this, result);
         }
     }
 
@@ -427,6 +428,7 @@ public class TaskQuartzImpl implements Task {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         if (isPersistent()) {
             beans.repositoryService.modifyObject(TaskType.class, getOid(), CloneUtil.cloneCollectionMembers(itemDeltas), result);
+
         }
         applyModificationsTransient(itemDeltas);
         synchronizeWithQuartzIfNeeded(pendingModifications, result);
@@ -1118,7 +1120,8 @@ public class TaskQuartzImpl implements Task {
 
         try {
             // todo use type from the reference instead
-            PrismObject<FocusType> owner = beans.repositoryService.getObject(FocusType.class, ownerRef.getOid(), null, result);
+            PrismObject<FocusType> owner =
+                    beans.repositoryService.getObject(FocusType.class, ownerRef.getOid(), null, result);
             synchronized (prismAccess) {
                 ownerRef.setObject(owner);
             }

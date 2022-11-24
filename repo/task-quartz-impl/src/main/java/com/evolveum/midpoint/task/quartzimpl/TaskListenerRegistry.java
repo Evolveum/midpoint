@@ -39,7 +39,6 @@ public class TaskListenerRegistry {
 
     private final Set<TaskUpdatedListener> taskUpdatedListeners = ConcurrentHashMap.newKeySet();
 
-
     private final Set<TaskDeletionListener> taskDeletionListeners = ConcurrentHashMap.newKeySet();
 
     void registerTaskListener(TaskListener taskListener) {
@@ -50,12 +49,12 @@ public class TaskListenerRegistry {
         taskListeners.remove(taskListener);
     }
 
-    void registerTaskUpdatedListener(TaskUpdatedListener taskListener) {
-        taskUpdatedListeners.add(taskListener);
+    void registerTaskUpdatedListener(TaskUpdatedListener listener) {
+        taskUpdatedListeners.add(listener);
     }
 
-    void unregisterTaskUpdatedListener(TaskUpdatedListener taskListener) {
-        taskUpdatedListeners.remove(taskListener);
+    void unregisterTaskUpdatedListener(TaskUpdatedListener listener) {
+        taskUpdatedListeners.remove(listener);
     }
 
     public void notifyTaskStart(Task task, OperationResult result) {
@@ -117,10 +116,10 @@ public class TaskListenerRegistry {
         }
     }
 
-    public void notifyTaskStatusFlushed(TaskQuartzImpl task, OperationResult result) {
+    public void notifyTaskUpdated(TaskQuartzImpl task, OperationResult result) {
         for (TaskUpdatedListener listener : taskUpdatedListeners) {
             try {
-                listener.onTaskStatusUpdated(task, result);
+                listener.onTaskUpdated(task, result);
             } catch (RuntimeException e) {
                 logListenerException(e);
             }

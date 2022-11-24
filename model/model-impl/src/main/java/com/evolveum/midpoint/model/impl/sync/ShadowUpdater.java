@@ -64,7 +64,7 @@ class ShadowUpdater {
 
         updateSyncSituation();
         updateSyncSituationDescription(now);
-        updateSyncTimestamps(now, syncCtx.isFullMode());
+        updateBasicSyncTimestamp(now);
 
         updateCoordinatesIfUnknown();
 
@@ -73,34 +73,35 @@ class ShadowUpdater {
 
     private void updateSyncSituation() throws SchemaException {
         applyShadowDelta(
-                createSynchronizationSituationDelta(
-                        syncCtx.getShadowedResourceObject().asPrismObject(),
-                        syncCtx.getSituation()));
+                createSynchronizationSituationDelta(syncCtx.getSituation()));
     }
 
     private void updateSyncSituationDescription(XMLGregorianCalendar now) throws SchemaException {
         applyShadowDelta(
                 createSynchronizationSituationDescriptionDelta(
-                        syncCtx.getShadowedResourceObject().asPrismObject(),
+                        syncCtx.getShadowedResourceObject(),
                         syncCtx.getSituation(),
                         now,
                         syncCtx.getChannel(),
                         syncCtx.isFullMode()));
     }
 
-    private ShadowUpdater updateSyncTimestamps(XMLGregorianCalendar now, boolean full) throws SchemaException {
-        applyShadowDeltas(
-                SynchronizationUtils.createSynchronizationTimestampsDeltas(
-                        syncCtx.getShadowedResourceObject().asPrismObject(),
-                        now,
-                        full));
+    ShadowUpdater updateFullSyncTimestamp(XMLGregorianCalendar now) throws SchemaException {
+        applyShadowDelta(
+                SynchronizationUtils.createFullSynchronizationTimestampDelta(now));
         return this;
     }
 
+    private void updateBasicSyncTimestamp(XMLGregorianCalendar now) throws SchemaException {
+        applyShadowDelta(
+                SynchronizationUtils.createSynchronizationTimestampDelta(now));
+    }
+
     ShadowUpdater updateBothSyncTimestamps() throws SchemaException {
-        return updateSyncTimestamps(
-                beans.clock.currentTimeXMLGregorianCalendar(),
-                true);
+        XMLGregorianCalendar now = beans.clock.currentTimeXMLGregorianCalendar();
+        updateBasicSyncTimestamp(now);
+        updateFullSyncTimestamp(now);
+        return this;
     }
 
     /**

@@ -169,7 +169,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -223,7 +223,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -305,7 +305,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -379,7 +379,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 1");
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then("run 1");
 
@@ -404,7 +404,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 2");
 
         restartTask(task1.getOid(), result);
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then("run 2");
 
@@ -442,7 +442,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -477,7 +477,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -518,7 +518,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when(label);
 
-        waitForTaskClose(root.getOid(), result, 10000, 200);
+        waitForTaskClose(root.getOid(), result, 10000);
 
         then(label);
 
@@ -672,7 +672,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -753,7 +753,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -836,7 +836,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -915,7 +915,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -1851,7 +1851,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -1930,7 +1930,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 1");
 
-        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
 
         then("run 1");
 
@@ -2048,7 +2048,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 2");
 
         taskManager.resumeTask(oidOfSubtask1, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
 
         then("run 2");
 
@@ -2155,7 +2155,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 3");
 
         taskManager.resumeTask(oidOfSubtask1, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
 
         then("run 3");
 
@@ -2324,7 +2324,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 4");
 
         taskManager.resumeTask(oidOfSubtask22, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
 
         then("run 4");
 
@@ -2352,7 +2352,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 5");
 
         taskManager.resumeTask(oidOfSubtask3, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
 
         then("run 5");
 
@@ -2476,7 +2476,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(root.getOid(), result, 10000000, 200);
+        waitForTaskClose(root.getOid(), result, 10000000);
 
         then();
 
@@ -2599,7 +2599,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(root.getOid(), result, 10000, 200);
+        waitForTaskClose(root.getOid(), result, 10000);
 
         then();
 

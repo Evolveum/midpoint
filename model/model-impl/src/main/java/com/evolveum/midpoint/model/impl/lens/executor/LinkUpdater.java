@@ -31,7 +31,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -73,7 +72,7 @@ class LinkUpdater<F extends FocusType> {
     @NotNull private final LensProjectionContext projCtx;
 
     /** OID of the projection. Not null after initial checks. */
-    @Nullable private final String projectionOid;
+    private final String projectionOid;
 
     /** Current liveness state of the shadow. */
     private final ShadowLivenessState shadowLivenessState;
@@ -424,16 +423,18 @@ class LinkUpdater<F extends FocusType> {
             }
 
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-            List<ItemDelta<?, ?>> syncSituationDeltas = SynchronizationUtils
-                    .createSynchronizationSituationAndDescriptionDelta(currentShadow, newSituation, task.getChannel(),
-                            projCtx.hasFullShadow() && TaskUtil.isExecute(task), now);
+            // We consider the shadow to be fully synchronized, as we are processing its owner in the clockwork now.
+            boolean fullSynchronization = projCtx.hasFullShadow() && task.isPersistentExecution();
+            List<ItemDelta<?, ?>> syncSituationDeltas =
+                    SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
+                            currentShadow.asObjectable(), newSituation, task.getChannel(), fullSynchronization, now);
 
             try {
                 ModelImplUtils.setRequestee(task, focusContext);
                 ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
                 options.setDoNotDiscovery(true);
-                provisioningService.modifyObject(ShadowType.class, projectionOid, syncSituationDeltas, null,
-                        options, task, result);
+                provisioningService.modifyObject(
+                        ShadowType.class, projectionOid, syncSituationDeltas, null, options, task, result);
                 LOGGER.trace("Situation in projection {} was updated to {}", projCtx, newSituation);
             } catch (ObjectNotFoundException ex) {
                 // if the object not found exception is thrown, it's ok..probably

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.quartzimpl.TaskListenerRegistry;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.quartz.TaskSynchronizer;
 import com.evolveum.midpoint.util.exception.*;
@@ -42,8 +43,8 @@ public class TaskPersister {
 
     private static final String CLASS_DOT = TaskPersister.class.getName() + ".";
 
-    public static final String OP_ADD_TASK_TO_REPOSITORY_AND_QUARTZ = CLASS_DOT + "addTaskToRepositoryAndQuartz";
-    public static final String OP_SWITCH_TO_BACKGROUND = Task.DOT_INTERFACE + "switchToBackground";
+    private static final String OP_ADD_TASK_TO_REPOSITORY_AND_QUARTZ = CLASS_DOT + "addTaskToRepositoryAndQuartz";
+    private static final String OP_SWITCH_TO_BACKGROUND = Task.DOT_INTERFACE + "switchToBackground";
 
     @Autowired private TaskRetriever taskRetriever;
     @Autowired private TaskInstantiator taskInstantiator;
@@ -52,6 +53,7 @@ public class TaskPersister {
     @Autowired private TaskSynchronizer taskSynchronizer;
     @Autowired private Protector protector;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private TaskListenerRegistry taskListenerRegistry;
 
     public void switchToBackground(TaskQuartzImpl task, OperationResult parentResult) {
 
@@ -165,6 +167,7 @@ public class TaskPersister {
         TaskQuartzImpl task = taskRetriever.getTaskPlain(oid, result);
         task.setRecreateQuartzTrigger(true);
         taskSynchronizer.synchronizeTask(task, result);
+        taskListenerRegistry.notifyTaskUpdated(task, result);
     }
 
     public LightweightIdentifier generateTaskIdentifier() {

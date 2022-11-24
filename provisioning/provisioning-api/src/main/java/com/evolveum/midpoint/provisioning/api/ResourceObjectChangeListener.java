@@ -12,7 +12,12 @@ import com.evolveum.midpoint.task.api.Task;
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * Listens for notifications about resource object changes.
+ * Typically used to implement synchronization of resource objects.
+ *
  * @author Radovan Semancik
+ *
+ * @see ResourceObjectShadowChangeDescription
  */
 public interface ResourceObjectChangeListener extends ProvisioningListener {
 
