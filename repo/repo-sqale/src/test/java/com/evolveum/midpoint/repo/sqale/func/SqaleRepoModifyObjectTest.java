@@ -3148,7 +3148,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
-        given("delta adding int extension item");
+        given("delta mixing add, replace and delete of extension item");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_EXTENSION, new QName("int")).replace(47)
                 .item(FocusType.F_EXTENSION, new QName("string-mv")).add("s1", "s2", "s3", "s4")
@@ -3326,6 +3326,39 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.ext).isNull();
+    }
+
+    @Test(description = "MID-8258")
+    public void test510TwoExtensionItemsDifferentOneMissingNamespace() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta replacing extension items with one of the paths missing namespace for the extension container");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(new ItemName("extension"), new QName("int")).replace(510)
+                .item(FocusType.F_EXTENSION, new QName("string")).replace("510")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        // no check of ext container, we believe in prism here
+
+        and("externalized column is updated and both changes are present");
+        ExtensionType extensionContainer = user.getExtension();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        assertThat(Jsonb.toMap(row.ext))
+                .containsEntry(extensionKey(extensionContainer, "int"), 510)
+                .containsEntry(extensionKey(extensionContainer, "string"), "510");
     }
     // endregion
 

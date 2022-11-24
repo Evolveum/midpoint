@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2022 Evolveum and contributors
+ * Copyright (c) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.gui.impl.page.self.requestAccess;
+package com.evolveum.midpoint.gui.impl.component.menu.listGroup;
 
 import java.io.Serializable;
 
@@ -58,7 +58,7 @@ public class ListGroupMenuPanel<T extends Serializable> extends BasePanel<ListGr
                     return;
                 }
 
-                ListGroupMenuItemPanel menu = new ListGroupMenuItemPanel(ID_ITEM, item.getModel()) {
+                ListGroupMenuItemPanel menu = new ListGroupMenuItemPanel(ID_ITEM, item.getModel(), 0) {
 
                     @Override
                     protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {
