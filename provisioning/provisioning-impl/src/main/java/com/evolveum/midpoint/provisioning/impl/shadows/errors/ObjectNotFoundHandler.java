@@ -93,26 +93,9 @@ class ObjectNotFoundHandler extends HardErrorHandler {
         // Or this may be a corpse - quantum state that has just collapsed to the tombstone. Either way, it should be
         // safe to set exists=false.
         //
-        // UNLESS we are in simulation mode (when doing thresholds evaluation). In that case we have to preserve the current status.
-        // Otherwise, the real execution will not work correctly, see 0a89ab6ace86eecfc27ea7afc026de0f4314311e. (Maybe this needs
-        // a different solution, though. We will see.)
-        //
-        // For the dry run, we want to mark the shadow as dead. See MID-7724.
-
-        // FIXME FIXME FIXME This is not quite correct. We should decide if simulation really should not touch these dead
-        //  accounts, or (most probably) find a way how to ensure that they will be re-processed even if marked as tombstone
-        //  in the meantime.
-
-        Task task = ctx.getTask();
-        if (TaskUtil.isExecute(task) || TaskUtil.isDryRun(task)) {
-            LOGGER.trace("Setting {} as tombstone. This may be a quantum state collapse. Or maybe a lost shadow.",
-                    repositoryShadow);
-            return shadowUpdater.markShadowTombstone(repositoryShadow, task, result);
-        } else {
-            LOGGER.trace("Not in execute or dry-run mode ({}). Keeping shadow marked as 'exists'.",
-                    TaskUtil.getExecutionMode(task));
-            return repositoryShadow;
-        }
+        // Even for the dry run, we want to mark the shadow as dead. See MID-7724.
+        LOGGER.trace("Setting {} as tombstone. This may be a quantum state collapse. Or maybe a lost shadow.", repositoryShadow);
+        return shadowUpdater.markShadowTombstone(repositoryShadow, ctx.getTask(), result);
     }
 
     @Override
@@ -185,7 +168,6 @@ class ObjectNotFoundHandler extends HardErrorHandler {
             // Otherwise the synchronization situation won't be updated because SynchronizationService could think that
             // there is not shadow at all.
             change.setShadowedResourceObject(repoShadow.asPrismObject());
-            change.setSimulate(TaskUtil.isPreview(ctx.getTask()));
             eventDispatcher.notifyChange(change, ctx.getTask(), result);
         } catch (Throwable t) {
             result.recordException(t);

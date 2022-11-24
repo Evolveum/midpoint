@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.*;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
@@ -66,6 +67,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     @Autowired private ModelBeans beans;
     @Autowired private SynchronizationContextLoader syncContextLoader;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private Clock clock;
 
     @Override
     public void notifyChange(
@@ -96,10 +98,20 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .updateAllSyncMetadata()
                     .commit(result);
 
+            boolean synchronizationFailure;
             if (!completeCtx.isDryRun()) {
-                new SynchronizationActionExecutor<>(completeCtx)
-                        .react(result);
+                synchronizationFailure =
+                        new SynchronizationActionExecutor<>(completeCtx)
+                                .react(result);
                 // Note that exceptions from action execution are not propagated here.
+            } else {
+                synchronizationFailure = false;
+            }
+
+            if (completeCtx.isPersistentExecution() && !synchronizationFailure) {
+                completeCtx.getUpdater()
+                        .updateFullSyncTimestamp(clock.currentTimeXMLGregorianCalendar())
+                        .commit(result);
             }
 
             LOGGER.debug("SYNCHRONIZATION: DONE (mode '{}') for {}",

@@ -214,9 +214,12 @@ public class DeletionActivityHandler
         }
 
         @Override
-        public boolean processItem(@NotNull ObjectType object,
-                @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, ActivityRunException {
+        public boolean processItem(
+                @NotNull ObjectType object,
+                @NotNull ItemProcessingRequest<ObjectType> request,
+                RunningTask workerTask,
+                OperationResult result)
+                throws CommonException {
 
             if (isFullExecution()) {
                 deleteObject(object, workerTask, result);

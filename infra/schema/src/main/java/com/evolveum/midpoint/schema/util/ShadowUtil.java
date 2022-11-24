@@ -25,6 +25,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
@@ -528,6 +530,17 @@ public class ShadowUtil {
 
     public static boolean isNotDead(ObjectReferenceType projectionRef) {
         return !isDead(projectionRef);
+    }
+
+    public static boolean wasSynchronizedAfterDeath(ShadowType shadow) {
+        XMLGregorianCalendar deathTimestamp = shadow.getDeathTimestamp();
+        if (deathTimestamp == null) {
+            LOGGER.trace("Dead shadow without death timestamp: {}", shadow);
+            return false;
+        }
+        XMLGregorianCalendar fullSynchronizationTimestamp = shadow.getFullSynchronizationTimestamp();
+        return fullSynchronizationTimestamp != null &&
+                fullSynchronizationTimestamp.compare(deathTimestamp) == DatatypeConstants.GREATER;
     }
 
     public static boolean isExists(ShadowType shadow) {

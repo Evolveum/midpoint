@@ -3354,7 +3354,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public void timeout() {
                 assert false : "Timeouted while waiting for task " + taskOid + " activity to complete.";
             }
-        }, timeout, 0);
+        }, timeout);
         return taskResultHolder.getValue();
     }
 
@@ -3433,7 +3433,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
         };
 
-        waitForTaskStatusUpdated(origTask.getOid(), "Waiting for task " + origTask + " next run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+        waitForTaskStatusUpdated(origTask.getOid(), "Waiting for task " + origTask + " next run", checker, timeout);
 
         Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
         logger.debug("Final task:\n{}", freshTask.debugDump());

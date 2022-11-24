@@ -149,7 +149,6 @@ public final class LiveSyncActivityRun
             if (event.isComplete()) {
                 ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
                 changeDescription.setItemProcessingIdentifier(request.getIdentifier()); // hack?
-                changeDescription.setSimulate(isPreview());
                 getModelBeans().eventDispatcher.notifyChange(changeDescription, workerTask, result);
             } else if (event.isNotApplicable()) {
                 result.recordNotApplicable();

@@ -19,6 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * Describes an attempt to apply a change to a specific resource object.
  *
  * @author Radovan Semancik
+ *
+ * @see ResourceOperationListener
  */
 public class ResourceOperationDescription implements ProvisioningEvent, DebugDumpable {
 

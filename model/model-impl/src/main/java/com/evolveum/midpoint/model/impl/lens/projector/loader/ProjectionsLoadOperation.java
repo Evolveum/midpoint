@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector.loader;
 
 import static com.evolveum.midpoint.model.api.context.ProjectionContextKey.missing;
+import static com.evolveum.midpoint.model.impl.lens.LensContext.getOrCreateProjectionContext;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.util.MiscUtil.*;
 
@@ -22,6 +23,7 @@ import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.LensContext.GetOrCreateProjectionContextResult;
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +54,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * Note: full resource objects are not loaded in this class (now), except for:
  *
  * 1. when they need to be classified - see {@link ProjectionContextKeyFactoryImpl#createKey(ShadowType, Task, OperationResult)},
- * 2. when a conflict needs to be resolved - see {@link ShadowLevelOperation#treatContextConflict(ShadowType,
+ * 2. when a conflict needs to be resolved - see {@link ShadowLevelLoadOperation#treatContextConflict(ShadowType,
  * ProjectionContextKey, LensProjectionContext, OperationResult)}
  *
  * For full shadow loading, see {@link ProjectionUpdateOperation} (for reconciliation)
@@ -72,12 +74,14 @@ public class ProjectionsLoadOperation<F extends FocusType> {
     @NotNull private final LensFocusContext<F> focusContext;
     @NotNull private final Task task;
     @NotNull private final ModelBeans beans;
+    @NotNull private final ProvisioningService provisioningService;
 
     ProjectionsLoadOperation(@NotNull LensContext<F> context, @NotNull Task task) {
         this.context = context;
         this.focusContext = context.getFocusContext();
         this.task = task;
         this.beans = ModelBeans.get();
+        this.provisioningService = beans.provisioningService;
     }
 
     public void load(OperationResult parentResult)
@@ -88,7 +92,8 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 .setMinor()
                 .build();
 
-        LOGGER.trace("Projections loading starting: {} projection contexts at start", context.getProjectionContexts().size());
+        LOGGER.trace("Projections (shadows) loading starting: {} projection contexts at start",
+                context.getProjectionContexts().size());
         try {
 
             getOrCreateProjectionContextsFromFocusLinkRefs(result);
@@ -108,7 +113,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
     /**
      * Loads projections from focus.linkRef values.
      *
-     * Does not overwrite existing account contexts, just adds new ones if needed.
+     * Does not overwrite existing projection contexts, just adds new ones if needed.
      */
     private void getOrCreateProjectionContextsFromFocusLinkRefs(OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
@@ -120,7 +125,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         List<ObjectReferenceType> linkRefs = focus != null ? focus.asObjectable().getLinkRef() : List.of();
 
         for (ObjectReferenceType linkRef : linkRefs) {
-            new LinkLevelOperation(linkRef)
+            new LinkLevelLoadOperation(linkRef)
                     .getOrCreateFromExistingValue(result);
         }
 
@@ -210,7 +215,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                         refVal.getRelation(), refVal);
             } else {
                 LOGGER.trace("getOrCreateContextsForValuesToAdd: Processing value to add: {}", refVal);
-                new LinkLevelOperation(refVal.asReferencable())
+                new LinkLevelLoadOperation(refVal.asReferencable())
                         .getOrCreateForValueToAdd(result);
             }
         }
@@ -230,7 +235,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                         refVal.getRelation(), refVal);
             } else {
                 LOGGER.trace("getOrCreateContextsForValuesToDelete: Processing value to delete: {}", refVal);
-                new LinkLevelOperation(refVal.asReferencable())
+                new LinkLevelLoadOperation(refVal.asReferencable())
                         .getOrCreateForValueToDelete(result);
             }
         }
@@ -263,7 +268,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             String oid = syncDelta.getOid();
             PrismObject<ShadowType> shadow;
 
-            if (syncDelta.getChangeType() == ChangeType.ADD) {
+            if (syncDelta.isAdd()) {
                 shadow = syncDelta.getObjectToAdd().clone();
                 projCtx.setLoadedObject(shadow);
                 projCtx.setExists(ShadowUtil.isExists(shadow.asObjectable()));
@@ -280,7 +285,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                         //.readOnly() [not yet]
                         .build();
                 try {
-                    shadow = beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
+                    shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
                 } catch (ObjectNotFoundException e) {
                     LOGGER.trace("Loading shadow {} from sync delta failed: not found", oid);
                     projCtx.clearCurrentObject();
@@ -291,7 +296,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
                 // We will not set old account if the delta is delete. The account does not really exists now.
                 // (but the OID and resource will be set from the repo shadow)
-                if (syncDelta.getChangeType() == ChangeType.DELETE) {
+                if (syncDelta.isDelete()) {
                     projCtx.markGone();
                 } else if (shadow != null) {
                     syncDelta.applyTo(shadow);
@@ -308,7 +313,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 String resourceOid = ShadowUtil.getResourceOid(shadow.asObjectable());
                 argCheck(resourceOid != null, "No resource OID in %s", shadow);
                 projCtx.setResource(
-                        LensUtil.getResourceReadOnly(context, resourceOid, beans.provisioningService, task, result));
+                        LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result));
             }
             projCtx.setFresh(true);
         }
@@ -345,13 +350,13 @@ public class ProjectionsLoadOperation<F extends FocusType> {
      * Loads the projection context that is related to specific `linkRef` value.
      *
      * (This class is here just to give the code some structure. The determination of context from a shadow
-     * is located in {@link ShadowLevelOperation}.)
+     * is located in {@link ShadowLevelLoadOperation}.)
      */
-    private class LinkLevelOperation {
+    private class LinkLevelLoadOperation {
 
         @NotNull private final Referencable linkRef;
 
-        LinkLevelOperation(@NotNull Referencable linkRef) {
+        LinkLevelLoadOperation(@NotNull Referencable linkRef) {
             this.linkRef = linkRef;
         }
 
@@ -410,7 +415,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                         .build();
             }
             try {
-                beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
+                provisioningService.getObject(ShadowType.class, oid, options, task, result);
             } catch (Exception e) {
                 result.muteLastSubresultError();
                 LOGGER.debug("Couldn't refresh linked shadow {}. Continuing.", oid, e);
@@ -427,7 +432,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             }
 
             ContextAcquisitionResult acqResult =
-                    new ShadowLevelOperation(shadow.asObjectable())
+                    new ShadowLevelLoadOperation(shadow.asObjectable())
                             .getOrCreate(result);
             LensProjectionContext projectionContext = acqResult.context;
             if (acqResult.shadowSet) {
@@ -459,8 +464,8 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             PrismObject<ShadowType> embeddedShadow = getEmbeddedShadow();
             if (embeddedShadow != null) {
                 // Make sure it has a proper definition. This may come from outside of the model.
-                beans.provisioningService.applyDefinition(embeddedShadow, task, result);
-                beans.provisioningService.determineShadowState(embeddedShadow, task, result);
+                provisioningService.applyDefinition(embeddedShadow, task, result);
+                provisioningService.determineShadowState(embeddedShadow, task, result);
                 return embeddedShadow;
             }
 
@@ -474,7 +479,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                     .build();
             LOGGER.trace("Loading shadow {} from linkRef, options={}", oid, options);
             try {
-                return beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
+                return provisioningService.getObject(ShadowType.class, oid, options, task, result);
             } catch (ObjectNotFoundException e) {
                 // Broken linkRef. We need to mark it for deletion.
                 LensProjectionContext projectionContext = getOrCreateEmptyGone(oid);
@@ -524,10 +529,10 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                                 .futurePointInTime()
                                 //.readOnly() [not yet]
                                 .build();
-                PrismObject<ShadowType> shadow = beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
+                PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
                 // Create account context from retrieved object
                 LensProjectionContext projectionContext =
-                        new ShadowLevelOperation(shadow.asObjectable())
+                        new ShadowLevelLoadOperation(shadow.asObjectable())
                                 .getOrCreate(result).context; // TODO what about shadowSet etc?
                 projectionContext.setLoadedObject(shadow);
                 projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
@@ -542,11 +547,11 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                     // New account (but with OID)
                     result.muteLastSubresultError();
                     if (!embeddedShadow.hasCompleteDefinition()) {
-                        beans.provisioningService.applyDefinition(embeddedShadow, task, result);
+                        provisioningService.applyDefinition(embeddedShadow, task, result);
                     }
                     // Create account context from embedded object
                     LensProjectionContext projectionContext =
-                            new ShadowLevelOperation(embeddedShadow.asObjectable())
+                            new ShadowLevelLoadOperation(embeddedShadow.asObjectable())
                                     .createNew(result);
                     projectionContext.setPrimaryDeltaAfterStart(embeddedShadow.createAddDelta());
                     projectionContext.setFullShadow(true);
@@ -579,10 +584,10 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                                 .noFetch()
                                 //.readOnly() [not yet]
                                 .build();
-                shadow = beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
+                shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
                 // Create account context from retrieved object
                 projectionContext =
-                        new ShadowLevelOperation(shadow.asObjectable())
+                        new ShadowLevelLoadOperation(shadow.asObjectable())
                                 .getOrCreate(result).context; // TODO what about shadowSet etc?
                 projectionContext.setLoadedObject(shadow);
                 projectionContext.setExists(ShadowUtil.isExists(shadow.asObjectable()));
@@ -596,8 +601,8 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                                     .raw()
                                     //.readOnly() [not yet]
                                     .build();
-                    shadow = beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
-                    beans.provisioningService.determineShadowState(shadow, task, result);
+                    shadow = provisioningService.getObject(ShadowType.class, oid, options, task, result);
+                    provisioningService.determineShadowState(shadow, task, result);
                     projectionContext = getOrCreateEmptyGone(oid);
                     projectionContext.setFresh(true);
                     projectionContext.setExists(false);
@@ -631,7 +636,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
 
             ShadowType embeddedShadow = embeddedShadowObject.asObjectable();
             checkNewShadowClassified(embeddedShadow);
-            beans.provisioningService.applyDefinition(embeddedShadowObject, task, result);
+            provisioningService.applyDefinition(embeddedShadowObject, task, result);
             if (consistencyChecks) ShadowUtil.checkConsistence(embeddedShadowObject, "account from " + linkRef);
 
             // Check for conflicting change
@@ -649,7 +654,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 projectionContext = acceptableConflictingContexts.get(0);
             } else {
                 projectionContext =
-                        new ShadowLevelOperation(embeddedShadow)
+                        new ShadowLevelLoadOperation(embeddedShadow)
                                 .createNew(result);
             }
             // This is a new account that is to be added. So it should go to account primary delta.
@@ -694,13 +699,13 @@ public class ProjectionsLoadOperation<F extends FocusType> {
     }
 
     /**
-     * Loads the projection context from specified shadow (determined in {@link LinkLevelOperation}).
+     * Loads the projection context from specified shadow (determined in {@link LinkLevelLoadOperation}).
      */
-    private class ShadowLevelOperation {
+    private class ShadowLevelLoadOperation {
 
         @NotNull private final ShadowType shadow;
 
-        private ShadowLevelOperation(@NotNull ShadowType shadow) {
+        private ShadowLevelLoadOperation(@NotNull ShadowType shadow) {
             this.shadow = shadow;
         }
 
@@ -727,21 +732,22 @@ public class ProjectionsLoadOperation<F extends FocusType> {
          * Gets or creates a projection context for given shadow.
          *
          * 1. First tries directly by shadow OID.
-         * 2. If not successful, tries to get/create context by shadow RSD (checking also the conflict of projection contexts).
+         * 2. If not successful, tries to get/create context by shadow coordinates (checking also the conflict with existing
+         * projection contexts).
          */
         private ContextAcquisitionResult getOrCreate(@NotNull OperationResult result)
                 throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
                 SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-            LensProjectionContext existingContext = context.findProjectionContextByOid(shadow.getOid());
+            LensProjectionContext contextByShadowOid = context.findProjectionContextByOid(shadow.getOid());
             // TODO what if there are more contexts for given shadow OID?
-            LOGGER.trace("Projection context by shadow OID: {} yielded: {}", shadow.getOid(), existingContext);
-            if (existingContext != null) {
-                return ContextAcquisitionResult.existing(existingContext);
+            LOGGER.trace("Projection context by shadow OID: {} yielded: {}", shadow.getOid(), contextByShadowOid);
+            if (contextByShadowOid != null) {
+                return ContextAcquisitionResult.existing(contextByShadowOid);
             }
 
             ProjectionContextKey key = beans.projectionContextKeyFactory.createKey(shadow, task, result);
 
-            GetOrCreateProjectionContextResult projCtxResult = LensContext.getOrCreateProjectionContext(context, key);
+            GetOrCreateProjectionContextResult projCtxResult = getOrCreateProjectionContext(context, key);
             LOGGER.trace("Projection context for {}: {}", key, projCtxResult);
 
             LensProjectionContext projCtx = projCtxResult.context;
@@ -757,23 +763,26 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         }
 
         /**
-         * Resolves a conflict: a project context was found but it belongs to a different shadow OID.
+         * Resolves a conflict:
          *
-         * We have existing projection and another projection that was added (with the same discriminator).
-         * Chances are that the old object is already deleted (e.g. during rename). So let's be
+         * . We have a `newShadow` (~ `conflictingKey`) and we wanted to find/create context for it.
+         * . We found existing context (`existingCtx`) for the `conflictingKey`, but alas, it belongs to a different shadow OID!
+         *
+         * Chances are that the old object (`existingCtx.object`) is already deleted, e.g. during rename. So let's be
          * slightly inefficient here and check for resource object existence.
          *
          * There is a small amount of magic when dealing with the objects that no longer exist in repo.
          */
         private @NotNull ContextAcquisitionResult treatContextConflict(
-                @NotNull ShadowType shadow,
-                @NotNull ProjectionContextKey key,
+                @NotNull ShadowType newShadow,
+                @NotNull ProjectionContextKey conflictingKey,
                 @NotNull LensProjectionContext existingCtx,
                 @NotNull OperationResult result)
                 throws CommunicationException, SchemaException, ConfigurationException, SecurityViolationException,
                 ExpressionEvaluationException, PolicyViolationException {
 
-            LOGGER.trace("Projection conflict detected, existing: {}, new {}", existingCtx.getOid(), shadow.getOid());
+            LOGGER.trace("Projection conflict detected on key: {}. Existing context: {}, new shadow {}",
+                    conflictingKey, existingCtx.getOid(), newShadow.getOid());
             try {
                 var opts = SchemaService.get().getOperationOptionsBuilder()
                         .doNotDiscovery()
@@ -781,34 +790,37 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                         //.readOnly() [not yet]
                         .build();
                 LOGGER.trace("Loading resource object corresponding to the existing projection ({})", existingCtx.getOid());
-                PrismObject<ShadowType> objectForExistingCtx =
-                        beans.provisioningService.getObject(ShadowType.class, existingCtx.getOid(), opts, task, result);
+                ShadowType objectForExistingCtx = provisioningService
+                        .getObject(ShadowType.class, existingCtx.getOid(), opts, task, result)
+                        .asObjectable();
 
                 // Maybe it is the other way around
                 try {
-                    LOGGER.trace("Loading resource object corresponding to the newly added projection ({})", shadow.getOid());
-                    PrismObject<ShadowType> objectForNewCtx =
-                            beans.provisioningService.getObject(ShadowType.class, shadow.getOid(), opts, task, result);
+                    LOGGER.trace("Loading resource object corresponding to the newly added projection ({})", newShadow.getOid());
+                    ShadowType objectForNewCtx = provisioningService
+                            .getObject(ShadowType.class, newShadow.getOid(), opts, task, result)
+                            .asObjectable();
 
                     // Obviously, two resource objects with the same discriminator exist.
-                    LOGGER.trace("Projection {} already exists in context\nExisting:\n{}\nNew:\n{}", key,
+                    LOGGER.trace("Projection {} already exists in context\nExisting:\n{}\nNew:\n{}", conflictingKey,
                             objectForExistingCtx.debugDumpLazily(1), objectForNewCtx.debugDumpLazily(1));
 
-                    if (!ShadowUtil.isDead(objectForNewCtx.asObjectable())) {
-                        throw new PolicyViolationException("Projection " + key + " already exists in context (existing " +
-                                objectForExistingCtx + ", new " + shadow);
+                    if (!ShadowUtil.isDead(objectForNewCtx)) {
+                        throw new PolicyViolationException(
+                                String.format("Projection %s already exists in lens context (existing %s, new %s)",
+                                        conflictingKey, objectForExistingCtx, newShadow));
                     }
 
                     // Dead shadow for the new context. This is somehow expected, fix it and we can go on.
-                    key = key.gone();
+                    conflictingKey = conflictingKey.gone();
 
-                    // Let us create or find the "newest" context, i.e. context for rsd updated with gone=true.
+                    // Let us create or find the "newest" context, i.e. context for the key updated with gone=true.
                     // We will use/reuse it with no other checks.
-                    GetOrCreateProjectionContextResult newestCtxResult = LensContext.getOrCreateProjectionContext(context, key);
+                    GetOrCreateProjectionContextResult newestCtxResult = getOrCreateProjectionContext(context, conflictingKey);
                     LensProjectionContext newestCtx = newestCtxResult.context;
-                    newestCtx.setExists(ShadowUtil.isExists(objectForNewCtx.asObjectable()));
+                    newestCtx.setExists(ShadowUtil.isExists(objectForNewCtx));
                     newestCtx.setFullShadow(false);
-                    newestCtx.setLoadedObject(objectForNewCtx); // TODO ok even if we reused existing context?
+                    newestCtx.setLoadedObject(objectForNewCtx.asPrismObject()); // TODO ok even if we reused existing context?
                     newestCtx.setOid(objectForNewCtx.getOid());
                     return new ContextAcquisitionResult(newestCtx, newestCtxResult.created, true);
 
@@ -819,15 +831,11 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                     result.muteLastSubresultError();
 
                     // We have to create new context in this case, but it has to have "gone" set.
-                    key = key.gone();
+                    conflictingKey = conflictingKey.gone();
 
                     // Let us create or find the "newest" context, i.e. context for rsd updated with gone=true.
-                    GetOrCreateProjectionContextResult newestCtxResult = LensContext.getOrCreateProjectionContext(context, key);
+                    GetOrCreateProjectionContextResult newestCtxResult = getOrCreateProjectionContext(context, conflictingKey);
                     LensProjectionContext newestCtx = newestCtxResult.context;
-
-                    // We have to mark the shadow as dead right now, otherwise the uniqueness check may fail.
-                    // (This is suspicious because we believe the object does not exist in repo.)
-                    markShadowDead(shadow.getOid(), result);
 
                     newestCtx.setShadowExistsInRepo(false);
 
@@ -840,42 +848,15 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                 // This is somehow expected, fix it and we can go on.
 
                 result.muteLastSubresultError();
-                String shadowOid = existingCtx.getOid();
                 existingCtx.markGone();
 
                 // Let us again try to create or find the "newest" context. The conflicting context is now set as gone.
-                GetOrCreateProjectionContextResult newestCtxResult = LensContext.getOrCreateProjectionContext(context, key);
+                GetOrCreateProjectionContextResult newestCtxResult = getOrCreateProjectionContext(context, conflictingKey);
                 LensProjectionContext newestCtx = newestCtxResult.context;
                 newestCtx.setShadowExistsInRepo(false);
 
-                // We have to mark it as dead right now, otherwise the uniqueness check may fail.
-                // (This is suspicious because we believe the object does not exist in repo.)
-                markShadowDead(shadowOid, result);
-
                 // We return the result with shadowSet=true: It means that there's no need to set the shadow by caller.
                 return new ContextAcquisitionResult(newestCtx, newestCtxResult.created, true);
-            }
-        }
-
-        private void markShadowDead(String oid, OperationResult result) {
-            if (oid == null) {
-                // nothing to mark
-                return;
-            }
-            try {
-                beans.cacheRepositoryService.modifyObject(
-                        ShadowType.class,
-                        oid,
-                        PrismContext.get().deltaFor(ShadowType.class)
-                                .item(ShadowType.F_DEAD).replace(true)
-                                .asItemDeltas(),
-                        result);
-                // TODO report to task?
-            } catch (ObjectNotFoundException e) {
-                // Done already
-                result.muteLastSubresultError();
-            } catch (ObjectAlreadyExistsException | SchemaException e) {
-                throw SystemException.unexpected(e, "when marking shadow as dead");
             }
         }
     }

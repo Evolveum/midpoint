@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -74,27 +75,43 @@ public abstract class LocalActivityRun<
     protected @NotNull ActivityRunResult runInternal(OperationResult result)
             throws ActivityRunException {
 
+        initializeCurrentResultStatusOnStart();
         updateStateOnRunStart(result);
+
+        RunningTask runningTask = getRunningTask();
+        TaskExecutionMode oldExecutionMode = runningTask.getExecutionMode();
 
         ActivityRunResult runResult;
         OperationResult localResult = result.createSubresult(OP_RUN_LOCALLY);
         try {
-            getRunningTask().setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
+            runningTask.setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
+            setTaskExecutionMode();
             runResult = runLocally(localResult);
         } catch (Exception e) {
             runResult = ActivityRunResult.handleException(e, localResult, this); // sets the local result status
         } finally {
             localResult.close();
+            runningTask.setExcludedFromStalenessChecking(false);
+            runningTask.setExecutionMode(oldExecutionMode);
         }
-        getRunningTask().setExcludedFromStalenessChecking(false);
 
         updateStateOnRunEnd(localResult, runResult, result);
+
         return runResult;
     }
 
-    private void updateStateOnRunStart(OperationResult result) throws ActivityRunException {
-        initializeCurrentResultStatusOnStart();
+    // TODO implement more correctly after execution mode is set in the activity itself
+    private void setTaskExecutionMode() {
+        if (isPreview()) {
+            RunningTask runningTask = getRunningTask();
+            if (runningTask.isPersistentExecution()) {
+                runningTask.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
+            }
+        }
+    }
 
+    /** Updates {@link #activityState} (including flushing) and the tree state overview. */
+    private void updateStateOnRunStart(OperationResult result) throws ActivityRunException {
         getTreeStateOverview().recordLocalRunStart(this, result);
 
         if (areRunRecordsSupported()) {
@@ -133,10 +150,13 @@ public abstract class LocalActivityRun<
         }
     }
 
-    private void updateStateOnRunEnd(@NotNull OperationResult closedLocalResult, @NotNull ActivityRunResult runResult,
-            @NotNull OperationResult result) throws ActivityRunException {
+    // TODO better method name?
+    private void updateStateOnRunEnd(
+            @NotNull OperationResult closedLocalResult, @NotNull ActivityRunResult runResult, @NotNull OperationResult result)
+            throws ActivityRunException {
 
         noteEndTimestampIfNone();
+
         activityState.setRunEndTimestamp(endTimestamp);
 
         if (runResult.getOperationResultStatus() == null) {

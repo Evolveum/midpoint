@@ -8,9 +8,18 @@
 package com.evolveum.midpoint.model.impl.sync.reactions;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEnvironmentThreadLocalHolder;
+
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
@@ -25,9 +34,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
+
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.DELETED;
 
 /**
  * Selects and executes a synchronization reaction.
@@ -36,9 +45,12 @@ public class SynchronizationActionExecutor<F extends FocusType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SynchronizationActionExecutor.class);
 
+    private static final String OP_REACT = SynchronizationActionExecutor.class.getName() + ".react";
+
     @NotNull private final SynchronizationContext.Complete<F> syncCtx;
     @NotNull private final SynchronizationPolicy policy;
     @NotNull private final ResourceObjectShadowChangeDescription change;
+    @NotNull private final ProvisioningService provisioningService = ModelBeans.get().provisioningService;
 
     public SynchronizationActionExecutor(
             @NotNull SynchronizationContext.Complete<F> syncCtx) {
@@ -47,19 +59,36 @@ public class SynchronizationActionExecutor<F extends FocusType> {
         this.change = syncCtx.getChange();
     }
 
-    public void react(OperationResult result)
+    /** Returns true in case of synchronization failure. */
+    public boolean react(OperationResult parentResult)
             throws ConfigurationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ExpressionEvaluationException, CommunicationException {
 
-        LOGGER.trace("Synchronization context:\n{}", syncCtx.debugDumpLazily(1));
+        OperationResult result = parentResult.createSubresult(OP_REACT);
+        try {
+            LOGGER.trace("Synchronization context:\n{}", syncCtx.debugDumpLazily(1));
 
-        SynchronizationReactionDefinition reaction = getReaction(result);
+            if (syncCtx.getSituation() == DELETED && !isDeleteReactionApplicable(result)) {
+                result.recordNotApplicable("DELETED situation is not applicable for the focus/shadow pair");
+                return false;
+            }
 
-        if (reaction != null) {
-            executeReaction(reaction, result);
-        } else {
-            LOGGER.debug("No reaction is defined for situation {} in {}", syncCtx.getSituation(), syncCtx.getResource());
+            SynchronizationReactionDefinition reaction = getReaction(result);
+            if (reaction != null) {
+                executeReaction(reaction, result);
+            } else {
+                LOGGER.debug("No reaction is defined for situation {} in {}", syncCtx.getSituation(), syncCtx.getResource());
+                result.recordNotApplicable();
+            }
+        } catch (Throwable t) {
+            // Only unexpected exceptions should be here
+            result.recordException(t);
+            throw t;
+        } finally {
+            result.close();
         }
+
+        return result.getStatus() == FATAL_ERROR;
     }
 
     private SynchronizationReactionDefinition getReaction(OperationResult result)
@@ -159,5 +188,45 @@ public class SynchronizationActionExecutor<F extends FocusType> {
             // So just log the error (the error should be remembered in the result and task already)
             // and then just go on.
         }
+    }
+
+    /**
+     * {@link SynchronizationSituationType#DELETED} is delicate. We should invoke the corresponding action only if we are
+     * sure that there is no "replacement" for the deleted projection.
+     *
+     * TODO do we really execute this method also for multi-account resources?
+     *  It probably makes sense: we don't want e.g. to delete a user if there is still some account on such resource
+     *
+     * TODO in the future we should probably utilize those already-retrieved shadows (from repo)
+     */
+    private boolean isDeleteReactionApplicable(OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
+            ConfigurationException, ObjectNotFoundException {
+        F owner = syncCtx.getLinkedOwner();
+        if (owner == null) {
+            LOGGER.trace("Cannot consider the 'realness' of the DELETE situation because there's no linked owner");
+            return true;
+        }
+        for (ObjectReferenceType linkRef : owner.getLinkRef()) {
+            var options = GetOperationOptionsBuilder.create()
+                    .noFetch()
+                    .futurePointInTime()
+                    .build();
+            ShadowType shadow =
+                    provisioningService
+                            .getObject(ShadowType.class, linkRef.getOid(), options, syncCtx.getTask(), result)
+                            .asObjectable();
+            ResourceObjectTypeIdentification type = syncCtx.getTypeIdentification();
+            if (ShadowUtil.getResourceOidRequired(shadow).equals(syncCtx.getResourceOid())
+                    && shadow.getKind() == type.getKind()
+                    && Objects.equals(shadow.getIntent(), type.getIntent())
+                    && !ShadowUtil.isDead(shadow)) {
+                LOGGER.debug("Found non-dead compatible shadow, the DELETE reaction will not be executed for {} of {}",
+                        syncCtx.getShadowedResourceObject(), owner);
+                return false;
+            }
+        }
+        LOGGER.trace("No non-dead compatible shadow found, the DELETE reaction will be executed");
+        return true;
     }
 }

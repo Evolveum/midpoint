@@ -7,45 +7,37 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
+import static java.util.Objects.requireNonNull;
+
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.COMMITTED;
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.UNCOMMITTED;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.FATAL_ERROR;
-import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
 import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.PERMANENT_ERROR;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.Collection;
 import java.util.Map;
-import javax.xml.namespace.QName;
-
-import com.evolveum.axiom.concepts.Lazy;
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
-
-import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
-import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
-import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
-
-import com.evolveum.midpoint.schema.statistics.DummyOperationImpl;
-import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
-import com.evolveum.midpoint.schema.statistics.Operation;
-
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.midpoint.repo.common.activity.*;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityDefinition;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityReportingDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.state.CurrentActivityState;
+import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.DummyOperationImpl;
+import com.evolveum.midpoint.schema.statistics.IterativeOperationStartInfo;
+import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -56,10 +48,10 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityStatePersistenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 
@@ -106,7 +98,7 @@ public abstract class AbstractActivityRun<
     /**
      * Captures traits of the activity state (e.g. if it has to be created).
      */
-    @NotNull protected final ActivityStateDefinition<WS> activityStateDefinition;
+    @NotNull final ActivityStateDefinition<WS> activityStateDefinition;
 
     /**
      * The "live" version of the activity state.
@@ -138,7 +130,7 @@ public abstract class AbstractActivityRun<
      * Reporting characteristics of this kind of activity run. Can be used only after the concrete instance is
      * ready (i.e. fully initialized)!
      */
-    @NotNull protected final Lazy<ActivityReportingCharacteristics> reportingCharacteristics =
+    @NotNull final Lazy<ActivityReportingCharacteristics> reportingCharacteristics =
             Lazy.from(this::createReportingCharacteristics);
 
     protected AbstractActivityRun(@NotNull ActivityRunInstantiationContext<WD, AH> context) {
@@ -413,10 +405,6 @@ public abstract class AbstractActivityRun<
         return taskRun.getRunningTask();
     }
 
-    public @NotNull QName getWorkStateTypeName() {
-        return activityStateDefinition.getWorkStateTypeName();
-    }
-
     @SuppressWarnings("WeakerAccess")
     protected @NotNull ActivityTreeStateOverview getTreeStateOverview() {
         return activity.getTree().getTreeStateOverview();
@@ -424,20 +412,6 @@ public abstract class AbstractActivityRun<
 
     protected ActivityRunResult standardRunResult() {
         return ActivityRunResult.standardResult(canRun());
-    }
-
-    /** Finished (with specified status), or interrupted. */
-    protected ActivityRunResult standardRunResult(@Nullable OperationResultStatus status) {
-        if (canRun()) {
-            return new ActivityRunResult(status, FINISHED);
-        } else {
-            return ActivityRunResult.interrupted();
-        }
-    }
-
-    /** The status will be computed based on current operation result. (This is ensured by setting the status to `null`.) */
-    protected ActivityRunResult autoComputeRunResult() {
-        return standardRunResult(null);
     }
 
     public boolean canRun() {
@@ -452,14 +426,6 @@ public abstract class AbstractActivityRun<
      */
     public boolean shouldCreateWorkStateOnInitialization() {
         return true;
-    }
-
-    public @NotNull ActivityStatePersistenceType getPersistenceType() {
-        return ActivityStatePersistenceType.SINGLE_REALIZATION;
-    }
-
-    public @NotNull PrismContext getPrismContext() {
-        return getBeans().prismContext;
     }
 
     public boolean areStatisticsSupported() {
@@ -525,7 +491,7 @@ public abstract class AbstractActivityRun<
         return getActivityExecutionMode() == ExecutionModeType.DRY_RUN;
     }
 
-    public boolean isFullExecution() {
+    protected boolean isFullExecution() {
         return getActivityExecutionMode() == ExecutionModeType.FULL;
     }
 

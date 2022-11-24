@@ -219,8 +219,8 @@ public class ClusterManager {
     }
 
     private void checkNodeAliveness(OperationResult result) throws SchemaException {
-        SearchResultList<PrismObject<NodeType>> nodes = getRepositoryService()
-                .searchObjects(NodeType.class, null, null, result);
+        SearchResultList<PrismObject<NodeType>> nodes =
+                getRepositoryService().searchObjects(NodeType.class, null, null, result);
         Set<String> nodesMarkedAsDown = new HashSet<>();
         for (PrismObject<NodeType> nodeObject : nodes) {
             NodeType node = nodeObject.asObjectable();
@@ -336,7 +336,8 @@ public class ClusterManager {
     public PrismObject<NodeType> getNodeById(String nodeIdentifier, OperationResult result) throws ObjectNotFoundException {
         try {
             ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
-            List<PrismObject<NodeType>> nodes = taskManager.getRepositoryService().searchObjects(NodeType.class, q, null, result);
+            List<PrismObject<NodeType>> nodes =
+                    taskManager.getRepositoryService().searchObjects(NodeType.class, q, null, result);
             if (nodes.isEmpty()) {
                 throw new ObjectNotFoundException(
                         "A node with identifier " + nodeIdentifier + " does not exist.",

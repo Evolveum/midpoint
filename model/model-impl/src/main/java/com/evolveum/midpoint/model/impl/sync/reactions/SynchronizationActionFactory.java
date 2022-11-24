@@ -36,7 +36,7 @@ public class SynchronizationActionFactory {
     @NotNull private final Map<Class<? extends AbstractSynchronizationActionType>, Class<? extends BaseAction<?>>>
             classesByDefinitionBeanClass = new HashMap<>();
 
-    public SynchronizationAction getActionInstance(@NotNull ActionInstantiationContext<?> context)
+    SynchronizationAction getActionInstance(@NotNull ActionInstantiationContext<?> context)
             throws ConfigurationException {
         SynchronizationActionDefinition definition = context.actionDefinition;
         Class<? extends AbstractSynchronizationActionType> beanClass = definition.getNewDefinitionBeanClass();

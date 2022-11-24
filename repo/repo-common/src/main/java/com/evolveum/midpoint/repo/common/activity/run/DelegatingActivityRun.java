@@ -190,7 +190,7 @@ public final class DelegatingActivityRun<
     private Task createSuspendedChildTask(OperationResult result) throws ActivityRunException {
         try {
             RunningTask parent = getRunningTask();
-            TaskType childToCreate = new TaskType(getPrismContext());
+            TaskType childToCreate = new TaskType();
             childToCreate.setName(PolyStringType.fromOrig(getChildTaskName(parent)));
             // group?
             childToCreate.setExecutionState(TaskExecutionStateType.SUSPENDED);
@@ -224,7 +224,7 @@ public final class DelegatingActivityRun<
 
     private void setTaskRef() {
         try {
-            ObjectReferenceType taskRef = ObjectTypeUtil.createObjectRef(childTask, getPrismContext());
+            ObjectReferenceType taskRef = ObjectTypeUtil.createObjectRef(childTask);
             activityState.setWorkStateItemRealValues(DelegationWorkStateType.F_TASK_REF, taskRef);
         } catch (SchemaException e) {
             throw new IllegalStateException("Unexpected schema exception: " + e.getMessage(), e);

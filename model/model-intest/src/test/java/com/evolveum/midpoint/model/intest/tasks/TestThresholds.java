@@ -89,6 +89,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     static final ActivityPath EXECUTE = ActivityPath.fromId("execute");
 
     private int usersBefore;
+    private int accountsDeleted;
 
     String ruleAddId;
     String ruleModifyCostCenterId;
@@ -114,6 +115,8 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         initDummyResource(RESOURCE_SOURCE, initTask, initResult);
 
         usersBefore = getObjectCount(UserType.class);
+        displayValue("users before", usersBefore);
+
         createAccounts();
     }
 
@@ -165,7 +168,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_ADD_10.oid),
                         getRootWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
         then();
 
@@ -175,7 +178,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when("repeated execution");
 
         taskManager.resumeTaskTree(importTask.oid, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
         then("repeated execution");
 
@@ -204,7 +207,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_ADD_10.oid),
                         getCompositeWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
         then();
 
@@ -232,7 +235,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_ADD_10.oid),
                         getRootWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
         then();
 
@@ -256,7 +259,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         deleteIfPresent(TASK_IMPORT_EXECUTE_SINGLE, result);
         addObject(TASK_IMPORT_EXECUTE_SINGLE, task, result,
                 getRootWorkerThreadsCustomizer());
-        waitForTaskTreeCloseCheckingSuspensionWithError(TASK_IMPORT_EXECUTE_SINGLE.oid, result, 10 * getTimeout(), 10 * getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(TASK_IMPORT_EXECUTE_SINGLE.oid, result, 10 * getTimeout());
 
         then();
 
@@ -305,7 +308,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid),
                         getRootWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
         then();
 
@@ -315,7 +318,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when("repeated execution");
 
         taskManager.resumeTaskTree(importTask.oid, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
         then("repeated execution");
 
@@ -345,7 +348,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid),
                         getCompositeWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
         then();
 
@@ -373,7 +376,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_MODIFY_COST_CENTER_5.oid),
                         getRootWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
         then();
 
@@ -408,7 +411,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid),
                         getCompositeWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout());
 
         then();
 
@@ -442,7 +445,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_MODIFY_FULL_NAME_5.oid),
                         getReconWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, 5*getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, 5*getTimeout());
 
         then();
 
@@ -461,7 +464,10 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
             String accountName = String.format(ACCOUNT_NAME_PATTERN, i);
             RESOURCE_SOURCE.controller.deleteAccount(accountName);
             System.out.println("Deleted: " + accountName);
+            accountsDeleted++;
         }
+        displayValue("Accounts deleted", accountsDeleted);
+        displayValue("Users", getObjectCount(UserType.class));
     }
 
     /**
@@ -482,7 +488,7 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_DELETE_5.oid),
                         getReconWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
 
         then();
 
@@ -492,12 +498,14 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         when("repeated execution");
 
         taskManager.resumeTaskTree(reconTask.oid, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
 
         then("repeated execution");
 
         assertDeleted(0);
         assertTest400TaskAfterRepeatedExecution(reconTask);
+
+        displayValue("Users", getObjectCount(UserType.class));
     }
 
     abstract void assertTest400TaskAfter(TestResource<TaskType> reconTask) throws SchemaException, ObjectNotFoundException;
@@ -513,21 +521,23 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> importTask = getReconciliationSimulateExecuteTask();
+        TestResource<TaskType> reconTask = getReconciliationSimulateExecuteTask();
 
         when();
 
-        deleteIfPresent(importTask, result);
-        addObject(importTask, task, result,
+        deleteIfPresent(reconTask, result);
+        addObject(reconTask, task, result,
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_DELETE_5.oid),
                         getReconWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
 
         then();
 
         assertDeleted(0);
-        assertTest410TaskAfter(importTask);
+        assertTest410TaskAfter(reconTask);
+
+        displayValue("Users", getObjectCount(UserType.class));
     }
 
     abstract void assertTest410TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
@@ -541,21 +551,54 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        TestResource<TaskType> importTask = getReconciliationExecuteTask();
+        TestResource<TaskType> reconTask = getReconciliationExecuteTask();
 
         when();
 
-        deleteIfPresent(importTask, result);
-        addObject(importTask, task, result,
+        deleteIfPresent(reconTask, result);
+        addObject(reconTask, task, result,
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_DELETE_5.oid),
                         getReconWorkerThreadsCustomizer()));
-        waitForTaskTreeCloseCheckingSuspensionWithError(importTask.oid, result, getTimeout(), getSleep());
+        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
 
         then();
 
         assertDeleted(USER_DELETE_ALLOWED);
-        assertTest420TaskAfter(importTask);
+        assertTest420TaskAfter(reconTask);
+
+        displayValue("Users", getObjectCount(UserType.class));
+    }
+
+    /**
+     * Here we try to delete all users, without any thresholds.
+     * We try to run simulation first, then the execution.
+     */
+    @Test
+    public void test430ReconcileDeleteAllSimulateExecute() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        TestResource<TaskType> reconTask = getReconciliationSimulateExecuteTask();
+
+        when();
+
+        deleteIfPresent(reconTask, result);
+        addObject(reconTask, task, result,
+                aggregateCustomizer( // No role with a policy rule here
+                        getReconWorkerThreadsCustomizer()));
+        waitForTaskTreeCloseCheckingSuspensionWithError(reconTask.oid, result, getTimeout());
+
+        then();
+
+        displayValue("Users", getObjectCount(UserType.class));
+
+        assertDeleted(accountsDeleted);
+        assertTaskTree(reconTask.oid, "after")
+                .display()
+                .assertClosed()
+                .assertSuccess();
     }
 
     abstract void assertTest420TaskAfter(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException;
@@ -573,8 +616,6 @@ public abstract class TestThresholds extends AbstractEmptyModelIntegrationTest {
     abstract TestResource<TaskType> getReconciliationExecuteTask();
 
     abstract long getTimeout();
-
-    abstract long getSleep();
 
     private void assertModifiedCostCenter(int expected, OperationResult result) throws SchemaException {
         int changed = repositoryService.countObjects(UserType.class,
