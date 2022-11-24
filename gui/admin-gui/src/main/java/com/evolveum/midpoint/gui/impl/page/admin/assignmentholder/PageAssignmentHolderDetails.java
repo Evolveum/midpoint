@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebComponent;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
@@ -65,6 +64,15 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
             Fragment templateFragment  = createTemplateFragment();
             add(templateFragment);
         } else {
+            if (isAdd()) {
+                Collection<CompiledObjectCollectionView> allApplicableArchetypeViews = findAllApplicableArchetypeViews();
+                if (allApplicableArchetypeViews.size() == 1) {
+                    CompiledObjectCollectionView view = allApplicableArchetypeViews.iterator().next();
+                    if (!view.isDefaultView()) {
+                        applyTemplate(allApplicableArchetypeViews.iterator().next());
+                    }
+                }
+            }
             super.initLayout();
         }
     }
@@ -111,21 +119,8 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
             @Override
             protected void onTemplateChosePerformed(CompiledObjectCollectionView collectionViews, AjaxRequestTarget target) {
-                PrismObject<AH> assignmentHolder;
-                try {
-                    assignmentHolder = getPrismContext().createObject(PageAssignmentHolderDetails.this.getType());
-                } catch (Throwable e) {
-                    LOGGER.error("Cannot create prism object for {}. Using object from page model.", PageAssignmentHolderDetails.this.getType());
-                    assignmentHolder = getObjectDetailsModels().getObjectWrapperModel().getObject().getObjectOld().clone();
-                }
-                List<ObjectReferenceType> archetypeRef = PageAssignmentHolderDetails.this.getArchetypeReferencesList(collectionViews);
-                if (archetypeRef != null) {
-                    AssignmentHolderType holder = assignmentHolder.asObjectable();
-                    archetypeRef.forEach(a -> holder.getAssignment().add(ObjectTypeUtil.createAssignmentTo(a, getPrismContext())));
+                applyTemplate(collectionViews);
 
-                }
-
-                reloadObjectDetailsModel(assignmentHolder);
                 Fragment fragment = createDetailsFragment();
                 fragment.setOutputMarkupId(true);
                 PageAssignmentHolderDetails.this.replace(fragment);
@@ -133,6 +128,24 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
                 target.add(getTitleContainer());
             }
         };
+    }
+
+    private void applyTemplate(CompiledObjectCollectionView collectionViews) {
+        PrismObject<AH> assignmentHolder;
+        try {
+            assignmentHolder = getPrismContext().createObject(PageAssignmentHolderDetails.this.getType());
+        } catch (Throwable e) {
+            LOGGER.error("Cannot create prism object for {}. Using object from page model.", PageAssignmentHolderDetails.this.getType());
+            assignmentHolder = getObjectDetailsModels().getObjectWrapperModel().getObject().getObjectOld().clone();
+        }
+        List<ObjectReferenceType> archetypeRef = PageAssignmentHolderDetails.this.getArchetypeReferencesList(collectionViews);
+        if (archetypeRef != null) {
+            AssignmentHolderType holder = assignmentHolder.asObjectable();
+            archetypeRef.forEach(a -> holder.getAssignment().add(ObjectTypeUtil.createAssignmentTo(a, getPrismContext())));
+
+        }
+
+        reloadObjectDetailsModel(assignmentHolder);
     }
 
     protected List<ObjectReferenceType> getArchetypeReferencesList(CompiledObjectCollectionView collectionViews) {
