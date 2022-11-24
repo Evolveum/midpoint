@@ -403,12 +403,6 @@ fixed to projection attribute
 
 |===
 
-[WARNING]
-====
-Currently, you have to use expliciti `$projection` in the source of the inbound for `activation` mappings.
-While it is OK to omit the default variable from the table above in `attribute` mappings, you can't do that in `activation` yet (bug:MID-8338[]).
-====
-
 == Variables
 
 Variables are secondary inputs to the mapping.
