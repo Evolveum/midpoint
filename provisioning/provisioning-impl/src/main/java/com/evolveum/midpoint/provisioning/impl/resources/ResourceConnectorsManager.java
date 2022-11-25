@@ -104,10 +104,10 @@ class ResourceConnectorsManager {
      * Throws an exception if no matching connector is found.
      */
     @NotNull <T extends CapabilityType> ConnectorSpec selectConnectorRequired(
-            @NotNull PrismObject<ResourceType> resource,
+            @NotNull ResourceType resource,
             @NotNull Class<T> capabilityClass) throws ConfigurationException {
         return MiscUtil.requireNonNull(
-                selectConnector(resource.asObjectable(), null, capabilityClass),
+                selectConnector(resource, null, capabilityClass),
                 () -> new UnsupportedOperationException(
                         "No connector supporting " + capabilityClass.getSimpleName() + " found in " + resource));
     }

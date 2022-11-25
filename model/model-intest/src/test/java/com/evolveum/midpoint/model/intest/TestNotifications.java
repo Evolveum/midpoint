@@ -901,7 +901,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 
         addObject(user, task, result);
 
-        modifyResourceMaintenance(RESOURCE_DUMMY_OID, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+        turnMaintenanceModeOn(RESOURCE_DUMMY_OID, result);
 
         dummyTransport.clearMessages();
 

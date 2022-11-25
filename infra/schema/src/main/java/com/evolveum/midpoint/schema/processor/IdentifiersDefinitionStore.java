@@ -34,6 +34,14 @@ public interface IdentifiersDefinitionStore {
      */
     @NotNull Collection<? extends ResourceAttributeDefinition<?>> getPrimaryIdentifiers();
 
+    default @NotNull ResourceAttributeDefinition<?> getPrimaryIdentifierRequired() {
+        Collection<? extends ResourceAttributeDefinition<?>> primaryIdentifiers = getPrimaryIdentifiers();
+        return MiscUtil.extractSingletonRequired(
+                primaryIdentifiers,
+                () -> new IllegalStateException("No primary identifier in " + this),
+                () -> new IllegalStateException("Multiple primary identifiers in " + this + ": " + primaryIdentifiers));
+    }
+
     /**
      * Returns names of primary identifiers.
      *

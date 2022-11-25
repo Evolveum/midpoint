@@ -65,6 +65,15 @@ public class PrismContainerDefinitionAsserter<C extends Containerable,RA> extend
         return subAsserter;
     }
 
+    public <T> PrismPropertyDefinitionAsserter<T, PrismPropertyDefinitionAsserter<T, Void>> property(ItemPath subDefPath) {
+        PrismPropertyDefinition<T> subDefinition = getDefinition().findPropertyDefinition(subDefPath);
+        assertNotNull("No property for path "+subDefPath+" in "+desc(), subDefinition);
+        PrismPropertyDefinitionAsserter<T,PrismPropertyDefinitionAsserter<T, Void>> subAsserter =
+                new PrismPropertyDefinitionAsserter<>(subDefinition, "property for "+subDefPath+" in "+desc());
+        copySetupTo(subAsserter);
+        return subAsserter;
+    }
+
     protected String desc() {
         return descWithDetails("container definition " + PrettyPrinter.prettyPrint(getDefinition().getItemName()));
     }

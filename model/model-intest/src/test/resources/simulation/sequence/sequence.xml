@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<sequence xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+oid="5e5731aa-476c-477b-b02e-372252004813">
+
+    <name>sequence: example</name>
+
+    <counter>1001</counter>
+    <maxCounter>1002</maxCounter>
+    <maxUnusedValues>5</maxUnusedValues>
+</sequence>

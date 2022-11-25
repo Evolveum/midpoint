@@ -126,16 +126,16 @@ class ShadowIntegrityCheckItemProcessor {
                 resource = getProvisioningService().getObject(ResourceType.class, resourceOid, null, workerTask, result);
             } catch (ObjectNotFoundException e) {
                 checkResult.recordError(
-                        ShadowStatistics.NO_RESOURCE, new ObjectNotFoundException("Resource object does not exist: " + e.getMessage(), e));
+                        ShadowStatistics.NO_RESOURCE, e.wrap("Resource definition does not exist"));
                 fixNoResourceIfRequested(checkResult, ShadowStatistics.NO_RESOURCE);
                 applyFixes(checkResult, shadow, workerTask, result);
                 return;
             } catch (SchemaException e) {
                 checkResult.recordError(
-                        ShadowStatistics.CANNOT_GET_RESOURCE, new SchemaException("Resource object has schema problems: " + e.getMessage(), e));
+                        ShadowStatistics.CANNOT_GET_RESOURCE, new SchemaException("Resource definition has schema problems: " + e.getMessage(), e));
                 return;
             } catch (CommonException|RuntimeException e) {
-                checkResult.recordError(ShadowStatistics.CANNOT_GET_RESOURCE, new SystemException("Resource object cannot be fetched for some reason: " + e.getMessage(), e));
+                checkResult.recordError(ShadowStatistics.CANNOT_GET_RESOURCE, new SystemException("Resource definition cannot be fetched for some reason: " + e.getMessage(), e));
                 return;
             }
             cacheResource(resource);
@@ -309,6 +309,7 @@ class ShadowIntegrityCheckItemProcessor {
             Task task, OperationResult result) {
         try {
             return getProvisioningService().getObject(ShadowType.class, shadow.getOid(),
+                    // TODO consider using forced exception mode as well
                     SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
                     task, result);
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException |

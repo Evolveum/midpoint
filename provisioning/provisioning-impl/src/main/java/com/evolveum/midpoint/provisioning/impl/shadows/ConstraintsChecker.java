@@ -19,7 +19,6 @@ import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -56,8 +55,6 @@ public class ConstraintsChecker {
     private static final ConcurrentHashMap<Thread, Cache> CACHE_INSTANCES = new ConcurrentHashMap<>();
 
     private ProvisioningContext provisioningContext;
-    private CacheConfigurationManager cacheConfigurationManager;
-    private ShadowsFacade shadowsFacade;
     private final StringBuilder messageBuilder = new StringBuilder();
     private PrismObject<ShadowType> shadowObject;
     private PrismObject<ShadowType> shadowObjectOld;
@@ -65,17 +62,10 @@ public class ConstraintsChecker {
     private ConstraintViolationConfirmer constraintViolationConfirmer;
     private boolean useCache = true;
     private ConstraintsCheckingStrategyType strategy;
+    private final ShadowsLocalBeans shadowsLocalBeans = ShadowsLocalBeans.get();
 
     public void setProvisioningContext(ProvisioningContext provisioningContext) {
         this.provisioningContext = provisioningContext;
-    }
-
-    public void setCacheConfigurationManager(CacheConfigurationManager cacheConfigurationManager) {
-        this.cacheConfigurationManager = cacheConfigurationManager;
-    }
-
-    public void setShadowsFacade(ShadowsFacade shadowsFacade) {
-        this.shadowsFacade = shadowsFacade;
     }
 
     public void setShadowObject(PrismObject<ShadowType> shadowObject) {
@@ -95,8 +85,8 @@ public class ConstraintsChecker {
         this.constraintViolationConfirmer = constraintViolationConfirmer;
     }
 
-    public void setUseCache(boolean useCache) {
-        this.useCache = useCache;
+    void setDoNotUseCache() {
+        this.useCache = false;
     }
 
     public void setStrategy(ConstraintsCheckingStrategyType strategy) {
@@ -141,15 +131,15 @@ public class ConstraintsChecker {
             constraintsCheckingResult.setMessages(messageBuilder.toString());
             return constraintsCheckingResult;
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
-    @NotNull
-    private Collection<? extends ResourceAttributeDefinition<?>> getUniqueAttributesDefinitions() {
+    // What attributes should be used for uniqueness checking? Currently: all identifiers.
+    private @NotNull Collection<? extends ResourceAttributeDefinition<?>> getUniqueAttributesDefinitions() {
         return provisioningContext.getObjectDefinitionRequired().getAllIdentifiers();
     }
 
@@ -194,14 +184,14 @@ public class ConstraintsChecker {
                 resourceObjectDefinition.getTypeName(),
                 identifier.getDefinition().getItemName(),
                 identifier.getValues(),
-                cacheConfigurationManager)) {
+                shadowsLocalBeans.cacheConfigurationManager)) {
             return true;
         }
 
         // Note that we should not call repository service directly here. The query values need to be normalized according to
         // attribute matching rules.
         List<PrismObject<ShadowType>> matchingObjects =
-                shadowsFacade.searchObjects(
+                shadowsLocalBeans.shadowsFacade.searchObjects(
                         query,
                         GetOperationOptions.createNoFetchCollection(),
                         provisioningContext.getTask(),

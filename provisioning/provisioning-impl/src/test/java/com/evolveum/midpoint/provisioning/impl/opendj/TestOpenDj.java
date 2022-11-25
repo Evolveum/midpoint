@@ -212,8 +212,9 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
         resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, task, result);
         resourceBean = resource.asObjectable();
-        ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
-                resource, ReadCapabilityType.class, false, result);
+        ConnectorInstance configuredConnectorInstance =
+                resourceManager.getConfiguredConnectorInstance(
+                        resource.asObjectable(), ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertNotNull("No resource schema", resourceSchema);
@@ -242,7 +243,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // configured connector is properly cached
         ConnectorInstance configuredConnectorInstanceAgain =
                 resourceManager.getConfiguredConnectorInstance(
-                        resourceAgain, ReadCapabilityType.class, false, result);
+                        resourceAgain.asObjectable(), ReadCapabilityType.class, false, result);
         assertSame("Connector instance was not cached", configuredConnectorInstance, configuredConnectorInstanceAgain);
 
         assertShadows(1);

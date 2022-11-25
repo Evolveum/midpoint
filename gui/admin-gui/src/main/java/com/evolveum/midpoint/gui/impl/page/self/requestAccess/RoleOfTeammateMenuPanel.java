@@ -12,6 +12,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
+
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.MenuItemLinkPanel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -76,7 +80,7 @@ public class RoleOfTeammateMenuPanel<T extends Serializable> extends BasePanel<L
         container.add(new VisibleBehaviour(() -> getModelObject().isActive()));
         add(container);
 
-        MenuItemLinkPanel link = new MenuItemLinkPanel(ID_LINK, getModel()) {
+        MenuItemLinkPanel link = new MenuItemLinkPanel(ID_LINK, getModel(), 0) {
 
             @Override
             protected void onClickPerformed(AjaxRequestTarget target, ListGroupMenuItem item) {

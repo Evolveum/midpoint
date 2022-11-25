@@ -44,7 +44,7 @@ import static com.evolveum.midpoint.common.SynchronizationUtils.*;
  *
  * Besides that, provides the business methods that update the operational data in the shadow.
  */
-public class ShadowUpdater {
+class ShadowUpdater {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowUpdater.class);
 
@@ -170,7 +170,7 @@ public class ShadowUpdater {
         return this;
     }
 
-    public @NotNull List<ItemDelta<?, ?>> getDeltas() {
+    @NotNull List<ItemDelta<?, ?>> getDeltas() {
         return deltas;
     }
 

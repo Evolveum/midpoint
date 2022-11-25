@@ -1,0 +1,60 @@
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        oid="1ac00214-ffd0-49db-a1b9-51b46a0e9ae1">
+
+    <name>meta role</name>
+
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <name>Create new read role</name>
+                <strength>strong</strength>
+                <source>
+                    <path>name</path>
+                </source>
+                <expression>
+                    <assignmentTargetSearch>
+                        <targetType>RoleType</targetType>
+                        <filter>
+                            <q:equal>
+                                <q:path>name</q:path>
+                                <expression>
+                                    <script>
+                                        <code>
+                                            'Role: ' + name + '-Read'
+                                        </code>
+                                    </script>
+                                </expression>
+                            </q:equal>
+                        </filter>
+                        <createOnDemand>true</createOnDemand>
+                        <populateObject>
+                            <populateItem>
+                                <expression>
+                                    <script>
+                                        <code>
+                                            'Role: ' + name + '-Read'
+                                        </code>
+                                    </script>
+                                </expression>
+                                <target>
+                                    <path>name</path>
+                                </target>
+                            </populateItem>
+                        </populateObject>
+                    </assignmentTargetSearch>
+                </expression>
+                <target>
+                    <path>assignment</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>

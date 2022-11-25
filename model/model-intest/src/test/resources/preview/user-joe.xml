@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="33f7ec34-4d5e-4640-8224-eb7d55ed86fa">
+
+    <name>joe</name>
+
+    <credentials>
+        <password>
+            <value>
+                <clearValue>qwe123</clearValue>
+            </value>
+        </password>
+    </credentials>
+</user>

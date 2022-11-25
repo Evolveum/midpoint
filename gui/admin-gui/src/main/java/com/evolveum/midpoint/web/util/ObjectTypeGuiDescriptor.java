@@ -80,7 +80,7 @@ public enum ObjectTypeGuiDescriptor {
 
     ASSIGNMENT_HOLDER_TYPE(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, "ObjectTypeGuiDescriptor.assignmentHolderType", "", ""); //TODO icons
 
-    public static final String ERROR_ICON = "silk-error";
+    public static final String ERROR_ICON = "fa-solid fa-triangle-exclamation text-warning";
 
     private final ObjectTypes type;
     private final String localizationKey;

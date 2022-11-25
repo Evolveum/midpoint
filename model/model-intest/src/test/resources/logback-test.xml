@@ -94,7 +94,7 @@
     <logger name="com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.resources.ResourceCache" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.provisioning.impl.shadows.manager" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.shadows.task" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning.impl.shadows.errors" level="DEBUG" />
     <logger name="com.evolveum.midpoint.repo.common.expression" level="DEBUG" />

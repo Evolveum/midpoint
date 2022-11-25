@@ -69,7 +69,7 @@ public class MainMenuItem extends BaseMenuItem {
         }
     }
 
-    private boolean isNotEmpty() {
+    protected boolean isNotEmpty() {
         // If pageClass is not null, we can check page authorization
         // otherwise, empty items means that no sub-items were authorized
         if (getPageClass() != null) {

@@ -6,33 +6,12 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-import static com.evolveum.midpoint.test.DummyResourceContoller.*;
-import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
-
-import static java.util.Collections.singleton;
-import static org.testng.AssertJUnit.*;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
-import com.evolveum.midpoint.util.MiscUtil;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.context.*;
+import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -42,16 +21,34 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ObjectChecker;
-import com.evolveum.midpoint.test.ObjectSource;
+import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_DISABLE_TIMESTAMP;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.test.DummyResourceContoller.*;
+import static com.evolveum.midpoint.test.util.MidPointAsserts.assertSerializable;
+
+import static java.util.Collections.singleton;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -63,13 +60,19 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     public static final File TEST_DIR = new File("src/test/resources/preview");
 
     // LEMON dummy resource has a STRICT dependency on default dummy resource
-    private static final File RESOURCE_DUMMY_LEMON_FILE = new File(TEST_DIR, "resource-dummy-lemon.xml");
-    protected static final String RESOURCE_DUMMY_LEMON_OID = "10000000-0000-0000-0000-000000000504";
+    private static final TestResource<ResourceType> RESOURCE_DUMMY_LEMON = new TestResource<>(TEST_DIR, "resource-dummy-lemon.xml", "10000000-0000-0000-0000-000000000504");
     private static final String RESOURCE_DUMMY_LEMON_NAME = "lemon";
 
-    private static final File USER_ROGERS_FILE = new File(TEST_DIR, "user-rogers.xml");
+    private static final TestResource<UserType> USER_ROGERS = new TestResource<>(TEST_DIR, "user-rogers.xml", "c0c010c0-d34d-b33f-f00d-11d2d2d2d22d");
     private static final File ACCOUNT_ROGERS_DUMMY_DEFAULT_FILE = new File(TEST_DIR, "account-rogers-dummy-default.xml");
     private static final File ACCOUNT_ROGERS_DUMMY_LEMON_FILE = new File(TEST_DIR, "account-rogers-dummy-lemon.xml");
+
+    private static final TestResource<SecurityPolicyType> SECURITY_POLICY = new TestResource<>(TEST_DIR, "security-policy.xml", "a013bf3e-68b2-42b7-923e-c4d55e40e486");
+    private static final TestResource<ValuePolicyType> VALUE_POLICY_PASSWORD = new TestResource<>(TEST_DIR, "value-policy-password.xml", "fd0d70ea-ef5a-4e20-8bf0-3b367ff85f1c");
+    private static final TestResource<UserType> USER_JOE = new TestResource<>(TEST_DIR, "user-joe.xml", "33f7ec34-4d5e-4640-8224-eb7d55ed86fa");
+    private static final TestResource<RoleType> ROLE_SIMPLE = new TestResource<>(TEST_DIR, "role-simple.xml", "e681fa58-cf53-452d-99d0-4f1377a06a54");
+    private static final DummyTestResource RESOURCE_SIMPLE = new DummyTestResource(TEST_DIR, "resource-simple.xml", "64d8b7f9-28a0-43a9-bec7-d5a1a327a740",
+            "resource-preview-simple", TestPreviewChanges::createSimpleAttributeDefinitions);
 
     private String accountGuybrushOid;
 
@@ -77,12 +80,17 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        initDummyResourcePirate(RESOURCE_DUMMY_LEMON_NAME,
-                RESOURCE_DUMMY_LEMON_FILE, RESOURCE_DUMMY_LEMON_OID, initTask, initResult);
+        initDummyResourcePirate(RESOURCE_DUMMY_LEMON_NAME, RESOURCE_DUMMY_LEMON.file, RESOURCE_DUMMY_LEMON.oid, initTask, initResult);
 
         // Elaine is in inconsistent state. Account attributes do not match the mappings.
         // We do not want that here, as it would add noise to preview operations.
         reconcileUser(USER_ELAINE_OID, initTask, initResult);
+
+        RESOURCE_SIMPLE.initAndTest(this, initTask, initResult);
+    }
+
+    private static void createSimpleAttributeDefinitions(DummyResourceContoller controller) {
+
     }
 
     @Test
@@ -1836,7 +1844,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_ROGERS_FILE);
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_ROGERS.file);
         addAccountLinkRef(user, ACCOUNT_ROGERS_DUMMY_DEFAULT_FILE);
         addAccountLinkRef(user, ACCOUNT_ROGERS_DUMMY_LEMON_FILE);
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
@@ -1889,7 +1897,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         PrismAsserts.assertNoItemDelta(accountSecondaryDelta, DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_PATH);
 
         // LEMON dummy resource
-        accContext = findAccountContext(modelContext, RESOURCE_DUMMY_LEMON_OID);
+        accContext = findAccountContext(modelContext, RESOURCE_DUMMY_LEMON.oid);
         assertNotNull("Null model projection context (lemon)", accContext);
 
         assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
@@ -2040,5 +2048,58 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assertNotNull("Target of evaluated assignment is null", evaluatedAssignment.getTarget());
         assertEquals("Wrong # of zero-set roles in evaluated assignment", 1, evaluatedAssignment.getRoles().getZeroSet().size());
         assertSerializable(modelContext);
+    }
+
+    @Test
+    public void test750previewAddUserShadowInsufficientPassword() throws Exception {
+        given();
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        addObject(VALUE_POLICY_PASSWORD, task, result);
+        addObject(SECURITY_POLICY, task, result);
+        addObject(ROLE_SIMPLE, task, result);
+        addObject(USER_JOE, task, result);
+
+        result.computeStatusIfUnknown();
+        assertSuccess(result);
+
+        when("We're attempting to create account (shadow) with password that doesn't match password policy");
+
+        AssignmentType a = new AssignmentType()
+                .targetRef(ROLE_SIMPLE.oid, RoleType.COMPLEX_TYPE);
+
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class).asObjectDeltaCast(USER_JOE.oid);
+        delta.addModificationAddContainer(ItemPath.create(UserType.F_ASSIGNMENT), a.asPrismContainerValue());
+
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(singleton(delta), null, task, result);
+
+        result.computeStatus();
+
+        AssertJUnit.assertNotNull(modelContext);
+        AssertJUnit.assertEquals(1, modelContext.getProjectionContexts().size());
+
+        ModelProjectionContext projectionContext = modelContext.getProjectionContexts().iterator().next();
+        ObjectDelta<ShadowType> summaryDelta = projectionContext.getSummaryDelta();
+
+        // in reality, it's, add shadow without shadow resourceRef, kind, intent.
+        PrismAsserts.assertIsModify(summaryDelta);
+
+        then("Delta should be marked as broken and preview should show add shadow delta");
+
+        ModelContextVisualization modelScene = modelInteractionService.visualizeModelContext(modelContext, task, result);
+        List<? extends Visualization> secondaryScenes = modelScene.getSecondary();
+
+        AssertJUnit.assertEquals(1, secondaryScenes.size());
+
+        Visualization scene = secondaryScenes.get(0);
+        AssertJUnit.assertTrue(scene.isBroken());
+        AssertJUnit.assertEquals(ChangeType.ADD, scene.getChangeType());
+
+        ObjectDelta sourceDelta = scene.getSourceDelta();
+        PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_KIND), ShadowKindType.ACCOUNT);
+        PrismAsserts.assertPropertyAdd(sourceDelta, ItemPath.create(ShadowType.F_INTENT), "default");
+        PrismAsserts.assertReferenceAdd(sourceDelta, ShadowType.F_RESOURCE_REF, RESOURCE_SIMPLE.oid);
     }
 }

@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,7 +28,6 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -65,6 +67,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
     private static final String ID_NEW_VALUE_LABEL = "newValueLabel";
     private static final String ID_VALUE_LABEL = "valueLabel";
     private static final String ID_SORT_PROPERTIES = "sortProperties";
+    private static final String ID_WARNING = "warning";
 
     private boolean showOperationalItems = false;
     private boolean operationalItemsVisible = false;
@@ -133,9 +136,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
         });
 
         Label headerChangeType = new Label(ID_HEADER_CHANGE_TYPE, new ChangeTypeModel());
-        //headerChangeType.setRenderBodyOnly(true);
         Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
-        //headerObjectType.setRenderBodyOnly(true);
 
         IModel<String> nameModel = () -> model.getObject().getName(ScenePanel.this);
 
@@ -167,6 +168,11 @@ public class ScenePanel extends BasePanel<SceneDto> {
         headerPanel.add(headerNameLink);
         headerPanel.add(headerDescription);
         headerPanel.add(headerWrapperDisplayName);
+
+        Label warning = new Label(ID_WARNING);
+        warning.add(new VisibleBehaviour(() -> getModelObject().getScene().isBroken()));
+        warning.add(new TooltipBehavior());
+        headerPanel.add(warning);
 
         headerChangeType.add(createHeaderOnClickBehaviour(model));
         headerObjectType.add(createHeaderOnClickBehaviour(model));
@@ -306,7 +312,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
     }
 
     protected boolean isExistingViewableObject() {
-        final Scene scene = getModelObject().getScene();
+        final Visualization scene = getModelObject().getScene();
         final PrismContainerValue<?> value = scene.getSourceValue();
         return value != null &&
                 value.getParent() instanceof PrismObject &&
@@ -337,7 +343,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
         @Override
         public String getObject() {
-            Scene scene = getModel().getObject().getScene();
+            Visualization scene = getModel().getObject().getScene();
             PrismContainerDefinition<?> def = scene.getSourceDefinition();
             if (def == null) {
                 return "";
@@ -378,7 +384,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
     }
 
     private boolean isAutorized() {
-        Scene scene = getModelObject().getScene();
+        Visualization scene = getModelObject().getScene();
         PrismContainerValue<?> value = scene.getSourceValue();
         if (value == null || !(value.getParent() instanceof PrismObject)) {
             return true;

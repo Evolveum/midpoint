@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -962,12 +963,6 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     void setRequesteeTransient(PrismObject<UserType> user);
 
-    /** Gets model operation context stored in task. NOT THREAD SAFE! */
-    LensContextType getModelOperationContext();
-
-    /** Sets model operation context. */
-    void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
-
     /** Gets the execution environment configuration. Cloned if running task. */
     TaskExecutionEnvironmentType getExecutionEnvironment();
 
@@ -1000,5 +995,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     default boolean isIndestructible() {
         return Boolean.TRUE.equals(getPropertyRealValue(TaskType.F_INDESTRUCTIBLE, Boolean.class));
     }
+
+    /** Returns the execution mode of this task. */
+    @NotNull TaskExecutionMode getExecutionMode();
+
+    /** Sets the execution mode of this task. Use with care - preferably only for new tasks. */
+    void setExecutionMode(@NotNull TaskExecutionMode mode);
     //endregion
 }

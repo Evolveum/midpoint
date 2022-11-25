@@ -256,7 +256,7 @@ public class TestUniversity extends AbstractStoryTest {
         when("'john' is fetched");
         List<PrismObject<ShadowType>> accounts = modelService.searchObjects(
                 ShadowType.class,
-                createAccountAttributeQueryWithKindAndIntent(resourceOpenDjType, QNAME_UID, "john"),
+                accountDefaultObjectsQuery(resourceOpenDjType, QNAME_UID, "john"),
                 null, task, result);
 
         then("account was found");

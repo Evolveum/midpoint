@@ -3210,6 +3210,34 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertSearch(UserType.class, existsQuery, 1); // guybrush
     }
 
+    /**
+     * Checks whether item configuration from object template is applicated for child item of multivalue container
+     *
+     * MID-8347
+     */
+    @Test
+    public void test410ItemAccessMultivalueAttrChild() throws Exception {
+        given();
+        cleanupAutzTest(USER_JACK_OID);
+
+        assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+
+        login(USER_JACK_USERNAME);
+
+        when();
+
+        PrismObject<UserType> user = getObject(UserType.class, USER_CHARLES_OID);
+
+        then();
+
+        assertObjectDefinition(user.getDefinition())
+                .container(UserType.F_OPERATION_EXECUTION)
+                .property(OperationExecutionType.F_MESSAGE)
+                .assertDenyAdd()
+                .assertDenyModify()
+                .assertAllowRead();
+    }
+
     private void assertTaskAddAllow(String oid, String name, String ownerOid, String handlerUri) throws Exception {
         assertAllow("add task " + name,
                 (task, result) -> addTask(oid, name, ownerOid, handlerUri, task, result));

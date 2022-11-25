@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
@@ -22,7 +21,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Helps with the fetched resource object shadowing process (acquiring repo shadows, shadowed object construction).
+ * Helps with shadowed object construction.
  *
  * Currently it delegates these activities to dedicated classes: {@link ShadowAcquisition}, {@link ShadowedObjectConstruction}.
  */
@@ -40,13 +39,16 @@ class ShadowedObjectConstructionHelper {
      * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
      * respect to simulated capabilities. Also shadowRefs are added to associations.
      */
-    @NotNull PrismObject<ShadowType> constructShadowedObject(@NotNull ProvisioningContext ctx,
-            @NotNull PrismObject<ShadowType> repoShadow, @NotNull PrismObject<ShadowType> resourceObject,
+    @NotNull ShadowType constructShadowedObject(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repoShadow,
+            @NotNull ShadowType resourceObject,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
-        return ShadowedObjectConstruction.create(ctx, repoShadow, resourceObject, commonBeans)
+        return ShadowedObjectConstruction
+                .create(ctx, repoShadow, resourceObject, commonBeans)
                 .construct(result);
     }
 }

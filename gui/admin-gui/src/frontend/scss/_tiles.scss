@@ -30,6 +30,7 @@
   &.active {
     border: 2px solid $primary;
     border-radius: $border-radius;
+    background-color: rgba($primary, 15%);
   }
 }
 
@@ -50,6 +51,7 @@
 
   &.active {
     border-color: $primary-alt;
+    background-color: rgba($primary-alt, 15%);
   }
 }
 

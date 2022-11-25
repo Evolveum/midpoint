@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorHandlingTy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
 
+/** TODO this Impl class could be removed. It was originally here because PrismContext was not available in a static context. */
 public class GetOperationOptionsBuilderImpl
         implements GetOperationOptionsBuilder, GetOperationOptionsBuilder.Query {
 

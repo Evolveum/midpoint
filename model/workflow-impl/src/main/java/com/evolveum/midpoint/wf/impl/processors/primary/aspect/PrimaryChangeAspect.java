@@ -9,6 +9,7 @@ package com.evolveum.midpoint.wf.impl.processors.primary.aspect;
 
 import com.evolveum.midpoint.model.api.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
@@ -51,22 +52,11 @@ public interface PrimaryChangeAspect {
      * @return list of start process instructions  @see WfTaskCreationInstruction
      */
     @NotNull
-    <T extends ObjectType> List<PcpStartInstruction> getStartInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
-            @NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
-
-    //    /**
-//     * Returns a list of users who have approved the particular request. This information is then stored in the task by the wf module,
-//     * and eventually fetched from there and put into metadata (createApproverRef/modifyApproverRef) by the model ChangeExecutor.
-//     *
-//     * However, information about the approvers is process-specific. Default implementation of this method in BasePrimaryChangeAspect corresponds
-//     * to behavior of general ItemApproval process.
-//     *
-//     * @param event Current ProcessEvent providing information on what happened within wf process instance.
-//     * @param job Reference to a job (pair of process instance and a task) in which the event happened.
-//     * @param result Operation result - the method should report any errors here.
-//     * @return List of references to approvers that approved this request.
-//     */
-//    List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result);
+    <T extends ObjectType> List<PcpStartInstruction> getStartInstructions(
+            @NotNull ObjectTreeDeltas<T> objectTreeDeltas,
+            @NotNull ModelInvocationContext<T> ctx,
+            @NotNull OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException;
 
     /**
      * Returns true if this aspect is enabled by default, i.e. even if not listed in primary change processor configuration.

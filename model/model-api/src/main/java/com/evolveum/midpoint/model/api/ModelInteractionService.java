@@ -6,14 +6,24 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.TerminateSessionEvent;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,7 +41,10 @@ import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.CheckedProducer;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteCredentialResetRequestType;
@@ -40,14 +53,6 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefini
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
 
 /**
  * A service provided by the IDM Model that allows to improve the (user) interaction with the model.
@@ -86,12 +91,14 @@ public interface ModelInteractionService {
      * The supplied delta will be used as a primary change. The resulting context will reflect both this primary change and
      * any resulting secondary changes.
      * <p>
-     * The changes are only computed, NOT EXECUTED. It also does not change any state of any repository object or task. Therefore
-     * this method is safe to use anytime. However it is reading the data from the repository and possibly also from the resources
+     * The changes are only computed, NOT EXECUTED. It also does not change any state of any repository object or task. Therefore,
+     * this method is safe to use anytime. However, it is reading the data from the repository and possibly also from the resources
      * therefore there is still potential for communication (and other) errors and invocation of this method may not be cheap.
      * However, as no operations are really executed there may be issues with resource dependencies. E.g. identifier that are generated
      * by the resource are not taken into account while recomputing the values. This may also cause errors if some expressions depend
      * on the generated values.
+     *
+     * @param task Task is expected to have execution mode != {@link com.evolveum.midpoint.schema.TaskExecutionMode#PRODUCTION} otherwise exception is thrown
      */
     <F extends ObjectType> ModelContext<F> previewChanges(
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
@@ -297,19 +304,23 @@ public interface ModelInteractionService {
     boolean checkPassword(String userOid, ProtectedStringType password, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     // TEMPORARY
-    List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
+    List<Visualization> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException;
+
+    <O extends ObjectType> ModelContextVisualization visualizeModelContext(ModelContext<O> context, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException;
 
     @NotNull
-    Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
+    Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
 
     @NotNull
-    Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
+    Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
 
     @NotNull
-    Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
+    Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
 
     @NotNull
-    Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
+    Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException;
 
     List<ConnectorOperationalStatus> getConnectorOperationalStatus(String resourceOid, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;

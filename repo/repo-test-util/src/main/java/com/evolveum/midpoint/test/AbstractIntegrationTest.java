@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.test;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE;
+
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -52,6 +55,9 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
+
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -961,15 +967,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         ActivationType activationType = focus.asObjectable().getActivation();
         assertNotNull(activationType, "No activation in " + focus);
         assertThat(activationType.getEffectiveStatus())
-                .withFailMessage("Wrong effectiveStatus in activation in " + focus)
+                .as("effectiveStatus in activation in " + focus)
                 .isEqualTo(expected);
     }
 
-    protected <F extends FocusType> void assertEffectiveActivation(AssignmentType assignmentType, ActivationStatusType expected) {
+    protected void assertEffectiveActivation(AssignmentType assignmentType, ActivationStatusType expected) {
         ActivationType activationType = assignmentType.getActivation();
         assertNotNull(activationType, "No activation in " + assignmentType);
         assertThat(activationType.getEffectiveStatus())
-                .withFailMessage("Wrong effectiveStatus in activation in " + assignmentType)
+                .as("effectiveStatus in activation in " + assignmentType)
                 .isEqualTo(expected);
     }
 
@@ -977,7 +983,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         ActivationType activationType = focus.asObjectable().getActivation();
         assertNotNull(activationType, "No activation in " + focus);
         assertThat(activationType.getValidityStatus())
-                .withFailMessage("Wrong validityStatus in activation in " + focus)
+                .as("validityStatus in activation in " + focus)
                 .isEqualTo(expected);
     }
 
@@ -1001,10 +1007,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         UserType userType = user.asObjectable();
         if (oid != null) {
             assertThat(user.getOid())
-                    .withFailMessage("Wrong " + user + " OID (prism)")
+                    .as(user + " OID (prism)")
                     .isEqualTo(oid);
             assertThat(userType.getOid())
-                    .withFailMessage("Wrong " + user + " OID (jaxb)")
+                    .as(user + " OID (jaxb)")
                     .isEqualTo(oid);
         }
         PrismAsserts.assertEqualsPolyString("Wrong " + user + " name", name, userType.getName());
@@ -1063,20 +1069,20 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .assertSanity();
         if (oid != null) {
             assertThat(shadow.getOid())
-                    .withFailMessage("Shadow OID mismatch (prism)")
+                    .as("Shadow OID (prism)")
                     .isEqualTo(oid);
         }
         ShadowType resourceObjectShadowType = shadow.asObjectable();
         if (oid != null) {
             assertThat(resourceObjectShadowType.getOid())
-                    .withFailMessage("Shadow OID mismatch (jaxb)")
+                    .as("Shadow OID (jaxb)")
                     .isEqualTo(oid);
         }
         assertThat(resourceObjectShadowType.getObjectClass())
-                .withFailMessage("Shadow objectclass")
+                .as("Shadow objectclass")
                 .isEqualTo(objectClass);
         assertThat(shadow.asObjectable().getResourceRef().getOid())
-                .withFailMessage("Shadow resourceRef OID")
+                .as("Shadow resourceRef OID")
                 .isEqualTo(resourceType.getOid());
         PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
         assertNotNull(attributesContainer, "Null attributes in shadow for " + username);
@@ -1124,12 +1130,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             assertNotNull(idProp, "No primary identifier (" + idDef.getItemName() + ") attribute in shadow for " + username);
             if (nameMatchingRule == null) {
                 assertThat(idProp.getRealValue())
-                        .withFailMessage("Unexpected primary identifier in shadow for " + username)
+                        .as("primary identifier in shadow for " + username)
                         .isEqualTo(username);
             } else {
                 if (requireNormalizedIdentifiers) {
                     assertThat(idProp.getRealValue())
-                            .withFailMessage("Unexpected primary identifier in shadow for " + username)
+                            .as("primary identifier in shadow for " + username)
                             .isEqualTo(nameMatchingRule.normalize(username));
                 } else {
                     PrismAsserts.assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule, username, idProp.getRealValue());
@@ -1182,7 +1188,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertNotNull(idProp, "No secondary identifier (" + idSecDef.getItemName() + ") attribute in shadow for " + expectedIdentifier);
         if (nameMatchingRule == null) {
             assertThat(idProp.getRealValue())
-                    .withFailMessage("Unexpected secondary identifier in shadow for " + expectedIdentifier)
+                    .as("secondary identifier in shadow for " + expectedIdentifier)
                     .isEqualTo(expectedIdentifier);
         } else {
             PrismAsserts.assertEquals("Unexpected secondary identifier in shadow for " + expectedIdentifier, nameMatchingRule, expectedIdentifier, idProp.getRealValue());
@@ -1272,9 +1278,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertRepoShadowAttributes(Collection<Item<?, ?>> attributes, int expectedNumberOfIdentifiers) {
-        assertThat(attributes.size())
-                .withFailMessage("Unexpected number of attributes in repo shadow")
-                .isEqualTo(expectedNumberOfIdentifiers);
+        assertThat(attributes)
+                .as("attributes in repo shadow")
+                .hasSize(expectedNumberOfIdentifiers);
     }
 
     protected String getIcfUid(PrismObject<ShadowType> shadow) {
@@ -1379,7 +1385,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         long currentDummyResourceGroupMembersReadCount = DummyResource.getInstance(instanceName).getGroupMembersReadCount();
         long actualIncrement = currentDummyResourceGroupMembersReadCount - lastDummyResourceGroupMembersReadCount;
         assertThat(actualIncrement)
-                .withFailMessage("Unexpected increment in group members read count in dummy resource '" + instanceName + "'")
+                .as("increment in group members read count in dummy resource '" + instanceName + "'")
                 .isEqualTo(expectedIncrement);
         lastDummyResourceGroupMembersReadCount = currentDummyResourceGroupMembersReadCount;
     }
@@ -1392,7 +1398,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         long currentCount = DummyResource.getInstance(instanceName).getWriteOperationCount();
         long actualIncrement = currentCount - lastDummyResourceWriteOperationCount;
         assertThat(actualIncrement)
-                .withFailMessage("Unexpected increment in write operation count in dummy resource '" + instanceName + "'")
+                .as("increment in write operation count in dummy resource '" + instanceName + "'")
                 .isEqualTo(expectedIncrement);
         lastDummyResourceWriteOperationCount = currentCount;
     }
@@ -1539,18 +1545,58 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return shadows.iterator().next();
     }
 
-    protected ObjectQuery createAccountShadowQuery(String identifier, PrismObject<ResourceType> resource)
+    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
+    protected @NotNull S_MatchingRuleEntry queryForAccountDefault(Resource resource)
             throws SchemaException, ConfigurationException {
-        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
-        ResourceObjectDefinition rAccount = rSchema.findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getPrimaryIdentifiers();
-        assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
-        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-        //TODO: set matching rule instead of null
-        return prismContext.queryFor(ShadowType.class)
-                .itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getItemName()).eq(identifier)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassName())
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
+        return resource.queryFor(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+    }
+
+    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
+    protected @NotNull S_MatchingRuleEntry queryForAccountDefault(ResourceType resource)
+            throws SchemaException, ConfigurationException {
+        return queryForAccountDefault(
+                Resource.of(resource));
+    }
+
+    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
+    protected @NotNull S_MatchingRuleEntry queryForAccountDefault(DummyTestResource resource)
+            throws SchemaException, ConfigurationException {
+        return queryForAccountDefault(resource.getObjectable());
+    }
+
+    /** This looks for `ri:AccountObjectClass`. */
+    protected @NotNull S_MatchingRuleEntry queryForRiAccountObjectClass(DummyTestResource resource)
+            throws SchemaException, ConfigurationException {
+        return Resource.of(resource.getObjectable())
+                .queryFor(RI_ACCOUNT_OBJECT_CLASS);
+    }
+
+    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
+    protected ObjectQuery accountDefaultObjectsQuery(ResourceType resource, QName attributeName, Object attributeValue)
+            throws SchemaException, ConfigurationException {
+        return queryForAccountDefault(resource)
+                .and().item(ShadowType.F_ATTRIBUTES, attributeName).eq(attributeValue)
+                .build();
+    }
+
+    /** This looks for `ACCOUNT/default`, not for the default intent of `ACCOUNT`. */
+    protected ObjectQuery accountDefaultObjectsQuery(DummyTestResource resource, QName attributeName, Object attributeValue)
+            throws SchemaException, ConfigurationException {
+        return queryForAccountDefault(resource.getObjectable())
+                .and().item(ShadowType.F_ATTRIBUTES, attributeName).eq(attributeValue)
+                .build();
+    }
+
+    /** Looks for the object class of default intent of `ACCOUNT`. */
+    protected ObjectQuery defaultAccountPrimaryIdentifierQuery(String identifier, PrismObject<ResourceType> resourceObject)
+            throws SchemaException, ConfigurationException {
+        Resource resource = Resource.of(resourceObject);
+        ResourceObjectDefinition defaultAccountDef =
+                resource.getCompleteSchemaRequired()
+                        .findDefaultDefinitionForKindRequired(ShadowKindType.ACCOUNT);
+        ResourceAttributeDefinition<?> primaryIdentifierDef = defaultAccountDef.getPrimaryIdentifierRequired();
+        return resource.queryFor(defaultAccountDef.getObjectClassName())
+                .and().item(ShadowType.F_ATTRIBUTES, primaryIdentifierDef.getItemName()).eq(identifier)
                 .build();
     }
 
@@ -1641,7 +1687,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertNotNull(passwordValue, "No password value in " + shadow);
         protector.decrypt(passwordValue);
         assertThat(passwordValue.getClearValue())
-                .withFailMessage("Wrong password in " + shadow)
+                .as("password in " + shadow)
                 .isEqualTo(expectedPassword);
     }
 
@@ -1717,7 +1763,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void assertShadowDead(PrismObject<ShadowType> shadow) {
         assertThat(shadow.asObjectable().isDead())
-                .withFailMessage("Shadow not dead: " + shadow)
+                .as("Shadow dead status: " + shadow)
                 .isEqualTo(Boolean.TRUE);
     }
 
@@ -1728,7 +1774,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void assertShadowExists(PrismObject<ShadowType> shadow, Boolean expectedValue) {
         assertThat(shadow.asObjectable().isExists())
-                .withFailMessage("Wrong shadow 'exists': " + shadow)
+                .as("Shadow 'exists' status: " + shadow)
                 .isEqualTo(expectedValue);
     }
 
@@ -1740,7 +1786,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             }
         } else {
             assertThat(activationType.getAdministrativeStatus())
-                    .withFailMessage("Wrong activation administrative status of " + shadow)
+                    .as("activation administrative status of " + shadow)
                     .isEqualTo(expectedStatus);
         }
     }
@@ -1753,7 +1799,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             }
         } else {
             assertThat(activationType.getLockoutStatus())
-                    .withFailMessage("Wrong lockout status of " + shadow)
+                    .as("lockout status of " + shadow)
                     .isEqualTo(expectedStatus);
         }
     }
@@ -1766,7 +1812,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             }
         } else {
             assertThat(activationType.getLockoutStatus())
-                    .withFailMessage("Wrong lockout status of " + user)
+                    .as("lockout status of " + user)
                     .isEqualTo(expectedStatus);
         }
     }
@@ -1793,7 +1839,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertFalse(attributes.isEmpty(), "Empty attributes in repo shadow " + shadow);
         if (expectedNumberOfAttributes != null) {
             assertThat(attributes)
-                    .withFailMessage("Unexpected number of attributes in repo shadow " + shadow)
+                    .as("attributes in repo shadow " + shadow)
                     .hasSize(expectedNumberOfAttributes);
         }
     }
@@ -1935,7 +1981,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     + getPasswordHistoryHumanReadable(historyEntriesType) + "(" + historyEntriesType.size() + ")");
         }
         assertThat(historyEntriesType)
-                .withFailMessage(message + "Unexpected number of history entries")
+                .as(message + "history entries")
                 .hasSize(changedPasswords.length);
         for (PasswordHistoryEntryType historyEntry : historyEntriesType) {
             boolean found = false;
@@ -2045,31 +2091,31 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 ObjectReferenceType creatorRef = metadataType.getCreatorRef();
                 assertNotNull(creatorRef, "No creatorRef in " + message);
                 assertThat(creatorRef.getOid())
-                        .withFailMessage("Wrong creatorRef OID in " + message)
+                        .as("creatorRef OID in " + message)
                         .isEqualTo(actorOid);
                 if (assertRequest) {
                     assertBetween("Wrong request timestamp in " + message, start, end, metadataType.getRequestTimestamp());
                     ObjectReferenceType requestorRef = metadataType.getRequestorRef();
                     assertNotNull(requestorRef, "No requestorRef in " + message);
                     assertThat(requestorRef.getOid())
-                            .withFailMessage("Wrong requestorRef OID in " + message)
+                            .as("requestorRef OID in " + message)
                             .isEqualTo(actorOid);
                 }
             }
             assertThat(metadataType.getCreateChannel())
-                    .withFailMessage("Wrong create channel in " + message)
+                    .as("create channel in " + message)
                     .isEqualTo(channel);
         } else {
             if (actorOid != null) {
                 ObjectReferenceType modifierRef = metadataType.getModifierRef();
                 assertNotNull(modifierRef, "No modifierRef in " + message);
                 assertThat(modifierRef.getOid())
-                        .withFailMessage("Wrong modifierRef OID in " + message)
+                        .as("modifierRef OID in " + message)
                         .isEqualTo(actorOid);
             }
             assertBetween("Wrong password modify timestamp in " + message, start, end, metadataType.getModifyTimestamp());
             assertThat(metadataType.getModifyChannel())
-                    .withFailMessage("Wrong modification channel in " + message)
+                    .as("modification channel in " + message)
                     .isEqualTo(channel);
         }
     }
@@ -2425,12 +2471,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             result.computeStatus();
         }
         assertThat(result.getStatus())
-                .withFailMessage("Unexpected operation " + result.getOperation() + " result status")
+                .as("operation " + result.getOperation() + " result status")
                 .isEqualTo(expectedStatus);
     }
 
     protected void assertNoMessage(OperationResult result) {
         assertThat(result.getMessage()).as("message in operation result").isNull();
+    }
+
+    protected void assertMessageContains(OperationResult result, String text) {
+        assertThat(result.getMessage()).as("message in operation result").contains(text);
     }
 
     protected String assertInProgress(OperationResult result) {
@@ -2521,7 +2571,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertNoPendingOperation(PrismObject<ShadowType> shadow) {
         List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
         assertThat(pendingOperations)
-                .withFailMessage("Wrong number of pending operations in " + shadow)
+                .as("pending operations in " + shadow)
                 .isEmpty();
     }
 
@@ -2536,7 +2586,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                     "Wrong state of " + acase + "; expected was open/created, real is " + realState);
         } else {
             assertThat(realState)
-                    .withFailMessage("Wrong state of " + acase)
+                    .as("state of " + acase)
                     .isEqualTo(expectedState);
         }
         return caseType;
@@ -2586,7 +2636,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .filter(ref -> QNameUtil.match(SchemaConstants.ORG_DEFAULT, ref.getRelation()))
                 .count();
         assertThat(liveLinks)
-                .withFailMessage("Wrong number of links in " + focus)
+                .as("live links in " + focus)
                 .isEqualTo(expectedNumLinks);
     }
 
@@ -2657,7 +2707,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             return;
         }
         assertThat(linkRef.size())
-                .withFailMessage("Wrong number of persona links in " + focus)
+                .as("persona links in " + focus)
                 .isEqualTo(expectedNumLinks);
     }
 
@@ -2686,12 +2736,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         Object expressionObj = expressionWrapper.getExpression();
         assertNotNull(expressionObj, "No expression in " + prop);
         assertThat(expressionObj)
-                .withFailMessage("Wrong expression type: " + expressionObj.getClass())
+                .as("expression type: " + expressionObj.getClass())
                 .isInstanceOf(ExpressionType.class);
         ExpressionType expressionType = (ExpressionType) expressionObj;
         JAXBElement<?> evaluatorElement = expressionType.getExpressionEvaluator().iterator().next();
         assertThat(evaluatorElement.getName().getLocalPart())
-                .withFailMessage("Wrong expression evaluator name")
+                .as("expression evaluator name")
                 .isEqualTo(evaluatorName);
     }
 
@@ -2751,7 +2801,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected <F extends FocusType> void assertRoleMembershipRefs(PrismObject<F> focus, int expectedNumber) {
         List<ObjectReferenceType> roleMembershipRefs = focus.asObjectable().getRoleMembershipRef();
         assertThat(roleMembershipRefs)
-                .withFailMessage("Wrong number of roleMembershipRefs in " + focus)
+                .as("roleMembershipRefs in " + focus)
                 .hasSize(expectedNumber);
     }
 
@@ -2852,7 +2902,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         LocalizableMessage userFriendlyMessage = e.getUserFriendlyMessage();
         assertNotNull(userFriendlyMessage, "No user friendly exception message");
         assertThat(userFriendlyMessage.getFallbackMessage())
-                .withFailMessage("Unexpected user friendly exception fallback message")
+                .as("user friendly exception fallback message")
                 .isEqualTo(expectedMessage);
     }
 
@@ -2885,7 +2935,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertMessage(CommonException e, String expectedMessage) {
-        assertThat(getTranslatedMessage(e)).withFailMessage("Wrong message").isEqualTo(expectedMessage);
+        assertThat(getTranslatedMessage(e)).as("message").isEqualTo(expectedMessage);
     }
 
     protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
@@ -3081,7 +3131,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                             + " expected null but was " + searchMetadata.getApproxNumberOfAllResults());
         } else {
             assertThat(searchMetadata.getApproxNumberOfAllResults())
-                    .withFailMessage("Wrong approximate number of search results in search metadata")
+                    .as("approximate number of search results in search metadata")
                     .isEqualTo(expectedNumber);
         }
     }
@@ -3111,7 +3161,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         RelationDefinitionType relDef = ObjectTypeUtil.findRelationDefinition(relations, qname);
         assertNotNull(relDef, "No definition for relation " + qname);
         assertThat(relDef.getDisplay().getLabel().getOrig())
-                .withFailMessage("Wrong relation " + qname + " label")
+                .as("relation " + qname + " label")
                 .isEqualTo(expectedLabel);
     }
 
@@ -3615,26 +3665,26 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertBucket(bucket, state, seqNumber);
         AbstractWorkBucketContentType content = bucket.getContent();
         assertThat(content)
-                .withFailMessage("Wrong bucket content class")
+                .as("bucket content")
                 .isExactlyInstanceOf(NumericIntervalWorkBucketContentType.class);
         NumericIntervalWorkBucketContentType numContent = (NumericIntervalWorkBucketContentType) content;
         assertThat(numContent.getFrom())
-                .withFailMessage("Wrong bucket start")
+                .as("bucket start")
                 .isEqualTo(toBig(start));
         assertThat(numContent.getTo())
-                .withFailMessage("Wrong bucket end")
+                .as("bucket end")
                 .isEqualTo(toBig(end));
     }
 
     protected void assertBucket(WorkBucketType bucket, WorkBucketStateType state, int seqNumber) {
         if (state != null) {
             assertThat(bucket.getState())
-                    .withFailMessage("Wrong bucket state")
+                    .as("bucket state")
                     .isEqualTo(state);
         }
         assertBucketWorkerRefSanity(bucket);
         assertThat(bucket.getSequentialNumber())
-                .withFailMessage("Wrong bucket seq number")
+                .as("seq number")
                 .isEqualTo(seqNumber);
     }
 
@@ -3679,14 +3729,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void assertNumberOfBuckets(Task task, Integer expectedNumber, ActivityPath activityPath) {
         ActivityStateType workState = ActivityStateUtil.getActivityStateRequired(task.getWorkState(), activityPath);
         assertThat(getNumberOfBuckets(workState))
-                .withFailMessage("Wrong # of expected buckets")
+                .as("# of expected buckets")
                 .isEqualTo(expectedNumber);
     }
 
     protected void assertCachingProfiles(TaskType task, String... expectedProfiles) {
         Set<String> realProfiles = getCachingProfiles(task);
         assertThat(realProfiles)
-                .withFailMessage("Wrong caching profiles in " + task)
+                .as("caching profiles in " + task)
                 .containsExactlyInAnyOrder(expectedProfiles);
     }
 
@@ -3736,7 +3786,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskExecutionState");
         Task task = taskManager.getTaskPlain(taskOid, result);
         assertThat(task.getExecutionState())
-                .withFailMessage("Wrong executionState in " + task)
+                .as("executionState in " + task)
                 .isEqualTo(expectedExecutionState);
     }
 
@@ -3745,7 +3795,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         final OperationResult result = new OperationResult(AbstractIntegrationTest.class + ".assertTaskSchedulingState");
         Task task = taskManager.getTaskPlain(taskOid, result);
         assertThat(task.getSchedulingState())
-                .withFailMessage("Wrong schedulingState in " + task)
+                .as("schedulingState in " + task)
                 .isEqualTo(expectedState);
     }
 
@@ -4225,35 +4275,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    protected <T> ObjectQuery createAccountAttributeQuery(ResourceType resourceType, QName attributeName, T attributeValue)
-            throws SchemaException, ConfigurationException {
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resourceType);
-        ResourceObjectDefinition accountDef =
-                schema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-        ResourceAttributeDefinition<?> attrDef = accountDef.findAttributeDefinitionRequired(attributeName);
-        return prismContext.queryFor(ShadowType.class)
-                .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassName())
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
-                .build();
-    }
-
-    protected <T> ObjectQuery createAccountAttributeQueryWithKindAndIntent(
-            ResourceType resourceType, QName attributeName, T attributeValue)
-            throws SchemaException, ConfigurationException {
-        ResourceSchema schema = ResourceSchemaFactory.getCompleteSchemaRequired(resourceType);
-        ResourceObjectDefinition accountDef =
-                schema.findObjectDefinitionRequired(ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-        ResourceAttributeDefinition<?> attrDef = accountDef.findAttributeDefinitionRequired(attributeName);
-        return prismContext.queryFor(ShadowType.class)
-                .itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
-                .and().item(ShadowType.F_KIND).eq(ShadowKindType.ACCOUNT)
-                .and().item(ShadowType.F_INTENT).eq(SchemaConstants.INTENT_DEFAULT)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(accountDef.getObjectClassName())
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
-                .build();
-    }
-
     protected void dumpResourceCapabilities(@NotNull ResourceType resource) throws SchemaException {
         for (CapabilityType capability : ResourceTypeUtil.getEnabledCapabilities(resource)) {
             System.out.println("Capability: " + CapabilityUtil.getCapabilityDisplayName(capability) + " : " + capability);
@@ -4269,5 +4290,27 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         if (!isNativeRepository()) {
             throw new SkipException("Skipping the test designed for the native repository only.");
         }
+    }
+
+    private void setMaintenanceMode(String resourceOid, AdministrativeAvailabilityStatusType value, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                ResourceType.class,
+                resourceOid,
+                deltaFor(ResourceType.class)
+                        .item(F_ADMINISTRATIVE_OPERATIONAL_STATE, F_ADMINISTRATIVE_AVAILABILITY_STATUS)
+                        .replace(value)
+                        .asItemDeltas(),
+                result);
+    }
+
+    protected void turnMaintenanceModeOn(String resourceOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        setMaintenanceMode(resourceOid, AdministrativeAvailabilityStatusType.MAINTENANCE, result);
+    }
+
+    protected void turnMaintenanceModeOff(String resourceOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        setMaintenanceMode(resourceOid, AdministrativeAvailabilityStatusType.OPERATIONAL, result);
     }
 }

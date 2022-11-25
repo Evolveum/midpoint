@@ -276,7 +276,7 @@ public class ModelRestController extends AbstractRestController {
                 .build();
         List<PrismObject<NodeType>> objects = model.searchObjects(NodeType.class, query, getOptions, task, result);
         if (objects.isEmpty()) {
-            throw new ObjectNotFoundException("Current node (id " + nodeId + ") couldn't be found.");
+            throw new ObjectNotFoundException("Current node (id " + nodeId + ") couldn't be found.", NodeType.class, nodeId);
         } else if (objects.size() > 1) {
             throw new IllegalStateException("More than one 'current' node (id " + nodeId + ") found.");
         } else {

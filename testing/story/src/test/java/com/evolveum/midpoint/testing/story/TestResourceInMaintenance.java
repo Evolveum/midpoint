@@ -125,7 +125,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         importObjectFromFile(USERS_FILE);
         importObjectFromFile(ROLE1_FILE);
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
     }
 
     private void prepareCsvResource(Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
@@ -208,7 +208,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         TestUtil.assertInProgress("resource in the maintenance pending delta", result2);
 
-        PrismObject<ShadowType> shadowAfter = getShadowModel(SHADOW_OID);
+        PrismObject<ShadowType> shadowAfter = getShadowModel(SHADOW_OID, null, false);
         //check that two pending update deltas are in progress:
         assertTwoPendingOperations(shadowAfter, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
     }
@@ -220,7 +220,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         when();
-        turnMaintenanceModeOff(task, result);
+        turnMaintenanceModeOff(result);
 
         then();
         // Check description value hasn't changed yet:
@@ -261,7 +261,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
 
         when();
         assignAccountToUser(USER2_OID, RESOURCE_OID, "default", task, result);
@@ -381,7 +381,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        turnMaintenanceModeOff(task, result);
+        turnMaintenanceModeOff(result);
 
         // Check shadow does not exist yet:
         String newShadowOid = getLiveLinkRefOid(USER2_OID, RESOURCE_OID);
@@ -419,7 +419,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
 
         String shadowOid = getLiveLinkRefOid(USER2_OID, RESOURCE_OID);
         assertNotNull(shadowOid);
@@ -482,7 +482,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        turnMaintenanceModeOff(task, result);
+        turnMaintenanceModeOff(result);
 
         // Check shadow still exists:
         String shadowOid = getLiveLinkRefOid(USER2_OID, RESOURCE_OID);
@@ -529,7 +529,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
 
         when();
         assignRole(USER3_OID, ROLE1_OID, task, result);
@@ -622,7 +622,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         when("maintenance off");
 
-        turnMaintenanceModeOff(task, result);
+        turnMaintenanceModeOff(result);
 
         // Apply pending create + delete delta:
         OperationResult result4 = createOperationResult();
@@ -632,7 +632,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         assertSuccess(result4);
 
         // Check that nothing really happened on the resource:
-        PrismObject<ShadowType> shadowDeleted = getShadowModel(newShadowOid);
+        PrismObject<ShadowType> shadowDeleted = getShadowModel(newShadowOid, null, false);
         ShadowAsserter.forShadow(shadowDeleted)
                 .assertIsNotExists()
                 .end();
@@ -644,7 +644,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
 
         when();
         ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER4_OID, RESOURCE_OID, "default", true);
@@ -704,12 +704,12 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        turnMaintenanceModeOff(task, result);
+        turnMaintenanceModeOff(result);
 
         UserWithAccount userWithAccount = createUserWithAccount("test110", task, result);
         UserType user = userWithAccount.getUser();
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
 
         when("delete account");
 
@@ -722,7 +722,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         when("reconcile in normal mode");
 
-        turnMaintenanceModeOff(task, result);
+        turnMaintenanceModeOff(result);
         rerunTask(TASK_RECONCILE_CSV.oid);
 
         then("reconcile in normal mode");
@@ -747,11 +747,11 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        turnMaintenanceModeOff(task, result);
+        turnMaintenanceModeOff(result);
 
         UserWithAccount userWithAccount = createUserWithAccount("test115", task, result);
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
 
         when("delete account");
 
@@ -783,9 +783,9 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        turnMaintenanceModeOff(task, result);
+        turnMaintenanceModeOff(result);
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test120")
                 .fullName("Jim Test120")
                 .beginAssignment()
@@ -798,7 +798,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         when();
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_NAME).replace(PolyString.fromOrig("test120-changed"))
@@ -806,7 +806,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         executeChanges(delta, null, task, result);
 
-        turnMaintenanceModeOff(task, result);
+        turnMaintenanceModeOff(result);
 
         clockForward("PT1H");
 
@@ -819,12 +819,12 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .display();
     }
 
-    private void turnMaintenanceModeOn(Task task, OperationResult result) throws Exception {
-        modifyResourceMaintenance(RESOURCE_OID, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+    private void turnMaintenanceModeOn(OperationResult result) throws Exception {
+        turnMaintenanceModeOn(RESOURCE_OID, result);
     }
 
-    private void turnMaintenanceModeOff(Task task, OperationResult result) throws Exception {
-        modifyResourceMaintenance(RESOURCE_OID, AdministrativeAvailabilityStatusType.OPERATIONAL, task, result);
+    private void turnMaintenanceModeOff(OperationResult result) throws Exception {
+        turnMaintenanceModeOff(RESOURCE_OID, result);
     }
 
     private void assertTwoPendingOperations (PrismObject<ShadowType> shadow,

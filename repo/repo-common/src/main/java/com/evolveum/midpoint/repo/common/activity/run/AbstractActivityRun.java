@@ -513,28 +513,28 @@ public abstract class AbstractActivityRun<
     }
 
     @Override
-    public @NotNull ExecutionModeType getExecutionMode() {
+    public @NotNull ExecutionModeType getActivityExecutionMode() {
         return activity.getDefinition().getExecutionMode();
     }
 
     public boolean isPreview() {
-        return getExecutionMode() == ExecutionModeType.PREVIEW;
+        return getActivityExecutionMode() == ExecutionModeType.PREVIEW;
     }
 
     public boolean isDryRun() {
-        return getExecutionMode() == ExecutionModeType.DRY_RUN;
+        return getActivityExecutionMode() == ExecutionModeType.DRY_RUN;
     }
 
     public boolean isFullExecution() {
-        return getExecutionMode() == ExecutionModeType.FULL;
+        return getActivityExecutionMode() == ExecutionModeType.FULL;
     }
 
     public boolean isNoExecution() {
-        return getExecutionMode() == ExecutionModeType.NONE;
+        return getActivityExecutionMode() == ExecutionModeType.NONE;
     }
 
     public boolean isBucketAnalysis() {
-        return getExecutionMode() == ExecutionModeType.BUCKET_ANALYSIS;
+        return getActivityExecutionMode() == ExecutionModeType.BUCKET_ANALYSIS;
     }
 
     public int getItemsProcessed() {

@@ -35,7 +35,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.*;
 
-import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
@@ -75,7 +75,6 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
@@ -1033,8 +1032,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
-                resource, ReadCapabilityType.class, false, result);
+        ConnectorInstance configuredConnectorInstance =
+                resourceManager.getConfiguredConnectorInstance(
+                        resourceBean, ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertNotNull("No resource schema", resourceSchema);
@@ -1084,8 +1084,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // Now we stick our nose deep inside the provisioning impl. But we need
         // to make sure that the
         // configured connector is properly cached
-        ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
-                resourceAgain, ReadCapabilityType.class, false, result);
+        ConnectorInstance configuredConnectorInstanceAgain =
+                resourceManager.getConfiguredConnectorInstance(
+                        resourceAgain.asObjectable(), ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
         assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
@@ -1096,8 +1097,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         TestUtil.assertSuccess("Connector test failed", testResult);
 
         // Test connection should also refresh the connector by itself. So check if it has been refreshed
-        ConnectorInstance configuredConnectorInstanceAfterTest = resourceManager.getConfiguredConnectorInstance(
-                resourceAgain, ReadCapabilityType.class, false, result);
+        ConnectorInstance configuredConnectorInstanceAfterTest =
+                resourceManager.getConfiguredConnectorInstance(
+                        resourceAgain.asObjectable(), ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAfterTest);
         assertTrue("Connector instance was not cached", configuredConnectorInstanceAgain == configuredConnectorInstanceAfterTest);
 
@@ -1109,8 +1111,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = createOperationResult();
-        ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
-                resource, ReadCapabilityType.class, false, result);
+        ConnectorInstance configuredConnectorInstance =
+                resourceManager.getConfiguredConnectorInstance(
+                        resourceBean, ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
         ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(resource);
         assertNotNull("No resource schema", resourceSchema);
@@ -1138,8 +1141,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         // Now we stick our nose deep inside the provisioning impl. But we need
         // to make sure that the configured connector is properly refreshed
         // forceFresh = true
-        ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
-                resourceAgain, ReadCapabilityType.class, true, result);
+        ConnectorInstance configuredConnectorInstanceAgain =
+                resourceManager.getConfiguredConnectorInstance(
+                        resourceAgain.asObjectable(), ReadCapabilityType.class, true, result);
         assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
         // Connector instance should NOT be changed at this point. It should be only re-configured.
         assertTrue("Connector instance was changed", configuredConnectorInstance == configuredConnectorInstanceAgain);
@@ -1447,7 +1451,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     }
 
     protected void checkRepoAccountShadowWillBasic(PrismObject<ShadowType> accountRepo,
-            XMLGregorianCalendar start, XMLGregorianCalendar end, Integer expectedNumberOfAttributes) {
+            XMLGregorianCalendar start, XMLGregorianCalendar end, Integer expectedNumberOfAttributes) throws CommonException {
         display("Will account repo", accountRepo);
         ShadowType accountTypeRepo = accountRepo.asObjectable();
         assertShadowName(accountRepo, ACCOUNT_WILL_USERNAME);
@@ -1475,15 +1479,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         }
     }
 
-    private boolean isProposedShadow(PrismObject<ShadowType> shadow) {
-        String lifecycleState = shadow.asObjectable().getLifecycleState();
-        if (lifecycleState == null) {
-            return false;
-        }
-        return SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState);
+    private boolean isProposedShadow(PrismObject<ShadowType> shadow) throws CommonException {
+        provisioningService.determineShadowState(shadow, getTestTask(), getTestOperationResult());
+        return shadow.asObjectable().getShadowLifecycleState() == ShadowLifecycleStateType.PROPOSED;
     }
 
-    protected void checkRepoAccountShadowWill(PrismObject<ShadowType> accountRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) {
+    protected void checkRepoAccountShadowWill(
+            PrismObject<ShadowType> accountRepo, XMLGregorianCalendar start, XMLGregorianCalendar end) throws CommonException {
         checkRepoAccountShadowWillBasic(accountRepo, start, end, 2);
         assertRepoShadowCacheActivation(accountRepo, null);
     }

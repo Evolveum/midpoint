@@ -75,7 +75,7 @@ abstract class ScriptingTaskCreator {
             List<PrismObject<? extends ObjectType>> tasks = beans.referenceResolver.resolve(asynchronousExecution.getTaskTemplateRef(), null,
                     MODEL, createTaskFilterEvaluator(), actx.task, result);
             if (tasks.isEmpty()) {
-                throw new ObjectNotFoundException("Task template was specified but was not found");
+                throw new ObjectNotFoundException("Task template was specified but was not found", TaskType.class, null);
             } else if (tasks.size() > 1) {
                 throw new IllegalStateException("Task template reference resolution lead to more than one task template: " + tasks);
             } else {

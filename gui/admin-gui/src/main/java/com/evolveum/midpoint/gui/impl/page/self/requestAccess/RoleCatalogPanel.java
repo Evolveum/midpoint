@@ -11,6 +11,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.CustomListGroupMenuItem;
+
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenu;
+
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuItem;
+
+import com.evolveum.midpoint.gui.impl.component.menu.listGroup.ListGroupMenuPanel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -673,7 +681,7 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             CustomListGroupMenuItem<RoleCatalogQueryItem> rolesOfTeamMate = new CustomListGroupMenuItem<>("RoleCatalogPanel.rolesOfTeammate") {
 
                 @Override
-                Component createMenuItemPanel(String id, IModel<ListGroupMenuItem<RoleCatalogQueryItem>> model,
+                public Component createMenuItemPanel(String id, IModel<ListGroupMenuItem<RoleCatalogQueryItem>> model,
                         SerializableBiConsumer<AjaxRequestTarget, ListGroupMenuItem<RoleCatalogQueryItem>> onClickHandler) {
 
                     return new RoleOfTeammateMenuPanel<>(id, model, teammateModel) {

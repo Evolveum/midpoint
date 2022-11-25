@@ -368,12 +368,12 @@ public abstract class SynchronizationContext<F extends FocusType>
     @Override
     public String toString() {
         if (synchronizationPolicy != null) {
-            return "SynchronizationContext(kind=" + synchronizationPolicy.getKind()
+            return "SynchronizationContext.Complete(kind=" + synchronizationPolicy.getKind()
                     + ", intent=" + synchronizationPolicy.getIntent()
                     + ", objectclass=" + synchronizationPolicy.getObjectClassName()
                     + ")";
         } else {
-            return "SynchronizationContext";
+            return "SynchronizationContext.Incomplete (no sync policy)";
         }
     }
 

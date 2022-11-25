@@ -7,12 +7,19 @@
 
 <objectTemplate
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="0ec39991-6ba7-4025-8470-8f8d09687f8c">
     <name>b2a</name>
     <item>
         <ref>displayName</ref>
         <mapping>
             <name>m2a</name>
+        </mapping>
+    </item>
+    <item>
+        <ref>c:extension/resourceName</ref> <!-- first segment qualified -->
+        <mapping>
+            <name>m-ext-2a</name>
         </mapping>
     </item>
 </objectTemplate>
