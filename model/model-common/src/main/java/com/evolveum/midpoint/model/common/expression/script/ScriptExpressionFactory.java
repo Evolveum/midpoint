@@ -286,9 +286,10 @@ public class ScriptExpressionFactory implements Cache {
     @NotNull
     @Override
     public Collection<SingleCacheStateInformationType> getStateInformation() {
-        return Collections.singleton(new SingleCacheStateInformationType()
+        Collection<FunctionLibrary> cached = cachedCustomFunctionLibraries;
+        return Collections.singleton(new SingleCacheStateInformationType(prismContext)
                 .name(ScriptExpressionFactory.class.getName())
-                .size(cachedCustomFunctionLibraries.size()));
+                .size(cached != null ? cached.size() : 0));
     }
 
     @Override
