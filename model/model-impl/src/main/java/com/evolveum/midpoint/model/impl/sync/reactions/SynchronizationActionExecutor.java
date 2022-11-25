@@ -201,7 +201,7 @@ public class SynchronizationActionExecutor<F extends FocusType> {
      */
     private boolean isDeleteReactionApplicable(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
-            ConfigurationException, ObjectNotFoundException {
+            ConfigurationException {
         F owner = syncCtx.getLinkedOwner();
         if (owner == null) {
             LOGGER.trace("Cannot consider the 'realness' of the DELETE situation because there's no linked owner");
@@ -211,19 +211,24 @@ public class SynchronizationActionExecutor<F extends FocusType> {
             var options = GetOperationOptionsBuilder.create()
                     .noFetch()
                     .futurePointInTime()
+                    .allowNotFound()
                     .build();
-            ShadowType shadow =
-                    provisioningService
-                            .getObject(ShadowType.class, linkRef.getOid(), options, syncCtx.getTask(), result)
-                            .asObjectable();
-            ResourceObjectTypeIdentification type = syncCtx.getTypeIdentification();
-            if (ShadowUtil.getResourceOidRequired(shadow).equals(syncCtx.getResourceOid())
-                    && shadow.getKind() == type.getKind()
-                    && Objects.equals(shadow.getIntent(), type.getIntent())
-                    && !ShadowUtil.isDead(shadow)) {
-                LOGGER.debug("Found non-dead compatible shadow, the DELETE reaction will not be executed for {} of {}",
-                        syncCtx.getShadowedResourceObject(), owner);
-                return false;
+            try {
+                ShadowType shadow =
+                        provisioningService
+                                .getObject(ShadowType.class, linkRef.getOid(), options, syncCtx.getTask(), result)
+                                .asObjectable();
+                ResourceObjectTypeIdentification type = syncCtx.getTypeIdentification();
+                if (ShadowUtil.getResourceOidRequired(shadow).equals(syncCtx.getResourceOid())
+                        && shadow.getKind() == type.getKind()
+                        && Objects.equals(shadow.getIntent(), type.getIntent())
+                        && !ShadowUtil.isDead(shadow)) {
+                    LOGGER.debug("Found non-dead compatible shadow, the DELETE reaction will not be executed for {} of {}",
+                            syncCtx.getShadowedResourceObject(), owner);
+                    return false;
+                }
+            } catch (ObjectNotFoundException e) {
+                LOGGER.trace("Shadow not existing (or disappeared during provisioning get operation): {}", linkRef.getOid());
             }
         }
         LOGGER.trace("No non-dead compatible shadow found, the DELETE reaction will be executed");
