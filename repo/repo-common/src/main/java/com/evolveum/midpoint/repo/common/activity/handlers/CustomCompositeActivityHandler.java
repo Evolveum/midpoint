@@ -20,9 +20,8 @@ import com.evolveum.midpoint.repo.common.activity.run.CompositeActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.definition.CompositeWorkDefinition;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PureCompositeWorkStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomCompositeWorkStateType;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +30,15 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 /**
- * TODO
+ * Handles custom composite activities, see
+ * https://docs.evolveum.com/midpoint/reference/tasks/activities/#configuring-custom-composite-activities.
  */
 @Component
-public class PureCompositeActivityHandler implements ActivityHandler<CompositeWorkDefinition, PureCompositeActivityHandler> {
+public class CustomCompositeActivityHandler implements ActivityHandler<CompositeWorkDefinition, CustomCompositeActivityHandler> {
 
     @Autowired ActivityHandlerRegistry handlerRegistry;
     @Autowired WorkDefinitionFactory workDefinitionFactory;
@@ -53,16 +54,18 @@ public class PureCompositeActivityHandler implements ActivityHandler<CompositeWo
     }
 
     @Override
-    public @NotNull AbstractActivityRun<CompositeWorkDefinition, PureCompositeActivityHandler, ?> createActivityRun(
-            @NotNull ActivityRunInstantiationContext<CompositeWorkDefinition, PureCompositeActivityHandler> context,
+    public @NotNull AbstractActivityRun<CompositeWorkDefinition, CustomCompositeActivityHandler, ?> createActivityRun(
+            @NotNull ActivityRunInstantiationContext<CompositeWorkDefinition, CustomCompositeActivityHandler> context,
             @NotNull OperationResult result) {
         return new CompositeActivityRun<>(context);
     }
 
     @Override
-    public ArrayList<Activity<?, ?>> createChildActivities(Activity<CompositeWorkDefinition, PureCompositeActivityHandler> parent)
-            throws SchemaException {
+    public ArrayList<Activity<?, ?>> createChildActivities(Activity<CompositeWorkDefinition, CustomCompositeActivityHandler> parent) {
         return parent.getWorkDefinition().getComposition().getActivity().stream()
+                .sorted(Comparator.comparing(
+                        ActivityDefinitionType::getOrder,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(definitionBean -> ActivityDefinition.createChild(definitionBean, workDefinitionFactory))
                 .map(definition -> createChildActivity(definition, parent))
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -81,6 +84,6 @@ public class PureCompositeActivityHandler implements ActivityHandler<CompositeWo
 
     @Override
     public @NotNull ActivityStateDefinition<?> getRootActivityStateDefinition() {
-        return ActivityStateDefinition.normal(PureCompositeWorkStateType.COMPLEX_TYPE);
+        return ActivityStateDefinition.normal(CustomCompositeWorkStateType.COMPLEX_TYPE);
     }
 }

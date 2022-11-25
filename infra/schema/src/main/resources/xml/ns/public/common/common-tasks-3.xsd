@@ -7396,10 +7396,14 @@
         <xsd:annotation>
             <xsd:documentation>
                 Work state for a pure composite activity.
+                Replaced by CustomCompositeWorkStateType.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.4</a:since>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.7</a:deprecatedSince>
+                <a:deprecatedSince>4.4.4</a:deprecatedSince>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -7407,6 +7411,23 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="pureCompositeWorkState" type="tns:PureCompositeWorkStateType" />
+
+    <xsd:complexType name="CustomCompositeWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for a custom composite activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.7</a:since>
+                <a:since>4.4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="customCompositeWorkState" type="tns:CustomCompositeWorkStateType" />
 
     <xsd:complexType name="ScanWorkStateType">
         <xsd:annotation>
