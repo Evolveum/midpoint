@@ -32,7 +32,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,12 +47,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBidirectionalMappingAndDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import static com.evolveum.midpoint.util.MiscUtil.filter;
 
@@ -128,17 +122,8 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());
 
         reconcileAuxiliaryObjectClasses(projCtx);
-
-        ResourceObjectDefinition rOcDef = projCtx.getCompositeObjectDefinition();
-
-        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = projCtx
-                .getSqueezedAttributes();
-        LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
-        reconcileProjectionAttributes(projCtx, squeezedAttributes);
-
-        Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations = projCtx.getSqueezedAssociations();
-        LOGGER.trace("Association reconciliation processing {}", projCtx.getHumanReadableName());
-        reconcileProjectionAssociations(projCtx, squeezedAssociations, rOcDef, task, result);
+        reconcileProjectionAttributes(projCtx);
+        reconcileProjectionAssociations(projCtx, task, result);
 
         reconcileMissingAuxiliaryObjectClassAttributes(projCtx);
     }
@@ -307,11 +292,12 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         }
     }
 
-    private void reconcileProjectionAttributes(
-            LensProjectionContext projCtx,
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>, PrismPropertyDefinition<?>>>> squeezedAttributes)
+    private void reconcileProjectionAttributes(LensProjectionContext projCtx)
             throws SchemaException, ConfigurationException {
 
+        LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
+
+        var squeezedAttributes = projCtx.getSqueezedAttributes();
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
         PrismContainer<?> attributesContainer = shadowNew.findContainer(ShadowType.F_ATTRIBUTES);
@@ -522,17 +508,18 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         }
     }
 
-    private void reconcileProjectionAssociations(
-            LensProjectionContext projCtx,
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations,
-            ResourceObjectDefinition accountDefinition, Task task, OperationResult result)
+    private void reconcileProjectionAssociations(LensProjectionContext projCtx, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException {
+
+        LOGGER.trace("Association reconciliation processing {}", projCtx.getHumanReadableName());
 
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
         PrismContainer associationsContainer = shadowNew.findContainer(ShadowType.F_ASSOCIATION);
+        ResourceObjectDefinition accountDefinition = projCtx.getCompositeObjectDefinition();
 
+        var squeezedAssociations = projCtx.getSqueezedAssociations();
         Collection<QName> associationNames =
                 squeezedAssociations != null ?
                         MiscUtil.union(squeezedAssociations.keySet(), accountDefinition.getNamesOfAssociations()) :

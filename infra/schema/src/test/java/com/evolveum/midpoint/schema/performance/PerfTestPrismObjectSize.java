@@ -107,7 +107,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         for (int maxOps : DELTA_OP_COUNT) {
             int opCount = Math.min(config.count, maxOps);
             measureDelta(config, monitorName("replace",config.monitorId(), Integer.toString(opCount)), assignments -> {
-                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext(), null);
                 for (int i = assignments.size() - opCount; i < assignments.size(); i++) {
                     AssignmentType assignment = assignments.get(i).clone();
                     assignment.description("Modified");
@@ -123,7 +123,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         for (int maxOps : DELTA_OP_COUNT) {
             int opCount = maxOps;
             measureDelta(config, monitorName("add",config.monitorId(), Integer.toString(opCount)), assignments -> {
-                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext(), null);
                 for (int i = 0; i < opCount; i++) {
                     AssignmentType assignment = assignments.get(0).clone();
                     assignment.getConstruction().resourceRef(newUuid(), assignment.getConstruction().getResourceRef().getType());
@@ -140,7 +140,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         for (int maxOps : DELTA_OP_COUNT) {
             int opCount = Math.min(config.count, maxOps);
             measureDelta(config, monitorName("delete",config.monitorId(), Integer.toString(opCount)), assignments -> {
-                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext(), null);
                 for (int i = assignments.size() - opCount; i < assignments.size(); i++) {
                     AssignmentType assignment = assignments.get(i).clone();
                     delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).delete(assignment.asPrismContainerValue());
@@ -156,7 +156,7 @@ public class PerfTestPrismObjectSize extends AbstractSchemaPerformanceTest {
         for (int maxOps : DELTA_OP_COUNT) {
             int opCount = Math.min(config.count, maxOps);
             measureDelta(config, monitorName("delete.no.id",config.monitorId(), Integer.toString(opCount)), assignments -> {
-                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext());
+                DeltaBuilder<UserType> delta = new DeltaBuilder<>(UserType.class, getPrismContext(), null);
                 for (int i = assignments.size() - opCount; i < assignments.size(); i++) {
                     AssignmentType assignment = assignments.get(i).clone();
                     delta = (DeltaBuilder<UserType>) delta.item(UserType.F_ASSIGNMENT).delete(assignment.asPrismContainerValue());

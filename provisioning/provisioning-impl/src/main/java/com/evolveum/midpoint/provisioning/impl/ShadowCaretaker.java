@@ -16,9 +16,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
 
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.PendingOperationTypeUtil;
 
@@ -34,8 +32,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -43,8 +39,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+import static com.evolveum.midpoint.provisioning.util.ProvisioningUtil.isCompletedAndOverPeriod;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.EXECUTION_PENDING;
 
 /**
  * Component that takes care of some shadow (or resource object) maintenance, such as applying definitions, applying pending
@@ -58,7 +56,6 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResu
 @Component
 public class ShadowCaretaker {
 
-    @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
 
     // Please use this method only via ProvisioningContext
@@ -80,12 +77,12 @@ public class ShadowCaretaker {
             } else if (SchemaConstants.PATH_ATTRIBUTES.equivalent(itemDelta.getPath())) {
                 if (itemDelta.isAdd()) {
                     for (PrismValue value : itemDelta.getValuesToAdd()) {
-                        applyAttributeDefinition(ctx, value);
+                        applyAttributesDefinition(ctx, value);
                     }
                 }
                 if (itemDelta.isReplace()) {
                     for (PrismValue value : itemDelta.getValuesToReplace()) {
-                        applyAttributeDefinition(ctx, value);
+                        applyAttributesDefinition(ctx, value);
                     }
                 }
             }
@@ -93,7 +90,7 @@ public class ShadowCaretaker {
     }
 
     // value should be a value of attributes container
-    private void applyAttributeDefinition(ProvisioningContext ctx, PrismValue value)
+    private void applyAttributesDefinition(ProvisioningContext ctx, PrismValue value)
             throws SchemaException  {
         if (!(value instanceof PrismContainerValue)) {
             return; // should never occur
@@ -170,21 +167,10 @@ public class ShadowCaretaker {
 
         PrismContainer<ShadowAttributesType> attributesContainer = shadowObject.findContainer(ShadowType.F_ATTRIBUTES);
         if (attributesContainer != null) {
-            if (attributesContainer instanceof ResourceAttributeContainer) {
-                if (attributesContainer.getDefinition() == null) {
-                    attributesContainer.applyDefinition(objectDefinition.toResourceAttributeContainerDefinition());
-                }
-            } else {
-                try {
-                    // We need to convert <attributes> to ResourceAttributeContainer
-                    ResourceAttributeContainer convertedContainer =
-                            ResourceAttributeContainer.convertFromContainer(attributesContainer, objectDefinition);
-                    shadowObject.getValue().replace(attributesContainer, convertedContainer);
-                } catch (SchemaException e) {
-                    throw e.wrap("Couldn't apply attributes definitions in " + shadow);
-                }
-            }
+            applyAttributesDefinitionToContainer(objectDefinition, attributesContainer, shadowObject.getValue(), shadow);
         }
+
+        // TODO what about associations definitions?
 
         // We also need to replace the entire object definition to inject
         // correct resource object definition here
@@ -204,6 +190,27 @@ public class ShadowCaretaker {
         }
 
         return subContext;
+    }
+
+    private void applyAttributesDefinitionToContainer(
+            ResourceObjectDefinition objectDefinition,
+            PrismContainer<ShadowAttributesType> attributesContainer,
+            PrismContainerValue<?> parentPcv,
+            Object context) throws SchemaException {
+        if (attributesContainer instanceof ResourceAttributeContainer) {
+            if (attributesContainer.getDefinition() == null) {
+                attributesContainer.applyDefinition(objectDefinition.toResourceAttributeContainerDefinition());
+            }
+        } else {
+            try {
+                // We need to convert <attributes> to ResourceAttributeContainer
+                ResourceAttributeContainer convertedContainer =
+                        ResourceAttributeContainer.convertFromContainer(attributesContainer, objectDefinition);
+                parentPcv.replace(attributesContainer, convertedContainer);
+            } catch (SchemaException e) {
+                throw e.wrap("Couldn't apply attributes definitions in " + context);
+            }
+        }
     }
 
     /**
@@ -230,13 +237,13 @@ public class ShadowCaretaker {
     }
 
     public @NotNull ShadowType applyPendingOperations(
-            @NotNull ProvisioningContext ctx,
+            @NotNull ProvisioningContext shadowCtx,
             @NotNull ShadowType repoShadow,
             ShadowType resourceShadow,
             boolean skipExecutionPendingOperations,
             XMLGregorianCalendar now)
             throws SchemaException, ConfigurationException {
-        ShadowType resultShadow = Objects.requireNonNullElse(resourceShadow, repoShadow);
+        @NotNull ShadowType resultShadow = Objects.requireNonNullElse(resourceShadow, repoShadow);
 
         if (ShadowUtil.isDead(resultShadow)) {
             return resultShadow;
@@ -247,8 +254,8 @@ public class ShadowCaretaker {
             return resultShadow;
         }
         List<PendingOperationType> sortedOperations = sortPendingOperations(pendingOperations);
-        Duration gracePeriod = ProvisioningUtil.getGracePeriod(ctx);
-        boolean resourceReadIsCachingOnly = ctx.isReadingCachingOnly();
+        Duration gracePeriod = ProvisioningUtil.getGracePeriod(shadowCtx);
+        boolean resourceReadIsCachingOnly = shadowCtx.isReadingCachingOnly();
         for (PendingOperationType pendingOperation: sortedOperations) {
             OperationResultStatusType resultStatus = pendingOperation.getResultStatus();
             PendingOperationExecutionStatusType executionStatus = pendingOperation.getExecutionStatus();
@@ -256,29 +263,26 @@ public class ShadowCaretaker {
                 // Not applicable means: "no point trying this, will not retry". Therefore it will not change future state.
                 continue;
             }
-            if (PendingOperationExecutionStatusType.COMPLETED.equals(executionStatus)
-                    && ProvisioningUtil.isCompletedAndOverPeriod(now, gracePeriod, pendingOperation)) {
+            if (executionStatus == COMPLETED && isCompletedAndOverPeriod(now, gracePeriod, pendingOperation)) {
                 // Completed operations over grace period. They have already affected current state. They are already "applied".
                 continue;
             }
             // Note: We still want to process errors, even fatal errors. As long as they are in executing state then they
             // are going to be retried and they still may influence future state
-            if (skipExecutionPendingOperations
-                    && executionStatus == PendingOperationExecutionStatusType.EXECUTION_PENDING) {
+            if (skipExecutionPendingOperations && executionStatus == EXECUTION_PENDING) {
                 continue;
             }
             if (resourceReadIsCachingOnly) {
-                // We are getting the data from our own cache. So we know that all completed operations are already applied in the cache.
-                // Re-applying them will mean additional risk of corrupting the data.
+                // We are getting the data from our own cache. So we know that all completed operations are already applied
+                // in the cache. Re-applying them will mean additional risk of corrupting the data.
                 if (resultStatus != null && resultStatus != IN_PROGRESS && resultStatus != UNKNOWN) {
                     continue;
                 }
             } else {
-                // We want to apply all the deltas, even those that are already completed. They might not be reflected on the resource yet.
-                // E.g. they may be not be present in the CSV export until the next export cycle is scheduled
+                // We want to apply all the deltas, even those that are already completed. They might not be reflected
+                // on the resource yet. E.g. they may be not be present in the CSV export until the next export cycle is scheduled
             }
-            ObjectDeltaType pendingDeltaType = pendingOperation.getDelta();
-            ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingDeltaType, prismContext);
+            ObjectDelta<ShadowType> pendingDelta = DeltaConvertor.createObjectDelta(pendingOperation.getDelta());
             if (pendingDelta.isAdd()) {
                 // In case that we have resourceShadow then do NOT apply ADD operation
                 // In that case the object was obviously already created. The data that we have from the
@@ -293,11 +297,13 @@ public class ShadowCaretaker {
                     for (PendingOperationType pendingOperation2: repoShadow.getPendingOperation()) {
                         newPendingOperations.add(pendingOperation2.clone());
                     }
-                    applyAttributesDefinitionInNewContext(ctx, resultShadow);
+                    applyAttributesDefinitionInNewContext(shadowCtx, resultShadow);
                 }
             }
             if (pendingDelta.isModify()) {
-                pendingDelta.applyTo(asPrismObject(resultShadow));
+                // Attribute values get their definitions here (assuming the shadow has the refined definition).
+                // Association values do not.
+                pendingDelta.applyTo(resultShadow.asPrismObject());
             }
             if (pendingDelta.isDelete()) {
                 resultShadow.setDead(true);
@@ -305,6 +311,11 @@ public class ShadowCaretaker {
                 resultShadow.setPrimaryIdentifierValue(null);
             }
         }
+
+        if (shadowCtx.hasDefinition()) {
+            applyAssociationsDefinitions(shadowCtx, resultShadow);
+        }
+
         // TODO: check schema, remove non-readable attributes, activation, password, etc.
 //        CredentialsType creds = resultShadowType.getCredentials();
 //        if (creds != null) {
@@ -314,6 +325,38 @@ public class ShadowCaretaker {
 //            }
 //        }
         return resultShadow;
+    }
+
+    /** Applies the correct definitions to identifier containers in association values. Assumes known shadow type. */
+    private void applyAssociationsDefinitions(ProvisioningContext shadowCtx, ShadowType shadow)
+            throws ConfigurationException, SchemaException {
+        for (ShadowAssociationType association : shadow.getAssociation()) {
+            var associationPcv = association.asPrismContainerValue();
+            // Identifiers are ShadowIdentifiersType but to make compiler happy let's pretend it's ShadowAttributesType.
+            //noinspection unchecked
+            PrismContainer<ShadowAttributesType> identifiersContainer =
+                    associationPcv.findContainer(ShadowAssociationType.F_IDENTIFIERS);
+            if (identifiersContainer == null) {
+                continue;
+            }
+
+            QName associationName = association.getName();
+            if (associationName == null) {
+                continue;
+            }
+            ResourceAssociationDefinition assocDef =
+                    shadowCtx.getObjectDefinitionRequired().findAssociationDefinition(associationName);
+            if (assocDef == null) {
+                continue;
+            }
+
+            ProvisioningContext assocCtx = shadowCtx.spawnForKindIntent(assocDef.getKind(), assocDef.getAnyIntent());
+            ResourceObjectDefinition assocObjectDef = assocCtx.getObjectDefinition();
+            if (assocObjectDef == null) {
+                continue;
+            }
+            applyAttributesDefinitionToContainer(assocObjectDef, identifiersContainer, associationPcv, shadow);
+        }
     }
 
     public List<PendingOperationType> sortPendingOperations(List<PendingOperationType> pendingOperations) {
