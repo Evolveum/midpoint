@@ -17,4 +17,10 @@
             <name>m1</name>
         </mapping>
     </item>
+    <item>
+        <ref>extension/resourceName</ref> <!-- intentionally unqualified -->
+        <mapping>
+            <name>m-ext-1</name>
+        </mapping>
+    </item>
 </objectTemplate>

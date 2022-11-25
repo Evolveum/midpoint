@@ -7,6 +7,7 @@
 
 <objectTemplate
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:p="http://midpoint.evolveum.com/xml/ns/samples/piracy"
         oid="c0726932-4cd1-42b8-ace3-0fb08c6ac83d">
     <name>b2b</name>
     <item>
@@ -17,5 +18,11 @@
     </item>
     <item>
         <ref>name</ref>
+    </item>
+    <item>
+        <ref>extension/p:resourceName</ref> <!-- second segment qualified -->
+        <mapping>
+            <name>m-ext-2b</name>
+        </mapping>
     </item>
 </objectTemplate>

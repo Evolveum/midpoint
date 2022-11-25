@@ -15,6 +15,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -94,11 +99,12 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
         displayDumpable("expanded version", expanded);
         assertThat(getOrig(expanded.getName())).as("name").isEqualTo("b1");
 
-        and("there are two merged item definitions - displayName and name");
+        and("there are three merged item definitions - displayName, name, extension/resourceName");
         // Note that this is not officially supported - for now. But it works.
         List<ObjectTemplateItemDefinitionType> items = expanded.getItem();
-        assertThat(items).as("item definitions").hasSize(2);
+        assertThat(items).as("item definitions").hasSize(3);
 
+        and("displayName has 3 mappings");
         List<ObjectTemplateItemDefinitionType> displayNameDefs =
                 items.stream()
                         .filter(i -> i.getRef().getItemPath().equivalent(RoleType.F_DISPLAY_NAME))
@@ -108,6 +114,7 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
         // One from each template
         assertThat(displayNameDef.getMapping()).as("mappings for displayName").hasSize(3);
 
+        and("name has no mappings");
         List<ObjectTemplateItemDefinitionType> nameDefs =
                 items.stream()
                         .filter(i -> i.getRef().getItemPath().equivalent(RoleType.F_NAME))
@@ -115,5 +122,24 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
         assertThat(nameDefs).as("name definitions").hasSize(1);
         ObjectTemplateItemDefinitionType nameDef = nameDefs.get(0);
         assertThat(nameDef.getMapping()).as("mappings for name").hasSize(0);
+
+        and("extension/resourceName has 3 mappings");
+        ItemPath resourceNamePath = ItemPath.create(ObjectType.F_EXTENSION, EXT_RESOURCE_NAME);
+        List<ObjectTemplateItemDefinitionType> resourceNameDefs =
+                items.stream()
+                        .filter(i -> i.getRef().getItemPath().equivalent(resourceNamePath))
+                        .collect(Collectors.toList());
+        assertThat(resourceNameDefs).as("ext/resourceName definitions").hasSize(1);
+        ObjectTemplateItemDefinitionType resourceNameDef = resourceNameDefs.get(0);
+        // One from each template
+        assertThat(resourceNameDef.getMapping()).as("mappings for ext/resourceName").hasSize(3);
+
+        and("all segments are qualified");
+        List<?> refValueSegments = resourceNameDef.getRef().getItemPath().getSegments();
+        assertThat(refValueSegments).as("ref path segments").hasSize(2);
+        String firstSegmentNamespace = ItemPath.toName(refValueSegments.get(0)).getNamespaceURI();
+        String secondSegmentNamespace = ItemPath.toName(refValueSegments.get(1)).getNamespaceURI();
+        assertThat(firstSegmentNamespace).as("first segment namespace").isEqualTo(SchemaConstants.NS_C);
+        assertThat(secondSegmentNamespace).as("second segment namespace").isEqualTo(NS_PIRACY);
     }
 }
