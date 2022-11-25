@@ -6,34 +6,26 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<task oid="694a5aae-d869-4b58-a6dc-aad4c5cc1e4d"
+<task oid="65866e01-73cd-4249-9b7b-03ebc4413bd0"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/repo-common-test/extension">
-    <name>task-pure-composite-with-default-work</name>
+    <name>task-140</name>
     <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
     <executionState>runnable</executionState>
-    <recurrence>single</recurrence>
     <activity>
         <composition>
-            <defaultWorkDefinition>
-                <extension>
-                    <ext:compositeMock>
-                        <ext:message>A</ext:message>
-                    </ext:compositeMock>
-                </extension>
-            </defaultWorkDefinition>
+            <!-- The physical (list position) and logical ("order" property) ordering intentionally differ here - MID-8166. -->
             <activity>
-                <order>1</order>
-                <!-- uses default fully -->
-            </activity>
-            <activity>
-                <order>2</order>
+                <order>4</order>
                 <work>
                     <extension>
-                        <!-- overrides default fully (different type) -->
-                        <ext:simpleMock>
-                            <ext:message>Hello</ext:message>
-                        </ext:simpleMock>
+                        <ext:compositeMock>
+                            <ext:message>C</ext:message>
+                            <ext:delay>200</ext:delay>
+                            <ext:steps>1</ext:steps>
+                            <ext:opening>false</ext:opening>
+                            <ext:closing>true</ext:closing>
+                        </ext:compositeMock>
                     </extension>
                 </work>
             </activity>
@@ -43,18 +35,30 @@
                     <extension>
                         <ext:compositeMock>
                             <ext:message>B</ext:message>
+                            <ext:delay>200</ext:delay>
+                            <ext:steps>1</ext:steps>
                         </ext:compositeMock>
                     </extension>
                 </work>
             </activity>
             <activity>
-                <order>4</order>
+                <order>2</order>
+                <work>
+                    <extension>
+                        <ext:simpleMock>
+                            <ext:message>Hello</ext:message>
+                        </ext:simpleMock>
+                    </extension>
+                </work>
+            </activity>
+            <activity>
+                <order>1</order>
                 <work>
                     <extension>
                         <ext:compositeMock>
-                            <!-- inherites 'A' -->
-                            <ext:opening>false</ext:opening>
-                            <ext:closing>true</ext:closing>
+                            <ext:message>A</ext:message>
+                            <ext:delay>100</ext:delay>
+                            <ext:steps>3</ext:steps>
                         </ext:compositeMock>
                     </extension>
                 </work>

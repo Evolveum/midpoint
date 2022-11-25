@@ -93,13 +93,13 @@ public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpa
     }
 
     /**
-     * Creates a definition for a child of a pure-composite activity.
+     * Creates a definition for a child of a custom composite activity.
      *
      * It is taken from the "activity" bean, combined with (compatible) information from "defaultWorkDefinition"
      * beans all the way up.
      */
-    public static ActivityDefinition<?> createChild(@NotNull ActivityDefinitionType bean,
-            @NotNull WorkDefinitionFactory workDefinitionFactory) {
+    public static ActivityDefinition<?> createChild(
+            @NotNull ActivityDefinitionType bean, @NotNull WorkDefinitionFactory workDefinitionFactory) {
         try {
             AbstractWorkDefinition definition = createFromBean(bean, workDefinitionFactory);
 
