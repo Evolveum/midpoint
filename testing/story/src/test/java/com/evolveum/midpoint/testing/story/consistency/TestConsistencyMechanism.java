@@ -2228,6 +2228,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         //THEN
         openDJController.assumeRunning();
 
+        // MID-8327
+        recomputeUser(USER_DONALD_OID, null, task, parentResult);
+
+        // To have the real effects (checked below)
         recomputeUser(USER_DONALD_OID, executeOptions().reconcile(), task, parentResult);
 
         assertModelShadow(shadowOid)

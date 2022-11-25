@@ -7,12 +7,15 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.Clock;
+
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -298,6 +301,7 @@ public class ShadowCaretaker {
                 resultShadowBean.setPrimaryIdentifierValue(null);
             }
         }
+        applyAssociationsDefinitions(ctx, resultShadow.asObjectable());
         // TODO: check schema, remove non-readable attributes, activation, password, etc.
 //        CredentialsType creds = resultShadowType.getCredentials();
 //        if (creds != null) {
@@ -307,6 +311,65 @@ public class ShadowCaretaker {
 //            }
 //        }
         return resultShadow;
+    }
+
+    /**
+     * Applies the correct definitions to identifier containers in association values. Assumes known shadow type.
+     * A bit hacked. See 4.7-version for more serious solution.
+     */
+    private void applyAssociationsDefinitions(ProvisioningContext shadowCtx, ShadowType shadow)
+            throws ConfigurationException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ObjectNotFoundException {
+        RefinedObjectClassDefinition objectDef = shadowCtx.getObjectClassDefinition();
+        if (objectDef == null) {
+            return;
+        }
+        for (ShadowAssociationType association : shadow.getAssociation()) {
+            var associationPcv = association.asPrismContainerValue();
+            // Identifiers are ShadowIdentifiersType but to make compiler happy let's pretend it's ShadowAttributesType.
+            //noinspection unchecked
+            PrismContainer<ShadowAttributesType> identifiersContainer =
+                    associationPcv.findContainer(ShadowAssociationType.F_IDENTIFIERS);
+            if (identifiersContainer == null) {
+                continue;
+            }
+
+            QName associationName = association.getName();
+            if (associationName == null) {
+                continue;
+            }
+            RefinedAssociationDefinition assocDef = objectDef.findAssociationDefinition(associationName);
+            if (assocDef == null) {
+                continue;
+            }
+            Collection<String> intents = assocDef.getIntents();
+            if (intents.isEmpty()) {
+                continue;
+            }
+
+            ProvisioningContext assocCtx = shadowCtx.spawn(assocDef.getKind(), intents.iterator().next());
+            RefinedObjectClassDefinition assocObjectDef = assocCtx.getObjectClassDefinition();
+            if (assocObjectDef == null) {
+                continue;
+            }
+            applyAttributesDefinitionToContainer(assocObjectDef, identifiersContainer, associationPcv);
+        }
+    }
+
+    private void applyAttributesDefinitionToContainer(
+            RefinedObjectClassDefinition objectDefinition,
+            PrismContainer<ShadowAttributesType> attributesContainer,
+            PrismContainerValue<?> parentPcv) throws SchemaException {
+        if (attributesContainer instanceof ResourceAttributeContainer) {
+            if (attributesContainer.getDefinition() == null) {
+                attributesContainer.applyDefinition(objectDefinition.toResourceAttributeContainerDefinition());
+            }
+        } else {
+            // We need to convert <attributes> to ResourceAttributeContainer
+            ResourceAttributeContainer convertedContainer =
+                    ResourceAttributeContainer.convertFromContainer(attributesContainer, objectDefinition);
+            parentPcv.replace(attributesContainer, convertedContainer);
+        }
     }
 
     public List<PendingOperationType> sortPendingOperations(List<PendingOperationType> pendingOperations) {
