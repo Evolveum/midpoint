@@ -131,7 +131,7 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         assertFailure(result);
 
         // May be fragile. Adapt as needed.
-        assertThat(result.getMessage()).as("error message").contains("already exists in context");
+        assertThat(result.getMessage()).as("error message").contains("already exists in lens context");
 
         assertUserByUsername("smith1", "after case resolution")
                 .display()
