@@ -18,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -40,7 +39,7 @@ public final class PropagationActivityRun
             AbstractActivityWorkStateType> {
 
     /** Fetched resource object. */
-    private PrismObject<ResourceType> resource;
+    private ResourceType resource;
 
     PropagationActivityRun(
             @NotNull ActivityRunInstantiationContext<PropagationWorkDefinition, PropagationActivityHandler> context) {
@@ -60,8 +59,10 @@ public final class PropagationActivityRun
         String resourceOid = MiscUtil.requireNonNull(
                 getWorkDefinition().getResourceOid(),
                 () -> "No resource specified");
-        resource = getActivityHandler().provisioningService
-                .getObject(ResourceType.class, resourceOid, null, getRunningTask(), result);
+        resource =
+                getActivityHandler().provisioningService
+                        .getObject(ResourceType.class, resourceOid, null, getRunningTask(), result)
+                        .asObjectable();
         setContextDescription("to " + resource);
     }
 
@@ -85,11 +86,14 @@ public final class PropagationActivityRun
     }
 
     @Override
-    public boolean processItem(@NotNull ShadowType shadow,
-            @NotNull ItemProcessingRequest<ShadowType> request, RunningTask workerTask, OperationResult result)
+    public boolean processItem(
+            @NotNull ShadowType shadow,
+            @NotNull ItemProcessingRequest<ShadowType> request,
+            @NotNull RunningTask workerTask,
+            @NotNull OperationResult result)
             throws CommonException {
         try {
-            getActivityHandler().shadowsFacade.propagateOperations(resource, shadow.asPrismObject(), workerTask, result);
+            getActivityHandler().shadowsFacade.propagateOperations(resource, shadow, workerTask, result);
             return true;
         } catch (GenericFrameworkException | EncryptionException e) {
             throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);

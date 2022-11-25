@@ -16,7 +16,6 @@ import com.google.common.base.MoreObjects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
@@ -47,7 +46,7 @@ public class ShadowedObjectFound implements InitializableMixin {
     /**
      * The resource object as obtained from the resource object converter. It has no connection to the repo.
      */
-    @NotNull private final PrismObject<ShadowType> resourceObject;
+    @NotNull private final ShadowType resourceObject;
 
     /**
      * Real value of the object primary identifier (e.g. ConnId UID).
@@ -73,7 +72,7 @@ public class ShadowedObjectFound implements InitializableMixin {
      * All reasonable attempts are done in order to create at least minimalistic shadow (because of error handling).
      * This object points to such a shadow. The other parts (from resource object) can be missing.
      */
-    private PrismObject<ShadowType> shadowedObject;
+    private ShadowType shadowedObject;
 
     /** State of the processing. */
     private final InitializationState initializationState;
@@ -129,15 +128,15 @@ public class ShadowedObjectFound implements InitializableMixin {
             return;
         }
 
-        PrismObject<ShadowType> repoShadow = acquireRepoShadow(result);
+        ShadowType repoShadow = acquireRepoShadow(result);
         try {
 
             // This determines the definitions exactly. Now the repo shadow should have proper kind/intent.
-            ProvisioningContext preciseCtx = ictx.localBeans.shadowCaretaker.applyAttributesDefinition(ictx.ctx, repoShadow);
-            ictx.localBeans.shadowCaretaker.updateShadowState(preciseCtx, repoShadow);
+            ProvisioningContext shadowCtx = ictx.ctx.applyAttributesDefinition(repoShadow);
+            shadowCtx.updateShadowState(repoShadow);
 
-            PrismObject<ShadowType> updatedRepoShadow = updateRepoShadow(preciseCtx, repoShadow, result);
-            shadowedObject = createShadowedObject(preciseCtx, updatedRepoShadow, result);
+            ShadowType updatedRepoShadow = updateShadowInRepository(shadowCtx, repoShadow, result);
+            shadowedObject = createShadowedObject(shadowCtx, updatedRepoShadow, result);
 
         } catch (Exception e) {
 
@@ -149,8 +148,7 @@ public class ShadowedObjectFound implements InitializableMixin {
         }
     }
 
-    @NotNull
-    private PrismObject<ShadowType> acquireRepoShadow(OperationResult result) throws SchemaException, ConfigurationException,
+    private @NotNull ShadowType acquireRepoShadow(OperationResult result) throws SchemaException, ConfigurationException,
             ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, EncryptionException,
             SecurityViolationException {
         // The resource object does not have any kind or intent at this point.
@@ -169,15 +167,15 @@ public class ShadowedObjectFound implements InitializableMixin {
         }
     }
 
-    private PrismObject<ShadowType> updateRepoShadow(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, ConfigurationException,
-            CommunicationException, ExpressionEvaluationException {
+    private ShadowType updateShadowInRepository(
+            ProvisioningContext ctx, ShadowType repoShadow, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
         // TODO: provide shadowState - it is needed when updating exists attribute (because of quantum effects)
-        return ictx.localBeans.shadowManager
-                .updateShadow(ctx, resourceObject, null, repoShadow, null, result);
+        return ictx.localBeans.shadowUpdater
+                .updateShadowInRepository(ctx, resourceObject, null, repoShadow, null, result);
     }
 
-    private @NotNull PrismObject<ShadowType> createShadowedObject(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, OperationResult result)
+    private @NotNull ShadowType createShadowedObject(ProvisioningContext ctx, ShadowType repoShadow, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             SecurityViolationException, ExpressionEvaluationException, EncryptionException {
         // TODO do we want also to futurize the shadow like in getObject?
@@ -190,7 +188,7 @@ public class ShadowedObjectFound implements InitializableMixin {
      * attributes are stripped down to a bare primary identifier.
      */
     @NotNull
-    private PrismObject<ShadowType> acquireRepoShadowInEmergency(OperationResult result)
+    private ShadowType acquireRepoShadowInEmergency(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
         LOGGER.trace("Acquiring repo shadow in emergency:\n{}", DebugUtil.debugDumpLazily(resourceObject, 1));
@@ -207,10 +205,10 @@ public class ShadowedObjectFound implements InitializableMixin {
      * Something prevents us from creating a shadow (most probably). Let us be minimalistic, and create
      * a shadow having only the primary identifier.
      */
-    private PrismObject<ShadowType> shadowResourceObjectInUltraEmergency(OperationResult result)
+    private ShadowType shadowResourceObjectInUltraEmergency(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
-        PrismObject<ShadowType> minimalResourceObject = Util.minimize(resourceObject, ictx.ctx.getObjectDefinitionRequired());
+        ShadowType minimalResourceObject = ShadowsUtil.minimize(resourceObject, ictx.ctx.getObjectDefinitionRequired());
         LOGGER.trace("Minimal resource object to acquire a shadow for:\n{}",
                 DebugUtil.debugDumpLazily(minimalResourceObject, 1));
         if (minimalResourceObject != null) {
@@ -240,33 +238,33 @@ public class ShadowedObjectFound implements InitializableMixin {
         }
     }
 
-    public @NotNull PrismObject<ShadowType> getResourceObject() {
+    public @NotNull ShadowType getResourceObject() {
         return resourceObject;
     }
 
-    private @NotNull PrismObject<ShadowType> getAdoptedOrOriginalObject() {
+    private @NotNull ShadowType getAdoptedOrOriginalObject() {
         return MoreObjects.firstNonNull(shadowedObject, resourceObject);
     }
 
     // TEMPORARY (for migration)
     @NotNull
-    private PrismObject<ShadowType> getResourceObjectWithFetchResult() {
+    private ShadowType getResourceObjectWithFetchResult() {
         initializationState.checkAfterInitialization();
 
         if (initializationState.isOk()) {
             return getAdoptedOrOriginalObject();
         } else {
-            PrismObject<ShadowType> mostRelevantObject = getAdoptedOrOriginalObject();
-            PrismObject<ShadowType> clone = mostRelevantObject.clone();
+            ShadowType mostRelevantObject = getAdoptedOrOriginalObject();
+            ShadowType clone = mostRelevantObject.clone();
             if (clone.getName() == null) {
                 if (CollectionUtils.isEmpty(ShadowUtil.getPrimaryIdentifiers(clone))) {
                     // HACK HACK HACK
-                    clone.asObjectable().setName(PolyStringType.fromOrig(String.valueOf(primaryIdentifierValue)));
+                    clone.setName(PolyStringType.fromOrig(String.valueOf(primaryIdentifierValue)));
                 } else {
                     try {
                         PolyString name = ShadowUtil.determineShadowName(clone);
                         if (name != null) {
-                            clone.asObjectable().setName(new PolyStringType(name));
+                            clone.setName(new PolyStringType(name));
                         }
                     } catch (SchemaException e) {
                         LOGGER.warn("Couldn't determine the name for {}", clone, e);
@@ -284,7 +282,7 @@ public class ShadowedObjectFound implements InitializableMixin {
     }
 
     // Maybe temporary
-    PrismObject<ShadowType> getResultingObject(FetchErrorReportingMethodType errorReportingMethod) {
+    ShadowType getResultingObject(FetchErrorReportingMethodType errorReportingMethod) {
         initializationState.checkAfterInitialization();
 
         Throwable exception = initializationState.getExceptionEncountered();
@@ -293,7 +291,7 @@ public class ShadowedObjectFound implements InitializableMixin {
         } else if (errorReportingMethod != FETCH_RESULT) {
             throw new TunnelException(exception);
         } else {
-            PrismObject<ShadowType> resultingObject = getResourceObjectWithFetchResult();
+            ShadowType resultingObject = getResourceObjectWithFetchResult();
             LOGGER.error("An error occurred while processing resource object {}. Recording it into object "
                     + "fetch result: {}", resultingObject, exception.getMessage(), exception);
             return resultingObject;

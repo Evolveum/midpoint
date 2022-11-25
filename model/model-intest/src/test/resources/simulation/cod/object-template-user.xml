@@ -1,0 +1,92 @@
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:pc="http://midpoint.evolveum.com/xml/ns/samples/preview-changes"
+        oid="fc5bfc7b-0612-450a-85d2-ab5cff7e4ed9">
+
+    <name>object template user</name>
+
+    <mapping>
+        <source>
+            <path>organization</path>
+        </source>
+        <source>
+            <path>description</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>OrgType</targetType>
+                <filter>
+                    <q:equal>
+                        <q:path>identifier</q:path>
+                        <expression>
+                            <script>
+                                <code>
+                                    basic.stringify(organization).split(':').last()
+                                </code>
+                            </script>
+                        </expression>
+                    </q:equal>
+                </filter>
+                <createOnDemand>true</createOnDemand>
+                <populateObject>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    basic.stringify(organization).split(':').last()
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>identifier</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    def str = basic.stringify(organization)
+                                    str.substring(0, str.lastIndexOf(":"))
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>extension/pc:parentIdentifier</path>
+                        </target>
+                    </populateItem>
+                    <populateItem>
+                        <expression>
+                            <script>
+                                <code>
+                                    description
+                                </code>
+                            </script>
+                        </expression>
+                        <target>
+                            <path>description</path>
+                        </target>
+                    </populateItem>
+                </populateObject>
+            </assignmentTargetSearch>
+        </expression>
+        <target>
+            <path>assignment</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>
+                            assignment.subtype.contains("org")
+                        </code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+    </mapping>
+</objectTemplate>

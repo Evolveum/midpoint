@@ -7,9 +7,6 @@
 package com.evolveum.midpoint.testing.story.consistency;
 
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeAvailabilityStatusType.MAINTENANCE;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeAvailabilityStatusType.OPERATIONAL;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -1405,7 +1402,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
-        assertNoMessage(parentResult); // TODO here should be some specific message
+        assertMessageContains(parentResult, "Connection failed");
 
         then("assign account on OpenDJ");
         assertUser(USER_ELAINE_OID, "User after")
@@ -1480,7 +1477,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
-        assertNoMessage(parentResult); // TODO here should be some specific message
+        assertMessageContains(parentResult, "Connection failed");
 
         assertUser(USER_JACKIE_OID, "User after first modify")
                 .assertLiveLinks(1)
@@ -1569,7 +1566,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
-        assertThat(parentResult.getMessage()).startsWith("Error communicating with connector");
+        assertMessageContains(parentResult, "Connection failed");
 
         assertUser(USER_JACKIE_OID, "User after first modify")
                 .assertLiveLinks(1)
@@ -1665,7 +1662,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         then();
         parentResult.computeStatus();
         assertInProgress(parentResult);
-        assertNoMessage(parentResult); // TODO here should be some specific message
+        assertMessageContains(parentResult, "Connection failed");
 
         assertUser(USER_ANGELIKA_OID, "User after")
                 .assertLiveLinks(1);
@@ -1986,7 +1983,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
-        assertNoMessage(parentResult); // TODO here should be some specific message
+        assertMessageContains(parentResult, "Connection failed");
 
         assertUser(USER_BOB_NO_GIVEN_NAME_OID, "User after")
                 .assertLiveLinks(1);
@@ -2179,7 +2176,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // GIVEN
         openDJController.addEntriesFromLdifFile(LDIF_CREATE_ADMINS_GROUP_FILE);
 
-        ObjectQuery filter = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_GROUP_OBJECTCLASS, prismContext);
+        ObjectQuery filter = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_GROUP_OBJECTCLASS);
         SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, filter, null, task, parentResult);
 
         for (PrismObject<ShadowType> shadow : shadows) {
@@ -2197,7 +2194,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         // WHEN
         when();
 
-        AssignmentType adminRoleAssignment = new AssignmentType(prismContext);
+        AssignmentType adminRoleAssignment = new AssignmentType();
         adminRoleAssignment.setTargetRef(ObjectTypeUtil.createObjectRef(ROLE_LDAP_ADMINS_OID, ObjectTypes.ROLE));
         ObjectDelta<UserType> delta = prismContext.deltaFactory()
                 .object()
@@ -2787,7 +2784,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         AssignmentType assignment = userBefore.getAssignment().get(0).clone();
         AssignmentType assignmentNoId = userBefore.getAssignment().get(0).cloneWithoutId();
 
-        modifyResourceMaintenance(RESOURCE_OPENDJ_OID, MAINTENANCE, task, result);
+        turnMaintenanceModeOn(RESOURCE_OPENDJ_OID, result);
 
         // --- deleting the assignment ---
         when("deleting account by unassigning the construction");
@@ -2798,7 +2795,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // --- re-creating the assignment ---
         when("re-creating the account by re-assigning the construction");
-        modifyResourceMaintenance(RESOURCE_OPENDJ_OID, OPERATIONAL, task, result);
+        turnMaintenanceModeOff(RESOURCE_OPENDJ_OID, result);
         recreateAssignment(userOid, assignmentNoId, task, result);
 
         then("re-creating the account by re-assigning the construction");
@@ -2817,7 +2814,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     /** Creates a user with a single assignment of an account construction. */
     private UserType createUserWithAssignedAccount(Task task, OperationResult result) throws CommonException {
         // @formatter:off
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name(getTestNameShort())
                 .fullName("test")
                 .familyName("test")

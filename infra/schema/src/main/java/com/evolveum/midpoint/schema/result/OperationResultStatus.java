@@ -6,7 +6,10 @@
  */
 package com.evolveum.midpoint.schema.result;
 
+import com.evolveum.midpoint.util.exception.CommonException;
+
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
@@ -126,6 +129,31 @@ public enum OperationResultStatus {
                 return OperationResultStatusType.IN_PROGRESS;
             default:
                 return OperationResultStatusType.UNKNOWN;
+        }
+    }
+
+    static OperationResultStatus forThrowable(Throwable cause) {
+        if (cause instanceof CommonException) {
+            return forCommonExceptionStatus(((CommonException) cause).getSeverity());
+        } else {
+            return FATAL_ERROR;
+        }
+    }
+
+    private static OperationResultStatus forCommonExceptionStatus(@NotNull CommonException.Severity severity) {
+        switch (severity) {
+            case FATAL_ERROR:
+                return FATAL_ERROR;
+            case PARTIAL_ERROR:
+                return PARTIAL_ERROR;
+            case WARNING:
+                return WARNING;
+            case HANDLED_ERROR:
+                return HANDLED_ERROR;
+            case SUCCESS:
+                return SUCCESS;
+            default:
+                throw new AssertionError(severity);
         }
     }
 

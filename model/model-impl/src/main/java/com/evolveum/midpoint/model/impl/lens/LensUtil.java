@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.expr.SequentialValueExpressionEvaluator;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -903,6 +905,11 @@ public class LensUtil {
 
     public static <F extends ObjectType> void reclaimSequences(LensContext<F> context, RepositoryService repositoryService, Task task, OperationResult result) throws SchemaException {
         if (context == null) {
+            return;
+        }
+
+        if (SequentialValueExpressionEvaluator.isAdvanceSequenceSafe(context)) {
+            LOGGER.trace("We're in safe mode, sequences don't have to be reclaimed");
             return;
         }
 

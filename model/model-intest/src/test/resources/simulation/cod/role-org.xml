@@ -1,0 +1,137 @@
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="3d82a1af-0380-4368-b80a-b28a8c87b5bb">
+
+    <name>role org</name>
+
+    <inducement>
+        <description>create group for OrgType</description>
+        <construction>
+            <resourceRef oid="8dfeccc9-e144-4864-a692-e483f4b1873a"/>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <name>group association for org</name>
+                    <source>
+                        <path>$immediateRole/extension/parentIdentifier</path>
+                    </source>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/name</q:path>
+                                    <expression>
+                                        <script>
+                                            <code>
+                                                "Org: " + parentIdentifier.split(':').last()
+                                            </code>
+                                        </script>
+                                    </expression>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                            <createOnDemand>true</createOnDemand>
+                            <populateObject>
+                                <populateItem>
+                                    <expression>
+                                        <script>
+                                            <code>
+                                                "Org: " + parentIdentifier.split(':').last()
+                                            </code>
+                                        </script>
+                                    </expression>
+                                    <target>
+                                        <path>attributes/icfs:name</path>
+                                    </target>
+                                </populateItem>
+                            </populateObject>
+                        </associationTargetSearch>
+                    </expression>
+                    <condition>
+                        <script>
+                            <code>
+                                parentIdentifier != null
+                            </code>
+                        </script>
+                    </condition>
+                </outbound>
+            </association>
+        </construction>
+        <condition>
+            <source>
+                <path>$immediateRole/description</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        description != "no-provisioning"
+                    </code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+
+    <inducement>
+        <description>create account with group membership for user that has OrgType assigned</description>
+        <construction>
+            <resourceRef oid="8dfeccc9-e144-4864-a692-e483f4b1873a"/>
+            <kind>account</kind>
+            <intent>default</intent>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <name>group association for user</name>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/icfs:name</q:path>
+                                    <expression>
+                                        <path>$immediateRole/name</path>
+                                    </expression>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                            <createOnDemand>true</createOnDemand>
+                            <populateObject>
+                                <populateItem>
+                                    <expression>
+                                        <path>$immediateRole/name</path>
+                                    </expression>
+                                    <target>
+                                        <path>attributes/icfs:name</path>
+                                    </target>
+                                </populateItem>
+                            </populateObject>
+                        </associationTargetSearch>
+                    </expression>
+                </outbound>
+            </association>
+        </construction>
+        <order>2</order>
+        <condition>
+            <source>
+                <path>$immediateRole/description</path>
+            </source>
+            <expression>
+                <script>
+                    <code>
+                        description != "no-provisioning"
+                    </code>
+                </script>
+            </expression>
+        </condition>
+    </inducement>
+</role>

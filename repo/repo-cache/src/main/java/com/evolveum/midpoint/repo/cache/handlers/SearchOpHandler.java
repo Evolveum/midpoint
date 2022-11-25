@@ -16,8 +16,6 @@ import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.repo.cache.other.MonitoringUtil;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.cache.local.QueryKey;
+import com.evolveum.midpoint.repo.cache.other.MonitoringUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -62,14 +61,22 @@ public class SearchOpHandler extends CachedOpHandler {
         SearchOpExecution<T> exec = initializeExecution(type, query, options, parentResult, SEARCH_OBJECTS);
 
         try {
+            QueryKey<T> key = new QueryKey<>(type, query);
+
             // Checks related to both caches
             PassReason passReason = PassReason.determine(options, type);
             if (passReason != null) {
                 exec.reportLocalAndGlobalPass(passReason);
-                SearchResultList<PrismObject<T>> objects = searchObjectsInternal(type, query, options, exec.result);
+                SearchResultList<PrismObject<T>> objects;
+                if (passReason.isSoft()) {
+                    // Soft = execute the search but remember the result
+                    objects = executeAndCacheSearch(exec, key);
+                } else {
+                    // Hard = pass the cache altogether - most probably because the objects differ from "standard" ones
+                    objects = searchObjectsInternal(type, query, options, exec.result);
+                }
                 return exec.prepareReturnValueAsIs(objects);
             }
-            QueryKey<T> key = new QueryKey<>(type, query);
 
             // Let's try local cache
             if (!exec.local.available) {
@@ -190,7 +197,7 @@ public class SearchOpHandler extends CachedOpHandler {
         TracingLevelType level = result.getTracingLevel(RepositorySearchObjectsTraceType.class);
         RepositorySearchObjectsTraceType trace;
         if (isAtLeastMinimal(level)) {
-            trace = new RepositorySearchObjectsTraceType(prismContext)
+            trace = new RepositorySearchObjectsTraceType()
                     .cache(true)
                     .objectType(prismContext.getSchemaRegistry().determineTypeForClass(type))
                     .query(prismContext.getQueryConverter().createQueryType(query))

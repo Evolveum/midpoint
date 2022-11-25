@@ -44,6 +44,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 import static com.evolveum.midpoint.util.MiscUtil.schemaCheck;
 
@@ -486,21 +487,23 @@ class EntitlementConverter {
     /**
      * TODO
      */
-    PrismObject<ShadowType> collectEntitlementsAsObjectOperationInShadowAdd(
+    ShadowType collectEntitlementsAsObjectOperationInShadowAdd(
             Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap,
-            PrismObject<ShadowType> subject,
+            ShadowType subject,
             ProvisioningContext ctx,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        PrismContainer<ShadowAssociationType> associationContainer = subject.findContainer(ShadowType.F_ASSOCIATION);
+        PrismContainer<ShadowAssociationType> associationContainer =
+                subject.asPrismObject().findContainer(ShadowType.F_ASSOCIATION);
         if (associationContainer == null || associationContainer.isEmpty()) {
             return subject;
         }
         return collectEntitlementsAsObjectOperation(
                 roMap,
                 associationContainer.getValues(),
-                null, subject,
+                null,
+                subject,
                 ModificationType.ADD,
                 ctx, result);
     }
@@ -537,11 +540,11 @@ class EntitlementConverter {
     /**
      * TODO
      */
-    PrismObject<ShadowType> collectEntitlementsAsObjectOperation(
+    ShadowType collectEntitlementsAsObjectOperation(
             Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap,
             ContainerDelta<ShadowAssociationType> containerDelta,
-            PrismObject<ShadowType> subjectShadowBefore,
-            PrismObject<ShadowType> subjectShadowAfter,
+            ShadowType subjectShadowBefore,
+            ShadowType subjectShadowAfter,
             ProvisioningContext ctx,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
@@ -571,7 +574,7 @@ class EntitlementConverter {
      */
     <T> void collectEntitlementsAsObjectOperationDelete(
             Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap,
-            PrismObject<ShadowType> subjectShadow,
+            ShadowType subjectShadow,
             ProvisioningContext subjectCtx,
             OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
@@ -797,11 +800,11 @@ class EntitlementConverter {
         }
     }
 
-    private PrismObject<ShadowType> collectEntitlementsAsObjectOperation(
+    private ShadowType collectEntitlementsAsObjectOperation(
             Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap,
             Collection<PrismContainerValue<ShadowAssociationType>> associationValuesInDeltaSet,
-            PrismObject<ShadowType> subjectShadowBefore,
-            PrismObject<ShadowType> subjectShadowAfter,
+            ShadowType subjectShadowBefore,
+            ShadowType subjectShadowAfter,
             ModificationType modificationType,
             ProvisioningContext ctx,
             OperationResult result)
@@ -814,11 +817,11 @@ class EntitlementConverter {
         return subjectShadowAfter;
     }
 
-    private <TV,TA> PrismObject<ShadowType> collectEntitlementAsObjectOperation(
+    private <TV,TA> ShadowType collectEntitlementAsObjectOperation(
             Map<ResourceObjectDiscriminator, ResourceObjectOperations> roMap,
             PrismContainerValue<ShadowAssociationType> associationValue,
-            PrismObject<ShadowType> subjectShadowBefore,
-            PrismObject<ShadowType> subjectShadowAfter,
+            ShadowType subjectShadowBefore,
+            ShadowType subjectShadowAfter,
             ModificationType modificationType,
             ProvisioningContext subjectCtx,
             OperationResult result)
@@ -888,7 +891,7 @@ class EntitlementConverter {
             //    new data (because the object operation was already carried out), so we use shadowAfter
             //  - if the resource does not provide referential integrity, the subject has OLD data
             //    so we use shadowBefore
-            PrismObject<ShadowType> subjectShadow;
+            ShadowType subjectShadow;
             if (modificationType != ModificationType.DELETE) {
                 subjectShadow = subjectShadowAfter;
             } else {
@@ -906,8 +909,9 @@ class EntitlementConverter {
                 if (!ShadowUtil.isFullShadow(subjectShadow)) {
                     Collection<ResourceAttribute<?>> subjectIdentifiers = ShadowUtil.getAllIdentifiers(subjectShadow);
                     LOGGER.trace("Fetching {} ({})", subjectShadow, subjectIdentifiers);
-                    subjectShadow = resourceObjectReferenceResolver.fetchResourceObject(
-                            subjectCtx, subjectIdentifiers, null, subjectShadow, result);
+                    subjectShadow = asObjectable(
+                            resourceObjectReferenceResolver.fetchResourceObject(
+                                    subjectCtx, subjectIdentifiers, null, subjectShadow.asPrismObject(), result));
                     subjectShadowAfter = subjectShadow;
                     valueAttr = ShadowUtil.getAttribute(subjectShadow, valueAttrName);
                 }
@@ -944,16 +948,17 @@ class EntitlementConverter {
             }
 
             if (ResourceTypeUtil.isAvoidDuplicateValues(resource)) {
-                PrismObject<ShadowType> currentObjectShadow = operations.getCurrentShadow();
+                ShadowType currentObjectShadow = operations.getCurrentShadow();
                 if (currentObjectShadow == null) {
                     LOGGER.trace("Fetching entitlement shadow {} to avoid value duplication (intent={})",
                             entitlementIdentifiersFromAssociation, entitlementIntent);
-                    currentObjectShadow = resourceObjectReferenceResolver.fetchResourceObject(
-                            entitlementCtx,
-                            entitlementIdentifiersFromAssociation,
-                            null,
-                            null,
-                            result);
+                    currentObjectShadow = asObjectable(
+                            resourceObjectReferenceResolver.fetchResourceObject(
+                                    entitlementCtx,
+                                    entitlementIdentifiersFromAssociation,
+                                    null,
+                                    null,
+                                    result));
                     operations.setCurrentShadow(currentObjectShadow);
                 }
                 // TODO It seems that duplicate values are checked twice: once here and the second time

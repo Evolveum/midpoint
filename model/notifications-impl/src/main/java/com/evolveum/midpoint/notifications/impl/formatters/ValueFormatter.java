@@ -15,6 +15,8 @@ import java.util.Locale;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +96,7 @@ public class ValueFormatter {
 
     void formatPrismValue(StringBuilder sb, String prefix, PrismValue prismValue, boolean mightBeRemoved, Collection<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         if (prismValue instanceof PrismPropertyValue) {
-            sb.append(ValueDisplayUtil.toStringValue((PrismPropertyValue<?>) prismValue));
+            sb.append(toStringValue((PrismPropertyValue<?>) prismValue));
         } else if (prismValue instanceof PrismReferenceValue) {
             sb.append(formatReferenceValue((PrismReferenceValue) prismValue, mightBeRemoved));
         } else if (prismValue instanceof PrismContainerValue) {
@@ -170,12 +172,17 @@ public class ValueFormatter {
             for (PrismPropertyValue<?> propertyValue : ((PrismProperty<?>) item).getValues()) {
                 sb.append("\n");
                 sb.append(prefix).append("   - ");
-                sb.append(ValueDisplayUtil.toStringValue(propertyValue));
+                sb.append(toStringValue(propertyValue));
             }
         } else if (item.size() == 1) {
-            sb.append(ValueDisplayUtil.toStringValue(((PrismProperty<?>) item).getAnyValue()));
+            sb.append(toStringValue(((PrismProperty<?>) item).getAnyValue()));
         }
         sb.append("\n");
+    }
+
+    private String toStringValue(PrismPropertyValue value) {
+        LocalizableMessage msg = ValueDisplayUtil.toStringValue(value);
+        return msg != null ? msg.getFallbackMessage() : null;
     }
 
     private String formatReferenceValue(PrismReferenceValue value, boolean mightBeRemoved) {

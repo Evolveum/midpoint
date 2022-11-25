@@ -84,9 +84,9 @@ public interface RunningTask extends Task, RunningTaskStatisticsCollector, CanRu
      * (Originally this was implemented in task extension.)
      */
     @Experimental
-    default @NotNull ExecutionModeType getExecutionMode() {
+    default @NotNull ExecutionModeType getActivityExecutionMode() {
         ExecutionSupport executionSupport = getExecutionSupport();
-        return executionSupport != null ? executionSupport.getExecutionMode() : ExecutionModeType.FULL;
+        return executionSupport != null ? executionSupport.getActivityExecutionMode() : ExecutionModeType.FULL;
     }
 
     ExecutionSupport getExecutionSupport();

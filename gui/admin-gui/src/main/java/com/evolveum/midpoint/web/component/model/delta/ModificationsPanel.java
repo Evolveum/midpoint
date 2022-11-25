@@ -7,15 +7,17 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class ModificationsPanel extends BasePanel<DeltaDto> {
 
@@ -36,12 +38,20 @@ public class ModificationsPanel extends BasePanel<DeltaDto> {
         add(new ListView<ModificationDto>(ID_MODIFICATION, new PropertyModel(getModel(), DeltaDto.F_MODIFICATIONS)) {
             @Override
             protected void populateItem(ListItem<ModificationDto> item) {
-                item.add(new Label(ID_ATTRIBUTE, new PropertyModel(item.getModel(), ModificationDto.F_ATTRIBUTE)));
-                item.add(new Label(ID_CHANGE_TYPE, new PropertyModel(item.getModel(), ModificationDto.F_CHANGE_TYPE)));
+                item.add(new Label(ID_ATTRIBUTE, () -> item.getModelObject().getAttribute()));
+                item.add(new Label(ID_CHANGE_TYPE, () -> item.getModelObject().getChangeType()));
+
                 if (item.getModelObject().getValue() instanceof ContainerValueDto) {
-                    item.add(new ContainerValuePanel(ID_VALUE, new Model((ContainerValueDto) item.getModelObject().getValue())));
+                    item.add(new ContainerValuePanel(ID_VALUE, () -> (ContainerValueDto) item.getModelObject().getValue()));
                 } else {    // should be String
-                    item.add(new Label(ID_VALUE, new PropertyModel(item.getModel(), ModificationDto.F_VALUE)));
+                    item.add(new Label(ID_VALUE, () -> {
+                        Object value = item.getModelObject().getValue();
+                        if (value instanceof PolyString) {
+                            return WebComponentUtil.getTranslatedPolyString((PolyString) value);
+                        }
+
+                        return value;
+                    }));
                 }
             }
         });

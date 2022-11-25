@@ -9,23 +9,20 @@ package com.evolveum.midpoint.provisioning.impl.shadows;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
-import com.evolveum.midpoint.provisioning.util.DefinitionsUtil;
-
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.schema.processor.ShadowCoordinatesQualifiedObjectDelta;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContextFactory;
-import com.evolveum.midpoint.provisioning.impl.ShadowCaretaker;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
+import com.evolveum.midpoint.provisioning.util.DefinitionsUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.processor.ShadowCoordinatesQualifiedObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -40,16 +37,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 class DefinitionsHelper {
 
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService repositoryService;
-
-    @Autowired private ShadowCaretaker shadowCaretaker;
-    @Autowired protected ShadowManager shadowManager;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private ProvisioningContextFactory ctxFactory;
 
-    public void applyDefinition(ObjectDelta<ShadowType> delta, @Nullable ShadowType repoShadow,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
+    public void applyDefinition(
+            ObjectDelta<ShadowType> delta,
+            @Nullable ShadowType repoShadow,
+            Task task,
+            OperationResult result) throws SchemaException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<ShadowType> shadow = null;
         ResourceShadowCoordinates coordinates = null;
@@ -83,14 +78,14 @@ class DefinitionsHelper {
         } else {
             ctx = ctxFactory.createForShadow(shadow, task, result);
         }
-        shadowCaretaker.applyAttributesDefinition(ctx, delta);
+        ctx.applyAttributesDefinition(delta);
     }
 
-    public void applyDefinition(PrismObject<ShadowType> shadow, Task task, OperationResult parentResult)
+    public void applyDefinition(ShadowType shadow, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, parentResult);
-        shadowCaretaker.applyAttributesDefinition(ctx, shadow);
+        ProvisioningContext ctx = ctxFactory.createForShadow(shadow, task, result);
+        ctx.applyAttributesDefinition(shadow);
     }
 
     public void applyDefinition(ObjectQuery query, Task task, OperationResult result)

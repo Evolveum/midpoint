@@ -21,7 +21,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,14 +63,14 @@ public class ObjectPolicyAspectPart {
     <T extends ObjectType> void extractObjectBasedInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
             @Nullable PrismObject<? extends FocusType> requester, @NotNull List<PcpStartInstruction> instructions,
             @NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException {
+            throws SchemaException, ConfigurationException {
 
         OperationResult result = parentResult.subresult(OP_EXTRACT_OBJECT_BASED_INSTRUCTIONS)
                 .setMinor()
                 .build();
         ApprovalProcessStartInstructionCreationTraceType trace;
         if (result.isTracingNormal(ApprovalProcessStartInstructionCreationTraceType.class)) {
-            trace = new ApprovalProcessStartInstructionCreationTraceType(prismContext);
+            trace = new ApprovalProcessStartInstructionCreationTraceType();
             result.addTrace(trace);
         } else {
             trace = null;
@@ -230,16 +230,4 @@ public class ObjectPolicyAspectPart {
                 .args(ObjectTypeUtil.createDisplayInformation(asPrismObject(focus), false))
                 .build();
     }
-
-    //    private ObjectDelta<?> subtractModifications(@NotNull ObjectDelta<?> focusDelta, @NotNull Set<ItemPath> itemPaths) {
-//        if (itemPaths.isEmpty()) {
-//            ObjectDelta<?> originalDelta = focusDelta.clone();
-//            focusDelta.clear();
-//            return originalDelta;
-//        }
-//        if (!focusDelta.isModify()) {
-//            throw new IllegalStateException("Not a MODIFY delta; delta = " + focusDelta);
-//        }
-//        return focusDelta.subtract(itemPaths);
-//    }
 }

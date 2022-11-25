@@ -266,21 +266,22 @@ class SaveReportFileSupport {
     private ObjectReferenceType getCurrentNodeRef(OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException {
+        String nodeId = runningTask.getNode();
         SearchResultList<PrismObject<NodeType>> nodes = reportService.getModelService().searchObjects(
                 NodeType.class,
                 reportService.getPrismContext()
-                        .queryFor(NodeType.class).item(NodeType.F_NODE_IDENTIFIER).eq(runningTask.getNode()).build(),
+                        .queryFor(NodeType.class).item(NodeType.F_NODE_IDENTIFIER).eq(nodeId).build(),
                 null,
                 runningTask,
                 parentResult);
         if (nodes == null || nodes.isEmpty()) {
             LOGGER.error("Could not found node for storing the report.");
-            throw new ObjectNotFoundException("Could not find node where to save report");
+            throw new ObjectNotFoundException("Could not find node where to save report", NodeType.class, nodeId);
         }
 
         if (nodes.size() > 1) {
-            LOGGER.error("Found more than one node with ID {}.", runningTask.getNode());
-            throw new IllegalStateException("Found more than one node with ID " + runningTask.getNode());
+            LOGGER.error("Found more than one node with ID {}.", nodeId);
+            throw new IllegalStateException("Found more than one node with ID " + nodeId);
         }
 
         return ObjectTypeUtil.createObjectRef(nodes.iterator().next(), reportService.getPrismContext());

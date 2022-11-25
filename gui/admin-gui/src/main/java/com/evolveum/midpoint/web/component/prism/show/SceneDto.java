@@ -10,9 +10,9 @@ package com.evolveum.midpoint.web.component.prism.show;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.Name;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
-import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
-import com.evolveum.midpoint.model.api.visualizer.SceneItem;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 
@@ -34,7 +34,7 @@ public class SceneDto implements Serializable {
     public static final java.lang.String F_PARTIAL_SCENES = "partialScenes";
     public static final java.lang.String F_SORTED = "sorted";
 
-    @NotNull private final Scene scene;
+    @NotNull private final Visualization scene;
     private boolean minimized;
     private boolean sorted = false;
 
@@ -43,21 +43,21 @@ public class SceneDto implements Serializable {
     private final List<SceneItemDto> items = new ArrayList<>();
     private final List<SceneDto> partialScenes = new ArrayList<>();
 
-    public SceneDto(@NotNull Scene scene) {
+    public SceneDto(@NotNull Visualization scene) {
         this.scene = scene;
-        for (SceneItem item : scene.getItems()) {
+        for (VisualizationItem item : scene.getItems()) {
             if (item != null) {
                 items.add(new SceneItemDto(this, item));
             }
         }
-        for (Scene sub : scene.getPartialScenes()) {
+        for (Visualization sub : scene.getPartialVisualizations()) {
             if (sub != null) {
                 partialScenes.add(new SceneDto(sub));
             }
         }
     }
 
-    public Scene getScene() {
+    public Visualization getScene() {
         return scene;
     }
 
@@ -133,8 +133,8 @@ public class SceneDto implements Serializable {
     }
 
     public boolean containsDeltaItems() {
-        for (SceneItem item : scene.getItems()) {
-            if (item instanceof SceneDeltaItem) {
+        for (VisualizationItem item : scene.getItems()) {
+            if (item instanceof VisualizationDeltaItem) {
                 return true;
             }
         }

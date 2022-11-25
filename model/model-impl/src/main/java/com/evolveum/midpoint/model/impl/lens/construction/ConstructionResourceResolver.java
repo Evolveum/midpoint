@@ -72,8 +72,8 @@ class ConstructionResourceResolver {
                     return new ResolvedConstructionResource(resource);
                 } catch (ObjectNotFoundException e) {
                     if (refIntegrity == ReferentialIntegrityType.STRICT) {
-                        throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in "
-                                + construction.source + ": " + e.getMessage(), e);
+                        throw e.wrap(
+                                "Resource reference seems to be invalid in account construction in " + construction.source);
                     } else if (refIntegrity == ReferentialIntegrityType.RELAXED) {
                         LOGGER.warn("Resource reference couldn't be resolved in {}: {}", construction.source, e.getMessage(), e);
                         return new ResolvedConstructionResource(true);
@@ -143,8 +143,10 @@ class ConstructionResourceResolver {
 
         // TODO consider referential integrity settings
         if (CollectionUtils.isEmpty(matchingResources)) {
-            throw new ObjectNotFoundException("Got no target from repository, filter:" + evaluatedFilter
-                    + ", class:" + ResourceType.class + " in " + sourceDescription);
+            throw new ObjectNotFoundException(
+                    "Got no resource from repository, filter: " + evaluatedFilter + ", in " + sourceDescription,
+                    ResourceType.class,
+                    null);
         }
 
         if (matchingResources.size() > 1) {

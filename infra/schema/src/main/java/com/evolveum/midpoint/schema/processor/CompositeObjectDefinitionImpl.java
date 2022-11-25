@@ -282,6 +282,11 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @Nullable String getLifecycleState() {
+        return structuralDefinition.getLifecycleState();
+    }
+
+    @Override
     public ResourceObjectMultiplicityType getObjectMultiplicity() {
         return structuralDefinition.getObjectMultiplicity();
     }

@@ -274,7 +274,7 @@ public class ObjectTypeUtil {
         if (objectType == null) {
             return null;
         }
-        return createObjectRefWithFullObject(objectType.asPrismObject(), prismContext);
+        return createObjectRefWithFullObject(objectType.asPrismObject());
     }
 
     public static ObjectReferenceType createObjectRef(ObjectType object) {
@@ -318,14 +318,12 @@ public class ObjectTypeUtil {
     }
 
     public static ObjectReferenceType createObjectRef(PrismObject<?> object) {
-        return createObjectRef(object, PrismContext.get());
+        return createObjectRef(object, PrismContext.get().getDefaultRelation());
     }
 
-    public static ObjectReferenceType createObjectRef(PrismObject<?> object, PrismContext prismContext) {
-        if (object == null) {
-            return null;
-        }
-        return createObjectRef(object, prismContext.getDefaultRelation());
+    @Deprecated
+    public static ObjectReferenceType createObjectRef(PrismObject<?> object, PrismContext ignored) {
+        return createObjectRef(object);
     }
 
     public static ObjectReferenceType createObjectRef(PrismObject<?> object, QName relation) {
@@ -344,21 +342,22 @@ public class ObjectTypeUtil {
     }
 
     public static ObjectReferenceType createObjectRefWithFullObject(PrismObject<?> object) {
-        return createObjectRefWithFullObject(object, PrismContext.get());
+        if (object != null) {
+            ObjectReferenceType ref = createObjectRef(object);
+            ref.asReferenceValue().setObject(object);
+            return ref;
+        } else {
+            return null;
+        }
     }
 
     public static ObjectReferenceType createObjectRefWithFullObject(ObjectType object) {
-        return createObjectRefWithFullObject(object, PrismContext.get());
+        return createObjectRefWithFullObject(asPrismObject(object));
     }
 
-    public static ObjectReferenceType createObjectRefWithFullObject(PrismObject<?> object,
-            PrismContext prismContext) {
-        if (object == null) {
-            return null;
-        }
-        ObjectReferenceType ref = createObjectRef(object, prismContext);
-        ref.asReferenceValue().setObject(object);
-        return ref;
+    @Deprecated
+    public static ObjectReferenceType createObjectRefWithFullObject(PrismObject<?> object, PrismContext ignored) {
+        return createObjectRefWithFullObject(object);
     }
 
     //FIXME TODO temporary hack
@@ -1031,10 +1030,10 @@ public class ObjectTypeUtil {
         return fetchResult != null && OperationResultUtil.isError(fetchResult.getStatus());
     }
 
-    public static void recordFetchError(PrismObject<? extends ObjectType> object, OperationResult result) {
+    public static void recordFetchError(ObjectType object, OperationResult result) {
         OperationResultType resultBean = result.createBeanReduced();
         assert OperationResultUtil.isError(resultBean.getStatus());
-        object.asObjectable().setFetchResult(resultBean);
+        object.setFetchResult(resultBean);
     }
 
     public static Collection<ObjectReferenceType> createObjectRefs(Collection<PrismReferenceValue> values) {

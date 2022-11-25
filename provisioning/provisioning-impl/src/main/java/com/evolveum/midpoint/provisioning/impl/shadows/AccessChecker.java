@@ -16,7 +16,6 @@ import com.evolveum.midpoint.schema.processor.*;
 
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -40,16 +39,16 @@ class AccessChecker {
 
     private static final Trace LOGGER = TraceManager.getTrace(AccessChecker.class);
 
-    void checkAdd(ProvisioningContext ctx, PrismObject<ShadowType> shadow, OperationResult parentResult)
+    void checkAddAccess(ProvisioningContext ctx, ShadowType shadow, OperationResult parentResult)
             throws SecurityViolationException, SchemaException {
         OperationResult result = parentResult.createMinorSubresult(OP_ACCESS_CHECK);
         try {
             ResourceAttributeContainer attributeCont = ShadowUtil.getAttributesContainer(shadow);
 
             for (ResourceAttribute<?> attribute : attributeCont.getAttributes()) {
-                ResourceAttributeDefinition<?> attrDef = ctx.getObjectDefinitionRequired()
-                        .findAttributeDefinitionRequired(attribute.getElementName());
-                PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
+                PropertyLimitations limitations =
+                        ctx.findAttributeDefinitionRequired(attribute.getElementName())
+                                .getLimitations(LayerType.MODEL);
                 if (limitations == null) {
                     continue;
                 }
@@ -67,16 +66,15 @@ class AccessChecker {
                             "Attempt to add shadow with non-creatable attribute " + attribute.getElementName());
                 }
             }
-            result.recordSuccess();
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 
-    void checkModify(
+    void checkModifyAccess(
             ProvisioningContext ctx,
             Collection<? extends ItemDelta<?, ?>> modifications,
             OperationResult parentResult)

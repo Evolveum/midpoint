@@ -36,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
+import static com.evolveum.midpoint.schema.GetOperationOptions.isNoFetch;
 
 /**
  * Updates the projection context:
@@ -246,7 +247,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
             projectionObject = object.asObjectable();
             projectionContext.setLoadedObject(object);
 
-            updateFullShadowFlag();
+            updateFullShadowFlag(options);
             updateExistsAndGoneFlags();
 
         } catch (ObjectNotFoundException ex) {
@@ -303,12 +304,13 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         }
     }
 
-    private void updateFullShadowFlag() {
-        if (projectionContext.isDoReconciliation()) { // TODO rather check using options (!noFetch), not via this condition
-            projectionContext.determineFullShadowFlag(projectionObject);
-        } else {
+    private void updateFullShadowFlag(Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (isNoFetch(options)) {
             projectionContext.setFullShadow(false);
+        } else {
+            projectionContext.determineFullShadowFlag(projectionObject);
         }
+        LOGGER.trace("Full shadow flag: {}", projectionContext.isFullShadow());
     }
 
     private void updateExistsAndGoneFlags() {
@@ -329,22 +331,23 @@ class ProjectionUpdateOperation<F extends ObjectType> {
     }
 
     private void logLoadedShadow(PrismObject<ShadowType> object, Collection<SelectorOptions<GetOperationOptions>> options) {
-        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        if (!GetOperationOptions.isNoFetch(rootOptions) && !GetOperationOptions.isRaw(rootOptions)) {
-            LOGGER.trace("Full shadow loaded for {}:\n{}",
-                    projectionContext.getHumanReadableName(), object.debugDumpLazily(1));
-        }
+        LOGGER.trace("Shadow loaded (options: {}) for {}:\n{}",
+                options, projectionContext.getHumanReadableName(), object.debugDumpLazily(1));
     }
 
     private void checkLoadedShadowConsistency(PrismObject<ShadowType> object) {
         Validate.notNull(object.getOid());
         if (InternalsConfig.consistencyChecks) {
             String resourceOid = projectionContext.getResourceOid();
-            if (resourceOid != null && !resourceOid.equals(object.asObjectable().getResourceRef().getOid())) {
-                throw new IllegalStateException("Loaded shadow with wrong resourceRef. Loading shadow " + projectionObjectOid +
-                        ", got " + object.getOid() + ", expected resourceRef " + resourceOid + ", but was " +
-                        object.asObjectable().getResourceRef().getOid() +
-                        " for context " + projectionContext.getHumanReadableName());
+            if (resourceOid != null) {
+                String shadowResourceOid = object.asObjectable().getResourceRef().getOid();
+                if (!resourceOid.equals(shadowResourceOid)) {
+                    throw new IllegalStateException(
+                            String.format("Loaded shadow with wrong resourceRef. Loading shadow %s, got %s, "
+                                            + "expected resourceRef %s, but was %s for context %s",
+                                    projectionObjectOid, object.getOid(), resourceOid,
+                                    shadowResourceOid, projectionContext.getHumanReadableName()));
+                }
             }
         }
     }
@@ -388,9 +391,12 @@ class ProjectionUpdateOperation<F extends ObjectType> {
                 .futurePointInTime()
                 .allowNotFound();
 
-        // Most probably reconciliation for all projections implies reconciliation for projContext
-        // but we include both conditions just to be sure.
-        if (projectionContext.isDoReconciliation() || context.isDoReconciliationForAllProjections()) {
+        if (projectionContext.isInMaintenance()) {
+            LOGGER.trace("Using 'no fetch' mode because of resource maintenance (to avoid errors being reported)");
+            builder = builder.noFetch();
+        } else if (projectionContext.isDoReconciliation() || context.isDoReconciliationForAllProjections()) {
+            // Most probably reconciliation for all projections implies reconciliation for projContext
+            // but we include both conditions just to be sure.
             builder = builder.forceRefresh();
 
             // We force operation retry "in hard way" only if we do full-scale reconciliation AND we are starting the clockwork.

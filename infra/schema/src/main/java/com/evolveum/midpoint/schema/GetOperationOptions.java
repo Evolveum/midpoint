@@ -146,19 +146,32 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     private PointInTimeType pointInTimeType;
 
     /**
-     * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in millisecods.
+     * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in milliseconds.
+     *
+     * *Meaning for Provisioning service*
+     *
      * The default value is zero, which means that a fresh value must always be returned. This means that caches that do
      * not guarantee fresh value cannot be used. If non-zero value is specified then such caches may be used. In case that
-     * Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.
-     * <p>
+     * {@link Long#MAX_VALUE} is specified then the caches are always used and fresh value is never retrieved.
+     *
      * Null value is special in one more aspect: it allows to return partial cached data in case that the original is not
      * accessible. E.g. in that case provisioning can return repository shadow in case that the resource is not reachable.
      * Explicit specification of staleness=0 disables this behavior.
+     *
+     * *Meaning for Repository cache*
+     *
+     * The default value means that the cache may be used, if other options do not preclude the use. An explicit value of zero
+     * disables the cache.
+     *
+     * *Open question*
+     *
+     * We should somehow unify these meanings. When the client calls `getObject` at the level of the model API, it does not
+     * know whether provisioning and/or repository will be ultimately called.
      */
     private Long staleness;
 
     /**
-     * Force refresh of object before the data are retrieved. The operations are retried after the time perios passed.
+     * Force refresh of object before the data are retrieved. The operations are retried after the time period passed.
      * This option is a guarantee that we get the freshest data that is possible. However, strange things may happen here.
      * E.g. object that existed before this operation may get deleted during refresh because it has expired in the
      * meantime. Or get operation may in fact attempt to create, modify and even delete of an account. This may
@@ -424,6 +437,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return options.noFetch;
     }
 
+    public static boolean isNoFetch(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
+        return isNoFetch(
+                SelectorOptions.findRootOptions(options));
+    }
+
     /**
      * No not fetch any information from external sources, e.g. do not fetch account data from resource,
      * do not fetch resource schema, etc.
@@ -473,6 +491,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     public static boolean isRaw(@Nullable GetOperationOptions options) {
         return Objects.requireNonNullElse(
                 getRaw(options), false);
+    }
+
+    public static boolean isRaw(@Nullable Collection<SelectorOptions<GetOperationOptions>> options) {
+        return isRaw(
+                SelectorOptions.findRootOptions(options));
     }
 
     /**
@@ -550,6 +573,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return options.doNotDiscovery;
     }
 
+    public static boolean isDoNotDiscovery(Collection<SelectorOptions<GetOperationOptions>> options) {
+        return isDoNotDiscovery(
+                SelectorOptions.findRootOptions(options));
+    }
+
     /**
      * Force to get object from the resource even if some of the error occurred.
      * If the any copy of the shadow is fetched, we can't delete this object
@@ -607,6 +635,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
             return false;
         }
         return options.allowNotFound;
+    }
+
+    public static boolean isAllowNotFound(Collection<SelectorOptions<GetOperationOptions>> options) {
+        return isAllowNotFound(
+                SelectorOptions.findRootOptions(options));
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> createAllowNotFoundCollection() {
@@ -952,7 +985,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 
     public void setErrorReportingMethod(FetchErrorReportingMethodType method, PrismContext prismContext) {
         if (errorHandling == null) {
-            errorHandling = new FetchErrorHandlingType(prismContext);
+            errorHandling = new FetchErrorHandlingType();
         }
         errorHandling.setReportingMethod(method);
     }
@@ -1283,6 +1316,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
     public static Collection<SelectorOptions<GetOperationOptions>> updateToReadOnly(
             Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
         return updateRootOptions(originalOptions, opt -> opt.setReadOnly(true));
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> updateToDistinct(
+            Collection<SelectorOptions<GetOperationOptions>> originalOptions) {
+        return updateRootOptions(originalOptions, opt -> opt.setDistinct(true));
     }
 
     public static Collection<SelectorOptions<GetOperationOptions>> updateRootOptions(

@@ -18,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCo
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -83,12 +82,12 @@ class ResourceCompletionOperation {
      * @param resource May be mutable or immutable. Must NOT be expanded. We do expansion ourselves to know ancestors OIDs.
      */
     ResourceCompletionOperation(
-            @NotNull PrismObject<ResourceType> resource,
+            @NotNull ResourceType resource,
             @Nullable GetOperationOptions options,
             @NotNull Task task,
             @NotNull CommonBeans beans) {
         argCheck(resource.getOid() != null, "OID of %s is null", resource);
-        this.resource = resource.cloneIfImmutable().asObjectable();
+        this.resource = resource.asPrismObject().cloneIfImmutable().asObjectable();
         this.options = options;
         this.task = task;
         this.beans = beans;
@@ -192,10 +191,7 @@ class ResourceCompletionOperation {
 
         // Now we need to re-read the resource from the repository and re-apply the schemas. This ensures that we will
         // cache the correct version and that we avoid race conditions, etc.
-        ResourceType reloaded =
-                beans.resourceManager
-                        .readResourceFromRepository(resource.getOid(), result)
-                        .asObjectable();
+        ResourceType reloaded = beans.resourceManager.readResourceFromRepository(resource.getOid(), result);
 
         expand(reloaded);
 

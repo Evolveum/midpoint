@@ -9,6 +9,7 @@ package com.evolveum.midpoint.provisioning.impl.resources;
 
 import static com.evolveum.midpoint.schema.CapabilityUtil.isCapabilityEnabled;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,11 +44,12 @@ class ResourceCapabilitiesHelper {
      */
     <T extends CapabilityType> T getCapability(
             @NotNull ResourceType resource,
-            @Nullable ResourceObjectTypeDefinition objectTypeDefinition,
+            @Nullable ResourceObjectDefinition objectDefinition,
             @NotNull Class<T> capabilityClass) {
 
-        if (objectTypeDefinition != null) {
-            T inType = objectTypeDefinition.getConfiguredCapability(capabilityClass);
+        if (objectDefinition instanceof ResourceObjectTypeDefinition) {
+            // TODO allow configured capabilities also for refined object classes
+            T inType = ((ResourceObjectTypeDefinition) objectDefinition).getConfiguredCapability(capabilityClass);
             if (inType != null) {
                 return inType;
             }

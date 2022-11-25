@@ -14,6 +14,7 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 
@@ -149,7 +150,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
     private boolean hasCycle(@NotNull PrismObject<? extends ObjectType> target) throws PolicyViolationException {
         // TODO reconsider this
-        if (target.getOid().equals(segment.source.getOid())) {
+        if (target.getOid() != null && segment.source.getOid() != null && Objects.equals(target.getOid(), segment.source.getOid())) {
             throw new PolicyViolationException("The "+segment.source+" refers to itself in assignment/inducement");
         }
         int count = ctx.assignmentPath.countTargetOccurrences(target.asObjectable());

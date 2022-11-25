@@ -109,10 +109,10 @@ public class ShadowTagGenerator {
                 }
             }
         } catch (Throwable t) {
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
         }
     }
 }

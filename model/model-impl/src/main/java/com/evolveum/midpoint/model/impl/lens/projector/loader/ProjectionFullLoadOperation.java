@@ -7,6 +7,15 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.loader;
 
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
+import static com.evolveum.midpoint.schema.result.OperationResult.DEFAULT;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRefWithFullObject;
+
+import java.util.Collection;
+
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
@@ -17,23 +26,16 @@ import com.evolveum.midpoint.schema.PointInTimeType;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FullShadowLoadedTraceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-
-import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
-import static com.evolveum.midpoint.schema.result.OperationResult.DEFAULT;
-import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.*;
 
 /**
  * Loads the full resource object for a projection context.
@@ -100,18 +102,22 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
             Collection<SelectorOptions<GetOperationOptions>> options = createOptions();
             try {
                 if (oid == null) {
-                    throw new IllegalStateException("Trying to load shadow with null OID (reason for load: " + reason + ") for "
-                            + projCtx.getHumanReadableName());
+                    throw new IllegalStateException(
+                            String.format("Trying to load shadow with null OID (reason for load: %s) for %s",
+                                    reason, projCtx.getHumanReadableName()));
                 }
                 PrismObject<ShadowType> objectCurrent =
                         beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
                 Validate.notNull(objectCurrent.getOid());
                 if (trace != null) {
-                    trace.setShadowLoadedRef(ObjectTypeUtil.createObjectRefWithFullObject(objectCurrent, beans.prismContext));
+                    trace.setShadowLoadedRef(
+                            createObjectRefWithFullObject(objectCurrent));
                 }
                 projCtx.setCurrentObject(objectCurrent);
                 projCtx.determineFullShadowFlag(objectCurrent.asObjectable());
-                if (ShadowUtil.isExists(objectCurrent.asObjectable()) || isInMaintenance(projCtx.getResource())) {
+                if (projCtx.isInMaintenance()) {
+                    result.addReturn(DEFAULT, "in maintenance"); // TODO decide what to do with this
+                } else if (ShadowUtil.isExists(objectCurrent.asObjectable())) {
                     result.addReturn(DEFAULT, "found");
                 } else {
                     LOGGER.debug("Load of full resource object {} ended with non-existent shadow (options={})", projCtx, options);
@@ -203,9 +209,14 @@ public class ProjectionFullLoadOperation<F extends ObjectType> {
             LOGGER.trace("Skipping loading full shadow: The shadow is already loaded.");
             return true;
         }
+
         if (projCtx.isGone()) {
-            // loading is futile
-            LOGGER.trace("Skipping loading full shadow: The shadow is 'gone'.");
+            LOGGER.trace("Skipping loading full shadow: The shadow is 'gone', loading is futile.");
+            return true;
+        }
+
+        if (projCtx.isInMaintenance()) {
+            LOGGER.trace("Resource is in maintenance mode."); // We assume the repo shadow was already loaded.
             return true;
         }
 

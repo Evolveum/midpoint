@@ -10,7 +10,7 @@ package com.evolveum.midpoint.model.api.visualizer;
 import java.io.Serializable;
 
 /**
- * Name of a scene or a scene item.
+ * Name of a visualization or a visualization item.
  *
  * TODO reconsider this structure
  */

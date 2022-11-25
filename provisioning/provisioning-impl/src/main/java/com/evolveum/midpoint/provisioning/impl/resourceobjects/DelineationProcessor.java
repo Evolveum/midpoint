@@ -88,7 +88,10 @@ class DelineationProcessor {
             throw new SystemException("Cannot resolve base context for "+ objectDef +", specified as "+ baseContextRef, e);
         }
         if (baseContextShadow == null) {
-            throw new ObjectNotFoundException("Base context not found for " + objectDef + ", specified as " + baseContextRef);
+            throw new ObjectNotFoundException(
+                    "Base context not found for " + objectDef + ", specified as " + baseContextRef,
+                    ShadowType.class,
+                    null);
         }
         ResourceObjectDefinition baseContextObjectDefinition =
                 java.util.Objects.requireNonNull(

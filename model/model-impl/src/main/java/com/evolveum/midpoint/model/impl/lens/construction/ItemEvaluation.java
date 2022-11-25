@@ -134,7 +134,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
             // code and it has proper description.
             throw e;
         } catch (ObjectNotFoundException e) {
-            throw new ObjectNotFoundException(getEvaluationErrorMessage(e), e);
+            throw e.wrap(getEvaluationErrorMessagePrefix(e));
         } catch (SecurityViolationException e) {
             throw new SecurityViolationException(getEvaluationErrorMessage(e), e);
         } catch (ConfigurationException e) {
@@ -277,10 +277,13 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         return constructionEvaluation.projectionContext != null ? constructionEvaluation.projectionContext.isAssigned() : null;
     }
 
-
     private String getEvaluationErrorMessage(Exception e) {
+        return getEvaluationErrorMessagePrefix(e) + ": " + e.getMessage();
+    }
+
+    private String getEvaluationErrorMessagePrefix(Exception e) {
         return "Error evaluating mapping for " + getTypedItemName() + " in " +
-                constructionEvaluation.evaluatedConstruction.getHumanReadableConstructionDescription() + ": " + e.getMessage();
+                constructionEvaluation.evaluatedConstruction.getHumanReadableConstructionDescription();
     }
 
     @NotNull

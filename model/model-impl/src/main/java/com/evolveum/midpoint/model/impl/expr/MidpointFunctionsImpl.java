@@ -6,9 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
@@ -1434,24 +1433,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public List<ShadowType> getShadowsToActivate(Collection<? extends ModelElementContext> projectionContexts) {
+    public List<ShadowType> getShadowsToActivate(Collection<? extends ModelProjectionContext> projectionContexts) {
         List<ShadowType> shadows = new ArrayList<>();
-
-        //noinspection unchecked
-        for (ModelElementContext<ShadowType> projectionCtx : projectionContexts) {
-
-            List<? extends ObjectDeltaOperation> executedShadowDeltas = projectionCtx.getExecutedDeltas();
-            //noinspection unchecked
-            for (ObjectDeltaOperation<ShadowType> shadowDelta : executedShadowDeltas) {
-                if (shadowDelta.getExecutionResult().getStatus() == OperationResultStatus.SUCCESS
-                        && shadowDelta.getObjectDelta().getChangeType() == ChangeType.ADD) {
-                    PrismObject<ShadowType> shadow = shadowDelta.getObjectDelta().getObjectToAdd();
-                    PrismProperty<String> pLifecycleState = shadow.findProperty(ShadowType.F_LIFECYCLE_STATE);
-                    if (pLifecycleState != null && !pLifecycleState.isEmpty() && SchemaConstants.LIFECYCLE_PROPOSED
-                            .equals(pLifecycleState.getRealValue())) {
-                        shadows.add(shadow.asObjectable());
+        for (ModelProjectionContext projectionCtx : projectionContexts) {
+            List<? extends ObjectDeltaOperation<ShadowType>> executedOperations = projectionCtx.getExecutedDeltas();
+            for (ObjectDeltaOperation<ShadowType> executedOperation : executedOperations) {
+                ObjectDelta<ShadowType> shadowDelta = executedOperation.getObjectDelta();
+                if (isAdd(shadowDelta) && executedOperation.getStatus() == OperationResultStatus.SUCCESS) {
+                    ShadowType shadow = shadowDelta.getObjectToAdd().asObjectable();
+                    if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())) {
+                        shadows.add(shadow);
                     }
-
                 }
             }
         }

@@ -227,13 +227,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             throw e;
         } catch (ObjectNotFoundException e) {
             OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}", clazz.getSimpleName(), oid, rawOptions, e.getClass().getSimpleName(), e.getMessage());
-            if (GetOperationOptions.isAllowNotFound(rootOptions)) {
-                // TODO check if this is really needed (lower layers shouldn't produce FATAL_ERROR if "allow not found" is true)
-                // FIXME there is no "last subresult" if the called method throws this exception because of object type mismatch!
-                result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
-            } else {
-                ModelImplUtils.recordFatalError(result, e);
-            }
+            ModelImplUtils.recordException(result, e);
             throw e;
         } finally {
             result.computeStatusIfUnknown();
@@ -2336,7 +2330,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, prismContext, identifier);
             List<PrismObject<NodeType>> nodes = cacheRepositoryService.searchObjects(NodeType.class, q, createReadOnlyCollection(), parentResult);
             if (nodes.isEmpty()) {
-                throw new ObjectNotFoundException("Node with identifier '" + identifier + "' couldn't be found.");
+                throw new ObjectNotFoundException(
+                        "Node with identifier '" + identifier + "' couldn't be found.",
+                        NodeType.class,
+                        identifier);
             } else if (nodes.size() > 1) {
                 throw new SystemException("Multiple nodes with identifier '" + identifier + "'");
             }

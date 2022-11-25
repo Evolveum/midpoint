@@ -11,6 +11,8 @@ import java.util.Collections;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,7 +115,7 @@ public class SystemObjectCache implements Cache {
         } catch (ObjectNotFoundException e) {
             systemConfiguration = null;
             LOGGER.trace("Cache ERROR: System configuration not found", e);
-            result.muteLastSubresultError();
+            result.clearLastSubresultError(); // e.g. because of tests
         }
         return systemConfiguration;
     }
@@ -141,8 +143,14 @@ public class SystemObjectCache implements Cache {
     }
 
     private void loadSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
-        systemConfiguration = cacheRepositoryService.getObject(SystemConfigurationType.class,
-                SystemObjectsType.SYSTEM_CONFIGURATION.value(), createReadOnlyCollection(), result);
+        systemConfiguration = cacheRepositoryService.getObject(
+                SystemConfigurationType.class,
+                SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+                GetOperationOptionsBuilder.create()
+                        .readOnly()
+                        .allowNotFound()
+                        .build(),
+                result);
         expressionProfiles = null;
         systemConfigurationCheckTimestamp = System.currentTimeMillis();
         if (systemConfiguration != null && systemConfiguration.getVersion() == null) {

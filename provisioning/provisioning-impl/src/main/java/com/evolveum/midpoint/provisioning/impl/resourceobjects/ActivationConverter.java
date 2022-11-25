@@ -82,7 +82,7 @@ class ActivationConverter {
 
         if (activationStatus != null || lockoutStatus != null) {
             if (resourceObjectBean.getActivation() == null) {
-                resourceObjectBean.setActivation(new ActivationType(beans.prismContext));
+                resourceObjectBean.setActivation(new ActivationType());
             }
             resourceObjectBean.getActivation().setAdministrativeStatus(activationStatus);
             resourceObjectBean.getActivation().setLockoutStatus(lockoutStatus);

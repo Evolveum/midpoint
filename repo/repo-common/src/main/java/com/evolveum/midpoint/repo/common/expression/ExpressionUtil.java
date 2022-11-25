@@ -453,8 +453,7 @@ public class ExpressionUtil {
                 return new TypedValue<>(objectType.asPrismObject());
 
             } catch (ObjectNotFoundException e) {
-                throw new ObjectNotFoundException("Object not found during variable " + varDesc
-                        + " resolution in " + contextDescription + ": " + e.getMessage(), e, e.getType(), ref.getOid());
+                throw e.wrap("Object not found during variable " + varDesc + " resolution in " + contextDescription);
             } catch (SchemaException e) {
                 throw new SchemaException("Schema error during variable " + varDesc + " resolution in "
                         + contextDescription + ": " + e.getMessage(), e);
@@ -743,8 +742,7 @@ public class ExpressionUtil {
             } catch (ObjectNotFoundException ex) {
                 LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression) + ".",
                         ex);
-                throw new ObjectNotFoundException(
-                        "Couldn't evaluate expression" + PrettyPrinter.prettyPrint(valueExpression) + ": " + ex.getMessage(), ex);
+                throw ex.wrap("Couldn't evaluate expression" + PrettyPrinter.prettyPrint(valueExpression));
             } catch (ExpressionEvaluationException ex) {
                 LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + PrettyPrinter.prettyPrint(valueExpression) + ".",
                         ex);

@@ -677,6 +677,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         throw new UnsupportedOperationException("Archetypes are not supported for projections.");
     }
 
+    @Override
     public ResourceType getResource() {
         return resource;
     }
@@ -967,6 +968,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         compositeObjectDefinition = null;
     }
 
+    @Override
     public CompositeObjectDefinition getCompositeObjectDefinition() throws SchemaException, ConfigurationException {
         if (compositeObjectDefinition == null) {
             ResourceObjectDefinition structuralDefinition = getStructuralObjectDefinition();
@@ -1633,22 +1635,23 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Sets the full shadow flag, based on the situation (including the fetch result).
      */
     public void determineFullShadowFlag(ShadowType loadedShadow) {
-        if (ShadowUtil.isDead(loadedShadow) || !ShadowUtil.isExists(loadedShadow)) {
-            setFullShadow(false);
-            return;
-        }
-        if (ResourceTypeUtil.isInMaintenance(resource)) {
-            setFullShadow(false); // resource is in the maintenance, shadow is from repo, result is success
-            return;
-        }
-        OperationResultType fetchResult = loadedShadow.getFetchResult();
-        setFullShadow(fetchResult == null || statusIsOk(fetchResult.getStatus()));
+        setFullShadow(
+                computeFullShadowFlag(loadedShadow));
     }
 
-    private boolean statusIsOk(OperationResultStatusType status) {
-        // todo what about other kinds of status? [e.g. in-progress]
-        return status != OperationResultStatusType.PARTIAL_ERROR
-                && status != OperationResultStatusType.FATAL_ERROR;
+    private boolean computeFullShadowFlag(ShadowType loadedShadow) {
+        if (ShadowUtil.isDead(loadedShadow) || !ShadowUtil.isExists(loadedShadow)) {
+            LOGGER.trace("Shadow is dead or non-existent -> fullShadow = false");
+            return false;
+        }
+        // Maintenance mode means the fetchResult is PARTIAL_ERROR (since 4.7).
+        OperationResultType fetchResult = loadedShadow.getFetchResult();
+        OperationResultStatusType status = fetchResult != null ? fetchResult.getStatus() : null;
+        boolean full = // TODO what about other kinds of status? [e.g. in-progress]
+                status != OperationResultStatusType.PARTIAL_ERROR
+                        && status != OperationResultStatusType.FATAL_ERROR;
+        LOGGER.trace("Fetch result status is {} -> fullShadow = {}", status, full);
+        return full;
     }
 
     public boolean isToBeArchived() {
@@ -1847,5 +1850,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         }
         // TODO originRef
         return source;
+    }
+
+    public boolean isInMaintenance() {
+        return ResourceTypeUtil.isInMaintenance(resource);
     }
 }

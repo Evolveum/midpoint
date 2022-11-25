@@ -7,41 +7,23 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
-import java.util.Collection;
+import com.evolveum.midpoint.provisioning.impl.shadows.*;
+import com.evolveum.midpoint.util.exception.*;
 
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.EventDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -63,101 +45,46 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 public abstract class ErrorHandler {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ErrorHandler.class);
-
     @Autowired protected EventDispatcher eventDispatcher;
     @Autowired private ResourceManager resourceManager;
     @Autowired protected PrismContext prismContext;
 
-    public abstract PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repositoryShadow,
-            GetOperationOptions rootOptions,
-            Exception cause,
-            Task task,
-            OperationResult parentResult)
-                    throws SchemaException, GenericFrameworkException, CommunicationException,
-                    ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
-                    SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
+    /**
+     * @param failedOperationResult The operation result carrying the failed operation. Should be closed.
+     */
+    public abstract ShadowType handleGetError(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repositoryShadow,
+            @NotNull Exception cause,
+            @NotNull OperationResult failedOperationResult,
+            @NotNull OperationResult result)
+            throws SchemaException, GenericFrameworkException, CommunicationException,
+            ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
+            SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
-
-    public abstract OperationResultStatus handleAddError(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowToAdd,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-            Exception cause,
+    public abstract OperationResultStatus handleAddError(
+            @NotNull ShadowAddOperation operation,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            Task task,
-            OperationResult parentResult)
+            OperationResult result)
                 throws SchemaException, GenericFrameworkException, CommunicationException,
                 ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
                 SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
-    protected OperationResultStatus postponeAdd(ProvisioningContext ctx,
-            PrismObject<ShadowType> shadowToAdd,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
+    public abstract OperationResultStatus handleModifyError(
+            @NotNull ShadowModifyOperation operation,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult result) {
-        LOGGER.trace("Postponing ADD operation for {}", shadowToAdd);
-        opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
-        AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncResult = new AsynchronousOperationReturnValue<>();
-        asyncResult.setOperationResult(failedOperationResult);
-        asyncResult.setOperationType(PendingOperationTypeType.RETRY);
-        opState.setAsyncResult(asyncResult);
-        if (opState.getAttemptNumber() == null) {
-            opState.setAttemptNumber(1);
-        }
-        result.setInProgress();
-        return OperationResultStatus.IN_PROGRESS;
-    }
-
-    public abstract OperationResultStatus handleModifyError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
-            Collection<? extends ItemDelta> modifications,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause,
-            OperationResult failedOperationResult,
-            Task task,
-            OperationResult parentResult)
+            @NotNull OperationResult result)
                 throws SchemaException, GenericFrameworkException, CommunicationException,
                 ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
                 SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
 
-    OperationResultStatus postponeModify(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
-            Collection<? extends ItemDelta> modifications,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
+    public abstract OperationResultStatus handleDeleteError(
+            @NotNull ShadowDeleteOperation operation,
+            @NotNull Exception cause,
             OperationResult failedOperationResult,
-            OperationResult result) {
-        return ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, failedOperationResult, result);
-    }
-
-    protected OperationResultStatus postponeDelete(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
-            ProvisioningOperationState<AsynchronousOperationResult> opState,
-            OperationResult failedOperationResult,
-            OperationResult result) {
-        LOGGER.trace("Postponing DELETE operation for {}", repoShadow);
-        opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
-        AsynchronousOperationResult asyncResult = new AsynchronousOperationResult();
-        asyncResult.setOperationResult(failedOperationResult);
-        asyncResult.setOperationType(PendingOperationTypeType.RETRY);
-        opState.setAsyncResult(asyncResult);
-        if (opState.getAttemptNumber() == null) {
-            opState.setAttemptNumber(1);
-        }
-        result.setInProgress();
-        return OperationResultStatus.IN_PROGRESS;
-    }
-
-    public abstract OperationResultStatus handleDeleteError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationResult> opState,
-            Exception cause,
-            OperationResult failedOperationResult,
-            Task task,
-            OperationResult parentResult)
+            @NotNull OperationResult result)
                 throws SchemaException, GenericFrameworkException, CommunicationException,
                 ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
                 SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
@@ -167,7 +94,8 @@ public abstract class ErrorHandler {
      * If exception is thrown then this is definitive end of the operation.
      * No more retries, no more attempts.
      */
-    protected abstract void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
+    protected abstract void throwException(
+            @Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException;
@@ -176,19 +104,25 @@ public abstract class ErrorHandler {
      * Record error that completes the operation. If such error is recorded then this is definitive end of the operation.
      * No more retries, no more attempts.
      */
-    protected void recordCompletionError(Exception cause,
-            ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result) {
-        result.recordFatalError(cause);
-        if (opState != null) {
-            opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
+    protected void recordCompletionError(
+            @Nullable ShadowProvisioningOperation<?> operation,
+            Exception cause,
+            OperationResult result) {
+        result.recordExceptionNotFinish(cause);
+        if (operation != null) {
+            operation.getOpState().setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
         }
     }
 
-    void markResourceDown(String resourceOid, String changeReason, OperationResult parentResult, Task task) throws ObjectNotFoundException {
-        resourceManager.modifyResourceAvailabilityStatus(resourceOid, AvailabilityStatusType.DOWN, changeReason, task, parentResult, false);
+    void markResourceDown(
+            ProvisioningContext ctx,
+            String changeReason,
+            OperationResult result) throws ObjectNotFoundException {
+        resourceManager.modifyResourceAvailabilityStatus(
+                ctx.getResourceOid(), AvailabilityStatusType.DOWN, changeReason, ctx.getTask(), result, false);
     }
 
-    protected boolean isOperationRetryEnabled(ResourceType resource) {
+    boolean isOperationRetryEnabled(ResourceType resource) {
         ResourceConsistencyType consistency = resource.getConsistency();
         if (consistency == null) {
             return true;
@@ -200,7 +134,7 @@ public abstract class ErrorHandler {
         return operationRetryMaxAttempts != 0;
     }
 
-    protected boolean isCompletePostponedOperations(ProvisioningOperationOptions options) {
+    boolean isCompletePostponedOperations(ProvisioningOperationOptions options) {
         return ProvisioningOperationOptions.isCompletePostponed(options);
     }
 

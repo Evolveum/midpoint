@@ -393,11 +393,11 @@ public class TestMappingInbound extends AbstractMappingTest {
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
         try {
             reconcileUser(userMancomb.getOid(), task, result);
         } finally {
-            turnMaintenanceModeOff(task, result);
+            turnMaintenanceModeOff(result);
         }
 
         then();
@@ -428,7 +428,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
         SyncTaskHelper.setSkipMaintenanceCheck(true);
         SynchronizationContext.setSkipMaintenanceCheck(true);
         try {
@@ -436,7 +436,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         } finally {
             SyncTaskHelper.setSkipMaintenanceCheck(false);
             SynchronizationContext.setSkipMaintenanceCheck(false);
-            turnMaintenanceModeOff(task, result);
+            turnMaintenanceModeOff(result);
         }
 
         then();
@@ -476,7 +476,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
         SyncTaskHelper.setSkipMaintenanceCheck(true);
         SynchronizationContext.setSkipMaintenanceCheck(true);
         try {
@@ -484,7 +484,7 @@ public class TestMappingInbound extends AbstractMappingTest {
         } finally {
             SyncTaskHelper.setSkipMaintenanceCheck(false);
             SynchronizationContext.setSkipMaintenanceCheck(false);
-            turnMaintenanceModeOff(task, result);
+            turnMaintenanceModeOff(result);
         }
 
         then();
@@ -517,13 +517,13 @@ public class TestMappingInbound extends AbstractMappingTest {
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNotNull("User mancomb has disappeared", userMancomb);
 
-        turnMaintenanceModeOn(task, result);
+        turnMaintenanceModeOn(result);
         SyncTaskHelper.setSkipMaintenanceCheck(true);
         try {
             executeImportInBackgroundErrorsOk(task, result);
         } finally {
             SyncTaskHelper.setSkipMaintenanceCheck(false);
-            turnMaintenanceModeOff(task, result);
+            turnMaintenanceModeOff(result);
         }
 
         then();
@@ -1027,12 +1027,12 @@ public class TestMappingInbound extends AbstractMappingTest {
                 .assertBinaryAttribute(ATTR_PHOTO, waterBytes);
     }
 
-    private void turnMaintenanceModeOn(Task task, OperationResult result) throws Exception {
-        modifyResourceMaintenance(RESOURCE_DUMMY_TEA_GREEN.oid, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+    private void turnMaintenanceModeOn(OperationResult result) throws Exception {
+        turnMaintenanceModeOn(RESOURCE_DUMMY_TEA_GREEN.oid, result);
     }
 
-    private void turnMaintenanceModeOff(Task task, OperationResult result) throws Exception {
-        modifyResourceMaintenance(RESOURCE_DUMMY_TEA_GREEN.oid, AdministrativeAvailabilityStatusType.OPERATIONAL, task, result);
+    private void turnMaintenanceModeOff(OperationResult result) throws Exception {
+        turnMaintenanceModeOff(RESOURCE_DUMMY_TEA_GREEN.oid, result);
     }
 
     private void executeImportInBackground(Task task, OperationResult result) throws Exception {

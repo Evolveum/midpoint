@@ -921,27 +921,27 @@
 
     <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
         <cachingMetadata>
-             <retrievalTimestamp>2012-03-20T13:02:29.275+01:00</retrievalTimestamp>
-             <serialNumber>1798eed6def9f54c-3d4bce63faa79272</serialNumber>
-          </cachingMetadata>
+            <retrievalTimestamp>2012-03-20T13:02:29.275+01:00</retrievalTimestamp>
+            <serialNumber>1798eed6def9f54c-3d4bce63faa79272</serialNumber>
+        </cachingMetadata>
         <native>
-          <cap:credentials>
-             <cap:password/>
-          </cap:credentials>
-          <cap:liveSync/>
-          <cap:testConnection/>
-          <cap:script>
-             <cap:host>
-                <cap:type>connector</cap:type>
-             </cap:host>
-          </cap:script>
-           <cap:create/>
+            <cap:credentials>
+                <cap:password/>
+            </cap:credentials>
+            <cap:liveSync/>
+            <cap:testConnection/>
+            <cap:script>
+                <cap:host>
+                    <cap:type>connector</cap:type>
+                </cap:host>
+            </cap:script>
+            <cap:create/>
             <cap:read/>
             <cap:update>
                 <cap:delta>true</cap:delta>
             </cap:update>
             <cap:delete/>
-      </native>
+        </native>
         <configured>
             <cap:activation>
                 <cap:status>

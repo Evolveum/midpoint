@@ -39,7 +39,7 @@ public class TaskUtil {
 
     public static @NotNull ExecutionModeType getExecutionMode(Task task) {
         if (task instanceof RunningTask) {
-            return ((RunningTask) task).getExecutionMode();
+            return ((RunningTask) task).getActivityExecutionMode();
         } else {
             return ExecutionModeType.FULL;
         }

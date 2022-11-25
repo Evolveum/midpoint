@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.repo.cache.handlers;
 
+import static com.evolveum.midpoint.repo.cache.handlers.PassReason.PassReasonType.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
+
+import java.util.Collection;
+
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -14,14 +21,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseCategoryTrac
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CacheUseTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-
-import static com.evolveum.midpoint.repo.cache.handlers.PassReason.PassReasonType.*;
-import static com.evolveum.midpoint.repo.cache.handlers.PassReason.PassReasonType.UNSUPPORTED_OPTION;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 
 /**
  * Reason why an operation request passes a cache.
@@ -38,18 +37,34 @@ final class PassReason {
      */
     private final String comment;
 
+    /**
+     * If soft equals true, we don't want to fully pass cache. Meaning, in this case we would like ignore content in cache,
+     * execute query and cache results (override existing if necessary) afterwards.
+     * <p/>
+     * If soft equals false, we'd like to fully pass cache.
+     */
+    private final boolean soft;
+
     enum PassReasonType {
         NOT_CACHEABLE_TYPE, MULTIPLE_OPTIONS, NON_ROOT_OPTIONS, UNSUPPORTED_OPTION, INCLUDE_OPTION_PRESENT, ZERO_STALENESS_REQUESTED
     }
 
     private PassReason(PassReasonType type) {
-        this.type = type;
-        this.comment = null;
+        this(type, null);
     }
 
     private PassReason(PassReasonType type, String comment) {
+        this(type, comment, false);
+    }
+
+    private PassReason(PassReasonType type, String comment, boolean soft) {
         this.type = type;
         this.comment = comment;
+        this.soft = soft;
+    }
+
+    public boolean isSoft() {
+        return soft;
     }
 
     /**
@@ -75,7 +90,7 @@ final class PassReason {
         }
         Long staleness = selectorOptions.getOptions().getStaleness();
         if (staleness != null && staleness == 0) {
-            return new PassReason(ZERO_STALENESS_REQUESTED);
+            return new PassReason(ZERO_STALENESS_REQUESTED, null, true);
         }
         GetOperationOptions cloned = selectorOptions.getOptions().clone();
 

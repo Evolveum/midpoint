@@ -326,7 +326,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         resourceStaticSchema =
                 provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_STATIC_SCHEMA_OID, null, task, result);
         ConnectorInstance currentConnectorInstance = resourceManager.getConfiguredConnectorInstance(
-                resourceStaticSchema, ReadCapabilityType.class, false, result);
+                resourceStaticSchema.asObjectable(), ReadCapabilityType.class, false, result);
 
         IntegrationTestTools.displayXml("Initialized static schema resource", resourceStaticSchema);
 
@@ -341,7 +341,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         rememberResourceCacheStats();
 
         ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
-                resourceStaticSchema, ReadCapabilityType.class, false, result);
+                resourceStaticSchema.asObjectable(), ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);
         ResourceSchema resourceSchemaBefore = ResourceSchemaFactory.getRawSchema(resourceStaticSchema);
         assertNotNull("No resource schema", resourceSchemaBefore);
@@ -393,7 +393,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         // to make sure that the
         // configured connector is properly cached
         ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
-                resourceAgain, ReadCapabilityType.class, false, result);
+                resourceAgain.asObjectable(), ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
         assertSame("Connector instance was not cached", configuredConnectorInstance, configuredConnectorInstanceAgain);
 
@@ -406,7 +406,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         // Test connection should also refresh the connector by itself. So check if it has been refreshed
 
         ConnectorInstance configuredConnectorInstanceAfterTest = resourceManager.getConfiguredConnectorInstance(
-                resourceAgain, ReadCapabilityType.class, false, result);
+                resourceAgain.asObjectable(), ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAfterTest);
         assertSame("Connector instance was not cached", configuredConnectorInstanceAgain, configuredConnectorInstanceAfterTest);
 

@@ -69,7 +69,7 @@ public class TriggerAsserter<R> extends AbstractAsserter<R> {
     }
 
     public TriggerAsserter<R> assertTimestampBetween(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        TestUtil.assertBetween("Wrong timestamp in " + desc(), start, end, trigger.getTimestamp());
+        TestUtil.assertBetween("Timestamp in " + desc(), start, end, trigger.getTimestamp());
         return this;
     }
 
@@ -80,7 +80,7 @@ public class TriggerAsserter<R> extends AbstractAsserter<R> {
     }
 
     public TriggerAsserter<R> assertTimestampFutureBetween(XMLGregorianCalendar start, XMLGregorianCalendar end, String durationOffset) {
-        TestUtil.assertBetween("Wrong timestamp in " + desc(),
+        TestUtil.assertBetween("Timestamp in " + desc(),
                 XmlTypeConverter.addDuration(start, durationOffset),
                 XmlTypeConverter.addDuration(end, durationOffset),
                 trigger.getTimestamp());
@@ -97,7 +97,7 @@ public class TriggerAsserter<R> extends AbstractAsserter<R> {
         XMLGregorianCalendar mid = XmlTypeConverter.addDuration(now, offsetDuration);
         XMLGregorianCalendar start = XmlTypeConverter.addMillis(mid, -tolerance);
         XMLGregorianCalendar end = XmlTypeConverter.addMillis(mid, tolerance);
-        TestUtil.assertBetween("Wrong timestamp in " + desc(), start, end, trigger.getTimestamp());
+        TestUtil.assertBetween("Timestamp in " + desc(), start, end, trigger.getTimestamp());
         return this;
     }
 

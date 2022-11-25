@@ -7,23 +7,14 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
-import java.util.Collection;
-
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowAddOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowDeleteOperation;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowModifyOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -34,6 +25,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Handler for "hard" errors - error that cannot be handled in any smart way.
  * @author semancik
@@ -42,53 +35,58 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 abstract class HardErrorHandler extends ErrorHandler {
 
     @Override
-    public PrismObject<ShadowType> handleGetError(ProvisioningContext ctx,
-            PrismObject<ShadowType> repositoryShadow, GetOperationOptions rootOptions, Exception cause,
-            Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException,
+    public ShadowType handleGetError(
+            @NotNull ProvisioningContext ctx,
+            @NotNull ShadowType repositoryShadow,
+            @NotNull Exception cause,
+            @NotNull OperationResult failedOperationResult,
+            @NotNull OperationResult result) throws SchemaException, GenericFrameworkException,
             CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        throwException(cause, null, parentResult);
-        return null; // not reached
+        throwException(null, cause, result);
+        throw new AssertionError("not reached");
     }
 
     @Override
-    public OperationResultStatus handleAddError(ProvisioningContext ctx, PrismObject<ShadowType> shadowToAdd,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<PrismObject<ShadowType>>> opState,
-            Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
+    public OperationResultStatus handleAddError(
+            @NotNull ShadowAddOperation operation,
+            @NotNull Exception cause,
+            OperationResult failedOperationResult,
+            OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        throwException(cause, opState, parentResult);
+        throwException(operation, cause, result);
         return OperationResultStatus.FATAL_ERROR; // not reached
     }
 
     @Override
-    public OperationResultStatus handleModifyError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-            Collection<? extends ItemDelta> modifications, ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            Exception cause, OperationResult failedOperationResult, Task task, OperationResult parentResult)
+    public OperationResultStatus handleModifyError(
+            @NotNull ShadowModifyOperation operation,
+            @NotNull Exception cause,
+            OperationResult failedOperationResult,
+            @NotNull OperationResult result)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        throwException(cause, opState, parentResult);
+        throwException(operation, cause, result);
         return OperationResultStatus.FATAL_ERROR; // not reached
     }
 
     @Override
-    public OperationResultStatus handleDeleteError(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow,
-            ProvisioningOperationOptions options,
-            ProvisioningOperationState<AsynchronousOperationResult> opState, Exception cause,
-            OperationResult failedOperationResult, Task task, OperationResult parentResult)
+    public OperationResultStatus handleDeleteError(
+            @NotNull ShadowDeleteOperation operation,
+            @NotNull Exception cause,
+            OperationResult failedOperationResult,
+            @NotNull OperationResult parentResult)
             throws SchemaException, GenericFrameworkException, CommunicationException,
             ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException,
             SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        throwException(cause, opState, parentResult);
+        throwException(operation, cause, parentResult);
         return OperationResultStatus.FATAL_ERROR; // not reached
     }
-
 }

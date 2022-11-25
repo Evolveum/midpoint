@@ -251,6 +251,10 @@ public class DummyResourceContoller extends AbstractResourceController {
         return attrDef;
     }
 
+    public void setExtendedSchema() {
+        isExtendedSchema = true;
+    }
+
     public ItemPath getAttributePath(QName attrQName) {
         return ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName);
     }
