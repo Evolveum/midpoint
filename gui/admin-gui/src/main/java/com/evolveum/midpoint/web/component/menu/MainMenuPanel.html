@@ -8,23 +8,30 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <li wicket:id="item" class="nav-item">
-        <a wicket:id="link" class="nav-link">
-            <i wicket:id="icon" class="nav-icon"></i>
-            <p>
-                <span wicket:id="label"/>
+        <a wicket:id="link" class="d-flex nav-link" data-bs-toggle="tooltip" data-bs-placement="right">
+            <span class="flex-shrink-1">
+                <i wicket:id="icon" class="nav-icon"/>
+            </span>
+            <div class="d-flex flex-grow-1 text-truncate">
+                <div class="text-truncate">
+                    <span wicket:id="label"/>
+                </div>
                 <wicket:enclosure child="arrow">
-                    <i wicket:id="arrow" class="fas fa-angle-left right"></i>
+                    <span class="ml-auto flex-shrink-1">
+                        <i wicket:id="arrow" class="mr-1 fas fa-angle-left right"/>
+                    </span>
                 </wicket:enclosure>
-            </p>
-
-            <span class="badge badge-primary right" wicket:id="bubble"/>
+                <span class="my-1 ml-auto flex-shrink-1 badge badge-primary right" wicket:id="bubble"/>
+            </div>
         </a>
         <ul wicket:id="submenu" class="nav nav-treeview">
             <li wicket:id="subItem" class="nav-item">
-                <a wicket:id="subLink" class="nav-link" href="#">
-                    <i class="nav-icon" style="min-width: 20px;" wicket:id="subLinkIcon"></i>
+                <a wicket:id="subLink" class="d-flex nav-link" href="#" data-bs-toggle="tooltip" data-bs-placement="right">
+                    <span>
+                        <i class="nav-icon" style="min-width: 20px;" wicket:id="subLinkIcon"/>
+                    </span>
                     &nbsp;
-                    <p wicket:id="subLabel"/>
+                    <div class="text-truncate" wicket:id="subLabel"/>
                 </a>
             </li>
         </ul>
