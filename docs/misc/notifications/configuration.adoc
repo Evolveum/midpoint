@@ -595,3 +595,12 @@ Groovy used to print it: this.binding.variables.each {k,v -> println "$k = $v"}
 
 Link any other expression documentation discussing variables?
 ////
+
+////
+TODO
+== Troubleshooting configuration
+
+Mention loggers NOTIFICATION and TRANSPORT (LoggingComponentType) and DEBUG level for them,
+when you don't know what is happening, why something is missing, notification is not sent, etc.
+
+////
