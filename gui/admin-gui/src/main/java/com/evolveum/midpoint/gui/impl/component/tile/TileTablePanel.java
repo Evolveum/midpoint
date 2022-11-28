@@ -155,6 +155,11 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         return "pt-3";
     }
 
+    public IModel getTilesModel() {
+        PageableListView view = (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
+        return view.getModel();
+    }
+
     public ISortableDataProvider<O, String> getProvider() {
         PageableListView view = (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
         return view.getProvider();
