@@ -50,7 +50,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
                 .description("jamalalicha patlama paprtala");
         ObjectDelta<UserType> userDelta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(a)
-                .asObjectDeltaCast(USER_JACK_OID);
+                .asObjectDelta(USER_JACK_OID);
 
         // WHEN
         userDelta.applyTo(user);
@@ -74,7 +74,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
                 .description("jamalalicha patlama paprtala");
         ObjectDelta<RoleType> roleDelta = getPrismContext().deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT).add(i)
-                .asObjectDeltaCast(ROLE_CONSTRUCTION_OID);
+                .asObjectDelta(ROLE_CONSTRUCTION_OID);
 
         // WHEN
         roleDelta.applyTo(role);
@@ -287,7 +287,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         ObjectDelta<UserType> userDelta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(new AssignmentType().id(2L).targetRef("target-oid-1", OrgType.COMPLEX_TYPE))
-                .asObjectDeltaCast("oid1");
+                .asObjectDelta("oid1");
 
         // WHEN
         userDelta.applyTo(user);
@@ -338,7 +338,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         assignment9999.setId(9999L);
         ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).delete(assignment9999)
-                .asObjectDeltaCast(user.getOid());
+                .asObjectDelta(user.getOid());
 
         // WHEN
         PrismContainerDefinition<AssignmentType> assignmentDef = PrismTestUtil.getSchemaRegistry()
@@ -460,7 +460,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
                 .add(ObjectTypeUtil.createAssignmentTo("oid-r", ObjectTypes.ROLE, getPrismContext()))
                 .item(UserType.F_ASSIGNMENT, 100L, AssignmentType.F_LIFECYCLE_STATE).replace("draft")
                 .item(UserType.F_GIVEN_NAME).replace("bill")
-                .asObjectDeltaCast(OID);
+                .asObjectDelta(OID);
 
         // WHEN
         ObjectDelta.FactorOutResultSingle<UserType> out = delta.factorOut(singleton(ItemPath.create(UserType.F_ASSIGNMENT)), true);
@@ -491,7 +491,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
                 .item(UserType.F_ASSIGNMENT, 100L, AssignmentType.F_DESCRIPTION).replace("descr")
                 .item(UserType.F_ASSIGNMENT, 77L, AssignmentType.F_LIFECYCLE_STATE).replace("active")
                 .item(UserType.F_GIVEN_NAME).replace("bill")
-                .asObjectDeltaCast(OID);
+                .asObjectDelta(OID);
 
         // WHEN
         ObjectDelta.FactorOutResultMulti<UserType> out = delta.factorOutValues(ItemPath.create(UserType.F_ASSIGNMENT), true);
@@ -529,15 +529,15 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         // GIVEN
         ProtectedStringType value = new ProtectedStringType();
         value.setClearValue("hi");
-        PasswordType newPassword = new PasswordType(getPrismContext()).value(value);
+        PasswordType newPassword = new PasswordType().value(value);
         ObjectDelta<UserType> userDelta1 = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD).replace(newPassword)
-                .asObjectDeltaCast("001");
-        MetadataType newMetadata = new MetadataType(getPrismContext()).requestorComment("comment");
+                .asObjectDelta("001");
+        MetadataType newMetadata = new MetadataType().requestorComment("comment");
         ObjectDelta<UserType> userDelta2 = getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA)
                 .add(newMetadata)
-                .asObjectDeltaCast("001");
+                .asObjectDelta("001");
 
         // WHEN
         ObjectDelta<UserType> userDeltaUnion = ObjectDeltaCollectionsUtil.union(userDelta1, userDelta2);

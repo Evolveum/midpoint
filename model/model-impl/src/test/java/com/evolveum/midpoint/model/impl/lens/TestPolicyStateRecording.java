@@ -176,7 +176,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .delete(pirateAssignment.clone())
-                .asObjectDeltaCast(USER_JACK_OID);
+                .asObjectDelta(USER_JACK_OID);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
         // THEN
@@ -205,7 +205,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .item(UserType.F_ASSIGNMENT)
                         .add(createAssignmentTo(roleATest2aOid, ObjectTypes.ROLE, prismContext),
                                 createAssignmentTo(roleATest3aOid, ObjectTypes.ROLE, prismContext))
-                .asObjectDeltaCast(userBobOid);
+                .asObjectDelta(userBobOid);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
         // THEN
@@ -238,7 +238,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
                 .item(UserType.F_ASSIGNMENT)
                 .add(createAssignmentTo(roleATest2bOid, ObjectTypes.ROLE, prismContext),
                         createAssignmentTo(roleATest3bOid, ObjectTypes.ROLE, prismContext))
-                .asObjectDeltaCast(userBobOid);
+                .asObjectDelta(userBobOid);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
         // THEN
@@ -383,7 +383,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(assignment2b)
-                .asObjectDeltaCast(userEveOid);
+                .asObjectDelta(userEveOid);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
         // THEN
@@ -412,7 +412,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         when();
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_DESCRIPTION).replace("wrong")
-                .asObjectDeltaCast(roleATestWrongOid);
+                .asObjectDelta(roleATestWrongOid);
         executeChangesAssertSuccess(delta, null, getTestTask(), getTestOperationResult());
 
         // THEN

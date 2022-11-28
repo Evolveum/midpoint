@@ -710,7 +710,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_ENFORCED_OID, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_SILVER_ENFORCED_OID, ObjectTypes.ROLE, prismContext))
-                .asObjectDeltaCast(USER_GUYBRUSH_OID);
+                .asObjectDelta(USER_GUYBRUSH_OID);
 
         try {
             executeChanges(delta, null, task, result);
@@ -740,7 +740,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_GOLD_OID, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(ROLE_PRIZE_SILVER_OID, ObjectTypes.ROLE, prismContext))
-                .asObjectDeltaCast(USER_GUYBRUSH_OID);
+                .asObjectDelta(USER_GUYBRUSH_OID);
 
         try {
             executeChanges(delta, null, task, result);
@@ -1041,7 +1041,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
                         ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_RED_OID, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_BLUE_OID, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(ROLE_COLOR_GREEN_OID, ObjectTypes.ROLE, prismContext))
-                .asObjectDeltaCast(USER_GUYBRUSH_OID);
+                .asObjectDelta(USER_GUYBRUSH_OID);
 
         try {
             executeChanges(delta, null, task, result);

@@ -943,7 +943,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<? extends FocusType> delta = prismContext.deltaFor(focus.getCompileTimeClass())
                 .item(FocusType.F_ASSIGNMENT)
                 .delete(assignment.clone())
-                .asObjectDeltaCast(focus.getOid());
+                .asObjectDelta(focus.getOid());
         modelService.executeChanges(singleton(delta), null, task, result);
     }
 
@@ -3736,11 +3736,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Unexpected modifications in " + desc + ": " + focusDelta, expectedModifications, focusDelta.getModifications().size());
     }
 
-    protected <F extends FocusType> void assertSideEffectiveDeltasOnly(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
+    protected <F extends FocusType> void assertSideEffectiveDeltasOnly(
+            ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
         assertEffectualDeltas(focusDelta, desc, expectedEfficientActivation, 0);
     }
 
-    protected <F extends FocusType> void assertEffectualDeltas(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation, int expectedEffectualModifications) {
+    protected <F extends FocusType> void assertEffectualDeltas(
+            ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation, int expectedEffectualModifications) {
         if (focusDelta == null) {
             return;
         }
@@ -4050,7 +4052,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .collect(Collectors.toList());
         ObjectDelta<ObjectType> delta = prismContext.deltaFor(ObjectType.class)
                 .item(ObjectType.F_TRIGGER).addRealValues(triggers)
-                .asObjectDeltaCast(oid);
+                .asObjectDelta(oid);
         executeChanges(delta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -4079,7 +4081,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .collect(Collectors.toList());
         ObjectDelta<ObjectType> delta = prismContext.deltaFor(ObjectType.class)
                 .item(ObjectType.F_TRIGGER).replaceRealValues(triggers)
-                .asObjectDeltaCast(oid);
+                .asObjectDelta(oid);
         executeChanges(delta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -5681,7 +5683,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                         rules.asObjectable().getGlobalPolicyRule().stream()
                                 .map(r -> r.clone().asPrismContainerValue())
                                 .collect(Collectors.toList()))
-                .asObjectDeltaCast(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+                .asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value());
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, parentResult);
     }
 

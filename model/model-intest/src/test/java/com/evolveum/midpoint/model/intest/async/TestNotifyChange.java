@@ -291,7 +291,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
                 .item(ItemPath.create(ShadowType.F_ATTRIBUTES, DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME), privilegeDefinition)
                 .add(ALUMNI_NAME)
-                .asObjectDeltaCast(lewisShadowOid);
+                .asObjectDelta(lewisShadowOid);
 
         ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
         change.setObjectDelta(DeltaConvertor.toObjectDeltaType(delta));
