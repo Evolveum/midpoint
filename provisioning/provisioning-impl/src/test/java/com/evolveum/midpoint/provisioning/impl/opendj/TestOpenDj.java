@@ -9,6 +9,8 @@ package com.evolveum.midpoint.provisioning.impl.opendj;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.serializeToXml;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.AssertJUnit.*;
 
@@ -2458,8 +2460,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_MORGAN_OID,
-                ASSOCIATION_GROUP_NAME, GROUP_CORSAIRS_OID, prismContext);
+        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_MORGAN_OID, ASSOCIATION_GROUP_NAME, GROUP_CORSAIRS_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 

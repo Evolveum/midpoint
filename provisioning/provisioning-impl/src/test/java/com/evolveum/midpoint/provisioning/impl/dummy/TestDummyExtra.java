@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.createDetitleDelta;
+import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
@@ -152,8 +155,7 @@ public class TestDummyExtra extends TestDummy {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
-                ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
+        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -195,8 +197,7 @@ public class TestDummyExtra extends TestDummy {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
-                ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID, prismContext);
+        ObjectDelta<ShadowType> delta = createDetitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_CREW_NAME, ACCOUNT_ELIZABETH_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 

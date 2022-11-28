@@ -368,7 +368,7 @@ class ProjectionUpdateOperation<F extends ObjectType> {
         // Because higher-order dependencies may have more than one projection context and the
         // changes applied to one of them are not automatically reflected on on other. therefore we need to reload.
         if (projectionContext.getOrder() == 0) {
-            LOGGER.trace("Context is of order 0, no need to reload");
+            LOGGER.trace("Not doing reconciliation; and context is NOT of higher-order -> no need to reload");
             return false;
         }
 

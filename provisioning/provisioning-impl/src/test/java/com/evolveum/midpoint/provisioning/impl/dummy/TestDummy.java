@@ -13,6 +13,8 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_
 import static com.evolveum.midpoint.schema.util.ObjectQueryUtil.*;
 import static com.evolveum.midpoint.test.DummyResourceContoller.*;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -29,6 +31,8 @@ import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.provisioning.impl.DummyTokenStorageImpl;
 
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+
+import com.evolveum.midpoint.schema.util.Resource;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
@@ -2564,9 +2568,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
-                dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                GROUP_PIRATES_OID, prismContext);
+        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2629,8 +2631,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
-                ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID, prismContext);
+        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2679,8 +2680,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID,
-                ASSOCIATION_PRIV_NAME, PRIVILEGE_BARGAIN_OID, prismContext);
+        ObjectDelta<ShadowType> delta = createEntitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_BARGAIN_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2894,9 +2894,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
-                dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                GROUP_PIRATES_OID, prismContext);
+        ObjectDelta<ShadowType> delta = createDetitleDelta(ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2922,9 +2920,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDeltaIdentifiers(ACCOUNT_WILL_OID,
-                dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME, prismContext);
+        ObjectDelta<ShadowType> delta = createEntitleDeltaIdentifiers(
+                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2950,9 +2947,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDeltaIdentifiers(ACCOUNT_WILL_OID,
-                dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME, prismContext);
+        ObjectDelta<ShadowType> delta = createDetitleDeltaIdentifiers(
+                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -2978,9 +2974,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDeltaIdentifiers(ACCOUNT_WILL_OID,
-                dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                SchemaConstants.ICFS_UID, piratesIcfUid, prismContext);
+        ObjectDelta<ShadowType> delta = createEntitleDeltaIdentifiers(
+                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -3006,9 +3001,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         rememberDummyResourceGroupMembersReadCount(null);
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDeltaIdentifiers(ACCOUNT_WILL_OID,
-                dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                SchemaConstants.ICFS_UID, piratesIcfUid, prismContext);
+        ObjectDelta<ShadowType> delta = createDetitleDeltaIdentifiers(
+                ACCOUNT_WILL_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SchemaConstants.ICFS_UID, piratesIcfUid);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -3106,8 +3100,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
-                ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID, prismContext);
+        ObjectDelta<ShadowType> delta = createDetitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_PILLAGE_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -3149,8 +3142,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         syncServiceMock.reset();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
-                ASSOCIATION_PRIV_NAME, PRIVILEGE_BARGAIN_OID, prismContext);
+        ObjectDelta<ShadowType> delta = createDetitleDelta(ACCOUNT_WILL_OID, ASSOCIATION_PRIV_NAME, PRIVILEGE_BARGAIN_OID);
         displayDumpable("ObjectDelta", delta);
         delta.checkConsistence();
 
@@ -4533,7 +4525,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         when("the shadow is added");
         var oid = provisioningService.addObject(
-                createAccountShadow("test920"), null, null, task, result);
+                createAccountShadow("test915"), null, null, task, result);
 
         then("the result status is IN_PROGRESS");
         assertInProgress(result);
@@ -4554,7 +4546,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         when("the shadow is added the second time");
         OperationResult result2 = createOperationResult();
         var oid2 = provisioningService.addObject(
-                createAccountShadow("test920"), null, null, task, result2);
+                createAccountShadow("test915"), null, null, task, result2);
 
         then("the result status is IN_PROGRESS (account was still not created)");
         assertInProgress(result2);
@@ -4574,6 +4566,79 @@ public class TestDummy extends AbstractBasicDummyTest {
                         .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
                         .assertResultStatus(OperationResultStatusType.IN_PROGRESS);
         // @formatter:on
+    }
+
+    /**
+     * Adds an association value (group membership) + attribute value during maintenance mode.
+     * Checks that the future shadow has proper definitions for both - MID-8327.
+     */
+    @Test
+    public void test920EntitleInMaintenance() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("resource is operational");
+        turnMaintenanceModeOff(RESOURCE_DUMMY_OID, result);
+
+        and("a group of 'pirates' is (again) there");
+        provisioningService.addObject(
+                prismContext.parseObject(GROUP_PIRATES_FILE),
+                null, null, task, result);
+
+        and("an account is there");
+        String shadowOid = provisioningService.addObject(
+                createAccountShadow("test920"), null, null, task, result);
+
+        when("resource is in maintenance");
+        turnMaintenanceModeOn(RESOURCE_DUMMY_OID, result);
+
+        and("the account is entitled (pirates) + title changed (Cpt.)");
+        ObjectDelta<ShadowType> delta = createEntitleDelta(shadowOid, DUMMY_ENTITLEMENT_GROUP_QNAME, GROUP_PIRATES_OID);
+        delta.addModification(
+                Resource.of(resource).deltaFor(RI_ACCOUNT_OBJECT_CLASS)
+                        .item(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH).replace("Cpt.")
+                        .asItemDelta());
+        displayDumpable("Delta", delta);
+
+        provisioningService.modifyObject(
+                ShadowType.class, shadowOid, delta.getModifications(), null, null, task, result);
+
+        and("maintenance mode is turned off");
+        turnMaintenanceModeOff(RESOURCE_DUMMY_OID, result);
+
+        and("object is get (now in regular mode)");
+        var options = GetOperationOptionsBuilder.create()
+                .futurePointInTime()
+                .build();
+        PrismObject<ShadowType> accountAfter = provisioningService.getObject(ShadowType.class, shadowOid, options, task, result);
+
+        then("operation is pending (because of the retry interval)");
+        // @formatter:off
+        assertShadowAfter(accountAfter)
+                .pendingOperations()
+                    .singleOperation()
+                        .assertType(PendingOperationTypeType.RETRY)
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .delta()
+                            .assertModify();
+        // @formatter:on
+
+        and("the association has correct definition");
+        List<ShadowAssociationType> associationBeans = accountAfter.asObjectable().getAssociation();
+        assertThat(associationBeans).as("association beans").hasSize(1);
+        PrismContainerDefinition<?> identifiersDefinition =
+                associationBeans.get(0).getIdentifiers().asPrismContainerValue().getParent().getDefinition();
+        assertThat(identifiersDefinition)
+                .as("definition of identifiers")
+                .isInstanceOf(ResourceAttributeContainerDefinition.class);
+
+        and("the title has correct definition");
+        PrismPropertyDefinition<Object> titleDefinition =
+                accountAfter.findProperty(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_PATH).getDefinition();
+        assertThat(titleDefinition)
+                .as("definition of title")
+                .isInstanceOf(ResourceAttributeDefinition.class);
     }
 
     // test999 shutdown in the superclass
