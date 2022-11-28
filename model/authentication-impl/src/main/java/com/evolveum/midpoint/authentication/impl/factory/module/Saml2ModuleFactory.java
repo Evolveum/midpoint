@@ -97,7 +97,7 @@ public class Saml2ModuleFactory extends RemoteModuleFactory {
         );
         moduleAuthentication.setProviders(providers);
         moduleAuthentication.setAdditionalConfiguration(configuration.getAdditionalConfiguration());
-        moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         return moduleAuthentication;
     }

@@ -103,11 +103,15 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
             if (sequence != null && sequence.getChannel() != null
                     && !Boolean.TRUE.equals(sequence.getChannel().isDefault())
                     && SecurityPolicyUtil.DEFAULT_CHANNEL.equals(sequence.getChannel().getChannelId())) {
-                return sequence.getDisplayName() != null ? sequence.getDisplayName() : sequence.getName();
+                return sequence.getDisplayName() != null ? sequence.getDisplayName() : getSequenceIdentifier(sequence);
             }
         }
 
         return null;
+    }
+
+    private String getSequenceIdentifier(AuthenticationSequenceType seq) {
+        return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
     }
 
     protected abstract void initCustomLayout();

@@ -57,8 +57,8 @@ public class AuthModuleImpl implements AuthModule {
     }
 
     @Override
-    public String getNameOfModule() {
-        return configuration.getNameOfModule();
+    public String getModuleIdentifier() {
+        return configuration.getModuleIdentifier();
     }
 
     private void setBaseModuleAuthentication(ModuleAuthenticationImpl baseModuleAuthentication) {

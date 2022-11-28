@@ -344,7 +344,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         listToProcess.forEach(itemToProcess -> {
             boolean exist = false;
             for (AM item : mergedList) {
-                if (StringUtils.equals(item.getName(), itemToProcess.getName())) {
+                if (StringUtils.equals(item.getIdentifier(), itemToProcess.getIdentifier())) {
                     exist = true;
                     break;
                 }

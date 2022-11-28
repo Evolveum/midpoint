@@ -147,11 +147,11 @@ public class PageEmailNonce extends PageAuthenticationBase {
         }
         LOGGER.trace("Reset Password user: {}", user);
 
-        if (getFormRef() == null) {
-            LOGGER.debug("No policies for reset password defined");
-            getSession().error(getString("pageForgetPassword.message.policy.not.found"));
-            throw new RestartResponseException(PageEmailNonce.class);
-        }
+//        if (getFormRef() == null) {
+//            LOGGER.debug("No policies for reset password defined");
+//            getSession().error(getString("pageForgetPassword.message.policy.not.found"));
+//            throw new RestartResponseException(PageEmailNonce.class);
+//        }
 
         OperationResult result = saveUserNonce(user, getMailNoncePolicy(user.asPrismObject()));
         if (result.getStatus() == OperationResultStatus.SUCCESS) {
@@ -200,7 +200,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
         ModuleAuthentication moduleAuthentication = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
         if (!(moduleAuthentication instanceof CredentialModuleAuthentication)
-                && !AuthenticationModuleNameConstants.MAIL_NONCE.equals(moduleAuthentication.getNameOfModuleType())) {
+                && !AuthenticationModuleNameConstants.MAIL_NONCE.equals(moduleAuthentication.getModuleTypeName())) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
             LOGGER.error("Bad type of module authentication, support only EmailNonceModuleAuthentication, but is "
                     + moduleAuthentication != null ? moduleAuthentication.getClass().getName() : null);
@@ -211,7 +211,7 @@ public class PageEmailNonce extends PageAuthenticationBase {
 
         if (credentialName == null) {
             getSession().error(getString("PageForgotPassword.send.nonce.failed"));
-            LOGGER.error("EmailNonceModuleAuthentication " + nonceAuth.getNameOfModule() + " haven't define name of credential");
+            LOGGER.error("EmailNonceModuleAuthentication " + nonceAuth.getModuleIdentifier() + " haven't define name of credential");
             throw new RestartResponseException(PageEmailNonce.class);
         }
 

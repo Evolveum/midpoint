@@ -54,6 +54,6 @@ public class HttpAuthenticationEntryPoint implements AuthenticationEntryPoint {
         if (moduleAuthentication instanceof HttpModuleAuthentication) {
             return ((HttpModuleAuthentication) moduleAuthentication).getRealmFroHeader(authException);
         }
-        return moduleAuthentication.getNameOfModuleType() +" realm=\"" + DEFAULT_REALM + "\"";
+        return moduleAuthentication.getModuleTypeName() +" realm=\"" + DEFAULT_REALM + "\"";
     }
 }

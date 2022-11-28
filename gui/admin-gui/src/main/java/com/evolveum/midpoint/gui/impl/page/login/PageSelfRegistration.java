@@ -294,9 +294,8 @@ public class PageSelfRegistration extends PageAbstractFlow {
             getSession()
                     .success(createStringResource("PageSelfRegistration.registration.success").getString());
 
-            String sequenceName = getSelfRegistrationConfiguration().getAdditionalAuthentication();
-
-            if (SecurityUtils.getSequenceByName(sequenceName, getSelfRegistrationConfiguration().getAuthenticationPolicy()) != null) {
+            String sequenceIdentifier = getSelfRegistrationConfiguration().getAdditionalAuthentication();
+            if (SecurityUtils.sequenceExists(getSelfRegistrationConfiguration().getAuthenticationPolicy(), sequenceIdentifier)) {
                 target.add(PageSelfRegistration.this);
             }
             LOGGER.trace("Registration for user {} was successfull.", getUserModel().getObject());

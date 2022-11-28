@@ -12,7 +12,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.IModel;
@@ -107,7 +106,10 @@ public class PageLogin extends AbstractPageLogin {
             return "";
         }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+        if (sequence == null) {
+            sequence = SecurityUtils.getSequenceByName(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+        }
         if (sequence == null) {
             return "";
         }
@@ -157,8 +159,11 @@ public class PageLogin extends AbstractPageLogin {
             return "";
         }
 
-        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationSequence(),
-                securityPolicy.getAuthentication());
+        AuthenticationSequenceType sequence = SecurityUtils.getSequenceByIdentifier(securityPolicy.getCredentialsReset().getAuthenticationSequenceName(), securityPolicy.getAuthentication());
+        if (sequence == null) {
+            sequence = SecurityUtils.getSequenceByName(selfRegistrationPolicy.getAdditionalAuthenticationSequence(),
+                    securityPolicy.getAuthentication());
+        }
         if (sequence == null || sequence.getChannel() == null || sequence.getChannel().getUrlSuffix() == null) {
             return "";
         }
@@ -183,8 +188,8 @@ public class PageLogin extends AbstractPageLogin {
     }
 
     private boolean isModuleApplicable(ModuleAuthentication moduleAuthentication) {
-        return moduleAuthentication != null && (AuthenticationModuleNameConstants.LOGIN_FORM.equals(moduleAuthentication.getNameOfModuleType())
-                || AuthenticationModuleNameConstants.LDAP.equals(moduleAuthentication.getNameOfModuleType()));
+        return moduleAuthentication != null && (AuthenticationModuleNameConstants.LOGIN_FORM.equals(moduleAuthentication.getModuleTypeName())
+                || AuthenticationModuleNameConstants.LDAP.equals(moduleAuthentication.getModuleTypeName()));
     }
 
     @Override

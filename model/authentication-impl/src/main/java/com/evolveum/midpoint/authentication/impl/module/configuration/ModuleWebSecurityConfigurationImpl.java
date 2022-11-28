@@ -25,7 +25,7 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
 
     private List<AuthenticationProvider> authenticationProviders = new ArrayList<AuthenticationProvider>();
     private String sequenceSuffix;
-    private String nameOfModule;
+    private String moduleIdentifier;
     private String defaultSuccessLogoutURL;
     private String specificLogin;
 
@@ -63,12 +63,12 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
         this.sequenceSuffix = sequenceSuffix;
     }
 
-    public String getNameOfModule() {
-        return nameOfModule;
+    public String getModuleIdentifier() {
+        return moduleIdentifier;
     }
 
-    public void setNameOfModule(String nameOfModule) {
-        this.nameOfModule = nameOfModule;
+    public void setModuleIdentifier(String moduleIdentifier) {
+        this.moduleIdentifier = moduleIdentifier;
     }
 
     public void setSpecificLoginUrl(String specificLogin) {
@@ -81,7 +81,7 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
 
     public String getPrefixOfModule() {
         return DEFAULT_PREFIX_OF_MODULE_WITH_SLASH + "/" + AuthUtil.stripSlashes(getSequenceSuffix())
-                + "/" + AuthUtil.stripSlashes(getNameOfModule());
+                + "/" + AuthUtil.stripSlashes(getModuleIdentifier());
     }
 
     public static <T extends ModuleWebSecurityConfiguration> T build(AbstractAuthenticationModuleType module, String prefixOfSequence){
@@ -92,19 +92,23 @@ public class ModuleWebSecurityConfigurationImpl implements ModuleWebSecurityConf
 
     protected static <T extends ModuleWebSecurityConfiguration> T build(T configuration, AbstractAuthenticationModuleType module,
                                                               String prefixOfSequence){
-        configuration.setNameOfModule(module.getName());
+        configuration.setModuleIdentifier(getAuthenticationModuleIdentifier(module));
         configuration.setSequenceSuffix(prefixOfSequence);
         return configuration;
     }
 
+    protected static String getAuthenticationModuleIdentifier(AbstractAuthenticationModuleType module) {
+        return StringUtils.isNotEmpty(module.getIdentifier()) ? module.getIdentifier() : module.getName();
+    }
+
 
     protected void validate(){
-        if (StringUtils.isBlank(AuthUtil.stripSlashes(getNameOfModule()))) {
+        if (StringUtils.isBlank(AuthUtil.stripSlashes(getModuleIdentifier()))) {
             throw new IllegalArgumentException("NameOfModule is blank");
         }
 
         if (StringUtils.isBlank(getSequenceSuffix()) || StringUtils.isBlank(AuthUtil.stripSlashes(getSequenceSuffix()))) {
-            throw new IllegalArgumentException("Suffix in channel of sequence " + getNameOfModule() + " can't be null for this usecase");
+            throw new IllegalArgumentException("Suffix in channel of sequence " + getModuleIdentifier() + " can't be null for this usecase");
         }
     }
 

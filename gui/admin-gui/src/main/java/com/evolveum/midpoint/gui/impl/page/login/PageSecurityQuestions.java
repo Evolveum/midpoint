@@ -373,7 +373,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
             if (moduleAuthentication != null
-                    && AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM.equals(moduleAuthentication.getNameOfModuleType())){
+                    && AuthenticationModuleNameConstants.SECURITY_QUESTIONS_FORM.equals(moduleAuthentication.getModuleTypeName())){
                 String prefix = moduleAuthentication.getPrefix();
                 return AuthUtil.stripSlashes(prefix) + "/spring_security_login";
             }

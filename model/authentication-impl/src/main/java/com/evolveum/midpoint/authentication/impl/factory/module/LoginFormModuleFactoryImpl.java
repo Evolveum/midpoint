@@ -59,7 +59,7 @@ public class LoginFormModuleFactoryImpl extends AbstractCredentialModuleFactory
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
-        moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         return moduleAuthentication;
     }
 

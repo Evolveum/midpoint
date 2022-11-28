@@ -8,14 +8,12 @@ package com.evolveum.midpoint.authentication.api.config;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
-import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
@@ -27,9 +25,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
-import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
@@ -69,6 +65,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private Object credential;
     private String sessionId;
     private Collection<? extends GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
+    private boolean verified;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -156,7 +153,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             return false;
         }
         for (AuthModule module : modules) {
-            ModuleAuthentication authentication = getAuthenticationByName(module.getNameOfModule());
+            ModuleAuthentication authentication = getAuthenticationByIdentifier(module.getModuleIdentifier());
             if (authentication == null) {
                 continue;
             }
@@ -171,9 +168,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return false;
     }
 
-    public ModuleAuthentication getAuthenticationByName(String moduleName) {
+    public ModuleAuthentication getAuthenticationByIdentifier(String moduleIdentifier) {
         for (ModuleAuthentication authentication : getAuthentications()) {
-            if (authentication.getNameOfModule().equals(moduleName)) {
+            if (authentication.getModuleIdentifier().equals(moduleIdentifier)) {
                 return authentication;
             }
         }
@@ -220,7 +217,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         Validate.notNull(authentication);
 
         for (int i = 0; i < getAuthModules().size(); i++) {
-            if (getAuthModules().get(i).getNameOfModule().equals(authentication.getNameOfModule())) {
+            if (getAuthModules().get(i).getModuleIdentifier().equals(authentication.getModuleIdentifier())) {
                 int indexOfModule = i;
                 //TODO presumption that necessity is sufficient
                 return indexOfModule;
@@ -301,7 +298,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         int resolvedIndex = -1;
         for (ModuleAuthentication parallelProcessingModule : parallelProcessingModules) {
             int usedIndex = getAuthentications().indexOf(parallelProcessingModule);
-            if (AuthUtil.resolveTokenTypeByModuleType(parallelProcessingModule.getNameOfModuleType()).equalsIgnoreCase(type)
+            if (AuthUtil.resolveTokenTypeByModuleType(parallelProcessingModule.getModuleTypeName()).equalsIgnoreCase(type)
                     && resolvedIndex == -1) {
                 parallelProcessingModule.setState(AuthenticationModuleState.LOGIN_PROCESSING);
                 if (usedIndex != -1) {
@@ -320,7 +317,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         }
         if (resolvedIndex == -1) {
             throw new IllegalArgumentException("Couldn't find module with type '" + type + "' in sequence '"
-                    + getSequence().getName() + "'");
+                    + getSequence().getIdentifier() + "'");
         }
         return resolvedIndex;
     }
@@ -350,5 +347,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             return true;
         }
         return false;
+    }
+
+    public boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(boolean verified) {
+        this.verified = verified;
     }
 }

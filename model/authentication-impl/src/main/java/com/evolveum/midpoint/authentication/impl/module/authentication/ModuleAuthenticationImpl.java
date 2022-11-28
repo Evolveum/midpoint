@@ -66,7 +66,7 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         }
     }
 
-    public String getNameOfModuleType() {
+    public String getModuleTypeName() {
         return nameOfType;
     }
 
@@ -92,7 +92,7 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
         this.prefix = prefix;
     }
 
-    public String getNameOfModule() {
+    public String getModuleIdentifier() {
         return nameOfModule;
     }
 
@@ -133,7 +133,7 @@ public class ModuleAuthenticationImpl implements ModuleAuthentication {
     }
 
     public ModuleAuthenticationImpl clone() {
-        ModuleAuthenticationImpl module = new ModuleAuthenticationImpl(getNameOfModuleType(), getSequenceModule());
+        ModuleAuthenticationImpl module = new ModuleAuthenticationImpl(getModuleTypeName(), getSequenceModule());
         clone(module);
         return module;
     }

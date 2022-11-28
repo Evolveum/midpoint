@@ -117,13 +117,13 @@ public abstract class HttpAuthenticationFilter<T> extends BasicAuthenticationFil
     }
 
     protected boolean skipFilterForAuthorizationHeader(String header) {
-        return !header.toLowerCase().startsWith(getNameOfModule().toLowerCase() + " ");
+        return !header.toLowerCase().startsWith(getModuleIdentifier().toLowerCase() + " ");
     }
 
     protected abstract T extractAndDecodeHeader(String header, HttpServletRequest request);
 
     protected String createCredentialsFromHeader(String header) {
-        int startIndex = getNameOfModule().length() + 1;
+        int startIndex = getModuleIdentifier().length() + 1;
         byte[] base64Token = header.substring(startIndex).getBytes(this.credentialsCharset);
         byte[] decoded;
         try {
@@ -148,7 +148,7 @@ public abstract class HttpAuthenticationFilter<T> extends BasicAuthenticationFil
     protected abstract void logFoundAuthorizationHeader(T tokens, HttpServletRequest request);
 
     @NotNull
-    protected abstract String getNameOfModule();
+    protected abstract String getModuleIdentifier();
 
     protected boolean authenticationIsRequired(String username, Class<? extends Authentication> basicClass) {
         Authentication existingAuth = SecurityContextHolder.getContext()

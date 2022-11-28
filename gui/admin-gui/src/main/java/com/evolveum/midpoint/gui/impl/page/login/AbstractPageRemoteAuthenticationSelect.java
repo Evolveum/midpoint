@@ -57,7 +57,7 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
         ModuleAuthentication actualModule = AuthUtil.getProcessingModuleIfExist();
         if (actualModule != null) {
             Authentication actualAuthentication = actualModule.getAuthentication();
-            String authName = actualModule.getNameOfModuleType();
+            String authName = actualModule.getModuleTypeName();
             form.add(new VisibleBehaviour(() -> existRemoteAuthentication(actualAuthentication, authName)));
             String prefix = actualModule.getPrefix();
             form.add(AttributeModifier.replace("action",

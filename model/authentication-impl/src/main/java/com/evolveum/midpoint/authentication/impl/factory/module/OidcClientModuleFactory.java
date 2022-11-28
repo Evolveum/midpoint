@@ -92,7 +92,7 @@ public class OidcClientModuleFactory extends RemoteModuleFactory {
         );
         moduleAuthentication.setClientsRepository(configuration.getClientRegistrationRepository());
         moduleAuthentication.setProviders(providers);
-        moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
+        moduleAuthentication.setNameOfModule(configuration.getModuleIdentifier());
         moduleAuthentication.setPrefix(configuration.getPrefixOfModule());
         return moduleAuthentication;
     }

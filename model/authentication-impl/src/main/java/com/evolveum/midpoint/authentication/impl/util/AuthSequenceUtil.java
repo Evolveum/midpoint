@@ -31,7 +31,9 @@ import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameCon
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -205,7 +207,7 @@ public class AuthSequenceUtil {
                 String type = header.split(" ")[0];
                 if (AuthenticationModuleNameConstants.CLUSTER.equalsIgnoreCase(type)) {
                     AuthenticationSequenceType sequence = new AuthenticationSequenceType();
-                    sequence.setName(AuthenticationModuleNameConstants.CLUSTER);
+                    sequence.setIdentifier(AuthenticationModuleNameConstants.CLUSTER);
                     AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
                     seqChannel.setUrlSuffix(AuthenticationModuleNameConstants.CLUSTER.toLowerCase());
                     seqChannel.setChannelId(SchemaConstants.CHANNEL_REST_URI);
@@ -293,7 +295,10 @@ public class AuthSequenceUtil {
         List<AuthModule> authModules = new ArrayList<>();
         sequenceModules.forEach(sequenceModule -> {
             try {
-                AbstractAuthenticationModuleType module = getModuleByName(sequenceModule.getName(), authenticationModulesType);
+                AbstractAuthenticationModuleType module = getModuleByIdentifier(sequenceModule.getIdentifier(), authenticationModulesType);
+                if (module == null) {
+                    module = getModuleByName(sequenceModule.getName(), authenticationModulesType);  //just to support old config with name attribute
+                }
                 AbstractModuleFactory moduleFactory = authRegistry.findModelFactory(module, authenticationChannel);
                 AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
                         sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel, sequenceModule);
@@ -321,7 +326,7 @@ public class AuthSequenceUtil {
                     HttpClusterModuleFactory factory = authRegistry.findModelFactoryByClass(HttpClusterModuleFactory.class);
                     AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
                     };
-                    module.setName(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + "-module");
+                    module.setIdentifier(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + "-module");
                     try {
                         authModules.add(factory.createModuleFilter(module, urlSuffix, httpRequest,
                                 sharedObjects, authenticationModulesType, credentialPolicy, null,
@@ -340,6 +345,13 @@ public class AuthSequenceUtil {
         return null;
     }
 
+    /**
+     * starting from 4.7 identifier should be used instead of name
+     * leaving this method just to support old config working (until deprecated name attribute is removed at all)
+     * @param name
+     * @param authenticationModulesType
+     * @return
+     */
     private static AbstractAuthenticationModuleType getModuleByName(
             String name, AuthenticationModulesType authenticationModulesType) {
         PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
@@ -359,6 +371,30 @@ public class AuthSequenceUtil {
 
         for (AbstractAuthenticationModuleType module : modules) {
             if (module.getName().equals(name)) {
+                return module;
+            }
+        }
+        return null;
+    }
+
+    private static AbstractAuthenticationModuleType getModuleByIdentifier(String identifier, AuthenticationModulesType authenticationModulesType) {
+        PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
+        List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
+        modulesContainerValue.accept(v -> {
+            if (!(v instanceof PrismContainer)) {
+                return;
+            }
+
+            PrismContainer<?> c = (PrismContainer<?>) v;
+            if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(Objects.requireNonNull(c.getCompileTimeClass())))) {
+                return;
+            }
+
+            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue<?>) x).asContainerable()));
+        });
+
+        for (AbstractAuthenticationModuleType module : modules) {
+            if (module.getIdentifier().equals(identifier)) {
                 return module;
             }
         }
@@ -550,13 +586,13 @@ public class AuthSequenceUtil {
         if (authModule == null) {
             return false;
         }
-        String moduleType = authModule.getNameOfModuleType();
+        String moduleType = authModule.getModuleTypeName();
         return DescriptorLoaderImpl.existPageUrlByAuthName(moduleType);
     }
 
     public static boolean isLoginPageForActualAuthModule(String url) {
         ModuleAuthentication authModule = AuthUtil.getProcessingModule();
-        String moduleType = authModule.getNameOfModuleType();
+        String moduleType = authModule.getModuleTypeName();
         return DescriptorLoaderImpl.getPageUrlsByAuthName(moduleType).contains(url);
     }
 
@@ -594,5 +630,9 @@ public class AuthSequenceUtil {
             }
         }
         return true;
+    }
+
+    public static String getAuthSequenceIdentifier(@NotNull AuthenticationSequenceType seq) {
+        return StringUtils.isNotEmpty(seq.getIdentifier()) ? seq.getIdentifier() : seq.getName();
     }
 }

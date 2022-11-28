@@ -4578,12 +4578,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         MidpointAuthentication mpAuthentication = new MidpointAuthentication(SecurityPolicyUtil.createDefaultSequence());
         ModuleAuthentication moduleAuthentication = new ModuleAuthentication() {
             @Override
-            public String getNameOfModule() {
-                return SecurityPolicyUtil.DEFAULT_MODULE_NAME;
+            public String getModuleIdentifier() {
+                return SecurityPolicyUtil.DEFAULT_MODULE_IDENTIFIER;
             }
 
             @Override
-            public String getNameOfModuleType() {
+            public String getModuleTypeName() {
                 return AuthenticationModuleNameConstants.LOGIN_FORM;
             }
 
@@ -4608,7 +4608,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @Override
             public String getPrefix() {
                 return ModuleWebSecurityConfiguration.DEFAULT_PREFIX_OF_MODULE_WITH_SLASH
-                        + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_NAME + "/";
+                        + ModuleWebSecurityConfiguration.DEFAULT_PREFIX_FOR_DEFAULT_MODULE + SecurityPolicyUtil.DEFAULT_MODULE_IDENTIFIER + "/";
             }
 
             @Override
@@ -4634,8 +4634,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
 
             @Override
-            public String getNameOfModule() {
-                return SecurityPolicyUtil.DEFAULT_MODULE_NAME;
+            public String getModuleIdentifier() {
+                return SecurityPolicyUtil.DEFAULT_MODULE_IDENTIFIER;
             }
 
             @Override

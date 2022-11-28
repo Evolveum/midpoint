@@ -24,14 +24,14 @@ import javax.xml.namespace.QName;
 public interface ModuleAuthentication {
 
     /**
-     * @return name of authentication module, get from configuration
+     * @return identifier of the authentication module, get from configuration
      */
-    String getNameOfModule();
+    String getModuleIdentifier();
 
     /**
      * @return type of authentication module
      */
-    String getNameOfModuleType();
+    String getModuleTypeName();
 
     /**
      * @return state of module
