@@ -798,11 +798,9 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <nodeVersion>v16.15.0</nodeVersion>
-                    <npmVersion>8.8.0</npmVersion>
+                    <nodeVersion>v18.12.1</nodeVersion>
+                    <npmVersion>8.19.2</npmVersion>
                     <installDirectory>target</installDirectory>
-                    <!-- todo enable downloading from nexus, currently it doesn't work -->
-                    <!--<npmDownloadRoot>https://nexus.evolveum.com/nexus/repository/npm/</npmDownloadRoot>-->
                 </configuration>
             </plugin>
         </plugins>
