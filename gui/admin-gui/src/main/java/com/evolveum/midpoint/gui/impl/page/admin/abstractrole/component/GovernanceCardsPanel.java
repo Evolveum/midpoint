@@ -349,11 +349,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
     protected void refreshTable(AjaxRequestTarget target) {
         target.add(getMemberTileTable());
         getMemberTileTable().getProvider().detach();
+        getMemberTileTable().getTilesModel().detach();
         getMemberTileTable().refresh(target);
-    }
-
-    @Override
-    protected void unassignMembersPerformed(IModel<?> rowModel, QName type, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
-        super.unassignMembersPerformed(rowModel, type, scope, relations, target);
     }
 }
