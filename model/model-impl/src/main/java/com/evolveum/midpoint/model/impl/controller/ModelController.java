@@ -62,7 +62,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.activity.TaskActivityManager;
 import com.evolveum.midpoint.schema.*;
@@ -160,18 +159,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         return objectResolver;
     }
 
-    private CaseManager getCaseManagerChecked() {
-        if (caseManager == null) {
-            throw new SystemException("Case manager not present");
-        }
-        return caseManager;
+    private @NotNull CaseManager getCaseManagerRequired() {
+        return Objects.requireNonNull(caseManager, "Case manager is not present");
     }
 
-    private CertificationManager getCertificationManagerChecked() {
-        if (certificationManager == null) {
-            throw new SystemException("Certification manager not present");
-        }
-        return certificationManager;
+    private CertificationManager getCertificationManagerRequired() {
+        return Objects.requireNonNull(certificationManager, "Certification manager is not present");
     }
 
     @NotNull
@@ -183,13 +176,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         Validate.notEmpty(oid, "Object oid must not be null or empty.");
         Validate.notNull(parentResult, "Operation result must not be null.");
         Validate.notNull(clazz, "Object class must not be null.");
+
         enterModelMethod();
 
         PrismObject<T> object;
 
         OP_LOGGER.trace("MODEL OP enter getObject({},{},{})", clazz.getSimpleName(), oid, rawOptions);
-
-        GetOperationOptions rootOptions = null;
 
         OperationResult result = parentResult.subresult(GET_OBJECT)
                 .setMinor()
@@ -199,7 +191,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .build();
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
-            rootOptions = SelectorOptions.findRootOptions(options);
+            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
             if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
                 QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
@@ -214,38 +206,33 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 //            }
 
             //noinspection unchecked
-            object = (PrismObject<T>) objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
+            object = (PrismObject<T>) objectResolver
+                    .getObject(clazz, oid, options, task, result)
+                    .asPrismObject()
+                    .cloneIfImmutable();
 
-            object = object.cloneIfImmutable();
             schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, result);
             executeResolveOptions(object.asObjectable(), options, task, result);
 
-        } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException
-                | ExpressionEvaluationException | RuntimeException | Error e) {
-            OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}", clazz.getSimpleName(), oid, rawOptions, e.getClass().getSimpleName(), e.getMessage());
-            ModelImplUtils.recordFatalError(result, e);
-            throw e;
-        } catch (ObjectNotFoundException e) {
-            OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}", clazz.getSimpleName(), oid, rawOptions, e.getClass().getSimpleName(), e.getMessage());
-            ModelImplUtils.recordException(result, e);
-            throw e;
+        } catch (Throwable t) {
+            OP_LOGGER.debug("MODEL OP error getObject({},{},{}): {}: {}",
+                    clazz.getSimpleName(), oid, rawOptions, t.getClass().getSimpleName(), t.getMessage());
+            ModelImplUtils.recordException(result, t);
+            throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
+            result.cleanup();
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
             exitModelMethod();
         }
 
-        result.cleanupResult();
-
         OP_LOGGER.debug("MODEL OP exit getObject({},{},{}): {}", clazz.getSimpleName(), oid, rawOptions, object);
-        if (OP_LOGGER.isTraceEnabled()) {
-            OP_LOGGER.trace("MODEL OP exit getObject({},{},{}):\n{}", clazz.getSimpleName(), oid, rawOptions, object.debugDump(1));
-        }
+        OP_LOGGER.trace("MODEL OP exit getObject({},{},{}):\n{}", clazz.getSimpleName(), oid, rawOptions, object.debugDumpLazily(1));
         return object;
     }
 
-    private void executeResolveOptions(@NotNull Containerable containerable, Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult result) {
+    private void executeResolveOptions(
+            @NotNull Containerable containerable, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) {
         if (options == null) {
             return;
         }
@@ -389,7 +376,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             }
 
             if (ModelExecuteOptions.isRaw(options)) {
-                return executeChangesRaw(deltas, options, task, result);
+                return new RawChangesExecutor(deltas, options, task, result)
+                        .execute(result);
             } else {
                 return executeChangesNonRaw(deltas, options, task, statusListeners, result);
             }
@@ -397,10 +385,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             // Note: caches are invalidated automatically via RepositoryCache.invalidateCacheEntries method
 
         } catch (Throwable t) {
-            ModelImplUtils.recordFatalError(result, t);
+            ModelImplUtils.recordException(result, t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
             exitModelMethod();
         }
     }
@@ -416,317 +404,53 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             Collection<ProgressListener> statusListeners, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
-        try {
-            LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 
-            authorizePartialExecution(context, options, task, result);
+        LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 
-            if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
-                String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. Filters already present in the object will not be touched.";
-                LOGGER.warn("{} Context = {}", m, context.debugDump());
-                result.createSubresult(CLASS_NAME_WITH_DOT + "reevaluateSearchFilters").recordWarning(m);
-            }
+        authorizePartialExecution(context, options, task, result);
 
-            context.setProgressListeners(statusListeners);
-            // Note: Request authorization happens inside clockwork
-
-            clockwork.run(context, task, result);
-
-            // prepare return value
-            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
-            if (context.getFocusContext() != null) {
-                executedDeltas.addAll(context.getFocusContext().getExecutedDeltas());
-            }
-            for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-                executedDeltas.addAll(projectionContext.getExecutedDeltas());
-            }
-
-            if (context.hasExplosiveProjection()) {
-                PrismObject<? extends ObjectType> focus =
-                        Objects.requireNonNull(context.getFocusContext().getObjectAny(), "no focus object");
-
-                LOGGER.debug("Recomputing {} because there was explosive projection", focus);
-
-                LensContext<? extends ObjectType> recomputeContext =
-                        contextFactory.createRecomputeContext(focus, options, task, result);
-                recomputeContext.setDoReconciliationForAllProjections(true);
-                LOGGER.trace("Recomputing {}, context:\n{}", focus, recomputeContext.debugDumpLazily());
-                clockwork.run(recomputeContext, task, result);
-            }
-
-            cleanupOperationResult(result);
-            return executedDeltas;
-
-        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | PolicyViolationException | SecurityViolationException | RuntimeException e) {
-            ModelImplUtils.recordFatalError(result, e);
-            throw e;
-        }
-    }
-
-    private Collection<ObjectDeltaOperation<? extends ObjectType>> executeChangesRaw(Collection<ObjectDelta<? extends ObjectType>> deltas,
-            ModelExecuteOptions options, Task task, OperationResult result)
-            throws ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, SchemaException,
-            ObjectNotFoundException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
-
-        String requestIdentifier = ModelImplUtils.generateRequestIdentifier();
-        PrismReferenceValue targetRef = ModelImplUtils.determineAuditTarget(deltas, prismContext);
-        AuditEventRecord auditRecordRequest = createAuditEventRecordRaw(AuditEventStage.REQUEST, requestIdentifier,
-                targetRef, ObjectDeltaOperation.cloneDeltaCollection(deltas));
-        // we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
-
-        ExpressionType eventRecordingExpression = null;
-
-        PrismObject<SystemConfigurationType> config = systemObjectCache.getSystemConfiguration(result);
-        if (config != null && config.asObjectable().getAudit() != null
-                && config.asObjectable().getAudit().getEventRecording() != null) {
-            SystemConfigurationAuditEventRecordingType eventRecording = config.asObjectable().getAudit().getEventRecording();
-            eventRecordingExpression = eventRecording.getExpression();
+        if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
+            String m = "ReevaluateSearchFilters option is not fully supported for non-raw operations yet. "
+                    + "Filters already present in the object will not be touched.";
+            LOGGER.warn("{} Context = {}", m, context.debugDump());
+            result.createSubresult(CLASS_NAME_WITH_DOT + "reevaluateSearchFilters").recordWarning(m);
         }
 
-        if (eventRecordingExpression != null) {
-            // MID-6839
-            auditRecordRequest = auditHelper.evaluateRecordingExpression(eventRecordingExpression,
-                    auditRecordRequest, null, null, task, result);
-        }
-        if (auditRecordRequest != null) {
-            auditHelper.audit(auditRecordRequest, null, task, result);
-        }
+        context.setProgressListeners(statusListeners);
+        // Note: Request authorization happens inside clockwork
 
+        clockwork.run(context, task, result);
+
+        // prepare return value
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
-        try {
-            for (ObjectDelta<? extends ObjectType> delta : deltas) {
-                executeChangeRaw(executedDeltas, delta, options, task, result);
-            }
-            return executedDeltas;
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            cleanupOperationResult(result);
-            AuditEventRecord auditRecordExecution = createAuditEventRecordRaw(AuditEventStage.EXECUTION, requestIdentifier, targetRef, executedDeltas);
-            auditRecordExecution.setTimestamp(System.currentTimeMillis());
-            auditRecordExecution.setOutcome(result.getStatus());
-            if (eventRecordingExpression != null) {
-                // MID-6839
-                auditRecordExecution = auditHelper.evaluateRecordingExpression(eventRecordingExpression,
-                        auditRecordExecution, null, null, task, result);
-            }
-            if (auditRecordExecution != null) {
-                auditHelper.audit(auditRecordExecution, null, task, result);
-            }
+        if (context.getFocusContext() != null) {
+            executedDeltas.addAll(context.getFocusContext().getExecutedDeltas());
         }
+        for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+            executedDeltas.addAll(projectionContext.getExecutedDeltas());
+        }
+
+        if (context.hasExplosiveProjection()) {
+            PrismObject<? extends ObjectType> focus =
+                    Objects.requireNonNull(context.getFocusContext().getObjectAny(), "no focus object");
+
+            LOGGER.debug("Recomputing {} because there was explosive projection", focus);
+
+            LensContext<? extends ObjectType> recomputeContext =
+                    contextFactory.createRecomputeContext(focus, options, task, result);
+            recomputeContext.setDoReconciliationForAllProjections(true);
+            LOGGER.trace("Recomputing {}, context:\n{}", focus, recomputeContext.debugDumpLazily());
+            clockwork.run(recomputeContext, task, result);
+        }
+
+        cleanupOperationResult(result);
+        return executedDeltas;
     }
 
-    private AuditEventRecord createAuditEventRecordRaw(AuditEventStage stage, String requestIdentifier,
-            PrismReferenceValue targetRef, Collection<ObjectDeltaOperation<? extends ObjectType>> deltas) {
-        AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.EXECUTE_CHANGES_RAW, stage);
-        auditRecord.setRequestIdentifier(requestIdentifier);
-        auditRecord.setTargetRef(targetRef);
-        auditRecord.addDeltas(deltas);
-        return auditRecord;
-    }
-
-    private void executeChangeRaw(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
-            ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, Task task, OperationResult parentResult)
-            throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, PolicyViolationException,
-            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        OperationResult result = parentResult.createSubresult(EXECUTE_CHANGE);
-        PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit = null;
-        try {
-
-            applyDefinitionsIfNeeded(delta, task, result);
-
-            objectToDetermineDetailsForAudit = executeChangeRawInternal(delta, options, task, result);
-        } catch (Throwable t) {
-            ModelImplUtils.recordFatalError(result, t);
-            throw t;
-        } finally { // to have a record with the failed delta as well
-            result.computeStatusIfUnknown();
-            ObjectDeltaOperation<? extends ObjectType> odoToAudit = prepareObjectDeltaOperation(delta, objectToDetermineDetailsForAudit, result);
-            executedDeltas.add(odoToAudit);
-        }
-    }
-
-    private void applyDefinitionsIfNeeded(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result1)
-            throws ExpressionEvaluationException {
-        // MID-2486
-        if (delta.getObjectTypeClass() == ShadowType.class || delta.getObjectTypeClass() == ResourceType.class) {
-            try {
-                provisioning.applyDefinition(delta, task, result1);
-            } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | RuntimeException e) {
-                // we can tolerate this - if there's a real problem with definition, repo call below will fail
-                LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't apply definition on shadow/resource raw-mode delta {} -- continuing the operation.", e, delta);
-                result1.muteLastSubresultError();
-            }
-        }
-    }
-
-    private ObjectDeltaOperation<? extends ObjectType> prepareObjectDeltaOperation(ObjectDelta<? extends ObjectType> delta,
-            PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit, OperationResult result) {
-        ObjectDeltaOperation<? extends ObjectType> odoToAudit = new ObjectDeltaOperation<>(delta, result);
-        if (objectToDetermineDetailsForAudit != null) {
-            odoToAudit.setObjectName(objectToDetermineDetailsForAudit.getName());
-            if (objectToDetermineDetailsForAudit.asObjectable() instanceof ShadowType) {
-                ShadowType shadow = (ShadowType) objectToDetermineDetailsForAudit.asObjectable();
-                odoToAudit.setResourceOid(ShadowUtil.getResourceOid(shadow));
-                odoToAudit.setResourceName(ShadowUtil.getResourceName(shadow));
-            }
-        }
-        return odoToAudit;
-    }
-
-    private PrismObject<? extends ObjectType> executeChangeRawInternal(
-            ObjectDelta<? extends ObjectType> delta, ModelExecuteOptions options, Task task, OperationResult result)
-            throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
-        final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
-        PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit;
-        if (delta.isAdd()) {
-            objectToDetermineDetailsForAudit = executeAddDeltaRaw(delta, preAuthorized, options, task, result);
-        } else if (delta.isDelete()) {
-            objectToDetermineDetailsForAudit = executeDeleteDeltaRaw(delta, preAuthorized, task, result);
-        } else if (delta.isModify()) {
-            objectToDetermineDetailsForAudit = executeModifyDeltaRaw(delta, preAuthorized, options, task, result);
-        } else {
-            throw new IllegalArgumentException("Wrong delta type " + delta.getChangeType() + " in " + delta);
-        }
-        return objectToDetermineDetailsForAudit;
-    }
-
-    private PrismObject<? extends ObjectType> executeAddDeltaRaw(ObjectDelta<? extends ObjectType> delta,
-            boolean preAuthorized, ModelExecuteOptions options, Task task, OperationResult result1)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
-        RepoAddOptions repoOptions = new RepoAddOptions();
-        if (ModelExecuteOptions.isNoCrypt(options)) {
-            repoOptions.setAllowUnencryptedValues(true);
-        }
-        if (ModelExecuteOptions.isOverwrite(options)) {
-            repoOptions.setOverwrite(true);
-        }
-        PrismObject<? extends ObjectType> objectToAdd = delta.getObjectToAdd();
-        if (!preAuthorized) {
-            securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(),
-                    null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
-            securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
-                    null, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), null, task, result1);
-        }
-        String oid;
-        try {
-            if (objectToAdd.canRepresent(TaskType.class)) {
-                //noinspection unchecked
-                oid = taskManager.addTask((PrismObject<TaskType>) objectToAdd, result1);
-            } else {
-                oid = cacheRepositoryService.addObject(objectToAdd, repoOptions, result1);
-            }
-            task.recordObjectActionExecuted(objectToAdd, null, oid, ChangeType.ADD, task.getChannel(), null);
-        } catch (Throwable t) {
-            task.recordObjectActionExecuted(objectToAdd, null, null, ChangeType.ADD, task.getChannel(), t);
-            throw t;
-        }
-        delta.setOid(oid);
-        return objectToAdd;
-    }
-
-    private PrismObject<? extends ObjectType> executeDeleteDeltaRaw(
-            ObjectDelta<? extends ObjectType> delta, boolean preAuthorized, Task task, OperationResult result1)
-            throws PolicyViolationException, CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);  // MID-2218
-        PrismObject objectToDetermineDetailsForAudit = null;
-        try {
-            PrismObject<? extends ObjectType> existingObject;
-            try {
-                existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), createReadOnlyCollection(), result1);
-                objectToDetermineDetailsForAudit = existingObject;
-            } catch (Throwable t) {
-                if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result1)) {
-                    throw t;
-                } else {
-                    existingObject = prismContext.createObject(delta.getObjectTypeClass());
-                    existingObject.setOid(delta.getOid());
-                    existingObject.asObjectable().setName(PolyStringType.fromOrig("Unreadable object"));
-                    // in case of administrator's request we continue - in order to allow deleting malformed (unreadable) objects
-                    // creating "shadow" existing object for auditing needs.
-                }
-            }
-            checkIndestructible(existingObject, task, result1);
-            if (!preAuthorized) {
-                securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(),
-                        null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
-                securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(),
-                        null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
-            }
-            try {
-                if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
-                    ModelImplUtils.clearRequestee(task);
-                    provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-                            ProvisioningOperationOptions.createRaw(), null, task, result1);
-                } else if (TaskType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                    // Maybe we should check if the task is not running. However, this is raw processing.
-                    // (But, actually, this is better than simply deleting the task from repository.)
-                    taskManager.deleteTask(delta.getOid(), result1);
-                } else {
-                    cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(), result1);
-                }
-                task.recordObjectActionExecuted(objectToDetermineDetailsForAudit,
-                        delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), null);
-            } catch (Throwable t) {
-                task.recordObjectActionExecuted(objectToDetermineDetailsForAudit,
-                        delta.getObjectTypeClass(), delta.getOid(), ChangeType.DELETE, task.getChannel(), t);
-                throw t;
-            }
-        } finally {
-            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-        }
-        return objectToDetermineDetailsForAudit;
-    }
-
-    private PrismObject<? extends ObjectType> executeModifyDeltaRaw(ObjectDelta<? extends ObjectType> delta,
-            boolean preAuthorized, ModelExecuteOptions options, Task task, OperationResult result1)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ConfigurationException,
-            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
-        QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true); // MID-2218
-        PrismObject<? extends ObjectType> objectToDetermineDetailsForAudit;
-        try {
-            PrismObject existingObject = cacheRepositoryService.getObject(
-                    delta.getObjectTypeClass(), delta.getOid(), createReadOnlyCollection(), result1);
-            objectToDetermineDetailsForAudit = existingObject;
-            if (!preAuthorized) {
-                AuthorizationParameters autzParams = AuthorizationParameters.Builder.buildObjectDelta(existingObject, delta);
-                securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, autzParams, null, task, result1);
-                securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, autzParams, null, task, result1);
-            }
-            try {
-                if (TaskType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                    taskManager.modifyTask(delta.getOid(), delta.getModifications(), result1);
-                } else {
-                    cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(),
-                            delta.getModifications(), result1);
-                }
-                task.recordObjectActionExecuted(existingObject, ChangeType.MODIFY, null);
-            } catch (Throwable t) {
-                task.recordObjectActionExecuted(existingObject, ChangeType.MODIFY, t);
-                throw t;
-            }
-        } finally {
-            QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-        }
-        if (ModelExecuteOptions.isReevaluateSearchFilters(options)) { // treat filters that already exist in the object (case #2 above)
-            reevaluateSearchFilters(delta.getObjectTypeClass(), delta.getOid(), task, result1);
-        }
-        return objectToDetermineDetailsForAudit;
-    }
-
-    private <O extends ObjectType> void checkIndestructible(PrismObject<O> existingObject, Task task, OperationResult result)
+    static void checkIndestructible(ObjectType object)
             throws IndestructibilityViolationException {
-        if (existingObject != null && Boolean.TRUE.equals(existingObject.asObjectable().isIndestructible())) {
-            IndestructibilityViolationException e =
-                    new IndestructibilityViolationException("Attempt to delete indestructible object " + existingObject);
-            ModelImplUtils.recordFatalError(result, e);
-            throw e;
+        if (object != null && Boolean.TRUE.equals(object.isIndestructible())) {
+            throw new IndestructibilityViolationException("Attempt to delete indestructible object " + object);
         }
     }
 
@@ -742,7 +466,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
     }
 
-    protected void cleanupOperationResult(OperationResult result) {
+    private void cleanupOperationResult(OperationResult result) {
         // Clockwork.run sets "in-progress" flag just at the root level
         // and result.computeStatus() would erase it.
         // So we deal with it in a special way, in order to preserve this information for the user.
@@ -755,10 +479,10 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             result.computeStatus();
         }
 
-        result.cleanupResult();
+        result.cleanup();
     }
 
-    private <T extends ObjectType> void reevaluateSearchFilters(
+    <T extends ObjectType> void reevaluateSearchFilters(
             Class<T> objectTypeClass, String oid, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "reevaluateSearchFilters");
@@ -1533,20 +1257,20 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     @Override
-    public @Nullable CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
+    public @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         Validate.notNull(connOid, "ConnOid must not be null.");
         LOGGER.trace("Getting native capabilities by connector oid: {}", connOid);
 
         enterModelMethodNoRepoCache();
         try {
-            CapabilityCollectionType capability = provisioning.getNativeCapabilities(connOid, result);
+            CapabilityCollectionType capabilities = provisioning.getNativeCapabilities(connOid, result);
             LOGGER.debug(
                     "Finished getting native capabilities by connector oid: {}, result: {} ",
                     connOid,
                     result.getStatus());
             LOGGER.trace("Getting native capabilities by connector oid:\n{}", lazy(() -> result.dump(false)));
-            return capability;
+            return capabilities;
         } finally {
             exitModelMethodNoRepoCache();
         }
@@ -1696,14 +1420,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         result.cleanupResult();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * com.evolveum.midpoint.model.api.ModelService#discoverConnectors(com.evolveum
-     * .midpoint.xml.ns._public.common.common_1.ConnectorHostType,
-     * com.evolveum.midpoint.common.result.OperationResult)
-     */
     @Override
     public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, Task task, OperationResult parentResult)
             throws CommunicationException, SecurityViolationException, SchemaException,
@@ -2030,7 +1746,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskCollectionOperation(taskOids,
                 ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
-        List<String> indestructibleTaskOids = getIndestructibleTaskOids(resolvedTasks, operationTask, parentResult);
+        List<String> indestructibleTaskOids = getIndestructibleTaskOids(resolvedTasks, parentResult);
         taskOids.removeAll(indestructibleTaskOids);
 
         OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "suspendAndDeleteTasks"); // details filled in taskManager
@@ -2056,7 +1772,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
         List<PrismObject<TaskType>> resolvedTasks = preprocessTaskOperation(taskOid,
                 ModelAuthorizationAction.DELETE, AuditEventType.DELETE_OBJECT, operationTask, parentResult);
-        List<String> indestructibleTaskOids = getIndestructibleTaskOids(resolvedTasks, operationTask, parentResult);
+        List<String> indestructibleTaskOids = getIndestructibleTaskOids(resolvedTasks, parentResult);
 
         OperationResult taskOperationResult = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "suspendAndDeleteTask"); // details filled in taskManager
         try {
@@ -2070,20 +1786,22 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             taskOperationResult.close();
         }
 
-        postprocessTaskCollectionOperation(resolvedTasks,
-                AuditEventType.DELETE_OBJECT, operationTask, parentResult, taskOperationResult);
+        postprocessTaskCollectionOperation(
+                resolvedTasks, AuditEventType.DELETE_OBJECT, operationTask, parentResult, taskOperationResult);
     }
 
     private List<String> getIndestructibleTaskOids(
-            List<PrismObject<TaskType>> allTasks, Task operationTask, OperationResult parentResult) {
+            List<PrismObject<TaskType>> allTasks, OperationResult parentResult) {
         List<String> indestructible = new ArrayList<>();
         for (PrismObject<TaskType> taskType : allTasks) {
             OperationResult result = parentResult.createMinorSubresult(CHECK_INDESTRUCTIBLE);
             try {
-                checkIndestructible(taskType, operationTask, result);
-                result.recordSuccessIfUnknown();
+                checkIndestructible(taskType.asObjectable());
             } catch (IndestructibilityViolationException e) {
                 indestructible.add(taskType.getOid());
+                result.recordException(e);
+            } finally {
+                result.close();
             }
         }
         return indestructible;
@@ -2412,7 +2130,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         } else {
             outputToUse = output;
         }
-        getCaseManagerChecked().completeWorkItem(workItemId, outputToUse, null, task, parentResult);
+        getCaseManagerRequired().completeWorkItem(workItemId, outputToUse, null, task, parentResult);
     }
 
     // TODO move this method to more appropriate place
@@ -2424,35 +2142,35 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             @NotNull OperationResult parentResult)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException {
-        getCaseManagerChecked().completeWorkItem(workItemId, output, null, task, parentResult);
+        getCaseManagerRequired().completeWorkItem(workItemId, output, null, task, parentResult);
     }
 
     @Override
     public void cancelCase(@NotNull String caseOid, @NotNull Task task, @NotNull OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException {
-        getCaseManagerChecked().cancelCase(caseOid, task, parentResult);
+        getCaseManagerRequired().cancelCase(caseOid, task, parentResult);
     }
 
     @Override
     public void claimWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult parentResult)
             throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        getCaseManagerChecked().claimWorkItem(workItemId, task, parentResult);
+        getCaseManagerRequired().claimWorkItem(workItemId, task, parentResult);
     }
 
     @Override
     public void releaseWorkItem(@NotNull WorkItemId workItemId, @NotNull Task task, @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        getCaseManagerChecked().releaseWorkItem(workItemId, task, parentResult);
+        getCaseManagerRequired().releaseWorkItem(workItemId, task, parentResult);
     }
 
     @Override
     public void delegateWorkItem(@NotNull WorkItemId workItemId, @NotNull WorkItemDelegationRequestType delegationRequest,
             @NotNull Task task, @NotNull OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCaseManagerChecked().delegateWorkItem(workItemId, delegationRequest, task, parentResult);
+        getCaseManagerRequired().delegateWorkItem(workItemId, delegationRequest, task, parentResult);
     }
 
     //endregion
@@ -2497,17 +2215,17 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public AccessCertificationCasesStatisticsType getCampaignStatistics(String campaignOid, boolean currentStageOnly, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return getCertificationManagerChecked().getCampaignStatistics(campaignOid, currentStageOnly, task, parentResult);
+        return getCertificationManagerRequired().getCampaignStatistics(campaignOid, currentStageOnly, task, parentResult);
     }
 
     @Override
     public void cleanupCampaigns(@NotNull CleanupPolicyType policy, Task task, OperationResult result) {
-        getCertificationManagerChecked().cleanupCampaigns(policy, task, result);
+        getCertificationManagerRequired().cleanupCampaigns(policy, task, result);
     }
 
     @Override
     public void recordDecision(String campaignOid, long caseId, long workItemId, AccessCertificationResponseType response, String comment, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerChecked().recordDecision(campaignOid, caseId, workItemId, response, comment, task, parentResult);
+        getCertificationManagerRequired().recordDecision(campaignOid, caseId, workItemId, response, comment, task, parentResult);
     }
 
     @Override
@@ -2516,44 +2234,44 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException {
         Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
-        return getCertificationManagerChecked().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
+        return getCertificationManagerRequired().searchOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
     }
 
     @Override
     public int countOpenWorkItems(ObjectQuery baseWorkItemsQuery, boolean notDecidedOnly, boolean allItems,
             Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
-        return getCertificationManagerChecked().countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
+        return getCertificationManagerRequired().countOpenWorkItems(baseWorkItemsQuery, notDecidedOnly, allItems, options, task, parentResult);
     }
 
     @Override
     public void closeCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerChecked().closeCampaign(campaignOid, task, result);
+        getCertificationManagerRequired().closeCampaign(campaignOid, task, result);
     }
 
     @Override
     public void reiterateCampaign(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerChecked().reiterateCampaign(campaignOid, task, result);
+        getCertificationManagerRequired().reiterateCampaign(campaignOid, task, result);
     }
 
     @Override
     public void startRemediation(String campaignOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerChecked().startRemediation(campaignOid, task, result);
+        getCertificationManagerRequired().startRemediation(campaignOid, task, result);
     }
 
     @Override
     public void closeCurrentStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerChecked().closeCurrentStage(campaignOid, task, parentResult);
+        getCertificationManagerRequired().closeCurrentStage(campaignOid, task, parentResult);
     }
 
     @Override
     public void openNextStage(String campaignOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getCertificationManagerChecked().openNextStage(campaignOid, task, parentResult);
+        getCertificationManagerRequired().openNextStage(campaignOid, task, parentResult);
     }
 
     @Override
     public AccessCertificationCampaignType createCampaign(String definitionOid, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        return getCertificationManagerChecked().createCampaign(definitionOid, task, parentResult);
+        return getCertificationManagerRequired().createCampaign(definitionOid, task, parentResult);
     }
     //endregion
 

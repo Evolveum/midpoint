@@ -2215,7 +2215,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
     }
 
     @Override
-    public CapabilityCollectionType getNativeCapabilities(OperationResult result)
+    public @NotNull CapabilityCollectionType getNativeCapabilities(OperationResult result)
             throws CommunicationException, ConfigurationException, GenericFrameworkException {
 
         APIConfiguration apiConfig = connectorInfo.createDefaultAPIConfiguration();

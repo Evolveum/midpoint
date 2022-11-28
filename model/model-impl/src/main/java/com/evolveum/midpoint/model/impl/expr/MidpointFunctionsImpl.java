@@ -1938,17 +1938,18 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp,
             TriggerCustomizer triggerCustomizer)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        TriggerType trigger = new TriggerType(prismContext)
+        TriggerType trigger = new TriggerType()
                 .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
                 .timestamp(XmlTypeConverter.createXMLGregorianCalendar(timestamp != null ? timestamp : System.currentTimeMillis()));
         if (triggerCustomizer != null) {
             triggerCustomizer.customize(trigger);
         }
-        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(object.asObjectable().getClass())
+        Class<? extends ObjectType> objectType = object.asObjectable().getClass();
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(objectType)
                 .item(ObjectType.F_TRIGGER).add(trigger)
                 .asItemDeltas();
-        repositoryService.modifyObject(object.getCompileTimeClass(), object.getOid(), itemDeltas,
-                getCurrentResult(CLASS_DOT + "addRecomputeTrigger"));
+        repositoryService.modifyObject(
+                objectType, object.getOid(), itemDeltas, getCurrentResult(CLASS_DOT + "addRecomputeTrigger"));
     }
 
     @Override
@@ -2082,7 +2083,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             ObjectAlreadyExistsException, ObjectNotFoundException {
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".createRecomputeTrigger");
 
-        TriggerType trigger = new TriggerType(prismContext)
+        TriggerType trigger = new TriggerType()
                 .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
                 .timestamp(XmlTypeConverter.createXMLGregorianCalendar());
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(type)

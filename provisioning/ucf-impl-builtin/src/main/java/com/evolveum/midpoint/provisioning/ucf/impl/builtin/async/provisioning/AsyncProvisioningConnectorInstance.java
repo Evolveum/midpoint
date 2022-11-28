@@ -175,7 +175,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public CapabilityCollectionType getNativeCapabilities(OperationResult result) throws CommunicationException, GenericFrameworkException, ConfigurationException {
+    public @NotNull CapabilityCollectionType getNativeCapabilities(OperationResult result) throws CommunicationException, GenericFrameworkException, ConfigurationException {
         return fetchCapabilities(result);
     }
 
@@ -292,7 +292,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public CapabilityCollectionType fetchCapabilities(OperationResult parentResult) {
+    public @NotNull CapabilityCollectionType fetchCapabilities(OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("capabilities");
         return new CapabilityCollectionType()
                 .create(new CreateCapabilityType())

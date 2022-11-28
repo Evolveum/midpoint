@@ -1088,7 +1088,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 | CommunicationException | ConfigurationException | ObjectAlreadyExistsException
                 | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Could not execute deltas for generated values. Reason: " + e.getMessage(), e);
-            result.recordFatalError("Could not execute deltas for gegenerated values. Reason: " + e.getMessage(), e);
+            result.recordFatalError("Could not execute deltas for generated values. Reason: " + e.getMessage(), e);
             throw e;
         }
 

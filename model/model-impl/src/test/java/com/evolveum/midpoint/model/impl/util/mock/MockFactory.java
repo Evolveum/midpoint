@@ -298,7 +298,7 @@ public class MockFactory {
             }
 
             @Override
-            public CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result) {
+            public @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result) {
                 return new CapabilityCollectionType();
             }
         };
