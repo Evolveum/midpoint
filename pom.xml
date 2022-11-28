@@ -226,7 +226,7 @@
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
-        <postgresql.version>42.3.7</postgresql.version> <!-- fixes CVE-2022-31197 -->
+        <postgresql.version>42.3.8</postgresql.version> <!-- fixes CVE-2022-31197 -->
         <jackson-bom.version>2.13.4</jackson-bom.version> <!-- fixes CVE-2022-42004 -->
         <snakeyaml.version>1.33</snakeyaml.version> <!-- fixes CVE-2022-25857 -->
         <!-- END of Spring Boot dependencies overrides -->
