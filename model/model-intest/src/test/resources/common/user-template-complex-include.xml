@@ -6,11 +6,11 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000223"
-   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+        xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
     <name>Complex User Template Include</name>
+    <item>
+        <ref>extension/ship</ref> <!-- MID-8351 -->
+    </item>
     <mapping>
         <name>usertemplate-included-fullName</name>
         <!-- This mapping is NOT weak so if will in fact FORCE fullname consistency -->

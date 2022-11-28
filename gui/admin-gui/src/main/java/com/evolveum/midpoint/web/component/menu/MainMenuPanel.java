@@ -75,6 +75,9 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
         item.add(AttributeModifier.append("style", () -> isMenuExpanded() ? "" : "display: none;"));
 
+        StringResourceModel labelModel = new StringResourceModel(
+                "${nameModel}",
+                getModel()).setDefaultValue(new PropertyModel<>(getModel(), "nameModel"));
         AjaxLink<Void> link = new AjaxLink<>(ID_LINK) {
             private static final long serialVersionUID = 1L;
 
@@ -88,13 +91,14 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
 
             return mmi.hasActiveSubmenu(getPageBase()) || mmi.isMenuActive(getPageBase()) ? "active" : null;
         }));
+        link.add(AttributeModifier.append("title", labelModel));
         item.add(link);
 
         WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
         icon.add(AttributeModifier.append("class", new PropertyModel<>(getModel(), MainMenuItem.F_ICON_CLASS)));
         link.add(icon);
 
-        Label label = new Label(ID_LABEL, new StringResourceModel("${nameModel}", getModel()).setDefaultValue(new PropertyModel<>(getModel(), "nameModel")));
+        Label label = new Label(ID_LABEL, labelModel);
         label.setRenderBodyOnly(true);
         link.add(label);
 
@@ -124,6 +128,9 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
     private void createSubmenu(final ListItem<MenuItem> listItem) {
         IModel<MenuItem> menuItem = listItem.getModel();
 
+        StringResourceModel labelModel = new StringResourceModel("${nameModel}", menuItem);
+        labelModel.setDefaultValue(new PropertyModel<>(menuItem, "nameModel"));
+
         Link<String> subLink = new Link<>(ID_SUB_LINK) {
             private static final long serialVersionUID = 1L;
 
@@ -139,8 +146,9 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         WebMarkupContainer subLinkIcon = new WebMarkupContainer(ID_SUB_LINK_ICON);
         subLinkIcon.add(AttributeAppender.append("class", new PropertyModel<>(menuItem, MainMenuItem.F_ICON_CLASS)));
         subLink.add(subLinkIcon);
+        subLink.add(AttributeModifier.append("title", labelModel));
 
-        Label subLabel = new Label(ID_SUB_LABEL, new StringResourceModel("${nameModel}", menuItem).setDefaultValue(new PropertyModel<>(menuItem, "nameModel")));
+        Label subLabel = new Label(ID_SUB_LABEL, labelModel);
         subLink.add(subLabel);
     }
 

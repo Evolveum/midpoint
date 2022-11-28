@@ -961,51 +961,51 @@ public class IntegrationTestTools {
         display(message, xml);
     }
 
-    public static ObjectDelta<ShadowType> createEntitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {
+    public static ObjectDelta<ShadowType> createEntitleDelta(
+            String accountOid, QName associationName, String groupOid) throws SchemaException {
         ShadowAssociationType association = new ShadowAssociationType();
         association.setName(associationName);
         ObjectReferenceType shadowRefType = new ObjectReferenceType();
         shadowRefType.setOid(groupOid);
         shadowRefType.setType(ShadowType.COMPLEX_TYPE);
         association.setShadowRef(shadowRefType);
-        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationAddContainer(ShadowType.class,
-                accountOid, ShadowType.F_ASSOCIATION, association);
-        return delta;
+        return PrismContext.get().deltaFactory().object().createModificationAddContainer(
+                ShadowType.class, accountOid, ShadowType.F_ASSOCIATION, association);
     }
 
-    public static ObjectDelta<ShadowType> createDetitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {
+    public static ObjectDelta<ShadowType> createDetitleDelta(
+            String accountOid, QName associationName, String groupOid) throws SchemaException {
         ShadowAssociationType association = new ShadowAssociationType();
         association.setName(associationName);
         ObjectReferenceType shadowRefType = new ObjectReferenceType();
         shadowRefType.setOid(groupOid);
         shadowRefType.setType(ShadowType.COMPLEX_TYPE);
         association.setShadowRef(shadowRefType);
-        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(ShadowType.class,
-                accountOid, ShadowType.F_ASSOCIATION, association);
-        return delta;
+        return PrismContext.get().deltaFactory().object().createModificationDeleteContainer(
+                ShadowType.class, accountOid, ShadowType.F_ASSOCIATION, association);
     }
 
-    public static ObjectDelta<ShadowType> createEntitleDeltaIdentifiers(String accountOid, QName associationName, QName identifierQname, String identifierValue, PrismContext prismContext) throws SchemaException {
+    public static ObjectDelta<ShadowType> createEntitleDeltaIdentifiers(String accountOid, QName associationName, QName identifierQname, String identifierValue) throws SchemaException {
         ShadowAssociationType association = new ShadowAssociationType();
         association.setName(associationName);
-        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationAddContainer(ShadowType.class,
+        ObjectDelta<ShadowType> delta = PrismContext.get().deltaFactory().object().createModificationAddContainer(ShadowType.class,
                 accountOid, ShadowType.F_ASSOCIATION, association);
         PrismContainer<ShadowIdentifiersType> identifiersContainer = association.asPrismContainerValue().findOrCreateContainer(ShadowAssociationType.F_IDENTIFIERS);
         PrismContainerValue<ShadowIdentifiersType> identifiersContainerValue = identifiersContainer.createNewValue();
-        PrismProperty<String> identifier = prismContext.itemFactory().createProperty(identifierQname);
+        PrismProperty<String> identifier = PrismContext.get().itemFactory().createProperty(identifierQname);
         identifier.addRealValue(identifierValue);
         identifiersContainerValue.add(identifier);
         return delta;
     }
 
-    public static ObjectDelta<ShadowType> createDetitleDeltaIdentifiers(String accountOid, QName associationName, QName identifierQname, String identifierValue, PrismContext prismContext) throws SchemaException {
+    public static ObjectDelta<ShadowType> createDetitleDeltaIdentifiers(String accountOid, QName associationName, QName identifierQname, String identifierValue) throws SchemaException {
         ShadowAssociationType association = new ShadowAssociationType();
         association.setName(associationName);
-        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(ShadowType.class,
+        ObjectDelta<ShadowType> delta = PrismContext.get().deltaFactory().object().createModificationDeleteContainer(ShadowType.class,
                 accountOid, ShadowType.F_ASSOCIATION, association);
         PrismContainer<ShadowIdentifiersType> identifiersContainer = association.asPrismContainerValue().findOrCreateContainer(ShadowAssociationType.F_IDENTIFIERS);
         PrismContainerValue<ShadowIdentifiersType> identifiersContainerValue = identifiersContainer.createNewValue();
-        PrismProperty<String> identifier = prismContext.itemFactory().createProperty(identifierQname);
+        PrismProperty<String> identifier = PrismContext.get().itemFactory().createProperty(identifierQname);
         identifier.addRealValue(identifierValue);
         identifiersContainerValue.add(identifier);
         return delta;
