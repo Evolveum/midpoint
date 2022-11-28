@@ -1273,7 +1273,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
-        getMemberTable().refreshTable(target);
+        refreshTable(target);
     }
 
     protected void executeRecompute(AssignmentHolderType object, AjaxRequestTarget target) {
@@ -1288,7 +1288,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         result.computeStatusIfUnknown();
         getPageBase().showResult(result);
-        getMemberTable().refreshTable(target);
+        refreshTable(target);
     }
 
     protected void executeUnassign(AssignmentHolderType object, AjaxRequestTarget target) {
@@ -1317,6 +1317,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         }
         result.computeStatusComposite();
         getPageBase().showResult(result);
+        refreshTable(target);
+    }
+
+    protected void refreshTable(AjaxRequestTarget target) {
         getMemberTable().refreshTable(target);
     }
 
