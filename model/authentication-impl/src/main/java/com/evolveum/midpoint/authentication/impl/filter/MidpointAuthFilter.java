@@ -32,6 +32,8 @@ import com.evolveum.midpoint.authentication.impl.util.AuthModuleImpl;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublisher;
 
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,7 +128,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
             return;
         }
 
-        AuthenticationWrapper authWrapper = defineAuthenticationWrapper();
+        AuthenticationWrapper authWrapper = defineAuthenticationWrapper(mpAuthentication);
 
         if (AuthSequenceUtil.isIgnoredLocalPath(authWrapper.authenticationsPolicy, httpRequest)) {
             chain.doFilter(request, response);
@@ -262,10 +264,10 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return message;
     }
 
-    private AuthenticationWrapper defineAuthenticationWrapper() {
+    private AuthenticationWrapper defineAuthenticationWrapper(MidpointAuthentication mpAuthentication) {
         AuthenticationWrapper wrapper = new AuthenticationWrapper();
         try {
-            wrapper.securityPolicy = getSecurityPolicy();
+            wrapper.securityPolicy = resolveSecurityPolicy(mpAuthentication);
             wrapper.authenticationsPolicy = getAuthenticationPolicy(wrapper.securityPolicy);
             if (wrapper.securityPolicy != null) {
                 wrapper.credentialsPolicy = wrapper.securityPolicy.asObjectable().getCredentials();
@@ -406,7 +408,23 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
     }
 
-    private PrismObject<SecurityPolicyType> getSecurityPolicy() throws SchemaException {
+    private PrismObject<SecurityPolicyType> resolveSecurityPolicy(MidpointAuthentication mpAuthentication) throws SchemaException {
+        if (!isPrincipalAuthenticated(mpAuthentication)) {
+            return getGlobalSecurityPolicy();
+        }
+        PrismObject<SecurityPolicyType> securityPolicy = null;
+        if (mpAuthentication.getPrincipal() instanceof GuiProfiledPrincipal) {
+            GuiProfiledPrincipal principal = (GuiProfiledPrincipal) mpAuthentication.getPrincipal();
+            securityPolicy = principal.getApplicableSecurityPolicy() != null ? principal.getApplicableSecurityPolicy().asPrismObject() : null;
+        }
+        return securityPolicy != null ? securityPolicy : getGlobalSecurityPolicy();
+    }
+
+    private boolean isPrincipalAuthenticated(MidpointAuthentication mpAuthentication) {
+        return mpAuthentication != null && mpAuthentication.isAuthenticated() && mpAuthentication.getPrincipal() != null && !mpAuthentication.isAnonymous();
+        }
+
+    private PrismObject<SecurityPolicyType> getGlobalSecurityPolicy() throws SchemaException {
         return systemObjectCache.getSecurityPolicy();
     }
 
