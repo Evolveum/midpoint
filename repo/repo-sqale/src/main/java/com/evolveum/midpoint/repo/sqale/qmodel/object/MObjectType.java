@@ -38,6 +38,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.system.QSecurityPolicy;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QValuePolicy;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
+import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QSimulationResult;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -80,6 +81,7 @@ public enum MObjectType {
     SEQUENCE(QSequence.class, SequenceType.class),
     SERVICE(QService.class, ServiceType.class),
     SHADOW(QShadow.class, ShadowType.class),
+    SIMULATION_RESULT(QSimulationResult.class, SimulationResultType.class),
     SYSTEM_CONFIGURATION(QSystemConfiguration.class, SystemConfigurationType.class),
     TASK(QTask.class, TaskType.class),
     USER(QUser.class, UserType.class),

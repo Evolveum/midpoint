@@ -48,12 +48,24 @@
                 <xsd:sequence>
                     <xsd:element name="metric" type="tns:SimulationMetricType" maxOccurs="unbounded"/>
                     <xsd:element name="processedObject" type="tns:SimulationResultProcessedObjectType" maxOccurs="unbounded" />
+                    <xsd:element name="useOwnPartitionForProcessedObjects" type="xsd:boolean" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:element name="simulationResult" type="tns:SimulationResultType" substitutionGroup="c:object"/>
+
     <xsd:complexType name="SimulationMetricDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Result of Simulation run.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
       <xsd:sequence>
         <xsd:element name="identifier" type="xsd:string "/>
         <xsd:element name="displayName" type="t:PolyStringType"/>
@@ -61,6 +73,15 @@
     </xsd:complexType>
 
     <xsd:complexType name="SimulationMetricType">
+      <xsd:annotation>
+          <xsd:documentation>
+              Result of Simulation run.
+          </xsd:documentation>
+          <xsd:appinfo>
+              <a:container/>
+              <a:since>4.7</a:since>
+          </xsd:appinfo>
+      </xsd:annotation>
       <xsd:sequence>
         <xsd:element name="identifier" type="xsd:string" />
         <xsd:element name="definition" type="tns:SimulationMetricDefinitionType" />
@@ -70,17 +91,25 @@
     </xsd:complexType>
     
     <xsd:complexType name="SimulationResultProcessedObjectType">
+       <xsd:annotation>
+          <xsd:documentation>
+              Result of Simulation run.
+          </xsd:documentation>
+          <xsd:appinfo>
+              <a:container/>
+              <a:since>4.7</a:since>
+          </xsd:appinfo>
+      </xsd:annotation>
        <xsd:sequence>
           <xsd:element name="oid" type="xsd:string" />
           <xsd:element name="type" type="xsd:QName" />
           <xsd:element name="name" type="t:PolyStringType" />
           <xsd:element name="state" type="tns:ObjectProcessingStateType" />
+          <xsd:element name="metricIdentifier" type="xsd:string" maxOccurs="unbounded" />
           
+          <!--  Extra stored state -->
           <xsd:element name="before" type="tns:ObjectType" />
           <xsd:element name="after" type="tns:ObjectType" />
-          
-          
-          <xsd:element name="metricIdentifier" type="string" maxOccurs="unbounded" />
        </xsd:sequence>
     </xsd:complexType>
 
