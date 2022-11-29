@@ -285,6 +285,8 @@ public class SecurityHelper implements ModelAuditRecorder {
         AuthenticationsPolicyType mergedAuthentication = mergeSecurityPolicyAuthentication(lowLevelSecurityPolicy.asObjectable().getAuthentication(),
                 topLevelSecurityPolicy.asObjectable().getAuthentication());
         mergedSecurityPolicy.setAuthentication(mergedAuthentication);
+        mergedSecurityPolicy.setCredentials(mergeCredentialsPolicy(lowLevelSecurityPolicy.asObjectable().getCredentials(),
+                topLevelSecurityPolicy.asObjectable().getCredentials()));
         mergedSecurityPolicy.setCredentialsReset(mergeCredentialsReset(lowLevelSecurityPolicy.asObjectable().getCredentialsReset(),
                 topLevelSecurityPolicy.asObjectable().getCredentialsReset()));
         return mergedSecurityPolicy.asPrismObject();
@@ -419,6 +421,37 @@ public class SecurityHelper implements ModelAuditRecorder {
             }
         }
         return null;
+    }
+
+    private CredentialsPolicyType mergeCredentialsPolicy(CredentialsPolicyType lowLevelCredentialsPolicy, CredentialsPolicyType topLevelCredentialsPolicy) {
+        if (lowLevelCredentialsPolicy == null && topLevelCredentialsPolicy == null) {
+            return null;
+        }
+        if (lowLevelCredentialsPolicy == null) {
+            return topLevelCredentialsPolicy.clone();
+        }
+        CredentialsPolicyType mergedPolicy = new CredentialsPolicyType();
+        if (lowLevelCredentialsPolicy.getPassword() != null) {
+            mergedPolicy.setPassword(lowLevelCredentialsPolicy.getPassword().clone());
+        } else if (topLevelCredentialsPolicy.getPassword() != null) {
+            mergedPolicy.setPassword(topLevelCredentialsPolicy.getPassword().clone());
+        }
+        if (lowLevelCredentialsPolicy.getSecurityQuestions() != null) {
+            mergedPolicy.setSecurityQuestions(lowLevelCredentialsPolicy.getSecurityQuestions().clone());
+        } else if (topLevelCredentialsPolicy.getSecurityQuestions() != null) {
+            mergedPolicy.setSecurityQuestions(topLevelCredentialsPolicy.getSecurityQuestions().clone());
+        }
+        if (CollectionUtils.isNotEmpty(lowLevelCredentialsPolicy.getNonce())) {
+            lowLevelCredentialsPolicy.getNonce().forEach(n -> mergedPolicy.getNonce().add(n.clone()));
+        } else if (topLevelCredentialsPolicy.getNonce() != null) {
+            topLevelCredentialsPolicy.getNonce().forEach(n -> mergedPolicy.getNonce().add(n.clone()));
+        }
+        if (lowLevelCredentialsPolicy.getDefault() != null) {
+            mergedPolicy.setDefault(lowLevelCredentialsPolicy.getDefault().clone());
+        } else if (topLevelCredentialsPolicy.getDefault() != null) {
+            mergedPolicy.setDefault(topLevelCredentialsPolicy.getDefault().clone());
+        }
+        return mergedPolicy;
     }
 
     private CredentialsResetPolicyType mergeCredentialsReset(CredentialsResetPolicyType lowLevelCredentialsReset, CredentialsResetPolicyType topLevelCredentialsReset) {
