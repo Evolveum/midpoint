@@ -97,6 +97,8 @@ class RawChangesExecutor {
             throws ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, SchemaException,
             ObjectNotFoundException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 
+        task.assertPersistentExecution("Raw operation execution is not supported in non-persistent execution mode");
+
         auditRequest(parentResult);
 
         OperationResult result = parentResult.createSubresult(OP_EXECUTE);
@@ -207,17 +209,15 @@ class RawChangesExecutor {
             throws CommunicationException, ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
         final boolean preAuthorized = ModelExecuteOptions.isPreAuthorized(options);
-        ObjectType objectToDetermineDetailsForAudit;
         if (delta.isAdd()) {
-            objectToDetermineDetailsForAudit = executeAddDeltaRaw(delta, preAuthorized, options, task, result);
+            return executeAddDeltaRaw(delta, preAuthorized, options, task, result);
         } else if (delta.isDelete()) {
-            objectToDetermineDetailsForAudit = executeDeleteDeltaRaw(delta, preAuthorized, task, result);
+            return executeDeleteDeltaRaw(delta, preAuthorized, task, result);
         } else if (delta.isModify()) {
-            objectToDetermineDetailsForAudit = executeModifyDeltaRaw(delta, preAuthorized, options, task, result);
+            return executeModifyDeltaRaw(delta, preAuthorized, options, task, result);
         } else {
             throw new IllegalArgumentException("Wrong delta type " + delta.getChangeType() + " in " + delta);
         }
-        return objectToDetermineDetailsForAudit;
     }
 
     private ObjectType executeAddDeltaRaw(ObjectDelta<? extends ObjectType> delta,
