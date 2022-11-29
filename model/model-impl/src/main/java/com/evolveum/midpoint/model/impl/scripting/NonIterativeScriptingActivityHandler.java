@@ -13,6 +13,8 @@ import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.repo.common.activity.run.*;
 
+import com.evolveum.midpoint.task.api.RunningTask;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -50,6 +52,8 @@ public class NonIterativeScriptingActivityHandler
 
     private static final String LEGACY_HANDLER_URI = ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI;
     private static final Trace LOGGER = TraceManager.getTrace(NonIterativeScriptingActivityHandler.class);
+
+    private static final String OP_EXECUTE = NonIterativeScriptingActivityHandler.class.getName() + ".execute";
 
     @PostConstruct
     public void register() {
@@ -96,14 +100,32 @@ public class NonIterativeScriptingActivityHandler
         }
 
         @Override
-        protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
+        protected @NotNull ActivityRunResult runLocally(OperationResult parentResult) throws CommonException {
+            RunningTask runningTask = getRunningTask();
             ExecuteScriptType executeScriptRequest = getWorkDefinition().getScriptExecutionRequest().clone();
-            ScriptExecutionResult executionResult = getActivityHandler().scriptingService
-                    .evaluateExpression(executeScriptRequest,
-                            VariablesMap.emptyMap(), false, getRunningTask(), result);
-            LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
-            LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
-            return standardRunResult();
+            runningTask.setExecutionSupport(this);
+
+            // We need to create a subresult in order to be able to determine its status - we have to close it to get the status.
+            OperationResult result = parentResult.createSubresult(OP_EXECUTE);
+            try {
+                ScriptExecutionResult executionResult =
+                        getActivityHandler().scriptingService
+                                .evaluateExpression(
+                                        executeScriptRequest,
+                                        VariablesMap.emptyMap(),
+                                        true,
+                                        runningTask,
+                                        result);
+                LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
+                LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());
+            } catch (Throwable t) {
+                result.recordFatalError(t);
+                throw t;
+            } finally {
+                runningTask.setExecutionSupport(null);
+                result.close();
+            }
+            return standardRunResult(result.getStatus());
         }
     }
 

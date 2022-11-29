@@ -18,8 +18,8 @@ import java.util.List;
  */
 public class ScriptExecutionResult {
 
-    private String consoleOutput;
-    private List<PipelineItem> dataOutput;      // unmodifiable + always non-null
+    private final String consoleOutput;
+    private final List<PipelineItem> dataOutput; // unmodifiable + always non-null
 
     public ScriptExecutionResult(String consoleOutput, List<PipelineItem> dataOutput) {
         this.consoleOutput = consoleOutput;
