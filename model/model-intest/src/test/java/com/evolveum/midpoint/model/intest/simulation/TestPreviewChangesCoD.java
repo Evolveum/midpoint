@@ -17,6 +17,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.evolveum.midpoint.model.test.SimulationResult;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -76,6 +78,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     private static final TestResource<RoleType> ROLE_META_ASSIGNMENT_SEARCH =
             new TestResource<>(TEST_DIR, "role-meta-assignment-search.xml", "1ac00214-ffd0-49db-a1b9-51b46a0e9ae1");
 
+    @SuppressWarnings("unchecked")
     private static final Class<? extends ObjectType>[] COLLECT_COUNT_TYPES = new Class[] { FocusType.class, ShadowType.class };
 
     @Override
@@ -107,8 +110,15 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
                 DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
     }
 
+    /**
+     * The simplest "create on demand" scenario:
+     *
+     * - `ORG_CHILD` has `parentIdentifier` of "parentOfChild-1".
+     * - There is no such org in repo, so normally we should create it on demand.
+     * - But we are in a preview mode, so no org should be really created in the repository.
+     */
     @Test
-    public void test100OrgNotProvisioned() throws Exception {
+    public void test100SimpleCreateOnDemand() throws Exception {
         given();
 
         Task task = getTestTask();
@@ -121,12 +131,48 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         PrismObject<OrgType> orgChild = ORG_CHILD.getObject().clone();
         ObjectDelta<OrgType> delta = orgChild.createAddDelta();
 
-        ModelContext<OrgType> context = modelInteractionService.previewChanges(Collections.singletonList(delta), ModelExecuteOptions.create(), task, result);
+        ModelContext<OrgType> context = modelInteractionService.previewChanges(List.of(delta), null, task, result);
 
-        then();
-
-        AssertJUnit.assertNotNull(context);
+        then("No extra object should be created");
         assertCollectedCounts(counts, task, result);
+
+        and("there should be some secondary deltas");
+        AssertJUnit.assertNotNull(context);
+        displayDumpable("context", context); // TODO assert the deltas
+    }
+
+    /**
+     * As {@link #test100SimpleCreateOnDemand()} but using `executeChanges` with "no persistent effects" execution mode.
+     */
+    @Test
+    public void test110SimpleCreateOnDemandSimulation() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
+
+        given("simple parent-less child");
+        PrismObject<OrgType> orgChild = ORG_CHILD.getObject().clone();
+        ObjectDelta<OrgType> delta = orgChild.createAddDelta();
+
+        when("executeChanges is called in simulation mode");
+        SimulationResult simResult = traced(() -> executeInSimulationMode(List.of(delta), task, result));
+
+        then("No extra objects should be created");
+        assertCollectedCounts(counts, task, result);
+
+        and("there are simulation deltas");
+        simResult.assertNoExecutedDeltas();
+        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
+        displayCollection("simulated deltas", simulatedDeltas);
+        // TODO some asserts here
+        // TODO currently, the "parentOfChild-1" is (in simulation) created here twice, because the projector runs twice
+        //  for the child. Shouldn't we really create focus objects with some "simulated" flag turned on?
+
+        and("there should be some secondary deltas in model context");
+        ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one
+        AssertJUnit.assertNotNull(context);
+        displayDumpable("context", context); // TODO assert the deltas
     }
 
     @Test

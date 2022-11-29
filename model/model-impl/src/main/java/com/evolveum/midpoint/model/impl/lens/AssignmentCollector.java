@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -152,7 +153,7 @@ public class AssignmentCollector {
     }
 
     private <AH extends AssignmentHolderType> LensContext<AH> createAuthenticationLensContext(PrismObject<AH> user, OperationResult result) throws SchemaException {
-        LensContext<AH> lensContext = new LensContextPlaceholder<>(user);
+        LensContext<AH> lensContext = new LensContextPlaceholder<>(user, TaskExecutionMode.PRODUCTION);
         ArchetypePolicyType policyConfigurationType = determineObjectPolicyConfiguration(user, result);
         lensContext.getFocusContext().setArchetypePolicy(policyConfigurationType);
         return lensContext;

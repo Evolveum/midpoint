@@ -21,6 +21,8 @@ import com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ProjectionsLoadOperation;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -117,6 +119,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Channel that is the source of primary change (GUI, live sync, import, ...)
      */
     private String channel;
+
+    /** TEMPORARY. TODO. */
+    @NotNull private final TaskExecutionMode taskExecutionMode;
 
     private LensFocusContext<F> focusContext;
 
@@ -265,12 +270,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     private transient ModelBeans modelBeans;
 
-    public LensContext() {
-        this(null);
+    public LensContext(@NotNull TaskExecutionMode taskExecutionMode) {
+        this(null, taskExecutionMode);
     }
 
-    public LensContext(Class<F> focusClass) {
+    public LensContext(Class<F> focusClass, @NotNull TaskExecutionMode taskExecutionMode) {
         this.focusClass = focusClass;
+        this.taskExecutionMode = taskExecutionMode;
     }
 
     /**
@@ -623,6 +629,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Makes the context and all sub-context non-fresh.
      */
     public void rot(String reason) {
+        if (!taskExecutionMode.isPersistent()) {
+            LOGGER.trace("Not rotting the context ({}) because we are not in persistent execution mode", reason);
+            return;
+        }
         LOGGER.debug("Rotting context because of {}", reason);
         setFresh(false);
         if (focusContext != null) {
@@ -638,6 +648,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * This is more intelligent than rot()
      */
     private void rotAfterExecution() throws SchemaException, ConfigurationException {
+        if (!taskExecutionMode.isPersistent()) {
+            LOGGER.trace("Not rotting the context because we are not in persistent execution mode");
+            return;
+        }
         Holder<Boolean> rotHolder = new Holder<>(false);
         rotProjectionContextsIfNeeded(rotHolder);
         rotFocusContextIfNeeded(rotHolder);
@@ -1071,7 +1085,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public LensContext<F> clone() {
-        LensContext<F> clone = new LensContext<>(focusClass);
+        LensContext<F> clone = new LensContext<>(focusClass, taskExecutionMode);
         copyValues(clone);
         return clone;
     }
@@ -1438,7 +1452,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
         LensContext<T> lensContext;
         try {
-            lensContext = new LensContext<>((Class<T>) Class.forName(focusClassString));
+            lensContext = new LensContext<>((Class<T>) Class.forName(focusClassString), task.getExecutionMode());
         } catch (ClassNotFoundException e) {
             throw new SystemException(
                     "Couldn't instantiate LensContext because focus or projection class couldn't be found",
@@ -1970,6 +1984,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             modelBeans = SpringApplicationContextHolder.getBean(ModelBeans.class);
         }
         return modelBeans;
+    }
+
+    @NotNull TaskExecutionMode getTaskExecutionMode() {
+        return taskExecutionMode;
     }
 
     public enum ExportType {

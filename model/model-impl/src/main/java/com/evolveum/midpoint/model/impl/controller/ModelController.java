@@ -118,6 +118,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     private static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
     private static final String RESOLVE_REFERENCE = CLASS_NAME_WITH_DOT + "resolveReference";
     private static final String OP_APPLY_PROVISIONING_DEFINITION = CLASS_NAME_WITH_DOT + "applyProvisioningDefinition";
+    static final String OP_REEVALUATE_SEARCH_FILTERS = CLASS_NAME_WITH_DOT + "reevaluateSearchFilters";
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 
@@ -169,8 +170,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @NotNull
     @Override
-    public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
-            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
+    public <T extends ObjectType> PrismObject<T> getObject(
+            @NotNull Class<T> clazz,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> rawOptions,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Validate.notEmpty(oid, "Object oid must not be null or empty.");
@@ -197,13 +202,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(true);
             }
             ModelImplUtils.clearRequestee(task);
-
-//            Special-purpose code to hunt down read-write resource fetch from GUI.
-//            Normally the code is not active. It is too brutal. Just for MID-3424.
-//            if (ResourceType.class == clazz && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isReadOnly(rootOptions)) {
-//                LOGGER.info("READWRITE resource get: {} {}:\n{}", oid, options,
-//                        LoggingUtils.dumpStackTrace());
-//            }
 
             //noinspection unchecked
             object = (PrismObject<T>) objectResolver
@@ -319,14 +317,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     @Override
     public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(
-            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
-            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-        return executeChanges(deltas, options, task, null, parentResult);
-    }
-
-    @Override
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
             Task task, Collection<ProgressListener> statusListeners, OperationResult parentResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
@@ -345,13 +335,13 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             // 3) for MODIFY operation: filters contained in deltas -> these have to be treated here, because if OID is missing from such a delta, the change would be rejected by the repository
             if (ModelExecuteOptions.isReevaluateSearchFilters(options)) {
                 for (ObjectDelta<? extends ObjectType> delta : deltas) {
-                    ModelImplUtils.resolveReferences(delta, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, prismContext, result);
+                    ModelImplUtils.resolveReferences(delta, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, result);
                 }
             } else if (ModelExecuteOptions.isIsImport(options)) {
                 // if plain import is requested, we simply evaluate filters in ADD operation (and we do not force reevaluation if OID is already set)
                 for (ObjectDelta<? extends ObjectType> delta : deltas) {
                     if (delta.isAdd()) {
-                        ModelImplUtils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
+                        ModelImplUtils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, false, EvaluationTimeType.IMPORT, true, result);
                     }
                 }
             }
@@ -482,32 +472,6 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         result.cleanup();
     }
 
-    <T extends ObjectType> void reevaluateSearchFilters(
-            Class<T> objectTypeClass, String oid, Task task, OperationResult parentResult)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "reevaluateSearchFilters");
-        try {
-            PrismObject<T> storedObject = cacheRepositoryService.getObject(objectTypeClass, oid, createReadOnlyCollection(), result);
-            PrismObject<T> updatedObject = storedObject.clone();
-            ModelImplUtils.resolveReferences(updatedObject, cacheRepositoryService, false, true, EvaluationTimeType.IMPORT, true, prismContext, result);
-            ObjectDelta<T> delta = storedObject.diff(updatedObject);
-            LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDumpLazily());
-            if (!delta.isEmpty()) {
-                try {
-                    cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
-                    task.recordObjectActionExecuted(updatedObject, ChangeType.MODIFY, null);
-                } catch (Throwable t) {
-                    task.recordObjectActionExecuted(updatedObject, ChangeType.MODIFY, t);
-                    throw t;
-                }
-            }
-            result.recordSuccess();
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
-            result.recordFatalError("Couldn't reevaluate search filters: " + e.getMessage(), e);
-            throw e;
-        }
-    }
-
     @Override
     public <F extends ObjectType> void recompute(
             Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult)
@@ -537,14 +501,14 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
             LOGGER.trace("Recomputing of {}: {}", focus, result.getStatus());
 
-            result.cleanupResult();
-
         } catch (ExpressionEvaluationException | SchemaException | PolicyViolationException | ObjectNotFoundException |
                 ObjectAlreadyExistsException | CommunicationException | ConfigurationException | SecurityViolationException |
                 RuntimeException | Error e) {
-            ModelImplUtils.recordFatalError(result, e);
+            ModelImplUtils.recordException(result, e);
             throw e;
         } finally {
+            result.close();
+            result.cleanup();
             exitModelMethod();
         }
     }

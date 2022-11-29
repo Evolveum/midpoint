@@ -1573,7 +1573,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                         .loginMode(true)
                         // We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
                         // will need something to push on the stack. So give them context placeholder.
-                        .lensContext(new LensContextPlaceholder<>(potentialDeputy));
+                        .lensContext(new LensContextPlaceholder<>(potentialDeputy, task.getExecutionMode()));
         AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
         for (AssignmentType assignmentType : potentialDeputy.asObjectable().getAssignment()) {

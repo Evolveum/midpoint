@@ -100,7 +100,7 @@ public class TestResource<T extends ObjectType> {
                 .getObject(getType(), oid, null, result);
     }
 
-    public static void read(TestResource... resources) {
+    public static void read(TestResource<?>... resources) {
         Arrays.asList(resources).forEach(r -> {
             try {
                 r.read();

@@ -98,6 +98,12 @@ public class ClockworkAuditHelper {
             LensContext<F> context, AuditEventStage stage, XMLGregorianCalendar timestamp,
             boolean alwaysAudit, Task task, OperationResult result, OperationResult overallResult) {
 
+        if (!task.isPersistentExecution()) {
+            // Or, should we record the simulation deltas here?
+            LOGGER.trace("No persistent execution, no auditing");
+            return;
+        }
+
         PrismObject<? extends ObjectType> primaryObject;
         ObjectDelta<? extends ObjectType> primaryDelta;
         if (context.getFocusContext() != null) {

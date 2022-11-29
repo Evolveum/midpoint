@@ -10,6 +10,7 @@ package com.evolveum.midpoint.task.api.test;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -772,5 +773,17 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void stopCollectingActionsExecuted() {
+    }
+
+    @Override
+    public void addChangeExecutionListener(@NotNull ChangeExecutionListener listener) {
+    }
+
+    @Override
+    public void removeChangeExecutionListener(@NotNull ChangeExecutionListener listener) {
+    }
+
+    @Override
+    public void onChangeExecuted(@NotNull ObjectDelta<?> delta, boolean executed, @NotNull OperationResult result) {
     }
 }

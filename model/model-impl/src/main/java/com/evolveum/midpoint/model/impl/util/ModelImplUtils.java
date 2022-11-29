@@ -234,14 +234,14 @@ public class ModelImplUtils {
     public static <T extends ObjectType> void resolveReferences(PrismObject<T> object, RepositoryService repository,
                 boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType resolutionTime,
                 boolean throwExceptionOnFailure,
-                PrismContext prismContext, OperationResult result) {
+                OperationResult result) {
 
         Visitor visitor = visitable -> {
             if (!(visitable instanceof PrismReferenceValue)) {
                 return;
             }
             resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
-                    resolutionTime, prismContext, object.toString(), throwExceptionOnFailure, result);
+                    resolutionTime, object.toString(), throwExceptionOnFailure, result);
         };
         object.accept(visitor);
     }
@@ -254,14 +254,14 @@ public class ModelImplUtils {
     public static <T extends ObjectType> void resolveReferences(ObjectDelta<T> objectDelta, RepositoryService repository,
             boolean enforceReferentialIntegrity, boolean forceFilterReevaluation,
             EvaluationTimeType resolutionTime, boolean throwExceptionOnFailure,
-            PrismContext prismContext, OperationResult result) {
+            OperationResult result) {
 
         Visitor visitor = visitable -> {
             if (!(visitable instanceof PrismReferenceValue)) {
                 return;
             }
             resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
-                    resolutionTime, prismContext, objectDelta.toString(), throwExceptionOnFailure, result);
+                    resolutionTime, objectDelta.toString(), throwExceptionOnFailure, result);
         };
         // We could use objectDelta.accept(visitor), but we want to visit only values to add and replace
         // (NOT values to delete! - otherwise very strange effects could result)
@@ -300,7 +300,8 @@ public class ModelImplUtils {
 
     public static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
             boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTimeType,
-            PrismContext prismContext, String contextDesc, boolean throwExceptionOnFailure, OperationResult parentResult) {
+            String contextDesc, boolean throwExceptionOnFailure, OperationResult parentResult) {
+        PrismContext prismContext = PrismContext.get();
         String refName = refVal.getParent() != null ?
                 refVal.getParent().getElementName().toString() : "(unnamed)";
 

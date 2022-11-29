@@ -31,6 +31,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 
+import com.evolveum.midpoint.task.api.ChangeExecutionListener;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -6892,5 +6894,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      */
     public ImportSingleAccountRequestBuilder importSingleAccountRequest() {
         return new ImportSingleAccountRequestBuilder(this);
+    }
+
+    protected SimulationResult executeInSimulationMode(
+            Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
+            throws CommonException {
+
+        SimulationResult simulationResult = new SimulationResult();
+        ChangeExecutionListener changeExecutionListener = simulationResult.changeExecutionListener();
+        TaskExecutionMode oldExecutionMode = task.getExecutionMode();
+        try {
+            task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
+            task.addChangeExecutionListener(changeExecutionListener);
+            modelService.executeChanges(deltas, null, task, List.of(simulationResult.contextRecordingListener()), result);
+        } finally {
+            task.removeChangeExecutionListener(changeExecutionListener);
+            task.setExecutionMode(oldExecutionMode);
+        }
+        return simulationResult;
     }
 }

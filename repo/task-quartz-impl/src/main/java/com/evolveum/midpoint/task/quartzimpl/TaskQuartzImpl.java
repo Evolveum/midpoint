@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,6 +106,8 @@ public class TaskQuartzImpl implements Task {
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
     @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
+
+    @NotNull private final Collection<ChangeExecutionListener> changeExecutionListeners = Sets.newConcurrentHashSet();
 
     /** Synchronizes Quartz-related operations. */
     private final Object quartzAccess = new Object();
@@ -2309,6 +2312,23 @@ public class TaskQuartzImpl implements Task {
 
     public void setExecutionMode(@NotNull TaskExecutionMode executionMode) {
         this.executionMode = Objects.requireNonNull(executionMode);
+    }
+
+    @Override
+    public void addChangeExecutionListener(@NotNull ChangeExecutionListener listener) {
+        changeExecutionListeners.add(listener);
+    }
+
+    @Override
+    public void removeChangeExecutionListener(@NotNull ChangeExecutionListener listener) {
+        changeExecutionListeners.remove(listener);
+    }
+
+    @Override
+    public void onChangeExecuted(@NotNull ObjectDelta<?> delta, boolean executed, @NotNull OperationResult result) {
+        for (ChangeExecutionListener changeExecutionListener : changeExecutionListeners) {
+            changeExecutionListener.onChangeExecuted(delta, executed, result);
+        }
     }
     //endregion
 }

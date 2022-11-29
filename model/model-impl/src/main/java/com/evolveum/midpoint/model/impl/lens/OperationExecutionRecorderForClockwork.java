@@ -75,6 +75,11 @@ class OperationExecutionRecorderForClockwork {
 
     <F extends ObjectType> void recordOperationExecutions(LensContext<F> lensContext, Task task, OperationResult parentResult) {
 
+        if (!task.isPersistentExecution()) {
+            LOGGER.trace("Skipping operation execution recording, as we are in simulated execution mode");
+            return;
+        }
+
         if (writer.shouldSkipOperationExecutionRecording(OperationExecutionRecordTypeType.SIMPLE)) {
             LOGGER.trace("Skipping operation execution recording (as set in system configuration)");
             return;
@@ -171,7 +176,7 @@ class OperationExecutionRecorderForClockwork {
             Context<?> ctx) {
         assert !executedDeltas.isEmpty();
 
-        OperationExecutionType record = new OperationExecutionType(prismContext);
+        OperationExecutionType record = new OperationExecutionType();
         record.setRecordType(OperationExecutionRecordTypeType.SIMPLE);
         OperationResult summaryResult = new OperationResult("recordOperationExecution");
         for (LensObjectDeltaOperation<?> deltaOperation : executedDeltas) {

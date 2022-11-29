@@ -7,13 +7,15 @@
 
 package com.evolveum.midpoint.schema;
 
+import java.io.Serializable;
+
 /**
  * Describes the execution mode this task runs in. For example, if it is a "full execution" or a preview/simulation.
  * Or, if we should work with the production or development configuration.
  *
  * TEMPORARY IMPLEMENTATION
  */
-public class TaskExecutionMode {
+public class TaskExecutionMode implements Serializable {
 
     public static final TaskExecutionMode PRODUCTION =
             new TaskExecutionMode("PRODUCTION", true, true);

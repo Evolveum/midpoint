@@ -692,7 +692,7 @@ public class GuiProfileCompiler {
 
         if (reference.getResolutionTime() == EvaluationTimeType.RUN) {
             ModelImplUtils.resolveRef(reference.asReferenceValue(), repositoryService,
-                    false, false, EvaluationTimeType.RUN, prismContext,
+                    false, false, EvaluationTimeType.RUN,
                     "resolving connector reference", false, result);
         }
         return reference.getOid();

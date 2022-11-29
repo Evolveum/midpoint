@@ -70,7 +70,6 @@ public class Clockwork {
     @Autowired private Projector projector;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private EventDispatcher eventDispatcher;
-    @Autowired private PrismContext prismContext;
     @Autowired private Tracer tracer;
     @Autowired private PolicyRuleEnforcer policyRuleEnforcer;
     @Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
@@ -275,7 +274,7 @@ public class Clockwork {
     private <F extends ObjectType> ClockworkRunTraceType recordTraceAtStart(LensContext<F> context,
             OperationResult result) throws SchemaException {
         if (result.isTracingAny(ClockworkRunTraceType.class)) {
-            ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
+            ClockworkRunTraceType trace = new ClockworkRunTraceType();
             trace.setInputLensContextText(context.debugDump());
             trace.setInputLensContext(context.toBean(getExportTypeTraceOrReduced(trace, result)));
             result.addTrace(trace);
@@ -329,7 +328,7 @@ public class Clockwork {
         LOGGER.debug("Preview changes output:\n{}", context.debugDumpLazily());
 
         result.computeStatus();
-        result.cleanupResult();
+        result.cleanup();
 
         return context;
     }

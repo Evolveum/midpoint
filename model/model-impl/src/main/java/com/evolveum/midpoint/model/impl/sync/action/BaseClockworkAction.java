@@ -90,7 +90,7 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
 
         ModelExecuteOptions options = createOptions();
 
-        LensContext<F> context = beans.contextFactory.createSyncContext(syncCtx.getFocusClass(), change);
+        LensContext<F> context = beans.contextFactory.createSyncContext(syncCtx.getFocusClass(), change, syncCtx.getTask());
         context.setLazyAuditRequest(true);
         context.setSystemConfiguration(ObjectTypeUtil.asPrismObject(syncCtx.getSystemConfiguration()));
         context.setOptions(options);

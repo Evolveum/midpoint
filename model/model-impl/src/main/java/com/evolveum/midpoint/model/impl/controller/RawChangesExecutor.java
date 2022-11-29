@@ -8,12 +8,15 @@
 package com.evolveum.midpoint.model.impl.controller;
 
 import static com.evolveum.midpoint.model.api.ModelService.EXECUTE_CHANGE;
+import static com.evolveum.midpoint.model.impl.controller.ModelController.OP_REEVALUATE_SEARCH_FILTERS;
 import static com.evolveum.midpoint.prism.polystring.PolyString.toPolyString;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
+
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +72,6 @@ class RawChangesExecutor {
     private final SecurityEnforcer securityEnforcer = ModelBeans.get().securityEnforcer;
     private final TaskManager taskManager = ModelBeans.get().taskManager;
     private final RepositoryService cacheRepositoryService = ModelBeans.get().cacheRepositoryService;
-    private final ModelController modelController = ModelBeans.get().modelController;
 
     @NotNull private final Collection<ObjectDelta<? extends ObjectType>> requestDeltas;
     @NotNull private final Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = new ArrayList<>();
@@ -348,9 +350,45 @@ class RawChangesExecutor {
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
         }
         if (ModelExecuteOptions.isReevaluateSearchFilters(options)) { // treat filters that already exist in the object (case #2 above)
-            modelController.reevaluateSearchFilters(clazz, oid, task, result);
+            reevaluateSearchFilters(clazz, oid, task, result);
         }
         return objectToDetermineDetailsForAudit;
+    }
+
+    private <T extends ObjectType> void reevaluateSearchFilters(
+            Class<T> objectTypeClass, String oid, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        OperationResult result = parentResult.createSubresult(OP_REEVALUATE_SEARCH_FILTERS);
+        try {
+            PrismObject<T> storedObject =
+                    cacheRepositoryService.getObject(objectTypeClass, oid, createReadOnlyCollection(), result);
+            PrismObject<T> updatedObject = storedObject.clone();
+            ModelImplUtils.resolveReferences(
+                    updatedObject,
+                    cacheRepositoryService,
+                    false,
+                    true,
+                    EvaluationTimeType.IMPORT,
+                    true,
+                    result);
+            ObjectDelta<T> delta = storedObject.diff(updatedObject);
+            LOGGER.trace("reevaluateSearchFilters found delta: {}", delta.debugDumpLazily());
+            if (!delta.isEmpty()) {
+                try {
+                    cacheRepositoryService.modifyObject(objectTypeClass, oid, delta.getModifications(), result);
+                    task.recordObjectActionExecuted(updatedObject, ChangeType.MODIFY, null);
+                } catch (Throwable t) {
+                    task.recordObjectActionExecuted(updatedObject, ChangeType.MODIFY, t);
+                    throw t;
+                }
+            }
+            result.recordSuccess();
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | RuntimeException e) {
+            result.recordFatalError("Couldn't reevaluate search filters: " + e.getMessage(), e);
+            throw e;
+        } finally {
+            result.close();
+        }
     }
 
     private void applyDefinitionsIfNeeded(ObjectDelta<? extends ObjectType> delta, OperationResult result) {
