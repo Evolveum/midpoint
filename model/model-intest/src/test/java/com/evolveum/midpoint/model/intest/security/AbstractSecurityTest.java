@@ -610,26 +610,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         }
     }
 
-    protected void assertAttributeFlags(ResourceObjectDefinition rOcDef,
-            QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
-        ResourceAttributeDefinition<?> rAttrDef = rOcDef.findAttributeDefinition(attrName);
-        assertNotNull(rAttrDef);
-        assertEquals("Wrong readability flag for " + attrName, expectedRead, rAttrDef.canRead());
-        assertEquals("Wrong addition flag for " + attrName, expectedAdd, rAttrDef.canAdd());
-        assertEquals("Wrong modification flag for " + attrName, expectedModify, rAttrDef.canModify());
-    }
-
-    protected void assertAttributeFlags(ResourceObjectClassDefinition rOcDef,
-                                        QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
-        ResourceAttributeDefinition<?> rAttrDef = rOcDef.findAttributeDefinition(attrName);
-        assertNotNull(rAttrDef);
-        assertEquals("Wrong readability flag for " + attrName, expectedRead, rAttrDef.canRead());
-        assertEquals("Wrong addition flag for " + attrName, expectedAdd, rAttrDef.canAdd());
-        assertEquals("Wrong modification flag for " + attrName, expectedModify, rAttrDef.canModify());
-    }
-
-    protected void cleanupAutzTest(String userOid
-    ) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+    protected void cleanupAutzTest(String userOid)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
             PolicyViolationException, SecurityViolationException, IOException {
         cleanupAutzTest(userOid, 0);

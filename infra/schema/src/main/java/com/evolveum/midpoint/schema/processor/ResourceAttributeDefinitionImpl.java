@@ -809,7 +809,24 @@ public class ResourceAttributeDefinitionImpl<T>
         if (getModificationPriority() != null) {
             sb.append(",P").append(getModificationPriority());
         }
+        PropertyAccessType accessOverride = this.accessOverride;
+        if (accessOverride != null && !accessOverride.asPrismContainerValue().isEmpty()) {
+            sb.append(",AccessOverride: ");
+            addOverride(sb, 'R', accessOverride.isRead());
+            addOverride(sb, 'A', accessOverride.isAdd());
+            addOverride(sb, 'M', accessOverride.isModify());
+        }
         return sb.toString();
+    }
+
+    private static void addOverride(StringBuilder sb, char op, Boolean value) {
+        if (value == null) {
+            sb.append(".");
+        } else if (value) {
+            sb.append(Character.toUpperCase(op));
+        } else {
+            sb.append(Character.toLowerCase(op));
+        }
     }
 
     /**

@@ -340,8 +340,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     public ResourceObjectDefinition getEditObjectClassDefinition(
-            PrismObject<ShadowType> shadow,
-            PrismObject<ResourceType> resource,
+            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull PrismObject<ResourceType> resource,
             AuthorizationPhaseType phase,
             Task task,
             OperationResult result)
@@ -358,23 +358,36 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ResourceObjectDefinition objectDefinition = rocd.forLayer(LayerType.PRESENTATION);
 
         // TODO: maybe we need to expose owner resolver in the interface?
-        ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null, task, result);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Security constrains for {}:\n{}", shadow, securityConstraints == null ? "null" : securityConstraints.debugDump());
-        }
+        ObjectSecurityConstraints securityConstraints =
+                securityEnforcer.compileSecurityConstraints(shadow, null, task, result);
+        LOGGER.trace("Security constrains for {}:\n{}", shadow, DebugUtil.debugDumpLazily(securityConstraints));
         if (securityConstraints == null) {
             return null;
         }
 
-        ItemPath attributesPath = SchemaConstants.PATH_ATTRIBUTES;
-        AuthorizationDecisionType attributesReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
-                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase), phase);
-        AuthorizationDecisionType attributesAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD,
-                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase), phase);
-        AuthorizationDecisionType attributesModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY,
-                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
-        LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}", attributesReadDecision, attributesAddDecision,
-                attributesModifyDecision);
+        AuthorizationDecisionType attributesReadDecision =
+                schemaTransformer.computeItemDecision(
+                        securityConstraints,
+                        SchemaConstants.PATH_ATTRIBUTES,
+                        ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
+                        securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase),
+                        phase);
+        AuthorizationDecisionType attributesAddDecision =
+                schemaTransformer.computeItemDecision(
+                        securityConstraints,
+                        SchemaConstants.PATH_ATTRIBUTES,
+                        ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD,
+                        securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
+                        phase);
+        AuthorizationDecisionType attributesModifyDecision =
+                schemaTransformer.computeItemDecision(
+                        securityConstraints,
+                        SchemaConstants.PATH_ATTRIBUTES,
+                        ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY,
+                        securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase),
+                        phase);
+        LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}",
+                attributesReadDecision, attributesAddDecision, attributesModifyDecision);
 
         /*
          *  We are going to modify attribute definitions list.
@@ -386,11 +399,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 new ArrayList<>(objectDefinition.getAttributeDefinitions());
         for (ResourceAttributeDefinition<?> rAttrDef : definitionsCopy) {
             ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getItemName());
-            AuthorizationDecisionType attributeReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
-            AuthorizationDecisionType attributeAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
-            AuthorizationDecisionType attributeModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
+            AuthorizationDecisionType attributeReadDecision =
+                    schemaTransformer.computeItemDecision(
+                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
+            AuthorizationDecisionType attributeAddDecision =
+                    schemaTransformer.computeItemDecision(
+                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
+            AuthorizationDecisionType attributeModifyDecision =
+                    schemaTransformer.computeItemDecision(
+                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
             LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", rAttrDef.getItemName(), attributeReadDecision,
                     attributeAddDecision, attributeModifyDecision);
+
             if (attributeReadDecision != AuthorizationDecisionType.ALLOW
                     || attributeAddDecision != AuthorizationDecisionType.ALLOW
                     || attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
