@@ -299,7 +299,7 @@ public class AuthSequenceUtil {
                 if (module == null) {
                     module = getModuleByName(sequenceModule.getName(), authenticationModulesType);  //just to support old config with name attribute
                 }
-                AbstractModuleFactory moduleFactory = authRegistry.findModelFactory(module, authenticationChannel);
+                AbstractModuleFactory moduleFactory = authRegistry.findModuleFactory(module, authenticationChannel);
                 AuthModule authModule = moduleFactory.createModuleFilter(module, sequence.getChannel().getUrlSuffix(), request,
                         sharedObjects, authenticationModulesType, credentialPolicy, authenticationChannel, sequenceModule);
                 authModules.add(authModule);
@@ -394,7 +394,7 @@ public class AuthSequenceUtil {
         });
 
         for (AbstractAuthenticationModuleType module : modules) {
-            if (module.getIdentifier().equals(identifier)) {
+            if (StringUtils.equals(module.getIdentifier(), identifier)) {
                 return module;
             }
         }

@@ -146,12 +146,11 @@ public class SecurityHelper implements ModelAuditRecorder {
     public <F extends FocusType> SecurityPolicyType locateSecurityPolicy(PrismObject<F> focus, PrismObject<SystemConfigurationType> systemConfiguration,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        SecurityPolicyType securityPolicyFromOrgs = locateFocusSecurityPolicyFromOrgs(focus, task, result);
-        SecurityPolicyType securityPolicyFromArchetypes = locateFocusSecurityPolicyFromArchetypes(focus, task, result);
-        SecurityPolicyType mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromArchetypes, securityPolicyFromOrgs);  //sec policy from archetypes overrides sec policy from org
-
         SecurityPolicyType globalSecurityPolicy = locateGlobalSecurityPolicy(focus, systemConfiguration, task, result);
-        mergedSecurityPolicy = mergeSecurityPolicies(mergedSecurityPolicy, globalSecurityPolicy);
+        SecurityPolicyType securityPolicyFromOrgs = locateFocusSecurityPolicyFromOrgs(focus, task, result);
+        SecurityPolicyType mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromOrgs, globalSecurityPolicy);  //sec policy from org overrides global sec policy
+        SecurityPolicyType securityPolicyFromArchetypes = locateFocusSecurityPolicyFromArchetypes(focus, task, result);
+        mergedSecurityPolicy = mergeSecurityPolicies(securityPolicyFromArchetypes, mergedSecurityPolicy);  //sec policy from archetypes overrides sec policy from org
 
         if (mergedSecurityPolicy != null) {
             traceSecurityPolicy(mergedSecurityPolicy, focus);
@@ -338,7 +337,7 @@ public class SecurityHelper implements ModelAuditRecorder {
             return;
         }
         if (CollectionUtils.isEmpty(mergedList)) {
-            mergedList.addAll(listToProcess);
+            listToProcess.forEach(i -> mergedList.add((AM) i.clone()));
             return;
         }
         listToProcess.forEach(itemToProcess -> {
@@ -360,7 +359,7 @@ public class SecurityHelper implements ModelAuditRecorder {
             return;
         }
         if (CollectionUtils.isEmpty(mergedAuthentication.getSequence())) {
-            mergedAuthentication.getSequence().addAll(sequences);
+            sequences.forEach(s -> mergedAuthentication.getSequence().add(s.clone()));
             return;
         }
         sequences.forEach(sequenceToProcess -> {
@@ -373,7 +372,7 @@ public class SecurityHelper implements ModelAuditRecorder {
                 }
             }
             if (!exist) {
-                mergedAuthentication.getSequence().add(sequenceToProcess);
+                mergedAuthentication.getSequence().add(sequenceToProcess.clone());
             }
         });
     }
@@ -391,11 +390,11 @@ public class SecurityHelper implements ModelAuditRecorder {
         }
         if (CollectionUtils.isNotEmpty(sequenceToProcess.getModule())) {
             if (CollectionUtils.isEmpty(sequence.getModule())) {
-                sequence.getModule().addAll(sequenceToProcess.getModule());
+                sequenceToProcess.getModule().forEach(m -> sequence.getModule().add(m.clone()));
             } else {
                 sequenceToProcess.getModule().forEach(sequenceModule -> {
                     if (findSequenceModuleByIdentifier(sequence.getModule(), sequenceModule) != null) {
-                        sequence.getModule().add(sequenceModule);
+                        sequence.getModule().add(sequenceModule.clone());
                     }
                 });
             }

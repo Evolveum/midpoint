@@ -157,7 +157,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
                     LOGGER.debug(UrlUtils.buildRequestUrl(httpRequest)
                             + "has no authentication module");
                 }
-                throw new AuthenticationServiceException("Couldn't find authentication module for sequence " + authWrapper.sequence.getName());
+                throw new AuthenticationServiceException("Couldn't find authentication module for sequence " + AuthSequenceUtil.getAuthSequenceIdentifier(authWrapper.sequence));
             }
             resolveErrorWithMoreModules(mpAuthentication, httpRequest);
 

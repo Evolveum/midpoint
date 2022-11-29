@@ -57,7 +57,7 @@ public class AuthModuleRegistryImpl {
 
     }
 
-    public AbstractModuleFactory findModelFactory(AbstractAuthenticationModuleType configuration, AuthenticationChannel authenticationChannel) {
+    public AbstractModuleFactory findModuleFactory(AbstractAuthenticationModuleType configuration, AuthenticationChannel authenticationChannel) {
 
         Optional<AbstractModuleFactory> opt = moduleFactories.stream().filter(f -> f.match(configuration, authenticationChannel)).findFirst();
         if (opt.isEmpty()) {
