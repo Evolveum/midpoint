@@ -8,14 +8,12 @@ package com.evolveum.midpoint.testing.story;
 
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+
 import java.io.File;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
-
-import com.evolveum.midpoint.schema.processor.*;
 
 import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
@@ -28,7 +26,9 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.impl.sync.tasks.recon.DebugReconciliationResultListener;
+import com.evolveum.midpoint.model.impl.sync.tasks.recon.ReconciliationActivityHandler;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -42,18 +42,21 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -74,7 +77,7 @@ public class TestUnix extends AbstractStoryTest {
 
     protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-    protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
+    protected static final String RESOURCE_OPENDJ_NAMESPACE = NS_RI;
     protected static final ItemName OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "inetOrgPerson");
     protected static final ItemName OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "posixAccount");
     protected static final ItemName OPENDJ_ACCOUNT_LABELED_URI_OBJECT_AUXILIARY_OBJECTCLASS_NAME = new ItemName(RESOURCE_OPENDJ_NAMESPACE, "labeledURIObject");
@@ -158,6 +161,11 @@ public class TestUnix extends AbstractStoryTest {
     protected static final String USER_STAN_FIST_NAME = "Stan";
     protected static final String USER_STAN_LAST_NAME = "Salesman";
 
+    private static final TestResource<UserType> USER_ALICE =
+            new TestResource<>(TEST_DIR, "user-alice.xml", "39b9711a-75fb-4c72-b26f-c6ff0ee35ae1");
+    private static final TestResource<RoleType> ROLE_ACCOUNTS_AUTZ =
+            new TestResource<>(TEST_DIR, "role-accounts-autz.xml", "03d00775-6d5c-45d8-80d5-f0c4c419c5c6");
+
     @Autowired private ReconciliationActivityHandler reconciliationActivityHandler;
 
     protected ResourceType resourceOpenDjType;
@@ -230,7 +238,8 @@ public class TestUnix extends AbstractStoryTest {
         importObjectFromFile(SEQUENCE_UIDNUMBER_FILE, initResult);
         importObjectFromFile(SEQUENCE_GIDNUMBER_FILE, initResult);
 
-//        DebugUtil.setDetailedDebugDump(true);
+        repoAdd(ROLE_ACCOUNTS_AUTZ, initResult);
+        repoAdd(USER_ALICE, initResult);
     }
 
     protected File getResourceFile() {
@@ -284,7 +293,56 @@ public class TestUnix extends AbstractStoryTest {
         assertNotNull("No refined objectclass " + OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME + " in resource schema", rOcDefPosixGroup);
         assertTrue("Refined objectclass " + OPENDJ_GROUP_POSIX_AUXILIARY_OBJECTCLASS_NAME + " is not auxiliary",
                 rOcDefPosixGroup.getObjectClassDefinition().isAuxiliary());
+    }
 
+    /**
+     * Tests {@link ModelInteractionService#getEditObjectClassDefinition(PrismObject, PrismObject, AuthorizationPhaseType,
+     * Task, OperationResult)} on {@link CompositeObjectDefinition}, i.e. one that results from the use of auxiliary object
+     * classes.
+     *
+     * Normally, this would belong to `TestSecurityBasic` but, unfortunately, we don't have aux object class support in the
+     * dummy resource used there. So, let us put the test here.
+     */
+    @Test
+    public void test020GetEditSchema() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<ResourceType> resourcePrismObject = getObject(ResourceType.class, getResourceOid());
+
+        ShadowType shadow = new ShadowType()
+                .kind(ShadowKindType.ACCOUNT)
+                .intent(SchemaConstants.INTENT_DEFAULT)
+                .objectClass(OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME)
+                .auxiliaryObjectClass(OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
+
+        login(USER_ALICE.object);
+        try {
+            ResourceObjectDefinition editDef =
+                    modelInteractionService.getEditObjectClassDefinition(
+                            shadow.asPrismObject(), resourcePrismObject, null, task, result);
+            displayDumpable("definition", editDef);
+            assertAttributeFlags( // not mentioned in autz (structural + OC) -> no access
+                    editDef, new QName("description"), false, false, false);
+            assertAttributeFlags( // not mentioned in autz (structural) -> no access
+                    editDef, new QName("homePhone"), false, false, false);
+            assertAttributeFlags( // not mentioned in autz (aux OC only) -> no access
+                    editDef, new QName("gecos"), false, false, false);
+            assertAttributeFlags( // read + modify autz (structural + aux OC)
+                    editDef, new QName("uid"), true, false, true);
+            assertAttributeFlags( // read + modify autz (structural OC only)
+                    editDef, new QName("preferredLanguage"), true, false, true);
+            assertAttributeFlags( // read + modify autz (aux OC only)
+                    editDef, new QName("loginShell"), true, false, true);
+            assertAttributeFlags( // read autz (structural + aux OC)
+                    editDef, new QName("cn"), true, false, false);
+            assertAttributeFlags( // read autz (structural OC only)
+                    editDef, new QName("carLicense"), true, false, false);
+            assertAttributeFlags( // read autz (aux OC only)
+                    editDef, new QName("gidNumber"), true, false, false);
+        } finally {
+            login(userAdministrator);
+        }
     }
 
     @Test
