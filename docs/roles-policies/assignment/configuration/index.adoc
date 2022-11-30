@@ -14,7 +14,7 @@ Assignment is a generic concept of associating user (or other xref:/midpoint/ref
 Assignment may associate user with an account, role, organizational unit or similar objects.
 Accounts and roles are the most common things that assignments are used for.
 
-Assignment describes that the *should have* something.
+Assignment describes that the object *should have* something.
 It represents a decision or a policy, a desired state.
 The actual state of the user may be different.
 E.g. an account is assigned to a user, but such account cannot be created because the target resource is currently down.
@@ -25,8 +25,10 @@ The following figure illustrates the concept and the xref:/midpoint/reference/ro
 
 image::assignments-link-1.png[]
 
-Assignments are not special to a xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user object]. Any xref:/midpoint/reference/schema/focus-and-projections/[focal] object can have assignments.
-This mechanism is used to implement xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]. Please also note that roles contain _inducement_ that is related to the concept of assignment and it actually has a very same structure.
+Assignments are not special to a xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/usertype/[user object].
+Any xref:/midpoint/reference/schema/focus-and-projections/[focal] object can have assignments.
+This mechanism is used to implement xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
+Please also note that roles contain _inducement_ that is related to the concept of assignment and it actually has a very same structure.
 Every piece of assignment definition described on this page can also be applied to inducement definition.
 However the purpose and behaviour of inducement is quite different.
 See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] page for a detailed explanation.
@@ -59,21 +61,24 @@ The very simple form of construction assignment is provided below.
     </assignment>
 ----
 
-This construction specifies that an _account_ should be created on resource identified by xref:/midpoint/devel/prism/concepts/object-identifier/[OID]`c0c010c0-d34d-b33f-f00d-333345454545`. When this assignment is processed then such account will be created (if it does not exist already) and linked to the user that has this assignment.
+This construction specifies that an _account_ should be created on resource identified by xref:/midpoint/devel/prism/concepts/object-identifier/[OID]`c0c010c0-d34d-b33f-f00d-333345454545`.
+When this assignment is processed then such account will be created (if it does not exist already) and linked to the user that has this assignment.
 The assignment is a kind of permanent policy.
 Therefore if such account is deleted sometime later midPoint will try to re-create the account as long as the assignment is there.
-
 
 === Kind and Intent
 
 Most of the construction assignments assign accounts.
-However there may be several account types: default account, administration account, testing account, ... The assignment may also assign a very different kinds of objects.
+However there may be several account types: default account, administration account, testing account, ...
+The assignment may also assign a very different kinds of objects.
 E.g. in xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] cases an assignment may assign an xref:/midpoint/reference/resources/entitlements/[entitlement] (e.g. a group) to midPoint xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[role.] The `kind` and `intent` elements in the construction part define what resource object is actually assigned.
 See xref:/midpoint/reference/resources/shadow/kind-intent-objectclass/['Kind, Intent and ObjectClass'] page for more details.
 If no kind and intent are specified then the assignment assigns default account on the specified resource.
 
-Please not that there is a substantial difference between assigning an _account_ to a group and assigning an entitlement (e.g. a group) to a _user_. The former case is what is usually desired: a provisioned account (resource object) is assigned to an existing group (also resource object).
-The later case is a very devious (ab)use of xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization]. Assigning an entitlement to a _user_ causes that a new group will be created for this user and it will be linked to a user.
+Please not that there is a substantial difference between assigning an _account_ to a group and assigning an entitlement (e.g. a group) to a _user_.
+The former case is what is usually desired: a provisioned account (resource object) is assigned to an existing group (also resource object).
+The later case is a very devious (ab)use of xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization].
+Assigning an entitlement to a _user_ causes that a new group will be created for this user and it will be linked to a user.
 This is most like what you do *not* want.
 See the xref:/midpoint/reference/resources/entitlements/[Entitlements] page for more details.
 
@@ -107,7 +112,8 @@ It also specified that the attribute `title` of such account should be set to a 
 .Assignment vs direct account modifications
 ====
 Setting an attribute using an assignment is very different than just setting the attribute value directly on the account.
-As this is an assignment, this specification of the attribute specifies a _policy_. I.e. it specifies that the account _should_ always have this value.
+As this is an assignment, this specification of the attribute specifies a _policy_.
+I.e. it specifies that the account _should_ always have this value.
 Therefore if midPoint detects that the value of attribute `title` has changed (e.g. during a reconciliation) then midPoint will try to fix the situation and will set the attribute to the correct value.
 
 On the other hand if an attribute value is changed directly on the account (e.g. using a midPoint GUI) then the initial result will be the same: the account attribute is changed.
@@ -154,11 +160,13 @@ It produces values similar to "Jack Sparrow is the best pirate Caribbean has eve
     </assignment>
 ----
 
-An observant reader had surely noticed similarity with xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. The same xref:/midpoint/reference/expressions/mappings/[mapping] principle is used in both outbound mappings and assignments.
+An observant reader had surely noticed similarity with xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
+The same xref:/midpoint/reference/expressions/mappings/[mapping] principle is used in both outbound mappings and assignments.
 Therefore the full scale of mapping capabilities can be used in assignments.
 
 The values specified by assignments are merged with other policies before the target resource object is provisioned or modified.
-Most importantly the values are merged with the results of xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings]. The values are merged by default and no special configuration is required.
+Most importantly the values are merged with the results of xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
+The values are merged by default and no special configuration is required.
 
 [NOTE]
 .Do not overuse
@@ -167,12 +175,13 @@ Do not overuse the ability of assignments to enforce attribute values.
 Assignments usually specify exceptions to the policies.
 The lower is the number of exceptions the more consistent the policies are.
 Consistent policies are easier to maintain.
-Care should be taken even if this ability is used in a form of xref:/midpoint/reference/roles-policies/rbac/[role inducements]. Some legacy IDM systems had no other way how to define a policy for attribute values than roles.
+Care should be taken even if this ability is used in a form of xref:/midpoint/reference/roles-policies/rbac/[role inducements].
+Some legacy IDM systems had no other way how to define a policy for attribute values than roles.
 Therefore some IDM engineers have tendency to abuse RBAC mechanisms to define global policies.
 This is *not* the case with midPoint.
 MidPoint has a clean and elegant mechanism for specifying resource-global policies: xref:/midpoint/reference/expressions/mappings/outbound-mapping/[outbound mappings].
 
-*Rule of the thumb:*xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound mappings] should be used to set attribute values if possible.
+*Rule of the thumb:* xref:/midpoint/reference/expressions/mappings/outbound-mapping/[Outbound mappings] should be used to set attribute values if possible.
 If not then xref:/midpoint/reference/roles-policies/rbac/[role inducements] should be used.
 Specifying attribute values in assignments should be used only if no other mechanisms is sufficient to implement the policy.
 
@@ -184,12 +193,13 @@ Specifying attribute values in assignments should be used only if no other mecha
 {% include since.html since="3.5" %}
 ++++
 
-
-The default construction type is _strong_. It means that if such a construction is assigned to a user, the account will immediately get created.
+The default construction type is _strong_.
+It means that if such a construction is assigned to a user, the account will immediately get created.
 This is the expected behavior in vast majority of cases.
 However, there are cases when we do not want to immediately create an account.
 Maybe the construction just adds several attributes to existing account - if the user already has that account.
-Therefore since midPoint 3.5 there is a possibility to make the construction _weak_. Weak constructions do not add new account immediately.
+Therefore since midPoint 3.5 there is a possibility to make the construction _weak_.
+Weak constructions do not add new account immediately.
 If the weak construction is the only construction for a specific account it is simply ignored.
 Weak construction is applied only if there is another (strong) construction that adds the account.
 In that case the weak construction is also applied and it can be used to "enrich" the account with additional attributes.
@@ -321,7 +331,8 @@ In this case we can use algorithm to determine the name of the entitlement (grou
 ----
 
 If an assignment like this appears in a role, it will use the name of the role to determine a group name.
-Therefore if the name of the role is `foo`, it will look for group with name `group-foo`. This may not be very useful on its own.
+Therefore if the name of the role is `foo`, it will look for group with name `group-foo`.
+This may not be very useful on its own.
 But when it is combined with a xref:/midpoint/reference/roles-policies/metaroles/gensync/[metarole] mechanism then it becomes an extremely powerful tool.
 
 === Construction Variables
@@ -406,7 +417,7 @@ Use of these variables is xref:/midpoint/reference/roles-policies/assignment/ass
 {% include since.html since="3.9" %}
 ++++
 
-At login time time, many parts of assignments, e.g. constructions and focus mappings are *not* evaluated - because of performance as well as availability reasons.
+At login time, many parts of assignments, e.g. constructions and focus mappings are *not* evaluated - because of performance as well as availability reasons.
 But sometimes even the evaluation of _conditions_ on paths to these elements might be time-consuming and even unavailable because of missing security context.
 To optimize these evaluations midPoint provides special `loginMode` variable.
 If it's `true` it means that the evaluation is carried out at login time.
@@ -420,7 +431,6 @@ This variable is present also in target filtering expressions.
 {% include since.html since="3.0" %}
 ++++
 
-
 Things are getting a bit more complex when xref:/midpoint/reference/synchronization/generic-synchronization/[generic synchronization] feature is used.
 In such a case we may want to create groups based on midPoint organizational units.
 The same assignment mechanism that is used for user-account pair can be also used in this case.
@@ -430,10 +440,8 @@ The situation looks like this:
 
 image::assignments-construction-entitlement-1.png[]
 
-
-
 The `B0001`xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] object represents an organizational unit in midPoint.
-As the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] is an xref:/midpoint/reference/schema/focus-and-projections/[focal object] it can have assignments.
+As the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] is a xref:/midpoint/reference/schema/focus-and-projections/[focal object] it can have assignments.
 Following assignment is added to the xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org] object:
 
 .Simple construction assignment
@@ -472,7 +480,8 @@ And this is usually specified by using xref:/midpoint/reference/resources/shadow
 
 Please be very careful when working with assignments and roles.
 Roles usually contain *inducement* as such inducements should not apply to a role but it should apply to users that have this role.
-However as xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType] is a xref:/midpoint/reference/schema/focus-and-projections/[focal object] it is perfectly legal for a role to contain an *assignment*. Such assignment applies to a role itself and it can be used e.g. to create a group as a representation of the role.
+However as xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/roletype/[RoleType] is a xref:/midpoint/reference/schema/focus-and-projections/[focal object] it is perfectly legal for a role to contain an *assignment*.
+Such assignment applies to a role itself and it can be used e.g. to create a group as a representation of the role.
 See xref:/midpoint/reference/roles-policies/assignment/assignment-vs-inducement/[Assignment vs Inducement] page for more details.
 Also have a look at xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] page for an interesting discussion of meta-roles.
 
@@ -494,7 +503,7 @@ Simple role assignment is really a very simple thing:
     </assignment>
 ----
 
-Almost all of  the power is in the role definition.
+Almost all the power is in the role definition.
 The xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] and xref:/midpoint/reference/roles-policies/roles-and-policies-configuration/[Roles and Policies Configuration] pages provide much more details about RBAC and role definitions.
 
 == Parametric Assignments
@@ -550,12 +559,12 @@ The assignment can also be temporarily disabled, using the `administrativeStatus
 This kind of assignment parameters, called xref:/midpoint/reference/concepts/activation/[activation], is pre-defined in midPoint.
 Therefore the IDM system will take care of processing that by itself, without any substantial customization.
 
-
 === Assignments and Business Logic
 
 Assignment parameters can be arbitrarily extended by using the `extension` element.
 Such extension may contain any custom data and such data can be used in the expressions in assigned object.
-Following example illustrates the use of custom assignment parameter `shipName`. The parameter is defined in the extension and later used in the assigned role definition to fill in the value of `l` LDAP attribute.
+Following example illustrates the use of custom assignment parameter `shipName`.
+The parameter is defined in the extension and later used in the assigned role definition to fill in the value of `l` LDAP attribute.
 
 .Disabling Assignment Example
 [source,xml]
@@ -612,7 +621,8 @@ See xref:/midpoint/reference/roles-policies/rbac/[Advanced Hybrid RBAC] for more
 Main article: xref:/midpoint/reference/synchronization/projection-policy/[Projection Policy]
 
 There are many ways how to resolve the difference between the policy (assignments) and reality.
-The goal of xref:/midpoint/reference/synchronization/projection-policy/[enforcement modes] is to determine account _legality_. I.e. midPoint computes whether the specific account (or any other _projection_) is legal or illegal.
+The goal of xref:/midpoint/reference/synchronization/projection-policy/[enforcement modes] is to determine account _legality_.
+I.e. midPoint computes whether the specific account (or any other _projection_) is legal or illegal.
 An account is legal if there is a valid assignment for it or if an enforcement mode allows it.
 E.g. in FULL enforcement mode the account is legal only if there is a valid assignment.
 In NONE enforcement mode the account is legal anytime it exists regardless of the assignments.
@@ -622,7 +632,9 @@ The activation usually deals with illegal accounts and determines whether to del
 
 == Assignments and Mappings
 
-Assignments are often created automatically by midPoint mappings, especially in the xref:/midpoint/reference/expressions/object-template/[object template]. It is perfectly possible to create assignments using a `value`xref:/midpoint/reference/expressions/expressions/[expression evaluator.] However this method works well only for simple cases.
+Assignments are often created automatically by midPoint mappings, especially in the xref:/midpoint/reference/expressions/object-template/[object template].
+It is perfectly possible to create assignments using a `value`xref:/midpoint/reference/expressions/expressions/[expression evaluator].
+However this method works well only for simple cases.
 Therefore there is a specialized `assignmentTargetSearch`xref:/midpoint/reference/expressions/expressions/[expression evaluator] designed for the very specific purpose of creating assignments.
 It is using a xref:/midpoint/reference/concepts/query/[search query] to dynamically locate assignment targets.
 It can be configured using inner expressions which makes it a very powerful mechanism.
@@ -630,7 +642,8 @@ See xref:/midpoint/reference/expressions/expressions/[Expression] page for more 
 
 == Referential Integrity
 
-MidPoint does *not* support strict xref:/midpoint/architecture/concepts/relaxed-referential-integrity/[referential integrity]. This was a very conscious decision during midPoint design.
+MidPoint does *not* support strict xref:/midpoint/architecture/concepts/relaxed-referential-integrity/[referential integrity].
+This was a very conscious decision during midPoint design.
 Therefore case should be taken when deleting objects, that are targets of existing assignments.
 Assignments to the deleted objects will *not*  be deleted.
 Such assignments will remain in "holder" objects.
