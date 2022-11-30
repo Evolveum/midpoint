@@ -8,9 +8,10 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.builder.QueryItemDefinitionResolver;
+import com.evolveum.midpoint.prism.ItemDefinitionResolver;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -116,7 +117,18 @@ public class Resource {
                 .item(ShadowType.F_RESOURCE_REF).ref(resourceBean.getOid());
     }
 
-    private static class ResourceItemDefinitionResolver implements QueryItemDefinitionResolver {
+    public @NotNull S_ItemEntry deltaFor(@NotNull QName objectClassName)
+            throws SchemaException, ConfigurationException {
+        return deltaFor(
+                getCompleteSchemaRequired()
+                        .findObjectClassDefinitionRequired(objectClassName));
+    }
+
+    private S_ItemEntry deltaFor(@NotNull ResourceObjectDefinition objectDefinition) throws SchemaException {
+        return PrismContext.get().deltaFor(ShadowType.class, new ResourceItemDefinitionResolver(objectDefinition));
+    }
+
+    private static class ResourceItemDefinitionResolver implements ItemDefinitionResolver {
 
         @NotNull private final ResourceObjectDefinition definition;
 

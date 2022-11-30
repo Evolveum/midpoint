@@ -281,7 +281,7 @@ public interface ProvisioningService {
      *
      * None.
      *
-     * Notes:
+     * == Notes
      *
      * . Concrete type of object (`ShadowType`, `ResourceType`, and so on) must be provided by the client.
      * Using generic `ObjectType` will not work.
@@ -290,6 +290,10 @@ public interface ProvisioningService {
      * of the whole operation: fetching from the resource, if applicable, but also e.g. application of definitions to an
      * object retrieved in raw mode. The exception is if the `raw` mode was used and the result is successful (because of
      * performance).
+     *
+     * == Limitations / Known issues
+     *
+     * . Getting shadows: Definitions of associations (identifiers) are not always refined (in noFetch mode).
      *
      * @param type the type (class) of object to get
      * @param oid OID of the object to get

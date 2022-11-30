@@ -16,6 +16,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +28,8 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 
 public class ResourceAssociationDefinition extends AbstractFreezable
         implements Serializable, Visitable, Freezable, DebugDumpable {
@@ -70,6 +74,13 @@ public class ResourceAssociationDefinition extends AbstractFreezable
 
     public @NotNull Collection<String> getIntents() {
         return definitionBean.getIntent();
+    }
+
+    /** We rely on the assumptions about multiple intents described for {@link ResourceObjectAssociationType#getIntent()}. */
+    public @NotNull String getAnyIntent() throws ConfigurationException {
+        Collection<String> intents = getIntents();
+        configCheck(!intents.isEmpty(), "No intent(s) defined for %s", this);
+        return intents.iterator().next();
     }
 
     public QName getAuxiliaryObjectClass() {

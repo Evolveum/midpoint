@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -135,6 +136,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_PRIVILEGE_ATTRIBUTE_POWER = "power";
 
     public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
+    public static final QName DUMMY_ENTITLEMENT_GROUP_QNAME = new ItemName(MidPointConstants.NS_RI, DUMMY_ENTITLEMENT_GROUP_NAME);
     public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "privileges";
 
     public static final String CONNECTOR_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector";

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1768,6 +1769,13 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGlobalStateUntouched();
     }
 
+    /**
+     * Among other things, checks the output of {@link ModelInteractionService#getEditObjectClassDefinition(PrismObject,
+     * PrismObject, AuthorizationPhaseType, Task, OperationResult)}.
+     *
+     * See also `TestUnix.test020GetEditSchema` where this method is tested as well
+     * (because of aux OC support that is missing here).
+     */
     @Test
     public void test255AutzJackSelfAccountsReadWrite() throws Exception {
         given();
@@ -1992,8 +2000,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         ResourceAttributeContainer resourceAttributeCOntainer = ShadowUtil.getAttributesContainer(shadow);
         ResourceObjectDefinition containerDef = resourceAttributeCOntainer.getDefinition().getComplexTypeDefinition();
 
-        Item attr = resourceAttributeCOntainer.findItem(new ItemName("weapon"));
-        ItemDefinition attrDf = attr.getDefinition();
+        Item<?, ?> attr = resourceAttributeCOntainer.findItem(new ItemName("weapon"));
+        ItemDefinition<?> attrDf = attr.getDefinition();
         assertTrue("Expected that attribute can be read", attrDf.canRead());
         assertFalse("Expected that attribute cannot be added", attrDf.canAdd());
         assertFalse("Expected that attribute cannot be modified", attrDf.canModify());
@@ -3238,6 +3246,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
                 .assertAllowRead();
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertTaskAddAllow(String oid, String name, String ownerOid, String handlerUri) throws Exception {
         assertAllow("add task " + name,
                 (task, result) -> addTask(oid, name, ownerOid, handlerUri, task, result));
