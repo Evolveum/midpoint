@@ -61,11 +61,12 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
      */
     private List<AuthModule> authModules = new ArrayList<>();
 
+    private String securityPolicyOid;
+
     private Object principal;
     private Object credential;
     private String sessionId;
     private Collection<? extends GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
-    private boolean verified;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -349,11 +350,11 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return false;
     }
 
-    public boolean isVerified() {
-        return verified;
+    public String getSecurityPolicyOid() {
+        return securityPolicyOid;
     }
 
-    public void setVerified(boolean verified) {
-        this.verified = verified;
+    public void setSecurityPolicyOid(String securityPolicyOid) {
+        this.securityPolicyOid = securityPolicyOid;
     }
 }
