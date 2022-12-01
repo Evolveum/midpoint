@@ -23,7 +23,6 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 /**
@@ -53,8 +52,8 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
-            IModel<String> label, String tooltipKey, String labelCssClass, String textCssClass, boolean required) {
-        this(id, value, choices, renderer, label, Model.of(tooltipKey), labelCssClass, textCssClass, required, false);
+            IModel<String> label, IModel<String> tooltipKey, String labelCssClass, String textCssClass, boolean required) {
+        this(id, value, choices, renderer, label, tooltipKey, labelCssClass, textCssClass, required, false);
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, IModel<String> tooltipModel,
@@ -85,29 +84,13 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
         tooltipLabel.add(new AttributeAppender("data-original-title", tooltipModel));
         tooltipLabel.add(new InfoTooltipBehavior());
-        tooltipLabel.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return tooltipModel != null && StringUtils.isNotEmpty(tooltipModel.getObject());
-            }
-        });
+        tooltipLabel.add(new VisibleBehaviour(() -> tooltipModel != null && StringUtils.isNotEmpty(tooltipModel.getObject())));
         tooltipLabel.setOutputMarkupId(true);
         tooltipLabel.setOutputMarkupPlaceholderTag(true);
         labelContainer.add(tooltipLabel);
 
         WebMarkupContainer requiredContainer = new WebMarkupContainer(ID_REQUIRED);
-        requiredContainer.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return required;
-            }
-        });
+        requiredContainer.add(new VisibleBehaviour(() -> required));
         labelContainer.add(requiredContainer);
 
         WebMarkupContainer propertyLabel = new WebMarkupContainer(ID_PROPERTY_LABEL);

@@ -43,19 +43,19 @@ public class MemberOperationsHelperOld {
     static <R extends AbstractRoleType> void deleteMembersPerformed(R targetObject,
             PageBase pageBase, QueryScope scope, ObjectQuery query, AjaxRequestTarget target) {
         MemberOperationsHelper.createAndSubmitDeleteMembersTask(
-                targetObject, convert(scope), query, target, pageBase);
+                targetObject, convert(scope), AssignmentHolderType.COMPLEX_TYPE, query, target, pageBase);
     }
 
     static <R extends AbstractRoleType> void recomputeMembersPerformed(R targetObject,
             PageBase pageBase, QueryScope scope, ObjectQuery query, AjaxRequestTarget target) {
         MemberOperationsHelper.createAndSubmitRecomputeMembersTask(
-                targetObject, convert(scope), query, target, pageBase);
+                targetObject, convert(scope), AssignmentHolderType.COMPLEX_TYPE, query, target, pageBase);
     }
 
     static <R extends AbstractRoleType> Task createRecomputeMembersTask(R targetObject, PageBase pageBase, QueryScope scope,
             ObjectQuery query, AjaxRequestTarget target) {
         return MemberOperationsHelper.createRecomputeMembersTask(
-                targetObject, convert(scope), query, target, pageBase);
+                targetObject, convert(scope), AssignmentHolderType.COMPLEX_TYPE, query, target, pageBase);
     }
 
     public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
@@ -75,22 +75,22 @@ public class MemberOperationsHelperOld {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected R getAssignmentTargetRefObject(){
+            protected R getAssignmentTargetRefObject() {
                 return targetRefObject;
             }
 
             @Override
-            protected List<QName> getAvailableObjectTypes(){
+            protected List<QName> getAvailableObjectTypes() {
                 return objectTypes;
             }
 
             @Override
-            protected List<ObjectReferenceType> getArchetypeRefList(){
+            protected List<ObjectReferenceType> getArchetypeRefList() {
                 return archetypeRefList;
             }
 
             @Override
-            protected boolean isOrgTreeVisible(){
+            protected boolean isOrgTreeVisible() {
                 return isOrgTreePanelVisible;
             }
         };
@@ -105,17 +105,17 @@ public class MemberOperationsHelperOld {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected OrgType getAssignmentTargetRefObject(){
+            protected OrgType getAssignmentTargetRefObject() {
                 return targetRefObject;
             }
 
             @Override
-            protected List<QName> getAvailableObjectTypes(){
+            protected List<QName> getAvailableObjectTypes() {
                 return objectTypes;
             }
 
             @Override
-            protected List<ObjectReferenceType> getArchetypeRefList(){
+            protected List<ObjectReferenceType> getArchetypeRefList() {
                 return archetypeRefList;
             }
         };
@@ -131,17 +131,17 @@ public class MemberOperationsHelperOld {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected ArchetypeType getAssignmentTargetRefObject(){
+            protected ArchetypeType getAssignmentTargetRefObject() {
                 return targetRefObject;
             }
 
             @Override
-            protected List<QName> getAvailableObjectTypes(){
+            protected List<QName> getAvailableObjectTypes() {
                 return objectTypes;
             }
 
             @Override
-            protected List<ObjectReferenceType> getArchetypeRefList(){
+            protected List<ObjectReferenceType> getArchetypeRefList() {
                 return archetypeRefList;
             }
         };

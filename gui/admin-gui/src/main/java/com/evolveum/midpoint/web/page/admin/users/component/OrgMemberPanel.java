@@ -11,17 +11,15 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelperOld;
 import org.apache.cxf.common.util.CollectionUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component.MemberOperationsHelper;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
@@ -73,12 +71,6 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
     @Override
     protected Class<? extends ObjectType> getChoiceForAllTypes() {
         return AssignmentHolderType.class;
-    }
-
-    @Override
-    protected void assignMembers(AjaxRequestTarget target, RelationSearchItemConfigurationType relationConfig,
-            List<QName> objectTypes, List<ObjectReferenceType> archetypeRefList, boolean isOrgTreePanelVisible) {
-        MemberOperationsHelperOld.assignOrgMembers(getPageBase(), getModelObject(), target, relationConfig, objectTypes, archetypeRefList);
     }
 
     @Override

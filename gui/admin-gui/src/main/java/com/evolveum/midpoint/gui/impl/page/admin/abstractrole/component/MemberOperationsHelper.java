@@ -79,7 +79,6 @@ public class MemberOperationsHelper {
      * @param memberType Type of members to be processed
      * @param memberQuery Query selecting members that are to be processed
      * @param relations Relations to unassign. Not null, not empty.
-     *
      */
     public static void createAndSubmitUnassignMembersTask(AbstractRoleType targetObject, QueryScope scope, QName memberType,
             ObjectQuery memberQuery, Collection<QName> relations, AjaxRequestTarget target, PageBase pageBase) {
@@ -90,10 +89,9 @@ public class MemberOperationsHelper {
     /**
      * Creates the member unassignment task.
      *
+     * @return null if there's an error; the error is shown in such a case
      * @see #createAndSubmitUnassignMembersTask(AbstractRoleType, QueryScope, QName, ObjectQuery, Collection,
      * AjaxRequestTarget, PageBase)
-     *
-     * @return null if there's an error; the error is shown in such a case
      */
     public static @Nullable Task createUnassignMembersTask(AbstractRoleType targetObject, QueryScope scope, QName memberType,
             ObjectQuery memberQuery, @NotNull Collection<QName> relations, AjaxRequestTarget target, PageBase pageBase) {
@@ -189,7 +187,7 @@ public class MemberOperationsHelper {
     //endregion
 
     //region Deleting members
-    public static void createAndSubmitDeleteMembersTask(AbstractRoleType targetObject, QueryScope scope, ObjectQuery memberQuery,
+    public static void createAndSubmitDeleteMembersTask(AbstractRoleType targetObject, QueryScope scope, QName memberType, ObjectQuery memberQuery,
             AjaxRequestTarget target, PageBase pageBase) {
 
         ExecuteScriptType script = createDeleteBulkAction();
@@ -201,7 +199,7 @@ public class MemberOperationsHelper {
                 new MemberOpTaskSpec(
                         getOperationName(taskName),
                         taskName,
-                        AssignmentHolderType.COMPLEX_TYPE,
+                        memberType,
                         memberQuery,
                         null),
                 script,
@@ -221,15 +219,16 @@ public class MemberOperationsHelper {
     //endregion
 
     //region Recomputing members
+
     /** Creates and submits a task that recomputes the role members. */
-    public static void createAndSubmitRecomputeMembersTask(AbstractRoleType targetObject, QueryScope scope,
+    public static void createAndSubmitRecomputeMembersTask(AbstractRoleType targetObject, QueryScope scope, QName memberType,
             ObjectQuery memberQuery, AjaxRequestTarget target, PageBase pageBase) {
-        Task task = createRecomputeMembersTask(targetObject, scope, memberQuery, target, pageBase);
+        Task task = createRecomputeMembersTask(targetObject, scope, memberType, memberQuery, target, pageBase);
         submitTaskIfPossible(task, target, pageBase);
     }
 
     /** Creates a task that recomputes the role members. */
-    public static Task createRecomputeMembersTask(AbstractRoleType targetObject, QueryScope scope, ObjectQuery memberQuery,
+    public static Task createRecomputeMembersTask(AbstractRoleType targetObject, QueryScope scope, QName memberType, ObjectQuery memberQuery,
             AjaxRequestTarget target, PageBase pageBase) {
 
         String operationKey = getOperationKey(OP_KEY_RECOMPUTE, scope, targetObject, "of");
@@ -239,7 +238,7 @@ public class MemberOperationsHelper {
                 new MemberOpTaskSpec(
                         getOperationName(taskName),
                         taskName,
-                        AssignmentHolderType.COMPLEX_TYPE,
+                        memberType,
                         memberQuery,
                         null),
                 target, pageBase);
@@ -247,6 +246,7 @@ public class MemberOperationsHelper {
     //endregion
 
     //region Query formulation
+
     /**
      * Creates a query covering all direct (assigned) members of an abstract role.
      *
@@ -325,6 +325,7 @@ public class MemberOperationsHelper {
     //endregion
 
     //region Task preparation and submission for execution
+
     /**
      * Creates a localization key for task name in the form of `operation.OPERATION.SCOPE.members.PREPOSITION.TARGET-TYPE`.
      * It is also the operation name for tasks being created.
@@ -363,7 +364,6 @@ public class MemberOperationsHelper {
      *
      * @param taskSpec Specification of the member operation task
      * @param script Script to be executed on individual members
-     *
      * @return null if there's an error
      */
     private static @Nullable Task createScriptingMemberOperationTask(@NotNull MemberOpTaskSpec taskSpec,
@@ -374,10 +374,10 @@ public class MemberOperationsHelper {
             // @formatter:off
             ActivityDefinitionType activityDefinition = new ActivityDefinitionType(PrismContext.get())
                     .beginWork()
-                        .beginIterativeScripting()
-                            .objects(createObjectSetBean(taskSpec))
-                            .scriptExecutionRequest(script)
-                        .<WorkDefinitionsType>end()
+                    .beginIterativeScripting()
+                    .objects(createObjectSetBean(taskSpec))
+                    .scriptExecutionRequest(script)
+                    .<WorkDefinitionsType>end()
                     .end();
             // @formatter:on
 
@@ -410,7 +410,6 @@ public class MemberOperationsHelper {
      * ExecuteScriptType, PageBase, AjaxRequestTarget)}.
      *
      * @param taskSpec Specification of the member operation task
-     *
      * @return null if there's an error
      */
     @SuppressWarnings("SameParameterValue")
@@ -422,9 +421,9 @@ public class MemberOperationsHelper {
             // @formatter:off
             ActivityDefinitionType activityDefinition = new ActivityDefinitionType(PrismContext.get())
                     .beginWork()
-                        .beginRecomputation()
-                            .objects(createObjectSetBean(taskSpec))
-                        .<WorkDefinitionsType>end()
+                    .beginRecomputation()
+                    .objects(createObjectSetBean(taskSpec))
+                    .<WorkDefinitionsType>end()
                     .end();
             // @formatter:on
 
