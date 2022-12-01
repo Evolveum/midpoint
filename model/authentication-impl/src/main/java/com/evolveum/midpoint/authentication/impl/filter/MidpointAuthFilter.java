@@ -244,11 +244,13 @@ public class MidpointAuthFilter extends GenericFilterBean {
                     }
                 }
             } else {
-                authWrapper.authModules = createAuthenticationModuleBySequence(mpAuthentication, authWrapper, httpRequest);
+                authWrapper.authModules = createAuthenticationModuleBySequence(mpAuthentication, authWrapper.sequence, httpRequest,
+                        authWrapper.authenticationsPolicy.getModules(), authWrapper.authenticationChannel, authWrapper.credentialsPolicy);
                 authModulesOfSpecificSequences.put(AuthSequenceUtil.getAuthSequenceIdentifier(authWrapper.sequence), authWrapper.authModules);
             }
         } else {
-            authWrapper.authModules = createAuthenticationModuleBySequence(mpAuthentication, authWrapper, httpRequest);
+            authWrapper.authModules = createAuthenticationModuleBySequence(mpAuthentication, authWrapper.sequence, httpRequest,
+                    authWrapper.authenticationsPolicy.getModules(), authWrapper.authenticationChannel, authWrapper.credentialsPolicy);
         }
     }
 
@@ -266,13 +268,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
         AuthenticationWrapper wrapper = new AuthenticationWrapper();
         try {
             wrapper.securityPolicy = resolveSecurityPolicy(mpAuthentication);
-            if (mpAuthentication != null) {
-                if (mpAuthentication.getSecurityPolicyOid() != null
-                        && !StringUtils.equals(mpAuthentication.getSecurityPolicyOid(), wrapper.securityPolicy.getOid())) {
-                    wrapper.switchSecurityPolicy = true;
-                }
-                mpAuthentication.setSecurityPolicyOid(wrapper.securityPolicy.getOid());
-            }
             wrapper.authenticationsPolicy = getAuthenticationPolicy(wrapper.securityPolicy);
             if (wrapper.securityPolicy != null) {
                 wrapper.credentialsPolicy = wrapper.securityPolicy.asObjectable().getCredentials();
@@ -343,19 +338,15 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return indexOfProcessingModule;
     }
 
-    private List<AuthModule> createAuthenticationModuleBySequence(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {
+    private List<AuthModule> createAuthenticationModuleBySequence(MidpointAuthentication mpAuthentication, AuthenticationSequenceType sequence,
+            HttpServletRequest httpRequest, AuthenticationModulesType modules, AuthenticationChannel authenticationChannel, CredentialsPolicyType credentialsPolicy) {
         List<AuthModule> authModules;
-        if (authWrapper.switchSecurityPolicy) {
-            authModules = AuthSequenceUtil.buildModuleFilters(
-                    authModuleRegistry, authWrapper.sequence, httpRequest, authWrapper.authenticationsPolicy.getModules(),
-                    authWrapper.credentialsPolicy, sharedObjects, authWrapper.authenticationChannel);
-            authWrapper.switchSecurityPolicy = false;
-        } else if (processingDifferentAuthenticationSequence(mpAuthentication, authWrapper.sequence)) {
+        if (processingDifferentAuthenticationSequence(mpAuthentication, sequence)) {
             clearAuthentication(httpRequest);
             authenticationManager.getProviders().clear();
             authModules = AuthSequenceUtil.buildModuleFilters(
-                    authModuleRegistry, authWrapper.sequence, httpRequest, authWrapper.authenticationsPolicy.getModules(),
-                    authWrapper.credentialsPolicy, sharedObjects, authWrapper.authenticationChannel);
+                    authModuleRegistry, sequence, httpRequest, modules,
+                    credentialsPolicy, sharedObjects, authenticationChannel);
         } else {
             authModules = mpAuthentication.getAuthModules();
         }
@@ -378,12 +369,10 @@ public class MidpointAuthFilter extends GenericFilterBean {
             authWrapper.sequence = AuthSequenceUtil.getSequenceByPath(httpRequest, authWrapper.authenticationsPolicy, taskManager.getLocalNodeGroups());
         }
 
-        if (authWrapper.switchSecurityPolicy) {
-            return;
-        }
         if (isEqualChannelIdForAuthenticatedUser(mpAuthentication, authWrapper, httpRequest)) {
             changeLogoutToNewSequence(mpAuthentication, authWrapper, httpRequest);
             authWrapper.sequence = mpAuthentication.getSequence();
+
         }
     }
 
@@ -420,7 +409,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private PrismObject<SecurityPolicyType> resolveSecurityPolicy(MidpointAuthentication mpAuthentication) throws SchemaException {
-        if (!principalExists(mpAuthentication)) {
+        if (!isPrincipalAuthenticated(mpAuthentication)) {
             return getGlobalSecurityPolicy();
         }
         PrismObject<SecurityPolicyType> securityPolicy = null;
@@ -431,8 +420,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return securityPolicy != null ? securityPolicy : getGlobalSecurityPolicy();
     }
 
-    private boolean principalExists(MidpointAuthentication mpAuthentication) {
-        return mpAuthentication != null && mpAuthentication.getPrincipal() != null && mpAuthentication.getPrincipal() instanceof GuiProfiledPrincipal;
+    private boolean isPrincipalAuthenticated(MidpointAuthentication mpAuthentication) {
+        return mpAuthentication != null && mpAuthentication.isAuthenticated() && mpAuthentication.getPrincipal() != null && !mpAuthentication.isAnonymous();
         }
 
     private PrismObject<SecurityPolicyType> getGlobalSecurityPolicy() throws SchemaException {
@@ -499,7 +488,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
         List<AuthModule> authModules;
         AuthenticationSequenceType sequence = null;
         AuthenticationChannel authenticationChannel;
-        boolean switchSecurityPolicy;
     }
 }
 
