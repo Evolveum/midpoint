@@ -47,8 +47,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.jetbrains.annotations.NotNull;
-
 public class SearchFactory {
 
     private static final String DOT_CLASS = SearchFactory.class.getName() + ".";
@@ -501,10 +499,20 @@ public class SearchFactory {
         if (StringUtils.isNotEmpty(name)) {
             return name;
         }
-        name = WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null);
+        name = WebComponentUtil.getItemDefinitionDisplayName(itemDef);
         if (StringUtils.isNotEmpty(name)) {
             return name;
         }
+
+        if (StringUtils.isNotEmpty(itemDef.getDisplayName())) {
+            return itemDef.getDisplayName();
+        }
+
+        name = itemDef.getItemName().getLocalPart();
+        if (StringUtils.isNotEmpty(name)) {
+            return name;
+        }
+
         return hasParameter(searchItem) ? searchItem.getParameter().getName() : "";
     }
 
@@ -585,7 +593,7 @@ public class SearchFactory {
         }
         if (itemDef instanceof PrismReferenceDefinition) {
             ReferenceSearchItemWrapper itemWrapper = new ReferenceSearchItemWrapper((PrismReferenceDefinition)itemDef, type);
-            itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null));
+            itemWrapper.setName(WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef));
             return itemWrapper;
         }
         if (path != null) {
@@ -1151,7 +1159,7 @@ public class SearchFactory {
             for(ItemDefinition<?> def : defs) {
                 var searchItem = new SearchItemType()
                         .path(new ItemPathType(ItemPath.create(extensionPath, def.getItemName())))
-                        .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(def, null));
+                        .displayName(WebComponentUtil.getItemDefinitionDisplayNameOrName(def));
                 searchItemWrappers.add(createPropertySearchItemWrapper(objectDef.getCompileTimeClass(),
                         searchItem, def, null, modelServiceLocator));
             }
