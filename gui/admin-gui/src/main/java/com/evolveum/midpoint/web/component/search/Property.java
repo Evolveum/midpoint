@@ -50,7 +50,7 @@ public class Property implements Serializable, Comparable<Property> {
         if (definition != null && StringUtils.isNotEmpty(definition.getDisplayName())) {
             return PageBase.createStringResourceStatic(definition.getDisplayName()).getString();
         }
-        return WebComponentUtil.getItemDefinitionDisplayNameOrName(definition, null);
+        return WebComponentUtil.getItemDefinitionDisplayNameOrName(definition);
     }
 
     public boolean isSelected() {
@@ -90,8 +90,8 @@ public class Property implements Serializable, Comparable<Property> {
 
     @Override
     public int compareTo(Property o) {
-        String n1 = WebComponentUtil.getItemDefinitionDisplayNameOrName(definition, null);
-        String n2 = WebComponentUtil.getItemDefinitionDisplayNameOrName(o.definition, null);
+        String n1 = WebComponentUtil.getItemDefinitionDisplayNameOrName(definition);
+        String n2 = WebComponentUtil.getItemDefinitionDisplayNameOrName(o.definition);
 
         if (n1 == null || n2 == null) {
             return 0;

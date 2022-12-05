@@ -1361,7 +1361,15 @@ public final class WebComponentUtil {
         return combinedDisplay;
     }
 
-    public static String getItemDefinitionDisplayNameOrName(ItemDefinition def, Component component) {
+    public static String getItemDefinitionDisplayNameOrName(ItemDefinition def) {
+        String name = getItemDefinitionDisplayName(def);
+        if (StringUtils.isNotEmpty(name)) {
+            return name;
+        }
+        return def.getItemName().getLocalPart();
+    }
+
+    public static String getItemDefinitionDisplayName(ItemDefinition def) {
         if (def == null) {
             return null;
         }
@@ -1375,7 +1383,7 @@ public final class WebComponentUtil {
         if (def instanceof ResourceAttributeDefinition && StringUtils.isNotEmpty(def.getDisplayName())) {
             return def.getDisplayName();
         }
-        return def.getItemName().getLocalPart();
+        return null;
     }
 
     private static String getAcquisitionDescription(ProvenanceAcquisitionType acquisitionType) {
