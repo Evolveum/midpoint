@@ -4322,4 +4322,14 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         setMaintenanceMode(resourceOid, AdministrativeAvailabilityStatusType.OPERATIONAL, result);
     }
+
+    @SuppressWarnings("SameParameterValue")
+    protected void assertAttributeFlags(ResourceObjectDefinition def,
+            QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
+        ResourceAttributeDefinition<?> attrDef = def.findAttributeDefinition(attrName);
+        assertThat(attrDef).as("attribute " + attrName + " definition").isNotNull();
+        assertThat(attrDef.canRead()).as("readability flag for " + attrName).isEqualTo(expectedRead);
+        assertThat(attrDef.canAdd()).as("addition flag for " + attrName).isEqualTo(expectedAdd);
+        assertThat(attrDef.canModify()).as("modification flag for " + attrName).isEqualTo(expectedModify);
+    }
 }

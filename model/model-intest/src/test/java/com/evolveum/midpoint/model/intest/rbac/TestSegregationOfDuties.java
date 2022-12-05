@@ -1612,7 +1612,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         displayDumpable("Preview context", modelContext);
 
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
 
         Collection<? extends EvaluatedAssignment> evaluatedAssignmentsZero = evaluatedAssignmentTriple.getZeroSet();
         assertEquals("Wrong number of evaluated assignments (zero)", 1, evaluatedAssignmentsZero.size());
@@ -1621,7 +1621,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
         Collection<? extends EvaluatedAssignment> evaluatedAssignmentsPlus = evaluatedAssignmentTriple.getPlusSet();
         assertEquals("Wrong number of evaluated assignments (plus)", 1, evaluatedAssignmentsPlus.size());
-        EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignmentsPlus.iterator().next();
+        EvaluatedAssignment evaluatedAssignment = evaluatedAssignmentsPlus.iterator().next();
         DeltaSetTriple<? extends EvaluatedAssignmentTarget> rolesTriple = evaluatedAssignment.getRoles();
         PrismAsserts.assertTripleNoPlus(rolesTriple);
         PrismAsserts.assertTripleNoMinus(rolesTriple);

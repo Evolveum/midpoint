@@ -76,14 +76,14 @@ public class AssignmentCollector {
     @Autowired private ContextLoader contextLoader;
     @Autowired private ModelBeans modelBeans;
 
-    public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> collect(PrismObject<AH> focus,
+    public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment> collect(PrismObject<AH> focus,
             boolean loginMode, Task task, OperationResult result) throws SchemaException {
 
         LensContext<AH> lensContext = createAuthenticationLensContext(focus, result);
 
         AH focusBean = focus.asObjectable();
 
-        Collection<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
+        Collection<EvaluatedAssignment> evaluatedAssignments = new ArrayList<>();
 
         Collection<AssignmentType> forcedAssignments = collectForcedAssignments(focusBean, lensContext.getFocusContext().getLifecycleModel(), task, result);
         if (!focusBean.getAssignment().isEmpty() || forcedAssignments != null) {
@@ -123,10 +123,10 @@ public class AssignmentCollector {
         return evaluatedAssignments;
     }
 
-    private <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> evaluateAssignments(AH focus,
+    private <AH extends AssignmentHolderType> Collection<EvaluatedAssignment> evaluateAssignments(AH focus,
             Collection<AssignmentType> assignments, AssignmentOrigin origin, AssignmentEvaluator<AH> assignmentEvaluator, Task task, OperationResult result) {
 
-        List<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
+        List<EvaluatedAssignment> evaluatedAssignments = new ArrayList<>();
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
             PrismContainerDefinition<AssignmentType> standardAssignmentDefinition = prismContext.getSchemaRegistry()
@@ -139,7 +139,7 @@ public class AssignmentCollector {
                             assignmentType.asPrismContainerValue().getDefinition(), standardAssignmentDefinition);
                     ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
                             new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType), definition);
-                    EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, focus, focus.toString(), origin, task, result);
+                    EvaluatedAssignment assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, focus, focus.toString(), origin, task, result);
                     evaluatedAssignments.add(assignment);
                 } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
                     LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",

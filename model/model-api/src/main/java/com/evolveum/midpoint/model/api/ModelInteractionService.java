@@ -135,7 +135,10 @@ public interface ModelInteractionService {
      * @param object object to edit
      * @return schema with correctly set constraint parts or null
      */
-    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
+    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException;
 
     PrismObjectDefinition<ShadowType> getEditShadowDefinition(
             ResourceShadowCoordinates coordinates,
@@ -144,7 +147,19 @@ public interface ModelInteractionService {
             OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
-    ResourceObjectDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    /**
+     * Returns an object definition that reflects edit-ability of the resource object in terms of midPoint schema limitations
+     * and security. I.e. just like {@link #getEditShadowDefinition(ResourceShadowCoordinates, AuthorizationPhaseType, Task,
+     * OperationResult)} but for resource objects.
+     */
+    ResourceObjectDefinition getEditObjectClassDefinition(
+            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull PrismObject<ResourceType> resource,
+            AuthorizationPhaseType phase,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException;
 
     /**
      * Returns specification of processing of given metadata item (e.g. provenance).

@@ -1153,22 +1153,22 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public DeltaSetTriple<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentTriple() {
+            public DeltaSetTriple<? extends EvaluatedAssignment> getEvaluatedAssignmentTriple() {
                 return null;
             }
 
             @Override
-            public @NotNull Stream<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentsStream() {
+            public @NotNull Stream<? extends EvaluatedAssignment> getEvaluatedAssignmentsStream() {
                 return Stream.empty();
             }
 
             @Override
-            public @NotNull Collection<? extends EvaluatedAssignment<?>> getNonNegativeEvaluatedAssignments() {
+            public @NotNull Collection<? extends EvaluatedAssignment> getNonNegativeEvaluatedAssignments() {
                 return Collections.emptyList();
             }
 
             @Override
-            public @NotNull Collection<? extends EvaluatedAssignment<?>> getAllEvaluatedAssignments() {
+            public @NotNull Collection<? extends EvaluatedAssignment> getAllEvaluatedAssignments() {
                 return Collections.emptyList();
             }
 

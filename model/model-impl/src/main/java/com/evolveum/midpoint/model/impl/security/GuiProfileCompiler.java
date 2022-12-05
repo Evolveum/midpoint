@@ -12,7 +12,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -109,12 +108,12 @@ public class GuiProfileCompiler {
     private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, Set<String> consideredOids, GuiProfiledPrincipal principal, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
         FocusType focusType = principal.getFocus();
 
-        Collection<? extends EvaluatedAssignment<? extends FocusType>> evaluatedAssignments = assignmentCollector.collect(focusType.asPrismObject(), true, task, result);
+        Collection<? extends EvaluatedAssignment> evaluatedAssignments = assignmentCollector.collect(focusType.asPrismObject(), true, task, result);
         Collection<Authorization> authorizations = principal.getAuthorities();
-        for (EvaluatedAssignment<? extends FocusType> assignment : evaluatedAssignments) {
+        for (EvaluatedAssignment assignment : evaluatedAssignments) {
             if (assignment.isValid()) {
                 // TODO: Should we add also invalid assignments?
-                consideredOids.addAll(assignment.getAdminGuiDendencies());
+                consideredOids.addAll(assignment.getAdminGuiDependencies());
 
                 addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
                 adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());

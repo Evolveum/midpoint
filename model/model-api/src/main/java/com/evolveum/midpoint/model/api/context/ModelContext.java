@@ -59,16 +59,16 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     void reportProgress(ProgressInformation progress);
 
-    DeltaSetTriple<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentTriple();
+    DeltaSetTriple<? extends EvaluatedAssignment> getEvaluatedAssignmentTriple();
 
     @NotNull
-    Stream<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentsStream();
+    Stream<? extends EvaluatedAssignment> getEvaluatedAssignmentsStream();
 
     @NotNull
-    Collection<? extends EvaluatedAssignment<?>> getNonNegativeEvaluatedAssignments();
+    Collection<? extends EvaluatedAssignment> getNonNegativeEvaluatedAssignments();
 
     @NotNull
-    Collection<? extends EvaluatedAssignment<?>> getAllEvaluatedAssignments();
+    Collection<? extends EvaluatedAssignment> getAllEvaluatedAssignments();
 
     ObjectTemplateType getFocusTemplate();
 
