@@ -78,6 +78,7 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
 
         Label icon = new Label(ID_IMAGE);
         icon.add(AttributeAppender.append("class", getIconClassModel()));
+        icon.add(AttributeAppender.append("style", getIconStyleModel()));
         linkItem.add(icon);
 
         linkItem.add(new Label(ID_LABEL, () -> {
@@ -97,7 +98,6 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
         linkItem.add(statisticData);
     }
 
-
     private IModel<String> getIconClassModel() {
         return () -> {
             ContainerPanelConfigurationType panel = StatisticDashboardWidget.this.getModelObject();
@@ -105,7 +105,7 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
             if (StringUtils.isEmpty(cssClass)) {
                 cssClass = ICON_DEFAULT_CSS_CLASS;
             }
-            return "info-box-icon " + getIconColor() + cssClass;
+            return "info-box-icon " + cssClass;
         };
     }
 
@@ -139,12 +139,14 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView(view.getType(), viewIdentifier);
     }
 
-    private String getIconColor() {
-        String iconColor = GuiDisplayTypeUtil.getIconColor(getModelObject().getDisplay());
-        if (StringUtils.isNotEmpty(iconColor)) {
-            return iconColor.startsWith("bg-") ? iconColor : "bg-" + iconColor + " ";
-        }
-        return "";
+    private IModel<String> getIconStyleModel() {
+        return () -> {
+            String iconColor = GuiDisplayTypeUtil.getIconColor(getModelObject().getDisplay());
+            if (StringUtils.isNotEmpty(iconColor)) {
+                return "background-color: " + iconColor + " !important";
+            }
+            return "";
+        };
     }
 
     private boolean isExternalLink() {
