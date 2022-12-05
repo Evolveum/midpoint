@@ -53,7 +53,6 @@ public class DelegatedToMePanel extends AbstractObjectMainPanel<UserType, UserDe
     private static final String ID_ASSIGNMENTS = "assignments";
     private static final String ID_CHECK_ALL = "assignmentsCheckAll";
     private static final String ID_HEADER = "assignmentsHeader";
-    private static final String ID_MENU = "assignmentsMenu";
     private static final String ID_LIST = "assignmentList";
     protected static final String ID_ROW = "assignmentEditor";
 
@@ -74,18 +73,6 @@ public class DelegatedToMePanel extends AbstractObjectMainPanel<UserType, UserDe
 
         Label label = new Label(ID_HEADER, getLabel());
         assignments.add(label);
-
-        DropdownButtonDto model = new DropdownButtonDto(null, null, null, createAssignmentMenu());
-        DropdownButtonPanel assignmentMenu = new DropdownButtonPanel(ID_MENU, model) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String getSpecialButtonClass() {
-                return "btn-xs btn-default";
-            }
-        };
-        assignmentMenu.setVisible(getAssignmentMenuVisibility());
-        assignments.add(assignmentMenu);
 
         ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, getDelegatedToMeModel()) {
             private static final long serialVersionUID = 1L;
@@ -138,10 +125,6 @@ public class DelegatedToMePanel extends AbstractObjectMainPanel<UserType, UserDe
 
     public IModel<String> getLabel() {
         return getPageBase().createStringResource("FocusType.delegatedToMe");
-    }
-
-    protected List<InlineMenuItem> createAssignmentMenu() {
-        return new ArrayList<>();
     }
 
     protected AttributeModifier getClassModifier(ListItem<AssignmentEditorDto> item){
