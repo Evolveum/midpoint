@@ -371,7 +371,7 @@ public class AuthSequenceUtil {
         });
 
         for (AbstractAuthenticationModuleType module : modules) {
-            if (module.getName().equals(name)) {
+            if (module.getName() != null && module.getName().equals(name)) {
                 return module;
             }
         }

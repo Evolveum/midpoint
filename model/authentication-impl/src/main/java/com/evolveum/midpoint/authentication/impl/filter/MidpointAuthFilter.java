@@ -39,6 +39,7 @@ import com.evolveum.midpoint.security.api.SecurityUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -150,9 +151,14 @@ public class MidpointAuthFilter extends GenericFilterBean {
         authWrapper.authenticationChannel = AuthSequenceUtil.buildAuthChannel(authChannelRegistry, authWrapper.sequence);
         try {
             initAuthenticationModule(mpAuthentication, authWrapper, httpRequest);
-//            if (mpAuthentication != null) {
-//                mpAuthentication.addAuthentications(authWrapper.authModules.get(0).getBaseModuleAuthentication());
-//            }
+            if (mpAuthentication != null && authWrapper.switchSecurityPolicy) {
+                mpAuthentication.getAuthModules().clear();
+                mpAuthentication.setAuthModules(authWrapper.authModules);
+                AuthModule module = getUnauthenticatedModule(authWrapper.authModules, mpAuthentication);
+                if (module != null) {
+                    mpAuthentication.addAuthentications(module.getBaseModuleAuthentication());
+                }
+            }
 
             if (isRequestAuthenticated(mpAuthentication, authWrapper)) {
                 processingOfAuthenticatedRequest(mpAuthentication, httpRequest, response, chain);
@@ -169,17 +175,36 @@ public class MidpointAuthFilter extends GenericFilterBean {
             resolveErrorWithMoreModules(mpAuthentication, httpRequest);
 
             int indexOfProcessingModule;
-            if (needCreateNewAuthenticationToken(mpAuthentication, httpRequest)) {
+            if (needCreateNewAuthenticationToken(mpAuthentication, authWrapper, httpRequest)) {
                 indexOfProcessingModule = initNewAuthenticationToken(authWrapper, httpRequest);
                 mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
             } else {
                 indexOfProcessingModule = getIndexOfActualProcessingModule(mpAuthentication, httpRequest);
             }
             setAuthenticationChanel(mpAuthentication, authWrapper);
+            authWrapper.switchSecurityPolicy = false;
             runFilters(authWrapper, indexOfProcessingModule, chain, httpRequest, response);
         } finally {
             removingFiltersAfterProcessing(mpAuthentication, httpRequest);
         }
+    }
+
+    private AuthModule getUnauthenticatedModule(List<AuthModule> modules, MidpointAuthentication mpAuthentication) {
+        if (CollectionUtils.isEmpty(modules)) {
+            return null;
+        }
+        return modules.stream()
+                .filter(module -> !authModuleAlreadyProcessed(mpAuthentication, module.getModuleIdentifier()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private boolean authModuleAlreadyProcessed(MidpointAuthentication mpAuthentication, String moduleIdentifier) {
+        if (CollectionUtils.isEmpty(mpAuthentication.getAuthentications())) {
+            return false;
+        }
+        return mpAuthentication.getAuthentications().stream().anyMatch(auth -> auth.getModuleIdentifier().equals(moduleIdentifier)
+                && AuthenticationModuleState.SUCCESSFULLY.equals(auth.getState()));
     }
 
     private void removingFiltersAfterProcessing(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
@@ -218,9 +243,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
     }
 
-    private boolean needCreateNewAuthenticationToken(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
+    private boolean needCreateNewAuthenticationToken(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {
         return AuthSequenceUtil.isSpecificSequence(httpRequest)
-                || needRestartAuthFlow(getIndexOfActualProcessingModule(mpAuthentication, httpRequest));
+                || needRestartAuthFlow(getIndexOfActualProcessingModule(mpAuthentication, httpRequest), authWrapper);
     }
 
     private void setLogoutPath(ServletRequest request, ServletResponse response) {
@@ -304,9 +329,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return AuthSequenceUtil.isPermitAll(request) && !AuthSequenceUtil.isLoginPage(request);
     }
 
-    private boolean needRestartAuthFlow(int indexOfProcessingModule) {
+    private boolean needRestartAuthFlow(int indexOfProcessingModule, AuthenticationWrapper authWrapper) {
         // if index == -1 indicate restart authentication flow
-        return indexOfProcessingModule == -1;
+        return !authWrapper.switchSecurityPolicy && indexOfProcessingModule == -1;
     }
 
     private int restartAuthFlow(HttpServletRequest httpRequest, AuthenticationWrapper authWrapper) {
@@ -366,7 +391,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
         } else {
             AuthenticationSequenceType sequence =
                     AuthSequenceUtil.getSequenceByIdentifier(mpAuthentication.getSequence().getIdentifier(), authWrapper.authenticationsPolicy);
-            if (sequence != null && CollectionUtils.size(mpAuthentication.getSequence().getModule()) != CollectionUtils.size(sequence.getModule())) {
+            authWrapper.switchSecurityPolicy = sequence != null && CollectionUtils.size(mpAuthentication.getSequence().getModule()) != CollectionUtils.size(sequence.getModule());
+            if (authWrapper.switchSecurityPolicy) {
                 authModules = AuthSequenceUtil.buildModuleFilters(
                         authModuleRegistry, authWrapper.sequence, httpRequest, authWrapper.authenticationsPolicy.getModules(),
                         authWrapper.credentialsPolicy, sharedObjects, authWrapper.authenticationChannel);
@@ -375,29 +401,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
             }
         }
         return authModules;
-    }
-
-    private void updateAuthModuleState(MidpointAuthentication mpAuthentication, List<AuthModule> authModules) {
-        if (mpAuthentication == null || authModules == null) {
-            return;
-        }
-        if (CollectionUtils.isEmpty(authModules) || CollectionUtils.isEmpty(mpAuthentication.getAuthentications())) {
-            return;
-        }
-//        authModules.forEach(module -> {
-//            AuthModule existingModule = getAuthModuleByIdentifier(mpAuthentication.getAuthModules(), module);
-//            if (existingModule != null) {
-//                module.
-//            }
-//        });
-    }
-
-    private AuthModule getAuthModuleByIdentifier(List<AuthModule> authModules, AuthModule module) {
-        return authModules
-                .stream()
-                .filter(m -> m.getModuleIdentifier() != null && m.getModuleIdentifier().equals(module.getModuleIdentifier()))
-                .findAny()
-                .orElse(null);
     }
 
     private boolean processingDifferentAuthenticationSequence(MidpointAuthentication mpAuthentication, AuthenticationSequenceType sequence) {
@@ -535,6 +538,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
         List<AuthModule> authModules;
         AuthenticationSequenceType sequence = null;
         AuthenticationChannel authenticationChannel;
+
+        boolean switchSecurityPolicy;
     }
 }
 
