@@ -12,7 +12,7 @@
 <body>
 <wicket:extend>
     <form class="form-horizontal" action="ignore" wicket:id="mainForm">
-        <div class="form-group" wicket:id="staticLayout">
+        <wicket:enclosure child="username">
             <label class="col-md-4 col-lg-4 control-label">
                 <wicket:message key="PageLogin.username"/>
             </label>
@@ -21,23 +21,29 @@
                 <input name="username" type="text" class="form-control form-control-sm focus-username"
                         wicket:message="placeholder:PageLogin.username" wicket:id="username">
             </div>
-        </div>
 
-        <div wicket:id="dynamicLayout">
-            <div wicket:id="dynamicForm"/>
-        </div>
+            <div wicket:id="dynamicLayout">
+                <div wicket:id="dynamicForm"/>
+            </div>
 
-        <div class="pull-right" wicket:id="firstLevelButtons">
-            <a class="btn btn-default" wicket:id="back1"><wicket:message key="PageBase.button.back"/></a>
-            <a class="btn btn-primary" wicket:id="showQuestions"><wicket:message key="PageSecurityQuestions.showQuestions"/></a>
-        </div>
+            <div class="pull-right" wicket:id="firstLevelButtons">
+                <a class="btn btn-default" wicket:id="back1">
+                    <wicket:message key="PageBase.button.back"/>
+                </a>
+                <a class="btn btn-primary" wicket:id="showQuestions">
+                    <wicket:message key="PageSecurityQuestions.showQuestions"/>
+                </a>
+            </div>
+        </wicket:enclosure>
 
         <div wicket:id="csrfField"/>
         <input type="hidden" wicket:id="answer"/>
         <input type="hidden" wicket:id="user"/>
 
-        <div class ="com-md-12" wicket:id="insideForm">
-            <h4><wicket:message key="PageSecurityQuestions.questions"/></h4>
+        <div class="com-md-12" wicket:id="insideForm">
+            <h4>
+                <wicket:message key="PageSecurityQuestions.questions"/>
+            </h4>
             <hr>
             <div wicket:id="questions">
                 <label wicket:id="questionText"></label>
@@ -47,7 +53,9 @@
                 </div>
             </div>
             <div class="pull-right">
-                <a class="btn btn-default" wicket:id="back2"><wicket:message key="PageBase.button.back"/></a>
+                <a class="btn btn-default" wicket:id="back2">
+                    <wicket:message key="PageBase.button.back"/>
+                </a>
                 <input type="submit" class="btn btn-primary" wicket:message="value:PageBase.button.send"/>
             </div>
         </div>

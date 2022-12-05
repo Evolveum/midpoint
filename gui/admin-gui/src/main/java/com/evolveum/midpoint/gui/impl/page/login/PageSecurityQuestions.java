@@ -10,6 +10,10 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
@@ -24,6 +28,7 @@ import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
@@ -38,7 +43,6 @@ import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,7 +67,6 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageSecurityQuestions.class);
 
-    private static final String ID_STATIC_LAYOUT = "staticLayout";
     private static final String ID_USERNAME = "username";
     private static final String ID_DYNAMIC_LAYOUT = "dynamicLayout";
     private static final String ID_DYNAMIC_FORM = "dynamicForm";
@@ -82,22 +85,36 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
     private IModel<String> answerModel;
     private IModel<List<SecurityQuestionDto>> questionsModel;
-    private boolean showedQuestions = false;
+    private LoadableDetachableModel<UserType> userModel;
 
     public PageSecurityQuestions() {
+        initModels();
+    }
+
+    private void initModels() {
         answerModel = Model.of();
-        questionsModel = new ListModel<SecurityQuestionDto>(new ArrayList<SecurityQuestionDto>());
+        userModel = new LoadableDetachableModel<>() {
+            @Override
+            protected UserType load() {
+                MidPointPrincipal principal = AuthUtil.getPrincipalUser();
+                return principal != null ? (UserType) principal.getFocus() : PageSecurityQuestions.this.searchUser();
+            }
+        };
+        questionsModel = new ListModel<>(createUsersSecurityQuestionsList());
+    }
+
+    @Override
+    protected UserType searchUser() {
+        if (StringUtils.isEmpty(getUsernameFieldValue())) {
+            return null;
+        }
+        return super.searchUser();
     }
 
     @Override
     protected void initCustomLayout() {
-        MidpointForm form = new MidpointForm(ID_MAIN_FORM);
-        form.add(AttributeModifier.replace("action", new IModel<String>() {
-            @Override
-            public String getObject() {
-                return getUrlProcessingLogin();
-            }
-        }));
+        MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
+        form.add(AttributeModifier.replace("action", (IModel<String>) this::getUrlProcessingLogin));
         add(form);
 
         initStaticLayout(form);
@@ -112,30 +129,23 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
     }
 
-    private void initSendingInformation(MidpointForm form) {
+    private void initSendingInformation(MidpointForm<?> form) {
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
         form.add(csrfField);
 
-        HiddenField<String> answer = new HiddenField(ID_ANSWER_FIELD, answerModel);
+        HiddenField<String> answer = new HiddenField<>(ID_ANSWER_FIELD, answerModel);
         answer.setOutputMarkupId(true);
         form.add(answer);
 
-        HiddenField<String> username = new HiddenField(ID_USER, new Model<String> ());
+        HiddenField<String> username = new HiddenField<>(ID_USER, new Model<> ());
         username.setOutputMarkupId(true);
         form.add(username);
     }
 
-    private void initQuestionsSection(MidpointForm form) {
+    private void initQuestionsSection(MidpointForm<?> form) {
         WebMarkupContainer questionsContainer = new WebMarkupContainer(ID_INSIDE_FORM);
         questionsContainer.setOutputMarkupId(true);
-        questionsContainer.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return showedQuestions;
-            }
-        });
+        questionsContainer.add(new VisibleBehaviour(() -> userModel.getObject() != null));
         form.add(questionsContainer);
 
         ListView<SecurityQuestionDto> questionsView = new ListView<SecurityQuestionDto>(ID_QUESTIONS, questionsModel) {
@@ -144,11 +154,9 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
             @Override
             protected void populateItem(ListItem<SecurityQuestionDto> item) {
-                SecurityQuestionDto question = item.getModelObject();
-
                 Label questionText = new Label(ID_QUESTION_TEXT, new PropertyModel<String>(item.getModel(), "questionText"));
                 item.add(questionText);
-                RequiredTextField<String> questionAnswer = new RequiredTextField<>(ID_QUESTION_ANSWER, new PropertyModel<String>(item.getModel(), "questionAnswer"));
+                RequiredTextField<String> questionAnswer = new RequiredTextField<>(ID_QUESTION_ANSWER, new PropertyModel<>(item.getModel(), "questionAnswer"));
                 questionAnswer.setOutputMarkupId(true);
                 questionAnswer.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
@@ -171,7 +179,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                showedQuestions = false;
+                userModel.detach();
                 questionsModel.setObject(new ArrayList<SecurityQuestionDto>());
                 getHiddenUsername().getModel().setObject(null);
                 getHiddenAnswer().getModel().setObject(null);
@@ -197,18 +205,9 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         return answers.toString();
     }
 
-    private void initButtons(MidpointForm form) {
-
+    private void initButtons(MidpointForm<?> form) {
         WebMarkupContainer firstLevelButtonContainer = new WebMarkupContainer(ID_FIRST_LEVEL_BUTTONS);
         firstLevelButtonContainer.setOutputMarkupId(true);
-        firstLevelButtonContainer.add(new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return !showedQuestions;
-            }
-        });
         form.add(firstLevelButtonContainer);
 
         AjaxSubmitButton showQuestion = new AjaxSubmitButton(ID_SHOW_QUESTIONS_BUTTON) {
@@ -221,62 +220,52 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
             }
         };
         firstLevelButtonContainer.add(showQuestion);
+
         firstLevelButtonContainer.add(createBackButton(ID_BACK_1_BUTTON));
     }
 
-    private void initStaticLayout(MidpointForm form) {
-
-        WebMarkupContainer staticLayout = new WebMarkupContainer(ID_STATIC_LAYOUT);
-        staticLayout.setOutputMarkupId(true);
-        staticLayout.add(new VisibleEnableBehaviour() {
+    private void initStaticLayout(MidpointForm<?> form) {
+        RequiredTextField<String> visibleUsername = new RequiredTextField<>(ID_USERNAME, new Model<>());
+        visibleUsername.setOutputMarkupId(true);
+        visibleUsername.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public boolean isVisible() {
-                return !showedQuestions && !isDynamicForm();
+                return userModel.getObject() == null && !isDynamicForm();
             }
         });
-        form.add(staticLayout);
-
-        RequiredTextField<String> visibleUsername = new RequiredTextField<>(ID_USERNAME, new Model<>());
-        visibleUsername.setOutputMarkupId(true);
-        staticLayout.add(visibleUsername);
+        form.add(visibleUsername);
     }
 
     private void showQuestions(AjaxRequestTarget target) {
-        UserType user = searchUser();
+        UserType user = userModel.getObject();
 
         if (user == null) {
             getSession().error(getString("pageForgetPassword.message.user.not.found"));
             throw new RestartResponseException(PageSecurityQuestions.class);
         }
         LOGGER.trace("Reset Password user: {}", user);
-
-        List<SecurityQuestionDto> questions = createUsersSecurityQuestionsList(user.asPrismObject());
-
-        if (!questions.isEmpty()) {
-            showedQuestions = true;
-            questionsModel.setObject(questions);
-            getHiddenUsername().getModel().setObject(user.getName().getOrig());
-            target.add(getMainForm());
-        }
+        getHiddenUsername().getModel().setObject(user.getName().getOrig());
+        target.add(getMainForm());
     }
 
-    private List<SecurityQuestionDto> createUsersSecurityQuestionsList(PrismObject<UserType> user) {
+    private List<SecurityQuestionDto> createUsersSecurityQuestionsList() {
+        UserType user = userModel.getObject();
 
-        SecurityQuestionsCredentialsType credentialsPolicyType = user.asObjectable().getCredentials()
+        SecurityQuestionsCredentialsType credentialsPolicyType = user.getCredentials()
                 .getSecurityQuestions();
         if (credentialsPolicyType == null || credentialsPolicyType.getQuestionAnswer() == null
                 || credentialsPolicyType.getQuestionAnswer().isEmpty()) {
             String key = "web.security.flexAuth.any.security.questions";
             error(getString(key));
-            LOGGER.error(key);
+            LOGGER.error(getString(key));
             throw new RestartResponseException(PageSecurityQuestions.class);
         }
         List<SecurityQuestionAnswerType> secQuestAnsList = credentialsPolicyType.getQuestionAnswer();
 
-        SecurityPolicyType securityPolicy = resolveSecurityPolicy(user);
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(user.asPrismObject());
         LOGGER.trace("Found security policy: {}", securityPolicy);
 
         if (securityPolicy == null) {
@@ -294,10 +283,10 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
         SecurityQuestionsCredentialsPolicyType secQuestionsPolicy = securityPolicy.getCredentials().getSecurityQuestions();
 
-        List<SecurityQuestionDefinitionType> questionList = secQuestionsPolicy != null ? secQuestionsPolicy.getQuestion() : new ArrayList<SecurityQuestionDefinitionType>();
+        List<SecurityQuestionDefinitionType> questionList = secQuestionsPolicy != null ? secQuestionsPolicy.getQuestion() : new ArrayList<>();
 
-        List<SecurityQuestionDto> questionsDto = new ArrayList<SecurityQuestionDto>();
-        int questionNumber = secQuestionsPolicy != null ? secQuestionsPolicy.getQuestionNumber() : 1;
+        List<SecurityQuestionDto> questionsDto = new ArrayList<>();
+        int questionNumber = secQuestionsPolicy != null && secQuestionsPolicy.getQuestionNumber() != null ? secQuestionsPolicy.getQuestionNumber() : 1;
         for (SecurityQuestionDefinitionType question : questionList) {
             if (Boolean.TRUE.equals(question.isEnabled())) {
                 for (SecurityQuestionAnswerType userAnswer : secQuestAnsList) {
@@ -316,7 +305,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
         if (questionsDto.size() < questionNumber) {
             String key = "pageForgetPassword.message.ContactAdminQuestionsNotSetEnough";
             error(getString(key));
-            LOGGER.error(key);
+            LOGGER.error(getString(key));
             throw new RestartResponseException(PageSecurityQuestions.class);
         }
 
@@ -328,18 +317,14 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     }
 
     protected ObjectQuery createStaticFormQuery() {
-        RequiredTextField<String> usernameTextFiled = getVisibleUsername();
-        String username = usernameTextFiled != null ? usernameTextFiled.getModelObject() : null;
-        LOGGER.debug("Reset Password user info form submitted. username={}", username);
-
-//        ResetPolicyDto resetPasswordPolicy = getFormRef();
-//        if (resetPasswordPolicy == null) {
-//            passwordResetNotSupported();
-//        }
-
+        String username = getUsernameFieldValue();
         return getPrismContext().queryFor(UserType.class).item(UserType.F_NAME)
                 .eqPoly(username).matchingNorm().build();
+    }
 
+    private String getUsernameFieldValue() {
+        RequiredTextField<String> usernameTextFiled = getVisibleUsername();
+        return usernameTextFiled != null ? usernameTextFiled.getModelObject() : null;
     }
 
 //    private void passwordResetNotSupported() {
@@ -347,15 +332,15 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 //        throw new RestartResponseException(PageForgotPassword.this);
 //    }
 
-    private MidpointForm getMainForm() {
+    private MidpointForm<?> getMainForm() {
         return (MidpointForm) get(ID_MAIN_FORM);
     }
 
-    private HiddenField getHiddenUsername(){
+    private HiddenField<String> getHiddenUsername(){
         return (HiddenField) getMainForm().get(ID_USER);
     }
 
-    private HiddenField getHiddenAnswer(){
+    private HiddenField<String> getHiddenAnswer(){
         return (HiddenField) getMainForm().get(ID_ANSWER_FIELD);
     }
 
@@ -364,7 +349,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     }
 
     private RequiredTextField getVisibleUsername(){
-        return (RequiredTextField) getMainForm().get(createComponentPath(ID_STATIC_LAYOUT, ID_USERNAME));
+        return (RequiredTextField) getMainForm().get(ID_USERNAME);
     }
 
     private String getUrlProcessingLogin() {
