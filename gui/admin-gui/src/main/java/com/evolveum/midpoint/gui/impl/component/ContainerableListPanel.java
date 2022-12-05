@@ -709,6 +709,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             variablesMap.put(ExpressionConstants.VAR_OBJECT, rowValue, rowValue.getClass());
             if (columnItem != null) {
                 variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
+            } else {
+                variablesMap.put(ExpressionConstants.VAR_INPUT, null, String.class);
             }
             return ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
                     MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
