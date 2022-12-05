@@ -395,7 +395,7 @@ public class SecurityHelper implements ModelAuditRecorder {
                 sequenceToProcess.getModule().forEach(m -> sequence.getModule().add(m.clone()));
             } else {
                 sequenceToProcess.getModule().forEach(sequenceModule -> {
-                    if (findSequenceModuleByIdentifier(sequence.getModule(), sequenceModule) != null) {
+                    if (findSequenceModuleByIdentifier(sequence.getModule(), sequenceModule) == null) {
                         sequence.getModule().add(sequenceModule.clone());
                     }
                 });

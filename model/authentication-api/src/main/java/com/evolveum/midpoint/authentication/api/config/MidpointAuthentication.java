@@ -65,7 +65,6 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private Object credential;
     private String sessionId;
     private Collection<? extends GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
-    private boolean verified;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -158,14 +157,14 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
                 continue;
             }
             //TODO we will complete after supporting of full "necessity"
-            if (AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(authentication.getNecessity())) {
-                if (AuthenticationModuleState.SUCCESSFULLY.equals(authentication.getState())) {
-                    return true;
+//            if (AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(authentication.getNecessity())) {
+                if (!AuthenticationModuleState.SUCCESSFULLY.equals(authentication.getState())) {
+                    return false;
                 }
-            }
+//            }
 
         }
-        return false;
+        return true;
     }
 
     public ModuleAuthentication getAuthenticationByIdentifier(String moduleIdentifier) {
@@ -199,9 +198,6 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (authentication != null) {
             return getIndexOfModule(authentication);
         }
-        if (isAuthenticated()) {
-            return -2;
-        }
         int actualSize = getAuthentications().size();
         int endSize = getAuthModules().size();
         if (actualSize < endSize) {
@@ -210,7 +206,16 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             }
             return actualSize;
         }
+        if (allModulesAreAuthenticated()) {
+            return -2;
+        }
         return -1;
+    }
+
+    private boolean allModulesAreAuthenticated() {
+        int actualSize = getAuthentications().size();
+        int endSize = getAuthModules().size();
+        return actualSize == endSize && isAuthenticated();
     }
 
     public int getIndexOfModule(ModuleAuthentication authentication) {
@@ -347,13 +352,5 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             return true;
         }
         return false;
-    }
-
-    public boolean isVerified() {
-        return verified;
-    }
-
-    public void setVerified(boolean verified) {
-        this.verified = verified;
     }
 }
