@@ -117,9 +117,8 @@ public class LinksPanel extends BasePanel<List<RichHyperlinkType>> {
                         if (link.getIcon() != null) {
                             cssClass = link.getIcon().getCssClass();
                         }
-                        tag.put("class", "info-box-icon " + (link.getColor() != null ?
-                                (link.getColor().startsWith("bg-") ? link.getColor() : "bg-" + link.getColor()) : "") + " "
-                                + cssClass);
+                        tag.put("class", "info-box-icon " + " " + cssClass);
+                        tag.put("style", link.getColor() != null ? ("background-color: " + link.getColor() + " !important") : "");
                     }
                 });
 
