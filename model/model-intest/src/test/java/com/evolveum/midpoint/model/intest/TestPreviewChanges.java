@@ -1059,11 +1059,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Model focus context missing", focusContext);
 
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
         displayDumpable("evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
         assertEquals("Wrong # of evaluated assignments in plus set", 1, evaluatedAssignmentTriple.getPlusSet().size());
-        EvaluatedAssignment<?> evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
+        EvaluatedAssignment evaluatedAssignment = evaluatedAssignmentTriple.getPlusSet().iterator().next();
         assertNotNull("Target of evaluated assignment is null", evaluatedAssignment.getTarget());
         assertEquals("Wrong # of zero-set roles in evaluated assignment", 1, evaluatedAssignment.getRoles().getZeroSet().size());
         assertSerializable(modelContext);
@@ -2040,11 +2040,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         assertNotNull("Model focus context missing", focusContext);
 
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
         displayDumpable("evaluatedAssignmentTriple", evaluatedAssignmentTriple);
 
         assertEquals("Wrong # of evaluated assignments in zero set", 1, evaluatedAssignmentTriple.getZeroSet().size());
-        EvaluatedAssignment<?> evaluatedAssignment = evaluatedAssignmentTriple.getZeroSet().iterator().next();
+        EvaluatedAssignment evaluatedAssignment = evaluatedAssignmentTriple.getZeroSet().iterator().next();
         assertNotNull("Target of evaluated assignment is null", evaluatedAssignment.getTarget());
         assertEquals("Wrong # of zero-set roles in evaluated assignment", 1, evaluatedAssignment.getRoles().getZeroSet().size());
         assertSerializable(modelContext);

@@ -94,7 +94,7 @@ public class AssignmentPolicyAspectPart {
             trace = null;
         }
         try {
-            DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext)
+            DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = ((LensContext<?>) ctx.modelContext)
                     .getEvaluatedAssignmentTriple();
             LOGGER.trace("Processing evaluatedAssignmentTriple:\n{}", DebugUtil.debugDumpLazily(evaluatedAssignmentTriple));
             if (evaluatedAssignmentTriple == null) {
@@ -102,7 +102,7 @@ public class AssignmentPolicyAspectPart {
             }
 
             List<PcpStartInstruction> newInstructions = new ArrayList<>();
-            for (EvaluatedAssignment<?> assignmentAdded : evaluatedAssignmentTriple.union()) {
+            for (EvaluatedAssignment assignmentAdded : evaluatedAssignmentTriple.union()) {
                 addIgnoreNull(newInstructions,
                         createInstructionFromAssignment(assignmentAdded, objectTreeDeltas, requester, ctx, result));
             }
@@ -142,7 +142,7 @@ public class AssignmentPolicyAspectPart {
     }
 
     private PcpStartInstruction createInstructionFromAssignment(
-            EvaluatedAssignment<?> evaluatedAssignment, @NotNull ObjectTreeDeltas<?> objectTreeDeltas,
+            EvaluatedAssignment evaluatedAssignment, @NotNull ObjectTreeDeltas<?> objectTreeDeltas,
             PrismObject<? extends FocusType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
 
         // We collect all target rules; hoping that only relevant ones are triggered.
@@ -214,7 +214,7 @@ public class AssignmentPolicyAspectPart {
         ((LensFocusContext<?>) modelContext.getFocusContext()).setOid(newOid);
     }
 
-    private <T extends ObjectType> ObjectDelta<T> factorOutAssignmentModifications(EvaluatedAssignment<?> evaluatedAssignment,
+    private <T extends ObjectType> ObjectDelta<T> factorOutAssignmentModifications(EvaluatedAssignment evaluatedAssignment,
             ObjectTreeDeltas<T> objectTreeDeltas) {
         Long id = evaluatedAssignment.getAssignmentId();
         if (id == null) {
@@ -233,7 +233,7 @@ public class AssignmentPolicyAspectPart {
         return factorOutResult.offspring;
     }
 
-    private ObjectDelta<? extends ObjectType> factorOutAssignmentValue(EvaluatedAssignment<?> evaluatedAssignment,
+    private ObjectDelta<? extends ObjectType> factorOutAssignmentValue(EvaluatedAssignment evaluatedAssignment,
             @NotNull ObjectTreeDeltas<?> objectTreeDeltas, ModelInvocationContext<?> ctx) throws SchemaException {
         assert evaluatedAssignment.isBeingAdded() || evaluatedAssignment.isBeingDeleted();
         @SuppressWarnings("unchecked")
@@ -256,7 +256,7 @@ public class AssignmentPolicyAspectPart {
                 evaluatedAssignment.getAssignment(), assignmentRemoved, objectOid);
     }
 
-    private void logApprovalActions(EvaluatedAssignment<?> assignment,
+    private void logApprovalActions(EvaluatedAssignment assignment,
             List<EvaluatedPolicyRule> triggeredApprovalActionRules) {
         if (LOGGER.isDebugEnabled() && !triggeredApprovalActionRules.isEmpty()) {
             LOGGER.trace("-------------------------------------------------------------");
@@ -275,7 +275,7 @@ public class AssignmentPolicyAspectPart {
     }
 
     private ApprovalSchemaBuilder.Result createSchemaWithRules(List<EvaluatedPolicyRule> triggeredApprovalRules,
-            @NotNull EvaluatedAssignment<?> evaluatedAssignment, ModelInvocationContext<?> ctx,
+            @NotNull EvaluatedAssignment evaluatedAssignment, ModelInvocationContext<?> ctx,
             OperationResult result) throws SchemaException {
 
         PrismObject<?> targetObject = evaluatedAssignment.getTarget();
@@ -300,7 +300,7 @@ public class AssignmentPolicyAspectPart {
 
     private PcpStartInstruction prepareAssignmentRelatedStartInstruction(
             ApprovalSchemaBuilder.Result builderResult,
-            EvaluatedAssignment<?> evaluatedAssignment, ObjectDelta<? extends ObjectType> deltaToApprove,
+            EvaluatedAssignment evaluatedAssignment, ObjectDelta<? extends ObjectType> deltaToApprove,
             PrismObject<? extends FocusType> requester, ModelInvocationContext<?> ctx, OperationResult result) throws SchemaException {
 
         ModelContext<?> modelContext = ctx.modelContext;
@@ -328,7 +328,7 @@ public class AssignmentPolicyAspectPart {
         return instruction;
     }
 
-    private LocalizableMessage createDefaultProcessName(ModelInvocationContext<?> ctx, EvaluatedAssignment<?> assignment,
+    private LocalizableMessage createDefaultProcessName(ModelInvocationContext<?> ctx, EvaluatedAssignment assignment,
             PrismObject<? extends ObjectType> target) {
 
         ObjectType focus = ctx.getFocusObjectNewOrOld();
