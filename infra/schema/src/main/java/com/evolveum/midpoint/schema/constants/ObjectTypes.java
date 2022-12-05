@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -203,6 +204,7 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Unsupported object type " + objectType);
     }
 
+    @Contract("null -> null; !null -> !null")
     public static ObjectTypes getObjectTypeFromTypeQName(QName typeQName) {
         if (typeQName == null) {
             return null;

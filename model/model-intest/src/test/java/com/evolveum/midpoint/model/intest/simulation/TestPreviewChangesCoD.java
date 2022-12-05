@@ -151,9 +151,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
 
-        given("simple parent-less child");
-        PrismObject<OrgType> orgChild = ORG_CHILD.getObject().clone();
-        ObjectDelta<OrgType> delta = orgChild.createAddDelta();
+        given("simple parent-less child ADD delta");
+        ObjectDelta<OrgType> delta = ORG_CHILD.getObject().clone().createAddDelta();
 
         when("executeChanges is called in simulation mode");
         SimulationResult simResult = traced(() -> executeInSimulationMode(List.of(delta), task, result));

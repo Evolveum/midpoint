@@ -86,9 +86,10 @@ public class ClockworkConflictResolver {
     <F extends ObjectType> void detectFocusConflicts(LensContext<F> context, Context resolutionContext, OperationResult result) {
         resolutionContext.resolutionPolicy = ModelImplUtils.getConflictResolution(context);
         ConflictWatcher watcher = context.getFocusConflictWatcher();
-        if (watcher != null && resolutionContext.resolutionPolicy != null &&
-                resolutionContext.resolutionPolicy.getAction() != ConflictResolutionActionType.NONE &&
-                repositoryService.hasConflict(watcher, result)) {
+        if (watcher != null
+                && resolutionContext.resolutionPolicy != null
+                && resolutionContext.resolutionPolicy.getAction() != ConflictResolutionActionType.NONE
+                && repositoryService.hasConflict(watcher, result)) {
             LOGGER.debug("Found modify-modify conflict on {}", watcher);
             resolutionContext.focusConflictPresent = true;
         } else {

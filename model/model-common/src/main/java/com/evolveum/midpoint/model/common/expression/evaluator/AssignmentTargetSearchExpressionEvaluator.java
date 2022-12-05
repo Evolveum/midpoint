@@ -7,29 +7,25 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static java.util.Collections.emptyList;
 
 /**
  * Creates an assignment (or assignments) based on specified conditions for the assignment target.
@@ -44,56 +40,71 @@ public class AssignmentTargetSearchExpressionEvaluator
                 PrismContainerDefinition<AssignmentType>,
                 AssignmentTargetSearchExpressionEvaluatorType> {
 
-    AssignmentTargetSearchExpressionEvaluator(QName elementName,
+    AssignmentTargetSearchExpressionEvaluator(
+            QName elementName,
             AssignmentTargetSearchExpressionEvaluatorType expressionEvaluatorType,
-            PrismContainerDefinition<AssignmentType> outputDefinition,Protector protector, PrismContext prismContext,
-            ObjectResolver objectResolver, ModelService modelService, ModelInteractionService modelInteractionService, SecurityContextManager securityContextManager,
-            LocalizationService localizationService, CacheConfigurationManager cacheConfigurationManager) {
-        super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver,
-                modelService, modelInteractionService, securityContextManager, localizationService, cacheConfigurationManager);
+            PrismContainerDefinition<AssignmentType> outputDefinition,
+            Protector protector,
+            ObjectResolver objectResolver,
+            SecurityContextManager securityContextManager,
+            LocalizationService localizationService) {
+        super(
+                elementName,
+                expressionEvaluatorType,
+                outputDefinition,
+                protector,
+                objectResolver,
+                securityContextManager,
+                localizationService);
     }
 
-    protected PrismContainerValue<AssignmentType> createPrismValue(
-            String oid,
-            PrismObject object,
-            QName targetTypeQName,
-            List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> additionalAttributeDeltas,
-            ExpressionEvaluationContext context) {
+    @Override
+    Evaluation createEvaluation(
+            VariablesMap variables,
+            PlusMinusZero valueDestination,
+            boolean useNew,
+            ExpressionEvaluationContext context,
+            String contextDescription,
+            Task task,
+            OperationResult result) throws SchemaException {
 
-        ObjectReferenceType ref = new ObjectReferenceType();
-        ref.oid(oid).type(targetTypeQName).relation(getRelation());
-        ref.asReferenceValue().setObject(object);
+        return new Evaluation(variables, valueDestination, useNew, context, contextDescription, task, result) {
 
-        AssignmentType assignment = new AssignmentType().targetRef(ref);
-        assignment.getSubtype().addAll(getSubtypes());
+            protected PrismContainerValue<AssignmentType> createResultValue(
+                    String oid,
+                    PrismObject<AssignmentHolderType> object,
+                    List<ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>> newValueDeltas)
+                    throws SchemaException {
 
-        //noinspection unchecked
-        PrismContainerValue<AssignmentType> assignmentCVal = assignment.asPrismContainerValue();
+                AssignmentPropertiesSpecificationType assignmentPropertiesSpec =
+                        expressionEvaluatorBean.getAssignmentProperties();
 
-        try {
-            if (additionalAttributeDeltas != null) {
-                ItemDeltaCollectionsUtil.applyTo(additionalAttributeDeltas, assignmentCVal);
+                ObjectReferenceType ref =
+                        new ObjectReferenceType()
+                                .oid(oid)
+                                .type(targetTypeQName)
+                                .relation(assignmentPropertiesSpec != null ? assignmentPropertiesSpec.getRelation() : null);
+                ref.asReferenceValue().setObject(object);
+
+                AssignmentType assignment = new AssignmentType().targetRef(ref);
+                if (assignmentPropertiesSpec != null) {
+                    assignment.getSubtype().addAll(
+                            assignmentPropertiesSpec.getSubtype());
+                }
+
+                //noinspection unchecked
+                PrismContainerValue<AssignmentType> assignmentCVal = assignment.asPrismContainerValue();
+                if (newValueDeltas != null) {
+                    ItemDeltaCollectionsUtil.applyTo(newValueDeltas, assignmentCVal);
+                }
+                prismContext.adopt(assignmentCVal, FocusType.COMPLEX_TYPE, FocusType.F_ASSIGNMENT);
+                if (InternalsConfig.consistencyChecks) {
+                    assignmentCVal.assertDefinitions(
+                            () -> "assignmentCVal in assignment expression in " + context.getContextDescription());
+                }
+                return assignmentCVal;
             }
-            prismContext.adopt(assignmentCVal, FocusType.COMPLEX_TYPE, FocusType.F_ASSIGNMENT);
-            if (InternalsConfig.consistencyChecks) {
-                assignmentCVal.assertDefinitions(() -> "assignmentCVal in assignment expression in "+context.getContextDescription());
-            }
-        } catch (SchemaException e) {
-            // Should not happen
-            throw new SystemException(e);
-        }
-
-        return assignmentCVal;
-    }
-
-    private QName getRelation() {
-        AssignmentPropertiesSpecificationType assignmentProperties = expressionEvaluatorBean.getAssignmentProperties();
-        return assignmentProperties != null ? assignmentProperties.getRelation() : null;
-    }
-
-    private List<String> getSubtypes() {
-        AssignmentTargetSearchExpressionEvaluatorType evaluator = expressionEvaluatorBean;
-        return evaluator.getAssignmentProperties() != null ? evaluator.getAssignmentProperties().getSubtype() : emptyList();
+        };
     }
 
     @Override

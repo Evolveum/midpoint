@@ -178,7 +178,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     @NotNull
     private MutablePrismPropertyDefinition<String> createTagDefinition() {
         MutablePrismPropertyDefinition<String> outputDefinition =
-                getMappingFactory().getExpressionFactory().getPrismContext().definitionFactory()
+                PrismContext.get().definitionFactory()
                         .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
         outputDefinition.setMaxOccurs(-1);
         return outputDefinition;

@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
@@ -33,15 +32,15 @@ import com.evolveum.midpoint.util.exception.*;
  * appropriate name for the field. Moreover, for all other uses it really _is_ the expression evaluator bean. So leaving
  * fixing this to the future. [pmed]
  */
-public class LiteralExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+public class LiteralExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>>
         extends AbstractExpressionEvaluator<V, D, Collection<JAXBElement<?>>> {
 
     private Item<V, D> literalItem;
     private boolean literalItemParsed;
 
-    LiteralExpressionEvaluator(QName elementName, Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition, Protector protector, PrismContext prismContext) {
-        super(elementName, evaluatorElements, outputDefinition, protector, prismContext);
+    LiteralExpressionEvaluator(
+            QName elementName, Collection<JAXBElement<?>> evaluatorElements, D outputDefinition, Protector protector) {
+        super(elementName, evaluatorElements, outputDefinition, protector);
     }
 
     @Override

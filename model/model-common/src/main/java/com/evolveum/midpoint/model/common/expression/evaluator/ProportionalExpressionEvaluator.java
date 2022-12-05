@@ -26,12 +26,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProportionalStyleTyp
 /**
  * @author skublik
  */
-public class ProportionalExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+public class ProportionalExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>>
         extends AbstractExpressionEvaluator<V, D, ProportionalExpressionEvaluatorType> {
 
-    ProportionalExpressionEvaluator(QName elementName, ProportionalExpressionEvaluatorType proportionalEvaluatorBean,
-            D outputDefinition, Protector protector, PrismContext prismContext) {
-        super(elementName, proportionalEvaluatorBean, outputDefinition, protector, prismContext);
+    ProportionalExpressionEvaluator(
+            QName elementName,
+            ProportionalExpressionEvaluatorType proportionalEvaluatorBean,
+            D outputDefinition,
+            Protector protector) {
+        super(elementName, proportionalEvaluatorBean, outputDefinition, protector);
     }
 
     @Override

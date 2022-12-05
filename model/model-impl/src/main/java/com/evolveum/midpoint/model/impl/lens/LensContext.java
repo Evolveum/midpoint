@@ -1066,7 +1066,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     public void cleanup() throws SchemaException {
         if (focusContext != null) {
-            focusContext.cleanup();
+            focusContext.cleanup(); // currently no-op
         }
         for (LensProjectionContext projectionContext : projectionContexts) {
             projectionContext.cleanup();

@@ -110,7 +110,7 @@ public class ConstraintReferenceMatcher<AH extends AssignmentHolderType> {
             try {
                 filter = ExpressionUtil.evaluateFilterExpressions(filter,
                         variables, MiscSchemaUtil.getExpressionProfile(),
-                        expressionFactory, expressionFactory.getPrismContext(), contextDescription,
+                        expressionFactory, PrismContext.get(), contextDescription,
                         evalContext.task, operationResult);
             } catch (ObjectNotFoundException | SecurityViolationException | ConfigurationException
                     | CommunicationException | ExpressionEvaluationException e) {
