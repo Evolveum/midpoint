@@ -96,8 +96,7 @@ public class NonIterativeScriptingActivityHandler
         }
 
         @Override
-        protected @NotNull ActivityRunResult runLocally(OperationResult result)
-                throws ActivityRunException, CommonException {
+        protected @NotNull ActivityRunResult runLocally(OperationResult result) throws CommonException {
             ExecuteScriptType executeScriptRequest = getWorkDefinition().getScriptExecutionRequest().clone();
             ScriptExecutionResult executionResult = getActivityHandler().scriptingService
                     .evaluateExpression(executeScriptRequest,
