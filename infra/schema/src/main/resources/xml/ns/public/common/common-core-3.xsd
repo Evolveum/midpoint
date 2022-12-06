@@ -16152,10 +16152,11 @@
             <xsd:element name="simulation" type="tns:SimulationOptionsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        <!-- todo -->
+                        Container for options that control behaviour of different parts of clockwork during simulation.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.7</a:since>
+                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -16167,7 +16168,7 @@
     <xsd:complexType name="SimulationOptionsType">
         <xsd:annotation>
             <xsd:documentation>
-                <!-- todo -->
+                Container for options that allow selectively switch behavior of different features during simulation or preview changes.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -16183,7 +16184,8 @@
     <xsd:simpleType name="SimulationOptionType">
         <xsd:annotation>
             <xsd:documentation>
-                <!-- todo -->
+                Generic option to switch behaviour of feature into safe (transient behaviour) or non-safe mode (behaviour that can
+                leave persistent changes after processing).
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -16193,7 +16195,8 @@
             <xsd:enumeration value="safe">
                 <xsd:annotation>
                     <xsd:documentation>
-                        <!-- todo -->
+                        Feature behaviour should result into zero changes (execution skipped if possible) or create changes that
+                        will be transient (thrown away after processing).
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SAFE"/>
@@ -16203,8 +16206,7 @@
             <xsd:enumeration value="UNSAFE">
                 <xsd:annotation>
                     <xsd:documentation>
-                        <!-- todo -->
-                        ...backward compatible probably :)
+                        Feature behaviour option that can result into changes that are permanent and persistent.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="UNSAFE"/>
