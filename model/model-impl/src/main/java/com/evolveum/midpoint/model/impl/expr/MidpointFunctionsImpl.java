@@ -422,12 +422,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Experimental
     public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
         ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
         }
-        Collection<? extends EvaluatedAssignment<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues(); // MID-6403
-        for (EvaluatedAssignment<?> nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
+        Collection<? extends EvaluatedAssignment> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues(); // MID-6403
+        for (EvaluatedAssignment nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
             PrismObject<?> target = nonNegativeEvaluatedAssignment.getTarget();
             if (target == null) {
                 continue;
@@ -1727,12 +1727,35 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public String translate(LocalizableMessage message) {
-        return localizationService.translate(message, Locale.getDefault());
+        return translate(message, true);
+    }
+
+    @Override
+    public String translate(LocalizableMessage message, boolean useDefaultLocale) {
+        Locale locale = findProperLocale(useDefaultLocale);
+
+        return localizationService.translate(message, locale);
     }
 
     @Override
     public String translate(LocalizableMessageType message) {
-        return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), Locale.getDefault());
+        return translate(message, true);
+    }
+
+    @Override
+    public String translate(LocalizableMessageType message, boolean useDefaultLocale) {
+        Locale locale = findProperLocale(useDefaultLocale);
+
+        return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), locale);
+    }
+
+    @NotNull private Locale findProperLocale(boolean useDefaultLocale) {
+        if (useDefaultLocale) {
+            return Locale.getDefault();
+        }
+
+        MidPointPrincipal principal = SecurityUtil.getPrincipalSilent();
+        return principal != null ? principal.getLocale() : Locale.getDefault();
     }
 
     @Override
@@ -1770,7 +1793,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
         ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
         Collection<PrismValue> rv = new HashSet<>();
-        for (EvaluatedAssignment<?> evaluatedAssignment : lensContext.getNonNegativeEvaluatedAssignments()) {
+        for (EvaluatedAssignment evaluatedAssignment : lensContext.getNonNegativeEvaluatedAssignments()) {
             if (evaluatedAssignment.isValid()) {
                 for (Mapping<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
                     if (path.equivalent(mapping.getOutputPath())) {

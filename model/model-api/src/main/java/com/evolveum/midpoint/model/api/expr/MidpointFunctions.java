@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.model.api.expr;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -1160,7 +1157,27 @@ public interface MidpointFunctions {
 
     String translate(LocalizableMessage message);
 
+    /**
+     * Translates message parameter.
+     *
+     * @param message
+     * @param useDefaultLocale If true, default JVM locale will be used for translation - {@link Locale#getDefault()}.
+     * If false, Midpoint will check principal object for more appropriate login - {@link MidPointPrincipal#getLocale()}, if no locale available {@link Locale#getDefault()} will be used.
+     * @return translated string
+     */
+    String translate(LocalizableMessage message, boolean useDefaultLocale);
+
     String translate(LocalizableMessageType message);
+
+    /**
+     * Translates message parameter.
+     *
+     * @param message
+     * @param useDefaultLocale If true, default JVM locale will be used for translation - {@link Locale#getDefault()}.
+     * If false, Midpoint will check principal object for more appropriate login - {@link MidPointPrincipal#getLocale()}, if no locale available {@link Locale#getDefault()} will be used.
+     * @return translated string
+     */
+    String translate(LocalizableMessageType message, boolean useDefaultLocale);
 
     /**
      * Counts accounts having `attributeValue` of `attributeName`.

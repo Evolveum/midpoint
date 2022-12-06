@@ -547,7 +547,7 @@ public class TestRbac extends AbstractRbacTest {
         PrismAsserts.assertTripleNoMinus(evaluatedAssignmentTriple);
         Collection<? extends EvaluatedAssignment> evaluatedAssignments = evaluatedAssignmentTriple.getZeroSet();
         assertEquals("Wrong number of evaluated assignments", 1, evaluatedAssignments.size());
-        EvaluatedAssignment<UserType> evaluatedAssignment = evaluatedAssignments.iterator().next();
+        EvaluatedAssignment evaluatedAssignment = evaluatedAssignments.iterator().next();
         DeltaSetTriple<? extends EvaluatedAssignmentTarget> rolesTriple = evaluatedAssignment.getRoles();
         PrismAsserts.assertTripleNoPlus(rolesTriple);
         PrismAsserts.assertTripleNoMinus(rolesTriple);
@@ -2781,14 +2781,14 @@ public class TestRbac extends AbstractRbacTest {
         displayDumpable("Preview context", context);
         assertNotNull("Null focus context", context.getFocusContext());
         assertEquals("Wrong number of projection contexts", 1, context.getProjectionContexts().size());
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         assertNotNull("null evaluatedAssignmentTriple", evaluatedAssignmentTriple);
         assertTrue("Unexpected plus set in evaluatedAssignmentTriple", evaluatedAssignmentTriple.getPlusSet().isEmpty());
         assertTrue("Unexpected minus set in evaluatedAssignmentTriple", evaluatedAssignmentTriple.getMinusSet().isEmpty());
-        Collection<? extends EvaluatedAssignment<?>> assignmentZeroSet = evaluatedAssignmentTriple.getZeroSet();
+        Collection<? extends EvaluatedAssignment> assignmentZeroSet = evaluatedAssignmentTriple.getZeroSet();
         assertNotNull("null zero set in evaluatedAssignmentTriple", assignmentZeroSet);
         assertEquals("Wrong size of zero set in evaluatedAssignmentTriple", 1, assignmentZeroSet.size());
-        EvaluatedAssignment<?> evaluatedAssignment = assignmentZeroSet.iterator().next();
+        EvaluatedAssignment evaluatedAssignment = assignmentZeroSet.iterator().next();
         displayDumpable("Evaluated weak assignment", evaluatedAssignment);
 
         DeltaSetTriple<EvaluatedResourceObjectConstruction> evaluatedConstructions = evaluatedAssignment.getEvaluatedConstructions(task, result);

@@ -170,7 +170,7 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
     }
 
     private <AH extends AssignmentHolderType> EvaluatedMultiplicityTrigger checkAssigneeConstraints(JAXBElement<MultiplicityPolicyConstraintType> constraint,
-            LensContext<AH> context, EvaluatedAssignment<AH> assignment, PlusMinusZero plusMinus,
+            LensContext<AH> context, EvaluatedAssignment assignment, PlusMinusZero plusMinus,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         PrismObject<?> target = assignment.getTarget();
         if (target == null || !(target.asObjectable() instanceof AbstractRoleType)) {

@@ -53,7 +53,7 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
  *
  * @author Radovan Semancik
  */
-public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements EvaluatedAssignment<AH> {
+public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements EvaluatedAssignment {
 
     @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
     private final boolean evaluatedOld;
@@ -124,7 +124,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      */
     @NotNull private final AssignmentOrigin origin;
 
-    private Set<String> adminGuiDependencies = new HashSet<>();
+    private final Set<String> adminGuiDependencies = new HashSet<>();
 
     public EvaluatedAssignmentImpl(
             @NotNull ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi,
@@ -203,7 +203,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
                 rv.addToPlusSet(evaluatedConstruction);
             }
         }
-        //noinspection unchecked
+        //noinspection unchecked,rawtypes
         return (DeltaSetTriple)rv;
     }
 
@@ -441,8 +441,8 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
             if (trigger instanceof EvaluatedExclusionTrigger) {
                 EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
                 if (exclTrigger.getConflictingAssignment() != null) {
-                    hasException =
-                            hasException || processRuleExceptions((EvaluatedAssignmentImpl<AH>) exclTrigger.getConflictingAssignment(),
+                    hasException = hasException ||
+                            processRuleExceptions((EvaluatedAssignmentImpl<AH>) exclTrigger.getConflictingAssignment(),
                                     rule, triggers);
                 }
             }
@@ -589,7 +589,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
             personaConstructionTriple.shortDump(sb);
             sb.append(")");
         } else {
-            sb.append(toString());
+            sb.append(this);
             return;
         }
         if (!isValid()) {
@@ -643,7 +643,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @Override
-    public Set<String> getAdminGuiDendencies() {
+    public Set<String> getAdminGuiDependencies() {
         return adminGuiDependencies;
     }
 

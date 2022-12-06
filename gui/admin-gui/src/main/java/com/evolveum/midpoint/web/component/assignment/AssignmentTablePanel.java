@@ -90,7 +90,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 
             @Override
             protected String getSpecialButtonClass() {
-                return "btn-xs btn-default";
+                return "btn btn-default";
             }
         };
         assignmentMenu.setVisible(getAssignmentMenuVisibility());
