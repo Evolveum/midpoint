@@ -275,8 +275,8 @@ public class FocusChangeExecution<O extends ObjectType> {
             PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException,
             ConflictDetectedException {
         ConflictResolutionType conflictResolution = ModelExecuteOptions.getFocusConflictResolution(context.getOptions());
-        DeltaExecution<O, O> deltaExecution = new DeltaExecution<>(context, focusContext, focusDelta,
-                conflictResolution, task, b);
+        DeltaExecution<O, O> deltaExecution =
+                new DeltaExecution<>(context, focusContext, focusDelta, conflictResolution, task, b);
         deltaExecution.execute(result);
         if (focusDelta.isAdd() && focusDelta.getOid() != null) {
             b.clockworkConflictResolver.createConflictWatcherAfterFocusAddition(context, focusDelta.getOid(),

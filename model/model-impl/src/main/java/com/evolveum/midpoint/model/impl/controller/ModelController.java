@@ -508,7 +508,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
-        ObjectManager searchProvider = determineSearchProvider(type, rootOptions);
+        ObjectManager searchProvider = getObjectManager(type, options);
         result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
         ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
@@ -599,15 +599,25 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         return list;
     }
 
-    @NotNull
-    private static <T extends ObjectType> ObjectManager determineSearchProvider(Class<T> type, GetOperationOptions rootOptions) {
-        ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
-        if (searchProvider != null
-                && searchProvider != ObjectManager.MODEL
-                && !GetOperationOptions.isRaw(rootOptions)) {
-            return searchProvider;
-        } else {
+    /**
+     * Returns the component that is responsible for execution of get/search/count operation for given type of objects,
+     * under given options.
+     *
+     * Specifically, in raw mode we simply skip specialized components like provisioning or task manager, and we go
+     * directly to repository. Actually it is a bit questionable if this is really correct. But this is how it has
+     * been implemented for a long time.
+     */
+    public static @NotNull <T extends ObjectType> ObjectTypes.ObjectManager getObjectManager(
+            Class<T> clazz, Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options))) {
             return ObjectManager.REPOSITORY;
+        } else {
+            ObjectManager objectManager = ObjectTypes.getObjectManagerForClass(clazz);
+            if (objectManager == null || objectManager == ObjectManager.MODEL) {
+                return ObjectManager.REPOSITORY;
+            } else {
+                return objectManager;
+            }
         }
     }
 
@@ -842,7 +852,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        ObjectManager searchProvider = determineSearchProvider(type, rootOptions);
+        ObjectManager searchProvider = getObjectManager(type, options);
         result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
         // see MID-6115
@@ -957,7 +967,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 return 0;
             }
 
-            ObjectManager objectManager = determineSearchProvider(type, rootOptions);
+            ObjectManager objectManager = getObjectManager(type, options);
             switch (objectManager) {
                 case PROVISIONING:
                     count = provisioning.countObjects(type, processedQuery, options, task, parentResult);

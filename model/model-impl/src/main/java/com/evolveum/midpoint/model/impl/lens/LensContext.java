@@ -1990,6 +1990,18 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return taskExecutionMode;
     }
 
+    public MetadataRecordingStrategyType getShadowMetadataRecordingStrategy() {
+        SystemConfigurationType config = getSystemConfigurationBean();
+        if (config == null) {
+            return null;
+        }
+        InternalsConfigurationType internals = config.getInternals();
+        if (internals == null) {
+            return null;
+        }
+        return internals.getShadowMetadataRecording();
+    }
+
     public enum ExportType {
         MINIMAL, REDUCED, OPERATIONAL, TRACE
     }

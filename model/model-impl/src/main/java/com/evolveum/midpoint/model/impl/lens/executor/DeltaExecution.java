@@ -567,7 +567,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                     task,
                     result);
 
-            if (shouldApplyModifyMetadata(objectClass, context.getSystemConfigurationBean())) {
+            if (shouldApplyModifyMetadata(objectClass)) {
                 b.metadataManager.applyMetadataModify(
                         delta, objectClass, elementContext, b.clock.currentTimeXMLGregorianCalendar(), task, context);
             }
@@ -702,15 +702,12 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         return new VersionPrecondition<>(readVersion);
     }
 
-    private <T extends ObjectType> boolean shouldApplyModifyMetadata(Class<T> objectTypeClass, SystemConfigurationType config) {
+    private <T extends ObjectType> boolean shouldApplyModifyMetadata(Class<T> objectTypeClass) {
         if (!ShadowType.class.equals(objectTypeClass)) {
             return true;
-        } else if (config == null || config.getInternals() == null || config.getInternals().getShadowMetadataRecording() == null) {
-            return true;
-        } else {
-            MetadataRecordingStrategyType recording = config.getInternals().getShadowMetadataRecording();
-            return !Boolean.TRUE.equals(recording.isSkipOnModify());
         }
+        MetadataRecordingStrategyType recordingStrategy = context.getShadowMetadataRecordingStrategy();
+        return recordingStrategy == null || !Boolean.TRUE.equals(recordingStrategy.isSkipOnModify());
     }
     //endregion
 
