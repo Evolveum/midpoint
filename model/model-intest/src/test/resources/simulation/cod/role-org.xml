@@ -11,10 +11,14 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         oid="3d82a1af-0380-4368-b80a-b28a8c87b5bb">
 
-    <name>role org</name>
+    <name>metarole for orgs</name>
+    <documentation>
+        Creates group (for the org) and memberships (for the org members) - but only if "no-provisioning" flag is not set.
+        This metarole is assigned automatically by the template.
+    </documentation>
 
     <inducement>
-        <description>create group for OrgType</description>
+        <description>creates group for the org</description>
         <construction>
             <resourceRef oid="8dfeccc9-e144-4864-a692-e483f4b1873a"/>
             <kind>entitlement</kind>
@@ -84,7 +88,7 @@
     </inducement>
 
     <inducement>
-        <description>create account with group membership for user that has OrgType assigned</description>
+        <description>creates account with group membership for user that has the org assigned</description>
         <construction>
             <resourceRef oid="8dfeccc9-e144-4864-a692-e483f4b1873a"/>
             <kind>account</kind>

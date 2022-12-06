@@ -13,6 +13,7 @@
     <name>object template user</name>
 
     <mapping>
+        <documentation>Assigns a parent organization based on `organization` (create on demand, recursively)</documentation>
         <source>
             <path>organization</path>
         </source>
@@ -81,7 +82,7 @@
             <set>
                 <condition>
                     <script>
-                        <code>
+                        <code> // FIXME the subtype is not set in the above code
                             assignment.subtype.contains("org")
                         </code>
                     </script>
