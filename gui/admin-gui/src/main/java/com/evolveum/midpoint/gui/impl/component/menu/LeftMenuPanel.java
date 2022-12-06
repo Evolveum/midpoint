@@ -13,6 +13,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMining;
+
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMiningSimple;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -179,7 +183,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 setResponsePage(page);
             }
         };
-        logo.add(new VisibleEnableBehaviour(() -> !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
+        logo.add(new VisibleEnableBehaviour(() ->  !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
         logo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
         add(logo);
 
@@ -389,6 +393,9 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem roleMenu = createMainMenuItem("PageAdmin.menu.top.roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED
         );
         createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ROLE);
+        roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.roles.mining", PageRoleMining.class));
+        roleMenu.addMenuItem(new MenuItem("Jaccard", PageRoleMiningSimple.class));
+
         return roleMenu;
     }
 

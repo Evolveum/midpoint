@@ -59,6 +59,11 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
         this(displayModel, null, null, null, true);
     }
 
+    @Override
+    public String getCssClass() {
+        return super.getCssClass();
+    }
+
     public ObjectNameColumn(IModel<String> displayModel, ItemPath itemPath, ExpressionType expression, PageBase pageBase, boolean useDefaultPath) {
         super(displayModel, useDefaultPath ? ObjectType.F_NAME.getLocalPart() : itemPath.toString());
         this.expression = expression;
@@ -75,7 +80,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
         cellItem.add(createComponent(componentId, labelModel, rowModel));
     }
 
-    private Component createComponent(String componentId, IModel<String> labelModel, IModel<SelectableBean<O>> rowModel) {
+    protected Component createComponent(String componentId, IModel<String> labelModel, IModel<SelectableBean<O>> rowModel) {
         if (isClickable(rowModel)) {        // beware: rowModel is very probably resolved at this moment; but it seems to cause no problems
             return new AjaxLinkPanel(componentId, labelModel) {
                 private static final long serialVersionUID = 1L;
@@ -107,7 +112,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
     }
 
     //TODO: this is almost the same as in ContainerableListPanel.. should be unified
-    private IModel<String> createLabelModel(Item<ICellPopulator<SelectableBean<O>>> cellItem, IModel<SelectableBean<O>> rowModel) {
+    protected IModel<String> createLabelModel(Item<ICellPopulator<SelectableBean<O>>> cellItem, IModel<SelectableBean<O>> rowModel) {
         return new IModel<>() {
             private static final long serialVersionUID = 1L;
 

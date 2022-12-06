@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org" lang="en">
+
+<body>
+
+<wicket:extend>
+    <form wicket:id="main_form" class="clearfix form-horizontal">
+
+
+        <div class="col-xl-12 row">
+            <div class="d-flex flex-wrap  col-xl-7  ">
+                <div class="btn-group btn-group-sm col-xl-5 align-self-start">
+                    <a class="btn btn-default" wicket:id="role_search">
+                        <wicket:message key="Role.searchType.role"/>
+                    </a>
+                    <a class="btn btn-default" wicket:id="user_search">
+                        <wicket:message key="Role.searchType.users"/>
+                    </a>
+
+                </div>
+
+                <div class="col-xl-2"></div>
+
+                <div class="btn-group btn-group-sm col-xl-5 align-self-end">
+
+                    <form wicket:id="min_size_form">
+                        <div class="row">
+                            <label>
+                                <input style="width: 50px" wicket:id="input_min_size" type="text" placeholder="Enter min. role counts" size="20"/>
+                            </label>
+                            <input class="btn btn-default" type="submit" value="Submit"/>
+                        </div>
+                    </form>
+
+                    <a class="btn btn-default" wicket:id="table_ref">
+                        <wicket:message key="PageRoleMining.users.table.result"/>
+                    </a>
+
+                    <a class="btn btn-default">
+                        <label wicket:id="resultCountLabel">
+                        </label>
+                    </a>
+
+                    <a class="btn btn-default">
+                        <label wicket:id="repeatingCount">
+                        </label>
+                    </a>
+                </div>
+            </div>
+
+
+            <div class="d-flex flex-wrap  col-xl-5 flex-row-reverse">
+
+                <div class="btn-group btn-group-sm ">
+                    <a class="btn btn-default" wicket:id="checkDuplicates">
+                        <wicket:message key="Role.check.intersection.count"/>
+                    </a>
+
+                    <a class="btn btn-default  ">
+                        <label wicket:id="repeatingCountBasicTable">
+                        </label>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+        <wicket:child/>
+        <div class="row" style="display:-webkit-box; display:-webkit-flex; display:-ms-flexbox; display:flex;">
+
+            <div class="col-12 col-xl-7 overflow-auto" style="height:900px">
+                <div wicket:id="table_mining"></div>
+            </div>
+
+            <div class="col-12 col-xl-5 overflow-auto" style="height:900px">
+                <div wicket:id="table_basic"></div>
+            </div>
+
+        </div>
+
+    </form>
+
+    <div class="border-top my-3"></div>
+    <form wicket:id="secondary_form" class="clearfix form-horizontal">
+
+        <form wicket:id="jaccard_threshold_form">
+            <div class="row">
+                <label>
+                    <input style="width: 50px" wicket:id="jaccard_threshold_input" type="text" placeholder="Jaccard threshold" size="3"/>
+                </label>
+                <label>
+                    <input style="width: 50px" wicket:id="jaccard_min_roles_count_input" type="text" placeholder="Jaccard threshold" size="2"/>
+                </label>
+                <input class="btn btn-default" type="submit" value="Submit"/>
+            </div>
+        </form>
+
+        <div class="row" style="display:-webkit-box; display:-webkit-flex; display:-ms-flexbox; display:flex;">
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+            <div class="col-12 col-xl-12 overflow-auto" style="height:500px">
+                <canvas id="barChart" style="height:500px;background-color: white"></canvas>
+            </div>
+
+            <div class="col-12 col-xl-12 overflow-auto">
+                <button wicket:id="calculator" type="button" class="btn btn-outline-primary"></button>
+                <button wicket:id="jaccard_execute_search" type="button" class="btn btn-outline-primary"></button>
+                <div wicket:id="table_jaccard_users"></div>
+            </div>
+
+            <div class="border-top my-3"></div>
+
+        </div>
+    </form>
+</wicket:extend>
+
+</body>
+
+
+</html>

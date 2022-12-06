@@ -58,8 +58,17 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         super(id, defaultType, options);
     }
 
+    public ObjectListPanel(String id, Class<O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options, boolean isRoleMining) {
+        super(id, defaultType, options, isRoleMining);
+    }
+
     public ObjectListPanel(String id, Class<O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options, ContainerPanelConfigurationType config) {
         super(id, defaultType, options, config);
+    }
+
+    @Override
+    public String getTb(String s) {
+        return super.getTb(s);
     }
 
     protected String getSearchByNameParameterValue() {

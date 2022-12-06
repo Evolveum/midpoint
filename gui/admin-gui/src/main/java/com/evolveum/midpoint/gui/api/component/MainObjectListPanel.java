@@ -92,6 +92,24 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         this(id, type, null);
     }
 
+    public MainObjectListPanel(String id, Class<O> type, boolean isRoleMining) {
+        this(id, type, null,isRoleMining);
+    }
+
+
+    public MainObjectListPanel(String id, Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options,boolean isRoleMining) {
+        super(id, type, options,isRoleMining);
+        executeOptionsModel = new LoadableModel<>(false) {
+
+            @Override
+            protected ExecuteChangeOptionsDto load() {
+                return ExecuteChangeOptionsDto.createFromSystemConfiguration();
+            }
+        };
+    }
+
+
+
     public MainObjectListPanel(String id, Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, type, options);
         executeOptionsModel = new LoadableModel<>(false) {
@@ -128,7 +146,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
         if (collectionView == null) {
             collectionView = getObjectCollectionView();
-         }
+        }
         try {
             WebComponentUtil.initNewObjectWithReference(getPageBase(),
                     relation != null && CollectionUtils.isNotEmpty(relation.getObjectTypes()) ?
@@ -151,8 +169,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         PolyStringType tooltip = display != null ? display.getTooltip() : null;
 
         builder.setBasicIcon(GuiDisplayTypeUtil.getIconCssClass(display), IconCssStyle.IN_ROW_STYLE)
-                    .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(display))
-                    .setTitle(WebComponentUtil.getTranslatedPolyString(tooltip));
+                .appendColorHtmlValue(GuiDisplayTypeUtil.getIconColor(display))
+                .setTitle(WebComponentUtil.getTranslatedPolyString(tooltip));
 //                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
         return builder.build();
@@ -225,7 +243,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 };
 
                 getPageBase().showMainPopup(buttonsPanel, target);
-                }
+            }
         };
         createNewObjectButton.add(new VisibleBehaviour(this::isCreateNewObjectEnabled));
         createNewObjectButton.add(AttributeAppender.append("class", "btn btn-default btn-sm"));
@@ -304,7 +322,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         if (isCollectionViewPanelForCompiledView()) {
             CompiledObjectCollectionView view = getObjectCollectionView();
             return GuiDisplayTypeUtil.getNewObjectDisplayTypeFromCollectionView(view, getPageBase());
-         }
+        }
 
         String title = getTitleForNewObjectButton();
         return GuiDisplayTypeUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green", title);

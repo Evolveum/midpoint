@@ -59,6 +59,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private boolean showPaging;
     private String additionalBoxCssClasses = null;
     private boolean isRefreshEnabled;
+    boolean isRoleMining = false;
     private List<IColumn<T, String>> columns;
 
     //interval in seconds
@@ -70,14 +71,20 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
             UserProfileStorage.TableId tableId) {
-        this(id, provider, columns, tableId, false);
+        this(id, provider, columns, tableId, false,false);
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, boolean isRefreshEnabled) {
+            UserProfileStorage.TableId tableId, boolean isRoleMining) {
+        this(id, provider, columns, tableId, false,isRoleMining);
+    }
+
+    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+            UserProfileStorage.TableId tableId, boolean isRefreshEnabled,boolean isRoleMining) {
         super(id);
         this.tableId = tableId;
         this.isRefreshEnabled = isRefreshEnabled;
+        this.isRoleMining = isRoleMining;
         initLayout(columns, provider);
     }
 
@@ -124,17 +131,32 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
         tableContainer.add(table);
         add(tableContainer);
 
-        TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider) {
+        if(!isRoleMining) {
+            TableHeadersToolbar headersTop = new TableHeadersToolbar(table, provider) {
 
-            @Override
-            protected void refreshTable(AjaxRequestTarget target) {
-                super.refreshTable(target);
-                target.add(getFooter());
-            }
-        };
-        headersTop.setOutputMarkupId(true);
-        table.addTopToolbar(headersTop);
+                @Override
+                protected void refreshTable(AjaxRequestTarget target) {
+                    super.refreshTable(target);
+                    target.add(getFooter());
+                }
+            };
 
+            headersTop.setOutputMarkupId(true);
+            table.addTopToolbar(headersTop);
+        }else {
+            RoleMiningTableHeadersToolbar headersTop = new RoleMiningTableHeadersToolbar(table, provider) {
+
+                @Override
+                protected void refreshTable(AjaxRequestTarget target) {
+                    super.refreshTable(target);
+                    target.add(getFooter());
+                }
+            };
+
+            headersTop.setOutputMarkupId(true);
+            table.addTopToolbar(headersTop);
+
+        }
         add(createHeader(ID_HEADER));
         WebMarkupContainer footer = createFooter(ID_FOOTER);
         footer.add(new VisibleBehaviour(() -> !hideFooterIfSinglePage() || provider.size() > pageSize));

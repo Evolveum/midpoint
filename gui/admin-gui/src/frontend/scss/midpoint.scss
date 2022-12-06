@@ -29,20 +29,21 @@
 @import "rounded-icon";
 @import "tiles";
 @import "tables";
+@import "role-mining-rotated-header";
 
 body.custom-hold-transition {
-	.content-wrapper,
-	.right-side,
-	.main-footer,
-	.main-sidebar,
-	.left-side,
-	.main-header .navbar,
-	.main-header .logo {
-		-webkit-transition: none !important;
-		-moz-transition: none !important;
-		-ms-transition: none !important;
-		-o-transition: none !important;
-	}
+  .content-wrapper,
+  .right-side,
+  .main-footer,
+  .main-sidebar,
+  .left-side,
+  .main-header .navbar,
+  .main-header .logo {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+  }
 }
 
 .main-sidebar {
@@ -59,13 +60,13 @@ body.custom-hold-transition {
   & > a.custom-logo {
 
     & > img {
-		vertical-align: middle;
-		max-height: 1.5rem;
-        object-fit: contain;
-        max-width: 100%;
-        width: 100%;
-        height: 100%;
-	}
+      vertical-align: middle;
+      max-height: 1.5rem;
+      object-fit: contain;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+    }
   }
 
   & > .sidebar > nav > ul.nav-sidebar > li.nav-item > a.active {
@@ -107,7 +108,7 @@ li.dropdown.user.user-menu {
   width: 20px;
 }
 .sidebar-menu > li > a > .fe {
-	width: 20px;
+  width: 20px;
 }
 
 .nav-sidebar {
@@ -175,137 +176,137 @@ li.dropdown.user.user-menu {
 }
 
 .icon-style-disabled {
-	color: #909090;
+  color: #909090;
 }
 
 .icon-style-archived {
-	color: #c0c0c0;
+  color: #c0c0c0;
 }
 
 .icon-style-privileged {
-	color: #a94442;
+  color: #a94442;
 }
 
 .icon-style-end-user {
-	color: #357ca5;
+  color: #357ca5;
 }
 
 .icon-style-manager {
-	color: $object-org-color;
+  color: $object-org-color;
 }
 
 .icon-style-warning {
-	color: #8a6d3b;
+  color: #8a6d3b;
 }
 
 .icon-style-up {
-	color: #00a65a;
+  color: #00a65a;
 }
 
 .icon-style-down {
-	color: #a94442;
+  color: #a94442;
 }
 
 .icon-style-broken {
-	color: #f39c12;
+  color: #f39c12;
 }
 
 .icon-style-maintenance {
-	color: #828282;
+  color: #828282;
 }
 
 // Classes that can be added to color icons, info boxes and other widgets for particular object types
 
 .object-user-color {
-	color: $object-user-color;
+  color: $object-user-color;
 }
 
 .object-role-color {
-	color: $object-role-color;
+  color: $object-role-color;
 }
 
 .object-org-color {
-	color: $object-org-color;
+  color: $object-org-color;
 }
 
 .object-service-color {
-	color: $object-service-color;
+  color: $object-service-color;
 }
 
 .object-resource-color {
-	color: $object-resource-color;
+  color: $object-resource-color;
 }
 
 .object-task-color {
-	color: $object-task-color;
+  color: $object-task-color;
 }
 
 .object-shadow-color {
-	color: $object-shadow-color;
+  color: $object-shadow-color;
 }
 
 
 .object-user-bg {
-	background-color: $object-user-color !important;
-	color: #fff !important;
+  background-color: $object-user-color !important;
+  color: #fff !important;
 }
 
 .object-role-bg {
-	background-color: $object-role-color !important;
-	color: #fff !important;
+  background-color: $object-role-color !important;
+  color: #fff !important;
 }
 
 .object-org-bg {
-	background-color: $object-org-color !important;
-	color: #fff !important;
+  background-color: $object-org-color !important;
+  color: #fff !important;
 }
 
 .object-service-bg {
-	background-color: $object-service-color !important;
-	color: #fff !important;
+  background-color: $object-service-color !important;
+  color: #fff !important;
 }
 
 .object-resource-bg {
-	background-color: $object-resource-color !important;
-	color: #fff !important;
+  background-color: $object-resource-color !important;
+  color: #fff !important;
 }
 
 .object-task-bg {
-	background-color: $object-task-color !important;
-	color: #fff !important;
+  background-color: $object-task-color !important;
+  color: #fff !important;
 }
 
 .object-task-bg-gray {
-	background-color: #646464 !important;
-	color: #fff !important;
+  background-color: #646464 !important;
+  color: #fff !important;
 }
 
 .object-shadow-bg {
-	background-color: $object-shadow-color !important;
-	color: #fff !important;
+  background-color: $object-shadow-color !important;
+  color: #fff !important;
 }
 
 .object-disabled-bg {
-	background-color: $object-disabled-color !important;
-	color: #fff !important;
+  background-color: $object-disabled-color !important;
+  color: #fff !important;
 }
 
 .object-access-bg {
-	background-color: $object-access-color !important;
-	color: #fff !important;
+  background-color: $object-access-color !important;
+  color: #fff !important;
 }
 
 .object-failed-bg {
-	background-color: $object-failed-color !important;
-	color: #fff !important;
+  background-color: $object-failed-color !important;
+  color: #fff !important;
 }
 
 .object-access-only-bg {
-	background-color: $object-access-color !important;
+  background-color: $object-access-color !important;
 }
 
 .object-failed-only-bg {
-	background-color: $object-failed-color !important;
+  background-color: $object-failed-color !important;
 }
 
 // Colored boxes for each object type
@@ -328,7 +329,7 @@ li.dropdown.user.user-menu {
 }
 
 .object-user-box {
-	@include box-object($object-user-color);
+  @include box-object($object-user-color);
 }
 
 .object-role-box {
@@ -356,11 +357,11 @@ li.dropdown.user.user-menu {
 }
 
 @mixin box-thin-object($color) {
-	border: 1px solid $color;
+  border: 1px solid $color;
 
-	.box-header {
-		border-bottom: 1px solid $color;
-	}
+  .box-header {
+    border-bottom: 1px solid $color;
+  }
 }
 
 .object-user-box-thin {
@@ -393,8 +394,8 @@ li.dropdown.user.user-menu {
 
 // Summary panel (panel above the edit user/role/org forms)
 @mixin info-box-icon-summary-panel($color){
-	color: #FFF !important;
-	background-color: $color;
+  color: #FFF !important;
+  background-color: $color;
 }
 
 .info-box-icon.summary-panel-user {
@@ -437,17 +438,17 @@ li.dropdown.user.user-menu {
 }
 
 .info-box-icon-ethereal {
-	background-color: transparent;
+  background-color: transparent;
 }
 
 .info-box-icon-ethereal-image {
-	font-size: 56px;
+  font-size: 56px;
 }
 
 .info-box-description {
-    display: block;
-    font-weight: normal;
-    font-size: 14px;
+  display: block;
+  font-weight: normal;
+  font-size: 14px;
 }
 
 .relation-label {
@@ -462,18 +463,18 @@ li.dropdown.user.user-menu {
 // assignments dashboard panel
 .dash-assignment-header {
 
-	.target-name {
-		font-weight: bold;
-		margin-right: 5px;
-	}
+  .target-name {
+    font-weight: bold;
+    margin-right: 5px;
+  }
 
-	.target-display-name {
+  .target-display-name {
 
-	}
+  }
 
-	.target-relation {
-		margin-left: 10px;
-	}
+  .target-relation {
+    margin-left: 10px;
+  }
 }
 
 .info-box {
@@ -485,11 +486,11 @@ li.dropdown.user.user-menu {
 // capability buttons in resource details page
 
 .btn-resource-capability {
-	width: 90px;
-	height: 75px;
-	padding-top: 10px;
-	white-space: normal;
-    margin: 0 !important;
+  width: 90px;
+  height: 75px;
+  padding-top: 10px;
+  white-space: normal;
+  margin: 0 !important;
 }
 
 // Feedback messages
@@ -517,38 +518,38 @@ li.dropdown.user.user-menu {
 }
 
 .summary-panel-display-name {
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    display: inline;
-    max-width: 800px;
-  }
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: inline;
+  max-width: 800px;
+}
 
 .summary-panel-navigation-button {
-	display: inline;
-	margin-left: 10px;
-	color: $text-dimmed-color;
+  display: inline;
+  margin-left: 10px;
+  color: $text-dimmed-color;
 }
 
 .summary-panel-navigation-button:hover {
-	display: inline;
-	margin-left: 10px;
-	color: $text-dark-dimmed-color;
+  display: inline;
+  margin-left: 10px;
+  color: $text-dark-dimmed-color;
 }
 
 .summary-panel-identifier {
-	color: $text-dimmed-color;
-	font-weight: normal;
+  color: $text-dimmed-color;
+  font-weight: normal;
 }
 
 .summary-panel-title {
-	white-space: pre-wrap;
+  white-space: pre-wrap;
 }
 
 .summary-panel-organization {
-	font-size: 16px;
-	display: block;
-	white-space: pre-wrap;
+  font-size: 16px;
+  display: block;
+  white-space: pre-wrap;
 }
 
 .summary-tag-box {
@@ -561,32 +562,32 @@ li.dropdown.user.user-menu {
 }
 
 .summary-tag {
-	display: block;
-	padding-left: 10px;
-	padding-right: 10px;
-	margin: 3px;
-	border: 1px solid #e0e0e0;
-	border-radius: 3px;
-	background-color: #fbfbfb;
-	margin-right: 0px;
+  display: block;
+  padding-left: 10px;
+  padding-right: 10px;
+  margin: 3px;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  background-color: #fbfbfb;
+  margin-right: 0px;
 }
 
 .summary-tag-icon {
-	width: 20px;
-	margin-right: 2px;
+  width: 20px;
+  margin-right: 2px;
 }
 
 // form input for binary data upload (used e.g. for photo)
 
 .form-object-value-binary-box {
-	width: 100%;
-	padding: 0px;
+  width: 100%;
+  padding: 0px;
 }
 
 .form-object-value-binary-file-input {
-	width: 65%;
-	vertical-align: middle;
-	display: inline !important;
+  width: 65%;
+  vertical-align: middle;
+  display: inline !important;
 }
 
 
@@ -594,14 +595,14 @@ li.dropdown.user.user-menu {
 // top navigation bar: page title
 
 .navbar-title {
-	float: left;
-	background-color: transparent;
-	margin-top: 3px;
+  float: left;
+  background-color: transparent;
+  margin-top: 3px;
 }
 
 .page-title {
-	background-color: transparent;
-	font-size: 22px;
+  background-color: transparent;
+  font-size: 22px;
 }
 
 .nav-item > .breadcrumb {
@@ -635,82 +636,82 @@ li.dropdown.user.user-menu {
 // Prism containers and attributes
 
 .prism-object {
-	& > div.prism-header {
-		padding-left: 15px; // to match container header padding
-	}
+  & > div.prism-header {
+    padding-left: 15px; // to match container header padding
+  }
 }
 
 .prism-multivalue-container {
-    margin-left: 15px; // aligning multivalue container with superior container
+  margin-left: 15px; // aligning multivalue container with superior container
 }
 
 .check-table-header {
-	padding-left: 20px;
+  padding-left: 20px;
 
-	& > input[type="checkbox"] {
-		position: absolute;
-		margin-left: -20px;
-		margin-top: 6px;
+  & > input[type="checkbox"] {
+    position: absolute;
+    margin-left: -20px;
+    margin-top: 6px;
+  }
+
+  .check-table-label {
+
+    .check-table-header-icon {
+      margin-left: 4px;
+      position: relative;
+      bottom: 1px;
     }
 
-    .check-table-label {
-
-	    .check-table-header-icon {
-		    margin-left: 4px;
-		    position: relative;
-		    bottom: 1px;
-	    }
-
-	    .check-table-header-name {
-	    	margin-left: 5px;
-	    	font-size: 18px;
-	    	color: $text-label-color !important;
-	    }
-
-	    .check-table-header-description {
-	    	margin-left: 10px;
-	    }
-
-	    .check-table-header-status {
-	    	margin-left: 10px;
-	    	position: relative;
-			bottom: 2px;
-	    }
-
-    	.check-table-header-show-more {
-	    	color: $text-dimmed-color !important;
-	    }
-
-	    .delegation-arrow-icon {
-	    	font-size: 24px;
-	    	margin-left: 5px;
-	    	margin-right: 5px;
-	    	position: relative;
-	    	top: 3px;
-	    }
+    .check-table-header-name {
+      margin-left: 5px;
+      font-size: 18px;
+      color: $text-label-color !important;
     }
+
+    .check-table-header-description {
+      margin-left: 10px;
+    }
+
+    .check-table-header-status {
+      margin-left: 10px;
+      position: relative;
+      bottom: 2px;
+    }
+
+    .check-table-header-show-more {
+      color: $text-dimmed-color !important;
+    }
+
+    .delegation-arrow-icon {
+      font-size: 24px;
+      margin-left: 5px;
+      margin-right: 5px;
+      position: relative;
+      top: 3px;
+    }
+  }
 }
 
 .tab-label {
-	& > small {
-		margin-left: 6px;
-		position: relative;
-		top: -1px;
-	}
+  & > small {
+    margin-left: 6px;
+    position: relative;
+    top: -1px;
+  }
 }
 
 .box-header.add {
-	background-color: #caffca;
+  background-color: #caffca;
 }
 
 .box-header.delete {
-	background-color: #ffcaca;
+  background-color: #ffcaca;
 }
 
 .main-form-panel { // Used on pages where there is just one main panel and it does not
-                   // provide formatting by itself. E.g. pages that are both object lists
-                   // and forms (such as workitems, requests).
-	margin-bottom: 20px;
+  // provide formatting by itself. E.g. pages that are both object lists
+  // and forms (such as workitems, requests).
+  margin-bottom: 20px;
 }
 
 .options-container {
@@ -718,12 +719,12 @@ li.dropdown.user.user-menu {
 }
 
 .option-checkbox {
-	float: left;
-	border: 1px solid $table-divider-color;
-	margin-right: 10px;
-	padding-bottom: 5px;
-	padding-left: 6px;
-	padding-right: 6px;
+  float: left;
+  border: 1px solid $table-divider-color;
+  margin-right: 10px;
+  padding-bottom: 5px;
+  padding-left: 6px;
+  padding-right: 6px;
 }
 
 // todo remove + remove all occurrences [lazyman]
@@ -734,12 +735,12 @@ li.dropdown.user.user-menu {
 // Badge colors used in object details tabs (and maybe elsewhere)
 
 .badge-active {
-	background-color: #3c8dbc !important;
+  background-color: #3c8dbc !important;
 }
 
 .badge-passive {
-	color: #fff;
-	background-color: #d2d6de !important;
+  color: #fff;
+  background-color: #d2d6de !important;
 }
 
 // Projections tab (focus pages)
@@ -753,19 +754,19 @@ li.dropdown.user.user-menu {
 }
 
 .projection {
-	margin-bottom: 10px;
-	@include box-thin-object($object-shadow-color);
+  margin-bottom: 10px;
+  @include box-thin-object($object-shadow-color);
 
-	.box-header {
+  .box-header {
 
-		.box-tools {
-			margin-top: 5px;
-		}
-	}
+    .box-tools {
+      margin-top: 5px;
+    }
+  }
 }
 
 .check-table-header-pending-operation {
-	margin-left: 10px;
+  margin-left: 10px;
 }
 
 // Assignments tab (focus pages)
@@ -775,14 +776,14 @@ li.dropdown.user.user-menu {
 }
 
 .assignment {
-	margin-bottom: 10px;
+  margin-bottom: 10px;
 
-	.box-header {
+  .box-header {
 
-		.box-tools {
-			margin-top: 5px;
-		}
-	}
+    .box-tools {
+      margin-top: 5px;
+    }
+  }
 }
 
 // Orgtree (OrgMemberPanel)
@@ -819,8 +820,8 @@ span.tree-content > table tr td:first-child {
 }
 
 .org-members-additional-search {
-	text-align: right;
-	margin-right: 20px !important;
+  text-align: right;
+  margin-right: 20px !important;
 }
 
 .modal-dialog-content {
@@ -830,40 +831,40 @@ span.tree-content > table tr td:first-child {
 }
 
 .modal-dialog-title {
-    text-align: center;
-    border-bottom: inset;
-    border-bottom-width: thin;
-    padding-bottom: 5px;
-    margin-top: 5px;
-    font-size: 18px;
+  text-align: center;
+  border-bottom: inset;
+  border-bottom-width: thin;
+  padding-bottom: 5px;
+  margin-top: 5px;
+  font-size: 18px;
 }
 
 .manager-tools { // org tree manager buttons: HACK, need to figure out something better
-	float: right;
-	width: 42px;
-	padding-left: 10px;
-	padding-top: 7px;
+  float: right;
+  width: 42px;
+  padding-left: 10px;
+  padding-top: 7px;
 }
 
 .manager-btn { // org tree manager buttons: HACK, need to figure out something better
-	margin: 3px;
-	border-style: solid;
-	border-width: 1px;
-	border-radius: 3px;
-	padding: 3px;
-	width: 23px;
-	text-align: center;
+  margin: 3px;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 3px;
+  padding: 3px;
+  width: 23px;
+  text-align: center;
 }
 
 .box-solid > .box-header > .box-tools > .cog > ul > li > a > i {
-	color: #fff;
+  color: #fff;
 }
 
 
 // Request role page
 
 .request-role-col-available {
-	padding-right: 0px;
+  padding-right: 0px;
 }
 
 .request-role-col-control {
@@ -871,57 +872,57 @@ span.tree-content > table tr td:first-child {
 }
 
 .request-role-col-current {
-	padding-left: 0px;
+  padding-left: 0px;
 }
 
 .request-role-box {
-	.box-body {
-		padding-bottom: 0px;
-	}
+  .box-body {
+    padding-bottom: 0px;
+  }
 }
 
 .multiple-assignment-selector {
 
-	.multiple-assignment-selector-section:first-child {
-		border-top-width: 0px;
-		padding-top: 0px;
-		min-height: 36px;
-	}
+  .multiple-assignment-selector-section:first-child {
+    border-top-width: 0px;
+    padding-top: 0px;
+    min-height: 36px;
+  }
 
-	.multiple-assignment-selector-section:last-child {
-		padding-bottom: 0px;
-	}
+  .multiple-assignment-selector-section:last-child {
+    padding-bottom: 0px;
+  }
 }
 
 .multiple-assignment-selector-section {
-	min-height: 48px;
-	padding-top: 8px;
-	padding-bottom: 8px;
-	border-top: 2px solid $table-divider-color;
+  min-height: 48px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-top: 2px solid $table-divider-color;
 }
 
 .multiple-assignment-selector-section-table {
-	.box {
-		border-width: 0px;
-	}
+  .box {
+    border-width: 0px;
+  }
 }
 
 .multiple-assignment-selector-table-container {
-	min-height: 415px;
+  min-height: 415px;
 }
 
 .multiple-assignment-selector-table {
-	width: 100%;
+  width: 100%;
 }
 
 .multiple-assignment-selector-table-footer {
-	float: left;
+  float: left;
 }
 
 .request-role-control-button {
-	&.btn-primary > i {
-		font-size: 32px;
-	}
+  &.btn-primary > i {
+    font-size: 32px;
+  }
 }
 
 // Password change dialog (ChangePasswordPanel, PasswordPanel)
@@ -930,220 +931,220 @@ span.tree-content > table tr td:first-child {
 }
 
 .password-propagation {
-	margin-top: 5px;
+  margin-top: 5px;
 }
 
 .password-propagation-legend {
-	padding-bottom: 10px;
-	border-bottom: 1px solid $table-divider-color;
-	margin-bottom: 10px;
-	margin-left: 0px;
-	margin-right: 0px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid $table-divider-color;
+  margin-bottom: 10px;
+  margin-left: 0px;
+  margin-right: 0px;
 }
 
 // operation result
 
 .paramtable {
-	border: 0px;
+  border: 0px;
 
-	.paramtable-row {
+  .paramtable-row {
 
-		.paramtable-name {
-			vertical-align: top;
-		}
+    .paramtable-name {
+      vertical-align: top;
+    }
 
-		.paramtable-name::after {
-			content: ':';
-		}
+    .paramtable-name::after {
+      content: ':';
+    }
 
-		.paramtable-value {
-			padding-left: 5px;
-			padding-right: 20px;
-		    white-space: pre-wrap;
-		    word-break: break-all;
-		}
-	}
+    .paramtable-value {
+      padding-left: 5px;
+      padding-right: 20px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  }
 }
 
 .stacktrace {
-    font-family: $font-family-monospace !important;
-    font-size: $font-size-sm !important;
-    white-space: pre-wrap;
+  font-family: $font-family-monospace !important;
+  font-size: $font-size-sm !important;
+  white-space: pre-wrap;
 }
 
 // Shopping cart
 
 .shopping-cart-item-table {
-	margin-top: 10px;
-	margin-left: 0px;
-	margin-right: 0px;
-	min-height: 460px;
+  margin-top: 10px;
+  margin-left: 0px;
+  margin-right: 0px;
+  min-height: 460px;
 }
 
 .shopping-cart-icon {
-	color: #f4f4f4;
-	margin-top: 10px;
-	margin-right: 5px;
+  color: #f4f4f4;
+  margin-top: 10px;
+  margin-right: 5px;
 }
 
 .shopping-cart-item-box {
 
-	.inner {
-		height: 120px;
-		cursor: pointer;
-	}
+  .inner {
+    height: 120px;
+    cursor: pointer;
+  }
 
-    .inner-label {
-      font-size: 18px;
-      padding-top: 10px;
-      padding-left: 12px;
-      padding-right: 12px;
-      padding-bottom: 10px;
-		max-width: 80%;
-		overflow: hidden;
-		text-overflow: ellipsis
-	}
-    .inner-description {
-      font-size: 11px;
-      padding-left: 12px;
-      padding-right: 12px;
-  		max-width: 70%;
-		max-height: 50%;
-		overflow: hidden;
-		text-overflow: ellipsis
-	}
+  .inner-label {
+    font-size: 18px;
+    padding-top: 10px;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: 10px;
+    max-width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis
+  }
+  .inner-description {
+    font-size: 11px;
+    padding-left: 12px;
+    padding-right: 12px;
+    max-width: 70%;
+    max-height: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis
+  }
 }
 
 .shopping-cart-item-box-footer {
-	padding: 3px;
-	padding-left: 8px;
-	padding-right: 8px;
-	color: rgba(255, 255, 255, 0.8);
-	display: block;
-	z-index: 10;
-	overflow-y: auto;
-	background: rgba(0, 0, 0, 0.1);
+  padding: 3px;
+  padding-left: 8px;
+  padding-right: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  display: block;
+  z-index: 10;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.1);
 
-	.shopping-cart-item-button-details {
-		cursor: pointer;
-	}
+  .shopping-cart-item-button-details {
+    cursor: pointer;
+  }
 
-	.shopping-cart-item-button-details-disabled {
-		cursor: default;
-		color: darkgrey;
-	}
+  .shopping-cart-item-button-details-disabled {
+    cursor: default;
+    color: darkgrey;
+  }
 
-	.shopping-cart-item-button-add {
-		cursor: pointer;
-		float: right;
-	}
+  .shopping-cart-item-button-add {
+    cursor: pointer;
+    float: right;
+  }
 
-	.shopping-cart-item-button-add-disabled {
-		cursor: default;
-		float: right;
-		color: darkgrey;
-	}
+  .shopping-cart-item-button-add-disabled {
+    cursor: default;
+    float: right;
+    color: darkgrey;
+  }
 }
 
 // Object merge dialog
 
 .object-merge-panel {
-	padding-top: 10px;
-	padding-bottom: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .object-merge-equation-panel {
-	padding-top: 10px;
+  padding-top: 10px;
 }
 
 .object-merge-sign {
-	font-size: 80px;
-	padding-top: 15px;
+  font-size: 80px;
+  padding-top: 15px;
 }
 
 .object-merge-switch-direction-col {
-	padding-left: 0px;
+  padding-left: 0px;
 }
 
 // Consent, mostly self-service pages
 
 .consent-info-box-icon {
-	background: none;
+  background: none;
 }
 
 .consent-buttons { // maybe figure out something better, something really reusable
-	float: right;
-	width: 200px;
-	padding-left: 10px;
-	padding-top: 7px;
+  float: right;
+  width: 200px;
+  padding-left: 10px;
+  padding-top: 7px;
 }
 
 // Process (workflow) diagrams
 
 .process-box {
-	border: 1px solid;
-	border-radius: 5px;
-	padding: 0px;
-	margin: 10px;
+  border: 1px solid;
+  border-radius: 5px;
+  padding: 0px;
+  margin: 10px;
 
-	.box-label {
-		border-bottom: 1px solid;
-		padding-top: 3px;
-    	padding-bottom: 3px;
-    	font-weight: bold;
+  .box-label {
+    border-bottom: 1px solid;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-weight: bold;
 
-    	.process-label {
+    .process-label {
 
-    	}
+    }
 
-    	.process-outcome {
-    		float: right;
-    	}
+    .process-outcome {
+      float: right;
+    }
 
-	}
+  }
 
-	.box-content {
-		padding: 15px;
-	}
+  .box-content {
+    padding: 15px;
+  }
 }
 
 .expand-collapse-button, .expand-collapse-button:hover, .expand-collapse-button:focus { //class for expand-collapse button next to title
-	color: $text-label-color;
+  color: $text-label-color;
 }
 
 .show-empty-button, .show-empty-button:hover .show-empty-button:focus{ //class for show-empty fields button under properties
-	color: $text-label-color;
-	font-size: 12px;
-	padding-bottom: 5px;
+  color: $text-label-color;
+  font-size: 12px;
+  padding-bottom: 5px;
 }
 
 // This will make the tooltip respect new lines.
 // Lines will still wrap if they are longer than the default max-width of the container.
 .tooltip-inner {
-	white-space:pre-wrap;
+  white-space:pre-wrap;
 }
 
 .table-striped {
-	table-layout: fixed; // fix for text in cells
+  table-layout: fixed; // fix for text in cells
 }
 
 .shopping-cart-icon > .badge {
-    margin-left: -10px !important;
+  margin-left: -10px !important;
 }
 
 .role-catalog > .object-org-box > .org-tree-container{
-	max-height: 50vh;
+  max-height: 50vh;
 }
 
 .skin-red > .wrapper > .main-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge,
 .skin-red-light > .wrapper > .main-header > .navbar-static-top > .navbar-custom-menu > .shopping-cart-icon > .badge{
-	border-style: solid;
-	padding: 2px 5px;
-	border-color: #f4f4f4;
+  border-style: solid;
+  padding: 2px 5px;
+  border-color: #f4f4f4;
 }
 
 .small-box-footer>div{
-	display: inline-block;
+  display: inline-block;
 }
 
 .small-box-default-icon{
@@ -1151,16 +1152,16 @@ span.tree-content > table tr td:first-child {
 }
 
 .small-box{
-	cursor: default;
+  cursor: default;
 }
 
 .cursor-pointer{
-	cursor: pointer;
+  cursor: pointer;
 }
 
 .small-box h3{
-	white-space: normal;
-	font-size: 28px;
+  white-space: normal;
+  font-size: 28px;
 }
 
 .tbody-nth-of-type-even>tr:nth-of-type(even) {
@@ -1171,52 +1172,52 @@ span.tree-content > table tr td:first-child {
 }
 
 @media (min-width: 1550px){
-	.small-box h3 {
-		font-size: 35px;
-	}
+  .small-box h3 {
+    font-size: 35px;
+  }
 }
 
 .dashboard-info-box > .small-box {
-	height:100%;
+  height:100%;
 }
 
 .dashboard-info-box > .small-box > .small-box-footer {
-	position: absolute;
-    bottom: 0px;
-    width: 100%;
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
 }
 
 .dashboard-info-box{
-	height: 100%;
+  height: 100%;
 }
 
 .padding-bottom-20 {
-	padding-bottom: 20px;
+  padding-bottom: 20px;
 }
 .checkbox-without-margin-bottom .checkbox{
-	margin-bottom: 0px !important;
-	margin-top: 5px !important;
+  margin-bottom: 0px !important;
+  margin-top: 5px !important;
 }
 
 // todo probably delete? why is this here?
 th > div > .sortableLabel .row {
-	margin: 0px;
+  margin: 0px;
 }
 
 td .prism-property-value {
-	width: 100% !important;
+  width: 100% !important;
 }
 
 .small-box > .small-box-footer {
-	color: inherit !important;
+  color: inherit !important;
 }
 
 .pagination-xs>li>a {
-    padding: 0px 5px !important;
+  padding: 0px 5px !important;
 }
 
 .cog-xs {
-	width: 38px;
+  width: 38px;
 }
 
 .card.card-outline,
@@ -1333,64 +1334,64 @@ td .prism-property-value {
 }
 
 .popover {
-    .form-control {
-      width: 100% !important;
-    }
+  .form-control {
+    width: 100% !important;
+  }
 
-    .form-control-sized {
-      width: auto !important;
-    }
+  .form-control-sized {
+    width: auto !important;
+  }
 }
 
 .password-progress-bar {
-    .progress {
-      height: 15px;
-      margin-bottom: 10px;
+  .progress {
+    height: 15px;
+    margin-bottom: 10px;
 
-      .progress-bar{
-        line-height: 15px;
-      }
+    .progress-bar{
+      line-height: 15px;
     }
+  }
 }
 
 .password-validator-popover {
+  position: absolute;
+  z-index: 1000;
+  display: none;
+  min-width: 300px;
+
+  .arrow-up {
+    left: 19px;
     position: absolute;
-    z-index: 1000;
-    display: none;
-    min-width: 300px;
+    top: 0px;
+    background-color: white;
+    border-left: 1px solid rgb(210,214,222);
+    border-top: 1px solid rgb(210,214,222);
+    //transform: translate(50%, -50%) rotate(45deg);
+    height: 15px;
+    width: 15px;
+  }
 
-    .arrow-up {
-        left: 19px;
-        position: absolute;
-        top: 0px;
-        background-color: white;
-        border-left: 1px solid rgb(210,214,222);
-        border-top: 1px solid rgb(210,214,222);
-        //transform: translate(50%, -50%) rotate(45deg);
-        height: 15px;
-        width: 15px;
-    }
+  .popover-inner {
+    -webkit-box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    -moz-box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    background-color: white;
+    border: 1px solid #d2d6de;
+    white-space: nowrap;
+  }
 
-    .popover-inner {
-        -webkit-box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        -moz-box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        -webkit-border-radius: 2px;
-        -moz-border-radius: 2px;
-        border-radius: 2px;
-        background-color: white;
-        border: 1px solid #d2d6de;
-        white-space: nowrap;
-    }
+  .list-group {
+    margin-bottom: 0px;
+  }
 
-    .list-group {
-        margin-bottom: 0px;
-    }
-
-    .list-group-item {
-        border: none;
-        padding: 5px 5px;
-    }
+  .list-group-item {
+    border: none;
+    padding: 5px 5px;
+  }
 }
 
 .task-info-box {
@@ -1774,3 +1775,16 @@ th.debug-list-buttons {
     }
   }
 }
+
+.role-mining-rotated-header{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  transform: rotate(180deg);
+  writing-mode: vertical-lr;
+  width: 40px;
+  height: 150px;
+  border: 1px solid #f4f4f4;
+}
+
+
