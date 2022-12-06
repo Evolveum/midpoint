@@ -49,7 +49,7 @@ import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
+import com.evolveum.midpoint.schema.VirtualAssignmentSpecification;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -423,7 +423,7 @@ public class LensUtil {
 
         Collection<AssignmentType> forcedAssignments = new HashSet<>();
 
-        VirtualAssignmenetSpecification<R> virtualAssignmentSpecification = LifecycleUtil.getForcedAssignmentSpecification(lifecycleModel, targetLifecycle, prismContext);
+        VirtualAssignmentSpecification<R> virtualAssignmentSpecification = LifecycleUtil.getForcedAssignmentSpecification(lifecycleModel, targetLifecycle, prismContext);
         if (virtualAssignmentSpecification != null) {
 
             ResultHandler<R> handler = (object, parentResult)  -> {

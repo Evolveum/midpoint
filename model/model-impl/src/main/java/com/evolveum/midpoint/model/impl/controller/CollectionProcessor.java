@@ -112,7 +112,7 @@ public class CollectionProcessor {
                 .source(collection.asObjectable())
                 .sourceDescription("object collection " + collection)
                 .assignment(assignmentType)
-                .isAssignment(true)
+                .isAssignment()
                 .evaluationOrder(EvaluationOrderImpl.zero(relationRegistry))
                 .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
                 .direct(true) // to be reconsidered - but assignment path is empty, so we consider this to be directly assigned

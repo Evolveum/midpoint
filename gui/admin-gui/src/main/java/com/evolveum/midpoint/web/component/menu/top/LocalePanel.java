@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.component.menu.top;
 
 import java.util.Locale;
 
+import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -67,6 +69,7 @@ public abstract class LocalePanel extends BasePanel {
     protected void changeLocale(AjaxRequestTarget target, LocaleDescriptor descriptor) {
         LOGGER.info("Changing locale to {}.", descriptor.getLocale());
         getSession().setLocale(descriptor.getLocale());
+        AuthUtil.getPrincipalUser().setPreferredLocale(descriptor.getLocale());
         WebComponentUtil.getCompiledGuiProfile().setLocale(descriptor.getLocale());
 
         target.add(getPage());

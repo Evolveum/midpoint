@@ -169,6 +169,103 @@ $aa$);
 
 -- changes for 4.7
 
+-- Simulations
+call apply_change(12, $aa$
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
+$aa);
+
+call apply_change(13, $aa$
+CREATE TABLE m_simulation_result (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED
+        CHECK (objectType = 'SIMULATION_RESULT'),
+    partitioned boolean
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_simulation_result_oid_insert_tr BEFORE INSERT ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_simulation_result_update_tr BEFORE UPDATE ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_simulation_result_oid_delete_tr AFTER DELETE ON m_message_template
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE TYPE ObjectProcessingStateType AS ENUM ('UNMODIFIED', 'ADDED', 'MODIFIED', 'DELETED' );
+
+ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
+
+CREATE TABLE m_simulation_result_processed_object (
+    -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
+    -- Owner does not have to be the direct parent of the container.
+    ownerOid UUID NOT NULL,
+    -- use like this on the concrete table:
+    -- ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
+
+    -- Container ID, unique in the scope of the whole object (owner).
+    -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
+    cid BIGINT NOT NULL,
+    containerType ContainerType GENERATED ALWAYS AS ('SIMULATION_RESULT_PROCESSED_OBJECT') STORED
+        CHECK (containerType = 'SIMULATION_RESULT_PROCESSED_OBJECT'),
+    oid UUID NOT NULL,
+    objectType ObjectType,
+    nameOrig TEXT NOT NULL,
+    nameNorm TEXT NOT NULL,
+    state ObjectProcessingStateType,
+    metricIdentifiers TEXT[],
+    fullObject BYTEA,
+    objectBefore BYTEA,
+    objectAfter BYTEA,
+    
+
+   PRIMARY KEY (ownerOid, cid)
+) PARTITION BY LIST(ownerOid);
+
+CREATE TABLE m_simulation_result_processed_object_default PARTITION OF m_simulation_result_processed_object DEFAULT;
+
+CREATE OR REPLACE FUNCTION m_simulation_result_create_partition() RETURNS trigger AS
+  $BODY$
+    DECLARE
+      partition TEXT;
+    BEGIN
+      partition := 'm_simulation_result_processed_object_' || REPLACE(new.oid::text,'-','_');
+      IF new.partitioned AND NOT EXISTS(SELECT relname FROM pg_class WHERE relname=partition) THEN
+        RAISE NOTICE 'A partition has been created %',partition;
+        EXECUTE 'CREATE TABLE ' || partition || ' partition of ' || 'm_simulation_result_processed_object' || ' for values in (''' || new.oid|| ''');';
+      END IF;
+      RETURN NULL;
+    END;
+  $BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER m_simulation_result_create_partition AFTER INSERT ON m_simulation_result
+ FOR EACH ROW EXECUTE FUNCTION m_simulation_result_create_partition();
+
+
+
+--- Trigger which deletes processed objects partition when whole simulation is deleted
+
+CREATE OR REPLACE FUNCTION m_simulation_result_delete_partition() RETURNS trigger AS
+  $BODY$
+    DECLARE
+      partition TEXT;
+    BEGIN
+      partition := 'm_simulation_result_processed_object_' || REPLACE(OLD.oid::text,'-','_');
+      IF OLD.partitioned AND EXISTS(SELECT relname FROM pg_class WHERE relname=partition) THEN
+        RAISE NOTICE 'A partition has been deleted %',partition;
+        EXECUTE 'DROP TABLE IF EXISTS ' || partition || ';';
+      END IF;
+      RETURN OLD;
+    END;
+  $BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER baseline_delete_partition BEFORE DELETE ON m_simulation_result 
+  FOR EACH ROW EXECUTE FUNCTION baseline_delete_partition();
+
+
+$aa);
+
+
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_change number at the end of postgres-new.sql
 -- to match the number used in the last change here!
