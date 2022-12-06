@@ -13,6 +13,7 @@
         xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
         elementFormDefault="qualified"
         xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -28,6 +29,7 @@
     <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
@@ -56,6 +58,30 @@
 
     <xsd:element name="simulationResult" type="tns:SimulationResultType" substitutionGroup="c:object"/>
 
+
+    <xsd:complexType name="SystemConfigurationSimulationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Global Configuration of Simulations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="useOwnPartitionForProcessedObjects" type="xsd:boolean" />
+            <!--  TODO: Do we want storage strategies per type? or per metric?
+                  
+                  Storage strategies may be beneficial for large deployments
+                   - eg. do not store information about objects, that do not match any metric
+                     or are unmodified.
+                   - do not store before / after state
+             -->
+            <xsd:element name="metrics" type="tns:SimulationMetricDefinitionType" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="SimulationMetricDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -67,9 +93,29 @@
             </xsd:appinfo>
         </xsd:annotation>
       <xsd:sequence>
-        <xsd:element name="identifier" type="xsd:string "/>
+        <xsd:element name="identifier" type="xsd:string"/>
         <xsd:element name="displayName" type="t:PolyStringType"/>
+        <xsd:element name="filter" type="tns:SimulationMetricBeforeAfterFilter" />
       </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimulationMetricBeforeAfterFilter">
+        <xsd:annotation>
+            <xsd:documentation>
+                Pair of filters, which are run on object before / after state.
+
+                In order for object to match this filter, it must match both filters
+                if they are present.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="beforeFilter" type="q:SearchFilterType" />
+            <xsd:element name="afterFilter" type="q:SearchFilterType" />
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="SimulationMetricType">

@@ -41,6 +41,7 @@ public class QSimulationResultMapping extends QObjectMapping<SimulationResultTyp
         addContainerTableMapping(F_PROCESSED_OBJECT,
                 QProcessedObjectMapping.initProcessedResultMapping(repositoryContext),
                 joinOn((o, processed) -> o.oid.eq(processed.ownerOid)));
+        addItemMapping(F_USE_OWN_PARTITION_FOR_PROCESSED_OBJECTS, booleanMapper(q -> q.partitioned));
     }
 
     @Override

@@ -10,4 +10,5 @@ import com.evolveum.midpoint.repo.sqale.qmodel.object.MObject;
 
 public class MSimulationResult extends MObject {
 
+    public Boolean partitioned;
 }
