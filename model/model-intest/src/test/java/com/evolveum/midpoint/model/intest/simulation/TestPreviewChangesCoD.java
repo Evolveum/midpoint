@@ -249,11 +249,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
      *
      * The "no-provisioning" flag is not set, so (simulated) groups and group memberships should be created for the orgs
      * and for bob.
-     *
-     * Test currently fails because the model tries to link simulated account to simulated user (deep in the CoD chain).
-     * We'll create simpler tests first, then return to this one.
      */
-    @Test(enabled = false)
+    @Test
     public void test200CreateOnDemandWithProvisioning() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -396,7 +393,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
             int real = repositoryService.countObjects(clazz, null, null, result);
             if (expected != real) {
                 fail = true;
-                msg.append(clazz.getSimpleName() + " were created, expected: " + expected + ", real: " + real + "\n");
+                msg.append(
+                        String.format("%s were created, expected: %d, real: %d\n", clazz.getSimpleName(), expected, real));
 
                 if (ShadowType.class.equals(clazz)) {
                     ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY.oid, SchemaConstants.RI_GROUP_OBJECT_CLASS);

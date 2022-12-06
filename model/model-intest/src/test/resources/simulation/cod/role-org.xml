@@ -9,6 +9,8 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         oid="3d82a1af-0380-4368-b80a-b28a8c87b5bb">
 
     <name>metarole for orgs</name>
@@ -48,6 +50,38 @@
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                             <createOnDemand>true</createOnDemand>
                             <populateObject>
+                                <populateItem>
+                                    <expression>
+                                        <value oid="8dfeccc9-e144-4864-a692-e483f4b1873a" type="ResourceType"/>
+                                    </expression>
+                                    <target>
+                                        <path>resourceRef</path>
+                                    </target>
+                                </populateItem>
+                                <populateItem>
+                                    <expression>
+                                        <value>entitlement</value>
+                                    </expression>
+                                    <target>
+                                        <path>kind</path>
+                                    </target>
+                                </populateItem>
+                                <populateItem>
+                                    <expression>
+                                        <value>group</value>
+                                    </expression>
+                                    <target>
+                                        <path>intent</path>
+                                    </target>
+                                </populateItem>
+                                <populateItem>
+                                    <expression>
+                                        <value xsi:type="xsd:QName">ri:GroupObjectClass</value>
+                                    </expression>
+                                    <target>
+                                        <path>objectClass</path>
+                                    </target>
+                                </populateItem>
                                 <populateItem>
                                     <expression>
                                         <script>
@@ -110,6 +144,38 @@
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
                             <createOnDemand>true</createOnDemand>
                             <populateObject>
+                                <populateItem>
+                                    <expression>
+                                        <value oid="8dfeccc9-e144-4864-a692-e483f4b1873a" type="ResourceType"/>
+                                    </expression>
+                                    <target>
+                                        <path>resourceRef</path>
+                                    </target>
+                                </populateItem>
+                                <populateItem>
+                                    <expression>
+                                        <value>entitlement</value>
+                                    </expression>
+                                    <target>
+                                        <path>kind</path>
+                                    </target>
+                                </populateItem>
+                                <populateItem>
+                                    <expression>
+                                        <value>group</value>
+                                    </expression>
+                                    <target>
+                                        <path>intent</path>
+                                    </target>
+                                </populateItem>
+                                <populateItem>
+                                    <expression>
+                                        <value xsi:type="xsd:QName">ri:GroupObjectClass</value>
+                                    </expression>
+                                    <target>
+                                        <path>objectClass</path>
+                                    </target>
+                                </populateItem>
                                 <populateItem>
                                     <expression>
                                         <path>$immediateRole/name</path>

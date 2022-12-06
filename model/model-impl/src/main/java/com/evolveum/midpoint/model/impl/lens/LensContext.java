@@ -247,6 +247,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     @NotNull private final List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
 
+    /** Denotes (legacy) "preview changes" mode. */
     private transient boolean preview;
 
     private transient Map<String, Collection<Containerable>> hookPreviewResultsMap;

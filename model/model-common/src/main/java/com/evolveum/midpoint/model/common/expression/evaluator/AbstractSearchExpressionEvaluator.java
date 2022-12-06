@@ -543,8 +543,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges;
             try {
                 executedChanges = modelService.executeChanges(deltas, null, task, result);
-            } catch (CommunicationException | ConfigurationException
-                    | PolicyViolationException | SecurityViolationException e) {
+            } catch (CommunicationException | ConfigurationException | PolicyViolationException | SecurityViolationException e) {
                 throw new ExpressionEvaluationException(e.getMessage(), e);
             }
 

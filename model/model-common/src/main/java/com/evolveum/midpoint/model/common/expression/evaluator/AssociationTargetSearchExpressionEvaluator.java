@@ -82,111 +82,102 @@ public class AssociationTargetSearchExpressionEvaluator
             String contextDescription,
             Task task,
             OperationResult result) throws SchemaException {
-        return new AssociationSearchEvaluation(variables, valueDestination, useNew, context, contextDescription, task, result);
+        return new Evaluation(variables, valueDestination, useNew, context, contextDescription, task, result) {
+
+            @Override
+            protected QName getDefaultTargetType() {
+                return ShadowType.COMPLEX_TYPE;
+            }
+
+            @Override
+            protected PrismContainerValue<ShadowAssociationType> createResultValue(
+                    String oid,
+                    PrismObject<ShadowType> object,
+                    List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> newValueDeltas)
+                    throws SchemaException {
+                ShadowAssociationType association = new ShadowAssociationType()
+                        .name(context.getMappingQName())
+                        .shadowRef(oid, targetTypeQName);
+
+                association.getShadowRef().asReferenceValue().setObject(object);
+
+                //noinspection unchecked
+                PrismContainerValue<ShadowAssociationType> associationCVal = association.asPrismContainerValue();
+                if (newValueDeltas != null) {
+                    ItemDeltaCollectionsUtil.applyTo(newValueDeltas, associationCVal);
+                }
+                prismContext.adopt(associationCVal, ShadowType.COMPLEX_TYPE, ShadowType.F_ASSOCIATION);
+                if (InternalsConfig.consistencyChecks) {
+                    associationCVal.assertDefinitions(
+                            () -> "associationCVal in assignment expression in " + context.getContextDescription());
+                }
+                return associationCVal;
+            }
+
+            @Override
+            protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params)
+                    throws ExpressionEvaluationException {
+                @SuppressWarnings("unchecked")
+                TypedValue<ResourceObjectTypeDefinition> rAssocTargetDefTypedValue =
+                        params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
+                if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
+                    throw new ExpressionEvaluationException(
+                            String.format("No association target object definition variable in %s; the expression may be used in"
+                                    + " a wrong place. It is only supposed to create an association.",
+                                    params.getContextDescription()));
+                }
+                ResourceObjectTypeDefinition rAssocTargetDef = (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
+                ObjectFilter coordinatesFilter = prismContext.queryFor(ShadowType.class)
+                        .item(ShadowType.F_RESOURCE_REF).ref(rAssocTargetDef.getResourceOid())
+                        .and().item(ShadowType.F_KIND).eq(rAssocTargetDef.getKind())
+                        .and().item(ShadowType.F_INTENT).eq(rAssocTargetDef.getIntent())
+                        .buildFilter();
+                query.setFilter(
+                        prismContext.queryFactory()
+                                .createAnd(coordinatesFilter, query.getFilter()));
+                return query;
+            }
+
+            @Override
+            protected void extendOptions(
+                    Collection<SelectorOptions<GetOperationOptions>> options, boolean searchOnResource) {
+                super.extendOptions(options, searchOnResource);
+                // We do not need to worry about associations of associations here
+                // (nested associations). Avoiding that will make the query faster.
+                options.add(
+                        SelectorOptions.create(
+                                prismContext.toUniformPath(ShadowType.F_ASSOCIATION),
+                                GetOperationOptions.createDontRetrieve()));
+            }
+
+            @Override
+            protected boolean isAcceptable(@NotNull PrismObject<ShadowType> object) {
+                return ShadowUtil.isNotDead(object.asObjectable());
+            }
+
+            /**
+             * Create on demand used in AssociationTargetSearch would fail
+             * @return false
+             */
+            @Override
+            protected boolean isCreateOnDemandSafe() {
+                return false;
+            }
+
+            @Override
+            protected CacheInfo getCacheInfo() {
+                return new CacheInfo(
+                        AssociationSearchExpressionEvaluatorCache.getCache(),
+                        AssociationSearchExpressionEvaluatorCache.class,
+                        CacheType.LOCAL_ASSOCIATION_TARGET_SEARCH_EVALUATOR_CACHE,
+                        ShadowType.class);
+            }
+
+        };
     }
 
     @Override
     public String shortDebugDump() {
         return "associationExpression";
-    }
-
-    private class AssociationSearchEvaluation extends Evaluation {
-
-        AssociationSearchEvaluation(
-                VariablesMap variables,
-                PlusMinusZero valueDestination,
-                boolean useNew,
-                ExpressionEvaluationContext context,
-                String contextDescription,
-                Task task,
-                OperationResult result) throws SchemaException {
-            super(variables, valueDestination, useNew, context, contextDescription, task, result);
-        }
-
-        @Override
-        protected QName getDefaultTargetType() {
-            return ShadowType.COMPLEX_TYPE;
-        }
-
-        @Override
-        protected PrismContainerValue<ShadowAssociationType> createResultValue(
-                String oid,
-                PrismObject<ShadowType> object,
-                List<ItemDelta<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> newValueDeltas)
-                throws SchemaException {
-            ShadowAssociationType association = new ShadowAssociationType()
-                    .name(context.getMappingQName())
-                    .shadowRef(oid, targetTypeQName);
-
-            association.getShadowRef().asReferenceValue().setObject(object);
-
-            //noinspection unchecked
-            PrismContainerValue<ShadowAssociationType> associationCVal = association.asPrismContainerValue();
-            if (newValueDeltas != null) {
-                ItemDeltaCollectionsUtil.applyTo(newValueDeltas, associationCVal);
-            }
-            prismContext.adopt(associationCVal, ShadowType.COMPLEX_TYPE, ShadowType.F_ASSOCIATION);
-            if (InternalsConfig.consistencyChecks) {
-                associationCVal.assertDefinitions(
-                        () -> "associationCVal in assignment expression in " + context.getContextDescription());
-            }
-            return associationCVal;
-        }
-
-        @Override
-        protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws ExpressionEvaluationException {
-            @SuppressWarnings("unchecked")
-            TypedValue<ResourceObjectTypeDefinition> rAssocTargetDefTypedValue =
-                    params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
-            if (rAssocTargetDefTypedValue == null || rAssocTargetDefTypedValue.getValue() == null) {
-                throw new ExpressionEvaluationException("No association target object definition variable in "+
-                        params.getContextDescription()+"; the expression may be used in a wrong place. It is only supposed to create an association.");
-            }
-            ResourceObjectTypeDefinition rAssocTargetDef = (ResourceObjectTypeDefinition) rAssocTargetDefTypedValue.getValue();
-            ObjectFilter coordinatesFilter = prismContext.queryFor(ShadowType.class)
-                    .item(ShadowType.F_RESOURCE_REF).ref(rAssocTargetDef.getResourceOid())
-                    .and().item(ShadowType.F_KIND).eq(rAssocTargetDef.getKind())
-                    .and().item(ShadowType.F_INTENT).eq(rAssocTargetDef.getIntent())
-                    .buildFilter();
-            query.setFilter(
-                    prismContext.queryFactory()
-                            .createAnd(coordinatesFilter, query.getFilter()));
-            return query;
-        }
-
-        @Override
-        protected void extendOptions(
-                Collection<SelectorOptions<GetOperationOptions>> options, boolean searchOnResource) {
-            super.extendOptions(options, searchOnResource);
-            // We do not need to worry about associations of associations here
-            // (nested associations). Avoiding that will make the query faster.
-            options.add(
-                    SelectorOptions.create(
-                            prismContext.toUniformPath(ShadowType.F_ASSOCIATION),
-                            GetOperationOptions.createDontRetrieve()));
-        }
-
-        @Override
-        protected boolean isAcceptable(@NotNull PrismObject<ShadowType> object) {
-            return ShadowUtil.isNotDead(object.asObjectable());
-        }
-
-        /**
-         * Create on demand used in AssociationTargetSearch would fail
-         * @return false
-         */
-        @Override
-        protected boolean isCreateOnDemandSafe() {
-            return false;
-        }
-
-        @Override
-        protected CacheInfo getCacheInfo() {
-            return new CacheInfo(
-                    AssociationSearchExpressionEvaluatorCache.getCache(),
-                    AssociationSearchExpressionEvaluatorCache.class,
-                    CacheType.LOCAL_ASSOCIATION_TARGET_SEARCH_EVALUATOR_CACHE,
-                    ShadowType.class);
-        }
     }
 }

@@ -127,6 +127,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O,RA> assertNoName() {
+        assertThat(getObject().getName()).as("name").isNull();
+        return this;
+    }
+
     public PrismObjectAsserter<O,RA> assertName(String expectedOrig) {
         PrismAsserts.assertEqualsPolyString("Wrong name in "+desc(), expectedOrig, getObject().getName());
         return this;
@@ -310,6 +315,16 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 
     public PrismObjectAsserter<O,RA> assertExtensionItems(int count) {
         assertEquals("Wrong # of extension items", count, getExtensionItemsCount());
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertItems(int expected) {
+        assertThat(object.getValue().getItems()).as("items").hasSize(expected);
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertItems(QName... names) {
+        assertThat(object.getValue().getItemNames()).as("item names").containsExactlyInAnyOrder(names);
         return this;
     }
 
@@ -647,5 +662,31 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         assertThat(item).as("password metadata").isNotNull();
         //noinspection unchecked
         return ((PrismContainer<MetadataType>) item).getRealValue();
+    }
+
+    public MetadataAsserter<PrismObjectAsserter<O, RA>> objectMetadata() {
+        MetadataType metadata = object.asObjectable().getMetadata();
+        MetadataAsserter<PrismObjectAsserter<O, RA>> asserter =
+                new MetadataAsserter<>(metadata, this, "object metadata in " + desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    /** The returned asserter will have the same parent as this one. */
+    public <F extends FocusType> FocusAsserter<F, RA> asFocus() {
+        assertThat(object.asObjectable()).as("object").isInstanceOf(FocusType.class);
+        //noinspection unchecked
+        FocusAsserter<F, RA> asserter = new FocusAsserter<>((PrismObject<F>) object, getReturnAsserter(), desc());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    /** The returned asserter will have the same parent as this one. */
+    public ShadowAsserter<RA> asShadow() {
+        assertThat(object.asObjectable()).as("object").isInstanceOf(ShadowType.class);
+        //noinspection unchecked
+        ShadowAsserter<RA> asserter = new ShadowAsserter<>((PrismObject<ShadowType>) object, getReturnAsserter(), desc());
+        copySetupTo(asserter);
+        return asserter;
     }
 }

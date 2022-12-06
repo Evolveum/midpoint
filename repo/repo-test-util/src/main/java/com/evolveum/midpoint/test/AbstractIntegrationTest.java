@@ -58,6 +58,10 @@ import ch.qos.logback.classic.LoggerContext;
 
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 
+import com.evolveum.midpoint.test.asserter.prism.DeltaCollectionAsserter;
+
+import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
+
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -140,6 +144,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+@SuppressWarnings("SameParameterValue")
 public abstract class AbstractIntegrationTest extends AbstractSpringTest
         implements InfraTestMixin {
 
@@ -3788,6 +3793,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected TaskAsserter<Void> assertTask(TaskType task, String message) {
         return initializeAsserter(
                 TaskAsserter.forTask(task.asPrismObject(), message));
+    }
+
+    protected <O extends ObjectType> ObjectDeltaAsserter<O, Void> assertDelta(ObjectDelta<O> delta, String message) {
+        return initializeAsserter(
+                ObjectDeltaAsserter.forDelta(delta, message));
+    }
+
+    protected DeltaCollectionAsserter<Void> assertDeltaCollection(Collection<? extends ObjectDelta<?>> deltas, String message) {
+        return initializeAsserter(
+                DeltaCollectionAsserter.forDeltas(deltas, message));
     }
 
     protected void assertTaskExecutionState(String taskOid, TaskExecutionStateType expectedExecutionState)

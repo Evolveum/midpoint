@@ -226,18 +226,22 @@ class LinkUpdater<F extends FocusType> {
         String channel = focusContext.getLensContext().getChannel();
         OperationResult result = parentResult.createSubresult(opName);
         try {
-            repositoryService.modifyObject(focusType, focus.getOid(), delta.getModifications(), result);
+            boolean real = task.isPersistentExecution();
+            if (real) {
+                repositoryService.modifyObject(focusType, focus.getOid(), delta.getModifications(), result);
+            }
+            task.onChangeExecuted(delta, real, result);
             task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, null);
         } catch (ObjectAlreadyExistsException ex) {
             task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, ex);
-            result.recordFatalError(ex);
+            result.recordException(ex);
             throw new SystemException(ex);
         } catch (Throwable t) {
             task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, t);
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
             if (delta != null) {
                 focusContext.addToExecutedDeltas(LensUtil.createObjectDeltaOperation(delta, result, focusContext, projCtx));
             }

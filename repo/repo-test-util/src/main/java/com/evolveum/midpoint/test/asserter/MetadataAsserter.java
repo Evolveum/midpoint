@@ -51,4 +51,24 @@ public class MetadataAsserter<RA> extends AbstractAsserter<RA> {
         assertThat(realOid).as("modify task ref OID").isEqualTo(expectedOid);
         return this;
     }
+
+    public MetadataAsserter<RA> assertRequestTimestampPresent() {
+        assertThat(metadata.getRequestTimestamp()).as("request timestamp").isNotNull();
+        return this;
+    }
+
+    public MetadataAsserter<RA> assertCreateTimestampPresent() {
+        assertThat(metadata.getCreateTimestamp()).as("create timestamp").isNotNull();
+        return this;
+    }
+
+    public MetadataAsserter<RA> assertLastProvisioningTimestampPresent() {
+        assertThat(metadata.getLastProvisioningTimestamp()).as("last provisioning timestamp").isNotNull();
+        return this;
+    }
+
+    public MetadataAsserter<RA> assertCreateChannel(String expected) {
+        assertThat(metadata.getCreateChannel()).as("create channel").isEqualTo(expected);
+        return this;
+    }
 }
