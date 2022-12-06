@@ -7,8 +7,13 @@
 package com.evolveum.midpoint.model.api.interaction;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
 
@@ -56,10 +61,24 @@ public class DashboardWidget {
 
     public String getLabel(LocalizationService localizationService) {
         if(getDisplay() != null && getDisplay().getLabel() != null) {
-            return localizationService.translate(getDisplay().getLabel().toPolyString(), Locale.getDefault(), true);
+            return localizationService.translate(getDisplay().getLabel().toPolyString(), getLocale(), true);
         } else {
             return getWidget().getIdentifier();
         }
+    }
+
+    @NotNull private Locale getLocale() {
+        Locale locale = null;
+        try {
+            MidPointPrincipal principal = SecurityUtil.getPrincipal();
+            if (principal != null) {
+                locale = principal.getLocale();
+            }
+        } catch (SecurityViolationException ex) {
+            // we can safely ignore this one, we only wanted locale if principal object is available
+        }
+
+        return locale != null ? locale : Locale.getDefault();
     }
 
     @Override

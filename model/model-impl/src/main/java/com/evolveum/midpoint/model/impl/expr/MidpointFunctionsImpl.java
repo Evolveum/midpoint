@@ -1727,12 +1727,35 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public String translate(LocalizableMessage message) {
-        return localizationService.translate(message, Locale.getDefault());
+        return translate(message, true);
+    }
+
+    @Override
+    public String translate(LocalizableMessage message, boolean useDefaultLocale) {
+        Locale locale = findProperLocale(useDefaultLocale);
+
+        return localizationService.translate(message, locale);
     }
 
     @Override
     public String translate(LocalizableMessageType message) {
-        return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), Locale.getDefault());
+        return translate(message, true);
+    }
+
+    @Override
+    public String translate(LocalizableMessageType message, boolean useDefaultLocale) {
+        Locale locale = findProperLocale(useDefaultLocale);
+
+        return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), locale);
+    }
+
+    @NotNull private Locale findProperLocale(boolean useDefaultLocale) {
+        if (useDefaultLocale) {
+            return Locale.getDefault();
+        }
+
+        MidPointPrincipal principal = SecurityUtil.getPrincipalSilent();
+        return principal != null ? principal.getLocale() : Locale.getDefault();
     }
 
     @Override

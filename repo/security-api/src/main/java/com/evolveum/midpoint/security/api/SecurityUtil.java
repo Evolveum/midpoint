@@ -340,6 +340,14 @@ public class SecurityUtil {
         return StringUtils.trim(split[0]);
     }
 
+    public static MidPointPrincipal getPrincipalSilent() {
+        try {
+            return getPrincipal();
+        } catch (SecurityViolationException ex) {
+            return null;
+        }
+    }
+
     /**
      * Returns principal representing currently logged-in user. Returns null if the user is anonymous.
      */
