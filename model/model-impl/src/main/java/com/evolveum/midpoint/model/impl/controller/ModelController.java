@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.cases.api.CaseManager;
 
 import com.evolveum.midpoint.provisioning.api.*;
+import com.evolveum.midpoint.schema.constants.ObjectTypes.ObjectManager;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.*;
 
@@ -116,7 +117,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     // Constants for OperationResult
     private static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
-    private static final String RESOLVE_REFERENCE = CLASS_NAME_WITH_DOT + "resolveReference";
+    static final String RESOLVE_REFERENCE = CLASS_NAME_WITH_DOT + "resolveReference";
     private static final String OP_APPLY_PROVISIONING_DEFINITION = CLASS_NAME_WITH_DOT + "applyProvisioningDefinition";
     static final String OP_REEVALUATE_SEARCH_FILTERS = CLASS_NAME_WITH_DOT + "reevaluateSearchFilters";
 
@@ -195,7 +196,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 .addParam("class", clazz)
                 .build();
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
+            Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
             GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
             if (GetOperationOptions.isRaw(rootOptions)) { // MID-2218
@@ -230,88 +231,13 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     private void executeResolveOptions(
-            @NotNull Containerable containerable, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) {
-        if (options == null) {
-            return;
-        }
-        for (SelectorOptions<GetOperationOptions> option : options) {
-            if (GetOperationOptions.isResolve(option.getOptions())) {
-                ObjectSelector selector = option.getSelector();
-                if (selector != null) {
-                    ItemPath path = selector.getPath();
-                    ItemPath.checkNoSpecialSymbolsExceptParent(path);
-                    executeResolveOption(containerable, path, option, task, result);
-                }
-            }
-        }
-    }
-
-    // TODO clean this mess
-    private <O extends ObjectType> void executeResolveOption(Containerable containerable, ItemPath path,
-            SelectorOptions<GetOperationOptions> option, Task task, OperationResult result) {
-        if (path == null || path.isEmpty()) {
-            return;
-        }
-        Object first = path.first();
-        ItemPath rest = path.rest();
-        PrismContainerValue<?> containerValue = containerable.asPrismContainerValue();
-        if (ItemPath.isName(first)) {
-            QName firstName = ItemPath.toName(first);
-            PrismReference reference = containerValue.findReferenceByCompositeObjectElementName(firstName);
-            if (reference == null) {
-                reference = containerValue.findReference(firstName);    // alternatively look up by reference name (e.g. linkRef)
-            }
-            if (reference != null) {
-                for (PrismReferenceValue refVal : reference.getValues()) {
-                    //noinspection unchecked
-                    PrismObject<O> refObject = refVal.getObject();
-                    if (refObject == null) {
-                        refObject = resolveReferenceUsingOption(refVal, option, containerable, task, result);
-                    }
-                    if (!rest.isEmpty() && refObject != null) {
-                        executeResolveOption(refObject.asObjectable(), rest, option, task, result);
-                    }
-                }
-                return;
-            }
-        }
-        if (rest.isEmpty()) {
-            return;
-        }
-        if (ItemPath.isParent(first)) {
-            PrismContainerValue<?> parent = containerValue.getParentContainerValue();
-            if (parent != null) {
-                executeResolveOption(parent.asContainerable(), rest, option, task, result);
-            }
-        } else {
-            QName nextName = ItemPath.toName(first);
-            PrismContainer<?> nextContainer = containerValue.findContainer(nextName);
-            if (nextContainer != null) {
-                for (PrismContainerValue<?> pcv : nextContainer.getValues()) {
-                    executeResolveOption(pcv.asContainerable(), rest, option, task, result);
-                }
-            }
-        }
-    }
-
-    private <O extends ObjectType> PrismObject<O> resolveReferenceUsingOption(@NotNull PrismReferenceValue refVal,
-            SelectorOptions<GetOperationOptions> option, Containerable containerable, Task task, OperationResult parentResult) {
-        OperationResult result = parentResult.createMinorSubresult(RESOLVE_REFERENCE);
-        try {
-            PrismObject<O> refObject;
-            refObject = objectResolver.resolve(refVal, containerable.toString(), option.getOptions(), task, result);
-            if (refObject != null) {
-                refObject = refObject.cloneIfImmutable();
-                schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(),
-                        SelectorOptions.createCollection(option.getOptions()), null, task, result);
-                refVal.setObject(refObject);
-            }
-            return refObject;
-        } catch (CommonException e) {
-            result.recordWarning("Couldn't resolve reference to " + ObjectTypeUtil.toShortString(refVal) + ": " + e.getMessage(), e);
-            return null;
-        } finally {
-            result.computeStatusIfUnknown();
+            @NotNull Containerable base,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            Task task,
+            OperationResult result) {
+        if (options != null) {
+            new ResolveOptionExecutor(options, task, objectResolver, schemaTransformer)
+                    .execute(base, result);
         }
     }
 
@@ -324,8 +250,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         enterModelMethod();
 
-        OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
-        result.addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options);
+        OperationResult result = parentResult.subresult(EXECUTE_CHANGES)
+                .addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options)
+                .build();
 
         try {
 
@@ -478,83 +405,94 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
             ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        OperationResult result = parentResult.createMinorSubresult(RECOMPUTE);
-        result.addParam(OperationResult.PARAM_OID, oid);
-        result.addParam(OperationResult.PARAM_TYPE, type);
+        OperationResult result = parentResult.subresult(RECOMPUTE)
+                .setMinor()
+                .addParam(OperationResult.PARAM_OID, oid)
+                .addParam(OperationResult.PARAM_TYPE, type)
+                .build();
+
+        PrismObject<F> focus;
 
         enterModelMethod();
-
         try {
 
             ModelImplUtils.clearRequestee(task);
             // Not using read-only for now
             //noinspection unchecked
-            PrismObject<F> focus = objectResolver.getObject(type, oid, null, task, result).asPrismContainer();
-
+            focus = objectResolver.getObject(type, oid, null, task, result).asPrismContainer();
             LOGGER.debug("Recomputing {}", focus);
 
             LensContext<F> lensContext = contextFactory.createRecomputeContext(focus, options, task, result);
             LOGGER.trace("Recomputing {}, context:\n{}", focus, lensContext.debugDumpLazily());
+
             clockwork.run(lensContext, task, result);
 
-            result.computeStatus();
-
-            LOGGER.trace("Recomputing of {}: {}", focus, result.getStatus());
-
-        } catch (ExpressionEvaluationException | SchemaException | PolicyViolationException | ObjectNotFoundException |
-                ObjectAlreadyExistsException | CommunicationException | ConfigurationException | SecurityViolationException |
-                RuntimeException | Error e) {
-            ModelImplUtils.recordException(result, e);
-            throw e;
+        } catch (Throwable t) {
+            ModelImplUtils.recordException(result, t);
+            throw t;
         } finally {
             result.close();
             result.cleanup();
             exitModelMethod();
         }
+
+        LOGGER.trace("Recomputing of {}: {}", focus, result.getStatus());
     }
 
     private void applyDefinitions(
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
-            Class<? extends ObjectType> type = delta.getObjectTypeClass();
-            if (delta.hasCompleteDefinition()) {
-                continue;
-            }
-            if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type)) {
-                try {
-                    provisioning.applyDefinition(delta, task, result);
-                } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-                    if (ModelExecuteOptions.isRaw(options)) {
-                        ModelImplUtils.recordPartialError(result, e);
-                        // just go on, this is raw, we need to continue even without complete schema
-                    } else {
-                        ModelImplUtils.recordFatalError(result, e);
-                        throw e;
-                    }
+            applyDefinition(delta, options, task, result);
+        }
+    }
+
+    private <O extends ObjectType> void applyDefinition(
+            ObjectDelta<O> delta, ModelExecuteOptions options, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        Class<O> type = delta.getObjectTypeClass();
+        if (delta.hasCompleteDefinition()) {
+            return;
+        }
+        if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type)) {
+            try {
+                provisioning.applyDefinition(delta, task, result);
+            } catch (CommonException e) {
+                if (ModelExecuteOptions.isRaw(options)) {
+                    ModelImplUtils.recordPartialError(result, e);
+                    // just go on, this is raw, we need to continue even without complete schema
+                } else {
+                    ModelImplUtils.recordFatalError(result, e);
+                    throw e;
                 }
-            } else {
-                PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(delta.getObjectTypeClass());
-                if (objDef == null) {
-                    throw new SchemaException("No definition for delta object type class: " + delta.getObjectTypeClass());
-                }
-                boolean tolerateNoDefinition = ModelExecuteOptions.isRaw(options);
-                delta.applyDefinitionIfPresent(objDef, tolerateNoDefinition);
             }
+        } else {
+            PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+            if (objDef == null) {
+                throw new SchemaException("No definition for delta object type class: " + type);
+            }
+            boolean tolerateNoDefinition = ModelExecuteOptions.isRaw(options);
+            delta.applyDefinitionIfPresent(objDef, tolerateNoDefinition);
         }
     }
 
     @Override
-    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery origQuery,
-            Collection<SelectorOptions<GetOperationOptions>> rawOptions, Task task, OperationResult parentResult)
+    public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
+            Class<T> type,
+            ObjectQuery origQuery,
+            Collection<SelectorOptions<GetOperationOptions>> rawOptions,
+            Task task,
+            OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
-        // using clone of object query here because authorization mechanism adds additional (secuirty) filters to the (original) query
-        // at the end objectQuery contains additional filters as many times as the authZ mechanism is called.
-        // for more info see MID-6115
+        // Using clone of object query here because authorization mechanism adds additional (security) filters to the (original)
+        // query. At the end, objectQuery contains additional filters as many times as the authZ mechanism is called.
+        // For more info see MID-6115.
         ObjectQuery query = origQuery != null ? origQuery.clone() : null;
         if (query != null) {
             ModelImplUtils.validatePaging(query.getPaging());
@@ -562,25 +500,21 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         OP_LOGGER.trace("MODEL OP enter searchObjects({},{},{})", type.getSimpleName(), query, rawOptions);
 
-        OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
-        result.addParam(OperationResult.PARAM_TYPE, type);
-        result.addParam(OperationResult.PARAM_QUERY, query);
+        OperationResult result = parentResult.subresult(SEARCH_OBJECTS)
+                .addParam(OperationResult.PARAM_TYPE, type)
+                .addParam(OperationResult.PARAM_QUERY, query)
+                .build();
 
         Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
-        ObjectTypes.ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
-        if (searchProvider == null || searchProvider == ObjectTypes.ObjectManager.MODEL || GetOperationOptions.isRaw(rootOptions)) {
-            searchProvider = ObjectTypes.ObjectManager.REPOSITORY;
-        }
+        ObjectManager searchProvider = determineSearchProvider(type, rootOptions);
         result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
         ObjectQuery processedQuery = preProcessQuerySecurity(type, query, rootOptions, task, result);
         if (isFilterNone(processedQuery, result)) {
             return new SearchResultList<>(new ArrayList<>());
         }
-
-        boolean exceptionInSearch = false;
 
         enterModelMethod(); // outside try-catch because if this ends with an exception, cache is not entered yet
         @NotNull SearchResultList<PrismObject<T>> list;
@@ -604,9 +538,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                     default:
                         throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
-            } catch (CommunicationException | ConfigurationException | SchemaException
-                    | SecurityViolationException | RuntimeException | ObjectNotFoundException e) {
-                exceptionInSearch = true;
+            } catch (Exception e) {
+                recordSearchException(e, searchProvider, result);
                 throw e;
             } finally {
                 QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
@@ -628,7 +561,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             //
             // TODO generalize this approach somehow (something like "postprocess" in task/provisioning interface)
             // TODO ... or consider abandoning this functionality altogether (it is more a hack than a serious design!)
-            if (searchProvider == ObjectTypes.ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
+            if (searchProvider == ObjectManager.REPOSITORY && !GetOperationOptions.isRaw(rootOptions)) {
                 for (PrismObject<T> object : list) {
                     if (object.asObjectable() instanceof ResourceType || object.asObjectable() instanceof ShadowType) {
                         applyProvisioningDefinition(object, task, result);
@@ -643,16 +576,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             schemaTransformer.applySchemasAndSecurityToObjects(list, rootOptions, options, null, task, result);
 
         } catch (Throwable e) {
-            if (exceptionInSearch) {
-                processSearchException(e, searchProvider, result);
-            } else {
-                result.recordFatalError(e);
-            }
+            result.recordException(e);
             throw e;
         } finally {
             exitModelMethod();
-            result.computeStatusIfUnknown();
-            result.cleanupResult();
+            result.close();
+            result.cleanup();
         }
 
         LOGGER.trace("Final search returned {} results (after hooks, security and all other processing)", list.size());
@@ -668,6 +597,18 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         }
 
         return list;
+    }
+
+    @NotNull
+    private static <T extends ObjectType> ObjectManager determineSearchProvider(Class<T> type, GetOperationOptions rootOptions) {
+        ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
+        if (searchProvider != null
+                && searchProvider != ObjectManager.MODEL
+                && !GetOperationOptions.isRaw(rootOptions)) {
+            return searchProvider;
+        } else {
+            return ObjectManager.REPOSITORY;
+        }
     }
 
     private <T extends ObjectType> void applyProvisioningDefinition(
@@ -694,9 +635,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         final boolean isCertCase;
         final boolean isCaseMgmtWorkItem;
         final boolean isOperationExecution;
-        final ObjectTypes.ObjectManager manager;
+        final ObjectManager manager;
         final ObjectQuery refinedQuery;
-        private boolean isAssignment;
+        private final boolean isAssignment;
 
         // TODO: task and result here are ugly and probably wrong
         ContainerOperationContext(Class<T> type, ObjectQuery query, Task task, OperationResult result)
@@ -709,12 +650,13 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             isAssignment = AssignmentType.class.equals(type);
 
             if (!isCertCase && !isCaseMgmtWorkItem && !isOperationExecution && !isAssignment) {
-                throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType, CaseWorkItemType and AssignmentType classes");
+                throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only "
+                        + "for AccessCertificationCaseType, CaseWorkItemType and AssignmentType classes");
             }
 
-            manager = ObjectTypes.ObjectManager.REPOSITORY;
+            manager = ObjectManager.REPOSITORY;
             if (isCertCase) {
-                refinedQuery = preProcessSubobjectQuerySecurity(
+                refinedQuery = preProcessSubObjectQuerySecurity(
                         AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
             } else {
                 refinedQuery = query;
@@ -766,16 +708,13 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                     default:
                         throw new IllegalStateException();
                 }
-                result.computeStatus();
-                result.cleanupResult();
             } catch (SchemaException | RuntimeException e) {
-                processSearchException(e, ctx.manager, result);
+                recordSearchException(e, ctx.manager, result);
                 throw e;
             } finally {
                 QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(result.dump(false));
-                }
+                result.close();
+                result.cleanup();
             }
 
             if (list == null) {
@@ -839,15 +778,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                     default:
                         throw new IllegalStateException();
                 }
-                result.computeStatus();
-                result.cleanupResult();
             } catch (RuntimeException e) {
-                processSearchException(e, ctx.manager, result);
+                recordSearchException(e, ctx.manager, result);
                 throw e;
             } finally {
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(result.dump(false));
-                }
+                result.close();
+                result.cleanup();
             }
         } finally {
             exitModelMethod();
@@ -857,20 +793,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     // See MID-6323 in Jira
-//    // TODO - fix this temporary implementation (perhaps by storing 'groups' in user context on logon)
-//    // TODO: currently we check only the direct assignments, we need to implement more complex mechanism
-//    public List<PrismReferenceValue> getGroupsForUser(UserType user) {
-//        List<PrismReferenceValue> retval = new ArrayList<>();
-//        for (AssignmentType assignmentType : user.getAssignmentNew()) {
-//            ObjectReferenceType ref = assignmentType.getTargetRef();
-//            if (ref != null) {
-//                retval.add(ref.clone().asReferenceValue());
-//            }
-//        }
-//        return retval;
-//    }
 
-    protected boolean isFilterNone(ObjectQuery query, OperationResult result) {
+    private boolean isFilterNone(ObjectQuery query, OperationResult result) {
         if (query != null && query.getFilter() != null && query.getFilter() instanceof NoneFilter) {
             LOGGER.trace("Security denied the search");
             result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Denied");
@@ -879,7 +803,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         return false;
     }
 
-    protected void logQuery(ObjectQuery query) {
+    private void logQuery(ObjectQuery query) {
         if (!LOGGER.isTraceEnabled()) {
             return;
         }
@@ -913,15 +837,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
         OP_LOGGER.trace("MODEL OP enter searchObjectsIterative({},{},{})", type.getSimpleName(), query, rawOptions);
 
-        final OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
+        OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
         result.addParam(OperationResult.PARAM_QUERY, query);
 
-        final Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
-        final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-        ObjectTypes.ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
-        if (searchProvider == null || searchProvider == ObjectTypes.ObjectManager.MODEL || GetOperationOptions.isRaw(rootOptions)) {
-            searchProvider = ObjectTypes.ObjectManager.REPOSITORY;
-        }
+        Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+        ObjectManager searchProvider = determineSearchProvider(type, rootOptions);
         result.addArbitraryObjectAsParam("searchProvider", searchProvider);
 
         // see MID-6115
@@ -936,14 +857,13 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 object = object.cloneIfImmutable();
                 if (hookRegistry != null) {
                     for (ReadHook hook : hookRegistry.getAllReadHooks()) {
-                        hook.invoke(object, options, task, result); // TODO result or parentResult??? [med]
+                        hook.invoke(object, options, task, parentResult1);
                     }
                 }
-                executeResolveOptions(object.asObjectable(), options, task, result);
+                executeResolveOptions(object.asObjectable(), options, task, parentResult1);
                 schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, parentResult1);
-            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException
-                    | CommunicationException | ConfigurationException ex) {
-                parentResult1.recordFatalError(ex);
+            } catch (CommonException ex) {
+                parentResult1.recordException(ex); // We should create a subresult for this
                 throw new SystemException(ex.getMessage(), ex);
             }
 
@@ -960,33 +880,27 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             enterModelMethodNoRepoCache(); // skip using cache to avoid potentially many objects there (MID-4615, MID-4959)
             logQuery(processedQuery);
 
-            try {
-                switch (searchProvider) {
-                    case REPOSITORY:
-                        metadata = cacheRepositoryService.searchObjectsIterative(type, processedQuery, internalHandler, options, true, result);
-                        break;
-                    case PROVISIONING:
-                        metadata = provisioning.searchObjectsIterative(type, processedQuery, options, internalHandler, task, result);
-                        break;
-                    case TASK_MANAGER:
-                        metadata = taskManager.searchObjectsIterative(type, processedQuery, options, internalHandler, result);
-                        break;
-                    default:
-                        throw new AssertionError("Unexpected search provider: " + searchProvider);
-                }
-                result.computeStatusIfUnknown();
-                result.cleanupResult();
-            } catch (CommunicationException | ConfigurationException | ObjectNotFoundException | SchemaException
-                    | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error e) {
-                processSearchException(e, searchProvider, result);
-                throw e;
-            } finally {
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace(result.dump(false));
-                }
+            switch (searchProvider) {
+                case REPOSITORY:
+                    metadata = cacheRepositoryService.searchObjectsIterative(
+                            type, processedQuery, internalHandler, options, true, result);
+                    break;
+                case PROVISIONING:
+                    metadata = provisioning.searchObjectsIterative(type, processedQuery, options, internalHandler, task, result);
+                    break;
+                case TASK_MANAGER:
+                    metadata = taskManager.searchObjectsIterative(type, processedQuery, options, internalHandler, result);
+                    break;
+                default:
+                    throw new AssertionError("Unexpected search provider: " + searchProvider);
             }
+        } catch (Exception e) {
+            recordSearchException(e, searchProvider, result);
+            throw e;
         } finally {
             exitModelMethodNoRepoCache();
+            result.close();
+            result.cleanup();
         }
 
         // TODO: log errors
@@ -998,8 +912,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         return metadata;
     }
 
-    private void processSearchException(
-            Throwable e, ObjectTypes.ObjectManager searchProvider, OperationResult result) {
+    private void recordSearchException(
+            Throwable e, ObjectManager searchProvider, OperationResult result) {
         String message;
         switch (searchProvider) {
             case REPOSITORY:
@@ -1015,9 +929,8 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 message = "Couldn't search objects";
                 break; // should not occur
         }
-        LoggingUtils.logUnexpectedException(LOGGER, message, e);
-        result.recordFatalError(message, e);
-        result.cleanupResult(e);
+        LoggingUtils.logExceptionAsWarning(LOGGER, message, e);
+        result.recordException(message, e);
     }
 
     @Override
@@ -1044,10 +957,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 return 0;
             }
 
-            ObjectTypes.ObjectManager objectManager = ObjectTypes.getObjectManagerForClass(type);
-            if (GetOperationOptions.isRaw(rootOptions) || objectManager == null || objectManager == ObjectTypes.ObjectManager.MODEL) {
-                objectManager = ObjectTypes.ObjectManager.REPOSITORY;
-            }
+            ObjectManager objectManager = determineSearchProvider(type, rootOptions);
             switch (objectManager) {
                 case PROVISIONING:
                     count = provisioning.countObjects(type, processedQuery, options, task, parentResult);
@@ -1061,18 +971,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 default:
                     throw new AssertionError("Unexpected objectManager: " + objectManager);
             }
-        } catch (ConfigurationException | SecurityViolationException | SchemaException | ObjectNotFoundException
-                | CommunicationException | ExpressionEvaluationException | RuntimeException | Error e) {
-            ModelImplUtils.recordFatalError(result, e);
-            throw e;
+        } catch (Throwable t) {
+            ModelImplUtils.recordException(result, t);
+            throw t;
         } finally {
             exitModelMethod();
+            result.close();
+            result.cleanup();
         }
-
-        result.computeStatus();
-        result.cleanupResult();
         return count;
-
     }
 
     @Override
@@ -1095,19 +1002,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         try {
             Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
             focus = cacheRepositoryService.searchShadowOwner(shadowOid, options, result);
-            result.recordSuccess();
-        } catch (RuntimeException | Error ex) {
+        } catch (Throwable t) {
             LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
-                    + " for account with oid {}", ex, shadowOid);
-            result.recordFatalError("Couldn't list account shadow owner for account with oid '"
-                    + shadowOid + "'.", ex);
-            throw ex;
+                    + " for account with oid {}", t, shadowOid);
+            result.recordFatalError("Couldn't list account shadow owner for account with oid '" + shadowOid + "'.", t);
+            throw t;
         } finally {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace(result.dump(false));
-            }
             exitModelMethod();
-            result.cleanupResult();
+            result.close();
+            result.cleanup();
         }
 
         if (focus != null) {
@@ -1270,23 +1173,19 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
             importFromResourceLauncher.launch(resource, objectClass, task, result);
 
-            // The launch should switch task to asynchronous. It is in/out, so no
-            // other action is needed
-
+            // The launch should switch task to asynchronous. It is in/out, so no other action is needed
             if (!task.isAsynchronous()) {
                 result.recordSuccess();
             }
 
-            result.cleanupResult();
-
-        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
-                | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error ex) {
-            ModelImplUtils.recordFatalError(result, ex);
-            throw ex;
+        } catch (Throwable t) {
+            ModelImplUtils.recordException(result, t);
+            throw t;
         } finally {
             exitModelMethod();
+            result.close();
+            result.cleanup();
         }
-
     }
 
     @Override
@@ -1304,25 +1203,15 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         // TODO: add context to the result
 
         try {
-            boolean wasOk = importFromResourceLauncher.importSingleShadow(shadowOid, task, result);
-
-            if (wasOk) {
-                result.recordSuccess();
-            } else {
-                // the error should be in the result already, compute should reveal that to the top-level
-                result.computeStatus();
-            }
-
-            result.cleanupResult();
-
-        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException
-                | SecurityViolationException | ExpressionEvaluationException | RuntimeException | Error ex) {
-            ModelImplUtils.recordFatalError(result, ex);
-            throw ex;
+            importFromResourceLauncher.importSingleShadow(shadowOid, task, result);
+        } catch (Throwable t) {
+            ModelImplUtils.recordException(result, t);
+            throw t;
         } finally {
             exitModelMethod();
+            result.close();
+            result.cleanup();
         }
-
     }
 
     @Override
@@ -1357,31 +1246,30 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             // No need to compute status. The validator inside will do it.
             // result.computeStatus("Couldn't import object from input stream.");
         } catch (RuntimeException e) {
-            result.recordFatalError(e.getMessage(), e); // shouldn't really occur
+            result.recordException(e); // shouldn't really occur
         } finally {
             exitModelMethod();
+            result.close();
+            result.cleanup();
         }
-        result.cleanupResult();
     }
 
     @Override
-    public void importObject(PrismObject object, ImportOptionsType options, Task task, OperationResult parentResult) {
-        enterModelMethod();
+    public <O extends ObjectType> void importObject(
+            PrismObject<O> object, ImportOptionsType options, Task task, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
         result.addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options);
+        enterModelMethod();
         try {
             objectImporter.importObject(object, options, task, result);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Import result:\n{}", result.debugDump());
-            }
-            // No need to compute status. The validator inside will do it.
-            // result.computeStatus("Couldn't import object from input stream.");
         } catch (RuntimeException e) {
-            result.recordFatalError(e.getMessage(), e); // shouldn't really occur
+            result.recordException(e);
+            throw e;
         } finally {
             exitModelMethod();
+            result.close();
+            result.cleanup();
         }
-        result.cleanupResult();
     }
 
     @Override
@@ -1393,17 +1281,20 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         Set<ConnectorType> discoverConnectors;
         try {
             discoverConnectors = provisioning.discoverConnectors(hostType, result);
-        } catch (CommunicationException | RuntimeException | Error e) {
-            result.recordFatalError(e.getMessage(), e);
+
+            List<ConnectorType> connectorList = new ArrayList<>(discoverConnectors);
+            schemaTransformer.applySchemasAndSecurityToObjectTypes(connectorList, null, null, null, task, result);
+
+            result.computeStatus("Connector discovery failed");
+            return new HashSet<>(connectorList);
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
+        } finally {
             exitModelMethod();
-            throw e;
+            result.close();
+            result.cleanup();
         }
-        List<ConnectorType> connectorList = new ArrayList<>(discoverConnectors);
-        schemaTransformer.applySchemasAndSecurityToObjectTypes(connectorList, null, null, null, task, result);
-        result.computeStatus("Connector discovery failed");
-        exitModelMethod();
-        result.cleanupResult();
-        return new HashSet<>(connectorList);
     }
 
     @Override
@@ -1421,22 +1312,19 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             // But there are situations (e.g. in tests or after factory reset) in which only this method is called.
             // So let's be conservative and rather execute repository postInit twice than zero times.
             cacheRepositoryService.postInit(result);
+
+            securityContextManager.setUserProfileService(focusProfileService);
+
+            provisioning.postInit(result);
+
         } catch (SchemaException e) {
             result.recordFatalError(e);
             throw new SystemException(e.getMessage(), e);
+        } finally {
+            exitModelMethod();
+            result.close();
+            result.cleanup();
         }
-
-        securityContextManager.setUserProfileService(focusProfileService);
-
-        // Initialize provisioning
-        provisioning.postInit(result);
-
-        if (result.isUnknown()) {
-            result.computeStatus();
-        }
-
-        exitModelMethod();
-        result.cleanupResult();
     }
 
     @Override
@@ -1467,11 +1355,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         result.addArbitraryObjectAsParam("compareOptions", compareOptions);
         result.addArbitraryObjectCollectionAsParam("ignoreItems", ignoreItems);
 
-        Collection<SelectorOptions<GetOperationOptions>> readOptions = preProcessOptionsSecurity(rawReadOptions, task, result);
-
         CompareResultType rv = new CompareResultType();
 
         try {
+            Collection<SelectorOptions<GetOperationOptions>> readOptions =
+                    preProcessOptionsSecurity(rawReadOptions, task, result);
+
             boolean c2p = ModelCompareOptions.isComputeCurrentToProvided(compareOptions);
             boolean p2c = ModelCompareOptions.isComputeProvidedToCurrent(compareOptions);
             boolean returnC = ModelCompareOptions.isReturnCurrent(compareOptions);
@@ -1506,9 +1395,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             if (returnP) {
                 rv.setNormalizedObject(provided.asObjectable());
             }
+        } catch (Throwable t) {
+            result.recordException(t);
+            throw t;
         } finally {
-            result.computeStatus();
-            result.cleanupResult();
+            result.close();
+            result.cleanup();
         }
         return rv;
     }
@@ -1596,12 +1488,22 @@ public class ModelController implements ModelService, TaskService, CaseService, 
     }
 
     // we expect that objectType is a direct parent of containerType
-    private <C extends Containerable, O extends ObjectType> ObjectQuery preProcessSubobjectQuerySecurity(
+    @SuppressWarnings("SameParameterValue")
+    private <C extends Containerable, O extends ObjectType> ObjectQuery preProcessSubObjectQuerySecurity(
             Class<C> containerType, Class<O> objectType, ObjectQuery origQuery, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         // Search containers is an operation on one object. Therefore even if it works with a search filter, it requires GET authorizations
-        ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, null, objectType, null, null, null, null, task, result);
+        ObjectFilter secParentFilter = securityEnforcer.preProcessObjectFilter(
+                ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
+                null,
+                objectType,
+                null,
+                null,
+                null,
+                null,
+                task,
+                result);
         if (secParentFilter == null || secParentFilter instanceof AllFilter) {
             return origQuery; // no need to update the query
         }
@@ -2086,7 +1988,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             ObjectTreeDeltasType treeDeltas = new ObjectTreeDeltasType();
             treeDeltas.setFocusPrimaryDelta(additionalDeltaBean);
 
-            WorkItemResultType newOutput = new WorkItemResultType(prismContext);
+            WorkItemResultType newOutput = new WorkItemResultType();
             //noinspection unchecked
             newOutput.asPrismContainerValue().mergeContent(output.asPrismContainerValue(), emptyList());
             newOutput.setAdditionalDeltas(treeDeltas);
@@ -2386,7 +2288,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
                 shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
                 objectDelta.setObjectToAdd(shadowToAdd);
             } else {
-                Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
+                Collection<? extends ItemDelta<?, ?>> modifications = DeltaConvertor.toModifications(
                         deltaBean.getItemDelta(),
                         prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
                 objectDelta.addModifications(modifications);
@@ -2424,11 +2326,12 @@ public class ModelController implements ModelService, TaskService, CaseService, 
 
     private void computePolyStrings(Collection<ObjectDelta<? extends ObjectType>> deltas) {
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
+            //noinspection unchecked
             delta.accept(this::computePolyStringVisit);
         }
     }
 
-    private void computePolyStringVisit(Visitable visitable) {
+    private void computePolyStringVisit(Visitable<?> visitable) {
         if (!(visitable instanceof PrismProperty<?>)) {
             return;
         }
@@ -2439,6 +2342,7 @@ public class ModelController implements ModelService, TaskService, CaseService, 
         if (!QNameUtil.match(PolyStringType.COMPLEX_TYPE, definition.getTypeName())) {
             return;
         }
+        //noinspection unchecked
         for (PrismPropertyValue<PolyString> pval : ((PrismProperty<PolyString>) visitable).getValues()) {
             PolyString polyString = pval.getValue();
             if (polyString != null && polyString.getOrig() == null) {

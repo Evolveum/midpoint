@@ -986,7 +986,7 @@ public class LensUtil {
         return result.isTracingNormal(trace.getClass()) ? LensContext.ExportType.TRACE : LensContext.ExportType.MINIMAL;
     }
 
-    public static LensContext.ExportType getExportTypeTraceOrReduced(TraceType trace, OperationResult result) {
+    static LensContext.ExportType getExportTypeTraceOrReduced(TraceType trace, OperationResult result) {
         return result.isTracingNormal(trace.getClass()) ? LensContext.ExportType.TRACE : LensContext.ExportType.REDUCED;
     }
 

@@ -48,23 +48,23 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCol
 public class ModelObjectResolver implements ObjectResolver {
 
     @Autowired private ProvisioningService provisioning;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService cacheRepositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
     @Autowired private PrismContext prismContext;
-
     @Autowired private TaskManager taskManager;
-
-    @Autowired(required = false)
-    private HookRegistry hookRegistry;
+    @Autowired(required = false) private HookRegistry hookRegistry;
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 
     @Override
-    public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
-            String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <O extends ObjectType> O resolve(
+            ObjectReferenceType ref,
+            Class<O> expectedType,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            String contextDescription,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         String oid = ref.getOid();
         Class<?> typeClass = null;
         QName typeQName = ref.getType();
@@ -103,8 +103,9 @@ public class ModelObjectResolver implements ObjectResolver {
         return (PrismObject<O>) (getObjectSimple((Class<O>) typeClass, oid, options, task, result)).asPrismObject();
     }
 
-    public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task,
-            OperationResult result) throws ObjectNotFoundException {
+    public <T extends ObjectType> T getObjectSimple(
+            Class<T> clazz, String oid, GetOperationOptions options, Task task, OperationResult result)
+            throws ObjectNotFoundException {
         try {
             return getObject(clazz, oid, SelectorOptions.createCollection(options), task, result);
         } catch (SystemException | ObjectNotFoundException ex) {

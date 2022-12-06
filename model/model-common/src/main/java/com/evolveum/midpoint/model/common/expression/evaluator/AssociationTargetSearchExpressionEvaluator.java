@@ -181,7 +181,7 @@ public class AssociationTargetSearchExpressionEvaluator
         }
 
         @Override
-        protected AbstractSearchExpressionEvaluator<PrismContainerValue<ShadowAssociationType>, ShadowType, PrismContainerDefinition<ShadowAssociationType>, SearchObjectExpressionEvaluatorType>.CacheInfo getCacheInfo() {
+        protected CacheInfo getCacheInfo() {
             return new CacheInfo(
                     AssociationSearchExpressionEvaluatorCache.getCache(),
                     AssociationSearchExpressionEvaluatorCache.class,

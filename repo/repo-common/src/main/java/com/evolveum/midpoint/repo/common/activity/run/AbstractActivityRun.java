@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.common.activity.run;
 
+import static com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus.FINISHED;
+
 import static java.util.Objects.requireNonNull;
 
 import static com.evolveum.midpoint.repo.common.activity.run.state.ActivityProgress.Counters.COMMITTED;
@@ -414,6 +416,15 @@ public abstract class AbstractActivityRun<
         return ActivityRunResult.standardResult(canRun());
     }
 
+    /** Finished (with specified status), or interrupted. */
+    protected ActivityRunResult standardRunResult(@Nullable OperationResultStatus status) {
+        if (canRun()) {
+            return new ActivityRunResult(status, FINISHED);
+        } else {
+            return ActivityRunResult.interrupted();
+        }
+    }
+
     public boolean canRun() {
         return taskRun.canRun();
     }
@@ -569,7 +580,7 @@ public abstract class AbstractActivityRun<
     }
 
     /** Returns the name for diagnostic purposes, e.g. when logging an error. */
-    public @NotNull String getDiagName() {
+    @NotNull String getDiagName() {
         RunningTask task = getRunningTask();
         return getActivityPath().toDebugName() + " activity in '" + task.getName() + "' task (OID " + task.getOid() + ")";
     }

@@ -549,7 +549,7 @@ public interface ModelService {
      *
      * The results will be provided in the task.
      */
-    void importObject(PrismObject object, ImportOptionsType options, Task task, OperationResult parentResult);
+    <O extends ObjectType> void importObject(PrismObject<O> object, ImportOptionsType options, Task task, OperationResult result);
 
     /**
      * Import objects from stream.
