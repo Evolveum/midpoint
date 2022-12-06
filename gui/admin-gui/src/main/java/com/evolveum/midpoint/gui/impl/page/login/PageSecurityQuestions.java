@@ -84,14 +84,13 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     private static final String ID_BACK_2_BUTTON = "back2";
 
     private IModel<String> answerModel;
-    private IModel<List<SecurityQuestionDto>> questionsModel;
+    private LoadableDetachableModel<List<SecurityQuestionDto>> questionsModel;
     private LoadableDetachableModel<UserType> userModel;
 
     public PageSecurityQuestions() {
-        initModels();
     }
 
-    private void initModels() {
+    protected void initModels() {
         answerModel = Model.of();
         userModel = new LoadableDetachableModel<>() {
             @Override
@@ -100,7 +99,12 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
                 return principal != null ? (UserType) principal.getFocus() : PageSecurityQuestions.this.searchUser();
             }
         };
-        questionsModel = new ListModel<>(createUsersSecurityQuestionsList());
+        questionsModel = new LoadableDetachableModel<List<SecurityQuestionDto>>() {
+            @Override
+            protected List<SecurityQuestionDto> load() {
+                return createUsersSecurityQuestionsList();
+            }
+        };
     }
 
     @Override
@@ -227,16 +231,12 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     private void initStaticLayout(MidpointForm<?> form) {
         RequiredTextField<String> visibleUsername = new RequiredTextField<>(ID_USERNAME, new Model<>());
         visibleUsername.setOutputMarkupId(true);
-        visibleUsername.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return userModel.getObject() == null && !isDynamicForm();
-            }
-        });
+        visibleUsername.add(new VisibleBehaviour(() -> !isUserDefined() && !isDynamicForm()));
         form.add(visibleUsername);
+    }
+
+    private boolean isUserDefined() {
+        return userModel.getObject() != null;
     }
 
     private void showQuestions(AjaxRequestTarget target) {
@@ -253,6 +253,10 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
 
     private List<SecurityQuestionDto> createUsersSecurityQuestionsList() {
         UserType user = userModel.getObject();
+
+        if (user == null) {
+            return new ArrayList<>();
+        }
 
         SecurityQuestionsCredentialsType credentialsPolicyType = user.getCredentials()
                 .getSecurityQuestions();

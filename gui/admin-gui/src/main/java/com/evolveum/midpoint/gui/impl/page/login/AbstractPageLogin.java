@@ -70,7 +70,11 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     @Override
     protected void onInitialize() {
         super.onInitialize();
+        initModels();
         initLayout();
+    }
+
+    protected void initModels() {
     }
 
     private void initLayout() {
