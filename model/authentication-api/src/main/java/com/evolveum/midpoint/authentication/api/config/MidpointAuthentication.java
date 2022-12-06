@@ -25,7 +25,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 
 /**
@@ -65,6 +64,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private Object credential;
     private String sessionId;
     private Collection<? extends GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
+    public static int NO_PROCESSING_MODULE_INDEX = -2;
+    public static int NO_MODULE_FOUND_INDEX = -1;
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -207,9 +208,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             return actualSize;
         }
         if (allModulesAreAuthenticated()) {
-            return -2;
+            return NO_PROCESSING_MODULE_INDEX;
         }
-        return -1;
+        return NO_MODULE_FOUND_INDEX;
     }
 
     private boolean allModulesAreAuthenticated() {
@@ -228,7 +229,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
                 return indexOfModule;
             }
         }
-        return -1;
+        return NO_MODULE_FOUND_INDEX;
     }
 
     public ModuleAuthentication getProcessingModuleAuthentication() {
@@ -257,7 +258,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public List<ModuleAuthentication> getParallelProcessingModules() {
         int indexOfProcessingModule = getIndexOfProcessingModule(false);
-        if (indexOfProcessingModule == -2) {
+        if (indexOfProcessingModule == NO_PROCESSING_MODULE_INDEX) {
             return new ArrayList<>();
         }
         return getParallelProcessingModules(indexOfProcessingModule);
@@ -300,13 +301,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
         String type = header.split(" ")[0];
         List<ModuleAuthentication> parallelProcessingModules = getParallelProcessingModules(actualIndex);
-        int resolvedIndex = -1;
+        int resolvedIndex = NO_MODULE_FOUND_INDEX;
         for (ModuleAuthentication parallelProcessingModule : parallelProcessingModules) {
             int usedIndex = getAuthentications().indexOf(parallelProcessingModule);
             if (AuthUtil.resolveTokenTypeByModuleType(parallelProcessingModule.getModuleTypeName()).equalsIgnoreCase(type)
-                    && resolvedIndex == -1) {
+                    && resolvedIndex == NO_MODULE_FOUND_INDEX) {
                 parallelProcessingModule.setState(AuthenticationModuleState.LOGIN_PROCESSING);
-                if (usedIndex != -1) {
+                if (usedIndex != NO_MODULE_FOUND_INDEX) {
                     resolvedIndex = usedIndex;
                 } else {
                     resolvedIndex = getAuthentications().size();
@@ -314,13 +315,13 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             } else {
                 parallelProcessingModule.setState(AuthenticationModuleState.FAILURE);
             }
-            if (usedIndex == -1) {
+            if (usedIndex == NO_MODULE_FOUND_INDEX) {
                 getAuthentications().add(parallelProcessingModule);
             } else {
                 getAuthentications().set(usedIndex, parallelProcessingModule);
             }
         }
-        if (resolvedIndex == -1) {
+        if (resolvedIndex == NO_MODULE_FOUND_INDEX) {
             throw new IllegalArgumentException("Couldn't find module with type '" + type + "' in sequence '"
                     + getSequence().getIdentifier() + "'");
         }
@@ -332,7 +333,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
             return false;
         }
         int index = getIndexOfModule(moduleAuthentication);
-        if (index == -1) {
+        if (index == NO_MODULE_FOUND_INDEX) {
             return false;
         }
         if (index == getAuthModules().size() - 1) {

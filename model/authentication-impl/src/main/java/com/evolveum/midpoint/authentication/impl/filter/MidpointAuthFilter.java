@@ -331,7 +331,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private boolean needRestartAuthFlow(int indexOfProcessingModule, AuthenticationWrapper authWrapper) {
         // if index == -1 indicate restart authentication flow
-        return !authWrapper.switchSecurityPolicy && indexOfProcessingModule == -1;
+        return !authWrapper.switchSecurityPolicy && indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX;
     }
 
     private int restartAuthFlow(HttpServletRequest httpRequest, AuthenticationWrapper authWrapper) {
@@ -370,7 +370,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private int getIndexOfActualProcessingModule(MidpointAuthentication mpAuthentication, HttpServletRequest request) {
-        int indexOfProcessingModule = -1;
+        int indexOfProcessingModule = MidpointAuthentication.NO_MODULE_FOUND_INDEX;
         // if exist authentication (authentication flow is processed) find actual processing module
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             indexOfProcessingModule = mpAuthentication.getIndexOfProcessingModule(true);
