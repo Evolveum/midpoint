@@ -14,8 +14,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.ObjectProcessingListener;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
@@ -54,7 +57,12 @@ public class SimulationResultContextImpl implements SimulationResultContext, Obj
 
         processedObject.setState(DELTA_TO_PROCESSING_STATE.get(delta.getChangeType()));
         processedObject.setType(toQName(delta.getObjectTypeClass()));
-
+        try {
+            processedObject.setDelta(DeltaConvertor.toObjectDeltaType(delta));
+        } catch (SchemaException e) {
+            // Or should we ignore it?
+            throw new SystemException(e);
+        }
         PrismContainerValue<SimulationResultProcessedObjectType> pcv = processedObject.asPrismContainerValue();
         if (delta.isAdd()) {
             PrismObject<?> objectToAdd = delta.getObjectToAdd();
@@ -63,7 +71,16 @@ public class SimulationResultContextImpl implements SimulationResultContext, Obj
         } else if (delta.isDelete()) {
             // TODO: Fill up before state
         }
+
+        addMetrics(delta, processedObject);
         return processedObject;
+    }
+
+    private void addMetrics(@NotNull ObjectDelta<?> delta, SimulationResultProcessedObjectType processedObject) {
+
+
+
+
     }
 
     @Override

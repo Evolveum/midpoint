@@ -43,7 +43,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     public PrismObject<SimulationResultType> newWithDefaults() {
         var ret = new SimulationResultType();
         ret.name("Simulation Result: " + System.currentTimeMillis());
-                //.useOwnPartitionForProcessedObjects(currentConfiguration.isUseOwnPartitionForProcessedObjects());
+                //.useOwnPartitionForProcessedObjects(true);
         return ret.asPrismObject();
     }
 

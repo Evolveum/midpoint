@@ -156,6 +156,7 @@
           <!--  Extra stored state -->
           <xsd:element name="before" type="tns:ObjectType" />
           <xsd:element name="after" type="tns:ObjectType" />
+          <xsd:element name="delta" type="t:ObjectDeltaType" />
        </xsd:sequence>
     </xsd:complexType>
 
