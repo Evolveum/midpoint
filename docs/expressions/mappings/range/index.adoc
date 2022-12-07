@@ -190,7 +190,7 @@ However, the other common case is coexistence of several mappings, producing val
 As with any other set of mapping that target the same item, the results of both mappings are merged.
 What makes this situation special is removal of existing values of the target item.
 
-Let us illustrate that using an example of two mappings, both targetted for `assignment` container.
+Let us illustrate that using an example of two mappings, both targeted for `assignment` container.
 The first mapping is the HR mapping used in the previous section.
 The other is a mapping from a project management system.
 Its purpose is automatic management membership in project teams.
@@ -235,7 +235,7 @@ Once again let us illustrate mapping evaluation using an example.
 In this case we have two mappings, both of them are _inbound_ mappings, mapping data from the HR resource.
 There is the `jobCode` attribute that have seen before.
 There is also a `legacyCode` attribute, that has almost the same function as `jobCode`, but it is using legacy job codes.
-The HR department is in an process to migrate all systems from the old legacy codes to a new codes.
+The HR department is in a process to migrate all systems from the old legacy codes to a new codes.
 However, this process takes years and years, with no end in sight.
 Therefore, both `jobCode` and `legacyCode` has to work at the same time.
 Some jobs have both the new code and old code.
