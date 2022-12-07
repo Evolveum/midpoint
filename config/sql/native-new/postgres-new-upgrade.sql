@@ -205,10 +205,10 @@ CREATE TABLE m_simulation_result_processed_object (
     cid BIGINT NOT NULL,
     containerType ContainerType GENERATED ALWAYS AS ('SIMULATION_RESULT_PROCESSED_OBJECT') STORED
         CHECK (containerType = 'SIMULATION_RESULT_PROCESSED_OBJECT'),
-    oid UUID NOT NULL,
+    oid UUID,
     objectType ObjectType,
-    nameOrig TEXT NOT NULL,
-    nameNorm TEXT NOT NULL,
+    nameOrig TEXT,
+    nameNorm TEXT,
     state ObjectProcessingStateType,
     metricIdentifiers TEXT[],
     fullObject BYTEA,

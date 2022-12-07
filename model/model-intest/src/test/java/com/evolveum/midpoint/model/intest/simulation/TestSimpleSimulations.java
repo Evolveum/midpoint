@@ -68,7 +68,7 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                 .name("test100");
 
         when("user is created in simulation");
-        Object simulationConfiguration = getSimulationConfiguration();
+        SimulationResultType simulationConfiguration = getSimulationConfiguration();
         SimulationResult simResult =
                 executeInProductionSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
@@ -97,12 +97,12 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
         assertUserPrimaryAndSecondaryDeltas(modelContext);
     }
 
-    private Object getSimulationConfiguration() {
+    private SimulationResultType getSimulationConfiguration() {
         if (!isNativeRepository()) {
             return null; // No simulation storage in old repo
         }
         // TODO create the configuration
-        return null;
+        return simulationResultManager.newConfiguration();
     }
 
     private void assertTest100UserDeltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
@@ -166,7 +166,7 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                                 createAccount()));
 
         when("user is created in simulation");
-        Object simulationConfiguration = getSimulationConfiguration();
+        SimulationResultType simulationConfiguration = getSimulationConfiguration();
         SimulationResult simResult =
                 executeInProductionSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
@@ -282,7 +282,7 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                                                 .resourceRef(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid, ResourceType.COMPLEX_TYPE)));
 
         when("user is created in simulation");
-        Object simulationConfiguration = getSimulationConfiguration();
+        SimulationResultType simulationConfiguration = getSimulationConfiguration();
         SimulationResult simResult =
                 traced(() -> executeInProductionSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),

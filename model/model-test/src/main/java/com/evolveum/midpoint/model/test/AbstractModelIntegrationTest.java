@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 
@@ -312,6 +313,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return resource.controller;
     }
 
+    @Override
     public void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
             throws Exception {
         resource.controller = dummyResourceCollection.initDummyResource(
@@ -6904,7 +6906,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      */
     protected SimulationResult executeInProductionSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
-            @Nullable Object simulationConfiguration, // TODO correct Java type
+            @Nullable SimulationResultType simulationConfiguration,
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
@@ -6930,7 +6932,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * Executes a {@link ProcedureCall} in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      */
     public SimulationResult executeInProductionSimulationMode(
-            Object simulationConfiguration, Task task, ProcedureCall simulatedCall) throws CommonException {
+            SimulationResultType simulationConfiguration, Task task, ProcedureCall simulatedCall) throws CommonException {
         return executeInSimulationMode(
                 TaskExecutionMode.SIMULATED_PRODUCTION,
                 simulationConfiguration,
@@ -6944,12 +6946,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     private SimulationResult executeInSimulationMode(
-            TaskExecutionMode mode, Object simulationConfiguration, Task task, SimulatedProcedureCall simulatedCall)
+            TaskExecutionMode mode, SimulationResultType simulationConfiguration, Task task, SimulatedProcedureCall simulatedCall)
             throws CommonException {
 
-        ObjectProcessingListener simulationObjectProcessingListener =
-                simulationConfiguration != null ?
-                        null : null; //simulationResultManager.createNewSimulationResult(simulationConfiguration); // TODO
+        ObjectProcessingListener simulationObjectProcessingListener = null;
+
+        if (simulationConfiguration != null) {
+            SimulationResultContext context = simulationResultManager.newSimulationResult(simulationConfiguration, createOperationResult());
+            simulationObjectProcessingListener = context.objectProcessingListener();
+        }
 
         SimulationResult simulationResult = new SimulationResult();
         ObjectProcessingListener testObjectProcessingListener = simulationResult.objectProcessingListener();
