@@ -11,7 +11,7 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.task.api.ChangeExecutionListener;
+import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class SimulationResult {
         };
     }
 
-    ChangeExecutionListener changeExecutionListener() {
+    ObjectProcessingListener objectProcessingListener() {
         return (delta, executed, result) -> {
             if (executed) {
                 executedDeltas.add(delta);

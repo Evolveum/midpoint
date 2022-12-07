@@ -62,7 +62,7 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.A
  *
  * @author Radovan Semancik
  */
-public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener, ChangeExecutionListener {
+public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener, ObjectProcessingListener {
 
     String DOT_INTERFACE = Task.class.getName() + ".";
 
@@ -1013,8 +1013,8 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         }
     }
 
-    void addChangeExecutionListener(@NotNull ChangeExecutionListener listener);
+    void addObjectProcessingListener(@NotNull ObjectProcessingListener listener);
 
-    void removeChangeExecutionListener(@NotNull ChangeExecutionListener listener);
+    void removeObjectProcessingListener(@NotNull ObjectProcessingListener listener);
     //endregion
 }

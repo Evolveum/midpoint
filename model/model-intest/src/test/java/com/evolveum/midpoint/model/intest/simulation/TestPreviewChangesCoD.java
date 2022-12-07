@@ -155,7 +155,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         ObjectDelta<OrgType> delta = ORG_CHILD.getObject().clone().createAddDelta();
 
         when("executeChanges is called in simulation mode");
-        SimulationResult simResult = traced(() -> executeInSimulationMode(List.of(delta), task, result));
+        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
 
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
@@ -226,7 +226,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         ObjectDelta<OrgType> delta = createAddDeltaForOrgWithRoleAssignment();
 
         when("executeChanges is called in simulation mode");
-        SimulationResult simResult = traced(() -> executeInSimulationMode(List.of(delta), task, result));
+        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
 
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
@@ -261,7 +261,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         ObjectDelta<UserType> delta = USER_BOB.getObject().clone().createAddDelta();
 
         when("executeChanges is called in simulation mode");
-        SimulationResult simResult = traced(() -> executeInSimulationMode(List.of(delta), task, result));
+        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
 
         then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);

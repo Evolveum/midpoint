@@ -1,18 +1,19 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.model.intest;
+package com.evolveum.midpoint.model.intest.simulation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -22,6 +23,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
+import com.evolveum.midpoint.model.intest.TestPreviewChanges;
 import com.evolveum.midpoint.model.test.ObjectsCounter;
 import com.evolveum.midpoint.model.test.SimulationResult;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -30,31 +32,24 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Basic scenarios of simulations.
+ * Basic scenarios of simulations: actions executed from the foreground, no create-on-demand.
+ *
+ * See {@link TestPreviewChangesCoD} for create-on-demand related tests.
+ *
+ * Structure:
+ *
+ * - `test1xx` deal with creation, modification, and deletion of user objects
+ * - `test2xx` deal with importing single accounts from source resources
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
-
-    public static final File TEST_DIR = new File("src/test/resources/simulation/simple");
-
-    private static final DummyTestResource RESOURCE_DUMMY_SIMPLE = new DummyTestResource(
-            TEST_DIR, "resource-dummy-simple.xml", "3f8d6dee-9663-496f-a718-b3c27234aca7", "simple");
+public class TestSimpleSimulations extends AbstractSimulationsTest {
 
     /** Currently we make sure that no {@link FocusType} objects are added, but no {@link ShadowType} ones as well. */
     private final ObjectsCounter objectsCounter = new ObjectsCounter(FocusType.class, ShadowType.class);
-
-    @Override
-    public void initSystem(Task initTask, OperationResult initResult)
-            throws Exception {
-        super.initSystem(initTask, initResult);
-
-        RESOURCE_DUMMY_SIMPLE.initAndTest(this, initTask, initResult);
-    }
 
     /**
      * Creating a user without an account.
@@ -71,10 +66,11 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
                 .name("test100");
 
         when("user is created in simulation");
+        Object simulationConfiguration = getSimulationConfiguration();
         SimulationResult simResult =
-                executeInSimulationMode(
+                executeInProductionSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
-                        task, result);
+                        simulationConfiguration, task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -83,9 +79,33 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
         objectsCounter.assertNoNewObjects(result);
         simResult.assertNoExecutedDeltas();
 
-        and("there is a single ADD simulation delta");
+        and("there is a single ADD simulation delta (in testing storage)");
+        assertTest100UserDeltas(simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
+
+        if (simulationConfiguration != null) {
+            and("there is a single ADD simulation delta (in persistent storage)");
+            //Collection<ObjectDelta<?>> simulatedDeltas = retrieve simulated deltas from the persistent storage
+            //assertTest100UserDeltas(simResult.getSimulatedDeltas(), "simulated deltas in persistent storage");
+        }
+
+        and("the model context is OK");
+        ModelContext<?> modelContext = simResult.getLastModelContext();
+        displayDumpable("model context", modelContext);
+
+        assertUserPrimaryAndSecondaryDeltas(modelContext);
+    }
+
+    private Object getSimulationConfiguration() {
+        if (!isNativeRepository()) {
+            return null; // No simulation storage in old repo
+        }
+        // TODO create the configuration
+        return null;
+    }
+
+    private void assertTest100UserDeltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
         // @formatter:off
-        assertDeltaCollection(simResult.getSimulatedDeltas(), "simulated deltas after")
+        assertDeltaCollection(simulatedDeltas, message)
                 .display()
                 .single()
                     .assertAdd()
@@ -102,12 +122,6 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
                             .assertEffectiveStatus(ActivationStatusType.ENABLED)
                             .assertEnableTimestampPresent();
         // @formatter:on
-
-        and("the model context is OK");
-        ModelContext<?> modelContext = simResult.getLastModelContext();
-        displayDumpable("model context", modelContext);
-
-        assertUserPrimaryAndSecondaryDeltas(modelContext);
     }
 
     private void assertUserPrimaryAndSecondaryDeltas(ModelContext<?> modelContext) {
@@ -150,10 +164,11 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
                                 createAccount()));
 
         when("user is created in simulation");
+        Object simulationConfiguration = getSimulationConfiguration();
         SimulationResult simResult =
-                executeInSimulationMode(
+                executeInProductionSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
-                        task, result);
+                        simulationConfiguration, task, result);
 
         then("everything is OK");
         assertSuccess(result);
@@ -162,40 +177,13 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
         objectsCounter.assertNoNewObjects(result); // in the future there may be some simulated shadows
         simResult.assertNoExecutedDeltas();
 
-        and("there are simulation deltas");
-        // @formatter:off
-        assertDeltaCollection(simResult.getSimulatedDeltas(), "simulated deltas after")
-                .display()
-                .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
-                    .objectToAdd()
-                        .assertName("test110")
-                        .objectMetadata()
-                            .assertRequestTimestampPresent()
-                            .assertCreateTimestampPresent()
-                            .assertLastProvisioningTimestampPresent()
-                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
-                        .end()
-                        .asFocus()
-                        .activation()
-                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
-                            .assertEnableTimestampPresent()
-                        .end()
-                    .end()
-                .end()
-                .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
-                    .assertModifiedPaths(UserType.F_LINK_REF)
-                .end()
-                .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
-                    .objectToAdd()
-                        .assertNoName() // currently, there is no object name there
-                        .asShadow()
-                        .assertResource(RESOURCE_DUMMY_SIMPLE.oid)
-                        .assertObjectClass(RI_ACCOUNT_OBJECT_CLASS)
-                        .assertKind(ShadowKindType.ACCOUNT)
-                        .assertIntent("default")
-                        .attributes()
-                            .assertValue(ICFS_NAME, "test110");
-        // @formatter:on
+        and("there are simulation deltas (in testing storage)");
+        assertTest110UserAndAccountDeltas(simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
+
+        if (simulationConfiguration != null) {
+            and("there are simulation deltas (in persistent storage)");
+            // TODO
+        }
 
         and("the model context is OK");
         ModelContext<?> modelContext = simResult.getLastModelContext();
@@ -226,11 +214,47 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
 
     private ShadowType createAccount() {
         return new ShadowType()
-                .resourceRef(RESOURCE_DUMMY_SIMPLE.oid, ResourceType.COMPLEX_TYPE)
+                .resourceRef(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid, ResourceType.COMPLEX_TYPE)
                 .objectClass(RI_ACCOUNT_OBJECT_CLASS)
                 .kind(ShadowKindType.ACCOUNT)
                 .intent("default");
         // Name should be computed by mappings
+    }
+
+    private void assertTest110UserAndAccountDeltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
+        // @formatter:off
+        assertDeltaCollection(simulatedDeltas, message)
+                .display()
+                .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
+                    .objectToAdd()
+                        .assertName("test110")
+                        .objectMetadata()
+                            .assertRequestTimestampPresent()
+                            .assertCreateTimestampPresent()
+                            .assertLastProvisioningTimestampPresent()
+                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
+                        .end()
+                        .asFocus()
+                        .activation()
+                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                            .assertEnableTimestampPresent()
+                        .end()
+                    .end()
+                .end()
+                .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
+                    .assertModifiedPaths(UserType.F_LINK_REF)
+                .end()
+                .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
+                    .objectToAdd()
+                        .assertNoName() // currently, there is no object name there
+                        .asShadow()
+                        .assertResource(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid)
+                        .assertObjectClass(RI_ACCOUNT_OBJECT_CLASS)
+                        .assertKind(ShadowKindType.ACCOUNT)
+                        .assertIntent("default")
+                        .attributes()
+                            .assertValue(ICFS_NAME, "test110");
+        // @formatter:on
     }
 
     /**
@@ -253,13 +277,14 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
                         new AssignmentType()
                                 .construction(
                                         new ConstructionType()
-                                                .resourceRef(RESOURCE_DUMMY_SIMPLE.oid, ResourceType.COMPLEX_TYPE)));
+                                                .resourceRef(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid, ResourceType.COMPLEX_TYPE)));
 
         when("user is created in simulation");
+        Object simulationConfiguration = getSimulationConfiguration();
         SimulationResult simResult =
-                traced(() -> executeInSimulationMode(
+                traced(() -> executeInProductionSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
-                        task, result));
+                        simulationConfiguration, task, result));
 
         then("everything is OK");
         assertSuccess(result);
@@ -268,9 +293,25 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
         objectsCounter.assertNoNewObjects(result); // simulated shadows?
         simResult.assertNoExecutedDeltas();
 
-        and("there are simulation deltas");
+        and("there are simulation deltas (in testing storage)");
+        assertTest120UserAndAccountDeltas(simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
+
+        if (simulationConfiguration != null) {
+            and("there are simulation deltas (in persistent storage)");
+            // TODO
+        }
+
+        and("the model context is OK");
+        ModelContext<?> modelContext = simResult.getLastModelContext();
+        displayDumpable("model context", modelContext);
+        // Only basic assertions this time. We hope that everything is OK there.
+        assertThat(modelContext.getFocusContext()).as("focus context").isNotNull();
+        assertThat(modelContext.getProjectionContexts()).as("projection contexts").hasSize(1);
+    }
+
+    private void assertTest120UserAndAccountDeltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
         // @formatter:off
-        assertDeltaCollection(simResult.getSimulatedDeltas(), "simulated deltas after")
+        assertDeltaCollection(simulatedDeltas, message)
                 .display()
                 .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
                     .objectToAdd()
@@ -288,7 +329,7 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
                         .end()
                         .assignments()
                             .single()
-                                .assertResource(RESOURCE_DUMMY_SIMPLE.oid)
+                                .assertResource(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid)
                             .end()
                         .end()
                     .end()
@@ -297,7 +338,7 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
                     .objectToAdd()
                         .assertNoName() // currently, there is no object name there
                         .asShadow()
-                        .assertResource(RESOURCE_DUMMY_SIMPLE.oid)
+                        .assertResource(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid)
                         .assertObjectClass(RI_ACCOUNT_OBJECT_CLASS)
                         .assertKind(ShadowKindType.ACCOUNT)
                         .assertIntent("default")
@@ -324,12 +365,13 @@ public class TestSimpleSimulations extends AbstractEmptyModelIntegrationTest {
                             ItemPath.create(PATH_METADATA_MODIFY_APPROVAL_COMMENT))
                 .end();
         // @formatter:on
+    }
 
-        and("the model context is OK");
-        ModelContext<?> modelContext = simResult.getLastModelContext();
-        displayDumpable("model context", modelContext);
-        // Only basic assertions this time. We hope that everything is OK there.
-        assertThat(modelContext.getFocusContext()).as("focus context").isNotNull();
-        assertThat(modelContext.getProjectionContexts()).as("projection contexts").hasSize(1);
+    /**
+     * Simulated import from production source.
+     */
+    @Test
+    public void test200SimulatedProductionImport() {
+        // TODO
     }
 }

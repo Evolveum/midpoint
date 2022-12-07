@@ -9,19 +9,24 @@ package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Listens for changes that are executed, or are to be executed.
+ * Listens for two aspects of objects being processed during the task execution (on foreground or on background):
  *
- * TEMPORARY - to be used only during the development of the "simulations" feature in 4.7.
+ * - object changes (additions, modifications, deletions)
+ * - object being processed but not changed
  *
- * We may use other means (e.g. parallel to audit) to record the deltas-to-be-executed.
+ * See the specific methods.
  */
-@Experimental
-public interface ChangeExecutionListener {
+public interface ObjectProcessingListener {
+
+    //List<> getMetricDefinitions();
+
+    //getStorageStrategy();
+
+    // addProcessedObject(PrismObject<?> before, PrismObject<?> after);
 
     /**
      * Called after a change was executed (or would-be executed if the execution mode was "real").

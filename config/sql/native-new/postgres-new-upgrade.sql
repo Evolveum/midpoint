@@ -172,7 +172,8 @@ $aa$);
 -- Simulations
 call apply_change(12, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
-$aa);
+   ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
+$aa$);
 
 call apply_change(13, $aa$
 CREATE TABLE m_simulation_result (
@@ -183,16 +184,14 @@ CREATE TABLE m_simulation_result (
 )
     INHERITS (m_object);
 
-CREATE TRIGGER m_simulation_result_oid_insert_tr BEFORE INSERT ON m_message_template
+CREATE TRIGGER m_simulation_result_oid_insert_tr BEFORE INSERT ON m_simulation_result
     FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
-CREATE TRIGGER m_simulation_result_update_tr BEFORE UPDATE ON m_message_template
+CREATE TRIGGER m_simulation_result_update_tr BEFORE UPDATE ON m_simulation_result
     FOR EACH ROW EXECUTE FUNCTION before_update_object();
-CREATE TRIGGER m_simulation_result_oid_delete_tr AFTER DELETE ON m_message_template
+CREATE TRIGGER m_simulation_result_oid_delete_tr AFTER DELETE ON m_simulation_result
     FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
-CREATE TYPE ObjectProcessingStateType AS ENUM ('UNMODIFIED', 'ADDED', 'MODIFIED', 'DELETED' );
-
-ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
+CREATE TYPE ObjectProcessingStateType AS ENUM ('UNMODIFIED', 'ADDED', 'MODIFIED', 'DELETED');
 
 CREATE TABLE m_simulation_result_processed_object (
     -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
@@ -215,7 +214,6 @@ CREATE TABLE m_simulation_result_processed_object (
     fullObject BYTEA,
     objectBefore BYTEA,
     objectAfter BYTEA,
-    
 
    PRIMARY KEY (ownerOid, cid)
 ) PARTITION BY LIST(ownerOid);
@@ -240,8 +238,6 @@ LANGUAGE plpgsql;
 CREATE TRIGGER m_simulation_result_create_partition AFTER INSERT ON m_simulation_result
  FOR EACH ROW EXECUTE FUNCTION m_simulation_result_create_partition();
 
-
-
 --- Trigger which deletes processed objects partition when whole simulation is deleted
 
 CREATE OR REPLACE FUNCTION m_simulation_result_delete_partition() RETURNS trigger AS
@@ -259,11 +255,10 @@ CREATE OR REPLACE FUNCTION m_simulation_result_delete_partition() RETURNS trigge
   $BODY$
 LANGUAGE plpgsql;
 
-CREATE TRIGGER baseline_delete_partition BEFORE DELETE ON m_simulation_result 
-  FOR EACH ROW EXECUTE FUNCTION baseline_delete_partition();
+CREATE TRIGGER m_simulation_result_delete_partition BEFORE DELETE ON m_simulation_result
+  FOR EACH ROW EXECUTE FUNCTION m_simulation_result_delete_partition();
 
-
-$aa);
+$aa$);
 
 
 -- WRITE CHANGES ABOVE ^^

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -11,7 +11,10 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         oid="3f8d6dee-9663-496f-a718-b3c27234aca7">
 
-    <name>resource-dummy-simple</name>
+    <name>resource-simple-production-target</name>
+    <documentation>
+        This is very simple production-grade target resource used in the simulations.
+    </documentation>
 
     <connectorRef type="ConnectorType">
         <filter>
@@ -32,7 +35,7 @@
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId>simple</icfi:instanceId>
+            <icfi:instanceId>simple-production-target</icfi:instanceId>
         </icfc:configurationProperties>
 
         <icfc:resultsHandlerConfiguration>

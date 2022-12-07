@@ -29,9 +29,10 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 
-import com.evolveum.midpoint.task.api.ChangeExecutionListener;
+import com.evolveum.midpoint.task.api.ObjectProcessingListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -216,6 +217,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected SecurityContextManager securityContextManager;
     @Autowired protected MidpointFunctions libraryMidpointFunctions;
     @Autowired protected ValuePolicyProcessor valuePolicyProcessor;
+    @Autowired protected SimulationResultManager simulationResultManager;
 
     @Autowired(required = false)
     @Qualifier("modelObjectResolver")
@@ -6896,21 +6898,49 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return new ImportSingleAccountRequestBuilder(this);
     }
 
-    protected SimulationResult executeInSimulationMode(
-            Collection<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
+    /**
+     * Executes a set of deltas in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
+     *
+     * Simulation deltas are stored in returned {@link SimulationResult} and optionally also in the storage provided by the
+     * {@link SimulationResultManager} - if `simulationConfiguration` is present. (To be implemented.)
+     */
+    protected SimulationResult executeInProductionSimulationMode(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @Nullable Object simulationConfiguration, // TODO correct Java type
+            @NotNull Task task,
+            @NotNull OperationResult result)
             throws CommonException {
 
+        ObjectProcessingListener simulationObjectProcessingListener =
+                simulationConfiguration != null ?
+                        null : null; //simulationResultManager.createNewSimulationResult(simulationConfiguration); // TODO
+
         SimulationResult simulationResult = new SimulationResult();
-        ChangeExecutionListener changeExecutionListener = simulationResult.changeExecutionListener();
+        ObjectProcessingListener testObjectProcessingListener = simulationResult.objectProcessingListener();
         TaskExecutionMode oldExecutionMode = task.getExecutionMode();
         try {
             task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
-            task.addChangeExecutionListener(changeExecutionListener);
+            task.addObjectProcessingListener(testObjectProcessingListener);
+            if (simulationObjectProcessingListener != null) {
+                task.addObjectProcessingListener(simulationObjectProcessingListener);
+            }
             modelService.executeChanges(deltas, null, task, List.of(simulationResult.contextRecordingListener()), result);
         } finally {
-            task.removeChangeExecutionListener(changeExecutionListener);
+            task.removeObjectProcessingListener(testObjectProcessingListener);
+            if (simulationObjectProcessingListener != null) {
+                task.removeObjectProcessingListener(simulationObjectProcessingListener);
+            }
             task.setExecutionMode(oldExecutionMode);
         }
         return simulationResult;
+    }
+
+    /** Convenience method */
+    protected SimulationResult executeInProductionSimulationMode(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+        return executeInProductionSimulationMode(deltas, null, task, result);
     }
 }

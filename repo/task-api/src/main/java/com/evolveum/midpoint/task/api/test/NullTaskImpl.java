@@ -776,11 +776,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void addChangeExecutionListener(@NotNull ChangeExecutionListener listener) {
+    public void addObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
     }
 
     @Override
-    public void removeChangeExecutionListener(@NotNull ChangeExecutionListener listener) {
+    public void removeObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
     }
 
     @Override
