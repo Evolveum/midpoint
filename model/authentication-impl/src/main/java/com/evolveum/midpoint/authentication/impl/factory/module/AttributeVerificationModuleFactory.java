@@ -47,7 +47,7 @@ public class AttributeVerificationModuleFactory extends AbstractCredentialModule
 
     @Override
     protected Class<? extends CredentialPolicyType> supportedClass() {
-        return AttributeVerificationCredentialsPolicyType.class;
+        return null;    //todo
     }
 
     @Override

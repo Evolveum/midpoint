@@ -62,7 +62,7 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
 
     @Override
     public Class<? extends CredentialPolicyType> getTypeOfCredential() {
-        return AttributeVerificationCredentialsPolicyType.class;
+        return null; //todo
     }
 
 }
