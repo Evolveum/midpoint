@@ -29,7 +29,6 @@ import com.evolveum.midpoint.model.intest.TestPreviewChanges;
 import com.evolveum.midpoint.model.test.ObjectsCounter;
 import com.evolveum.midpoint.model.test.SimulationResult;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -86,8 +85,8 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
 
         if (simulationConfiguration != null) {
             and("there is a single ADD simulation delta (in persistent storage)");
-            //Collection<ObjectDelta<?>> simulatedDeltas = retrieve simulated deltas from the persistent storage
-            //assertTest100UserDeltas(simResult.getSimulatedDeltas(), "simulated deltas in persistent storage");
+            Collection<ObjectDelta<?>> simulatedDeltas = simResult.getStoredDeltas(result);
+            assertTest100UserDeltas(simulatedDeltas, "simulated deltas in persistent storage");
         }
 
         and("the model context is OK");
@@ -184,7 +183,8 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
 
         if (simulationConfiguration != null) {
             and("there are simulation deltas (in persistent storage)");
-            // TODO
+            Collection<ObjectDelta<?>> simulatedDeltas = simResult.getStoredDeltas(result);
+            assertTest110UserAndAccountDeltas(simulatedDeltas, "simulated deltas in persistent storage");
         }
 
         and("the model context is OK");
@@ -241,10 +241,8 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                             .assertEffectiveStatus(ActivationStatusType.ENABLED)
                             .assertEnableTimestampPresent()
                         .end()
+                        .assertLiveLinks(1)
                     .end()
-                .end()
-                .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
-                    .assertModifiedPaths(UserType.F_LINK_REF)
                 .end()
                 .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
                     .objectToAdd()
@@ -255,7 +253,13 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                         .assertKind(ShadowKindType.ACCOUNT)
                         .assertIntent("default")
                         .attributes()
-                            .assertValue(ICFS_NAME, "test110");
+                            .assertValue(ICFS_NAME, "test110")
+                        .end()
+                        .objectMetadata()
+                            .assertRequestTimestampPresent()
+                            .assertCreateTimestampPresent()
+                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
+                        .end();
         // @formatter:on
     }
 
@@ -300,7 +304,8 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
 
         if (simulationConfiguration != null) {
             and("there are simulation deltas (in persistent storage)");
-            // TODO
+            Collection<ObjectDelta<?>> simulatedDeltas = simResult.getStoredDeltas(result);
+            assertTest120UserAndAccountDeltas(simulatedDeltas, "simulated deltas in persistent storage");
         }
 
         and("the model context is OK");
@@ -334,6 +339,7 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                                 .assertResource(RESOURCE_SIMPLE_PRODUCTION_TARGET.oid)
                             .end()
                         .end()
+                        .assertLiveLinks(1)
                     .end()
                 .end()
                 .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
@@ -347,24 +353,12 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                         .attributes()
                             .assertValue(ICFS_NAME, "test120")
                         .end()
+                        .objectMetadata()
+                            .assertRequestTimestampPresent()
+                            .assertCreateTimestampPresent()
+                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
+                        .end()
                     .end()
-                .end()
-                .by().changeType(ChangeType.MODIFY).objectType(UserType.class).index(0).find()
-                    .assertModifiedPaths(UserType.F_LINK_REF)
-                .end()
-                .by().changeType(ChangeType.MODIFY).objectType(UserType.class).index(1).find()
-                    .assertModifiedPaths( // Why exactly these? This is very brittle and may change at any time.
-                            ItemPath.create(UserType.F_ASSIGNMENT, 1L, PATH_ACTIVATION_EFFECTIVE_STATUS),
-                            ItemPath.create(UserType.F_ASSIGNMENT, 1L, PATH_METADATA_MODIFY_CHANNEL),
-                            ItemPath.create(UserType.F_ASSIGNMENT, 1L, PATH_METADATA_MODIFY_TIMESTAMP),
-                            ItemPath.create(UserType.F_ASSIGNMENT, 1L, PATH_METADATA_MODIFIER_REF),
-                            ItemPath.create(UserType.F_ASSIGNMENT, 1L, PATH_METADATA_MODIFY_TASK_REF),
-                            ItemPath.create(PATH_METADATA_MODIFY_CHANNEL),
-                            ItemPath.create(PATH_METADATA_MODIFY_TIMESTAMP),
-                            ItemPath.create(PATH_METADATA_MODIFIER_REF),
-                            ItemPath.create(PATH_METADATA_MODIFY_TASK_REF),
-                            ItemPath.create(PATH_METADATA_MODIFY_APPROVER_REF),
-                            ItemPath.create(PATH_METADATA_MODIFY_APPROVAL_COMMENT))
                 .end();
         // @formatter:on
     }
@@ -384,9 +378,10 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.controller.addAccount("test200");
 
         when("the account is imported");
+        SimulationResultType simulationConfiguration = getSimulationConfiguration();
         SimulationResult simResult =
                 executeInProductionSimulationMode(
-                        null,
+                        simulationConfiguration,
                         task,
                         result,
                         () ->
@@ -403,6 +398,12 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
 
         and("deltas are correct (in testing storage)");
         assertTest200Deltas(simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
+
+        if (simulationConfiguration != null) {
+            and("there are simulation deltas (in persistent storage)");
+            Collection<ObjectDelta<?>> simulatedDeltas = simResult.getStoredDeltas(result);
+            assertTest200Deltas(simulatedDeltas, "simulated deltas in persistent storage");
+        }
 
         and("shadow should not have full sync info set");
         assertShadowAfter(
@@ -431,10 +432,8 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                             .assertEffectiveStatus(ActivationStatusType.ENABLED)
                             .assertEnableTimestampPresent()
                         .end()
+                        .assertLiveLinks(1)
                     .end()
-                .end()
-                .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
-                    .assertModifiedPaths(UserType.F_LINK_REF)
                 .end()
                 .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).index(0).find()
                     .assertModifiedPaths( // fragile, may change when projector changes
@@ -446,12 +445,7 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                             PATH_METADATA_MODIFY_TASK_REF,
                             PATH_METADATA_MODIFY_APPROVER_REF,
                             PATH_METADATA_MODIFY_APPROVAL_COMMENT)
-                .end()
-                .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).index(1).find()
-                    .assertModifiedPaths( // fragile, may change when projector changes
-                            ShadowType.F_SYNCHRONIZATION_SITUATION,
-                            ShadowType.F_SYNCHRONIZATION_TIMESTAMP,
-                            ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION);
+                .end();
         // @formatter:on
     }
 }

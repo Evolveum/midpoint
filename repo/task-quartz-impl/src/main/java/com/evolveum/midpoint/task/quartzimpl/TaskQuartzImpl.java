@@ -107,7 +107,7 @@ public class TaskQuartzImpl implements Task {
 
     @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
 
-    @NotNull private final Collection<ObjectProcessingListener> objectProcessingListeners = Sets.newConcurrentHashSet();
+    @NotNull private final Collection<AggregatedObjectProcessingListener> objectProcessingListeners = Sets.newConcurrentHashSet();
 
     /** Synchronizes Quartz-related operations. */
     private final Object quartzAccess = new Object();
@@ -2317,19 +2317,23 @@ public class TaskQuartzImpl implements Task {
     }
 
     @Override
-    public void addObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
+    public void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
         objectProcessingListeners.add(listener);
     }
 
     @Override
-    public void removeObjectProcessingListener(@NotNull ObjectProcessingListener listener) {
+    public void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
         objectProcessingListeners.remove(listener);
     }
 
     @Override
-    public void onChangeExecuted(@NotNull ObjectDelta<?> delta, boolean executed, @NotNull OperationResult result) {
-        for (ObjectProcessingListener objectProcessingListener : objectProcessingListeners) {
-            objectProcessingListener.onChangeExecuted(delta, executed, result);
+    public <O extends ObjectType> void onItemProcessed(
+            @Nullable O stateBefore,
+            @Nullable ObjectDelta<O> executedDelta,
+            @Nullable ObjectDelta<O> simulatedDelta,
+            @NotNull OperationResult result) {
+        for (AggregatedObjectProcessingListener objectProcessingListener : objectProcessingListeners) {
+            objectProcessingListener.onItemProcessed(stateBefore, executedDelta, simulatedDelta, result);
         }
     }
     //endregion

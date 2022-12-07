@@ -168,6 +168,7 @@ public class Clockwork {
             }
         } finally {
             operationExecutionRecorder.recordOperationExecutions(context, task, result);
+            beans.clockworkAuditHelper.submitSimulationDeltas(context, task, result);
             clockworkConflictResolver.unregisterConflictWatcher(context);
             exitCaches();
             context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));

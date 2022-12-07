@@ -445,7 +445,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             if (task.isPersistentExecution()) {
                 oid = executeRealAddition(objectToAdd, result);
             } else {
-                oid = executeSimulatedAddition(objectToAdd, result);
+                oid = executeSimulatedAddition(objectToAdd);
             }
             if (!delta.isImmutable()) {
                 delta.setOid(oid);
@@ -493,12 +493,10 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
             oid = b.cacheRepositoryService.addObject(objectToAdd, createRepoAddOptions(), result);
         }
-        task.onChangeExecuted(objectToAdd.createAddDelta(), true, result);
         return oid;
     }
 
-    private String executeSimulatedAddition(PrismObject<E> objectToAdd, OperationResult result) {
-        task.onChangeExecuted(objectToAdd.createAddDelta(), false, result);
+    private String executeSimulatedAddition(PrismObject<E> objectToAdd) {
         String explicitOid = objectToAdd.getOid();
         if (explicitOid != null) {
             return explicitOid;
@@ -581,8 +579,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
             if (task.isPersistentExecution()) {
                 executeRealModification(objectClass, result);
-            } else {
-                executeSimulatedModification(result);
             }
             task.recordObjectActionExecuted(baseObject, objectClass, delta.getOid(), ChangeType.MODIFY,
                     context.getChannel(), null);
@@ -617,11 +613,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 throw new ConflictDetectedException(e);
             }
         }
-        task.onChangeExecuted(delta, true, result);
-    }
-
-    private void executeSimulatedModification(OperationResult result) {
-        task.onChangeExecuted(delta, false, result);
     }
 
     private String modifyProvisioningObject(OperationResult result) throws ObjectNotFoundException, CommunicationException,
@@ -732,8 +723,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
 
             if (task.isPersistentExecution()) {
                 executeRealDeletion(objectTypeClass, oid, result);
-            } else {
-                executeSimulatedDeletion(result);
             }
             deleted = true;
             task.recordObjectActionExecuted(objectOld, objectTypeClass, oid, ChangeType.DELETE, context.getChannel(), null);
@@ -791,11 +780,6 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             }
             objectAfterModification = null;
         }
-        task.onChangeExecuted(delta, true, result);
-    }
-
-    private void executeSimulatedDeletion(OperationResult result) {
-        task.onChangeExecuted(delta, false, result);
     }
 
     private PrismObject<E> deleteProvisioningObject(Class<E> type, String oid, OperationResult result)

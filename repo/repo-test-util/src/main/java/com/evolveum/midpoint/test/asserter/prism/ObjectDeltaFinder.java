@@ -67,7 +67,7 @@ public class ObjectDeltaFinder<RA> {
             }
         }
         if (found == null) {
-            fail("Found no link that matches search criteria: " + this);
+            fail("Found no delta that matches search criteria: " + this);
         }
         //noinspection unchecked
         return deltaCollectionAsserter.spawn((ObjectDelta<O>) found, "selected delta");

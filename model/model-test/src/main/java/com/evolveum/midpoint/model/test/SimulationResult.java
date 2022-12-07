@@ -10,11 +10,21 @@ package com.evolveum.midpoint.model.test;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.task.api.ObjectProcessingListener;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,16 +35,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Experimental
 public class SimulationResult {
 
-    private final List<ObjectDelta<?>> simulatedDeltas = new ArrayList<>();
+    @Nullable private final SimulationResultContext simulationResultContext;
     private final List<ObjectDelta<?>> executedDeltas = new ArrayList<>();
+    private final List<ObjectDelta<?>> simulatedDeltas = new ArrayList<>();
     private ModelContext<?> lastModelContext;
 
-    public List<ObjectDelta<?>> getSimulatedDeltas() {
-        return simulatedDeltas;
+    SimulationResult(@Nullable SimulationResultContext simulationResultContext) {
+        this.simulationResultContext = simulationResultContext;
     }
 
     public List<ObjectDelta<?>> getExecutedDeltas() {
         return executedDeltas;
+    }
+
+    public List<ObjectDelta<?>> getSimulatedDeltas() {
+        return simulatedDeltas;
     }
 
     public ModelContext<?> getLastModelContext() {
@@ -55,17 +70,33 @@ public class SimulationResult {
         };
     }
 
-    ObjectProcessingListener objectProcessingListener() {
-        return (delta, executed, result) -> {
-            if (executed) {
-                executedDeltas.add(delta);
-            } else {
-                simulatedDeltas.add(delta);
-            }
-        };
+    AggregatedObjectProcessingListener aggregatedObjectProcessingListener() {
+        return this::onItemProcessed;
+    }
+
+    private <O extends ObjectType> void onItemProcessed(
+            @Nullable O stateBefore,
+            @Nullable ObjectDelta<O> executedDelta,
+            @Nullable ObjectDelta<O> simulatedDelta,
+            @NotNull OperationResult result) {
+        if (executedDelta != null) {
+            executedDeltas.add(executedDelta);
+        }
+        if (simulatedDelta != null) {
+            simulatedDeltas.add(simulatedDelta);
+        }
     }
 
     public void assertNoExecutedDeltas() {
         assertThat(executedDeltas).as("executed deltas").isEmpty();
+    }
+
+    public @Nullable SimulationResultContext getSimulationResultContext() {
+        return simulationResultContext;
+    }
+
+    public Collection<ObjectDelta<?>> getStoredDeltas(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return simulationResultContext != null ?
+                simulationResultContext.getStoredDeltas(result) : List.of();
     }
 }

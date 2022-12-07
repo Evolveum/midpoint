@@ -227,7 +227,6 @@ class LinkUpdater<F extends FocusType> {
             if (real) {
                 repositoryService.modifyObject(focusType, focus.getOid(), delta.getModifications(), result);
             }
-            task.onChangeExecuted(delta, real, result);
             task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, null);
         } catch (ObjectAlreadyExistsException ex) {
             task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, ex);
@@ -434,10 +433,6 @@ class LinkUpdater<F extends FocusType> {
             if (real) {
                 executeShadowDelta(syncSituationDeltas, result);
             }
-            ObjectDelta<ShadowType> modifyDelta =
-                    prismContext.deltaFactory().object().createModifyDelta(projectionOid, syncSituationDeltas, ShadowType.class);
-            task.onChangeExecuted(modifyDelta, real, result);
-
             LOGGER.trace("Situation in projection {} was updated to {} (real={})", projCtx, newSituation, real);
         } catch (Exception ex) {
             result.recordFatalError(ex);

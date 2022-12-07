@@ -33,7 +33,7 @@ import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 
-import com.evolveum.midpoint.task.api.ObjectProcessingListener;
+import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -6956,16 +6956,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             SimulatedProcedureCall simulatedCall)
             throws CommonException {
 
-        ObjectProcessingListener simulationObjectProcessingListener;
-        if (simulationConfiguration != null) {
-            SimulationResultContext context = simulationResultManager.newSimulationResult(simulationConfiguration, result);
-            simulationObjectProcessingListener = context.objectProcessingListener();
-        } else {
-            simulationObjectProcessingListener = null;
-        }
+        SimulationResultContext simulationResultContext =
+                simulationConfiguration != null ?
+                        simulationResultManager.newSimulationResult(simulationConfiguration, result) : null;
+        AggregatedObjectProcessingListener simulationObjectProcessingListener =
+                simulationResultContext != null ? simulationResultContext.aggregatedObjectProcessingListener() : null;
 
-        SimulationResult simulationResult = new SimulationResult();
-        ObjectProcessingListener testObjectProcessingListener = simulationResult.objectProcessingListener();
+        SimulationResult simulationResult = new SimulationResult(simulationResultContext);
+        AggregatedObjectProcessingListener testObjectProcessingListener = simulationResult.aggregatedObjectProcessingListener();
         TaskExecutionMode oldMode = task.setExecutionMode(mode);
         try {
             task.addObjectProcessingListener(testObjectProcessingListener);

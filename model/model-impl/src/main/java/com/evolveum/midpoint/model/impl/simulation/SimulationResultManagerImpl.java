@@ -1,9 +1,19 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +31,6 @@ import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
@@ -95,19 +104,33 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         systemConfigurationChangeDispatcher.unregisterListener(this);
     }
 
-    public void storeProcessedObject(@NotNull String oid, SimulationResultProcessedObjectType processedObject, @NotNull OperationResult parentResult) {
+    void storeProcessedObject(
+            @NotNull String oid, @NotNull SimulationResultProcessedObjectType processedObject, @NotNull OperationResult result) {
         try {
-        List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(SimulationResultType.class)
-            .item(SimulationResultType.F_PROCESSED_OBJECT)
-            .add(processedObject.asPrismContainerValue())
-            .asItemDeltas()
-            ;
-            repository.modifyObject(SimulationResultType.class, oid, modifications, parentResult);
+            List<ItemDelta<?, ?>> modifications = PrismContext.get().deltaFor(SimulationResultType.class)
+                    .item(SimulationResultType.F_PROCESSED_OBJECT)
+                    .add(processedObject.asPrismContainerValue())
+                    .asItemDeltas();
+            repository.modifyObject(SimulationResultType.class, oid, modifications, result);
         } catch (Exception e) {
             // FIXME: Handle properly
             throw new SystemException(e);
         }
     }
 
-
+    /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
+    @NotNull Collection<ObjectDelta<?>> getStoredDeltas(@NotNull String oid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
+        SimulationResultType simResult = repository
+                .getObject(SimulationResultType.class, oid, GetOperationOptions.createRetrieveCollection(), result)
+                .asObjectable();
+        Collection<ObjectDelta<?>> deltas = new ArrayList<>();
+        for (SimulationResultProcessedObjectType processedObject : simResult.getProcessedObject()) {
+            ObjectDeltaType deltaBean = processedObject.getDelta();
+            if (deltaBean != null) {
+                deltas.add(DeltaConvertor.createObjectDelta(deltaBean));
+            }
+        }
+        return deltas;
+    }
 }
