@@ -259,7 +259,7 @@ Panels applicable for all FocusType objects:
 
 | Indirect assignments
 | `indirectAssignments`
-| Panel showing direct and also indirect assignemnts. In details menu present as a submenu of `assignments`
+| Panel showing direct and also indirect assignments. In details menu present as a submenu of `assignments`
 |
 
 | Data protection assignments
@@ -326,7 +326,7 @@ Panel applicable for all AbstractRoleType objects:
 
 | Policy rule assignments
 | `policyRuleAssignments`
-| Policy ryle related assignemnts.In details menu present as a submenu of `assignments`.
+| Policy ryle related assignments.In details menu present as a submenu of `assignments`.
 | 60
 
 | Focus mappings assignments
@@ -1038,7 +1038,7 @@ Of course, if the user has more roles that gives access to more panels than he w
 
 === Customize assignments views
 
-With new configuration there are several options how to cutomize assignemnts views. E.g.:
+With new configuration there are several options how to cutomize assignments views. E.g.:
 
 . Hiding "All assignments" panel.
 +

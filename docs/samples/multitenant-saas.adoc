@@ -457,9 +457,9 @@ The role is assigned to midPoint users with `employeeType` attribute values "cus
 .. User template processing finishes.
 The user now has a full name and several assignments:
 
-... Assignement to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.]
+... Assignment to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.]
 
-... Assignement of the "Customer User Role" role.
+... Assignment of the "Customer User Role" role.
 
 ... Assignment of the "Customer Admin Role" role.
 
@@ -555,9 +555,9 @@ The role is assigned to midPoint users with `employeeType` attribute values "cus
 .. User template processing finishes.
 The user now has a full name and several assignments:
 
-... Assignement to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] (because of "Add member" action in GUI)
+... Assignment to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] (because of "Add member" action in GUI)
 
-... Assignement of the "Customer User Role" role.
+... Assignment of the "Customer User Role" role.
 
 ... Assignment of the "Customer Admin Role" role.
 
@@ -651,9 +651,9 @@ The role is assigned to midPoint users with `employeeType` attribute values "cus
 .. User template processing finishes.
 The user now has a full name and two assignments:
 
-... Assignement to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] (because of "Add member" action in GUI)
+... Assignment to the "ultra1" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.] (because of "Add member" action in GUI)
 
-... Assignement of the "Customer User Role" role.
+... Assignment of the "Customer User Role" role.
 
 
 

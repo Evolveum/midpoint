@@ -342,9 +342,9 @@ User has no "responsibilities" in this case.
 .. User template processing finishes.
 The user now has a full name and two assignments:
 
-... Assignement to the "Freelance" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.]
+... Assignment to the "Freelance" xref:/midpoint/architecture/archive/data-model/midpoint-common-schema/orgtype/[Org.]
 
-... Assignement of the "Basic User" role.
+... Assignment of the "Basic User" role.
 
 
 . The assignments are now computed.
@@ -441,9 +441,9 @@ A group is created on LDAP as a xref:/midpoint/reference/schema/focus-and-projec
 The user now has a full name and two assignments: +
 
 
-... Assignement of the "Basic User" role.
+... Assignment of the "Basic User" role.
 
-... Assignement of new "R_canibalism" role.
+... Assignment of new "R_canibalism" role.
 
 
 

@@ -617,7 +617,7 @@ You can add any objects (except node, shadow) to the organization using midPoint
 Navigate to the member table for selected organization (blue table in the right part below), click on the gear wheel and select assign member.
 Pop-up with available objects is shown.
 Select type of object you want to assign, check object which should be assigned and click 'Add' button below.
-The task (ExecuteChanges) starts to run to create assignemnt/link for the objects to the organization.
+The task (ExecuteChanges) starts to run to create assignment/link for the objects to the organization.
 
 
 ==== Machine Auditor for Machine Set 1 - is a user who has assigned role auditor with the parameter Machine Set 1

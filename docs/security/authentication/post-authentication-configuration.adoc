@@ -113,7 +113,7 @@ At least, if you want the user let the change nickName or telephoneNumber, you n
 It is recommended to read about xref:/midpoint/reference/security/authorization/configuration/[authorization] to set your role properly.
 
 The forcedAssignments property is set to false.
-It means, if there are any assignemnts, midPoint evaluates them as disabled and so user cannot perform post-atuhentication.
+It means, if there are any assignments, midPoint evaluates them as disabled and so user cannot perform post-atuhentication.
 Therefore there is one additional configuration needed and it is forcedAssignment.
 In this part, it is specified if there are any special roles which has to be enforced by login.
 It means that in fact, user doesn't have this role assigned, but while the user is in the proposed state, midPoint will pretend that this role is assigned to him.
