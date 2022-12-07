@@ -2310,8 +2310,10 @@ public class TaskQuartzImpl implements Task {
         return executionMode;
     }
 
-    public void setExecutionMode(@NotNull TaskExecutionMode executionMode) {
+    public @NotNull TaskExecutionMode setExecutionMode(@NotNull TaskExecutionMode executionMode) {
+        TaskExecutionMode oldMode = this.executionMode;
         this.executionMode = Objects.requireNonNull(executionMode);
+        return oldMode;
     }
 
     @Override

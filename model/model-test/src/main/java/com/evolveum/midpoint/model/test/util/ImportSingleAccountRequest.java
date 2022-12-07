@@ -7,38 +7,50 @@
 
 package com.evolveum.midpoint.model.test.util;
 
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.util.Resource;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-
-import com.evolveum.midpoint.test.TestSpringBeans;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.Objects;
-
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
 
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
+import com.evolveum.midpoint.util.exception.*;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestSpringBeans;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 /**
- * Causes a single account be imported on background - using one-time task created for this.
+ * Causes a single account be imported:
+ *
+ * - typically on background, using one-time task created for this,
+ * - or alternatively on foreground, using the appropriate model method.
  *
  * Why a special class? To make clients' life easier and avoid many method variants.
  * (Regarding what parameters it needs to specify.)
+ *
+ * Limitations:
+ *
+ * - only crude support for tracing on foreground (yet);
+ * - no support for simulations on background (yet).
  */
 @Experimental
 public class ImportSingleAccountRequest {
@@ -52,6 +64,7 @@ public class ImportSingleAccountRequest {
     private final boolean assertSuccess;
     private final Task task;
     private final TracingProfileType tracingProfile;
+    @NotNull private final TaskExecutionMode taskExecutionMode;
 
     private ImportSingleAccountRequest(
             @NotNull ImportSingleAccountRequestBuilder builder) {
@@ -64,24 +77,11 @@ public class ImportSingleAccountRequest {
         this.assertSuccess = builder.assertSuccess;
         this.task = Objects.requireNonNullElseGet(builder.task, test::getTestTask);
         this.tracingProfile = builder.tracingProfile;
+        this.taskExecutionMode = Objects.requireNonNullElse(builder.taskExecutionMode, TaskExecutionMode.PRODUCTION);
     }
 
     public String execute(OperationResult result) throws CommonException, PreconditionViolationException {
-        ResourceAttributeDefinition<?> namingAttrDef = Resource.of(
-                        TestSpringBeans.getBean(ProvisioningService.class)
-                                .getObject(ResourceType.class, resourceOid, null, task, result)
-                                .asObjectable())
-                .getCompleteSchemaRequired()
-                .findObjectDefinitionRequired(typeIdentification)
-                .findAttributeDefinitionRequired(namingAttribute);
-        PrismContext prismContext = PrismContext.get();
-        ObjectQuery query =
-                prismContext.queryFor(ShadowType.class)
-                        .item(
-                                ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute),
-                                namingAttrDef)
-                        .eq(nameValue)
-                        .build();
+        ObjectQuery query = createResourceObjectQuery(result);
         TaskType importTask = new TaskType()
                 .name("import")
                 .executionState(TaskExecutionStateType.RUNNABLE)
@@ -92,8 +92,9 @@ public class ImportSingleAccountRequest {
                                                 .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
                                                 .kind(typeIdentification.getKind())
                                                 .intent(typeIdentification.getIntent())
-                                                .query(prismContext.getQueryConverter().createQueryType(query))
-                                                .queryApplication(ResourceObjectSetQueryApplicationModeType.APPEND)))));
+                                                .query(PrismContext.get().getQueryConverter().createQueryType(query))
+                                                .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE)))));
+        // TODO set also task execution mode
         String taskOid = test.addObject(importTask, task, result);
         if (tracingProfile != null) {
             test.traced(
@@ -111,6 +112,64 @@ public class ImportSingleAccountRequest {
         return taskOid;
     }
 
+    private ObjectQuery createResourceObjectQuery(OperationResult result)
+            throws CommonException {
+        return getResource(result)
+                .queryFor(typeIdentification)
+                .and().item(ShadowType.F_ATTRIBUTES, namingAttribute).eq(nameValue)
+                .build();
+    }
+
+    private Resource getResource(OperationResult result) throws CommonException {
+        return Resource.of(
+                getProvisioningService()
+                        .getObject(ResourceType.class, resourceOid, null, task, result)
+                        .asObjectable());
+    }
+
+    private static ProvisioningService getProvisioningService() {
+        return TestSpringBeans.getBean(ProvisioningService.class);
+    }
+
+    public void executeOnForeground(OperationResult result) throws CommonException {
+        List<PrismObject<ShadowType>> shadows =
+                getProvisioningService().searchObjects(
+                        ShadowType.class,
+                        createResourceObjectQuery(result),
+                        null,
+                        task,
+                        result);
+        String shadowOid =
+                MiscUtil.extractSingletonRequired(
+                                shadows,
+                                () -> new AssertionError("Multiple matching shadows: " + shadows),
+                                () -> new AssertionError("No shadow for " + namingAttribute + " = " + nameValue))
+                        .getOid();
+
+        TaskExecutionMode oldMode = task.setExecutionMode(taskExecutionMode);
+        try {
+            if (tracingProfile != null) {
+                test.traced(
+                        tracingProfile,
+                        () -> executeImportOnForeground(result, shadowOid));
+            } else {
+                executeImportOnForeground(result, shadowOid);
+            }
+        } finally {
+            task.setExecutionMode(oldMode);
+        }
+
+        if (assertSuccess) {
+            result.computeStatus();
+            TestUtil.assertSuccess(result);
+        }
+    }
+
+    private void executeImportOnForeground(OperationResult result, String shadowOid) throws CommonException {
+        TestSpringBeans.getBean(ModelService.class)
+                .importFromResource(shadowOid, task, result);
+    }
+
     @SuppressWarnings("unused")
     public static final class ImportSingleAccountRequestBuilder {
         @NotNull private final AbstractModelIntegrationTest test;
@@ -122,6 +181,7 @@ public class ImportSingleAccountRequest {
         private boolean assertSuccess = true;
         private TracingProfileType tracingProfile;
         private Task task;
+        private TaskExecutionMode taskExecutionMode;
 
         public ImportSingleAccountRequestBuilder(@NotNull AbstractModelIntegrationTest test) {
             this.test = test;
@@ -169,6 +229,11 @@ public class ImportSingleAccountRequest {
         @SuppressWarnings("WeakerAccess")
         public ImportSingleAccountRequestBuilder withTracingProfile(TracingProfileType tracingProfile) {
             this.tracingProfile = tracingProfile;
+            return this;
+        }
+
+        public ImportSingleAccountRequestBuilder withTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
+            this.taskExecutionMode = taskExecutionMode;
             return this;
         }
 

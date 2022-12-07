@@ -32,7 +32,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -67,13 +66,7 @@ abstract class BaseClockworkAction<F extends FocusType> extends BaseAction<F> {
 
             beans.medic.enterModelMethod(false);
             try {
-                Task task = syncCtx.getTask();
-                // Temporary code - we'll have a single entry point in the future
-                if (task.isPersistentExecution()) {
-                    beans.clockwork.run(lensContext, task, result);
-                } else {
-                    beans.clockwork.previewChanges(lensContext, null, task, result);
-                }
+                beans.clockwork.run(lensContext, syncCtx.getTask(), result);
             } finally {
                 beans.medic.exitModelMethod(false);
             }

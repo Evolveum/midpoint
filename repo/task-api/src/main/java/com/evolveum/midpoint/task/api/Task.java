@@ -1003,8 +1003,11 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         return getExecutionMode().isPersistent();
     }
 
-    /** Sets the execution mode of this task. Use with care - preferably only for new tasks. */
-    void setExecutionMode(@NotNull TaskExecutionMode mode);
+    /**
+     * Sets the execution mode of this task. Use with care - preferably only for new tasks.
+     * Returns the original value.
+     */
+    @NotNull TaskExecutionMode setExecutionMode(@NotNull TaskExecutionMode mode);
 
     default void assertPersistentExecution(String message) {
         TaskExecutionMode executionMode = getExecutionMode();

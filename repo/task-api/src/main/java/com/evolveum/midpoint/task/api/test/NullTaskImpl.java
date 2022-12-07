@@ -547,7 +547,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void setExecutionMode(@NotNull TaskExecutionMode mode) {
+    public @NotNull TaskExecutionMode setExecutionMode(@NotNull TaskExecutionMode mode) {
         throw new UnsupportedOperationException();
     }
 

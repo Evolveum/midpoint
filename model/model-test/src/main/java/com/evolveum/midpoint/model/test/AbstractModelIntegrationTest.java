@@ -6792,26 +6792,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return roleOid + ":" + id;
     }
 
-    public interface TracedFunctionCall<X> {
-        X execute() throws CommonException, PreconditionViolationException, IOException;
+    public interface FunctionCall<X> {
+        X execute() throws CommonException, IOException;
     }
 
-    public interface TracedProcedureCall {
-        void execute() throws CommonException, PreconditionViolationException;
+    public interface ProcedureCall {
+        void execute() throws CommonException;
     }
 
-    protected <X> X traced(TracedFunctionCall<X> tracedCall)
+    protected <X> X traced(FunctionCall<X> tracedCall)
             throws CommonException, PreconditionViolationException, IOException {
         return traced(createModelLoggingTracingProfile(), tracedCall);
     }
 
-    protected void traced(TracedProcedureCall tracedCall)
-            throws CommonException, PreconditionViolationException {
+    protected void traced(ProcedureCall tracedCall) throws CommonException {
         traced(createModelLoggingTracingProfile(), tracedCall);
     }
 
-    public void traced(TracingProfileType profile, TracedProcedureCall tracedCall)
-            throws CommonException, PreconditionViolationException {
+    public void traced(TracingProfileType profile, ProcedureCall tracedCall) throws CommonException {
         setGlobalTracingOverride(profile);
         try {
             tracedCall.execute();
@@ -6820,7 +6818,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    public <X> X traced(TracingProfileType profile, TracedFunctionCall<X> tracedCall)
+    public <X> X traced(TracingProfileType profile, FunctionCall<X> tracedCall)
             throws CommonException, PreconditionViolationException, IOException {
         setGlobalTracingOverride(profile);
         try {
@@ -6910,29 +6908,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
-
-        ObjectProcessingListener simulationObjectProcessingListener =
-                simulationConfiguration != null ?
-                        null : null; //simulationResultManager.createNewSimulationResult(simulationConfiguration); // TODO
-
-        SimulationResult simulationResult = new SimulationResult();
-        ObjectProcessingListener testObjectProcessingListener = simulationResult.objectProcessingListener();
-        TaskExecutionMode oldExecutionMode = task.getExecutionMode();
-        try {
-            task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
-            task.addObjectProcessingListener(testObjectProcessingListener);
-            if (simulationObjectProcessingListener != null) {
-                task.addObjectProcessingListener(simulationObjectProcessingListener);
-            }
-            modelService.executeChanges(deltas, null, task, List.of(simulationResult.contextRecordingListener()), result);
-        } finally {
-            task.removeObjectProcessingListener(testObjectProcessingListener);
-            if (simulationObjectProcessingListener != null) {
-                task.removeObjectProcessingListener(simulationObjectProcessingListener);
-            }
-            task.setExecutionMode(oldExecutionMode);
-        }
-        return simulationResult;
+        return executeInSimulationMode(
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                simulationConfiguration,
+                task,
+                (simResult) ->
+                        modelService.executeChanges(
+                                deltas, null, task, List.of(simResult.contextRecordingListener()), result));
     }
 
     /** Convenience method */
@@ -6942,5 +6924,49 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @NotNull OperationResult result)
             throws CommonException {
         return executeInProductionSimulationMode(deltas, null, task, result);
+    }
+
+    /**
+     * Executes a {@link ProcedureCall} in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
+     */
+    public SimulationResult executeInProductionSimulationMode(
+            Object simulationConfiguration, Task task, ProcedureCall simulatedCall) throws CommonException {
+        return executeInSimulationMode(
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                simulationConfiguration,
+                task,
+                (simResult) -> simulatedCall.execute());
+    }
+
+    /** As {@link ProcedureCall} but has {@link SimulationResult} as a parameter. Currently for internal purposes. */
+    public interface SimulatedProcedureCall {
+        void execute(SimulationResult simResult) throws CommonException;
+    }
+
+    private SimulationResult executeInSimulationMode(
+            TaskExecutionMode mode, Object simulationConfiguration, Task task, SimulatedProcedureCall simulatedCall)
+            throws CommonException {
+
+        ObjectProcessingListener simulationObjectProcessingListener =
+                simulationConfiguration != null ?
+                        null : null; //simulationResultManager.createNewSimulationResult(simulationConfiguration); // TODO
+
+        SimulationResult simulationResult = new SimulationResult();
+        ObjectProcessingListener testObjectProcessingListener = simulationResult.objectProcessingListener();
+        TaskExecutionMode oldMode = task.setExecutionMode(mode);
+        try {
+            task.addObjectProcessingListener(testObjectProcessingListener);
+            if (simulationObjectProcessingListener != null) {
+                task.addObjectProcessingListener(simulationObjectProcessingListener);
+            }
+            simulatedCall.execute(simulationResult);
+        } finally {
+            task.removeObjectProcessingListener(testObjectProcessingListener);
+            if (simulationObjectProcessingListener != null) {
+                task.removeObjectProcessingListener(simulationObjectProcessingListener);
+            }
+            task.setExecutionMode(oldMode);
+        }
+        return simulationResult;
     }
 }

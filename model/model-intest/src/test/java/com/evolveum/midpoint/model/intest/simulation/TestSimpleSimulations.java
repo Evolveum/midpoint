@@ -15,6 +15,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -371,7 +373,69 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
      * Simulated import from production source.
      */
     @Test
-    public void test200SimulatedProductionImport() {
-        // TODO
+    public void test200SimulatedProductionImport() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        objectsCounter.remember(result);
+
+        given("an account on production source");
+        RESOURCE_SIMPLE_PRODUCTION_SOURCE.controller.addAccount("test200");
+
+        when("the account is imported");
+        SimulationResult simResult =
+                executeInProductionSimulationMode(
+                        null,
+                        task,
+                        () ->
+                                importSingleAccountRequest()
+                                        .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                                        .withNameValue("test200")
+                                        .withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION)
+                                        .build()
+                                        .executeOnForeground(result));
+
+        then("no new objects should be created (except for one shadow), no model deltas really executed");
+        objectsCounter.assertShadowOnlyIncrement(1, result);
+        simResult.assertNoExecutedDeltas();
+
+        and("deltas are correct (in testing storage)");
+        assertTest200Deltas(simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
+    }
+
+    private void assertTest200Deltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
+        // @formatter:off
+        assertDeltaCollection(simulatedDeltas, message)
+                .display()
+                .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
+                    .objectToAdd()
+                        .assertName("test200")
+                        .objectMetadata()
+                            .assertRequestTimestampPresent()
+                            .assertCreateTimestampPresent()
+                            .assertLastProvisioningTimestampPresent()
+                            .assertCreateChannel(CHANNEL_IMPORT_URI)
+                        .end()
+                        .asFocus()
+                        .activation()
+                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                            .assertEnableTimestampPresent()
+                        .end()
+                    .end()
+                .end()
+                .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
+                    .assertModifiedPaths(UserType.F_LINK_REF)
+                .end()
+                .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).find()
+                    .assertModifiedPaths( // fragile, may change when projector changes
+                            ShadowType.F_ITERATION,
+                            ShadowType.F_ITERATION_TOKEN,
+                            PATH_METADATA_MODIFY_CHANNEL,
+                            PATH_METADATA_MODIFY_TIMESTAMP,
+                            PATH_METADATA_MODIFIER_REF,
+                            PATH_METADATA_MODIFY_TASK_REF,
+                            PATH_METADATA_MODIFY_APPROVER_REF,
+                            PATH_METADATA_MODIFY_APPROVAL_COMMENT);
+        // @formatter:on
     }
 }

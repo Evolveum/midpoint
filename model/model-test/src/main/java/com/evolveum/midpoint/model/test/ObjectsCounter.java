@@ -14,9 +14,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+
+import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -43,6 +46,21 @@ public class ObjectsCounter {
         Map<Class<? extends ObjectType>, Integer> currentState = new HashMap<>();
         countObjects(currentState, result);
         assertThat(currentState).as("current objects counts").isEqualTo(lastState);
+    }
+
+    // FIXME provide nicer implementation
+    public void assertShadowOnlyIncrement(int expected, OperationResult result) {
+        Map<Class<? extends ObjectType>, Integer> currentState = new HashMap<>();
+        countObjects(currentState, result);
+        add(lastState, ShadowType.class, expected);
+        assertThat(currentState).as("current objects counts").isEqualTo(lastState);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void add(Map<Class<? extends ObjectType>, Integer> counts, Class<ShadowType> clazz, int increment) {
+        counts.compute(
+                clazz,
+                (aClass, oldValue) -> or0(oldValue) + increment);
     }
 
     private void countObjects(Map<Class<? extends ObjectType>, Integer> state, OperationResult result) {

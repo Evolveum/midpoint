@@ -23,7 +23,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             "resource-simple-production-target.xml",
             "3f8d6dee-9663-496f-a718-b3c27234aca7",
             "simple-production-target");
-    private static final DummyTestResource RESOURCE_SIMPLE_PRODUCTION_SOURCE = new DummyTestResource(
+    static final DummyTestResource RESOURCE_SIMPLE_PRODUCTION_SOURCE = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-production-source.xml",
             "c6caaa46-96c4-4244-883f-2771e18b82c9",
