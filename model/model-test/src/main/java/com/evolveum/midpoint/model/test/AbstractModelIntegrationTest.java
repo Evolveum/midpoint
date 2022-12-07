@@ -6914,6 +6914,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 TaskExecutionMode.SIMULATED_PRODUCTION,
                 simulationConfiguration,
                 task,
+                result,
                 (simResult) ->
                         modelService.executeChanges(
                                 deltas, null, task, List.of(simResult.contextRecordingListener()), result));
@@ -6931,12 +6932,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     /**
      * Executes a {@link ProcedureCall} in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
      */
-    public SimulationResult executeInProductionSimulationMode(
-            SimulationResultType simulationConfiguration, Task task, ProcedureCall simulatedCall) throws CommonException {
+    protected SimulationResult executeInProductionSimulationMode(
+            SimulationResultType simulationConfiguration, Task task, OperationResult result, ProcedureCall simulatedCall)
+            throws CommonException {
         return executeInSimulationMode(
                 TaskExecutionMode.SIMULATED_PRODUCTION,
                 simulationConfiguration,
                 task,
+                result,
                 (simResult) -> simulatedCall.execute());
     }
 
@@ -6946,14 +6949,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     private SimulationResult executeInSimulationMode(
-            TaskExecutionMode mode, SimulationResultType simulationConfiguration, Task task, SimulatedProcedureCall simulatedCall)
+            TaskExecutionMode mode,
+            SimulationResultType simulationConfiguration,
+            Task task,
+            OperationResult result,
+            SimulatedProcedureCall simulatedCall)
             throws CommonException {
 
-        ObjectProcessingListener simulationObjectProcessingListener = null;
-
+        ObjectProcessingListener simulationObjectProcessingListener;
         if (simulationConfiguration != null) {
-            SimulationResultContext context = simulationResultManager.newSimulationResult(simulationConfiguration, createOperationResult());
+            SimulationResultContext context = simulationResultManager.newSimulationResult(simulationConfiguration, result);
             simulationObjectProcessingListener = context.objectProcessingListener();
+        } else {
+            simulationObjectProcessingListener = null;
         }
 
         SimulationResult simulationResult = new SimulationResult();

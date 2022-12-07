@@ -32,10 +32,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -433,26 +430,39 @@ class LinkUpdater<F extends FocusType> {
                     SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
                             currentShadow.asObjectable(), newSituation, task.getChannel(), fullSynchronization, now);
 
-            try {
-                ModelImplUtils.setRequestee(task, focusContext);
-                ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
-                options.setDoNotDiscovery(true);
-                provisioningService.modifyObject(
-                        ShadowType.class, projectionOid, syncSituationDeltas, null, options, task, result);
-                LOGGER.trace("Situation in projection {} was updated to {}", projCtx, newSituation);
-            } catch (ObjectNotFoundException ex) {
-                // if the object not found exception is thrown, it's ok..probably
-                // the account was deleted by previous execution of changes..just
-                // log in the trace the message for the user..
-                LOGGER.debug("Situation in account could not be updated. Account not found on the resource.");
-            } finally {
-                ModelImplUtils.clearRequestee(task);
+            boolean real = task.isPersistentExecution();
+            if (real) {
+                executeShadowDelta(syncSituationDeltas, result);
             }
+            ObjectDelta<ShadowType> modifyDelta =
+                    prismContext.deltaFactory().object().createModifyDelta(projectionOid, syncSituationDeltas, ShadowType.class);
+            task.onChangeExecuted(modifyDelta, real, result);
+
+            LOGGER.trace("Situation in projection {} was updated to {} (real={})", projCtx, newSituation, real);
         } catch (Exception ex) {
             result.recordFatalError(ex);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private void executeShadowDelta(List<ItemDelta<?, ?>> syncSituationDeltas, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+        try {
+            ModelImplUtils.setRequestee(task, focusContext);
+            ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
+            options.setDoNotDiscovery(true);
+            provisioningService.modifyObject(
+                    ShadowType.class, projectionOid, syncSituationDeltas, null, options, task, result);
+        } catch (ObjectNotFoundException ex) {
+            // if the object not found exception is thrown, it's ok..probably
+            // the account was deleted by previous execution of changes..just
+            // log in the trace the message for the user..
+            LOGGER.debug("Situation in account could not be updated. Account not found on the resource.");
+        } finally {
+            ModelImplUtils.clearRequestee(task);
         }
     }
 

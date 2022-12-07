@@ -37,9 +37,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Basic scenarios of simulations: actions executed from the foreground, no create-on-demand.
+ * Basic scenarios of production simulations: actions executed from the foreground, no create-on-demand.
  *
  * See {@link TestPreviewChangesCoD} for create-on-demand related tests.
+ * See TestSimpleDevelopmentSimulations for simulating development configurations.
  *
  * Structure:
  *
@@ -50,7 +51,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSimpleSimulations extends AbstractSimulationsTest {
 
-    /** Currently we make sure that no {@link FocusType} objects are added, but no {@link ShadowType} ones as well. */
     private final ObjectsCounter objectsCounter = new ObjectsCounter(FocusType.class, ShadowType.class);
 
     /**
@@ -370,10 +370,11 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
     }
 
     /**
-     * Simulated import from production source.
+     * Simulated import from production source. Shadow should be created, but the user should not.
+     * There should be no persistent information about shadow being linked to the user.
      */
     @Test
-    public void test200SimulatedProductionImport() throws Exception {
+    public void test200SimulatedProductionAccountImport() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -387,6 +388,7 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                 executeInProductionSimulationMode(
                         null,
                         task,
+                        result,
                         () ->
                                 importSingleAccountRequest()
                                         .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
@@ -401,6 +403,14 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
 
         and("deltas are correct (in testing storage)");
         assertTest200Deltas(simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
+
+        and("shadow should not have full sync info set");
+        assertShadowAfter(
+                findAccountByUsername("test200", RESOURCE_SIMPLE_PRODUCTION_SOURCE.getResource(), task, result))
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent("default")
+                .assertIsExists()
+                .assertSynchronizationSituation(null);
     }
 
     private void assertTest200Deltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
@@ -426,7 +436,7 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                 .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
                     .assertModifiedPaths(UserType.F_LINK_REF)
                 .end()
-                .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).find()
+                .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).index(0).find()
                     .assertModifiedPaths( // fragile, may change when projector changes
                             ShadowType.F_ITERATION,
                             ShadowType.F_ITERATION_TOKEN,
@@ -435,7 +445,13 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
                             PATH_METADATA_MODIFIER_REF,
                             PATH_METADATA_MODIFY_TASK_REF,
                             PATH_METADATA_MODIFY_APPROVER_REF,
-                            PATH_METADATA_MODIFY_APPROVAL_COMMENT);
+                            PATH_METADATA_MODIFY_APPROVAL_COMMENT)
+                .end()
+                .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).index(1).find()
+                    .assertModifiedPaths( // fragile, may change when projector changes
+                            ShadowType.F_SYNCHRONIZATION_SITUATION,
+                            ShadowType.F_SYNCHRONIZATION_TIMESTAMP,
+                            ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION);
         // @formatter:on
     }
 }
