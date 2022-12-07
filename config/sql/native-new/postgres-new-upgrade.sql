@@ -225,7 +225,7 @@ CREATE OR REPLACE FUNCTION m_simulation_result_create_partition() RETURNS trigge
     DECLARE
       partition TEXT;
     BEGIN
-      partition := 'm_simulation_result_processed_object_' || REPLACE(new.oid::text,'-','_');
+      partition := 'm_sr_processed_object_' || REPLACE(new.oid::text,'-','_');
       IF new.partitioned AND NOT EXISTS(SELECT relname FROM pg_class WHERE relname=partition) THEN
         RAISE NOTICE 'A partition has been created %',partition;
         EXECUTE 'CREATE TABLE ' || partition || ' partition of ' || 'm_simulation_result_processed_object' || ' for values in (''' || new.oid|| ''');';
@@ -245,7 +245,7 @@ CREATE OR REPLACE FUNCTION m_simulation_result_delete_partition() RETURNS trigge
     DECLARE
       partition TEXT;
     BEGIN
-      partition := 'm_simulation_result_processed_object_' || REPLACE(OLD.oid::text,'-','_');
+      partition := 'm_sr_processed_object_' || REPLACE(OLD.oid::text,'-','_');
       IF OLD.partitioned AND EXISTS(SELECT relname FROM pg_class WHERE relname=partition) THEN
         RAISE NOTICE 'A partition has been deleted %',partition;
         EXECUTE 'DROP TABLE IF EXISTS ' || partition || ';';
