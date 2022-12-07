@@ -1745,6 +1745,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Set of the attribute paths which should be verified while authentication process.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <!-- More credential types may come here in the future. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -2606,6 +2613,68 @@
             to the question. This can work well for questions such as "what is your employee number?". We already store
             employee number in each user therefore there is no need for each user to manually fill-in the expected answer.
             We can use expression instead. Something like "$user/employeeNumber" -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AttributeVerificationCredentialsPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Structure that specifies policy for security questions. It actually contains text for the
+                questions (or rather a reference to localization catalog file). But it also contains a policy
+                how the questions can be used, e.g. how many questions to display to a user.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:CredentialPolicyType">
+                <xsd:sequence>
+                    <xsd:element name="attributesNumber" type="xsd:int" minOccurs="0"  maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Number of attributes in order to change the passwords
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="attribute" type="tns:VerificationAttributeDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The set of all the attributes to be verified in this policy.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="VerificationAttributeDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of a single verification attribute.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="display" type="tns:DisplayType"/>
+            <xsd:element name="description" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Free form description.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The path to the attribute which should be verified.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
