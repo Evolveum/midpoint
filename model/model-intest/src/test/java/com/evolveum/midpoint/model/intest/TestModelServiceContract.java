@@ -392,7 +392,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Just to avoid result pruning.
         CompiledTracingProfile tracingProfile = tracer.compileProfile(
-                new TracingProfileType(prismContext)
+                new TracingProfileType()
                         .createTraceFile(false), parentResult);
         OperationResult result = parentResult.subresult("get")
                 .tracingProfile(tracingProfile)

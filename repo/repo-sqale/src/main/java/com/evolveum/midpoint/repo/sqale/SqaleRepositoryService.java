@@ -1331,44 +1331,6 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
     }
 
     @Override
-    public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-        Objects.requireNonNull(parentResult, "Operation result must not be null.");
-
-        OperationResult operationResult =
-                parentResult.subresult(opNamePrefix + OP_SEARCH_SHADOW_OWNER)
-                        .addParam("shadowOid", shadowOid)
-                        .addParam("options", String.valueOf(options))
-                        .build();
-
-        try {
-            ObjectQuery query = prismContext()
-                    .queryFor(FocusType.class)
-                    .item(FocusType.F_LINK_REF).ref(shadowOid, null, PrismConstants.Q_ANY)
-                    .build();
-            SearchResultList<PrismObject<FocusType>> result =
-                    executeSearchObjects(FocusType.class, query, options, OP_SEARCH_SHADOW_OWNER);
-
-            if (result == null || result.isEmpty()) {
-                // account shadow owner was not found
-                return null;
-            } else if (result.size() > 1) {
-                logger.warn("Found {} owners for shadow oid {}, returning first owner.",
-                        result.size(), shadowOid);
-            }
-            //noinspection unchecked
-            return (PrismObject<F>) result.get(0);
-        } catch (RepositoryException | RuntimeException | SchemaException e) {
-            throw handledGeneralException(e, operationResult);
-        } catch (Throwable t) {
-            recordFatalError(operationResult, t);
-            throw t;
-        } finally {
-            operationResult.close();
-        }
-    }
-
-    @Override
     public long advanceSequence(String oid, OperationResult parentResult)
             throws ObjectNotFoundException {
         UUID oidUuid = checkOid(oid);

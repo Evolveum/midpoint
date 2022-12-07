@@ -219,42 +219,6 @@ public class ObjectRetriever {
         throw new ObjectNotFoundException(type, oid);
     }
 
-    public <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
-        LOGGER_PERFORMANCE.debug("> search shadow owner for oid={}", shadowOid);
-        PrismObject<F> owner = null;
-        Session session = null;
-        try {
-            session = baseHelper.beginReadOnlyTransaction();
-            LOGGER.trace("Selecting account shadow owner for account {}.", shadowOid);
-            Query query = session.getNamedQuery("searchShadowOwner.getOwner");
-            query.setParameter("oid", shadowOid);
-            query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
-
-            @SuppressWarnings({ "unchecked", "raw" })
-            List<GetObjectResult> focuses = query.list();
-            LOGGER.trace("Found {} focuses, transforming data to JAXB types.", focuses != null ? focuses.size() : 0);
-
-            if (focuses == null || focuses.isEmpty()) {
-                // account shadow owner was not found
-                return null;
-            } else if (focuses.size() > 1) {
-                LOGGER.warn("Found {} owners for shadow oid {}, returning first owner.", focuses.size(), shadowOid);
-            }
-
-            GetObjectResult focus = focuses.get(0);
-            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, null, options, null, session);
-
-            session.getTransaction().commit();
-
-        } catch (SchemaException | RuntimeException | ObjectNotFoundException ex) {
-            baseHelper.handleGeneralException(ex, session, result);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, result);
-        }
-
-        return owner;
-    }
-
     public <T extends ObjectType> int countObjectsAttempt(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
         LOGGER_PERFORMANCE.debug("> count objects {}", type.getSimpleName());
