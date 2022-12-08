@@ -196,9 +196,9 @@ CREATE TYPE ObjectProcessingStateType AS ENUM ('UNMODIFIED', 'ADDED', 'MODIFIED'
 CREATE TABLE m_simulation_result_processed_object (
     -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
     -- Owner does not have to be the direct parent of the container.
-    ownerOid UUID NOT NULL,
     -- use like this on the concrete table:
     -- ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
+    ownerOid UUID NOT NULL REFERENCES m_simulation_result(oid) ON DELETE CASCADE,
 
     -- Container ID, unique in the scope of the whole object (owner).
     -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
