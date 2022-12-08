@@ -91,8 +91,8 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<TaskType> TASK_WITH_ERRORS_CHILD_2
             = new TestResource<>(TEST_DIR, "task-with-errors-child-2.xml", "8d5909f6-7d8b-4c01-913b-42ba0bcf6ef7");
 
-    private static final int USERS = 400;
-    private static final int ROLES = 400;
+    private static final int USERS = 1000;
+    private static final int ROLES = 1000;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -124,7 +124,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult(); // Must be separate from initResult because of IN_PROGRESS status
 
         String resourceOid = interruptedSyncResource.getController().getResource().getOid();
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("pending")
                 .beginAssignment()
                     .beginConstruction()
@@ -133,10 +133,9 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .end();
         addObject(user, task, result);
 
-        modifyResourceMaintenance(resourceOid, AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+        turnMaintenanceModeOn(resourceOid, result);
         deleteObject(UserType.class, user.getOid(), task, result);
-
-        modifyResourceMaintenance(resourceOid, AdministrativeAvailabilityStatusType.OPERATIONAL, task, result);
+        turnMaintenanceModeOff(resourceOid, result);
     }
 
     @Test
@@ -441,7 +440,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         given();
         System.out.println("Importing roles.");
         for (int i = 0; i < ROLES; i++) {
-            RoleType role = new RoleType(prismContext)
+            RoleType role = new RoleType()
                     .name(String.format("%s%03d", rolePrefix, i))
                     .beginAssignment()
                         .targetRef(METAROLE_SLOWING_DOWN.oid, RoleType.COMPLEX_TYPE)
@@ -457,7 +456,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         when("1st run");
 
         System.out.println("Waiting before suspending task tree.");
-        Thread.sleep(6000L);
+        Thread.sleep(5000L);
 
         System.out.println("Suspending task tree.");
         boolean stopped = taskManager.suspendTaskTree(recomputationTask.oid, 10000, result);

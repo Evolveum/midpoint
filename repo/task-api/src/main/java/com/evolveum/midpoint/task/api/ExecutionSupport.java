@@ -36,7 +36,7 @@ public interface ExecutionSupport {
     /**
      * Returns the mode in which the activity executes (normal, dry run, simulate, ...).
      */
-    @NotNull ExecutionModeType getExecutionMode();
+    @NotNull ExecutionModeType getActivityExecutionMode();
 
     /** Returns the path of the activity we are executing. */
     @NotNull ActivityPath getActivityPath();

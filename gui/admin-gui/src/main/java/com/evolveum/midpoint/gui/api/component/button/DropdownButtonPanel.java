@@ -59,6 +59,7 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
         WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);
         buttonContainer.setOutputMarkupId(true);
         buttonContainer.add(AttributeAppender.append("class", getSpecialButtonClass()));
+        buttonContainer.add(AttributeAppender.append("class", () -> hasToggleIcon() ? " dropdown-toggle " : ""));
         add(buttonContainer);
 
         Label info = new Label(ID_INFO, new PropertyModel<>(getModel(), DropdownButtonDto.F_INFO));
@@ -105,6 +106,10 @@ public class DropdownButtonPanel extends BasePanel<DropdownButtonDto> {
         };
 
         dropdownMenuContainer.add(li);
+    }
+
+    protected boolean hasToggleIcon() {
+        return true;
     }
 
     public WebMarkupContainer getButtonContainer() {

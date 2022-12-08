@@ -21,11 +21,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType
  * This may seems too simple and maybe pointless now. But we expect
  * that it may later evolve to something like future/promise.
  *
+ * FIXME this class looks to be heavily bound to the needs of the provisioning-impl module.
+ *
  * @author semancik
  */
 public class AsynchronousOperationResult implements ShortDumpable {
 
     private OperationResult operationResult;
+
+    /** TODO what exactly is the meaning of this? */
     private PendingOperationTypeType operationType;
 
     /**

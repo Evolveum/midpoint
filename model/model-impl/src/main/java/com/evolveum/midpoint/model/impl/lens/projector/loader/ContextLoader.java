@@ -343,21 +343,21 @@ public class ContextLoader implements ProjectorProcessor {
      * FIXME this method sometimes return repo-only shadow in the case of consistency mechanism is applied;
      *  see `TestConsistencyReaper.test150` and MID-7970.
      */
-    public void loadFullShadow(@NotNull LensProjectionContext projCtx, String reason,
-            Task task, OperationResult parentResult)
+    public void loadFullShadow(
+            @NotNull LensProjectionContext projCtx, String reason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         new ProjectionFullLoadOperation<>(projCtx.getLensContext(), projCtx, reason, false, task)
-                .loadFullShadow(parentResult);
+                .loadFullShadow(result);
     }
 
     @SuppressWarnings("SameParameterValue")
-    public void loadFullShadowNoDiscovery(@NotNull LensProjectionContext projCtx, String reason,
-            Task task, OperationResult parentResult)
+    public void loadFullShadowNoDiscovery(
+            @NotNull LensProjectionContext projCtx, String reason, Task task, OperationResult result)
             throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         new ProjectionFullLoadOperation<>(projCtx.getLensContext(), projCtx, reason, true, task)
-                .loadFullShadow(parentResult);
+                .loadFullShadow(result);
     }
 
     public <F extends FocusType> void reloadSecurityPolicyIfNeeded(@NotNull LensContext<F> context,

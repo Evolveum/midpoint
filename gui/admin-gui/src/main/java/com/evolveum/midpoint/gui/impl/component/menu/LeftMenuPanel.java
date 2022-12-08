@@ -7,21 +7,11 @@
 package com.evolveum.midpoint.gui.impl.component.menu;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.cases.api.util.QueryUtils;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
-import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
-import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -39,16 +29,20 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
+import com.evolveum.midpoint.cases.api.util.QueryUtils;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
+import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
+import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.authentication.CompiledDashboardType;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -62,7 +56,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageMounter;
 import com.evolveum.midpoint.web.component.menu.*;
-import com.evolveum.midpoint.web.page.admin.cases.*;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
+import com.evolveum.midpoint.web.page.admin.cases.PageWorkItemsClaimable;
 import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
@@ -79,6 +78,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasksCertScheduling;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsAttorney;
 import com.evolveum.midpoint.web.page.self.PageSelfConsents;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -179,7 +179,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
                 setResponsePage(page);
             }
         };
-        logo.add(new VisibleEnableBehaviour(() ->  !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
+        logo.add(new VisibleEnableBehaviour(() -> !isCustomLogoVisible(), () -> getPageBase().isLogoLinkEnabled()));
         logo.add(AttributeAppender.append("class", () -> WebComponentUtil.getMidPointSkin().getNavbarCss()));
         add(logo);
 
@@ -528,9 +528,35 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private void createBasicAssignmentHolderMenuItems(MainMenuItem mainMenuItem, PageTypes pageDesc) {
-        MenuItem objectListMenuItem = createObjectListPageMenuItem(
-                "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list", pageDesc.getIcon(), pageDesc.getListClass());
-        mainMenuItem.addMenuItem(objectListMenuItem);
+        String label = "PageAdmin.menu.top." + pageDesc.getIdentifier() + ".list";
+        String icon = pageDesc.getIcon();
+        Class<? extends PageBase> page = pageDesc.getListClass();
+        boolean isDefaultViewVisible = true;
+
+        CompiledObjectCollectionView defaultView = getPageBase().getCompiledGuiProfile().findAllApplicableObjectCollectionViews(pageDesc.getTypeName()).stream()
+                .filter(view -> view.isDefaultView()).findFirst().orElse(null);
+
+        if (defaultView != null) {
+            isDefaultViewVisible = WebComponentUtil.getElementVisibility(defaultView.getVisibility());
+            if (isDefaultViewVisible) {
+                DisplayType viewDisplayType = defaultView.getDisplay();
+
+                PolyStringType display = WebComponentUtil.getCollectionLabel(viewDisplayType);
+                if (display != null) {
+                    label = WebComponentUtil.getTranslatedPolyString(display);
+                }
+
+                String iconClass = GuiDisplayTypeUtil.getIconCssClass(viewDisplayType);
+                if (StringUtils.isNotEmpty(iconClass)) {
+                    icon = iconClass;
+                }
+            }
+        }
+
+        if (isDefaultViewVisible) {
+            mainMenuItem.addMenuItem(createObjectListPageMenuItem(label, icon, page));
+        }
+
         addCollectionsMenuItems(mainMenuItem, pageDesc.getTypeName(), pageDesc.getListClass());
 
         if (PageTypes.CASE != pageDesc) {
@@ -647,18 +673,18 @@ public class LeftMenuPanel extends BasePanel<Void> {
     private void addCollectionsMenuItems(MainMenuItem mainMenuItem, QName type, Class<? extends PageBase> redirectToPage) {
         List<CompiledObjectCollectionView> objectViews = getPageBase().getCompiledGuiProfile().findAllApplicableObjectCollectionViews(type);
 
-        objectViews.forEach(objectView -> {
+        List<MenuItem> items = objectViews.stream().map(objectView -> {
             if (objectView.isDefaultView() || !WebComponentUtil.getElementVisibility(objectView.getVisibility())) {
-                return;
+                return null;
             }
 
             OperationTypeType operationTypeType = objectView.getApplicableForOperation();
             if (operationTypeType != null && operationTypeType != OperationTypeType.MODIFY) {
-                return;
+                return null;
             }
 
             if (objectView.isDefaultView()) {
-                return;
+                return null;
             }
             DisplayType viewDisplayType = objectView.getDisplay();
 
@@ -672,19 +698,18 @@ public class LeftMenuPanel extends BasePanel<Void> {
             }
 
             String iconClass = GuiDisplayTypeUtil.getIconCssClass(viewDisplayType);
-            MenuItem userViewMenu = new MenuItem(label,
+            MenuItem menuItem = new MenuItem(label,
                     StringUtils.isEmpty(iconClass) ? BaseMenuItem.DEFAULT_ICON : iconClass, redirectToPage, pageParameters, isObjectCollectionMenuActive(objectView));
-            userViewMenu.setDisplayOrder(objectView.getDisplayOrder());
-            mainMenuItem.addCollectionMenuItem(userViewMenu);
-        });
+            menuItem.setDisplayOrder(objectView.getDisplayOrder());
 
-        // We need to sort after we get all the collections. Only then we have correct collection labels.
-        // We do not want to determine the labels twice.
+            return menuItem;
+        }).filter(i -> i != null).collect(Collectors.toList());
 
-        // TODO: can this be combined in a single sort?
-//        collectionMenuItems.sort(Comparator.comparing(o -> o.getNameModel().getObject()));
-//        collectionMenuItems.sort(Comparator.comparingInt(o -> ObjectUtils.defaultIfNull(o.getDisplayOrder(), Integer.MAX_VALUE)));
-//        return collectionMenuItems;
+        items.sort(
+                Comparator.comparing(MenuItem::getDisplayOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                        .thenComparing(MenuItem::getNameModel, Comparator.nullsLast(Comparator.naturalOrder())));
+
+        items.forEach(i -> mainMenuItem.addCollectionMenuItem(i));
     }
 
     private boolean isObjectCollectionMenuActive(CompiledObjectCollectionView objectView) {

@@ -421,11 +421,13 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         OperationResult result = task.getResult();
         syncServiceMock.reset();
 
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE));
 
         // WHEN
         when();
-        PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
+        PrismObject<ShadowType> shadowProvisioning =
+                provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
 
         // THEN
         then();
@@ -2572,13 +2574,13 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertNotNull("No delta in pending operation in " + shadow, deltaType);
         // TODO: check content of pending operations in the shadow
 
-        TestUtil.assertBetween("No request timestamp in pending operation in " + shadow, requestStart, requestEnd, pendingOperation.getRequestTimestamp());
+        TestUtil.assertBetween("request timestamp in pending operation in " + shadow, requestStart, requestEnd, pendingOperation.getRequestTimestamp());
 
         OperationResultStatusType status = pendingOperation.getResultStatus();
         assertEquals("Wrong status in pending operation in " + shadow, expectedStatus, status);
 
         if (expectedStatus != OperationResultStatusType.IN_PROGRESS) {
-            TestUtil.assertBetween("No completion timestamp in pending operation in " + shadow, completionStart, completionEnd, pendingOperation.getCompletionTimestamp());
+            TestUtil.assertBetween("completion timestamp in pending operation in " + shadow, completionStart, completionEnd, pendingOperation.getCompletionTimestamp());
         }
 
         return pendingOperation;

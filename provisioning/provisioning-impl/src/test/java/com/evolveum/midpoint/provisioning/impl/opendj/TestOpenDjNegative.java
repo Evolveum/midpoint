@@ -525,6 +525,64 @@ public class TestOpenDjNegative extends AbstractOpenDjTest {
                 .assertNotDead();
     }
 
+    /**
+     * Let us repeat the `ADD` operation.
+     *
+     * Currently, this fails - it creates a duplicate shadow. We perhaps should treat CommunicationException for ADD operation
+     * in the same way as we do for MaintenanceException (i.e. trying to find an existing shadow). OR we should try a better
+     * solution, common to all ADD operations.
+     */
+    @Test(enabled = false)
+    public void test535AddAccountWillAgain() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<ShadowType> object = parseObject(ACCOUNT_WILL_FILE);
+        object.setOid(null); // To avoid failing on OID conflict
+        display("Account to add", object);
+
+        when("addObject operation is called");
+        String addedObjectOid = provisioningService.addObject(object, null, null, task, result);
+
+        then("status should be (still) IN_PROGRESS");
+        result.computeStatus();
+        display("addObject result", result);
+        assertInProgress(result);
+
+        and("OID should be the same as before");
+        assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
+
+        and("the shadow should have a single pending operation");
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+        ShadowAsserter.forShadow(repoShadow, "repo")
+                .display()
+                .assertName(ACCOUNT_WILL_DN)
+                .pendingOperations()
+                .singleOperation()
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                .delta()
+                .assertAdd();
+
+        try {
+            provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+
+            assertNotReached();
+        } catch (GenericConnectorException e) {
+            displayExpectedException(e);
+        }
+
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                GetOperationOptionsBuilder.create().futurePointInTime().build();
+        PrismObject<ShadowType> provisioningAccountFuture =
+                provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, options, task, result);
+        ShadowAsserter.forShadow(provisioningAccountFuture, "future")
+                .display()
+                .assertName(ACCOUNT_WILL_DN)
+                .assertIsExists()
+                .assertNotDead();
+    }
+
     @Test
     public void test540DeleteObject() throws Exception {
         // GIVEN

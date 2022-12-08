@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.test;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -20,12 +26,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
-
 /**
  * Representation of any prism object in tests.
  */
@@ -34,10 +34,14 @@ public class TestResource<T extends ObjectType> {
 
     @NotNull public final File dir;
     @NotNull public final File file;
-    @NotNull public final String oid;
+    public final String oid;
     public PrismObject<T> object;
 
-    public TestResource(@NotNull File dir, @NotNull String fileName, @NotNull String oid) {
+    public TestResource(@NotNull File dir, @NotNull String fileName) {
+        this(dir, fileName, null);
+    }
+
+    public TestResource(@NotNull File dir, @NotNull String fileName, String oid) {
         this.dir = dir;
         this.file = new File(dir, fileName);
         this.oid = oid;
@@ -94,5 +98,15 @@ public class TestResource<T extends ObjectType> {
     public void reload(OperationResult result) throws SchemaException, IOException, ObjectNotFoundException {
         object = TestSpringBeans.getCacheRepositoryService()
                 .getObject(getType(), oid, null, result);
+    }
+
+    public static void read(TestResource... resources) {
+        Arrays.asList(resources).forEach(r -> {
+            try {
+                r.read();
+            } catch (SchemaException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }

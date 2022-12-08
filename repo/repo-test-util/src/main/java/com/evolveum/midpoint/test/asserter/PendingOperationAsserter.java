@@ -42,12 +42,12 @@ public class PendingOperationAsserter<R> extends AbstractAsserter<PendingOperati
     }
 
     public PendingOperationAsserter<R> assertRequestTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        TestUtil.assertBetween("Wrong request timestamp in " + desc(), start, end, pendingOperation.getRequestTimestamp());
+        TestUtil.assertBetween("Request timestamp in " + desc(), start, end, pendingOperation.getRequestTimestamp());
         return this;
     }
 
     public PendingOperationAsserter<R> assertCompletionTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        TestUtil.assertBetween("Wrong completion timestamp in " + desc(), start, end, pendingOperation.getCompletionTimestamp());
+        TestUtil.assertBetween("Completion timestamp in " + desc(), start, end, pendingOperation.getCompletionTimestamp());
         return this;
     }
 
@@ -57,12 +57,12 @@ public class PendingOperationAsserter<R> extends AbstractAsserter<PendingOperati
     }
 
     public PendingOperationAsserter<R> assertLastAttemptTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        TestUtil.assertBetween("Wrong last attempt timestamp in " + desc(), start, end, pendingOperation.getLastAttemptTimestamp());
+        TestUtil.assertBetween("Last attempt timestamp in " + desc(), start, end, pendingOperation.getLastAttemptTimestamp());
         return this;
     }
 
     public PendingOperationAsserter<R> assertOperationStartTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        TestUtil.assertBetween("Wrong operation start timestamp in " + desc(), start, end, pendingOperation.getOperationStartTimestamp());
+        TestUtil.assertBetween("Operation start timestamp in " + desc(), start, end, pendingOperation.getOperationStartTimestamp());
         return this;
     }
 

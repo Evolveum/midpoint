@@ -250,7 +250,7 @@ public class TestExpressionCorrelator extends AbstractInternalModelIntegrationTe
             throws CommonException {
         List<PrismObject<ShadowType>> objects = provisioningService.searchObjects(
                 ShadowType.class,
-                createAccountAttributeQuery(DUMMY_RESOURCE_SOURCE.getObjectable(), SchemaConstants.ICFS_NAME, name),
+                accountDefaultObjectsQuery(DUMMY_RESOURCE_SOURCE, SchemaConstants.ICFS_NAME, name),
                 null,
                 task,
                 result);

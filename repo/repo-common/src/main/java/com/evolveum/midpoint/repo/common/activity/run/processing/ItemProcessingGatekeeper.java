@@ -282,7 +282,7 @@ class ItemProcessingGatekeeper<I> {
 
         OperationResult itemOpResult = new OperationResult("dummy");
 
-        enterLocalCaches();
+        enterLocalCaches(); // FIXME may be dangerous e.g. for multi-propagation task!!
         try {
             itemOpResult = initializeOperationResultIncludingTracingOrReporting(parentResult);
 

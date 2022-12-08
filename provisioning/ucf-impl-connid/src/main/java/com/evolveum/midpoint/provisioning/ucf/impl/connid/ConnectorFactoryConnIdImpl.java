@@ -206,8 +206,14 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
                     LOGGER.trace("Connector host object:\n{}", connectorType.getConnectorHostRef().asReferenceValue().getObject().debugDump(1));
                 }
             }
-            throw new ObjectNotFoundException("The classes (JAR) of " + ObjectTypeUtil.toShortString(connectorType)
-                    + " were not found by the ICF framework; bundle=" + connectorType.getConnectorBundle() + " connector type=" + connectorType.getConnectorType() + ", version=" + connectorType.getConnectorVersion());
+            // TODO Is this really ObjectNotFoundException?
+            throw new ObjectNotFoundException(
+                    String.format(
+                            "The classes (JAR) of %s were not found by the ICF framework; bundle=%s connector type=%s, version=%s",
+                            ObjectTypeUtil.toShortString(connectorType),
+                            connectorType.getConnectorBundle(),
+                            connectorType.getConnectorType(),
+                            connectorType.getConnectorVersion()));
         }
 
         PrismSchema connectorSchema = UcfUtil.getConnectorSchema(connectorType, prismContext);
@@ -353,7 +359,9 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
     public PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException {
         ConnectorInfo cinfo = getConnectorInfo(connectorType);
         if (cinfo == null) {
-            throw new ObjectNotFoundException("Connector " + connectorType + " cannot be found by ConnId framework");
+            throw new ObjectNotFoundException(
+                    "Connector " + connectorType + " cannot be found by ConnId framework",
+                    ConnectorType.class, connectorType.getOid());
         }
         return generateConnectorConfigurationSchema(cinfo, connectorType);
     }
@@ -719,8 +727,10 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
      */
     private ConnectorInfo getConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
         if (!SchemaConstants.ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
-            throw new ObjectNotFoundException("Requested connector for framework " + connectorType.getFramework()
-                    + " cannot be found in framework " + SchemaConstants.ICF_FRAMEWORK_URI);
+            throw new ObjectNotFoundException(
+                    String.format("Requested connector for framework %s cannot be found in framework %s",
+                            connectorType.getFramework(), SchemaConstants.ICF_FRAMEWORK_URI),
+                    ConnectorType.class, null);
         }
         ConnectorKey key = getConnectorKey(connectorType);
         if (connectorType.getConnectorHostRef() == null) {
@@ -730,7 +740,7 @@ public class ConnectorFactoryConnIdImpl implements ConnectorFactory {
         PrismObject<ConnectorHostType> host = connectorType.getConnectorHostRef().asReferenceValue().getObject();
         if (host == null) {
             throw new ObjectNotFoundException(
-                    "Attempt to use remote connector without ConnectorHostType resolved (there is only ConnectorHostRef");
+                    "Attempt to use remote connector without ConnectorHostType resolved (there is only ConnectorHostRef)");
         }
         return getRemoteConnectorInfoManager(host.asObjectable()).findConnectorInfo(key);
     }

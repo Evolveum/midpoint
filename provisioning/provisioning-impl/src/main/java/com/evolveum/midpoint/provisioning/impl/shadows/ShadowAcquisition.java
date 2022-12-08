@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,9 +14,7 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.impl.CommonBeans;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -26,6 +24,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+
+import static com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManagerMiscUtil.determinePrimaryIdentifierValue;
+import static com.evolveum.midpoint.schema.util.ShadowUtil.shortDumpShadowLazily;
 
 /**
  * Takes care of the _shadow acquisition_ process. We look up an appropriate live shadow,
@@ -37,9 +38,13 @@ import javax.xml.namespace.QName;
  * 2. Resource object appeared as part of live sync or async update process.
  * 3. Resource object was found during entitlement conversion (attribute -> association).
  *
+ * Note that a different process is followed during {@link ShadowGetOperation}: we have a shadow first (otherwise we could not
+ * ask for `getObject`), so we have no need to acquire one there. We just update the shadow after getting the resource object.
+ *
  * This class also takes care of _object classification_. I am not sure if this is the right approach, though.
+ *
+ * Note: Maybe we can make this class an inner class of {@link ShadowAcquisitionHelper}?
  */
-@Experimental
 class ShadowAcquisition {
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowAcquisition.class);
@@ -67,7 +72,7 @@ class ShadowAcquisition {
     /**
      * Lazily obtained resource object (via {@link #resourceObjectSupplier}).
      */
-    private PrismObject<ShadowType> resourceObject;
+    private ShadowType resourceObject;
 
     /** Whether we want to skip the classification. It is used e.g. in emergency shadow creation. */
     private final boolean skipClassification;
@@ -75,9 +80,13 @@ class ShadowAcquisition {
     private final CommonBeans beans;
     private final ShadowsLocalBeans localBeans;
 
-    ShadowAcquisition(@NotNull ProvisioningContext ctx, @NotNull PrismProperty<?> primaryIdentifier,
-            @NotNull QName objectClass, @NotNull ResourceObjectSupplier resourceObjectSupplier,
-            boolean skipClassification, CommonBeans commonBeans) {
+    ShadowAcquisition(
+            @NotNull ProvisioningContext ctx,
+            @NotNull PrismProperty<?> primaryIdentifier,
+            @NotNull QName objectClass,
+            @NotNull ResourceObjectSupplier resourceObjectSupplier,
+            boolean skipClassification,
+            CommonBeans commonBeans) {
         this.ctx = ctx;
         this.primaryIdentifier = primaryIdentifier;
         this.objectClass = objectClass;
@@ -87,42 +96,42 @@ class ShadowAcquisition {
         this.localBeans = commonBeans.shadowsFacade.getLocalBeans();
     }
 
-    public PrismObject<ShadowType> execute(OperationResult result)
+    public @NotNull ShadowType execute(OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             GenericConnectorException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
-        PrismObject<ShadowType> repoShadow = obtainRepoShadow(result);
+        ShadowType repoShadow = obtainRepoShadow(result);
 
         setOidAndResourceRefToResourceObject(repoShadow);
 
         if (skipClassification) {
             LOGGER.trace("Acquired repo shadow (skipping classification as requested):\n{}", repoShadow.debugDumpLazily(1));
             return repoShadow;
-        } else if (ShadowUtil.isClassified(repoShadow.asObjectable())) {
-            LOGGER.trace("Acquired repo shadow (already classified):\n{}", repoShadow.debugDumpLazily(1));
+        } else if (!localBeans.classificationHelper.shouldClassify(ctx, repoShadow)) {
+            LOGGER.trace("Acquired repo shadow (no need to classify):\n{}", repoShadow.debugDumpLazily(1));
             return repoShadow;
         } else {
-            PrismObject<ShadowType> fixedRepoShadow = classifyAndFixTheShadow(repoShadow, result);
-            LOGGER.trace("Acquired repo shadow (after classification and re-reading):\n{}", fixedRepoShadow.debugDumpLazily(1));
+            ShadowType fixedRepoShadow = classifyAndFixTheShadow(repoShadow, result);
+            LOGGER.trace("Acquired repo shadow (after classification and re-reading):\n{}",
+                    fixedRepoShadow.debugDumpLazily(1));
             return fixedRepoShadow;
         }
     }
 
-    @NotNull
-    private PrismObject<ShadowType> classifyAndFixTheShadow(PrismObject<ShadowType> repoShadow, OperationResult result)
+    private @NotNull ShadowType classifyAndFixTheShadow(ShadowType repoShadow, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException,
             ExpressionEvaluationException, SecurityViolationException {
 
         localBeans.classificationHelper.classify(ctx, repoShadow, getResourceObject(), result);
 
         // TODO We probably can avoid re-reading the shadow
-        return beans.shadowManager.fixShadow(ctx, repoShadow, result);
+        return localBeans.shadowUpdater.normalizeShadowAttributesInRepository(ctx, repoShadow, result);
     }
 
     // TODO is it OK to do it here? OID maybe. But resourceRef should have been there already (although without full object)
-    private void setOidAndResourceRefToResourceObject(PrismObject<ShadowType> repoShadow)
+    private void setOidAndResourceRefToResourceObject(ShadowType repoShadow)
             throws SchemaException {
-        ShadowType resourceObject = getResourceObject().asObjectable();
+        ShadowType resourceObject = getResourceObject();
 
         resourceObject.setOid(repoShadow.getOid());
         if (resourceObject.getResourceRef() == null) {
@@ -131,39 +140,39 @@ class ShadowAcquisition {
         resourceObject.getResourceRef().asReferenceValue().setObject(ctx.getResource().asPrismObject());
     }
 
-    @NotNull
-    private PrismObject<ShadowType> obtainRepoShadow(OperationResult result) throws SchemaException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
+    private @NotNull ShadowType obtainRepoShadow(OperationResult result)
+            throws SchemaException, ConfigurationException, EncryptionException {
 
-        PrismObject<ShadowType> existingRepoShadow = beans.shadowManager.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier,
-                objectClass, result);
+        ShadowType existingLiveRepoShadow =
+                localBeans.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
 
-        if (existingRepoShadow != null) {
-            LOGGER.trace("Found shadow object in the repository {}", ShadowUtil.shortDumpShadowLazily(existingRepoShadow));
-            return existingRepoShadow;
+        if (existingLiveRepoShadow != null) {
+            LOGGER.trace("Found live shadow object in the repository {}", shortDumpShadowLazily(existingLiveRepoShadow));
+            if (localBeans.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(existingLiveRepoShadow, result)) {
+                return existingLiveRepoShadow;
+            } else {
+                LOGGER.trace("The shadow disappeared, we will create a new one: {}", existingLiveRepoShadow);
+            }
         }
 
-        PrismObject<ShadowType> resourceObject = getResourceObject();
+        ShadowType resourceObject = getResourceObject();
 
         LOGGER.trace("Shadow object (in repo) corresponding to the resource object (on the resource) was not found. "
                 + "The repo shadow will be created. The resource object:\n{}", resourceObject);
 
-        // The resource object obviously exists on the resource, but appropriate shadow does
-        // not exist in the repository we need to create the shadow to align repo state to the
-        // reality (resource)
+        // The resource object obviously exists on the resource, but appropriate shadow does not exist in the repository.
+        // We need to create the shadow to align repo state to the reality (resource).
 
         try {
-            return beans.shadowManager.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
+            return localBeans.shadowCreator.addDiscoveredRepositoryShadow(ctx, resourceObject, result);
         } catch (ObjectAlreadyExistsException e) {
             return findConflictingShadow(resourceObject, e, result);
         }
     }
 
-    @NotNull
-    private PrismObject<ShadowType> findConflictingShadow(PrismObject<ShadowType> resourceObject,
-            ObjectAlreadyExistsException e, OperationResult result)
-            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
-            ExpressionEvaluationException {
+    private @NotNull ShadowType findConflictingShadow(
+            ShadowType resourceObject, ObjectAlreadyExistsException e, OperationResult result)
+            throws SchemaException {
 
         // Conflict! But we haven't supplied an OID and we have checked for existing shadow before,
         // therefore there should not conflict. Unless someone managed to create the same shadow
@@ -172,35 +181,44 @@ class ShadowAcquisition {
 
         OperationResult originalRepoAddSubresult = result.getLastSubresult();
 
-        LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow", resourceObject);
-        PrismObject<ShadowType> conflictingShadow = beans.shadowManager
-                .lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
+        LOGGER.debug("Attempt to create new repo shadow for {} ended up in conflict, re-trying the search for repo shadow",
+                resourceObject);
+        ShadowType conflictingLiveShadow =
+                localBeans.shadowFinder.lookupLiveShadowByPrimaryId(ctx, primaryIdentifier, objectClass, result);
 
-        if (conflictingShadow == null) {
-            // This is really strange. The shadow should not have disappeared in the meantime, dead shadow would remain instead.
-            // Maybe we have broken "indexes"? (e.g. primaryIdentifierValue column)
-
-            // Do some "research" and log the results, so we have good data to diagnose this situation.
-            String determinedPrimaryIdentifierValue = beans.shadowManager.determinePrimaryIdentifierValue(ctx, resourceObject);
-            PrismObject<ShadowType> potentialConflictingShadow = beans.shadowManager.lookupShadowByIndexedPrimaryIdValue(ctx,
-                    determinedPrimaryIdentifierValue, result);
-
-            LOGGER.error("Unexpected repository behavior: object already exists error even after we double-checked "
-                    + "shadow uniqueness: {}", e.getMessage(), e);
-            LOGGER.debug("REPO CONFLICT: resource shadow\n{}", resourceObject.debugDumpLazily(1));
-            LOGGER.debug("REPO CONFLICT: resource shadow: determined primaryIdentifierValue: {}", determinedPrimaryIdentifierValue);
-            LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}",
-                    DebugUtil.debugDumpLazily(potentialConflictingShadow, 1));
-
-            throw new SystemException("Unexpected repository behavior: object already exists error even after we double-checked "
-                    + "shadow uniqueness: " + e.getMessage(), e);
+        if (conflictingLiveShadow != null) {
+            if (localBeans.shadowUpdater.markLiveShadowExistingIfNotMarkedSo(conflictingLiveShadow, result)) {
+                originalRepoAddSubresult.muteError();
+                return conflictingLiveShadow;
+            } else {
+                // logged later
+            }
         }
 
-        originalRepoAddSubresult.muteError();
-        return conflictingShadow;
+        // This is really strange. The shadow should not have disappeared in the meantime, dead shadow would remain instead.
+        // Maybe we have broken "indexes"? (e.g. primaryIdentifierValue column)
+
+        // Do some "research" and log the results, so we have good data to diagnose this situation.
+        String determinedPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceObject);
+        PrismObject<ShadowType> potentialConflictingShadow =
+                localBeans.shadowFinder.lookupShadowByIndexedPrimaryIdValue(ctx, determinedPrimaryIdentifierValue, result);
+
+        LOGGER.error("Unexpected repository behavior: object already exists error even after we double-checked "
+                + "shadow uniqueness: {}", e.getMessage(), e);
+        if (conflictingLiveShadow != null) {
+            LOGGER.error("The conflicting shadow was there, but is there no longer. A transitional state? Shadow: {}",
+                    conflictingLiveShadow);
+        }
+        LOGGER.debug("REPO CONFLICT: resource shadow\n{}", resourceObject.debugDumpLazily(1));
+        LOGGER.debug("REPO CONFLICT: resource shadow: determined primaryIdentifierValue: {}", determinedPrimaryIdentifierValue);
+        LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}",
+                DebugUtil.debugDumpLazily(potentialConflictingShadow, 1));
+
+        throw new SystemException("Unexpected repository behavior: object already exists error even after we double-checked "
+                + "shadow uniqueness: " + e.getMessage(), e);
     }
 
-    private PrismObject<ShadowType> getResourceObject() throws SchemaException {
+    private ShadowType getResourceObject() throws SchemaException {
         if (resourceObject == null) {
             resourceObject = resourceObjectSupplier.getResourceObject();
         }
@@ -209,6 +227,6 @@ class ShadowAcquisition {
 
     @FunctionalInterface
     interface ResourceObjectSupplier {
-        @NotNull PrismObject<ShadowType> getResourceObject() throws SchemaException;
+        @NotNull ShadowType getResourceObject() throws SchemaException;
     }
 }

@@ -6,9 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
-
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
@@ -423,12 +422,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Experimental
     public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
         ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
         }
-        Collection<? extends EvaluatedAssignment<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues(); // MID-6403
-        for (EvaluatedAssignment<?> nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
+        Collection<? extends EvaluatedAssignment> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues(); // MID-6403
+        for (EvaluatedAssignment nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
             PrismObject<?> target = nonNegativeEvaluatedAssignment.getTarget();
             if (target == null) {
                 continue;
@@ -1434,24 +1433,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public List<ShadowType> getShadowsToActivate(Collection<? extends ModelElementContext> projectionContexts) {
+    public List<ShadowType> getShadowsToActivate(Collection<? extends ModelProjectionContext> projectionContexts) {
         List<ShadowType> shadows = new ArrayList<>();
-
-        //noinspection unchecked
-        for (ModelElementContext<ShadowType> projectionCtx : projectionContexts) {
-
-            List<? extends ObjectDeltaOperation> executedShadowDeltas = projectionCtx.getExecutedDeltas();
-            //noinspection unchecked
-            for (ObjectDeltaOperation<ShadowType> shadowDelta : executedShadowDeltas) {
-                if (shadowDelta.getExecutionResult().getStatus() == OperationResultStatus.SUCCESS
-                        && shadowDelta.getObjectDelta().getChangeType() == ChangeType.ADD) {
-                    PrismObject<ShadowType> shadow = shadowDelta.getObjectDelta().getObjectToAdd();
-                    PrismProperty<String> pLifecycleState = shadow.findProperty(ShadowType.F_LIFECYCLE_STATE);
-                    if (pLifecycleState != null && !pLifecycleState.isEmpty() && SchemaConstants.LIFECYCLE_PROPOSED
-                            .equals(pLifecycleState.getRealValue())) {
-                        shadows.add(shadow.asObjectable());
+        for (ModelProjectionContext projectionCtx : projectionContexts) {
+            List<? extends ObjectDeltaOperation<ShadowType>> executedOperations = projectionCtx.getExecutedDeltas();
+            for (ObjectDeltaOperation<ShadowType> executedOperation : executedOperations) {
+                ObjectDelta<ShadowType> shadowDelta = executedOperation.getObjectDelta();
+                if (isAdd(shadowDelta) && executedOperation.getStatus() == OperationResultStatus.SUCCESS) {
+                    ShadowType shadow = shadowDelta.getObjectToAdd().asObjectable();
+                    if (SchemaConstants.LIFECYCLE_PROPOSED.equals(shadow.getLifecycleState())) {
+                        shadows.add(shadow);
                     }
-
                 }
             }
         }
@@ -1736,12 +1728,35 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public String translate(LocalizableMessage message) {
-        return localizationService.translate(message, Locale.getDefault());
+        return translate(message, true);
+    }
+
+    @Override
+    public String translate(LocalizableMessage message, boolean useDefaultLocale) {
+        Locale locale = findProperLocale(useDefaultLocale);
+
+        return localizationService.translate(message, locale);
     }
 
     @Override
     public String translate(LocalizableMessageType message) {
-        return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), Locale.getDefault());
+        return translate(message, true);
+    }
+
+    @Override
+    public String translate(LocalizableMessageType message, boolean useDefaultLocale) {
+        Locale locale = findProperLocale(useDefaultLocale);
+
+        return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), locale);
+    }
+
+    @NotNull private Locale findProperLocale(boolean useDefaultLocale) {
+        if (useDefaultLocale) {
+            return Locale.getDefault();
+        }
+
+        MidPointPrincipal principal = SecurityUtil.getPrincipalSilent();
+        return principal != null ? principal.getLocale() : Locale.getDefault();
     }
 
     @Override
@@ -1779,7 +1794,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
         ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
         Collection<PrismValue> rv = new HashSet<>();
-        for (EvaluatedAssignment<?> evaluatedAssignment : lensContext.getNonNegativeEvaluatedAssignments()) {
+        for (EvaluatedAssignment evaluatedAssignment : lensContext.getNonNegativeEvaluatedAssignments()) {
             if (evaluatedAssignment.isValid()) {
                 for (Mapping<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
                     if (path.equivalent(mapping.getOutputPath())) {

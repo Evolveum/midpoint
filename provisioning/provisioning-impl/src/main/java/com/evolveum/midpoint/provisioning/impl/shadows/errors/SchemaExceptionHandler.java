@@ -7,10 +7,11 @@
 
 package com.evolveum.midpoint.provisioning.impl.shadows.errors;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowProvisioningOperation;
+
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -18,14 +19,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 class SchemaExceptionHandler extends HardErrorHandler {
 
     @Override
-    protected void throwException(Exception cause, ProvisioningOperationState<? extends AsynchronousOperationResult> opState, OperationResult result)
+    protected void throwException(@Nullable ShadowProvisioningOperation<?> operation, Exception cause, OperationResult result)
             throws SchemaException {
-        recordCompletionError(cause, opState, result);
+        recordCompletionError(operation, cause, result);
         if (cause instanceof SchemaException) {
             throw (SchemaException)cause;
         } else {
             throw new SchemaException(cause.getMessage(), cause);
         }
     }
-
 }

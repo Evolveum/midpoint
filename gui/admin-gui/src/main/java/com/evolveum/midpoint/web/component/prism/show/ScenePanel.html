@@ -10,13 +10,14 @@
 <wicket:panel>
     <div class="card" wicket:id="box" style="margin-bottom: 0px;">
         <div class="card-header with-border" wicket:id="headerPanel">
-            <h3 class="card-title" style="margin-right: 35px;">
-            <span wicket:id="wrapperDisplayName"/>
-            <span wicket:id="changeType"/>
-            <span wicket:id="objectType"/>
-            <small>
-                <span wicket:id="nameLabel"/><span wicket:id="nameLink"/> <span wicket:id="description"/>
-            </small>
+            <h3 class="card-title">
+                <span wicket:id="wrapperDisplayName"/>
+                <span wicket:id="changeType"/>
+                <span wicket:id="objectType"/>
+                <small>
+                    <span wicket:id="nameLabel"/><span wicket:id="nameLink"/> <span wicket:id="description"/>
+                </small>
+                <i class="fa fa-triangle-exclamation text-warning mr-1" wicket:id="warning" wicket:message="title:ScenePanel.warningMessage"></i>
             </h3>
             <div class="card-tools" wicket:id="optionButtons" />
         </div>

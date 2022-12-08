@@ -174,6 +174,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
     protected static final ItemName EXT_SEA = new ItemName(NS_PIRACY, "sea");
+    protected static final ItemName EXT_RESOURCE_NAME = new ItemName(NS_PIRACY, "resourceName");
 
     protected static final String NS_LINKED = "http://midpoint.evolveum.com/xml/ns/samples/linked";
     public static final ItemName RECOMPUTE_MEMBERS_NAME = new ItemName(NS_LINKED, "recomputeMembers");
@@ -1878,9 +1879,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return findAccountByUsername(username, resource, task, result);
     }
 
+    /** Looks for default `ACCOUNT` object class. */
     protected PrismObject<ShadowType> findAccountByUsername(String username, PrismObject<ResourceType> resource,
-            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        ObjectQuery query = createAccountShadowQuery(username, resource);
+            Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        ObjectQuery query = defaultAccountPrimaryIdentifierQuery(username, resource);
         List<PrismObject<ShadowType>> accounts = modelService.searchObjects(ShadowType.class, query, null, task, result);
         if (accounts.isEmpty()) {
             return null;
@@ -1999,10 +2002,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
+    /** Looks for default `ACCOUNT` object class. */
     protected void assertNoShadow(
             String username, PrismObject<ResourceType> resource, OperationResult result)
             throws SchemaException, ConfigurationException {
-        ObjectQuery query = createAccountShadowQuery(username, resource);
+        ObjectQuery query = defaultAccountPrimaryIdentifierQuery(username, resource);
         List<PrismObject<ShadowType>> accounts =
                 repositoryService.searchObjects(ShadowType.class, query, null, result);
         if (accounts.isEmpty()) {
@@ -2012,9 +2016,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assert false : "Found shadow for " + username + " on " + resource + " while not expecting it: " + accounts;
     }
 
+    /** Looks for default `ACCOUNT` object class. */
     protected ShadowAsserter<Void> assertShadow(String username, PrismObject<ResourceType> resource)
             throws SchemaException, ConfigurationException {
-        ObjectQuery query = createAccountShadowQuery(username, resource);
+        ObjectQuery query = defaultAccountPrimaryIdentifierQuery(username, resource);
         OperationResult result = new OperationResult("assertShadow");
         List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
         if (accounts.isEmpty()) {
@@ -2043,22 +2048,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
         assert shadows.size() == 1 : "Too many shadows found for name " + name + " on " + resource + ": " + shadows;
         return shadows.iterator().next();
-    }
-
-    @Override
-    protected ObjectQuery createAccountShadowQuery(
-            String username, PrismObject<ResourceType> resource) throws SchemaException, ConfigurationException {
-        ResourceSchema rSchema = ResourceSchemaFactory.getCompleteSchemaRequired(resource.asObjectable());
-        ResourceObjectDefinition rAccount = rSchema.findDefaultDefinitionForKind(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition<?>> identifierDefs = rAccount.getPrimaryIdentifiers();
-        assert identifierDefs.size() == 1 : "Unexpected identifier set in " + resource + " refined schema: " + identifierDefs;
-        ResourceAttributeDefinition<?> identifierDef = identifierDefs.iterator().next();
-        //TODO: set matching rule instead of null
-        return prismContext.queryFor(ShadowType.class)
-                .itemWithDef(identifierDef, ShadowType.F_ATTRIBUTES, identifierDef.getItemName()).eq(username)
-                .and().item(ShadowType.F_OBJECT_CLASS).eq(rAccount.getObjectClassName())
-                .and().item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
-                .build();
     }
 
     protected <F extends FocusType> String getSingleLinkOid(PrismObject<F> focus) {
@@ -4470,14 +4459,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertEnableTimestampFocus(PrismObject<? extends FocusType> focus,
             XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
         XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getEnableTimestamp();
-        TestUtil.assertBetween("Wrong user enableTimestamp in " + focus,
+        TestUtil.assertBetween("User enableTimestamp in " + focus,
                 startTime, endTime, userDisableTimestamp);
     }
 
     protected void assertDisableTimestampFocus(PrismObject<? extends FocusType> focus,
             XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
         XMLGregorianCalendar userDisableTimestamp = focus.asObjectable().getActivation().getDisableTimestamp();
-        TestUtil.assertBetween("Wrong user disableTimestamp in " + focus,
+        TestUtil.assertBetween("User disableTimestamp in " + focus,
                 startTime, endTime, userDisableTimestamp);
     }
 
@@ -4486,14 +4475,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ActivationType activationType = shadow.asObjectable().getActivation();
         assertNotNull("No activation in " + shadow, activationType);
         XMLGregorianCalendar userDisableTimestamp = activationType.getEnableTimestamp();
-        TestUtil.assertBetween("Wrong shadow enableTimestamp in " + shadow,
+        TestUtil.assertBetween("Shadow enableTimestamp in " + shadow,
                 startTime, endTime, userDisableTimestamp);
     }
 
     protected void assertDisableTimestampShadow(PrismObject<? extends ShadowType> shadow,
             XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) {
         XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getDisableTimestamp();
-        TestUtil.assertBetween("Wrong shadow disableTimestamp in " + shadow,
+        TestUtil.assertBetween("Shadow disableTimestamp in " + shadow,
                 startTime, endTime, userDisableTimestamp);
     }
 
@@ -5888,7 +5877,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertNotNull("No delta in pending operation in " + shadow, deltaType);
         // TODO: check content of pending operations in the shadow
 
-        TestUtil.assertBetween("No request timestamp in pending operation in " + shadow, requestStart, requestEnd, pendingOperation.getRequestTimestamp());
+        TestUtil.assertBetween("Request timestamp in pending operation in " + shadow, requestStart, requestEnd, pendingOperation.getRequestTimestamp());
 
         PendingOperationExecutionStatusType executiontStatus = pendingOperation.getExecutionStatus();
         assertEquals("Wrong execution status in pending operation in " + shadow, expectedExecutionStatus, executiontStatus);
@@ -5899,7 +5888,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         // TODO: assert other timestamps
 
         if (expectedExecutionStatus == PendingOperationExecutionStatusType.COMPLETED) {
-            TestUtil.assertBetween("No completion timestamp in pending operation in " + shadow, completionStart, completionEnd, pendingOperation.getCompletionTimestamp());
+            TestUtil.assertBetween("Completion timestamp in pending operation in " + shadow, completionStart, completionEnd, pendingOperation.getCompletionTimestamp());
         }
 
         return pendingOperation;
@@ -6857,18 +6846,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 }
             }
         };
-    }
-
-    protected void modifyResourceMaintenance(String resourceOid, AdministrativeAvailabilityStatusType mode,
-            Task task, OperationResult result)
-            throws CommonException {
-        ObjectDelta<ResourceType> objectDelta = prismContext.deltaFactory().object()
-                .createModificationReplaceProperty(ResourceType.class, resourceOid,
-                        PATH_ADMINISTRATIVE_AVAILABILITY_STATUS_PATH, mode);
-
-        provisioningService.applyDefinition(objectDelta, task, result);
-        provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(),
-                objectDelta.getModifications(), null, null, task, result);
     }
 
     protected ActivityProgressInformationAsserter<Void> assertProgress(String rootOid, String message)

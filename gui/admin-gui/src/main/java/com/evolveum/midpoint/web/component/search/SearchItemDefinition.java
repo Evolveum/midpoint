@@ -97,7 +97,7 @@ public class SearchItemDefinition implements Serializable, Comparable<SearchItem
         if (getDef() != null && StringUtils.isNotEmpty(getDef().getDisplayName())) {
             return PageBase.createStringResourceStatic(getDef().getDisplayName()).getString();
         }
-        return WebComponentUtil.getItemDefinitionDisplayNameOrName(getDef(), null);
+        return WebComponentUtil.getItemDefinitionDisplayNameOrName(getDef());
     }
 
     @Override

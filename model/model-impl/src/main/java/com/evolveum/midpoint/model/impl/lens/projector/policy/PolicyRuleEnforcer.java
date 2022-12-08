@@ -112,7 +112,7 @@ public class PolicyRuleEnforcer {
     }
 
     private <F extends FocusType> void evaluateAssignmentRules(EvaluationContext evalCtx, LensContext<F> context) {
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             return;
         }

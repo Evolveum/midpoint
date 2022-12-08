@@ -1,0 +1,20 @@
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<org xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:pc="http://midpoint.evolveum.com/xml/ns/samples/preview-changes">
+
+    <name>child org</name>
+    <description>no-provisioning</description>
+
+    <extension>
+        <pc:parentIdentifier>parentOfChild-1</pc:parentIdentifier>
+    </extension>
+
+    <identifier>child-1</identifier>
+
+</org>

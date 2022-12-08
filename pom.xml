@@ -226,13 +226,13 @@
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers. -->
 
         <!-- START of Spring Boot dependencies overrides (temporary/security fixes, revise regularly!) -->
-        <postgresql.version>42.3.7</postgresql.version> <!-- fixes CVE-2022-31197 -->
+        <postgresql.version>42.3.8</postgresql.version> <!-- fixes CVE-2022-31197 and more, this is the version in Boot 2.7.6 -->
         <jackson-bom.version>2.13.4</jackson-bom.version> <!-- fixes CVE-2022-42004 -->
         <snakeyaml.version>1.33</snakeyaml.version> <!-- fixes CVE-2022-25857 -->
         <!-- END of Spring Boot dependencies overrides -->
 
-        <wicket.version>9.11.0</wicket.version>
-        <wicketstuff.version>9.11.0</wicketstuff.version>
+        <wicket.version>9.12.0</wicket.version>
+        <wicketstuff.version>9.12.0</wicketstuff.version>
         <wicket.chartjs.version>0.1</wicket.chartjs.version>
         <!-- Groovy 3.0.12 is also default for Spring Boot 2.7.3 -->
         <groovy.version>3.0.12</groovy.version>
@@ -256,7 +256,7 @@
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <javax.persistence.version>2.2</javax.persistence.version>
-        <keycloak.version>18.0.0</keycloak.version>
+        <keycloak.version>20.0.1</keycloak.version>
 
         <maven.api.version>3.8.5</maven.api.version>
         <!-- With M6 we get [WARNING] Corrupted channel by directly writing to native stream in forked JVM 1,

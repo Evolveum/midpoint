@@ -45,7 +45,7 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
         this.conflictingPath = conflictingPath;
     }
 
-    public <F extends FocusType> EvaluatedAssignment<F> getConflictingAssignment() {
+    public @NotNull EvaluatedAssignment getConflictingAssignment() {
         return conflictingAssignment;
     }
 

@@ -158,7 +158,6 @@ public class SynchronizationServiceMock
         // Some basic sanity checks
         assertNotNull("No op description", opDescription);
         assertNotNull("No task", task);
-        assertNotNull("No result", opDescription.getResult());
         assertNotNull("No resource", opDescription.getResource());
         assertNotNull("No parent result", parentResult);
 

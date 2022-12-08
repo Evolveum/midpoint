@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 @FunctionalInterface
 public interface RepositoryOperation<O extends ObjectType, R> {
 
-    R run(PrismObject<O> object) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
+    R run(PrismObject<O> object)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
 
 }

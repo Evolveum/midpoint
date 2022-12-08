@@ -6,11 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.self.dashboard.component;
 
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -18,26 +25,11 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelType;
-
-import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.UrlValidator;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.Link;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.flow.RedirectToUrlException;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PreviewContainerPanelConfigurationType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 @PanelType(name = "statisticWidget")
 public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelConfigurationType> {
@@ -86,11 +78,13 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
 
         Label icon = new Label(ID_IMAGE);
         icon.add(AttributeAppender.append("class", getIconClassModel()));
+        icon.add(AttributeAppender.append("style", getIconStyleModel()));
         linkItem.add(icon);
 
         linkItem.add(new Label(ID_LABEL, () -> {
             ContainerPanelConfigurationType panel = StatisticDashboardWidget.this.getModelObject();
-            return WebComponentUtil.getCollectionLabel(panel.getDisplay());
+            PolyStringType label = WebComponentUtil.getCollectionLabel(panel.getDisplay());
+            return WebComponentUtil.getTranslatedPolyString(label);
         }));
 
         Label description = new Label(ID_DESCRIPTION, () -> {
@@ -104,7 +98,6 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
         linkItem.add(statisticData);
     }
 
-
     private IModel<String> getIconClassModel() {
         return () -> {
             ContainerPanelConfigurationType panel = StatisticDashboardWidget.this.getModelObject();
@@ -112,7 +105,7 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
             if (StringUtils.isEmpty(cssClass)) {
                 cssClass = ICON_DEFAULT_CSS_CLASS;
             }
-            return "info-box-icon " + getIconColor() + cssClass;
+            return "info-box-icon " + cssClass;
         };
     }
 
@@ -146,12 +139,14 @@ public class StatisticDashboardWidget extends BasePanel<PreviewContainerPanelCon
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView(view.getType(), viewIdentifier);
     }
 
-    private String getIconColor() {
-        String iconColor = GuiDisplayTypeUtil.getIconColor(getModelObject().getDisplay());
-        if (StringUtils.isNotEmpty(iconColor)) {
-            return iconColor.startsWith("bg-") ? iconColor : "bg-" + iconColor + " ";
-        }
-        return "";
+    private IModel<String> getIconStyleModel() {
+        return () -> {
+            String iconColor = GuiDisplayTypeUtil.getIconColor(getModelObject().getDisplay());
+            if (StringUtils.isNotEmpty(iconColor)) {
+                return "background-color: " + iconColor + " !important";
+            }
+            return "";
+        };
     }
 
     private boolean isExternalLink() {

@@ -383,7 +383,9 @@ public class TaskRetriever {
                 .build();
         List<PrismObject<TaskType>> list = repositoryService.searchObjects(TaskType.class, query, options, result);
         if (list.isEmpty()) {
-            throw new ObjectNotFoundException("Task with identifier " + identifier + " could not be found");
+            throw new ObjectNotFoundException(
+                    "Task with identifier " + identifier + " could not be found",
+                    TaskType.class, identifier);
         } else if (list.size() > 1) {
             throw new IllegalStateException("Found more than one task with identifier " + identifier + " (" + list.size() + " of them)");
         }

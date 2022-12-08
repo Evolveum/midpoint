@@ -10,6 +10,8 @@ import java.util.*;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
@@ -47,10 +49,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Contains methods specific to handle certification cases.
@@ -246,7 +244,12 @@ public class CertificationCaseHelper {
 
                 byte[] fullObject = (byte[]) query.uniqueResult();
                 if (fullObject == null) {
-                    throw new ObjectNotFoundException("Couldn't update cert campaign " + campaignOid + " + by delta with path " + deltaPath + " - specified case does not exist");
+                    throw new ObjectNotFoundException(
+                            String.format(
+                                    "Couldn't update cert campaign %s by delta with path '%s' - specified case does not exist",
+                                    campaignOid, deltaPath),
+                            AccessCertificationCaseType.class,
+                            campaignOid);
                 }
                 AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
 

@@ -8,13 +8,22 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.*;
 import java.util.function.Supplier;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.CapabilityUtil;
+import com.evolveum.midpoint.schema.util.*;
+
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
@@ -30,17 +39,15 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+
+import static com.evolveum.midpoint.schema.util.ResourceTypeUtil.isDiscoveryAllowed;
 
 /**
  * Context for provisioning operations. Contains key information like resolved resource,
@@ -167,9 +174,12 @@ public class ProvisioningContext {
         this.propagation = value;
     }
 
-    @NotNull
-    public ResourceType getResource() {
+    public @NotNull ResourceType getResource() {
         return resource;
+    }
+
+    public @NotNull ObjectReferenceType getResourceRef() {
+        return ObjectTypeUtil.createObjectRef(resource);
     }
 
     public @NotNull ResourceSchema getResourceSchema() throws SchemaException, ConfigurationException {
@@ -208,22 +218,6 @@ public class ProvisioningContext {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Returns the object type definition, or fails if there's none (because of being wildcard or being OC-based).
-     */
-    public @NotNull ResourceObjectTypeDefinition getObjectTypeDefinitionRequired() {
-        return MiscUtil.requireNonNull(
-                getObjectTypeDefinitionIfPresent(),
-                () -> new IllegalStateException("No resource object type definition in " + this));
-    }
-
-    /**
-     * Returns the object type definition, if applicable. (Null otherwise.)
-     */
-    private @Nullable ResourceObjectTypeDefinition getObjectTypeDefinitionIfPresent() {
-        return resourceObjectDefinition != null ? resourceObjectDefinition.getTypeDefinition() : null;
     }
 
     /**
@@ -279,10 +273,9 @@ public class ProvisioningContext {
     /**
      * Returns either real composite type definition, or just object definition - if that's not possible.
      */
-    public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(@NotNull PrismObject<ShadowType> shadow)
+    public @NotNull ResourceObjectDefinition computeCompositeObjectDefinition(@NotNull ShadowType shadow)
             throws SchemaException, ConfigurationException {
-        return computeCompositeObjectDefinition(
-                shadow.asObjectable().getAuxiliaryObjectClass());
+        return computeCompositeObjectDefinition(shadow.getAuxiliaryObjectClass());
     }
 
     public String getChannel() {
@@ -365,8 +358,13 @@ public class ProvisioningContext {
         return contextFactory.spawnForShadow(this, shadow);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean hasDefinition() {
+        return resourceObjectDefinition != null;
+    }
+
     public void assertDefinition(String message) throws SchemaException {
-        if (resourceObjectDefinition == null) {
+        if (!hasDefinition()) {
             throw new SchemaException(message + " " + getDesc());
         }
     }
@@ -390,7 +388,7 @@ public class ProvisioningContext {
                 parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
         try {
             return contextFactory.getResourceManager()
-                    .getConfiguredConnectorInstance(resource.asPrismObject(), operationCapabilityClass, false, result);
+                    .getConfiguredConnectorInstance(resource, operationCapabilityClass, false, result);
         } catch (ObjectNotFoundException | SchemaException e) {
             result.recordPartialError("Could not get connector instance " + getDesc() + ": " + e.getMessage(), e);
             // Wrap those exceptions to a configuration exception. In the context of the provisioning operation we really cannot throw
@@ -417,7 +415,29 @@ public class ProvisioningContext {
      */
     public <T extends CapabilityType> T getCapability(@NotNull Class<T> capabilityClass) {
         return getResourceManager().getCapability(
-                resource, getObjectTypeDefinitionIfPresent(), capabilityClass);
+                resource, getObjectDefinition(), capabilityClass);
+    }
+
+    public <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass) {
+        T capability = getCapability(capabilityClass);
+        return CapabilityUtil.isCapabilityEnabled(capability) ? capability : null;
+    }
+
+    public boolean hasCapability(@NotNull Class<? extends CapabilityType> capabilityClass) {
+        return getEnabledCapability(capabilityClass) != null;
+    }
+
+    public boolean hasReadCapability() {
+        return hasCapability(ReadCapabilityType.class);
+    }
+
+    public boolean isReadingCachingOnly() {
+        ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
+        if (readCapability == null) {
+            return false; // TODO reconsider this
+        } else {
+            return Boolean.TRUE.equals(readCapability.isCachingOnly());
+        }
     }
 
     @Override
@@ -429,8 +449,19 @@ public class ProvisioningContext {
         return ItemPath.create(components);
     }
 
-    public CachingStrategyType getCachingStrategy() {
-        return ProvisioningUtil.getCachingStrategy(this);
+    public @NotNull CachingStrategyType getCachingStrategy() {
+        CachingPolicyType cachingPolicy = resource.getCaching();
+        CachingStrategyType explicitCachingStrategy = cachingPolicy != null ? cachingPolicy.getCachingStrategy() : null;
+        if (explicitCachingStrategy != null) {
+            return explicitCachingStrategy;
+        } else {
+            ReadCapabilityType readCapability = getEnabledCapability(ReadCapabilityType.class);
+            if (readCapability != null && Boolean.TRUE.equals(readCapability.isCachingOnly())) {
+                return CachingStrategyType.PASSIVE;
+            } else {
+                return CachingStrategyType.NONE;
+            }
+        }
     }
 
     public String toHumanReadableDescription() {
@@ -443,6 +474,35 @@ public class ProvisioningContext {
 
     public boolean isInMaintenance() {
         return ResourceTypeUtil.isInMaintenance(resource);
+    }
+
+    /**
+     * Returns true if the definition of the current resource object is in "production" lifecycle state
+     * (`active` or `deprecated`). This determines the behavior of some processing components, as described in
+     * https://docs.lab.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/.
+     */
+    public boolean isObjectDefinitionInProduction() {
+        // Level 1: resource
+        if (!LifecycleUtil.isInProduction(resource.getLifecycleState())) {
+            // The whole resource is in development mode. We ignore any object class/type level settings in this case.
+            return false;
+        }
+        if (resourceObjectDefinition == null) {
+            // Resource is in production, and we have no further information.
+            throw new IllegalStateException(
+                    "Asked for production state of the object definition, but there is no object definition: " + this);
+        }
+        // Level 2: object class
+        ResourceObjectClassDefinition classDefinition = resourceObjectDefinition.getObjectClassDefinition();
+        if (!LifecycleUtil.isInProduction(classDefinition.getLifecycleState())) {
+            return false;
+        }
+        // Level 3: object type (if there's any)
+        ResourceObjectTypeDefinition typeDefinition = resourceObjectDefinition.getTypeDefinition();
+        if (typeDefinition == null) {
+            return true;
+        }
+        return LifecycleUtil.isInProduction(typeDefinition.getLifecycleState());
     }
 
     public void checkNotInMaintenance() throws MaintenanceException {
@@ -469,23 +529,14 @@ public class ProvisioningContext {
                 resource.getOid());
     }
 
-    /**
-     * Returns true if the object definition is "refined" (i.e. object type based).
-     */
-    public boolean isTypeBased() {
-        return resourceObjectDefinition instanceof ResourceObjectTypeDefinition;
-    }
-
     public @Nullable CachingStrategyType getPasswordCachingStrategy() {
         return ProvisioningUtil.getPasswordCachingStrategy(
                 getObjectDefinitionRequired());
     }
 
-    public void validateSchema(ShadowType shadow)
-            throws ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    public void validateSchemaIfConfigured(ShadowType shadow) throws SchemaException {
         if (ResourceTypeUtil.isValidateSchema(resource)) {
-            ShadowUtil.validateAttributeSchema(shadow, getObjectDefinition());
+            ShadowUtil.validateAttributeSchema(shadow, resourceObjectDefinition);
         }
     }
 
@@ -529,5 +580,94 @@ public class ProvisioningContext {
      */
     public AttributesToReturn createAttributesToReturn() {
         return ProvisioningUtil.createAttributesToReturn(this);
+    }
+
+    // Methods delegated to shadow caretaker (convenient to be here, but not sure if it's ok...)
+
+    /** Beware! Creates a new context based on the shadow kind/intent/OC. */
+    public ProvisioningContext applyAttributesDefinition(@NotNull PrismObject<ShadowType> shadow)
+            throws SchemaException, ConfigurationException {
+        return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
+    }
+
+    /** Beware! Creates a new context based on the shadow kind/intent/OC. */
+    public ProvisioningContext applyAttributesDefinition(@NotNull ShadowType shadow)
+            throws SchemaException, ConfigurationException {
+        return getCaretaker().applyAttributesDefinitionInNewContext(this, shadow);
+    }
+
+    /**
+     * Beware! For shadows being added, this method creates a separate (child) provisioning context.
+     */
+    public void applyAttributesDefinition(@NotNull ObjectDelta<ShadowType> delta)
+            throws SchemaException, ConfigurationException {
+        getCaretaker().applyAttributesDefinition(this, delta);
+    }
+
+    public void applyAttributesDefinition(@NotNull Collection<? extends ItemDelta<?, ?>> modifications) throws SchemaException {
+        getCaretaker().applyAttributesDefinition(this, modifications);
+    }
+
+    private @NotNull ShadowCaretaker getCaretaker() {
+        return contextFactory.getCommonBeans().shadowCaretaker;
+    }
+
+    public void updateShadowState(ShadowType shadow) {
+        getCaretaker().updateShadowState(this, shadow);
+    }
+
+    public ShadowLifecycleStateType determineShadowState(ShadowType shadow) {
+        return getCaretaker().determineShadowState(this, shadow);
+    }
+
+    // TODO not sure if it's ok here
+    public @NotNull ShadowType futurizeShadow(
+            @NotNull ShadowType repoShadow,
+            ShadowType resourceShadow,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            XMLGregorianCalendar now)
+            throws SchemaException, ConfigurationException {
+        if (!ProvisioningUtil.isFuturePointInTime(options)) {
+            return Objects.requireNonNullElse(resourceShadow, repoShadow);
+        } else {
+            return getCaretaker().applyPendingOperations(this, repoShadow, resourceShadow, false, now);
+        }
+    }
+
+    public boolean isAllowNotFound() {
+        return GetOperationOptions.isAllowNotFound(
+                SelectorOptions.findRootOptions(getOperationOptions));
+    }
+
+    public boolean shouldExecuteResourceOperationDirectly() {
+        if (propagation) {
+            return true;
+        } else {
+            ResourceConsistencyType consistency = resource.getConsistency();
+            return consistency == null || consistency.getOperationGroupingInterval() == null;
+        }
+    }
+
+    public boolean shouldUseProposedShadows() {
+        ResourceConsistencyType consistency = resource.getConsistency();
+        return consistency != null && BooleanUtils.isTrue(consistency.isUseProposedShadows());
+    }
+
+    public @NotNull ShadowCheckType getShadowConstraintsCheck() {
+        return ResourceTypeUtil.getShadowConstraintsCheck(resource);
+    }
+
+    public boolean shouldDoDiscoveryOnGet() {
+        return isDiscoveryAllowed(resource)
+                && !GetOperationOptions.isDoNotDiscovery(getOperationOptions);
+    }
+
+    public FetchErrorReportingMethodType getErrorReportingMethod() {
+        return GetOperationOptions.getErrorReportingMethod(
+                SelectorOptions.findRootOptions(getOperationOptions));
+    }
+
+    public boolean isProductionConfigurationTask() {
+        return task.getExecutionMode().isProductionConfiguration();
     }
 }

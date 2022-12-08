@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -492,5 +493,24 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
         return correlation != null ?
                 correlation.getPerformerComment() :
                 Set.of();
+    }
+
+    public ShadowAsserter<RA> assertSimulated() {
+        return assertSimulated(true);
+    }
+
+    public ShadowAsserter<RA> assertNotSimulated() {
+        return assertSimulated(false);
+    }
+
+    public ShadowAsserter<RA> assertSimulated(boolean expected) {
+        assertThat(isSimulated())
+                .as("shadow 'is simulated' status")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    private boolean isSimulated() {
+        return ShadowUtil.isSimulated(getObjectable());
     }
 }

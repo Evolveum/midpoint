@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 
 import java.io.Serializable;
 
@@ -19,11 +19,11 @@ public class SceneItemLineDto implements Serializable {
     public static final String F_NUMBER_OF_LINES = "numberOfLines";
 
     private final SceneItemDto sceneItemDto;
-    private final SceneItemValue sceneItemOldValue;
-    private final SceneItemValue sceneItemNewValue;
+    private final VisualizationItemValue sceneItemOldValue;
+    private final VisualizationItemValue sceneItemNewValue;
     private final boolean isDelta;
 
-    public SceneItemLineDto(SceneItemDto sceneItemDto, SceneItemValue sceneItemOldValue, SceneItemValue sceneItemNewValue, boolean isDelta) {
+    public SceneItemLineDto(SceneItemDto sceneItemDto, VisualizationItemValue sceneItemOldValue, VisualizationItemValue sceneItemNewValue, boolean isDelta) {
         this.sceneItemDto = sceneItemDto;
         this.sceneItemOldValue = sceneItemOldValue;
         this.sceneItemNewValue = sceneItemNewValue;
@@ -34,11 +34,11 @@ public class SceneItemLineDto implements Serializable {
         return sceneItemDto.getName();
     }
 
-    public SceneItemValue getOldValue() {
+    public VisualizationItemValue getOldValue() {
         return sceneItemOldValue;
     }
 
-    public SceneItemValue getNewValue() {
+    public VisualizationItemValue getNewValue() {
         return sceneItemNewValue;
     }
 

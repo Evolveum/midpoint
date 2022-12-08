@@ -41,13 +41,13 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
     }
 
     @Override
-    protected void processObjectAndDelta(OperationResult result) throws CommunicationException, ObjectNotFoundException,
-            NotApplicableException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
+    protected void processObjectAndDelta(OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         ResourceObjectConverter converter = beans.resourceObjectConverter;
         if (resourceObject != null) {
             // TODO why not in LS case? Probably because ConnId LS operation takes care of it?
-            converter.getShadowCaretaker().applyAttributesDefinition(context, resourceObject);
+            context.applyAttributesDefinition(resourceObject);
             converter.postProcessResourceObjectRead(context, resourceObject, true, result);
         } else {
             // we will fetch current resource object later; TODO why the difference w.r.t. LS case?
@@ -55,7 +55,7 @@ public class ResourceObjectAsyncChange extends ResourceObjectChange implements A
 
         if (objectDelta != null) {
             // TODO why not in LS case? Probably there's no MODIFY delta there...
-            converter.getShadowCaretaker().applyAttributesDefinition(context, objectDelta);
+            context.applyAttributesDefinition(objectDelta);
         }
     }
 

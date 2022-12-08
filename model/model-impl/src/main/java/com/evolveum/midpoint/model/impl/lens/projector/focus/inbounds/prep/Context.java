@@ -26,7 +26,7 @@ abstract class Context {
     /** The environment: context description, now (the clock), task. */
     @NotNull protected final MappingEvaluationEnvironment env;
 
-    /** The operation result. (Beware: Do *not* create subresults from it here!) */
+    /** The operation result. (Beware: Do *not* create subresults from it here unless certainly knowing what you're doing!) */
     @NotNull protected final OperationResult result;
 
     /** Useful Spring beans. */

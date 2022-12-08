@@ -1546,7 +1546,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(userObject.getAssignment().get(0).getPolicySituation())
                 .containsExactlyInAnyOrder("policy-situation-1", "policy-situation-3");
 
-        and("column with subtypes is updated accordingly");
+        and("column with assignment policy situations is updated accordingly");
         QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations)
@@ -1579,7 +1579,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         assertThat(userObject.getAssignment().get(0).getPolicySituation())
                 .containsExactlyInAnyOrder("policy-situation-a", "policy-situation-z");
 
-        and("column with subtypes is updated accordingly");
+        and("column with assignment policy situations is updated accordingly");
         QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations)
@@ -1611,7 +1611,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .asObjectable();
         assertThat(userObject.getAssignment().get(0).getPolicySituation()).isNullOrEmpty();
 
-        and("column with policy situations is set to null");
+        and("column with assignment policy situations is updated accordingly");
         QAssignment<?> a = QAssignmentMapping.getAssignmentMapping().defaultAlias();
         MAssignment aRow = selectOne(a, a.ownerOid.eq(UUID.fromString(user1Oid)));
         assertThat(aRow.policySituations).isNull();
@@ -1634,7 +1634,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and has provided subtypes");
+        and("serialized form (fullObject) is updated and has provided organizations");
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
@@ -1643,7 +1643,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .extracting(p -> p.getOrig())
                 .containsExactlyInAnyOrder("orgmod-1", "orgmod-2");
 
-        and("column with subtypes is updated");
+        and("column with organizations is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.organizations).isNotNull();
@@ -1656,7 +1656,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
     public void test191AddingAndDeletingOrganizationValuesSetsArrayColumn() throws Exception {
         OperationResult result = createOperationResult();
 
-        given("delta for subtypes with both delete and add values");
+        given("delta for organizations with both delete and add values");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ORGANIZATION)
                 .delete(new PolyString("orgmod-2"), new PolyString("wrong"))
@@ -1669,7 +1669,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         then("operation is successful");
         assertThatOperationResult(result).isSuccess();
 
-        and("serialized form (fullObject) is updated and has expected subtypes");
+        and("serialized form (fullObject) is updated and has expected organizations");
         UserType userObject = repositoryService
                 .getObject(UserType.class, user1Oid, null, result)
                 .asObjectable();
@@ -1677,7 +1677,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
                 .extracting(p -> p.getOrig())
                 .containsExactlyInAnyOrder("orgmod-1", "orgmod-3", "orgmod-4");
 
-        and("column with subtypes is updated");
+        and("column with organizations is updated");
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(Jsonb.toList(row.organizations)).containsExactlyInAnyOrder(
                 Map.of("o", "orgmod-1", "n", "orgmod1"),
@@ -3148,7 +3148,7 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         OperationResult result = createOperationResult();
         MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
 
-        given("delta adding int extension item");
+        given("delta mixing add, replace and delete of extension item");
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(FocusType.F_EXTENSION, new QName("int")).replace(47)
                 .item(FocusType.F_EXTENSION, new QName("string-mv")).add("s1", "s2", "s3", "s4")
@@ -3326,6 +3326,39 @@ public class SqaleRepoModifyObjectTest extends SqaleRepoBaseTest {
         MUser row = selectObjectByOid(QUser.class, user1Oid);
         assertThat(row.version).isEqualTo(originalRow.version + 1);
         assertThat(row.ext).isNull();
+    }
+
+    @Test(description = "MID-8258")
+    public void test510TwoExtensionItemsDifferentOneMissingNamespace() throws Exception {
+        OperationResult result = createOperationResult();
+        MUser originalRow = selectObjectByOid(QUser.class, user1Oid);
+
+        given("delta replacing extension items with one of the paths missing namespace for the extension container");
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(new ItemName("extension"), new QName("int")).replace(510)
+                .item(FocusType.F_EXTENSION, new QName("string")).replace("510")
+                .asObjectDelta(user1Oid);
+
+        when("modifyObject is called");
+        repositoryService.modifyObject(UserType.class, user1Oid, delta.getModifications(), result);
+
+        then("operation is successful");
+        assertThatOperationResult(result).isSuccess();
+
+        and("serialized form (fullObject) is updated");
+        UserType user = repositoryService.getObject(UserType.class, user1Oid, null, result)
+                .asObjectable();
+        assertThat(user.getVersion()).isEqualTo(String.valueOf(originalRow.version + 1));
+        // no check of ext container, we believe in prism here
+
+        and("externalized column is updated and both changes are present");
+        ExtensionType extensionContainer = user.getExtension();
+        MUser row = selectObjectByOid(QUser.class, user1Oid);
+        assertThat(row.version).isEqualTo(originalRow.version + 1);
+        assertThat(row.ext).isNotNull();
+        assertThat(Jsonb.toMap(row.ext))
+                .containsEntry(extensionKey(extensionContainer, "int"), 510)
+                .containsEntry(extensionKey(extensionContainer, "string"), "510");
     }
     // endregion
 

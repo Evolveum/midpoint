@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -15,7 +16,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.test.TestResource;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -59,69 +65,72 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     private static final String HUGE_BADA_BOOM = "hugeBadaBoom";
     private static final String FIRST_RULE = "firstRule";
 
-    protected static final File RESOURCE_DUMMY_VAULT_FILE = new File(TEST_DIR, "resource-dummy-vault.xml");
-    protected static final String RESOURCE_DUMMY_VAULT_OID = "84a420cc-2904-11e8-862b-0fc0d7ab7174";
-    protected static final String RESOURCE_DUMMY_VAULT_NAME = "vault";
+    private static final File RESOURCE_DUMMY_VAULT_FILE = new File(TEST_DIR, "resource-dummy-vault.xml");
+    private static final String RESOURCE_DUMMY_VAULT_OID = "84a420cc-2904-11e8-862b-0fc0d7ab7174";
+    private static final String RESOURCE_DUMMY_VAULT_NAME = "vault";
 
-    protected static final File ROLE_VAULT_DWELLER_FILE = new File(TEST_DIR, "role-vault-dweller.xml");
-    protected static final String ROLE_VAULT_DWELLER_OID = "8d8471f4-2906-11e8-9078-4f2b205aa01d";
+    private static final File ROLE_VAULT_DWELLER_FILE = new File(TEST_DIR, "role-vault-dweller.xml");
+    private static final String ROLE_VAULT_DWELLER_OID = "8d8471f4-2906-11e8-9078-4f2b205aa01d";
 
-    protected static final File ROLE_READ_ROLE_MEMBERS_FILE = new File(TEST_DIR, "role-read-role-members.xml");
-    protected static final String ROLE_READ_ROLE_MEMBERS_OID = "40df00e8-3efc-11e7-8d18-7b955ccb96a1";
+    private static final File ROLE_READ_ROLE_MEMBERS_FILE = new File(TEST_DIR, "role-read-role-members.xml");
+    private static final String ROLE_READ_ROLE_MEMBERS_OID = "40df00e8-3efc-11e7-8d18-7b955ccb96a1";
 
-    protected static final File ROLE_READ_ROLE_MEMBERS_WRONG_FILE = new File(TEST_DIR, "role-read-role-members-wrong.xml");
-    protected static final String ROLE_READ_ROLE_MEMBERS_WRONG_OID = "8418e248-3efc-11e7-a546-931a90cb8ee3";
+    private static final File ROLE_READ_ROLE_MEMBERS_WRONG_FILE = new File(TEST_DIR, "role-read-role-members-wrong.xml");
+    private static final String ROLE_READ_ROLE_MEMBERS_WRONG_OID = "8418e248-3efc-11e7-a546-931a90cb8ee3";
 
-    protected static final File ROLE_READ_ROLE_MEMBERS_NONE_FILE = new File(TEST_DIR, "role-read-role-members-none.xml");
-    protected static final String ROLE_READ_ROLE_MEMBERS_NONE_OID = "9e93dfb2-3eff-11e7-b56b-1b0e35f837fc";
+    private static final File ROLE_READ_ROLE_MEMBERS_NONE_FILE = new File(TEST_DIR, "role-read-role-members-none.xml");
+    private static final String ROLE_READ_ROLE_MEMBERS_NONE_OID = "9e93dfb2-3eff-11e7-b56b-1b0e35f837fc";
 
-    protected static final File ROLE_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-role-administrator.xml");
-    protected static final String ROLE_ROLE_ADMINISTRATOR_OID = "b63ee91e-020c-11e9-a7c2-df4b9f00f209";
+    private static final File ROLE_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-role-administrator.xml");
+    private static final String ROLE_ROLE_ADMINISTRATOR_OID = "b63ee91e-020c-11e9-a7c2-df4b9f00f209";
 
-    protected static final File ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-role-administrator.xml");
-    protected static final String ROLE_LIMITED_ROLE_ADMINISTRATOR_OID = "ce67b472-e5a6-11e7-98c3-174355334559";
+    private static final File ROLE_LIMITED_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-role-administrator.xml");
+    private static final String ROLE_LIMITED_ROLE_ADMINISTRATOR_OID = "ce67b472-e5a6-11e7-98c3-174355334559";
 
-    protected static final File ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-read-role-administrator.xml");
-    protected static final String ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_OID = "b9fcce10-050d-11e8-b668-eb75ab96577d";
+    private static final File ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_FILE = new File(TEST_DIR, "role-limited-read-role-administrator.xml");
+    private static final String ROLE_LIMITED_READ_ROLE_ADMINISTRATOR_OID = "b9fcce10-050d-11e8-b668-eb75ab96577d";
 
-    protected static final File ROLE_EXCLUSION_PIRATE_FILE = new File(TEST_DIR, "role-exclusion-pirate.xml");
-    protected static final String ROLE_EXCLUSION_PIRATE_OID = "cf60ec66-e5a8-11e7-a997-ab32b7ec5fdb";
+    private static final File ROLE_EXCLUSION_PIRATE_FILE = new File(TEST_DIR, "role-exclusion-pirate.xml");
+    private static final String ROLE_EXCLUSION_PIRATE_OID = "cf60ec66-e5a8-11e7-a997-ab32b7ec5fdb";
 
-    protected static final File ROLE_MAXASSIGNEES_10_FILE = new File(TEST_DIR, "role-maxassignees-10.xml");
-    protected static final String ROLE_MAXASSIGNEES_10_OID = "09dadf60-f6f1-11e7-8223-a72f04f867e7";
+    private static final File ROLE_MAXASSIGNEES_10_FILE = new File(TEST_DIR, "role-maxassignees-10.xml");
+    private static final String ROLE_MAXASSIGNEES_10_OID = "09dadf60-f6f1-11e7-8223-a72f04f867e7";
 
-    protected static final File ROLE_MODIFY_POLICY_EXCEPTION_FILE = new File(TEST_DIR, "role-modify-policy-exception.xml");
-    protected static final String ROLE_MODIFY_POLICY_EXCEPTION_OID = "09e9acde-f787-11e7-987c-13212be79c7d";
+    private static final File ROLE_MODIFY_POLICY_EXCEPTION_FILE = new File(TEST_DIR, "role-modify-policy-exception.xml");
+    private static final String ROLE_MODIFY_POLICY_EXCEPTION_OID = "09e9acde-f787-11e7-987c-13212be79c7d";
 
-    protected static final File ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_FILE = new File(TEST_DIR, "role-modify-policy-exception-situation.xml");
-    protected static final String ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_OID = "45bee61c-f79f-11e7-a2a7-27ade881c9e0";
+    private static final File ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_FILE = new File(TEST_DIR, "role-modify-policy-exception-situation.xml");
+    private static final String ROLE_MODIFY_POLICY_EXCEPTION_SITUATION_OID = "45bee61c-f79f-11e7-a2a7-27ade881c9e0";
 
-    protected static final File ROLE_MODIFY_DESCRIPTION_FILE = new File(TEST_DIR, "role-modify-description.xml");
-    protected static final String ROLE_MODIFY_DESCRIPTION_OID = "1a0616e4-f79a-11e7-80c9-d77b403e1a81";
+    private static final File ROLE_MODIFY_DESCRIPTION_FILE = new File(TEST_DIR, "role-modify-description.xml");
+    private static final String ROLE_MODIFY_DESCRIPTION_OID = "1a0616e4-f79a-11e7-80c9-d77b403e1a81";
 
-    protected static final File ROLE_PROP_EXCEPT_ASSIGNMENT_FILE = new File(TEST_DIR, "role-prop-except-assignment.xml");
-    protected static final String ROLE_PROP_EXCEPT_ASSIGNMENT_OID = "bc0f3bfe-029f-11e8-995d-273b6606fd79";
+    private static final File ROLE_PROP_EXCEPT_ASSIGNMENT_FILE = new File(TEST_DIR, "role-prop-except-assignment.xml");
+    private static final String ROLE_PROP_EXCEPT_ASSIGNMENT_OID = "bc0f3bfe-029f-11e8-995d-273b6606fd79";
 
-    protected static final File ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_FILE = new File(TEST_DIR, "role-prop-except-administrative-status.xml");
-    protected static final String ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_OID = "cc549256-02a5-11e8-994e-43c307e2a819";
+    private static final File ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_FILE = new File(TEST_DIR, "role-prop-except-administrative-status.xml");
+    private static final String ROLE_PROP_EXCEPT_ADMINISTRATIVE_STATUS_OID = "cc549256-02a5-11e8-994e-43c307e2a819";
 
-    protected static final File ROLE_PROP_SUBTYPE_FILE = new File(TEST_DIR, "role-prop-subtype.xml");
-    protected static final String ROLE_PROP_SUBTYPE_OID = "0a841bcc-c255-11e8-bd03-d72f34cdd7f8";
+    private static final File ROLE_PROP_SUBTYPE_FILE = new File(TEST_DIR, "role-prop-subtype.xml");
+    private static final String ROLE_PROP_SUBTYPE_OID = "0a841bcc-c255-11e8-bd03-d72f34cdd7f8";
 
-    protected static final File ROLE_PROP_SUBTYPE_ESCAPE_FILE = new File(TEST_DIR, "role-prop-subtype-escape.xml");
-    protected static final String ROLE_PROP_SUBTYPE_ESCAPE_OID = "bdf18bb2-c314-11e8-8e99-1709836f1462";
+    private static final File ROLE_PROP_SUBTYPE_ESCAPE_FILE = new File(TEST_DIR, "role-prop-subtype-escape.xml");
+    private static final String ROLE_PROP_SUBTYPE_ESCAPE_OID = "bdf18bb2-c314-11e8-8e99-1709836f1462";
 
-    protected static final File ROLE_ASSIGN_ORG_FILE = new File(TEST_DIR, "role-assign-org.xml");
-    protected static final String ROLE_ASSIGN_ORG_OID = "be96f834-2dbb-11e8-b29d-7f5de07e7995";
+    private static final File ROLE_ASSIGN_ORG_FILE = new File(TEST_DIR, "role-assign-org.xml");
+    private static final String ROLE_ASSIGN_ORG_OID = "be96f834-2dbb-11e8-b29d-7f5de07e7995";
 
-    protected static final File ROLE_READ_ORG_EXEC_FILE = new File(TEST_DIR, "role-read-org-exec.xml");
-    protected static final String ROLE_READ_ORG_EXEC_OID = "1ac39d34-e675-11e8-a1ec-37748272d526";
+    private static final File ROLE_READ_ORG_EXEC_FILE = new File(TEST_DIR, "role-read-org-exec.xml");
+    private static final String ROLE_READ_ORG_EXEC_OID = "1ac39d34-e675-11e8-a1ec-37748272d526";
 
-    protected static final File ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE = new File(TEST_DIR, "role-read-resource-operational-state.xml");
-    protected static final String ROLE_READ_RESOURCE_OPERATIONAL_STATE_OID = "18f17721-63e1-42cf-abaf-8a50a04e639f";
+    private static final File ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE = new File(TEST_DIR, "role-read-resource-operational-state.xml");
+    private static final String ROLE_READ_RESOURCE_OPERATIONAL_STATE_OID = "18f17721-63e1-42cf-abaf-8a50a04e639f";
 
     private static final TestResource<RoleType> ROLE_READ_TASK_STATUS = new TestResource<>(TEST_DIR, "role-read-task-status.xml", "bc2d0900-ac17-40c1-acf8-eb5466995aae");
     private static final TestResource<TaskType> TASK_DUMMY = new TestResource<>(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
+
+    private static final TestResource<RoleType> ROLE_MANY_SHADOW_OWNER_AUTZ = new TestResource<>(
+            TEST_DIR, "role-many-shadow-owner-autz.xml", "c8c99194-3e5c-439b-bf98-c71146d3e1b5");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -151,9 +160,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         repoAddObjectFromFile(ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE, initResult);
         repoAdd(ROLE_READ_TASK_STATUS, initResult);
         repoAdd(TASK_DUMMY, initResult);
+        repoAdd(ROLE_MANY_SHADOW_OWNER_AUTZ, initResult);
     }
 
-    private static final int NUMBER_OF_IMPORTED_ROLES = 20;
+    private static final int NUMBER_OF_IMPORTED_ROLES = 21;
     private static final int NUMBER_OF_IMPORTED_TASKS = 1;
 
     protected int getNumberOfRoles() {
@@ -2600,7 +2610,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertGlobalStateUntouched();
     }
 
-    protected void modifyRoleAddExclusionAndAssignOrg(
+    @SuppressWarnings("SameParameterValue")
+    private void modifyRoleAddExclusionAndAssignOrg(
             String roleOid, String excludedRoleOid, String orgOid, Task task, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException,
@@ -3218,7 +3229,43 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertEquals("Wrong # of items in task read", 2, task.getValue().size());
     }
 
+    /**
+     * Checks the caching of "owner search" operation during autz checking (MID-8363).
+     */
+    @Test
+    public void test370AutzJackManyAutz() throws Exception {
+        cleanupAutzTest(USER_JACK_OID);
 
+        assignRole(USER_JACK_OID, ROLE_MANY_SHADOW_OWNER_AUTZ.oid);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        String accountOid =
+                MiscUtil.extractSingletonRequired(
+                                getUser(USER_JACK_OID).asObjectable().getLinkRef())
+                        .getOid();
+
+        login(USER_JACK_USERNAME);
+
+        when("account is retrieved");
+
+        PerformanceMonitor performanceMonitor = repositoryService.getPerformanceMonitor();
+        performanceMonitor.clearGlobalPerformanceInformation();
+        PrismObject<ShadowType> account = getObject(ShadowType.class, accountOid);
+
+        then("only one search is executed");
+        PerformanceInformation performanceInformation = performanceMonitor.getGlobalPerformanceInformation();
+        displayValue("performance information",
+                RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
+        String opName = isNativeRepository() ? "SqaleRepositoryService.searchObjects" : "searchObjects";
+        assertThat(performanceInformation.getInvocationCount(opName))
+                .as("searchObjects operation count")
+                .isEqualTo(1);
+
+        and("account is OK");
+        display("account", account);
+        assertThat(account.getValue().getItems()).as("items in account object").hasSize(8);
+    }
+
+    @SuppressWarnings("SameParameterValue")
     private ObjectQuery createOrgSubtreeAndNameQuery(String orgOid, String name) {
         return queryFor(ObjectType.class)
                 .isChildOf(orgOid)
@@ -3237,6 +3284,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertSuccess(result);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private PrismObject<UserType> assertAlmostFullJackRead(int expectedTargetAssignments) throws Exception {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("Jack", userJack);
@@ -3295,6 +3343,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertDeputySearchDelegatorRef(String delegatorOid, String... expectedDeputyOids)
             throws Exception {
         PrismReferenceValue rval = itemFactory().createReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);
@@ -3303,6 +3352,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertSearch(UserType.class, query, expectedDeputyOids);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void assertDeputySearchAssignmentTarget(
             String delegatorOid, String... expectedDeputyOids) throws Exception {
         PrismReferenceValue rval = itemFactory().createReferenceValue(delegatorOid, UserType.COMPLEX_TYPE);

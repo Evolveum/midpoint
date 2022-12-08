@@ -125,7 +125,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -1317,7 +1317,15 @@ public final class WebComponentUtil {
         return combinedDisplay;
     }
 
-    public static String getItemDefinitionDisplayNameOrName(ItemDefinition def, Component component) {
+    public static String getItemDefinitionDisplayNameOrName(ItemDefinition def) {
+        String name = getItemDefinitionDisplayName(def);
+        if (StringUtils.isNotEmpty(name)) {
+            return name;
+        }
+        return def.getItemName().getLocalPart();
+    }
+
+    public static String getItemDefinitionDisplayName(ItemDefinition def) {
         if (def == null) {
             return null;
         }
@@ -1331,7 +1339,7 @@ public final class WebComponentUtil {
         if (def instanceof ResourceAttributeDefinition && StringUtils.isNotEmpty(def.getDisplayName())) {
             return def.getDisplayName();
         }
-        return def.getItemName().getLocalPart();
+        return null;
     }
 
     private static String getAcquisitionDescription(ProvenanceAcquisitionType acquisitionType) {
@@ -4450,7 +4458,7 @@ public final class WebComponentUtil {
         OperationResult result = new OperationResult(operation);
         Task task = pageBase.createSimpleTask(operation);
         try {
-            Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(caseObject.getApprovalContext().getDeltasToApprove(),
+            Visualization deltasScene = SceneUtil.visualizeObjectTreeDeltas(caseObject.getApprovalContext().getDeltasToApprove(),
                     CaseTypeUtil.isClosed(caseObject) ? "pageWorkItem.changesApplied" : "pageWorkItem.delta",
                     pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
             return new SceneDto(deltasScene);
@@ -4469,7 +4477,7 @@ public final class WebComponentUtil {
         OperationResult result = new OperationResult(operation);
         Task task = pageBase.createSimpleTask(operation);
         try {
-            Scene deltasScene = SceneUtil.visualizeObjectDeltaType(caseObject.getManualProvisioningContext().getPendingOperation().getDelta(),
+            Visualization deltasScene = SceneUtil.visualizeObjectDeltaType(caseObject.getManualProvisioningContext().getPendingOperation().getDelta(),
                     CaseTypeUtil.isClosed(caseObject) ? "pageWorkItem.changesApplied" : "pageWorkItem.changesToBeApplied", pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
             return new SceneDto(deltasScene);
         } catch (SchemaException | ExpressionEvaluationException ex) {
@@ -4653,7 +4661,7 @@ public final class WebComponentUtil {
     private static SceneDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
             PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
-        Scene scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, objectRef, opTask, result);
+        Visualization scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, objectRef, opTask, result);
         SceneDto sceneDto = new SceneDto(scene);
         sceneDto.setBoxClassOverride(boxClassOverride);
         return sceneDto;
@@ -5430,5 +5438,18 @@ public final class WebComponentUtil {
                 .autohide(true)
                 .delay(5_000)
                 .body(panel.getString(key + ".text")).show(target);
+    }
+
+    public static String translateMessage(LocalizableMessage msg) {
+        if (msg == null) {
+            return null;
+        }
+
+        MidPointApplication application = MidPointApplication.get();
+        if (application == null) {
+            return msg.getFallbackMessage();
+        }
+
+        return application.getLocalizationService().translate(msg, getCurrentLocale());
     }
 }

@@ -8,6 +8,8 @@
 $list-group-item-padding-sm-y: 0.5rem;
 $list-group-item-padding-sm-x: 1rem;
 
+$max-levels: 10;
+
 @mixin list-reset() {
   list-style: none;
   padding-left: 0;
@@ -148,14 +150,11 @@ $list-group-item-padding-sm-x: 1rem;
   @include list-group-menu-item;
   border-radius: inherit;
 
-  // 3rd level padding
-  & .list-group-submenu > .list-group-submenu-item > div {
-    padding-left: 3.25rem;
-  }
-
-  // 2nd level padding
-  & > div.item {
-    padding-left: 2rem;
+  // padding for level 3-10
+  @for $i from 2 through $max-levels {
+    & > div.item.level-#{$i} {
+      padding-left: 2rem + ($i - 2) * 1.25rem;
+    }
   }
 }
 

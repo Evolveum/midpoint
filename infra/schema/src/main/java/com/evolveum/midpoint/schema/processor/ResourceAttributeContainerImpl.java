@@ -139,13 +139,15 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl<Sha
 
     @Override
     public ResourceAttribute<String> getNamingAttribute() {
-        if (getDefinition() == null) {
+        ResourceAttributeContainerDefinition containerDef = getDefinition();
+        if (containerDef == null) {
             return null;
         }
-        if (getDefinition().getNamingAttribute()==null) {
+        ResourceAttributeDefinition<?> namingAttrDef = containerDef.getNamingAttribute();
+        if (namingAttrDef == null) {
             return null;
         }
-        return findAttribute(getDefinition().getNamingAttribute());
+        return findAttribute(namingAttrDef);
     }
 
     @Override

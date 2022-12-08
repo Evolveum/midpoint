@@ -243,13 +243,14 @@
             </attribute>
 
              <association>
-                <ref>ri:group</ref>
-                <displayName>LDAP Group Membership</displayName>
-                <kind>entitlement</kind>
-                <intent>ldapGroup</intent>
-                <direction>objectToSubject</direction>
-                <associationAttribute>ri:uniqueMember</associationAttribute>
-                <valueAttribute>ri:dn</valueAttribute>
+                 <ref>ri:group</ref>
+                 <displayName>LDAP Group Membership</displayName>
+                 <kind>entitlement</kind>
+                 <intent>ldapGroup</intent>
+                 <direction>objectToSubject</direction>
+                 <associationAttribute>ri:uniqueMember</associationAttribute>
+                 <valueAttribute>ri:dn</valueAttribute>
+                 <tolerantValuePattern>.*</tolerantValuePattern> <!-- MID-8327 is related to association tolerance patterns -->
             </association>
 
             <iteration>

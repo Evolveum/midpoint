@@ -73,7 +73,10 @@ public class AccCertCaseOperationsHelper {
             SchemaException, ObjectAlreadyExistsException {
         AccessCertificationCaseType acase = queryHelper.getCase(campaignOid, caseId, task, result);
         if (acase == null) {
-            throw new ObjectNotFoundException("Case " + caseId + " was not found in campaign " + campaignOid);
+            throw new ObjectNotFoundException(
+                    "Case " + caseId + " was not found in campaign " + campaignOid,
+                    AccessCertificationCaseType.class,
+                    campaignOid + ":" + caseId);
         }
         AccessCertificationCampaignType campaign = CertCampaignTypeUtil.getCampaign(acase);
         if (campaign == null) {
@@ -81,7 +84,10 @@ public class AccCertCaseOperationsHelper {
         }
         AccessCertificationWorkItemType workItem = CertCampaignTypeUtil.findWorkItem(acase, workItemId);
         if (workItem == null) {
-            throw new ObjectNotFoundException("Work item " + workItemId + " was not found in campaign " + toShortString(campaign) + ", case " + caseId);
+            throw new ObjectNotFoundException(
+                    "Work item " + workItemId + " was not found in campaign " + toShortString(campaign) + ", case " + caseId,
+                    AccessCertificationWorkItemType.class,
+                    campaignOid + ":" + workItemId);
         }
 
         ObjectReferenceType responderRef = ObjectTypeUtil.createObjectRef(securityContextManager.getPrincipal().getFocus(), prismContext);

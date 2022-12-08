@@ -12,7 +12,6 @@ import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -70,7 +69,7 @@ public final class MultiPropagationActivityRun
                 .build();
 
         getBeans().repositoryService.searchObjectsIterative(ShadowType.class, shadowQuery, (shadow, lResult) -> {
-            propagateOperationsOnShadow(shadow, resource.asPrismObject(), workerTask, lResult);
+            propagateOperationsOnShadow(shadow.asObjectable(), resource, workerTask, lResult);
             return true;
         }, null, true, result);
 
@@ -78,8 +77,11 @@ public final class MultiPropagationActivityRun
         return true;
     }
 
-    private void propagateOperationsOnShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource,
-            Task workerTask, OperationResult result) {
+    private void propagateOperationsOnShadow(
+            @NotNull ShadowType shadow,
+            @NotNull ResourceType resource,
+            @NotNull Task workerTask,
+            @NotNull OperationResult result) {
         try {
             getActivityHandler().shadowsFacade.propagateOperations(resource, shadow, workerTask, result);
         } catch (CommonException | GenericFrameworkException | EncryptionException e) {

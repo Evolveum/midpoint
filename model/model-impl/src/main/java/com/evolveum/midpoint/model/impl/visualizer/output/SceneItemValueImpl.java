@@ -7,31 +7,43 @@
 
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
-import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
-public class SceneItemValueImpl implements SceneItemValue {
+public class SceneItemValueImpl implements VisualizationItemValue {
 
-    private final String text;
-    private final String additionalText;
+    private final LocalizableMessage text;
+    private final LocalizableMessage additionalText;
     private PrismValue sourceValue;
 
     public SceneItemValueImpl(String text) {
-        this.text = text;
-        this.additionalText = null;
+        this(text, null);
     }
 
     public SceneItemValueImpl(String text, String additionalText) {
+        this.text = text != null ? new SingleLocalizableMessage(text, new Object[0], text) : null;
+        this.additionalText = additionalText != null ? new SingleLocalizableMessage(additionalText, new Object[0], additionalText) : null;
+    }
+
+    public SceneItemValueImpl(LocalizableMessage text) {
+        this(text, null);
+    }
+
+    public SceneItemValueImpl(LocalizableMessage text, LocalizableMessage additionalText) {
         this.text = text;
         this.additionalText = additionalText;
     }
 
     @Override
-    public String getText() {
+    public LocalizableMessage getText() {
         return text;
     }
 
-    public String getAdditionalText() {
+    @Override
+    public LocalizableMessage getAdditionalText() {
         return additionalText;
     }
 

@@ -6,15 +6,14 @@
  */
 package com.evolveum.midpoint.model.impl.controller;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createExecutionPhase;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStateType.RUNNABLE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskSchedulingStateType.READY;
@@ -24,19 +23,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
-
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,21 +34,19 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
+import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
@@ -80,27 +67,33 @@ import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -111,6 +104,7 @@ import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -118,7 +112,9 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -185,8 +181,30 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             Collection<ProgressListener> listeners, OperationResult parentResult)
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
+        TaskExecutionMode executionMode = task.getExecutionMode();
+        if (executionMode == null || TaskExecutionMode.PRODUCTION.equals(executionMode)) {
+            LOGGER.warn("Task {} has execution mode undefined or set to PRODUCTION when executing previewChanges, setting to SIMULATED_PRODUCTION", task.getName());
+
+            task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
+        }
+
         if (ModelExecuteOptions.isRaw(options)) {
             throw new UnsupportedOperationException("previewChanges is not supported in raw mode");
+        }
+
+        if (options == null) {
+            options = ModelExecuteOptions.create();
+        }
+
+        if (options.getSimulationOptions() == null) {
+            SimulationOptionsType simulation = new SimulationOptionsType();
+
+            TaskExecutionMode mode = task.getExecutionMode();
+            SimulationOptionType option = mode.isPersistent() ? SimulationOptionType.UNSAFE : SimulationOptionType.SAFE;
+            simulation.setCreateOnDemand(option);
+            simulation.setSequence(option);
+
+            options.simulationOptions(simulation);
         }
 
         LOGGER.debug("Preview changes input:\n{}", DebugUtil.debugDumpLazily(deltas));
@@ -207,6 +225,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LensUtil.reclaimSequences(context, cacheRepositoryService, task, result);
 
             RepositoryCache.exitLocalCaches();
+
+            task.setExecutionMode(executionMode);
         }
 
         return context;
@@ -340,8 +360,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     public ResourceObjectDefinition getEditObjectClassDefinition(
-            PrismObject<ShadowType> shadow,
-            PrismObject<ResourceType> resource,
+            @NotNull PrismObject<ShadowType> shadow,
+            @NotNull PrismObject<ResourceType> resource,
             AuthorizationPhaseType phase,
             Task task,
             OperationResult result)
@@ -358,23 +378,36 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ResourceObjectDefinition objectDefinition = rocd.forLayer(LayerType.PRESENTATION);
 
         // TODO: maybe we need to expose owner resolver in the interface?
-        ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null, task, result);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Security constrains for {}:\n{}", shadow, securityConstraints == null ? "null" : securityConstraints.debugDump());
-        }
+        ObjectSecurityConstraints securityConstraints =
+                securityEnforcer.compileSecurityConstraints(shadow, null, task, result);
+        LOGGER.trace("Security constrains for {}:\n{}", shadow, DebugUtil.debugDumpLazily(securityConstraints));
         if (securityConstraints == null) {
             return null;
         }
 
-        ItemPath attributesPath = SchemaConstants.PATH_ATTRIBUTES;
-        AuthorizationDecisionType attributesReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
-                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase), phase);
-        AuthorizationDecisionType attributesAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD,
-                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase), phase);
-        AuthorizationDecisionType attributesModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY,
-                securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase), phase);
-        LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}", attributesReadDecision, attributesAddDecision,
-                attributesModifyDecision);
+        AuthorizationDecisionType attributesReadDecision =
+                schemaTransformer.computeItemDecision(
+                        securityConstraints,
+                        SchemaConstants.PATH_ATTRIBUTES,
+                        ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET,
+                        securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase),
+                        phase);
+        AuthorizationDecisionType attributesAddDecision =
+                schemaTransformer.computeItemDecision(
+                        securityConstraints,
+                        SchemaConstants.PATH_ATTRIBUTES,
+                        ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD,
+                        securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase),
+                        phase);
+        AuthorizationDecisionType attributesModifyDecision =
+                schemaTransformer.computeItemDecision(
+                        securityConstraints,
+                        SchemaConstants.PATH_ATTRIBUTES,
+                        ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY,
+                        securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase),
+                        phase);
+        LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}",
+                attributesReadDecision, attributesAddDecision, attributesModifyDecision);
 
         /*
          *  We are going to modify attribute definitions list.
@@ -386,11 +419,18 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 new ArrayList<>(objectDefinition.getAttributeDefinitions());
         for (ResourceAttributeDefinition<?> rAttrDef : definitionsCopy) {
             ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getItemName());
-            AuthorizationDecisionType attributeReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
-            AuthorizationDecisionType attributeAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
-            AuthorizationDecisionType attributeModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
+            AuthorizationDecisionType attributeReadDecision =
+                    schemaTransformer.computeItemDecision(
+                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
+            AuthorizationDecisionType attributeAddDecision =
+                    schemaTransformer.computeItemDecision(
+                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
+            AuthorizationDecisionType attributeModifyDecision =
+                    schemaTransformer.computeItemDecision(
+                            securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
             LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", rAttrDef.getItemName(), attributeReadDecision,
                     attributeAddDecision, attributeModifyDecision);
+
             if (attributeReadDecision != AuthorizationDecisionType.ALLOW
                     || attributeAddDecision != AuthorizationDecisionType.ALLOW
                     || attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
@@ -475,7 +515,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         ObjectSecurityConstraints securityConstraints;
         try {
             securityConstraints = securityEnforcer.compileSecurityConstraints(focus, null, task, result);
-        } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException | SecurityViolationException e) {
+        } catch (ExpressionEvaluationException | ObjectNotFoundException | SchemaException | CommunicationException |
+                SecurityViolationException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -811,31 +852,98 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public List<? extends Scene> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public List<Visualization> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException {
+
         return visualizer.visualizeDeltas(deltas, task, result);
     }
 
     @Override
+    public <O extends ObjectType> ModelContextVisualization visualizeModelContext(ModelContext<O> context, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, ConfigurationException {
+
+        if (context == null) {
+            return new ModelContextVisualization();
+        }
+
+        final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
+        final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
+
+        final List<ModelProjectionContext> projectionContexts = new ArrayList<>();
+
+        final List<Visualization> primaryScenes;
+        final List<Visualization> secondaryScenes;
+
+        if (context.getFocusContext() != null) {
+            addIgnoreNull(primaryDeltas, CloneUtil.clone(context.getFocusContext().getPrimaryDelta()));
+            ObjectDelta<O> summarySecondaryDelta = CloneUtil.clone(context.getFocusContext().getSummarySecondaryDelta());
+            if (summarySecondaryDelta != null && !summarySecondaryDelta.getModifications().isEmpty()) {
+                secondaryDeltas.add(summarySecondaryDelta);
+            }
+        }
+
+        for (ModelProjectionContext projCtx : context.getProjectionContexts()) {
+            ObjectDelta<ShadowType> primaryDelta = CloneUtil.clone(projCtx.getPrimaryDelta());
+            addIgnoreNull(primaryDeltas, primaryDelta);
+
+            if (!isEquivalentWithoutOperationAttr(primaryDelta, CloneUtil.clone(projCtx.getExecutableDelta()))) {
+                projectionContexts.add(projCtx);
+            }
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Primary deltas:\n{}", DebugUtil.debugDump(primaryDeltas));
+            LOGGER.trace("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
+        }
+
+        primaryScenes = visualizeDeltas(primaryDeltas, task, result);
+        secondaryScenes = visualizeDeltas(secondaryDeltas, task, result);
+
+        List<Visualization> projectionScenes = visualizer.visualizeProjectionContexts(projectionContexts, task, result);
+        secondaryScenes.addAll(projectionScenes);
+
+        return new ModelContextVisualization(primaryScenes, secondaryScenes);
+    }
+
+    private boolean isEquivalentWithoutOperationAttr(ObjectDelta<ShadowType> primaryDelta, ObjectDelta<ShadowType> secondaryDelta) {
+        if (primaryDelta == null || secondaryDelta == null) {
+            return false;
+        }
+
+        List<ItemDelta> modifications = new ArrayList<>();
+        modifications.addAll(secondaryDelta.getModifications());
+
+        for (ItemDelta secondaryModification : modifications) {
+            ItemDefinition def = secondaryModification.getDefinition();
+            if (def != null && def.isOperational()) {
+                secondaryDelta.removeModification(secondaryModification);
+            }
+        }
+
+        return primaryDelta.equivalent(secondaryDelta);
+    }
+
+    @Override
     @NotNull
-    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         return visualizer.visualizeDelta(delta, task, result);
     }
 
     @Override
     @NotNull
-    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         return visualizer.visualizeDelta(delta, null, includeOperationalItems, true, task, result);
     }
 
     @Override
     @NotNull
-    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         return visualizer.visualizeDelta(delta, null, includeOperationalItems, includeOriginalObject, task, result);
     }
 
     @Override
     @NotNull
-    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public Visualization visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         return visualizer.visualizeDelta(delta, objectRef, task, result);
     }
 
@@ -846,7 +954,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         List<ConnectorOperationalStatus> status;
         try {
             status = provisioning.getConnectorOperationalStatus(resourceOid, task, result);
-        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException |
+                ExpressionEvaluationException e) {
             result.recordFatalError(e);
             throw e;
         }
@@ -1240,7 +1349,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         for (String newValue : valuesToValidate) {
             OperationResult result = parentResult.createSubresult(OPERATION_VALIDATE_VALUE + ".value");
-            if (path != null) { result.addParam("path", path.toString()); }
+            if (path != null) {
+                result.addParam("path", path.toString());
+            }
             result.addParam("valueToValidate", newValue);
 
             ObjectValuePolicyEvaluator.Builder evaluatorBuilder = new ObjectValuePolicyEvaluator.Builder()
@@ -1436,7 +1547,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 continue;
             }
             if (determineDeputyValidity(potentialDeputy, workItem.getAssigneeRef(), workItem, OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, task, result)) {
-                deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy, prismContext));
+                deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
             }
         }
@@ -1456,7 +1567,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 continue;
             }
             if (determineDeputyValidity(potentialDeputy, Collections.singletonList(assigneeRef), null, limitationItemName, task, result)) {
-                deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy, prismContext));
+                deputies.add(ObjectTypeUtil.createObjectRefWithFullObject(potentialDeputy));
                 oidsToSkip.add(potentialDeputy.getOid());
             }
         }
@@ -1493,7 +1604,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
                         new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType));
                 // TODO some special mode for verification of the validity - we don't need complete calculation here!
-                EvaluatedAssignment<UserType> assignment = assignmentEvaluator
+                EvaluatedAssignment assignment = assignmentEvaluator
                         .evaluate(assignmentIdi, PlusMinusZero.ZERO, false, potentialDeputy.asObjectable(),
                                 potentialDeputy.toString(), AssignmentOrigin.createInObject(), task, result);
                 if (!assignment.isValid()) {
@@ -1663,8 +1774,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         try {
             Collection<ObjectDeltaOperation<? extends ObjectType>> result = modelService.executeChanges(
                     MiscUtil.createCollection(userDelta), ModelExecuteOptions.create().raw(), task, parentResult);
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
-                | SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PolicyViolationException e) {
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException |
+                SecurityViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException |
+                PolicyViolationException e) {
             response.message(LocalizationUtil.createForFallbackMessage("Failed to reset credential: " + e.getMessage()));
             throw e;
         }
@@ -1974,7 +2086,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                     query, options, task, result);
             processContainerByHandler(auditRecords, handler);
         } else if (ObjectType.class.isAssignableFrom(type)) {
-            ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test((PrismContainer)value);
+            ResultHandler<ObjectType> resultHandler = (value, operationResult) -> handler.test(value);
             checkOrdering(query, ObjectType.F_NAME);
             modelService.searchObjectsIterative((Class<ObjectType>) type, query, resultHandler, options, task, result);
         } else {
@@ -2024,7 +2136,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(new PagingType(), prismContext);
                 paging.setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
                 query.setPaging(paging);
-            } else if (query.getPaging().getPrimaryOrderingPath() == null){
+            } else if (query.getPaging().getPrimaryOrderingPath() == null) {
                 query.getPaging().setOrdering(defaultOrderBy, OrderDirection.ASCENDING);
             }
             return query;
@@ -2035,7 +2147,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     private void processContainerByHandler(SearchResultList<? extends Containerable> containers, Predicate<PrismContainer> handler) throws SchemaException {
-        for (Containerable container : containers){
+        for (Containerable container : containers) {
             PrismContainerValue prismValue = container.asPrismContainerValue();
             prismValue.setPrismContext(prismContext);
             PrismContainer prismContainer = prismValue.asSingleValuedContainer(prismValue.getTypeName());

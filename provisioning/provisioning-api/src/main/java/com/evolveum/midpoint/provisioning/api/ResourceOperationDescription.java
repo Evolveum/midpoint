@@ -9,7 +9,6 @@ package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -27,7 +26,7 @@ public class ResourceOperationDescription implements ProvisioningEvent, DebugDum
     private PrismObject<? extends ShadowType> currentShadow;
     private String sourceChannel;
     private PrismObject<ResourceType> resource;
-    private OperationResult result;
+    private String message;
     private boolean asynchronous = false;
     private int attemptNumber = 0;
 
@@ -73,12 +72,12 @@ public class ResourceOperationDescription implements ProvisioningEvent, DebugDum
     /**
      * Result of the failed operation.
      */
-    public OperationResult getResult() {
-        return result;
+    public String getMessage() {
+        return message;
     }
 
-    public void setResult(OperationResult result) {
-        this.result = result;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     /**
@@ -142,7 +141,7 @@ public class ResourceOperationDescription implements ProvisioningEvent, DebugDum
                 + ", resource=" + resource +
                 (asynchronous ? ", ASYNC" : "") +
                 (attemptNumber != 0 ? ", attemptNumber="+attemptNumber : "") +
-                ", result=" + result + ")";
+                ", message=" + message + ")";
     }
 
     /* (non-Javadoc)
@@ -193,15 +192,7 @@ public class ResourceOperationDescription implements ProvisioningEvent, DebugDum
 
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent+1);
-        sb.append("result:");
-        if (result == null) {
-            sb.append(" null\n");
-        } else {
-            sb.append("\n");
-            sb.append(result.debugDump(indent+2));
-        }
-
+        sb.append("message: ").append(message);
         return sb.toString();
     }
-
 }

@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
+
 /**
  * TODO
  */
@@ -96,7 +98,7 @@ public abstract class SynchronizationEventImpl<AC extends ShadowedChange<?>> imp
 
     @Override
     public PrismObject<ShadowType> getShadowedObject() {
-        return change.getShadowedObject();
+        return asPrismObject(change.getShadowedObject());
     }
 
     @Override

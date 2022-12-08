@@ -6,16 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.component.preview;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusPreviewChanges;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.model.api.visualizer.ModelContextVisualization;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -38,17 +42,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDt
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<ModelContext<O>> {
     private static final long serialVersionUID = 1L;
@@ -80,41 +73,21 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
     }
 
     private void initModels() {
-        final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
-        final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
-        final List<? extends Scene> primaryScenes;
-        final List<? extends Scene> secondaryScenes;
+        ModelContextVisualization modelScene;
 
         ModelContext<O> modelContext = getModelObject();
         try {
-            if (modelContext != null) {
-                if (modelContext.getFocusContext() != null) {
-                    addIgnoreNull(primaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getPrimaryDelta()));
-                    ObjectDelta<O> summarySecondaryDelta = CloneUtil.clone(modelContext.getFocusContext().getSummarySecondaryDelta());
-                    if (summarySecondaryDelta != null && !summarySecondaryDelta.getModifications().isEmpty()) {
-                        secondaryDeltas.add(summarySecondaryDelta);
-                    }
-                }
-
-                for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
-                    ObjectDelta<ShadowType> primaryDelta = CloneUtil.clone(projCtx.getPrimaryDelta());
-                    addIgnoreNull(primaryDeltas, primaryDelta);
-                    if (!isEquivalentWithoutOperationAttr(primaryDelta, CloneUtil.clone(projCtx.getExecutableDelta()))) {
-                        addIgnoreNull(secondaryDeltas, CloneUtil.clone(projCtx.getExecutableDelta()));
-                    }
-                }
-            }
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Primary deltas:\n{}", DebugUtil.debugDump(primaryDeltas));
-                LOGGER.trace("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
-            }
-
             Task task = getPageBase().createSimpleTask("visualize");
-            primaryScenes = getPageBase().getModelInteractionService().visualizeDeltas(primaryDeltas, task, task.getResult());
-            secondaryScenes = getPageBase().getModelInteractionService().visualizeDeltas(secondaryDeltas, task, task.getResult());
+            OperationResult result = task.getResult();
+
+            modelScene = getPageBase().getModelInteractionService().visualizeModelContext(modelContext, task, result);
         } catch (SchemaException | ExpressionEvaluationException | ConfigurationException e) {
             throw new SystemException(e);        // TODO
         }
+
+        final List<? extends Visualization> primaryScenes = modelScene.getPrimary();
+        final List<? extends Visualization> secondaryScenes = modelScene.getSecondary();
+
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Creating context DTO for primary deltas:\n{}", DebugUtil.debugDump(primaryScenes));
             LOGGER.trace("Creating context DTO for secondary deltas:\n{}", DebugUtil.debugDump(secondaryScenes));
@@ -124,10 +97,12 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
                 primaryScenes.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryScenes.size());
         final WrapperScene secondaryScene = new WrapperScene(secondaryScenes,
                 secondaryScenes.size() != 1 ? "PagePreviewChanges.secondaryChangesMore" : "PagePreviewChanges.secondaryChangesOne", secondaryScenes.size());
+
         final SceneDto primarySceneDto = new SceneDto(primaryScene);
         final SceneDto secondarySceneDto = new SceneDto(secondaryScene);
-        primaryDeltasModel = (IModel<SceneDto>) () -> primarySceneDto;
-        secondaryDeltasModel = (IModel<SceneDto>) () -> secondarySceneDto;
+
+        primaryDeltasModel = () -> primarySceneDto;
+        secondaryDeltasModel = () -> secondarySceneDto;
 
         PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
                 ? modelContext.getPolicyRuleEnforcerPreviewOutput()
@@ -161,21 +136,6 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             }
         }
         approvalsModel = Model.ofList(approvals);
-    }
-
-    private boolean isEquivalentWithoutOperationAttr(ObjectDelta<ShadowType> primaryDelta, ObjectDelta<ShadowType> secondaryDelta) {
-        if (primaryDelta == null || secondaryDelta == null) {
-            return false;
-        }
-        List<ItemDelta> modifications = new ArrayList<ItemDelta>();
-        modifications.addAll(secondaryDelta.getModifications());
-        for (ItemDelta secondaryModification : modifications){
-            ItemDefinition def = secondaryModification.getDefinition();
-            if (def != null && def.isOperational()) {
-                secondaryDelta.removeModification(secondaryModification);
-            }
-        }
-        return primaryDelta.equivalent(secondaryDelta);
     }
 
     private void initLayout() {

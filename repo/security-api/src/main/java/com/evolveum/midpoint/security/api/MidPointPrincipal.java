@@ -8,18 +8,19 @@ package com.evolveum.midpoint.security.api;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Locale;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -29,11 +30,12 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * @author Radovan Semancik
  */
-public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDumpable {
+public class MidPointPrincipal implements UserDetails, DebugDumpable, ShortDumpable {
     private static final long serialVersionUID = 8299738301872077768L;
 
     // Focus should not be final in case of session refresh, we need new focus object.
     @NotNull private FocusType focus;
+    private Locale preferredLocale;
     private Collection<Authorization> authorizations = new ArrayList<>();
     private ActivationStatusType effectiveActivationStatus;
     private SecurityPolicyType applicableSecurityPolicy;
@@ -111,7 +113,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
             } else {
                 effectiveActivationStatus = activation.getEffectiveStatus();
                 if (effectiveActivationStatus == null) {
-                    throw new IllegalArgumentException("Null effective activation status in "+ focus);
+                    throw new IllegalArgumentException("Null effective activation status in " + focus);
                 }
             }
         }
@@ -228,7 +230,7 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
         DebugUtil.debugDumpWithLabelLn(sb, "Focus", focus.asPrismObject(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Authorizations", authorizations, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "Delegators with other privilege limitations", delegatorWithOtherPrivilegesLimitationsCollection, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "Attorney", attorney==null?null:attorney.asPrismObject(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "Attorney", attorney == null ? null : attorney.asPrismObject(), indent + 1);
     }
 
     @Override
@@ -258,5 +260,43 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
         if (attorney != null) {
             sb.append("[").append(attorney).append("]");
         }
+    }
+
+    /**
+     * Search for locale for this principal in multiple locations, returns first non-null item. Order of search:
+     *
+     * <ol>
+     *     <li>{@link MidPointPrincipal#preferredLocale}</li>
+     *     <li>{@link FocusType#getPreferredLanguage()}</li>
+     *     <li>{@link FocusType#getLocale()}</li>
+     *     <li>{@link Locale#getDefault()}</li>
+     * </ol>
+     */
+    @NotNull
+    public Locale getLocale() {
+        Locale locale = getPreferredLocale();
+        if (locale != null) {
+            return locale;
+        }
+
+        locale = LocaleUtils.toLocale(focus.getPreferredLanguage());
+        if (locale != null) {
+            return locale;
+        }
+
+        locale = LocaleUtils.toLocale(focus.getLocale());
+        if (locale != null) {
+            return locale;
+        }
+
+        return Locale.getDefault();
+    }
+
+    public Locale getPreferredLocale() {
+        return preferredLocale;
+    }
+
+    public void setPreferredLocale(Locale preferredLocale) {
+        this.preferredLocale = preferredLocale;
     }
 }

@@ -64,6 +64,17 @@
                     <visibility>hidden</visibility>
                 </panel>
                 <panel>
+                    <identifier>governance</identifier>
+                    <display>
+                        <label>GovernanceCardsPanel.label</label>
+                        <icon>
+                            <cssClass>fa fa-users</cssClass>
+                        </icon>
+                    </display>
+                    <displayOrder>91</displayOrder>
+                    <panelType>governanceCards</panelType>
+                </panel>
+                <panel>
                     <identifier>inducements</identifier>
                     <visibility>hidden</visibility>
                 </panel>

@@ -33,6 +33,8 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.*;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -293,7 +295,10 @@ public class ConnIdUtil {
             return newEx;
 
         } else if (connIdException instanceof UnknownUidException) {
-            Exception newEx = new ObjectNotFoundException(createMessageFromAllExceptions(null, connIdException));
+            Exception newEx = new ObjectNotFoundException(
+                    createMessageFromAllExceptions(null, connIdException),
+                    ShadowType.class,
+                    null); // TODO provide UID here
             connIdResult.recordFatalError("Unknown UID: " + connIdException.getMessage(), newEx);
             return newEx;
 

@@ -282,6 +282,11 @@ public class CompositeObjectDefinitionImpl
     }
 
     @Override
+    public @Nullable String getLifecycleState() {
+        return structuralDefinition.getLifecycleState();
+    }
+
+    @Override
     public ResourceObjectMultiplicityType getObjectMultiplicity() {
         return structuralDefinition.getObjectMultiplicity();
     }
@@ -321,23 +326,25 @@ public class CompositeObjectDefinitionImpl
         if (auxiliaryDefinitions.isEmpty()) {
             return structuralDefinition.getAttributeDefinitions();
         }
-        List<ResourceAttributeDefinition<?>> defs =
+
+        // Adds all attribute definitions from aux OCs that are not already known.
+        List<ResourceAttributeDefinition<?>> allDefinitions =
                 new ArrayList<>(structuralDefinition.getAttributeDefinitions());
         for (ResourceObjectDefinition auxiliaryObjectClassDefinition : auxiliaryDefinitions) {
             for (ResourceAttributeDefinition<?> auxRAttrDef : auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
-                boolean add = true;
-                for (ResourceAttributeDefinition<?> def : defs) {
+                boolean shouldAdd = true;
+                for (ResourceAttributeDefinition<?> def : allDefinitions) {
                     if (def.getItemName().equals(auxRAttrDef.getItemName())) {
-                        add = false;
+                        shouldAdd = false;
                         break;
                     }
                 }
-                if (add) {
-                    defs.add(auxRAttrDef);
+                if (shouldAdd) {
+                    allDefinitions.add(auxRAttrDef);
                 }
             }
         }
-        return defs;
+        return allDefinitions;
     }
 
     @Override
@@ -582,7 +589,23 @@ public class CompositeObjectDefinitionImpl
 
     @Override
     public void replaceDefinition(@NotNull QName itemName, @Nullable ItemDefinition<?> newDefinition) {
-        throw new UnsupportedOperationException();
+
+        // We replace only the first occurrence. This is consistent with how we look for attributes.
+        // Note that this algorithm may break down if we add/delete attribute definitions afterwards.
+
+        if (structuralDefinition.containsAttributeDefinition(itemName)) {
+            structuralDefinition.replaceDefinition(itemName, newDefinition);
+            return;
+        }
+
+        for (ResourceObjectDefinition auxiliaryDefinition : auxiliaryDefinitions) {
+            if (auxiliaryDefinition.containsAttributeDefinition(itemName)) {
+                auxiliaryDefinition.replaceDefinition(itemName, newDefinition);
+                return;
+            }
+        }
+
+        throw new IllegalArgumentException("No definition for " + itemName + " to be replaced in " + this);
     }
 
     @Override

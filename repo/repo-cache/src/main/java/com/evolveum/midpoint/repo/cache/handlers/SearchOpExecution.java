@@ -105,10 +105,10 @@ class SearchOpExecution<O extends ObjectType>
     boolean recordObjectFound(PrismObject<O> object) {
         if (trace != null && tracingAtLeastNormal) {
             if (trace.getObjectRef().size() < maxFullObjectsToTrace) {
-                trace.getObjectRef().add(ObjectTypeUtil.createObjectRefWithFullObject(object.clone(), prismContext));
+                trace.getObjectRef().add(ObjectTypeUtil.createObjectRefWithFullObject(object.clone()));
                 return true;
             } else if (trace.getObjectRef().size() < maxFullObjectsToTrace + maxReferencesToTrace) {
-                trace.getObjectRef().add(ObjectTypeUtil.createObjectRef(object, prismContext));
+                trace.getObjectRef().add(ObjectTypeUtil.createObjectRef(object));
                 return true;
             } else {
                 return false;

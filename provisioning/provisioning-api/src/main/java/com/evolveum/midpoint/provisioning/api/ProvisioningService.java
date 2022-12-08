@@ -18,6 +18,7 @@ import com.evolveum.midpoint.schema.processor.*;
 
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
@@ -62,65 +63,251 @@ import javax.xml.namespace.QName;
  *
  * TODO: better documentation
  *
+ * NOTE: Because there is currently only a single implementation of this interface, we have the luxury to provide some
+ * implementation-level restrictions and comments here, without having to write them separately into the implementation
+ * class. This may change in the future.
+ *
  * @author Radovan Semancik
  */
 public interface ProvisioningService {
 
     /**
-     * Returns object for provided OID.
+     * Returns the object with specified OID. (It must fail if there is no object with that OID in the repository.)
+     * The functionality vary vastly by the type of object requested.
      *
-     * Must fail if object with the OID does not exist.
+     * == {@link ShadowType} objects
      *
-     * Resource Object Shadows: The resource object shadow attributes may be
-     * retrieved from the local database, directly form the resource or a
-     * combination of both. The retrieval may fail due to resource failure,
-     * network failure or similar external cases. The retrieval may also take
-     * relatively long time (e.g. until it times out).
+     * The resource object shadow may be retrieved from the repository, directly from the resource or a combination of both.
+     * The retrieval may fail due to resource failure, network failure or similar external cases. The retrieval may also
+     * take relatively long time (e.g. until it times out).
      *
-     * Retrieving `ResourceType` objects:
+     * === Options support
      *
-     * 1. In `raw` mode, they are just fetched from the repository and the definitions are applied
-     * (ignoring most of the exceptions in the definition application process). No super-resource resolution
-     * is attempted!
+     * [%autowidth]
+     * [%header]
+     * |===
+     * | Option                     | Support
+     * | retrieve                   | only as far as attributes are concerned - ignored e.g. for the associations (why?)
+     * | resolve                    | do not use (effects are unclear)
+     * | resolveNames               | do not use (effects are unclear)
+     * | noFetch                    | yes
+     * | raw                        | yes
+     * | tolerateRawData            | do not use
+     * | doNotDiscovery             | yes
+     * | relationalValueSearchQuery | ignored
+     * | allowNotFound              | partially supported
+     * | readOnly                   | ignored (shadows are heavily updated after fetching from repo, anyway)
+     * | pointInTimeType            | yes
+     * | staleness                  | yes
+     * | forceRefresh               | yes
+     * | forceRetry                 | yes
+     * | distinct                   | ignored
+     * | attachDiagData             | do not use (effects are unclear)
+     * | definitionProcessing       | ignored
+     * | iterationMethod            | ignored
+     * | executionPhase             | ignored
+     * | errorHandling              | partially supported
+     * |===
      *
-     * 2. in `noFetch` mode: TODO
+     * === The `raw`, `noFetch`, and regular modes
      *
-     * Retrieving `ShadowType` objects:
+     * [%autowidth]
+     * [%header]
+     * |===
+     * | Mode    | Shadow LC state set* | Shadow refresh | Read from resource | Classification   | Futurization (see below)
+     * | raw     | no                   | none           | no                 | from repository  | no
+     * | noFetch | yes                  | quick          | no                 | from repository  | yes
+     * | regular | yes                  | depends        | depends            | depends          | yes
+     * |===
      *
-     * ... TODO ...
+     * (*) This is `shadowLifecycleState` property that does not exist in the repository (yet). It is computed by
+     * the implementation of this method.
      *
-     * These objects are classified, if they were not (and if they were fetched from the resource).
+     * === Required resource capabilities
+     *
+     * The "read" capability of resource and relevant object type (if applicable) is checked. Operation fails if it is not
+     * present or enabled. If "caching-only" is set, reading from resource is avoided.
+     *
+     * === Shadow refresh
+     *
+     * The shadow is refreshed after it's fetched from the repository in the following modes:
+     *
+     * [%autowidth]
+     * [%header]
+     * |===
+     * | Condition                | Refresh mode
+     * | resource in maintenance  | none (may change in future)
+     * | forceRefresh option      | full
+     * | forceRetry option        | full
+     * | refreshOnRead is set     | full
+     * | otherwise                | quick
+     * |===
+     *
+     * - "Full refresh" is equivalent to {@link #refreshShadow(PrismObject, ProvisioningOperationOptions, Task, OperationResult)}.
+     * - "Quick refresh" is a subset of it: deleting expired pending operations and deleting the expired dead shadow.
+     * This may change in the future.
+     *
+     * === Avoiding reading from the resource
+     *
+     * Reading from the resource is avoided in specific conditions, namely if:
+     *
+     * . The resource or object type has "caching-only" read capability.
+     * . Resource is in maintenance mode.
+     * . A shadow is in specific near-birth or near-death state. See the implementation (`GetOperation`) for details.
+     * . Using the cached version is required by the staleness and point-in-time options.
+     *
+     * In specific conditions the implementation may decide to handle the fact that the object does not exist on the resource.
+     *
+     * === Post-processing of the resource object fetched
+     *
+     * When a resource object is successfully read from the resource, the following should occur:
+     *
+     * . Shadow is classified - either if it was not classified yet, or the resource is in "development mode" (see below).
+     * . Repository shadow is updated with known data obtained from the resource. This includes e.g. cached attributes.
+     *
+     * === Shadow futurization
+     *
+     * When `future` point of time is requested, the pending operations are applied to the last known state of the shadow.
+     * (Fetched either from the resource or from repository.) The current implementation is not 100% correct, as it tries
+     * to apply all attribute deltas even if the base object does not have all the attributes available.
+     *
+     * === Shadow fetch result specifics
+     *
+     * When the resource object is being fetched from the resource, and:
+     *
+     * . {@link CommunicationException} occurs, the status is `PARTIAL_ERROR` (and repo shadow is returned),
+     * . resource is in maintenance, the status is `PARTIAL_ERROR` (and repo shadow is returned),
+     * . {@link ObjectNotFoundException} occurs, the status is `HANDLED_ERROR` (and repo shadow with the `dead` flag is returned).
+     * The reason is that the exception was, in fact, handled. The current state of the object is correctly reported.
+     *
+     * === Potential side effects
+     *
+     * . Quick or full shadow refresh - before the GET issued against resource (or after the repo load if noFetch is set).
+     * The shadow may be even deleted by the refresh.
+     * . Discovery process (an event is sent to the listener, typically to model).
+     * . Shadow is updated with the information obtained from the resource: cached identifiers and/or other attributes,
+     * probably `dead` and `exists` properties.
+     * . ...
+     *
+     * TODO think about compatibility of these side effects with the limitations prescribed by development/execution mode.
+     *
+     * === Effects of development and execution mode
+     *
+     * The following configuration items should be respected:
+     *
+     * * `lifecycleState` in resource and/or object type - drives e.g. the classification process
+     * * shadow production/non-production flag - also drives the classification
+     *
+     * TODO specify in mode details
+     *
+     * == ResourceType objects
+     *
+     * The returned object will conform to the following:
+     *
+     * [%autowidth]
+     * [%header]
+     * |===
+     * | State/condition                        | Is expanded | Configuration is resolved | Has capabilities and schema | Is put into cache
+     * | current version is in cache            | yes         | yes                       | yes (taken from cache)      | it is already there
+     * | is abstract                            | yes         | no                        | if present in repo          | no
+     * | is complete in repo                    | yes         | yes                       | yes (taken from repo)       | yes
+     * | is incomplete in repo, noFetch = false | yes         | yes                       | yes (fetched)               | yes (if no problems)
+     * | is incomplete in repo, noFetch = true  | yes         | yes                       | if present in repo          | no
+     * | raw = true                             | no          | only the definitions      | if present in repo          | no
+     * |===
      *
      * Notes:
      *
-     * 1. The operation result is cleaned up before returning.
-     * 2. The fetch result ({@link ObjectType#getFetchResult()}) is stored into object. It reflects the result
-     * of the "fetch from resource" operation, but also e.g. application of definitions to an object retrieved in raw mode.
-     * The exception is if the `raw` mode was used and the result is successful (because of performance).
+     * . If the current version of the object is in the resource cache, it is returned right from it.
+     * . "Is expanded" = the references to super-resources are resolved.
+     * . "Configuration is resolved" = definitions of individual configuration properties (from the connector schema)
+     * are applied; also, the expressions in these properties are evaluated.
+     * . "Has capabilities and schema" = whether native capabilities and schema information is present in the returned object.
+     * "If present in repo" means that the information from the repository are returned.
+     * . "Is put into cache" = whether the resource is put into the resource cache, so it can be cheaply retrieved afterwards.
+     * . "Is complete in repo" means that both capabilities and schema are fetched - see
+     * {@link ResourceTypeUtil#isComplete(ResourceType)}.
      *
-     * (TODO What for non-shadow/non-resource objects that are always taken from repository only?)
+     * === Options support
+     *
+     * [%autowidth]
+     * [%header]
+     * |===
+     * | Option                     | Support
+     * | retrieve                   | do not use (effects are unclear)
+     * | resolve                    | do not use (effects are unclear)
+     * | resolveNames               | do not use (effects are unclear)
+     * | noFetch                    | yes
+     * | raw                        | yes
+     * | tolerateRawData            | do not use
+     * | doNotDiscovery             | ignored
+     * | relationalValueSearchQuery | ignored
+     * | allowNotFound              | partially supported
+     * | readOnly                   | yes
+     * | pointInTimeType            | ignored
+     * | staleness                  | ignored
+     * | forceRefresh               | ignored
+     * | forceRetry                 | ignored
+     * | distinct                   | ignored
+     * | attachDiagData             | do not use (effects are unclear)
+     * | definitionProcessing       | ignored
+     * | iterationMethod            | ignored
+     * | executionPhase             | ignored
+     * | errorHandling              | ignored
+     * |===
+     *
+     * === Potential side effects
+     *
+     * . If a resource undergoes completion, the capabilities and/or schema are updated in the repository.
+     * . The complete resource may be put into the cache.
+     *
+     * === Effects of development and execution mode
+     *
+     * They are none. The definition of the resource is the same, regardless of the mode we run in. For example, it is cached
+     * regardless of the mode. However, the interpretation of the definition differs, but that is outside the scope of this
+     * method.
+     *
+     * (This may change if we would e.g. apply some "patches" specific to individual modes.)
+     *
+     * == ConnectorType and other objects
+     *
+     * These objects are just retrieved from the repository. They are not treated in any special way now.
+     *
+     * === Potential side effects
+     *
+     * None.
+     *
+     * === Effects of development and execution mode
+     *
+     * None.
+     *
+     * == Notes
+     *
+     * . Concrete type of object (`ShadowType`, `ResourceType`, and so on) must be provided by the client.
+     * Using generic `ObjectType` will not work.
+     * . The operation result is cleaned up before returning.
+     * . The fetch result ({@link ObjectType#getFetchResult()}) is stored into object being returned. It reflects the result
+     * of the whole operation: fetching from the resource, if applicable, but also e.g. application of definitions to an
+     * object retrieved in raw mode. The exception is if the `raw` mode was used and the result is successful (because of
+     * performance).
+     *
+     * == Limitations / Known issues
+     *
+     * . Getting shadows: Definitions of associations (identifiers) are not always refined (in noFetch mode).
      *
      * @param type the type (class) of object to get
-     * @param oid
-     *            OID of the object to get
-     * @param parentResult
-     *            parent OperationResult (in/out)
+     * @param oid OID of the object to get
+     * @param parentResult parent OperationResult (in/out)
      * @return Object fetched from repository and/or resource
      *
-     * @throws ObjectNotFoundException
-     *             requested object does not exist
-     * @throws CommunicationException
-     *             error communicating with the resource
-     * @throws SchemaException
-     *             error dealing with resource schema
-     * @throws ConfigurationException
-     *                 Wrong resource or connector configuration
-     * @throws SecurityViolationException
-     *                 Security violation while communicating with the connector or processing provisioning policies
-     * @throws IllegalArgumentException
-     *             wrong OID format, etc.
-     * @throws GenericConnectorException
-     *             unknown connector framework error
+     * @throws ObjectNotFoundException requested object (does not need to be the shadow we are looking for!) does not exist
+     * @throws CommunicationException error communicating with the resource
+     * @throws SchemaException error dealing with resource schema
+     * @throws ConfigurationException wrong resource or connector configuration
+     * @throws SecurityViolationException security violation while communicating with the connector
+     * or processing provisioning policies
+     * @throws IllegalArgumentException wrong OID format, etc.
+     * @throws GenericConnectorException unknown connector framework error
      */
     @NotNull <T extends ObjectType> PrismObject<T> getObject(
             @NotNull Class<T> type,
@@ -262,7 +449,37 @@ public interface ProvisioningService {
      * The method call should fail if object type is wrong. Should fail if the query is wrong, e.g. if it contains
      * a reference to an unknown attribute.
      *
-     * == Specifying the "coordinates"
+     * == Processing of {@link ShadowType} objects
+     *
+     * === Options support
+     *
+     * [%autowidth]
+     * [%header]
+     * |===
+     * | Option                     | Support
+     * | retrieve                   | for attributes and associations
+     * | resolve                    | do not use (effects are unclear)
+     * | resolveNames               | do not use (effects are unclear)
+     * | noFetch                    | yes
+     * | raw                        | yes
+     * | tolerateRawData            | do not use
+     * | doNotDiscovery             | ignored (TODO check if it is really ignored)
+     * | relationalValueSearchQuery | ignored
+     * | allowNotFound              | ignored
+     * | readOnly                   | ignored (shadows are heavily updated after fetching from repo, anyway)
+     * | pointInTimeType            | ignored (no futurization)
+     * | staleness                  | limited support
+     * | forceRefresh               | ignored
+     * | forceRetry                 | ignored
+     * | distinct                   | supported for repository search, ignored for resource search
+     * | attachDiagData             | do not use (effects are unclear)
+     * | definitionProcessing       | ignored
+     * | iterationMethod            | ignored
+     * | executionPhase             | ignored
+     * | errorHandling              | yes
+     * |===
+     *
+     * === Specifying the "coordinates"
      *
      * When dealing with shadow queries in non-raw mode, there are the following requirements on the query:
      *
@@ -275,10 +492,9 @@ public interface ProvisioningService {
      *
      * (For the raw mode the requirements are currently the same; however, we may relax them in the future.)
      *
-     * == Interpreting the query for on-resource search
+     * === Interpreting the query for on-resource search
      *
-     * === If `kind` is specified
-     *
+     * ==== If `kind` is specified
      * In this case, a specific _object type_ definition is looked up: either by `kind` and `intent` (if the latter is present),
      * or - if `intent` is not specified - by looking for a type marked as "default for its kind". The search is then executed
      * against this object type, taking its delineation (object class, base context, additional filters) into account.
@@ -286,35 +502,51 @@ public interface ProvisioningService {
      * If `objectClass` is specified as well, it is just checked against the value in given object type definition. (Hence it
      * is not necessary nor advisable to specify object class when kind is specified.)
      *
-     * === If only `objectClass` is specified
-     *
+     * ==== If only `objectClass` is specified
      * Here the implementation searches for all objects of given `objectClass`. However, there are few things that must be done
      * during the search, for example determining "attributes to get" i.e. what attributes should be explicitly requested.
      * These things depend on object class or object type definition. Therefore, the implementation has to look up appropriate
      * definition first.
      *
-     * It does so by looking up raw or refined object class definition. If there is a type definition marked as "default for
-     * object class", it is used. However, if such a type definition is found, the delineation (base context, filters, and so on)
-     * are ignored: as stated above, all objects of given object class are searched for.
+     * It does so by looking up raw or refined object class definition. Also, if there is a type definition marked as "default for
+     * object class", it is used. However, even if such a type definition is found, the delineation (base context, filters, and
+     * so on) are ignored: as stated above, all objects of given object class are searched for.
      *
      * See {@link ResourceSchemaUtil#findDefinitionForBulkOperation(ResourceType, ShadowKindType, String, QName)}
      * and {@link ResourceSchemaUtil#findObjectDefinitionPrecisely(ResourceType, ShadowKindType, String, QName)} for
      * the details.
      *
-     * == Extra resource objects
+     * === Extra resource objects
      *
      * Note that when using kind and/or intent, the method may return objects that do not match these conditions. It depends
-     * on how precisely is the respective type definition, namely if its delineation: base context, hierarchy scope,
+     * on how precise is the respective type definition, namely if its delineation: base context, hierarchy scope,
      * and/or object filter(s) precisely describe objects that belong to this type. If these features do not describe
      * the type adequately (e.g. if the classification has to be done using conditions written in Groovy), then the
      * returned set of objects may contain ones that are not of requested type. It is then the responsibility of the
      * caller to sort these extra objects out.
+     *
+     * === Potential side effects
+     *
+     * . Shadow is updated with the information obtained from the resource: cached identifiers and/or other attributes,
+     * probably `dead` and `exists` properties.
+     * . #TODO#
+     *
+     * === Effects of development and execution mode
+     *
+     * #TODO#
      *
      * == Processing of {@link ResourceType} objects
      *
      * Just like the {@link #getObject(Class, String, Collection, Task, OperationResult)} method, the resources returned from
      * this one are processed according to the inheritance rules, unless the `raw` mode is applied. Beware that - obviously -
      * the search query is applied to find the original resource objects, not the "processed" ones.
+     *
+     * #TODO expand this part#
+     * #TODO side effects#
+     *
+     * === Effects of development and execution mode
+     *
+     * #TODO#
      *
      * == Fetch result
      *
@@ -341,6 +573,25 @@ public interface ProvisioningService {
             SecurityViolationException, ExpressionEvaluationException;
 
     /**
+     * Counts the objects of the respective type.
+     *
+     * == {@link ShadowType} objects
+     *
+     * These are counted in repository or on resource (if it has appropriate capability).
+     * #TODO the description, including the options#
+     *
+     * === Potential side effects
+     *
+     * #TODO#
+     *
+     * === Effects of development and execution mode
+     *
+     * #TODO#
+     *
+     * == Other object types
+     *
+     * These are counted simply in the repository service.
+     *
      * @param query See {@link #searchObjects(Class, ObjectQuery, Collection, Task, OperationResult)} description.
      * @param options If noFetch or raw, we count only shadows from the repository.
      */
@@ -400,6 +651,9 @@ public interface ProvisioningService {
      *
      * TODO: optimistic locking
      *
+     * TODO decide if it's OK that the callee modifies the `modifications` collection by adding side-effects provided
+     *  by the connector.
+     *
      * @param scripts
      *            scripts that should be executed before of after operation
      * @param parentResult
@@ -418,8 +672,14 @@ public interface ProvisioningService {
      * @throws ObjectAlreadyExistsException
      *             if resulting object would have name which already exists in another object of the same type
      */
-    <T extends ObjectType> String modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
-            OperationProvisioningScriptsType scripts, ProvisioningOperationOptions options, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+    <T extends ObjectType> String modifyObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+            @Nullable OperationProvisioningScriptsType scripts,
+            @Nullable ProvisioningOperationOptions options,
+            @NotNull Task task,
+            @NotNull OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException;
 
     /**

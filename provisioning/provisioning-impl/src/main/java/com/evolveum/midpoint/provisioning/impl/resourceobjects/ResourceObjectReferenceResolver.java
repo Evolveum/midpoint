@@ -6,21 +6,13 @@
  */
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
+import static com.evolveum.midpoint.util.MiscUtil.argCheck;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowManager;
-import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
-
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,23 +20,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
+import com.evolveum.midpoint.provisioning.impl.shadows.ShadowsFacade;
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowFinder;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -52,18 +46,15 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-
-import static com.evolveum.midpoint.util.MiscUtil.argCheck;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType.*;
 
 /**
  * Resolves resource objects (also) with the help of the repository / shadow manager.
@@ -79,7 +70,7 @@ class ResourceObjectReferenceResolver {
 
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
-    @Autowired private ShadowManager shadowManager;
+    @Autowired private ShadowFinder shadowFinder;
     @Autowired private ShadowsFacade shadowsFacade;
 
     @Autowired
@@ -111,7 +102,11 @@ class ResourceObjectReferenceResolver {
                 return shadow;
             }
         } else if (resolutionFrequency == NEVER) {
-            throw new ObjectNotFoundException("No shadowRef OID in "+desc+" and resolution frequency set to NEVER");
+            // TODO looks more like ConfigurationException
+            throw new ObjectNotFoundException(
+                    "No shadowRef OID in "+desc+" and resolution frequency set to NEVER",
+                    ShadowType.class,
+                    null);
         }
 
         argCheck(resourceObjectReference.getObjectClass() != null,
@@ -173,7 +168,7 @@ class ResourceObjectReferenceResolver {
         }
         ResourceObjectDefinition objDef = ctx.getObjectDefinitionRequired();
         Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(identifiers, objDef);
-        PrismObject<ShadowType> repoShadow = shadowManager.lookupShadowBySecondaryIds(ctx, secondaryIdentifiers, result);
+        PrismObject<ShadowType> repoShadow = shadowFinder.lookupShadowBySecondaryIds(ctx, secondaryIdentifiers, result);
         if (repoShadow == null) {
             return null;
         }
@@ -212,9 +207,10 @@ class ResourceObjectReferenceResolver {
 
         try {
 
-            ReadCapabilityType readCapability = ctx.getCapability(ReadCapabilityType.class);
+            ReadCapabilityType readCapability = ctx.getEnabledCapability(ReadCapabilityType.class);
             if (readCapability == null) {
-                throw new UnsupportedOperationException("Resource does not support 'read' operation: " + ctx.toHumanReadableDescription());
+                throw new UnsupportedOperationException(
+                        "Resource does not support 'read' operation: " + ctx.toHumanReadableDescription());
             }
 
             if (Boolean.TRUE.equals(readCapability.isCachingOnly())) {
@@ -227,27 +223,33 @@ class ResourceObjectReferenceResolver {
             return connector.fetchObject(resolvedIdentification, attributesToReturn, ctx.getUcfExecutionContext(), parentResult);
         } catch (ObjectNotFoundException e) {
             // Not finishing the result because we did not create it! (The same for other catch clauses.)
-            parentResult.recordFatalErrorNotFinish("Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
-            throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
-                        PrettyPrinter.prettyPrint(objectDefinition.getTypeName())+": "
-                    + e.getMessage(), e, ShadowType.class, repoShadow != null ? repoShadow.getOid() : null);
+            // We do not use simple "e.wrap" because there is a lot of things to be filled-in here.
+            ObjectNotFoundException objectNotFoundException = new ObjectNotFoundException(
+                    "Object not found. identifiers=" + identifiers + ", objectclass=" +
+                            PrettyPrinter.prettyPrint(objectDefinition.getTypeName()) + ": " + e.getMessage(),
+                    e,
+                    ShadowType.class,
+                    repoShadow != null ? repoShadow.getOid() : null,
+                    ctx.isAllowNotFound());
+            parentResult.recordExceptionNotFinish(objectNotFoundException);
+            throw objectNotFoundException;
         } catch (CommunicationException e) {
-            parentResult.recordFatalErrorNotFinish("Error communication with the connector " + connector
+            parentResult.setFatalError("Error communication with the connector " + connector
                     + ": " + e.getMessage(), e);
             throw e;
         } catch (GenericFrameworkException e) {
-            parentResult.recordFatalErrorNotFinish(
+            parentResult.setFatalError(
                     "Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
             throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
                     + e.getMessage(), e);
         } catch (SchemaException ex) {
-            parentResult.recordFatalErrorNotFinish("Can't get resource object, schema error: " + ex.getMessage(), ex);
+            parentResult.setFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
             throw ex;
         } catch (ExpressionEvaluationException ex) {
-            parentResult.recordFatalErrorNotFinish("Can't get resource object, expression error: " + ex.getMessage(), ex);
+            parentResult.setFatalError("Can't get resource object, expression error: " + ex.getMessage(), ex);
             throw ex;
         } catch (ConfigurationException e) {
-            parentResult.recordFatalErrorNotFinish(e);
+            parentResult.setFatalError(e);
             throw e;
         }
     }
@@ -267,10 +269,13 @@ class ResourceObjectReferenceResolver {
             return identification;
         }
         Collection<ResourceAttribute<?>> secondaryIdentifiers = (Collection<ResourceAttribute<?>>) identification.getSecondaryIdentifiers();
-        PrismObject<ShadowType> repoShadow = shadowManager.lookupShadowBySecondaryIds(ctx, secondaryIdentifiers, result);
+        PrismObject<ShadowType> repoShadow = shadowFinder.lookupShadowBySecondaryIds(ctx, secondaryIdentifiers, result);
         if (repoShadow == null) {
             // TODO: we should attempt resource search here
-            throw new ObjectNotFoundException("No repository shadow for "+secondaryIdentifiers+", cannot resolve identifiers");
+            throw new ObjectNotFoundException(
+                    "No repository shadow for " + secondaryIdentifiers + ", cannot resolve identifiers",
+                    ShadowType.class,
+                    null);
         }
         shadowsFacade.applyDefinition(repoShadow, ctx.getTask(), result);
         PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);

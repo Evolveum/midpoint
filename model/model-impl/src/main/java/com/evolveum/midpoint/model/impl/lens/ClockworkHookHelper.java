@@ -107,7 +107,7 @@ public class ClockworkHookHelper {
                             throw new ExpressionEvaluationException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
                         } catch (ObjectNotFoundException e) {
                             LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
-                            throw new ObjectNotFoundException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);
+                            throw e.wrap("Evaluation of " + shortDesc + " failed");
                         } catch (SchemaException e) {
                             LOGGER.error("Evaluation of {} failed: {}", shortDesc, e.getMessage(), e);
                             throw new SchemaException("Evaluation of " + shortDesc + " failed: " + e.getMessage(), e);

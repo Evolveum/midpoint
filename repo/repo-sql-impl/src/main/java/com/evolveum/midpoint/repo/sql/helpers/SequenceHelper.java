@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sql.helpers;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.common.SequenceUtil;
+
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -60,40 +62,10 @@ public class SequenceHelper {
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", prismObject.debugDump());
             }
-            SequenceType sequence = prismObject.asObjectable();
 
-            if (!sequence.getUnusedValues().isEmpty()) {
-                returnValue = sequence.getUnusedValues().remove(0);
-            } else {
-                long counter = sequence.getCounter() != null ? sequence.getCounter() : 0L;
-                long maxCounter = sequence.getMaxCounter() != null ? sequence.getMaxCounter() : Long.MAX_VALUE;
-                boolean allowRewind = Boolean.TRUE.equals(sequence.isAllowRewind());
+            returnValue = SequenceUtil.advanceSequence(prismObject.asObjectable());
 
-                if (counter < maxCounter) {
-                    returnValue = counter;
-                    sequence.setCounter(counter + 1);
-                } else if (counter == maxCounter) {
-                    returnValue = counter;
-                    if (allowRewind) {
-                        sequence.setCounter(0L);
-                    } else {
-                        sequence.setCounter(counter + 1);       // will produce exception during next run
-                    }
-                } else {        // i.e. counter > maxCounter
-                    if (allowRewind) {          // shouldn't occur but...
-                        LOGGER.warn("Sequence {} overflown with allowRewind set to true. Rewinding.", oid);
-                        returnValue = 0;
-                        sequence.setCounter(1L);
-                    } else {
-                        // TODO some better exception...
-                        throw new SystemException("No (next) value available from sequence " + oid + ". Current counter = " + sequence.getCounter() + ", max value = " + sequence.getMaxCounter());
-                    }
-                }
-            }
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Return value = {}, OBJECT after:\n{}", returnValue, prismObject.debugDump());
-            }
+            LOGGER.trace("Return value = {}, OBJECT after:\n{}", returnValue, prismObject.debugDumpLazily());
 
             // merge and update object
             LOGGER.trace("Translating JAXB to data type.");

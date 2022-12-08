@@ -10,14 +10,15 @@
 <wicket:panel>
 
     <div class="assignments" wicket:id="assignments" about="assignments">
-        <div class="row assignable-header assignments-header">
+        <div class="d-flex assignable-header assignments-header">
 
-            <div class="col-xs-10">
-                <input type="checkbox" wicket:id="assignmentsCheckAll" />
+            <div class="d-flex">
+                <input class="align-self-center mr-2" type="checkbox" wicket:id="assignmentsCheckAll" />
                 <h3><span wicket:id="assignmentsHeader" /></h3>
             </div>
-            <div class="col-xs-2 cog cog-xs pull-right" wicket:id="assignmentsMenu" />
+            <div class="col-xs-2 cog cog-xs ml-auto" wicket:id="assignmentsMenu" />
         </div>
+        <hr class="hr mt-1"/>
 
         <div wicket:id="assignmentList">
             <div class="card assignment" wicket:id="assignmentEditor"/>

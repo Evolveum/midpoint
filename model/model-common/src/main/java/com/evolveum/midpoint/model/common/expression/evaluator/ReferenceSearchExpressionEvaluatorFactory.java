@@ -11,6 +11,7 @@ import java.util.Collection;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -39,15 +40,17 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
     private final PrismContext prismContext;
     private final Protector protector;
     private final ModelService modelService;
+    private final ModelInteractionService modelInteractionService;
     private final SecurityContextManager securityContextManager;
 
     public ReferenceSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext,
-            Protector protector, ModelService modelService, SecurityContextManager securityContextManager,
+            Protector protector, ModelService modelService, ModelInteractionService modelInteractionService, SecurityContextManager securityContextManager,
             CacheConfigurationManager cacheConfigurationManager) {
         super(expressionFactory, cacheConfigurationManager);
         this.prismContext = prismContext;
         this.protector = protector;
         this.modelService = modelService;
+        this.modelInteractionService = modelInteractionService;
         this.securityContextManager = securityContextManager;
     }
 
@@ -69,7 +72,7 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
         //noinspection unchecked
         return (ExpressionEvaluator<V>)
                 new ReferenceSearchExpressionEvaluator(ELEMENT_NAME, evaluatorBean,
-                        (PrismReferenceDefinition) outputDefinition, protector, prismContext, getObjectResolver(), modelService, securityContextManager, getLocalizationService(),
-                        cacheConfigurationManager);
+                        (PrismReferenceDefinition) outputDefinition, protector, prismContext, getObjectResolver(), modelService,
+                        modelInteractionService, securityContextManager, getLocalizationService(), cacheConfigurationManager);
     }
 }

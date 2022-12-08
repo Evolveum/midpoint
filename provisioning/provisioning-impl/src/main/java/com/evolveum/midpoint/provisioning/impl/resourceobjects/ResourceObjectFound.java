@@ -7,7 +7,10 @@
 
 package com.evolveum.midpoint.provisioning.impl.resourceobjects;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import java.util.Collection;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.impl.InitializableMixin;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -26,19 +29,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-
 /**
- * Represents a resource object (e.g. an account) found by the
- * {@link ResourceObjectConverter#searchResourceObjects(ProvisioningContext, ResourceObjectHandler, ObjectQuery, boolean, FetchErrorReportingMethodType, OperationResult)}
- * method.
+ * Represents a resource object (e.g. an account) found by the {@link ResourceObjectConverter#searchResourceObjects(
+ * ProvisioningContext, ResourceObjectHandler, ObjectQuery, boolean, FetchErrorReportingMethodType, OperationResult)} method.
  *
  * See also {@link ResourceObjectChange}.
  *
- * In the future we might create also analogous data structure for objects retrieved by {@link ResourceObjectConverter#getResourceObject(ProvisioningContext, Collection, boolean, OperationResult)}
- * method.
+ * In the future we might create also analogous data structure for objects retrieved by
+ * {@link ResourceObjectConverter#getResourceObject(ProvisioningContext, Collection, boolean, OperationResult)} method.
  */
 @SuppressWarnings("JavadocReference")
 @Experimental
@@ -66,7 +64,7 @@ public class ResourceObjectFound implements InitializableMixin {
      * 5. If initialization failed:
      *    a. Nothing guaranteed.
      */
-    @NotNull private final PrismObject<ShadowType> resourceObject;
+    @NotNull private final ShadowType resourceObject;
 
     /**
      * Real value of the object primary identifier (e.g. ConnId UID).
@@ -90,7 +88,7 @@ public class ResourceObjectFound implements InitializableMixin {
             ResourceObjectConverter converter,
             ProvisioningContext ctx,
             boolean fetchAssociations) {
-        this.resourceObject = ucfObject.getResourceObject().clone();
+        this.resourceObject = ucfObject.getResourceObject().clone().asObjectable();
         this.primaryIdentifierValue = ucfObject.getPrimaryIdentifierValue();
         this.initializationState = InitializationState.fromUcfErrorState(ucfObject.getErrorState(), null);
         this.ictx = new InitializationContext(ctx, fetchAssociations);
@@ -102,7 +100,7 @@ public class ResourceObjectFound implements InitializableMixin {
 
         if (initializationState.isInitialStateOk()) {
             beans.resourceObjectConverter
-                    .postProcessResourceObjectRead(ictx.ctx, resourceObject, ictx.fetchAssociations, result);
+                    .postProcessResourceObjectRead(ictx.ctx, resourceObject.asPrismObject(), ictx.fetchAssociations, result);
         } else {
             addFakePrimaryIdentifierIfNeeded();
         }
@@ -114,7 +112,7 @@ public class ResourceObjectFound implements InitializableMixin {
         beans.fakeIdentifierGenerator.addFakePrimaryIdentifierIfNeeded(attrContainer, primaryIdentifierValue, definition);
     }
 
-    public @NotNull PrismObject<ShadowType> getResourceObject() {
+    public @NotNull ShadowType getResourceObject() {
         return resourceObject;
     }
 

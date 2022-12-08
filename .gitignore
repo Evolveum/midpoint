@@ -12,6 +12,7 @@ node_modules/
 
 # IDEA files
 /.idea/
+/.run/
 *.iml
 
 # Eclipse files

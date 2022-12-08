@@ -147,8 +147,12 @@ public class ModelObjectResolver implements ObjectResolver {
             objectType = object.asObjectable();
             if (!clazz.isInstance(objectType)) {
                 throw new ObjectNotFoundException(
-                        "Bad object type returned for referenced oid '" + oid + "'. Expected '" + clazz + "', but was '"
-                                + objectType.getClass() + "'.");
+                        String.format(
+                                "Bad object type returned for referenced oid '%s'. Expected '%s', but was '%s'.",
+                                oid, clazz, objectType.getClass()),
+                        clazz,
+                        oid,
+                        GetOperationOptions.isAllowNotFound(options));
             }
 
             if (hookRegistry != null) {

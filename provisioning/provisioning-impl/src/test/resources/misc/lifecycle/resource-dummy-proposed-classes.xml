@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="68c10e8e-3d4a-42ff-9916-3f4ba8317fde"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>dummy-proposed-classes</name>
+    <lifecycleState>active</lifecycleState> <!-- but some object classes are proposed -->
+    <connectorRef oid="will-be-supplied-by-the-test-code"/>
+    <connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfi:instanceId>proposed-classes</icfi:instanceId>
+        </icfc:configurationProperties>
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+    </connectorConfiguration>
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <default>true</default>
+            <!-- Not used. It is here just to have any default. -->
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>employee</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>e_</q:value>
+                    </q:substring>
+                </filter>
+                <classificationOrder>1</classificationOrder>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>admin</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>a_</q:value>
+                    </q:substring>
+                </filter>
+                <classificationOrder>2</classificationOrder>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>account</kind>
+            <intent>demo</intent>
+            <delineation>
+                <objectClass>ri:AccountObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>d_</q:value>
+                    </q:substring>
+                </filter>
+                <classificationOrder>3</classificationOrder>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>mail-group</intent>
+            <lifecycleState>active</lifecycleState> <!-- will be ignored, as the whole class is "proposed" -->
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>m_</q:value>
+                    </q:substring>
+                </filter>
+            </delineation>
+        </objectType>
+        <objectType>
+            <kind>entitlement</kind>
+            <intent>security-group</intent>
+            <lifecycleState>active</lifecycleState> <!-- will be ignored, as the whole class is "proposed" -->
+            <delineation>
+                <objectClass>ri:GroupObjectClass</objectClass>
+                <filter>
+                    <q:substring>
+                        <q:path>attributes/name</q:path>
+                        <q:value>s_</q:value>
+                    </q:substring>
+                </filter>
+            </delineation>
+        </objectType>
+        <objectClass>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <lifecycleState>proposed</lifecycleState>
+        </objectClass>
+        <objectClass>
+            <objectClass>ri:CustomprivilegeObjectClass</objectClass>
+            <lifecycleState>proposed</lifecycleState>
+        </objectClass>
+    </schemaHandling>
+</resource>

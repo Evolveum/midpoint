@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FetchErrorReportingMethodType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
 import org.jetbrains.annotations.NotNull;
@@ -103,7 +104,7 @@ class ResourceObjectSearchOperation {
                         queryWithConstraints.query,
                         this::handleObjectFound,
                         ctx.createAttributesToReturn(),
-                        objectDefinition.getPagedSearches(ctx.getResource()),
+                        ctx.getEnabledCapability(PagedSearchCapabilityType.class),
                         queryWithConstraints.constraints,
                         getUcfErrorReportingMethod(),
                         ctx.getUcfExecutionContext(),

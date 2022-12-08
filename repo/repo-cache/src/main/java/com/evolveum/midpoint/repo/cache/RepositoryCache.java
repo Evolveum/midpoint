@@ -127,12 +127,6 @@ public class RepositoryCache implements RepositoryService, Cache {
     }
 
     @Override
-    public <F extends FocusType> PrismObject<F> searchShadowOwner(
-            String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-        return searchOpHandler.searchShadowOwner(shadowOid, options, parentResult);
-    }
-
-    @Override
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
+
 import static org.apache.commons.lang3.ArrayUtils.getLength;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -100,8 +102,8 @@ public class ObjectRetriever {
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
             GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            baseHelper.rollbackTransaction(session, ex, result,
-                    GetOperationOptions.isAllowNotFound(rootOptions) ? HANDLED_ERROR : FATAL_ERROR);
+            baseHelper.rollbackTransaction(
+                    session, ex, result, isAllowNotFound(rootOptions) ? HANDLED_ERROR : FATAL_ERROR);
             throw ex;
         } catch (SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
@@ -140,7 +142,7 @@ public class ObjectRetriever {
                 q.setParameter(1, oid);
                 Object result = q.uniqueResult();
                 if (result == null) {
-                    return throwObjectNotFoundException(type, oid);
+                    return throwObjectNotFoundException(type, oid, isAllowNotFound(options));
                 }
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Locked via SQL (in {} ms)", System.currentTimeMillis() - time);
@@ -191,7 +193,7 @@ public class ObjectRetriever {
 
         LOGGER.trace("Got it.");
         if (fullObject == null) {
-            throwObjectNotFoundException(type, oid);
+            throwObjectNotFoundException(type, oid, isAllowNotFound(options));
         }
 
         LOGGER.trace("Transforming data to JAXB type.");
@@ -215,44 +217,8 @@ public class ObjectRetriever {
     }
 
     private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(
-            Class<T> type, String oid) throws ObjectNotFoundException {
-        throw new ObjectNotFoundException(type, oid);
-    }
-
-    public <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
-        LOGGER_PERFORMANCE.debug("> search shadow owner for oid={}", shadowOid);
-        PrismObject<F> owner = null;
-        Session session = null;
-        try {
-            session = baseHelper.beginReadOnlyTransaction();
-            LOGGER.trace("Selecting account shadow owner for account {}.", shadowOid);
-            Query query = session.getNamedQuery("searchShadowOwner.getOwner");
-            query.setParameter("oid", shadowOid);
-            query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
-
-            @SuppressWarnings({ "unchecked", "raw" })
-            List<GetObjectResult> focuses = query.list();
-            LOGGER.trace("Found {} focuses, transforming data to JAXB types.", focuses != null ? focuses.size() : 0);
-
-            if (focuses == null || focuses.isEmpty()) {
-                // account shadow owner was not found
-                return null;
-            } else if (focuses.size() > 1) {
-                LOGGER.warn("Found {} owners for shadow oid {}, returning first owner.", focuses.size(), shadowOid);
-            }
-
-            GetObjectResult focus = focuses.get(0);
-            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, null, options, null, session);
-
-            session.getTransaction().commit();
-
-        } catch (SchemaException | RuntimeException | ObjectNotFoundException ex) {
-            baseHelper.handleGeneralException(ex, session, result);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, result);
-        }
-
-        return owner;
+            Class<T> type, String oid, boolean allowed) throws ObjectNotFoundException {
+        throw new ObjectNotFoundException(type, oid, allowed);
     }
 
     public <T extends ObjectType> int countObjectsAttempt(Class<T> type, ObjectQuery query,
@@ -454,7 +420,7 @@ public class ObjectRetriever {
                 for (GetContainerableIdOnlyResult item : items) {
                     try {
                         @SuppressWarnings({ "raw", "unchecked" })
-                        C value = (C) caseManagementHelper.updateLoadedCaseWorkItem(item, casesCache, session);
+                        C value = (C) caseManagementHelper.updateLoadedCaseWorkItem(item, casesCache, session, options);
                         list.add(value);
                     } catch (ObjectNotFoundException | DtoTranslationException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve case work item for {}", e, item);
@@ -577,7 +543,7 @@ public class ObjectRetriever {
             partialValueHolder.setValue(prismObject);
         }
         nameResolutionHelper.resolveNamesIfRequested(session, prismObject.getValue(), options);
-        validateObjectType(prismObject, type);
+        validateObjectType(prismObject, type, options);
 
         ObjectTypeUtil.normalizeAllRelations(prismObject, relationRegistry);
         return prismObject;
@@ -770,13 +736,18 @@ public class ObjectRetriever {
         return def;
     }
 
-    private <T extends ObjectType> void validateObjectType(@NotNull PrismObject<T> prismObject, @NotNull Class<T> type)
+    private <T extends ObjectType> void validateObjectType(
+            @NotNull PrismObject<T> prismObject, @NotNull Class<T> type, Collection<SelectorOptions<GetOperationOptions>> options)
             throws ObjectNotFoundException {
         Class<T> compileTimeClass = prismObject.getCompileTimeClass();
         if (compileTimeClass != null && !type.isAssignableFrom(compileTimeClass)) {
-            throw new ObjectNotFoundException("Expected to find '" + type.getSimpleName() + "' but found '"
-                    + compileTimeClass.getSimpleName() + "' (" + prismObject.toDebugName()
-                    + "). Bad OID in a reference?", type, prismObject.getOid());
+            throw new ObjectNotFoundException(
+                    String.format(
+                            "Expected to find '%s' but found '%s' (%s). Bad OID in a reference?",
+                            type.getSimpleName(), compileTimeClass.getSimpleName(), prismObject.toDebugName()),
+                    type,
+                    prismObject.getOid(),
+                    isAllowNotFound(options));
         }
         if (InternalsConfig.consistencyChecks) {
             prismObject.checkConsistence();
@@ -799,8 +770,7 @@ public class ObjectRetriever {
 
             Number versionLong = (Number) query.uniqueResult();
             if (versionLong == null) {
-                throw new ObjectNotFoundException("Object '" + type.getSimpleName()
-                        + "' with oid '" + oid + "' was not found.");
+                throw new ObjectNotFoundException(type, oid, false);
             }
             version = versionLong.toString();
             session.getTransaction().commit();

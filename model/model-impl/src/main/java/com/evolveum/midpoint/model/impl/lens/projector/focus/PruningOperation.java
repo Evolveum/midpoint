@@ -105,7 +105,7 @@ public class PruningOperation<F extends AssignmentHolderType> {
 
     private void processPruneRuleExclusionTrigger(EvaluatedAssignmentImpl<F> newAssignment, EvaluatedPolicyRuleImpl pruneRule,
             EvaluatedExclusionTrigger exclusionTrigger) {
-        EvaluatedAssignment<FocusType> conflictingAssignment = exclusionTrigger.getConflictingAssignment();
+        EvaluatedAssignment conflictingAssignment = exclusionTrigger.getConflictingAssignment();
         if (conflictingAssignment == null) {
             throw new SystemException("Added assignment " + newAssignment
                     + ", the exclusion prune rule was triggered but there is no conflicting assignment in the trigger");

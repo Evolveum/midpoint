@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
@@ -46,7 +47,8 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 
         try {
             applySecurityConstraints(object, context);
-        } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException |
+                ExpressionEvaluationException e) {
             context.getResult().recordFatalError("Cannot create object wrapper for " + object + ". An error occurred: " + e.getMessage(), e);
             throw new SchemaException(e.getMessage(), e);
         }
@@ -75,7 +77,8 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     public void updateWrapper(PrismObjectWrapper<O> wrapper, WrapperContext context) throws SchemaException {
         try {
             applySecurityConstraints(wrapper.getObject(), context);
-        } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException e) {
+        } catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException |
+                ExpressionEvaluationException e) {
             context.getResult().recordFatalError("Cannot create object wrapper for " + wrapper.getObject() + ". An error occurred: " + e.getMessage(), e);
             throw new SchemaException(e.getMessage(), e);
         }
@@ -138,7 +141,11 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             MutablePrismContainerDefinition<?> def = getPrismContext().definitionFactory().createContainerDefinition(VIRTUAL_CONTAINER, mCtd);
             def.setMaxOccurs(1);
             if (display != null && display.getLabel() != null) {
-                def.setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
+                if (display.getLabel().getTranslation() != null && StringUtils.isNotEmpty(display.getLabel().getTranslation().getKey())) {
+                    def.setDisplayName(display.getLabel().getTranslation().getKey());
+                } else {
+                    def.setDisplayName(WebComponentUtil.getTranslatedPolyString(display.getLabel()));
+                }
             }
             def.setDynamic(true);
             def.setRuntimeSchema(true);
@@ -155,8 +162,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             PrismContainer<?> virtualPrismContainer = def.instantiate();
             ItemStatus virtualContainerStatus = context.getObjectStatus() != null ? context.getObjectStatus() : ItemStatus.NOT_CHANGED;
 
-
-            ItemWrapper<?,?> iw = factory.createWrapper(objectValueWrapper, virtualPrismContainer, virtualContainerStatus, ctx);
+            ItemWrapper<?, ?> iw = factory.createWrapper(objectValueWrapper, virtualPrismContainer, virtualContainerStatus, ctx);
             if (iw == null) {
                 continue;
             }
@@ -198,10 +204,11 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
     }
 
     protected void setupContextWithMetadataProcessing(PrismObject<O> object, WrapperContext context) {
-         try {
+        try {
             MetadataItemProcessingSpec metadataItemProcessingSpec = getModelInteractionService().getMetadataItemProcessingSpec(ValueMetadataType.F_PROVENANCE, object, context.getTask(), context.getResult());
-             context.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
-        } catch (SchemaException | SecurityViolationException | CommunicationException | ExpressionEvaluationException | ObjectNotFoundException | ConfigurationException e) {
+            context.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
+        } catch (SchemaException | SecurityViolationException | CommunicationException | ExpressionEvaluationException |
+                ObjectNotFoundException | ConfigurationException e) {
             LOGGER.error("Cannot get metadata processing items, reason: " + e.getMessage(), e);
             return;
         }

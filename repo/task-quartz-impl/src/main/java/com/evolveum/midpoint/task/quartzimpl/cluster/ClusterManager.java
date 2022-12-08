@@ -338,7 +338,9 @@ public class ClusterManager {
             ObjectQuery q = ObjectQueryUtil.createNameQuery(NodeType.class, taskManager.getPrismContext(), nodeIdentifier);
             List<PrismObject<NodeType>> nodes = taskManager.getRepositoryService().searchObjects(NodeType.class, q, null, result);
             if (nodes.isEmpty()) {
-                throw new ObjectNotFoundException("A node with identifier " + nodeIdentifier + " does not exist.");
+                throw new ObjectNotFoundException(
+                        "A node with identifier " + nodeIdentifier + " does not exist.",
+                        NodeType.class, nodeIdentifier);
             } else if (nodes.size() > 1) {
                 throw new SystemException("Multiple nodes with the same identifier '" + nodeIdentifier + "' in the repository.");
             } else {

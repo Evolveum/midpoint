@@ -291,9 +291,9 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
         ObjectDelta<AH> delta = getObjectDelta(result);
         ModelContext<AH> modelContext = getPageBase().getModelInteractionService().previewChanges(
                 Collections.singleton(delta), createPreviewAssignmentsOptions(), task, result);
-        Collection<? extends EvaluatedAssignment<?>> evaluatedAssignments = modelContext.getNonNegativeEvaluatedAssignments();
+        Collection<? extends EvaluatedAssignment> evaluatedAssignments = modelContext.getNonNegativeEvaluatedAssignments();
 
-            for (EvaluatedAssignment<?> evaluatedAssignment : evaluatedAssignments) {
+            for (EvaluatedAssignment evaluatedAssignment : evaluatedAssignments) {
                 if (!evaluatedAssignment.isValid()) {
                     continue;
                 }
@@ -306,7 +306,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
 
     }
 
-    private void collectRoleAndOrgs(EvaluatedAssignment<?> evaluatedAssignment, IModel<PrismContainerWrapper<AssignmentType>> parent, Set<AssignmentValueWrapper> assignmentValueWrapperSet) throws SchemaException {
+    private void collectRoleAndOrgs(EvaluatedAssignment evaluatedAssignment, IModel<PrismContainerWrapper<AssignmentType>> parent, Set<AssignmentValueWrapper> assignmentValueWrapperSet) throws SchemaException {
         DeltaSetTriple<? extends EvaluatedAssignmentTarget> targetsTriple = evaluatedAssignment.getRoles();
         Collection<? extends EvaluatedAssignmentTarget> targets = targetsTriple.getNonNegativeValues();
         for (EvaluatedAssignmentTarget target : targets) {
@@ -331,7 +331,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
         }
     }
 
-    private void collectResources(EvaluatedAssignment<?> evaluatedAssignment, IModel<PrismContainerWrapper<AssignmentType>> parent, Set<AssignmentValueWrapper> assignmentValueWrapperSet, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private void collectResources(EvaluatedAssignment evaluatedAssignment, IModel<PrismContainerWrapper<AssignmentType>> parent, Set<AssignmentValueWrapper> assignmentValueWrapperSet, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
         DeltaSetTriple<EvaluatedResourceObjectConstruction> evaluatedConstructionsTriple = evaluatedAssignment
                 .getEvaluatedConstructions(task, result);
         Collection<EvaluatedResourceObjectConstruction> evaluatedConstructions = evaluatedConstructionsTriple

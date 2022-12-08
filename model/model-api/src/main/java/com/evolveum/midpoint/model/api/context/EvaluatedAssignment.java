@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,8 +9,9 @@ package com.evolveum.midpoint.model.api.context;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Set;
-
 import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
@@ -22,11 +23,9 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import org.jetbrains.annotations.NotNull;
 
-public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends ShortDumpable, DebugDumpable, Serializable {
+public interface EvaluatedAssignment extends ShortDumpable, DebugDumpable, Serializable {
 
     AssignmentType getAssignment();
 
@@ -100,9 +99,9 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends Sh
      *
      * The difference to getThisTargetPolicyRules is that if e.g.
      * jack is a Pirate, and Pirate induces Sailor, then
-     *  - getThisTargetPolicyRules will show rules that are attached to Pirate
-     *  - getAllTargetsPolicyRules will show rules that are attached to Pirate and Sailor
-     *  - getOtherTargetsPolicyRules will show rules that are attached to Sailor
+     * - getThisTargetPolicyRules will show rules that are attached to Pirate
+     * - getAllTargetsPolicyRules will show rules that are attached to Pirate and Sailor
+     * - getOtherTargetsPolicyRules will show rules that are attached to Sailor
      */
     @NotNull
     Collection<? extends EvaluatedPolicyRule> getAllTargetsPolicyRules();
@@ -119,7 +118,7 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends Sh
      * These are evaluated focus mappings. Since 4.0.1 the evaluation is carried out not during assignment evaluation
      * but afterwards.
      */
-    Collection<? extends Mapping<?,?>> getFocusMappings();
+    Collection<? extends Mapping<?, ?>> getFocusMappings();
 
     String toHumanReadableString();
 
@@ -139,9 +138,7 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends Sh
     boolean isBeingKept();
 
     /**
-     * Set of abstract role OIDs considered for addition of admin gui configuration
-     *
+     * Set of abstract role OIDs considered for addition of admin gui configuration.
      */
-    Set<String> getAdminGuiDendencies();
-
+    Set<String> getAdminGuiDependencies();
 }
