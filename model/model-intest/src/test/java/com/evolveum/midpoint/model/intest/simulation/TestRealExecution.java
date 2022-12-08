@@ -35,11 +35,12 @@ public class TestRealExecution extends AbstractSimulationsTest {
      * Creating a user with a linked account on development-mode resource.
      */
     @Test
-    public void test100CreateUserWithLinkedAccount() throws Exception {
+    public void test100CreateUserWithLinkedDevelopmentAccount() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         objectsCounter.remember(result);
+        dummyAuditService.clear();
 
         given("a user");
         UserType user = new UserType()
@@ -51,7 +52,11 @@ public class TestRealExecution extends AbstractSimulationsTest {
         when("user is created");
         executeChanges(user.asPrismObject().createAddDelta(), null, task, result);
 
+        // TODO Maybe we should report at least warning or partial error, because the (requested) linkRef was not created.
         assertSuccessAndNoShadow("test100", result);
+
+        displayDumpable("audit", dummyAuditService);
+        // TODO add audit asserts
     }
 
     private ShadowType createAccount() {
@@ -76,14 +81,15 @@ public class TestRealExecution extends AbstractSimulationsTest {
     }
 
     /**
-     * As {@link #test100CreateUserWithLinkedAccount()} but the account is assigned, not linked.
+     * As {@link #test100CreateUserWithLinkedDevelopmentAccount()} but the account is assigned, not linked.
      */
     @Test
-    public void test110CreateUserWithAssignedAccount() throws Exception {
+    public void test110CreateUserWithAssignedDevelopmentAccount() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         objectsCounter.remember(result);
+        dummyAuditService.clear();
 
         given("a user");
         UserType user = new UserType()
@@ -98,5 +104,11 @@ public class TestRealExecution extends AbstractSimulationsTest {
         executeChanges(user.asPrismObject().createAddDelta(), null, task, result);
 
         assertSuccessAndNoShadow("test110", result);
+
+        assertUserAfterByUsername("test110")
+                .assertAssignments(1);
+
+        displayDumpable("audit", dummyAuditService);
+        // TODO add audit asserts
     }
 }

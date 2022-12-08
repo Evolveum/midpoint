@@ -10,7 +10,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.VirtualAssignmentSpecification;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
@@ -72,22 +71,6 @@ public class LifecycleUtil {
         virtualAssignmentSpecification.setFilter(objectFilter);
 
         return virtualAssignmentSpecification;
-    }
-
-    /**
-     * Returns true if the specified configuration item (e.g. resource, object class, object type, item, mapping, ...)
-     * is in "production" lifecycle state.
-     *
-     * The idea is that configuration items in `active` and `deprecated` states will have a different behavior
-     * than the ones in `proposed` state. (The behavior of other states is going to be determined later.)
-     *
-     * TODO Preliminary code.
-     */
-    @Experimental
-    public static boolean isInProduction(String lifecycleState) {
-        return lifecycleState == null
-                || SchemaConstants.LIFECYCLE_ACTIVE.equals(lifecycleState)
-                || SchemaConstants.LIFECYCLE_DEPRECATED.equals(lifecycleState);
     }
 
 //    public static <T extends AbstractRoleType> Collection<T> getListOfForcedRoles(LifecycleStateModelType lifecycleModel,

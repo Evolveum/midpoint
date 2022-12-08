@@ -249,7 +249,7 @@ public class FocusChangeExecution<O extends ObjectType> {
         }
     }
 
-    private void applyLastProvisioningTimestamp() throws SchemaException {
+    private void applyLastProvisioningTimestamp() throws SchemaException, ConfigurationException {
         if (!context.hasProjectionChange()) {
             return;
         }

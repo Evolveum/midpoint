@@ -1672,7 +1672,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean hasProjectionChange() {
+    public boolean hasProjectionChange() throws SchemaException, ConfigurationException {
         for (LensProjectionContext projectionContext : getProjectionContexts()) {
             if (projectionContext.getWave() != getExecutionWave()) {
                 continue;
@@ -1684,6 +1684,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 continue;
             }
             if (projectionContext.isGone()) {
+                continue;
+            }
+            if (!projectionContext.isVisible()) {
+                // Maybe we should act on really executed deltas. But adding a linkRef to development-mode resource
+                // is a real primary delta, even if not executed. That's why we check the visibility here. Later we
+                // should remove this hack.
                 continue;
             }
             if (projectionContext.hasPrimaryDelta() || projectionContext.hasSecondaryDelta()) {
@@ -2005,6 +2011,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public enum ExportType {
         MINIMAL, REDUCED, OPERATIONAL, TRACE
+    }
+
+    /** Returns true if the current task should see the production configuration, false if it should see development config. */
+    boolean isProductionConfigurationTask() {
+        return taskExecutionMode.isProductionConfiguration();
     }
 
     // FIXME temporary solution

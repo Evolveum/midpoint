@@ -263,6 +263,13 @@ public class Projector {
             return;
         }
 
+        if (!projectionContext.isVisible()) {
+            recordSkipReason(parentResult,
+                    "Skipping projection because the resource or object definition is not visible in current task"
+                            + " execution mode");
+            return;
+        }
+
         if (projectionContext.isCompleted()) {
             recordSkipReason(parentResult, "Skipping projection because the projection context is already completed");
             return;

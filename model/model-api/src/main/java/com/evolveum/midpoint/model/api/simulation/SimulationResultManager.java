@@ -13,7 +13,4 @@ public interface SimulationResultManager {
 
     SimulationResultType newConfiguration();
 
-
-
-
 }

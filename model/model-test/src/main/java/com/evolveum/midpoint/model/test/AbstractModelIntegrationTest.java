@@ -6910,8 +6910,31 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             @NotNull Task task,
             @NotNull OperationResult result)
             throws CommonException {
+        return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_PRODUCTION, simulationConfiguration, task, result);
+    }
+
+    /**
+     * As {@link #executeInProductionSimulationMode(Collection, SimulationResultType, Task, OperationResult)} but
+     * in development simulation mode.
+     */
+    protected SimulationResult executeInDevelopmentSimulationMode(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @Nullable SimulationResultType simulationConfiguration,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+        return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_DEVELOPMENT, simulationConfiguration, task, result);
+    }
+
+    protected SimulationResult executeInSimulationMode(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationResultType simulationConfiguration,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
         return executeInSimulationMode(
-                TaskExecutionMode.SIMULATED_PRODUCTION,
+                mode,
                 simulationConfiguration,
                 task,
                 result,
@@ -6948,7 +6971,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         void execute(SimulationResult simResult) throws CommonException;
     }
 
-    private SimulationResult executeInSimulationMode(
+    protected SimulationResult executeInSimulationMode(
             TaskExecutionMode mode,
             SimulationResultType simulationConfiguration,
             Task task,

@@ -99,8 +99,13 @@ public class ProjectionChangeExecution<O extends ObjectType> {
         try {
             LOGGER.trace("Executing projection context {}", projCtx.toHumanReadableString());
 
-            context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
-                    projCtx.getKey(), ENTERING));
+            if (!projCtx.isVisible()) {
+                LOGGER.trace("Resource object definition is not visible; skipping change execution (if there's any)");
+                result.recordNotApplicable("Not visible");
+                return;
+            }
+
+            context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION, projCtx.getKey(), ENTERING));
 
             ScriptExecutor<O> scriptExecutor = new ScriptExecutor<>(context, projCtx, task, b);
             scriptExecutor.executeReconciliationScripts(BeforeAfterType.BEFORE, result);

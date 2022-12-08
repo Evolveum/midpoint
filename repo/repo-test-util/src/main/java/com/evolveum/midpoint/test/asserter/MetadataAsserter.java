@@ -62,8 +62,17 @@ public class MetadataAsserter<RA> extends AbstractAsserter<RA> {
         return this;
     }
 
+    public MetadataAsserter<RA> assertLastProvisioningTimestampPresent(boolean expected) {
+        return expected ? assertLastProvisioningTimestampPresent() : assertLastProvisioningTimestampNotPresent();
+    }
+
     public MetadataAsserter<RA> assertLastProvisioningTimestampPresent() {
         assertThat(metadata.getLastProvisioningTimestamp()).as("last provisioning timestamp").isNotNull();
+        return this;
+    }
+
+    public MetadataAsserter<RA> assertLastProvisioningTimestampNotPresent() {
+        assertThat(metadata.getLastProvisioningTimestamp()).as("last provisioning timestamp").isNull();
         return this;
     }
 

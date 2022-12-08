@@ -6,21 +6,21 @@
  */
 package com.evolveum.midpoint.model.intest.simulation;
 
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 /**
- * Runs the basic simulations in {@link TaskExecutionMode#SIMULATED_PRODUCTION}.
+ * Runs the basic simulations in {@link TaskExecutionMode#SIMULATED_DEVELOPMENT}.
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestProductionSimulations extends AbstractBasicSimulationExecutionTest {
+public class TestDevelopmentSimulations extends AbstractBasicSimulationExecutionTest {
 
     @Override
     TaskExecutionMode getExecutionMode() {
-        return TaskExecutionMode.SIMULATED_PRODUCTION;
+        return TaskExecutionMode.SIMULATED_DEVELOPMENT;
     }
 }

@@ -122,9 +122,16 @@ public class ActivationProcessor implements ProjectorProcessor {
                 .build();
         try {
 
+            if (!projectionContext.isVisible()) {
+                LOGGER.trace("Projection {} is not visible for this task execution mode, skipping activation processing",
+                        projectionContext.getHumanReadableName());
+                result.recordNotApplicable("Not visible");
+                return;
+            }
+
             if (!projectionContext.isCurrentForProjection()) {
                 LOGGER.trace("Projection {} is not current, skipping activation processing", projectionContext.getHumanReadableName());
-                result.recordNotApplicable();
+                result.recordNotApplicable("Not current");
                 return;
             }
 
