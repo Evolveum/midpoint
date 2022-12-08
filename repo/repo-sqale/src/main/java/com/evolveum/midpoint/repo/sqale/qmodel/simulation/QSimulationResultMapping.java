@@ -55,7 +55,7 @@ public class QSimulationResultMapping extends QObjectMapping<SimulationResultTyp
             JdbcSession jdbcSession) {
         MSimulationResult row = super.toRowObjectWithoutFullObject(schemaObject, jdbcSession);
 
-        row.partitioned = schemaObject.isUseOwnPartitionForProcessedObjects();
+        //row.partitioned = schemaObject.isUseOwnPartitionForProcessedObjects();
         return row;
     }
 

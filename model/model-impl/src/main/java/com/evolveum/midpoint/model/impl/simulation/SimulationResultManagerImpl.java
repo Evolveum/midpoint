@@ -8,9 +8,10 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -121,11 +122,15 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
     @NotNull Collection<ObjectDelta<?>> getStoredDeltas(@NotNull String oid, OperationResult result)
             throws SchemaException, ObjectNotFoundException {
-        SimulationResultType simResult = repository
+        ObjectQuery query = PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
+                .ownerId(oid)
+                .build();
+        /*SimulationResultType simResult = repository
                 .getObject(SimulationResultType.class, oid, GetOperationOptions.createRetrieveCollection(), result)
-                .asObjectable();
+                .asObjectable();*/
+        SearchResultList<SimulationResultProcessedObjectType> simResult = repository.searchContainers(SimulationResultProcessedObjectType.class, query, GetOperationOptions.createRetrieveCollection(), result);
         Collection<ObjectDelta<?>> deltas = new ArrayList<>();
-        for (SimulationResultProcessedObjectType processedObject : simResult.getProcessedObject()) {
+        for (SimulationResultProcessedObjectType processedObject : simResult) {
             ObjectDeltaType deltaBean = processedObject.getDelta();
             if (deltaBean != null) {
                 deltas.add(DeltaConvertor.createObjectDelta(deltaBean));
