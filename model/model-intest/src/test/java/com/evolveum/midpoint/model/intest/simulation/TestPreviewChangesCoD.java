@@ -161,7 +161,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         assertCollectedCounts(counts, task, result);
 
         and("there are simulation deltas");
-        simResult.assertNoExecutedDeltas();
+        simResult.assertNoExecutedNorAuditedDeltas();
         List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
         displayCollection("simulated deltas", simulatedDeltas);
         // TODO some asserts here
@@ -232,7 +232,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         assertCollectedCounts(counts, task, result);
 
         and("there are simulation deltas");
-        simResult.assertNoExecutedDeltas();
+        simResult.assertNoExecutedNorAuditedDeltas();
         List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
         displayCollection("simulated deltas", simulatedDeltas);
         // TODO some asserts here
@@ -267,7 +267,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         assertCollectedCounts(counts, task, result);
 
         and("there are simulation deltas");
-        simResult.assertNoExecutedDeltas();
+        simResult.assertNoExecutedNorAuditedDeltas();
         List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
         displayCollection("simulated deltas", simulatedDeltas);
         // TODO some asserts here

@@ -12,6 +12,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.util.*;
 import javax.xml.datatype.Duration;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +55,8 @@ public class DummyAuditService implements AuditService, DebugDumpable {
      */
     private final List<AuditEventRecord> records = new ArrayList<>();
 
+    private final Set<DummyAuditEventListener> listeners = Sets.newConcurrentHashSet();
+
     // This is to be able to be able to disable this service for some tests e.g. to prevent memory leaks
     // TODO consider introducing auto-cleanup mechanism for this
     private boolean enabled = true;
@@ -75,6 +78,9 @@ public class DummyAuditService implements AuditService, DebugDumpable {
                 }
             }
             records.add(record.clone());
+            for (DummyAuditEventListener listener : listeners) {
+                listener.onAudit(record);
+            }
         }
     }
 
@@ -574,5 +580,13 @@ public class DummyAuditService implements AuditService, DebugDumpable {
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
             @NotNull OperationResult parentResult) throws SchemaException {
         throw new UnsupportedOperationException("searchObjectsIterative not supported");
+    }
+
+    public void addEventListener(DummyAuditEventListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeEventListener(DummyAuditEventListener listener) {
+        listeners.remove(listener);
     }
 }

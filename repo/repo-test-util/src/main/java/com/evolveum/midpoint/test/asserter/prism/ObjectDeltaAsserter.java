@@ -93,7 +93,17 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    /** Asserts that the specified paths are modified (among other ones - optionally). */
     public ObjectDeltaAsserter<O,RA> assertModifiedPaths(ItemPath... expectedPaths) {
+        return assertModifiedPaths(false, expectedPaths);
+    }
+
+    /** Asserts that the set of modified paths is exactly the same as expected. */
+    public ObjectDeltaAsserter<O,RA> assertModifiedPathsStrict(ItemPath... expectedPaths) {
+        return assertModifiedPaths(true, expectedPaths);
+    }
+
+    private ObjectDeltaAsserter<O,RA> assertModifiedPaths(boolean strict, ItemPath... expectedPaths) {
         assertModify();
         PathSet actualPathSet = delta.getModifications().stream()
                 .map(modification -> modification.getPath())
@@ -104,9 +114,11 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
                 fail("Expected path '" + expected + "' is not among actually modified paths: " + actualPathSet);
             }
         }
-        for (ItemPath actualPath : actualPathSet) {
-            if (!expectedPathSet.contains(actualPath)) {
-                fail("Actual path '" + actualPath + "' is not among expected modified paths: " + expectedPathSet);
+        if (strict) {
+            for (ItemPath actualPath : actualPathSet) {
+                if (!expectedPathSet.contains(actualPath)) {
+                    fail("Actual path '" + actualPath + "' is not among expected modified paths: " + expectedPathSet);
+                }
             }
         }
         return this;

@@ -6987,8 +6987,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
         SimulationResult simulationResult = new SimulationResult(simulationResultContext);
         AggregatedObjectProcessingListener testObjectProcessingListener = simulationResult.aggregatedObjectProcessingListener();
+        DummyAuditEventListener auditEventListener = simulationResult.auditEventListener();
         TaskExecutionMode oldMode = task.setExecutionMode(mode);
         try {
+            dummyAuditService.addEventListener(auditEventListener);
             task.addObjectProcessingListener(testObjectProcessingListener);
             if (simulationObjectProcessingListener != null) {
                 task.addObjectProcessingListener(simulationObjectProcessingListener);
@@ -6999,6 +7001,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             if (simulationObjectProcessingListener != null) {
                 task.removeObjectProcessingListener(simulationObjectProcessingListener);
             }
+            dummyAuditService.removeEventListener(auditEventListener);
             task.setExecutionMode(oldMode);
         }
         return simulationResult;

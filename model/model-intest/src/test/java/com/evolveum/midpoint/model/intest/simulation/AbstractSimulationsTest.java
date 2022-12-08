@@ -8,11 +8,19 @@
 package com.evolveum.midpoint.model.intest.simulation;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.File;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
 
@@ -47,5 +55,45 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         RESOURCE_SIMPLE_DEVELOPMENT_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_SOURCE.initAndTest(this, initTask, initResult);
+    }
+
+    private ShadowType createAccount(DummyTestResource target) {
+        return new ShadowType()
+                .resourceRef(target.oid, ResourceType.COMPLEX_TYPE)
+                .objectClass(RI_ACCOUNT_OBJECT_CLASS)
+                .kind(ShadowKindType.ACCOUNT)
+                .intent("default");
+        // Name should be computed by mappings
+    }
+
+    ObjectReferenceType createLinkRefWithFullObject(DummyTestResource target) {
+        return ObjectTypeUtil.createObjectRefWithFullObject(
+                createAccount(target));
+    }
+
+    String addUser(String name, Task task, OperationResult result) throws CommonException {
+        UserType user = new UserType()
+                .name(name);
+
+        var executed =
+                executeChanges(user.asPrismObject().createAddDelta(), null, task, result);
+        return ObjectDeltaOperation.findFocusDeltaOidInCollection(executed);
+    }
+
+    ObjectDelta<UserType> createLinkRefDelta(String userOid, DummyTestResource target) throws SchemaException {
+        return deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .add(createLinkRefWithFullObject(target))
+                .asObjectDelta(userOid);
+    }
+
+    ObjectDelta<UserType> createAssignmentDelta(String userOid, DummyTestResource target) throws SchemaException {
+        return deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType()
+                        .construction(
+                                new ConstructionType()
+                                        .resourceRef(target.oid, ResourceType.COMPLEX_TYPE)))
+                .asObjectDelta(userOid);
     }
 }

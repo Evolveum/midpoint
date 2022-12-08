@@ -32,7 +32,6 @@ import com.evolveum.midpoint.model.test.SimulationResult;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -40,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Basic scenarios of production/development simulations: actions executed from the foreground, no create-on-demand.
  *
  * See {@link TestPreviewChangesCoD} for create-on-demand related tests.
- * See {@link TestRealExecution} for executing real operations against simulated configuration objects.
+ * See {@link TestRealExecution} for executing real operations against development-mode configuration objects.
  *
  * Structure:
  *
@@ -79,7 +78,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("no new objects should be created, no deltas really executed");
         objectsCounter.assertNoNewObjects(result);
-        simResult.assertNoExecutedDeltas();
+        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("there is a single ADD simulation delta (in testing storage)");
         assertTest100UserDeltas(simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
@@ -137,7 +136,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         assertDelta(focusContext.getSummarySecondaryDelta(), "summary secondary delta")
                 .display()
                 .assertModify()
-                .assertModifiedPaths( // This list may change if projector internals change
+                .assertModifiedPathsStrict( // This list may change if projector internals change
                         PATH_ACTIVATION_EFFECTIVE_STATUS,
                         PATH_ACTIVATION_ENABLE_TIMESTAMP,
                         FocusType.F_ITERATION,
@@ -174,9 +173,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         given("a user");
         UserType user = new UserType()
                 .name(name)
-                .linkRef(
-                        ObjectTypeUtil.createObjectRefWithFullObject(
-                                createAccount(target)));
+                .linkRef(createLinkRefWithFullObject(target));
 
         when("user is created in simulation");
         SimulationResultType simulationConfiguration = getSimulationConfiguration();
@@ -190,7 +187,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("no new object is created");
         objectsCounter.assertNoNewObjects(result); // in the future there may be some simulated shadows
-        simResult.assertNoExecutedDeltas();
+        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("there are simulation deltas (in testing storage)");
         boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
@@ -228,7 +225,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             assertDelta(projectionContext.getSummarySecondaryDelta(), "summary secondary delta")
                     .display()
                     .assertModify()
-                    .assertModifiedPaths( // This list may change if projector internals change
+                    .assertModifiedPathsStrict( // This list may change if projector internals change
                             ICFS_NAME_PATH, // by a mapping
                             ShadowType.F_ITERATION,
                             ShadowType.F_ITERATION_TOKEN,
@@ -237,15 +234,6 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             assertThat(projectionContext.getSecondaryDelta()).as("projection secondary delta").isNull();
         }
         // @formatter:on
-    }
-
-    private ShadowType createAccount(DummyTestResource target) {
-        return new ShadowType()
-                .resourceRef(target.oid, ResourceType.COMPLEX_TYPE)
-                .objectClass(RI_ACCOUNT_OBJECT_CLASS)
-                .kind(ShadowKindType.ACCOUNT)
-                .intent("default");
-        // Name should be computed by mappings
     }
 
     private void assertTest11xUserAndAccountDeltas(
@@ -274,23 +262,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .end();
 
         if (accountShouldExist) {
-            assertDeltaCollection(simulatedDeltas, message)
-                    .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
-                        .objectToAdd()
-                            .assertNoName() // currently, there is no object name there
-                            .asShadow()
-                            .assertResource(target.oid)
-                            .assertObjectClass(RI_ACCOUNT_OBJECT_CLASS)
-                            .assertKind(ShadowKindType.ACCOUNT)
-                            .assertIntent("default")
-                            .attributes()
-                                .assertValue(ICFS_NAME, name)
-                            .end()
-                            .objectMetadata()
-                                .assertRequestTimestampPresent()
-                                .assertCreateTimestampPresent()
-                                .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
-                            .end();
+            assertAccountAddDelta(name, target, simulatedDeltas, message);
         } else {
             assertDeltaCollection(simulatedDeltas, message)
                     .assertSize(1); // user delta only
@@ -345,7 +317,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("no new object is created");
         objectsCounter.assertNoNewObjects(result); // simulated shadows?
-        simResult.assertNoExecutedDeltas();
+        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("there are simulation deltas (in testing storage)");
         boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
@@ -398,7 +370,198 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .end()
                 .end();
         if (accountShouldExist) {
+            assertAccountAddDelta(name, target, simulatedDeltas, message);
+        } else {
             assertDeltaCollection(simulatedDeltas, message)
+                    .assertSize(1); // user delta only
+        }
+        // @formatter:on
+    }
+
+    /**
+     * Links an account on production resource.
+     */
+    @Test
+    public void test130LinkProductionAccount() throws Exception {
+        executeTest13xLinkAccount("test130", RESOURCE_SIMPLE_PRODUCTION_TARGET, true);
+    }
+
+    /**
+     * Links an account on development resource.
+     */
+    @Test
+    public void test135LinkDevelopmentAccount() throws Exception {
+        executeTest13xLinkAccount("test135", RESOURCE_SIMPLE_DEVELOPMENT_TARGET, false);
+    }
+
+    private void executeTest13xLinkAccount(String name, DummyTestResource target, boolean targetIsProduction)
+            throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a user in repository");
+        String userOid = addUser(name, task, result);
+
+        objectsCounter.remember(result);
+
+        when("account is linked in simulation");
+        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        SimulationResult simResult =
+                executeInSimulationMode(
+                        List.of(createLinkRefDelta(userOid, target)),
+                        getExecutionMode(), simulationConfiguration, task, result);
+
+        then("everything is OK");
+        assertSuccess(result);
+
+        and("no new object is created");
+        objectsCounter.assertNoNewObjects(result); // in the future there may be some simulated shadows
+        simResult.assertNoExecutedNorAuditedDeltas();
+
+        and("there are simulation deltas (in testing storage)");
+        boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
+        assertTest13xUserAndAccountDeltas(
+                name, target, accountShouldExist,
+                simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
+
+        if (simulationConfiguration != null) {
+            and("there are simulation deltas (in persistent storage)");
+            Collection<ObjectDelta<?>> simulatedDeltas = simResult.getStoredDeltas(result);
+            assertTest13xUserAndAccountDeltas(
+                    name, target, accountShouldExist,
+                    simulatedDeltas, "simulated deltas in persistent storage");
+        }
+
+        and("the model context is OK");
+        ModelContext<?> modelContext = simResult.getLastModelContext();
+        displayDumpable("model context", modelContext);
+        // some asserts here (are these interesting, after all?)
+    }
+
+    private void assertTest13xUserAndAccountDeltas(
+            String name, DummyTestResource target, boolean accountShouldExist,
+            Collection<ObjectDelta<?>> simulatedDeltas, String message) {
+
+        // @formatter:off
+        if (accountShouldExist) {
+            assertDeltaCollection(simulatedDeltas, message)
+                    .display()
+                    .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
+                        .assertModifiedPathsStrict(
+                                PATH_METADATA_LAST_PROVISIONING_TIMESTAMP,
+                                PATH_METADATA_MODIFY_CHANNEL,
+                                PATH_METADATA_MODIFY_TIMESTAMP,
+                                PATH_METADATA_MODIFIER_REF,
+                                PATH_METADATA_MODIFY_TASK_REF,
+                                PATH_METADATA_MODIFY_APPROVER_REF,
+                                PATH_METADATA_MODIFY_APPROVAL_COMMENT,
+                                UserType.F_LINK_REF)
+                    .end();
+            assertAccountAddDelta(name, target, simulatedDeltas, message);
+        } else {
+            assertDeltaCollection(simulatedDeltas, message)
+                    .assertSize(0); // even no user delta should be there (really?)
+        }
+        // @formatter:on
+    }
+
+    /**
+     * Assigns an account on production resource.
+     */
+    @Test
+    public void test140AssignProductionAccount() throws Exception {
+        executeTest14xAssignAccount("test140", RESOURCE_SIMPLE_PRODUCTION_TARGET, true);
+    }
+
+    /**
+     * Assigns an account on development resource.
+     */
+    @Test
+    public void test145AssignDevelopmentAccount() throws Exception {
+        executeTest14xAssignAccount("test145", RESOURCE_SIMPLE_DEVELOPMENT_TARGET, false);
+    }
+
+    private void executeTest14xAssignAccount(String name, DummyTestResource target, boolean targetIsProduction)
+            throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("a user in repository");
+        String userOid = addUser(name, task, result);
+
+        objectsCounter.remember(result);
+
+        when("account is linked in simulation");
+        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        SimulationResult simResult =
+                executeInSimulationMode(
+                        List.of(createAssignmentDelta(userOid, target)),
+                        getExecutionMode(), simulationConfiguration, task, result);
+
+        then("everything is OK");
+        assertSuccess(result);
+
+        and("no new object is created");
+        objectsCounter.assertNoNewObjects(result); // in the future there may be some simulated shadows
+        simResult.assertNoExecutedNorAuditedDeltas();
+
+        and("there are simulation deltas (in testing storage)");
+        boolean accountShouldExist = targetIsProduction || isDevelopmentConfiguration();
+        assertTest14xUserAndAccountDeltas(
+                name, target, accountShouldExist,
+                simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
+
+        if (simulationConfiguration != null) {
+            and("there are simulation deltas (in persistent storage)");
+            Collection<ObjectDelta<?>> simulatedDeltas = simResult.getStoredDeltas(result);
+            assertTest14xUserAndAccountDeltas(
+                    name, target, accountShouldExist,
+                    simulatedDeltas, "simulated deltas in persistent storage");
+        }
+
+        and("the model context is OK");
+        ModelContext<?> modelContext = simResult.getLastModelContext();
+        displayDumpable("model context", modelContext);
+        // some asserts here (are these interesting, after all?)
+    }
+
+    private void assertTest14xUserAndAccountDeltas(
+            String name, DummyTestResource target, boolean accountShouldExist,
+            Collection<ObjectDelta<?>> simulatedDeltas, String message) {
+
+        // @formatter:off
+        assertDeltaCollection(simulatedDeltas, message)
+                .display()
+                .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
+                    .assertModifiedPaths(
+                            UserType.F_ASSIGNMENT,
+                            PATH_METADATA_MODIFY_CHANNEL,
+                            PATH_METADATA_MODIFY_TIMESTAMP,
+                            PATH_METADATA_MODIFIER_REF,
+                            PATH_METADATA_MODIFY_TASK_REF,
+                            PATH_METADATA_MODIFY_APPROVER_REF,
+                            PATH_METADATA_MODIFY_APPROVAL_COMMENT)
+                .assertModifications(7 + (accountShouldExist ? 2 : 0));
+
+        if (accountShouldExist) {
+            assertDeltaCollection(simulatedDeltas, message)
+                    .display()
+                    .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
+                        .assertModifiedPaths(
+                                PATH_METADATA_LAST_PROVISIONING_TIMESTAMP,
+                                UserType.F_LINK_REF)
+                    .end();
+            assertAccountAddDelta(name, target, simulatedDeltas, message);
+        } else {
+            assertDeltaCollection(simulatedDeltas, message)
+                    .assertSize(1); // user delta only
+        }
+        // @formatter:on
+    }
+
+    private void assertAccountAddDelta(
+            String name, DummyTestResource target, Collection<ObjectDelta<?>> simulatedDeltas, String message) {
+        assertDeltaCollection(simulatedDeltas, message)
                 .by().changeType(ChangeType.ADD).objectType(ShadowType.class).find()
                     .objectToAdd()
                         .assertNoName() // currently, there is no object name there
@@ -414,14 +577,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .assertRequestTimestampPresent()
                             .assertCreateTimestampPresent()
                             .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
-                        .end()
-                    .end()
-                .end();
-        } else {
-            assertDeltaCollection(simulatedDeltas, message)
-                    .assertSize(1); // user delta only
-        }
-        // @formatter:on
+                        .end();
     }
 
     /**
@@ -456,7 +612,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         then("no new objects should be created (except for one shadow), no model deltas really executed");
         objectsCounter.assertShadowOnlyIncrement(1, result);
-        simResult.assertNoExecutedDeltas();
+        simResult.assertNoExecutedNorAuditedDeltas();
 
         and("deltas are correct (in testing storage)");
         assertTest200Deltas(simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
@@ -498,7 +654,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .end()
                 .end()
                 .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).index(0).find()
-                    .assertModifiedPaths( // fragile, may change when projector changes
+                    .assertModifiedPathsStrict( // fragile, may change when projector changes
                             ShadowType.F_ITERATION,
                             ShadowType.F_ITERATION_TOKEN,
                             PATH_METADATA_MODIFY_CHANNEL,
