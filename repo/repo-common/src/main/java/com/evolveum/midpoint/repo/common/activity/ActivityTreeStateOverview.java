@@ -40,6 +40,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+/**
+ * Represents the activity tree state overview that is stored in the root task.
+ *
+ * This class does _not_ hold the state itself. Instead, it contains methods that update the state in the task.
+ * See e.g. {@link #recordLocalRunStart(LocalActivityRun, OperationResult)} and its brethren.
+ */
 public class ActivityTreeStateOverview {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityTreeStateOverview.class);
@@ -276,8 +282,9 @@ public class ActivityTreeStateOverview {
     }
 
     /** Assumes that the activity run is still in progress. (I.e. also clear the "stalled since" flag.) */
-    public void updateItemProgressIfTimePassed(@NotNull LocalActivityRun<?, ?, ?> run, long interval,
-            OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public void updateItemProgressIfTimePassed(
+            @NotNull LocalActivityRun<?, ?, ?> run, long interval, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
 
         if (!run.shouldUpdateProgressInStateOverview() || !run.isProgressSupported()) {
             LOGGER.trace("Item progress update skipped in {}", run);
@@ -334,7 +341,7 @@ public class ActivityTreeStateOverview {
     /**
      * Updates the realization state (including writing to the repository).
      */
-    public void updateRealizationState(ActivityTreeRealizationStateType value, OperationResult result)
+    void updateRealizationState(ActivityTreeRealizationStateType value, OperationResult result)
             throws ActivityRunException {
         try {
             rootTask.setItemRealValues(PATH_REALIZATION_STATE, value);
@@ -344,11 +351,11 @@ public class ActivityTreeStateOverview {
         }
     }
 
-    public ActivityStateOverviewType getActivityStateTree() {
+    private ActivityStateOverviewType getActivityStateTree() {
         return rootTask.getPropertyRealValueOrClone(PATH_ACTIVITY_STATE_TREE, ActivityStateOverviewType.class);
     }
 
-    public void purge(OperationResult result) throws ActivityRunException {
+    void purge(OperationResult result) throws ActivityRunException {
         updateActivityStateTree(
                 purgeStateRecursively(
                         getActivityStateTree()

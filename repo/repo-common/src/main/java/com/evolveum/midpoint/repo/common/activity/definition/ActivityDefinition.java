@@ -25,8 +25,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Definition of an activity.
  *
- * It is analogous to (and primarily filled-in from) `ActivityDefinitionType`, but contains
- * the complete information about particular activity in the context of given task.
+ * It is analogous to (and primarily filled-in from) {@link ActivityDefinitionType}, but contains
+ * the complete information about particular activity in the context of given task, e.g. legacy definition data filled-in
+ * from task extension items.
+ *
+ * Should not contain any data related to the execution of the activity.
  */
 public class ActivityDefinition<WD extends WorkDefinition> implements DebugDumpable, Cloneable {
 

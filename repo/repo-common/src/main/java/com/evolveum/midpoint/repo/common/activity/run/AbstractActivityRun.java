@@ -58,11 +58,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 
 /**
- * Implements (represents) a run of an activity.
+ * Implements (represents) a run (execution) of an activity in the current task.
  *
  * Responsibilities _at this [highest] level of abstraction_:
  *
- * 1. During execution - see {@link #run(OperationResult)}:
+ * . Maintains links to other activity framework objects:
+ *
+ * - {@link #taskRun} ({@link ActivityBasedTaskRun})
+ * - {@link #activity} ({@link Activity})
+ * - {@link #activityState} ({@link ActivityState}) (and its {@link ActivityStateDefinition}), including the state holding
+ * thresholds-supporting counters
+ *
+ * . Provides methods for navigation to more distant objects of the framework and other auxiliary objects (beans).
+ *
+ * . Provides skeleton of the execution - see {@link #run(OperationResult)}:
  *    a. initializes activity state (if needed),
  *    b. skips run of the activity if the activity realization is complete,
  *    c. executes "before run" and the real code,
@@ -70,11 +79,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcess
  *       (such conversion is done at various other levels, btw),
  *    e. logs the start/end,
  *    f. updates execution and result (op) status in the repository,
- *
- * 2. Maintains links to other activity framework objects: task run, activity, activity state (and its definition),
- * activity state for counters.
- *
- * 3. Provides methods for navigation to more distant objects of the framework and other auxiliary objects (beans).
  *
  * @param <WD> Definition of the work that this activity has to do.
  * @param <AH> Type of the activity handler.
