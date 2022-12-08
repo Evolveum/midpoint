@@ -147,13 +147,14 @@ public class PageEmailNonce extends PageAuthenticationBase {
         }
         LOGGER.trace("Reset Password user: {}", user);
 
-//        if (getFormRef() == null) {
-//            LOGGER.debug("No policies for reset password defined");
-//            getSession().error(getString("pageForgetPassword.message.policy.not.found"));
-//            throw new RestartResponseException(PageEmailNonce.class);
-//        }
+        NonceCredentialsPolicyType noncePolicy = getMailNoncePolicy(user.asPrismObject());
+        if (noncePolicy == null) {
+            LOGGER.debug("No policies for reset password defined");
+            getSession().error(getString("pageForgetPassword.message.policy.not.found"));
+            throw new RestartResponseException(PageEmailNonce.class);
+        }
 
-        OperationResult result = saveUserNonce(user, getMailNoncePolicy(user.asPrismObject()));
+        OperationResult result = saveUserNonce(user, noncePolicy);
         if (result.getStatus() == OperationResultStatus.SUCCESS) {
             submited = true;
             target.add(PageEmailNonce.this);

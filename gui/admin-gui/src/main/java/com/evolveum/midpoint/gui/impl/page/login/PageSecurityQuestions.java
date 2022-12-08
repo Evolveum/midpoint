@@ -50,7 +50,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.security.util.SecurityQuestionDto;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -90,6 +89,7 @@ public class PageSecurityQuestions extends PageAuthenticationBase {
     public PageSecurityQuestions() {
     }
 
+    @Override
     protected void initModels() {
         answerModel = Model.of();
         userModel = new LoadableDetachableModel<>() {

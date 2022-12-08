@@ -199,7 +199,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
             }
 
             if ((users == null) || (users.isEmpty())) {
-                LOGGER.trace("Empty user list in ForgetPassword");
+                LOGGER.trace("Empty user list while user authentication");
                 return null;
             }
 
@@ -209,7 +209,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
             }
 
             UserType user = users.iterator().next().asObjectable();
-            LOGGER.trace("User found for ForgetPassword: {}", user);
+            LOGGER.trace("User found for authentication: {}", user);
 
             return user;
         });
