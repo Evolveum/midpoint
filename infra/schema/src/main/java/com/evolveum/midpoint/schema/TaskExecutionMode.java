@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 
 /**
@@ -36,6 +40,19 @@ public class TaskExecutionMode implements Serializable {
         this.name = name;
         this.persistent = persistent;
         this.productionConfiguration = productionConfiguration;
+    }
+
+    // Preliminary implementation
+    public static @NotNull TaskExecutionMode fromActivityExecutionMode(@NotNull ExecutionModeType activityExecutionMode) {
+        switch (activityExecutionMode) {
+            case PREVIEW:
+                return TaskExecutionMode.SIMULATED_PRODUCTION;
+            case DEVELOPMENT_PREVIEW:
+                return TaskExecutionMode.SIMULATED_DEVELOPMENT;
+            default:
+                // dry run, none, bucket analysis - these are treated in a special way (for now)
+                return PRODUCTION;
+        }
     }
 
     /** Should the effects of this task be persistent or not? The latter means "simulation", "preview", etc. */

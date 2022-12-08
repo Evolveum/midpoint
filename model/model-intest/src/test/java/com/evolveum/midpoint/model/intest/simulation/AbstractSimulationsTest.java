@@ -90,10 +90,14 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
     ObjectDelta<UserType> createAssignmentDelta(String userOid, DummyTestResource target) throws SchemaException {
         return deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                .add(new AssignmentType()
-                        .construction(
-                                new ConstructionType()
-                                        .resourceRef(target.oid, ResourceType.COMPLEX_TYPE)))
+                .add(createAssignmentValue(target))
                 .asObjectDelta(userOid);
+    }
+
+    static AssignmentType createAssignmentValue(DummyTestResource target) {
+        return new AssignmentType()
+                .construction(
+                        new ConstructionType()
+                                .resourceRef(target.oid, ResourceType.COMPLEX_TYPE));
     }
 }

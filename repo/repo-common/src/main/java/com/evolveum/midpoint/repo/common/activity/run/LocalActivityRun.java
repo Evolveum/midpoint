@@ -100,14 +100,10 @@ public abstract class LocalActivityRun<
         return runResult;
     }
 
-    // TODO implement more correctly after execution mode is set in the activity itself
     private void setTaskExecutionMode() {
-        if (isPreview()) {
-            RunningTask runningTask = getRunningTask();
-            if (runningTask.isPersistentExecution()) {
-                runningTask.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
-            }
-        }
+        getRunningTask()
+                .setExecutionMode(
+                        TaskExecutionMode.fromActivityExecutionMode(getActivityExecutionMode()));
     }
 
     /** Updates {@link #activityState} (including flushing) and the tree state overview. */

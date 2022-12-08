@@ -79,10 +79,7 @@ public class TestRealExecution extends AbstractSimulationsTest {
         UserType user = new UserType()
                 .name("test110")
                 .assignment(
-                        new AssignmentType()
-                                .construction(
-                                        new ConstructionType()
-                                                .resourceRef(RESOURCE_SIMPLE_DEVELOPMENT_TARGET.oid, ResourceType.COMPLEX_TYPE)));
+                        createAssignmentValue(RESOURCE_SIMPLE_DEVELOPMENT_TARGET));
 
         when("user is created");
         executeChanges(user.asPrismObject().createAddDelta(), null, task, result);

@@ -49,8 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * Limitations:
  *
- * - only crude support for tracing on foreground (yet);
- * - no support for simulations on background (yet).
+ * - only crude support for tracing on foreground (yet).
  */
 @Experimental
 public class ImportSingleAccountRequest {
@@ -80,7 +79,7 @@ public class ImportSingleAccountRequest {
         this.taskExecutionMode = Objects.requireNonNullElse(builder.taskExecutionMode, TaskExecutionMode.PRODUCTION);
     }
 
-    public String execute(OperationResult result) throws CommonException, PreconditionViolationException {
+    public String execute(OperationResult result) throws CommonException {
         ObjectQuery query = createResourceObjectQuery(result);
         TaskType importTask = new TaskType()
                 .name("import")
@@ -93,8 +92,9 @@ public class ImportSingleAccountRequest {
                                                 .kind(typeIdentification.getKind())
                                                 .intent(typeIdentification.getIntent())
                                                 .query(PrismContext.get().getQueryConverter().createQueryType(query))
-                                                .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE)))));
-        // TODO set also task execution mode
+                                                .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE))))
+                        .executionMode(
+                                getBackgroundTaskExecutionMode()));
         String taskOid = test.addObject(importTask, task, result);
         if (tracingProfile != null) {
             test.traced(
@@ -110,6 +110,16 @@ public class ImportSingleAccountRequest {
                     .assertSuccess();
         }
         return taskOid;
+    }
+
+    private @NotNull ExecutionModeType getBackgroundTaskExecutionMode() {
+        if (taskExecutionMode.isPersistent()) {
+            return ExecutionModeType.FULL;
+        } else if (taskExecutionMode.isProductionConfiguration()) {
+            return ExecutionModeType.PREVIEW;
+        } else {
+            return ExecutionModeType.DEVELOPMENT_PREVIEW;
+        }
     }
 
     private ObjectQuery createResourceObjectQuery(OperationResult result)

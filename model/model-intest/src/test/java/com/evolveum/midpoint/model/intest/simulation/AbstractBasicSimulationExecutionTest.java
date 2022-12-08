@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 
 import com.evolveum.midpoint.schema.TaskExecutionMode;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.test.DummyTestResource;
 
 import com.evolveum.midpoint.util.exception.CommonException;
 
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -36,7 +38,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * Basic scenarios of production/development simulations: actions executed from the foreground, no create-on-demand.
+ * Basic scenarios of production/development simulations: e.g., no create-on-demand.
  *
  * See {@link TestPreviewChangesCoD} for create-on-demand related tests.
  * See {@link TestRealExecution} for executing real operations against development-mode configuration objects.
@@ -300,10 +302,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         UserType user = new UserType()
                 .name(name)
                 .assignment(
-                        new AssignmentType()
-                                .construction(
-                                        new ConstructionType()
-                                                .resourceRef(target.oid, ResourceType.COMPLEX_TYPE)));
+                        createAssignmentValue(target));
 
         when("user is created in simulation");
         SimulationResultType simulationConfiguration = getSimulationConfiguration();
@@ -583,9 +582,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     /**
      * Simulated import from production source. Shadow should be created, but the user should not.
      * There should be no persistent information about shadow being linked to the user.
+     *
+     * User should have no projections.
      */
     @Test
-    public void test200SimulatedProductionAccountImport() throws Exception {
+    public void test200SimulatedAccountImportNoProjectionsForeground() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -606,7 +607,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                                 importSingleAccountRequest()
                                         .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
                                         .withNameValue("test200")
-                                        .withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION)
+                                        .withTaskExecutionMode(getExecutionMode())
                                         .build()
                                         .executeOnForeground(result));
 
@@ -615,12 +616,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         simResult.assertNoExecutedNorAuditedDeltas();
 
         and("deltas are correct (in testing storage)");
-        assertTest200Deltas(simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
+        assertTest20xDeltas("test200", simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
 
         if (simulationConfiguration != null) {
             and("there are simulation deltas (in persistent storage)");
             Collection<ObjectDelta<?>> simulatedDeltas = simResult.getStoredDeltas(result);
-            assertTest200Deltas(simulatedDeltas, "simulated deltas in persistent storage");
+            assertTest20xDeltas("test200", simulatedDeltas, "simulated deltas in persistent storage");
         }
 
         and("shadow should not have full sync info set");
@@ -632,13 +633,13 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertSynchronizationSituation(null);
     }
 
-    private void assertTest200Deltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
+    private void assertTest20xDeltas(String name, Collection<ObjectDelta<?>> simulatedDeltas, String message) {
         // @formatter:off
         assertDeltaCollection(simulatedDeltas, message)
                 .display()
                 .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
                     .objectToAdd()
-                        .assertName("test200")
+                        .assertName(name)
                         .objectMetadata()
                             .assertRequestTimestampPresent()
                             .assertCreateTimestampPresent()
@@ -665,6 +666,55 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             PATH_METADATA_MODIFY_APPROVAL_COMMENT)
                 .end();
         // @formatter:on
+    }
+
+    /**
+     * As {@link #test200SimulatedAccountImportNoProjectionsForeground()} but on background.
+     */
+    @Test(enabled = false) // not working for now
+    public void test205SimulatedAccountImportNoProjectionsBackground() throws Exception {
+        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        if (simulationConfiguration == null) {
+            throw new SkipException("Simulations not supported here");
+        }
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        SimulationResultContext simContext = simulationResultManager.newSimulationResult(simulationConfiguration, result);
+
+        objectsCounter.remember(result);
+
+        given("an account on production source");
+        RESOURCE_SIMPLE_PRODUCTION_SOURCE.controller.addAccount("test205");
+
+        when("the account is imported");
+        executeAccountImportOnBackground("test205", result);
+
+        then("no new objects should be created (except for one shadow), no model deltas really executed");
+        objectsCounter.assertShadowOnlyIncrement(1, result);
+
+        and("there are simulation deltas in persistent storage");
+        Collection<ObjectDelta<?>> simulatedDeltas = simContext.getStoredDeltas(result);
+        assertTest20xDeltas("test205", simulatedDeltas, "simulated deltas in persistent storage");
+
+        and("shadow should not have full sync info set");
+        assertShadowAfter(
+                findAccountByUsername("test205", RESOURCE_SIMPLE_PRODUCTION_SOURCE.getResource(), task, result))
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent("default")
+                .assertIsExists()
+                .assertSynchronizationSituation(null);
+    }
+
+    private void executeAccountImportOnBackground(String name, OperationResult result)
+            throws CommonException {
+        importSingleAccountRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withNameValue(name)
+                .withTaskExecutionMode(getExecutionMode())
+                .build()
+                .execute(result);
     }
 
     private boolean isDevelopmentConfiguration() {

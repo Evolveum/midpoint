@@ -2521,10 +2521,26 @@
                             A preview (simulation) of changes: Changes are computed, but nothing is executed.
                             Used for example to check the thresholds before the full (real) execution.
                             In the future midPoint may also store the computed changes for later analysis.
+
+                            TODO we use also the term "simulation"
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PREVIEW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="developmentPreview">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            As "preview" but development-mode configuration is taken into accounts.
+
+                            TODO reconsider the name
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DEVELOPMENT_PREVIEW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
