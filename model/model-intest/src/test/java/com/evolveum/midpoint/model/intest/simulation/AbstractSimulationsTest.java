@@ -23,6 +23,11 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
             "resource-simple-production-target.xml",
             "3f8d6dee-9663-496f-a718-b3c27234aca7",
             "simple-production-target");
+    static final DummyTestResource RESOURCE_SIMPLE_DEVELOPMENT_TARGET = new DummyTestResource(
+            SIM_TEST_DIR,
+            "resource-simple-development-target.xml",
+            "572200ee-7499-47ec-9fdf-a575c96a5291",
+            "simple-development-target");
     static final DummyTestResource RESOURCE_SIMPLE_PRODUCTION_SOURCE = new DummyTestResource(
             SIM_TEST_DIR,
             "resource-simple-production-source.xml",
@@ -39,6 +44,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         RESOURCE_SIMPLE_PRODUCTION_TARGET.initAndTest(this, initTask, initResult);
+        RESOURCE_SIMPLE_DEVELOPMENT_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_SOURCE.initAndTest(this, initTask, initResult);
     }

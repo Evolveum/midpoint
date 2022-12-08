@@ -120,17 +120,14 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
-    @NotNull Collection<ObjectDelta<?>> getStoredDeltas(@NotNull String oid, OperationResult result)
-            throws SchemaException, ObjectNotFoundException {
+    @NotNull Collection<ObjectDelta<?>> getStoredDeltas(@NotNull String oid, OperationResult result) throws SchemaException {
         ObjectQuery query = PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
                 .ownerId(oid)
                 .build();
-        /*SimulationResultType simResult = repository
-                .getObject(SimulationResultType.class, oid, GetOperationOptions.createRetrieveCollection(), result)
-                .asObjectable();*/
-        SearchResultList<SimulationResultProcessedObjectType> simResult = repository.searchContainers(SimulationResultProcessedObjectType.class, query, GetOperationOptions.createRetrieveCollection(), result);
+        SearchResultList<SimulationResultProcessedObjectType> processedObjects =
+                repository.searchContainers(SimulationResultProcessedObjectType.class, query, null, result);
         Collection<ObjectDelta<?>> deltas = new ArrayList<>();
-        for (SimulationResultProcessedObjectType processedObject : simResult) {
+        for (SimulationResultProcessedObjectType processedObject : processedObjects) {
             ObjectDeltaType deltaBean = processedObject.getDelta();
             if (deltaBean != null) {
                 deltas.add(DeltaConvertor.createObjectDelta(deltaBean));

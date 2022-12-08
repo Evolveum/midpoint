@@ -15,6 +15,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -48,17 +49,41 @@ public class ObjectsCounter {
         assertThat(currentState).as("current objects counts").isEqualTo(lastState);
     }
 
-    // FIXME provide nicer implementation
     public void assertShadowOnlyIncrement(int expected, OperationResult result) {
+        assertIncrement(ShadowType.class, expected, result);
+    }
+
+    public void assertUserOnlyIncrement(int expected, OperationResult result) {
+        assertIncrement(UserType.class, expected, result);
+    }
+
+    private void assertIncrement(Class<? extends ObjectType> clazz, int expectedIncrement, OperationResult result) {
+        assertIncrement(
+                Map.of(clazz, expectedIncrement),
+                result);
+    }
+
+    private void assertIncrement(Map<Class<? extends ObjectType>, Integer> expectedIncrement, OperationResult result) {
         Map<Class<? extends ObjectType>, Integer> currentState = new HashMap<>();
         countObjects(currentState, result);
-        add(lastState, ShadowType.class, expected);
-        assertThat(currentState).as("current objects counts").isEqualTo(lastState);
+        add(lastState, expectedIncrement);
+        assertThat(lastState)
+                .as("last state plus expected increment (" + expectedIncrement + ")")
+                .isEqualTo(currentState);
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void add(Map<Class<? extends ObjectType>, Integer> counts, Class<ShadowType> clazz, int increment) {
-        counts.compute(
+    private void add(
+            Map<Class<? extends ObjectType>, Integer> countMap,
+            Map<Class<? extends ObjectType>, Integer> incrementMap) {
+        incrementMap.forEach(
+                (clazz, increment) -> add(countMap, clazz, or0(increment)));
+
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void add(Map<Class<? extends ObjectType>, Integer> countMap, Class<? extends ObjectType> clazz, int increment) {
+        countMap.compute(
                 clazz,
                 (aClass, oldValue) -> or0(oldValue) + increment);
     }

@@ -39,7 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * Basic scenarios of production simulations: actions executed from the foreground, no create-on-demand.
  *
  * See {@link TestPreviewChangesCoD} for create-on-demand related tests.
- * See TestSimpleDevelopmentSimulations for simulating development configurations.
+ * See TestDevelopmentSimulations for simulating development configurations.
+ * See {@link TestRealExecution} for executing real operations against simulated configuration objects.
  *
  * Structure:
  *
@@ -48,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestSimpleSimulations extends AbstractSimulationsTest {
+public class TestProductionSimulations extends AbstractSimulationsTest {
 
     private final ObjectsCounter objectsCounter = new ObjectsCounter(FocusType.class, ShadowType.class);
 
@@ -145,7 +146,7 @@ public class TestSimpleSimulations extends AbstractSimulationsTest {
     }
 
     /**
-     * Creating a user with a linked account.
+     * Creating a user with a linked account on production resource.
      *
      * This is similar to {@link TestPreviewChanges#test100ModifyUserAddAccountBundle()}, but using simulated execution
      * instead of "preview changes".

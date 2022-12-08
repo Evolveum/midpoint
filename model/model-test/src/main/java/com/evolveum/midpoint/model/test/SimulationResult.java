@@ -95,7 +95,7 @@ public class SimulationResult {
         return simulationResultContext;
     }
 
-    public Collection<ObjectDelta<?>> getStoredDeltas(OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public Collection<ObjectDelta<?>> getStoredDeltas(OperationResult result) throws SchemaException {
         return simulationResultContext != null ?
                 simulationResultContext.getStoredDeltas(result) : List.of();
     }

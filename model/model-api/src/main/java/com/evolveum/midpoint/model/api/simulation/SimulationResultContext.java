@@ -19,5 +19,5 @@ public interface SimulationResultContext {
     @NotNull String getResultOid();
 
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
-    @NotNull Collection<ObjectDelta<?>> getStoredDeltas(OperationResult result) throws SchemaException, ObjectNotFoundException;
+    @NotNull Collection<ObjectDelta<?>> getStoredDeltas(OperationResult result) throws SchemaException;
 }
