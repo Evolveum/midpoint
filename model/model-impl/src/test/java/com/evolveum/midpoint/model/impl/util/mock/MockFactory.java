@@ -394,11 +394,6 @@ public class MockFactory {
             }
 
             @Override
-            public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-                return null;
-            }
-
-            @Override
             public long advanceSequence(String oid, OperationResult parentResult) {
                 return 0;
             }

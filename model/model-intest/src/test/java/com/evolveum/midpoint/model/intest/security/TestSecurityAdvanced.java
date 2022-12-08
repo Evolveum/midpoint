@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -15,7 +16,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.test.TestResource;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -123,6 +129,9 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     private static final TestResource<RoleType> ROLE_READ_TASK_STATUS = new TestResource<>(TEST_DIR, "role-read-task-status.xml", "bc2d0900-ac17-40c1-acf8-eb5466995aae");
     private static final TestResource<TaskType> TASK_DUMMY = new TestResource<>(TEST_DIR, "task-dummy.xml", "89bf08ec-c5b8-4641-95ca-37559c1f3896");
 
+    private static final TestResource<RoleType> ROLE_MANY_SHADOW_OWNER_AUTZ = new TestResource<>(
+            TEST_DIR, "role-many-shadow-owner-autz.xml", "c8c99194-3e5c-439b-bf98-c71146d3e1b5");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -151,9 +160,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         repoAddObjectFromFile(ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE, initResult);
         repoAdd(ROLE_READ_TASK_STATUS, initResult);
         repoAdd(TASK_DUMMY, initResult);
+        repoAdd(ROLE_MANY_SHADOW_OWNER_AUTZ, initResult);
     }
 
-    private static final int NUMBER_OF_IMPORTED_ROLES = 20;
+    private static final int NUMBER_OF_IMPORTED_ROLES = 21;
     private static final int NUMBER_OF_IMPORTED_TASKS = 1;
 
     protected int getNumberOfRoles() {
@@ -3219,6 +3229,41 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         assertEquals("Wrong # of items in task read", 2, task.getValue().size());
     }
 
+    /**
+     * Checks the caching of "owner search" operation during autz checking (MID-8363).
+     */
+    @Test
+    public void test370AutzJackManyAutz() throws Exception {
+        cleanupAutzTest(USER_JACK_OID);
+
+        assignRole(USER_JACK_OID, ROLE_MANY_SHADOW_OWNER_AUTZ.oid);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        String accountOid =
+                MiscUtil.extractSingletonRequired(
+                                getUser(USER_JACK_OID).asObjectable().getLinkRef())
+                        .getOid();
+
+        login(USER_JACK_USERNAME);
+
+        when("account is retrieved");
+
+        PerformanceMonitor performanceMonitor = repositoryService.getPerformanceMonitor();
+        performanceMonitor.clearGlobalPerformanceInformation();
+        PrismObject<ShadowType> account = getObject(ShadowType.class, accountOid);
+
+        then("only one search is executed");
+        PerformanceInformation performanceInformation = performanceMonitor.getGlobalPerformanceInformation();
+        displayValue("performance information",
+                RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
+        String opName = isNativeRepository() ? "SqaleRepositoryService.searchObjects" : "searchObjects";
+        assertThat(performanceInformation.getInvocationCount(opName))
+                .as("searchObjects operation count")
+                .isEqualTo(1);
+
+        and("account is OK");
+        display("account", account);
+        assertThat(account.getValue().getItems()).as("items in account object").hasSize(8);
+    }
 
     @SuppressWarnings("SameParameterValue")
     private ObjectQuery createOrgSubtreeAndNameQuery(String orgOid, String name) {
