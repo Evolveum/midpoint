@@ -23,13 +23,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SceneImpl implements Visualization, DebugDumpable {
+public class VisualizationImpl implements Visualization, DebugDumpable {
 
     private NameImpl name;
     private ChangeType changeType;
-    private final List<SceneImpl> partialScenes = new ArrayList<>();
-    private final List<SceneItemImpl> items = new ArrayList<>();
-    private final SceneImpl owner;
+    private final List<VisualizationImpl> partialVisualizations = new ArrayList<>();
+    private final List<VisualizationItemImpl> items = new ArrayList<>();
+    private final VisualizationImpl owner;
     private boolean operational;
     private ItemPath sourceRelPath;
     private ItemPath sourceAbsPath;
@@ -38,7 +38,7 @@ public class SceneImpl implements Visualization, DebugDumpable {
     private ObjectDelta<?> sourceDelta;
     private boolean broken;
 
-    public SceneImpl(SceneImpl owner) {
+    public VisualizationImpl(VisualizationImpl owner) {
         this.owner = owner;
     }
 
@@ -62,26 +62,26 @@ public class SceneImpl implements Visualization, DebugDumpable {
 
     @NotNull
     @Override
-    public List<? extends SceneImpl> getPartialVisualizations() {
-        return partialScenes;
+    public List<? extends VisualizationImpl> getPartialVisualizations() {
+        return partialVisualizations;
     }
 
-    public void addPartialScene(SceneImpl subscene) {
-        partialScenes.add(subscene);
+    public void addPartialVisualization(VisualizationImpl visualization) {
+        partialVisualizations.add(visualization);
     }
 
     @NotNull
     @Override
-    public List<? extends SceneItemImpl> getItems() {
+    public List<? extends VisualizationItemImpl> getItems() {
         return items;
     }
 
-    public void addItem(SceneItemImpl item) {
+    public void addItem(VisualizationItemImpl item) {
         items.add(item);
     }
 
     @Override
-    public SceneImpl getOwner() {
+    public VisualizationImpl getOwner() {
         return owner;
     }
 
@@ -151,7 +151,7 @@ public class SceneImpl implements Visualization, DebugDumpable {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
-        sb.append("Scene: ");
+        sb.append("Visualization: ");
         if (changeType != null) {
             sb.append(changeType).append(": ");
         }
@@ -174,11 +174,11 @@ public class SceneImpl implements Visualization, DebugDumpable {
         if (operational) {
             sb.append(" OPER");
         }
-        for (SceneItemImpl dataItem : items) {
+        for (VisualizationItemImpl dataItem : items) {
             sb.append("\n");
             sb.append(dataItem.debugDump(indent+1));
         }
-        for (SceneImpl dataContext : partialScenes) {
+        for (VisualizationImpl dataContext : partialVisualizations) {
             sb.append("\n");
             sb.append(dataContext.debugDump(indent+1));
         }
@@ -217,14 +217,14 @@ public class SceneImpl implements Visualization, DebugDumpable {
         if (changeType != ChangeType.MODIFY) {
             return false;        // ADD or DELETE are never 'empty'
         }
-        for (SceneItemImpl item : getItems()) {
+        for (VisualizationItemImpl item : getItems()) {
             if (item.isDescriptive()) {
                 continue;
             }
             return false;
         }
-        for (SceneImpl partialScene : getPartialVisualizations()) {
-            if (!partialScene.isEmpty()) {
+        for (VisualizationImpl visualization : getPartialVisualizations()) {
+            if (!visualization.isEmpty()) {
                 return false;
             }
         }
@@ -237,26 +237,26 @@ public class SceneImpl implements Visualization, DebugDumpable {
         if (this == o) {return true;}
         if (o == null || getClass() != o.getClass()) {return false;}
 
-        SceneImpl scene = (SceneImpl) o;
+        VisualizationImpl other = (VisualizationImpl) o;
 
-        if (operational != scene.operational) {return false;}
-        if (broken != scene.broken) {return false;}
-        if (!Objects.equals(name, scene.name)) {return false;}
-        if (changeType != scene.changeType) {return false;}
-        if (partialScenes != null ? !partialScenes.equals(scene.partialScenes) : scene.partialScenes != null) {return false;}
-        if (items != null ? !items.equals(scene.items) : scene.items != null) {return false;}
-        if (!Objects.equals(sourceRelPath, scene.sourceRelPath)) {return false;}
-        if (!Objects.equals(sourceAbsPath, scene.sourceAbsPath)) {return false;}
-        if (!Objects.equals(sourceValue, scene.sourceValue)) {return false;}
-        if (!Objects.equals(sourceDefinition, scene.sourceDefinition)) {return false;}
-        return Objects.equals(sourceDelta, scene.sourceDelta);
+        if (operational != other.operational) {return false;}
+        if (broken != other.broken) {return false;}
+        if (!Objects.equals(name, other.name)) {return false;}
+        if (changeType != other.changeType) {return false;}
+        if (partialVisualizations != null ? !partialVisualizations.equals(other.partialVisualizations) : other.partialVisualizations != null) {return false;}
+        if (items != null ? !items.equals(other.items) : other.items != null) {return false;}
+        if (!Objects.equals(sourceRelPath, other.sourceRelPath)) {return false;}
+        if (!Objects.equals(sourceAbsPath, other.sourceAbsPath)) {return false;}
+        if (!Objects.equals(sourceValue, other.sourceValue)) {return false;}
+        if (!Objects.equals(sourceDefinition, other.sourceDefinition)) {return false;}
+        return Objects.equals(sourceDelta, other.sourceDelta);
     }
 
     @Override
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (changeType != null ? changeType.hashCode() : 0);
-        result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
+        result = 31 * result + (partialVisualizations != null ? partialVisualizations.hashCode() : 0);
         result = 31 * result + (items != null ? items.hashCode() : 0);
         result = 31 * result + (operational ? 1 : 0);
         result = 31 * result + (sourceRelPath != null ? sourceRelPath.hashCode() : 0);

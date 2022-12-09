@@ -17,15 +17,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-public class SceneDeltaItemImpl extends SceneItemImpl implements VisualizationDeltaItem, DebugDumpable {
+public class VisualizationDeltaItemImpl extends VisualizationItemImpl implements VisualizationDeltaItem, DebugDumpable {
 
-    @NotNull private List<SceneItemValueImpl> oldValues = Collections.emptyList();
-    @NotNull private List<SceneItemValueImpl> addedValues = Collections.emptyList();
-    @NotNull private List<SceneItemValueImpl> deletedValues = Collections.emptyList();
-    @NotNull private List<SceneItemValueImpl> unchangedValues = Collections.emptyList();
+    @NotNull private List<VisualizationItemValueImpl> oldValues = Collections.emptyList();
+    @NotNull private List<VisualizationItemValueImpl> addedValues = Collections.emptyList();
+    @NotNull private List<VisualizationItemValueImpl> deletedValues = Collections.emptyList();
+    @NotNull private List<VisualizationItemValueImpl> unchangedValues = Collections.emptyList();
     private ItemDelta<?,?> sourceDelta;
 
-    public SceneDeltaItemImpl(NameImpl name) {
+    public VisualizationDeltaItemImpl(NameImpl name) {
         super(name);
     }
 
@@ -35,35 +35,35 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements VisualizationDe
         return oldValues;
     }
 
-    public void setOldValues(@NotNull List<SceneItemValueImpl> oldValues) {
+    public void setOldValues(@NotNull List<VisualizationItemValueImpl> oldValues) {
         this.oldValues = oldValues;
     }
 
     @NotNull
     @Override
-    public List<SceneItemValueImpl> getAddedValues() {
+    public List<VisualizationItemValueImpl> getAddedValues() {
         return addedValues;
     }
 
-    public void setAddedValues(@NotNull List<SceneItemValueImpl> addedValues) {
+    public void setAddedValues(@NotNull List<VisualizationItemValueImpl> addedValues) {
         this.addedValues = addedValues;
     }
 
     @NotNull
-    public List<SceneItemValueImpl> getDeletedValues() {
+    public List<VisualizationItemValueImpl> getDeletedValues() {
         return deletedValues;
     }
 
-    public void setDeletedValues(@NotNull List<SceneItemValueImpl> deletedValues) {
+    public void setDeletedValues(@NotNull List<VisualizationItemValueImpl> deletedValues) {
         this.deletedValues = deletedValues;
     }
 
     @NotNull
-    public List<SceneItemValueImpl> getUnchangedValues() {
+    public List<VisualizationItemValueImpl> getUnchangedValues() {
         return unchangedValues;
     }
 
-    public void setUnchangedValues(@NotNull List<SceneItemValueImpl> unchangedValues) {
+    public void setUnchangedValues(@NotNull List<VisualizationItemValueImpl> unchangedValues) {
         this.unchangedValues = unchangedValues;
     }
 
@@ -102,7 +102,7 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements VisualizationDe
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        SceneDeltaItemImpl that = (SceneDeltaItemImpl) o;
+        VisualizationDeltaItemImpl that = (VisualizationDeltaItemImpl) o;
 
         if (!oldValues.equals(that.oldValues)) return false;
         if (!addedValues.equals(that.addedValues)) return false;

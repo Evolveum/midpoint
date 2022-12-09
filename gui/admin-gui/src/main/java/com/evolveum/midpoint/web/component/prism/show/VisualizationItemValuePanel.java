@@ -9,11 +9,6 @@ package com.evolveum.midpoint.web.component.prism.show;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-
-import com.evolveum.midpoint.util.LocalizableMessage;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -22,9 +17,11 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -34,16 +31,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- * TODO make this parametric (along with SceneItemValue)
+ * TODO make this parametric (along with VisualizationItemValue)
  */
-public class SceneItemValuePanel extends BasePanel<VisualizationItemValue> {
+public class VisualizationItemValuePanel extends BasePanel<VisualizationItemValue> {
 
     private static final String ID_ICON = "icon";
     private static final String ID_LABEL = "label";
     private static final String ID_LINK = "link";
     private static final String ID_ADDITIONAL_TEXT = "additionalText";
 
-    public SceneItemValuePanel(String id, IModel<VisualizationItemValue> model) {
+    public VisualizationItemValuePanel(String id, IModel<VisualizationItemValue> model) {
         super(id, model);
     }
 

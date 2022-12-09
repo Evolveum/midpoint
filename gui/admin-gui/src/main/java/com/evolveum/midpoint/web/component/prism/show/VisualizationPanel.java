@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.model.api.visualizer.Visualization;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,6 +25,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -35,25 +33,21 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class ScenePanel extends BasePanel<SceneDto> {
+public class VisualizationPanel extends BasePanel<VisualizationDto> {
 
     private static final String ID_BOX = "box";
-    private static final String STRIPED_CLASS = "striped";
     private static final String ID_ITEMS_TABLE = "itemsTable";
     private static final String ID_ITEMS = "items";
     private static final String ID_ITEM = "item";
-    private static final String ID_PARTIAL_SCENES = "partialScenes";
-    private static final String ID_PARTIAL_SCENE = "partialScene";
+    private static final String ID_PARTIAL_VISUALIZATIONS = "partialVisualizations";
+    private static final String ID_PARTIAL_VISUALIZATION = "partialVisualization";
     private static final String ID_SHOW_OPERATIONAL_ITEMS_LINK = "showOperationalItemsLink";
-
-    private static final Trace LOGGER = TraceManager.getTrace(ScenePanel.class);
     private static final String ID_OPTION_BUTTONS = "optionButtons";
     private static final String ID_HEADER_PANEL = "headerPanel";
     private static final String ID_HEADER_DESCRIPTION = "description";
@@ -69,15 +63,16 @@ public class ScenePanel extends BasePanel<SceneDto> {
     private static final String ID_SORT_PROPERTIES = "sortProperties";
     private static final String ID_WARNING = "warning";
 
-    private boolean showOperationalItems = false;
+    private final boolean showOperationalItems;
     private boolean operationalItemsVisible = false;
 
-    public ScenePanel(String id, @NotNull IModel<SceneDto> model) {
+    public VisualizationPanel(String id, @NotNull IModel<VisualizationDto> model) {
         this(id, model, false);
     }
 
-    public ScenePanel(String id, @NotNull IModel<SceneDto> model, boolean showOperationalItems) {
+    public VisualizationPanel(String id, @NotNull IModel<VisualizationDto> model, boolean showOperationalItems) {
         super(id, model);
+
         this.showOperationalItems = showOperationalItems;
     }
 
@@ -88,7 +83,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
         initLayout();
     }
 
-    private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<SceneDto> model) {
+    private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<VisualizationDto> model) {
         return new AjaxEventBehavior("click") {
             @Override
             protected void onEvent(AjaxRequestTarget target) {
@@ -98,11 +93,11 @@ public class ScenePanel extends BasePanel<SceneDto> {
     }
 
     private void initLayout() {
-        final IModel<SceneDto> model = getModel();
+        final IModel<VisualizationDto> model = getModel();
 
         WebMarkupContainer box = new WebMarkupContainer(ID_BOX);
         box.add(AttributeModifier.append("class", () -> {
-            SceneDto dto = model.getObject();
+            VisualizationDto dto = model.getObject();
 
             if (dto.getBoxClassOverride() != null) {
                 return dto.getBoxClassOverride();
@@ -128,7 +123,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
         WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER_PANEL);
         box.add(headerPanel);
 
-        headerPanel.add(new SceneButtonPanel(ID_OPTION_BUTTONS, model) {
+        headerPanel.add(new VisualizationButtonPanel(ID_OPTION_BUTTONS, model) {
             @Override
             public void minimizeOnClick(AjaxRequestTarget target) {
                 headerOnClickPerformed(target, model);
@@ -138,25 +133,25 @@ public class ScenePanel extends BasePanel<SceneDto> {
         Label headerChangeType = new Label(ID_HEADER_CHANGE_TYPE, new ChangeTypeModel());
         Label headerObjectType = new Label(ID_HEADER_OBJECT_TYPE, new ObjectTypeModel());
 
-        IModel<String> nameModel = () -> model.getObject().getName(ScenePanel.this);
+        IModel<String> nameModel = () -> model.getObject().getName(VisualizationPanel.this);
 
         Label headerNameLabel = new Label(ID_HEADER_NAME_LABEL, nameModel);
         AjaxLinkPanel headerNameLink = new AjaxLinkPanel(ID_HEADER_NAME_LINK, nameModel) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                PrismContainerValue<?> value = getModelObject().getScene().getSourceValue();
+                PrismContainerValue<?> value = getModelObject().getVisualization().getSourceValue();
                 if (value != null && value.getParent() instanceof PrismObject) {
                     PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) value.getParent();
                     WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext()), getPageBase(), false);
                 }
             }
         };
-        Label headerDescription = new Label(ID_HEADER_DESCRIPTION, () -> model.getObject().getDescription(ScenePanel.this));
+        Label headerDescription = new Label(ID_HEADER_DESCRIPTION, () -> model.getObject().getDescription(VisualizationPanel.this));
         Label headerWrapperDisplayName = new Label(ID_HEADER_WRAPPER_DISPLAY_NAME, () -> {
-            WrapperScene scene = ((WrapperScene) getModelObject().getScene());
-            String key = scene.getDisplayNameKey();
-            Object[] parameters = scene.getDisplayNameParameters();
+            WrapperVisualization visualization = ((WrapperVisualization) getModelObject().getVisualization());
+            String key = visualization.getDisplayNameKey();
+            Object[] parameters = visualization.getDisplayNameParameters();
             return new StringResourceModel(key, this).setModel(null)
                     .setDefaultValue(key)
                     .setParameters(parameters).getObject();
@@ -170,7 +165,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
         headerPanel.add(headerWrapperDisplayName);
 
         Label warning = new Label(ID_WARNING);
-        warning.add(new VisibleBehaviour(() -> getModelObject().getScene().isBroken()));
+        warning.add(new VisibleBehaviour(() -> getModelObject().getVisualization().isBroken()));
         warning.add(new TooltipBehavior());
         headerPanel.add(warning);
 
@@ -204,7 +199,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
         WebMarkupContainer body = new WebMarkupContainer(ID_BODY);
         body.add(new VisibleBehaviour(() -> {
-            SceneDto wrapper = model.getObject();
+            VisualizationDto wrapper = model.getObject();
             return !wrapper.isMinimized();
         }));
         box.add(body);
@@ -213,7 +208,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
         itemsTable.add(new VisibleBehaviour(() -> !model.getObject().getItems().isEmpty()));
         itemsTable.setOutputMarkupId(true);
 
-        ToggleIconButton<String> sortPropertiesButton = new ToggleIconButton<String>(ID_SORT_PROPERTIES,
+        ToggleIconButton<String> sortPropertiesButton = new ToggleIconButton<>(ID_SORT_PROPERTIES,
                 GuiStyleConstants.CLASS_ICON_SORT_ALPHA_ASC, GuiStyleConstants.CLASS_ICON_SORT_AMOUNT_ASC) {
 
             private static final long serialVersionUID = 1L;
@@ -244,12 +239,12 @@ public class ScenePanel extends BasePanel<SceneDto> {
         valueLabel.add(new VisibleBehaviour(() -> !model.getObject().containsDeltaItems()));
         itemsTable.add(valueLabel);
 
-        ListView<SceneItemDto> items = new ListView<>(ID_ITEMS,
-                new PropertyModel<>(model, SceneDto.F_ITEMS)) {
+        ListView<VisualizationItemDto> items = new ListView<>(ID_ITEMS,
+                new PropertyModel<>(model, VisualizationDto.F_ITEMS)) {
 
             @Override
-            protected void populateItem(ListItem<SceneItemDto> item) {
-                SceneItemPanel panel = new SceneItemPanel(ID_ITEM, item.getModel());
+            protected void populateItem(ListItem<VisualizationItemDto> item) {
+                VisualizationItemPanel panel = new VisualizationItemPanel(ID_ITEM, item.getModel());
                 panel.add(new VisibleBehaviour(() -> !isOperationalItem(item.getModel()) || isOperationalItemsVisible()));
                 panel.setRenderBodyOnly(true);
                 item.add(panel);
@@ -259,31 +254,31 @@ public class ScenePanel extends BasePanel<SceneDto> {
         itemsTable.add(items);
         body.add(itemsTable);
 
-        ListView<SceneDto> partialScenes = new ListView<>(ID_PARTIAL_SCENES,
-                new PropertyModel<>(model, SceneDto.F_PARTIAL_SCENES)) {
+        ListView<VisualizationDto> partialVisualizations = new ListView<>(ID_PARTIAL_VISUALIZATIONS,
+                new PropertyModel<>(model, VisualizationDto.F_PARTIAL_VISUALIZATIONS)) {
 
             @Override
-            protected void populateItem(ListItem<SceneDto> item) {
-                ScenePanel panel = new ScenePanel(ID_PARTIAL_SCENE, item.getModel()) {
+            protected void populateItem(ListItem<VisualizationDto> item) {
+                VisualizationPanel panel = new VisualizationPanel(ID_PARTIAL_VISUALIZATION, item.getModel()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     protected boolean isOperationalItemsVisible() {
-                        ScenePanel parentScenePanel = findParent(ScenePanel.class);
-                        if (parentScenePanel != null) {
-                            return parentScenePanel.isOperationalItemsVisible();
+                        VisualizationPanel parent = findParent(VisualizationPanel.class);
+                        if (parent != null) {
+                            return parent.isOperationalItemsVisible();
                         } else {
-                            return ScenePanel.this.operationalItemsVisible;
+                            return VisualizationPanel.this.operationalItemsVisible;
                         }
                     }
                 };
-                panel.add(new VisibleBehaviour(() -> !isOperationalPartialScene(item.getModel()) || operationalItemsVisible));
+                panel.add(new VisibleBehaviour(() -> !isOperationalPartialVisualization(item.getModel()) || operationalItemsVisible));
                 panel.setOutputMarkupPlaceholderTag(true);
                 item.add(panel);
             }
         };
-        partialScenes.setReuseItems(true);
-        body.add(partialScenes);
+        partialVisualizations.setReuseItems(true);
+        body.add(partialVisualizations);
 
         AjaxButton showOperationalItemsLink = new AjaxButton(ID_SHOW_OPERATIONAL_ITEMS_LINK) {
             private static final long serialVersionUID = 1L;
@@ -291,7 +286,7 @@ public class ScenePanel extends BasePanel<SceneDto> {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 setOperationalItemsVisible(!operationalItemsVisible);
-                target.add(ScenePanel.this);
+                target.add(VisualizationPanel.this);
             }
 
             @Override
@@ -305,24 +300,24 @@ public class ScenePanel extends BasePanel<SceneDto> {
         body.add(showOperationalItemsLink);
     }
 
-    private void onSortClicked(IModel<SceneDto> model, AjaxRequestTarget target) {
+    private void onSortClicked(IModel<VisualizationDto> model, AjaxRequestTarget target) {
         model.getObject().setSorted(!model.getObject().isSorted());
         target.add(get(getPageBase().createComponentPath(ID_BOX, ID_BODY, ID_ITEMS_TABLE)));
         target.add(get(getPageBase().createComponentPath(ID_BOX, ID_BODY, ID_ITEMS_TABLE, ID_SORT_PROPERTIES)));
     }
 
     protected boolean isExistingViewableObject() {
-        final Visualization scene = getModelObject().getScene();
-        final PrismContainerValue<?> value = scene.getSourceValue();
+        final Visualization visualization = getModelObject().getVisualization();
+        final PrismContainerValue<?> value = visualization.getSourceValue();
         return value != null &&
                 value.getParent() instanceof PrismObject &&
                 WebComponentUtil.hasDetailsPage((PrismObject) value.getParent()) &&
                 ((PrismObject) value.getParent()).getOid() != null &&
-                (scene.getSourceDelta() == null || !scene.getSourceDelta().isAdd());
+                (visualization.getSourceDelta() == null || !visualization.getSourceDelta().isAdd());
     }
 
-    public void headerOnClickPerformed(AjaxRequestTarget target, IModel<SceneDto> model) {
-        SceneDto dto = model.getObject();
+    public void headerOnClickPerformed(AjaxRequestTarget target, IModel<VisualizationDto> model) {
+        VisualizationDto dto = model.getObject();
         dto.setMinimized(!dto.isMinimized());
         target.add(this);
     }
@@ -331,11 +326,11 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
         @Override
         public String getObject() {
-            ChangeType changeType = getModel().getObject().getScene().getChangeType();
+            ChangeType changeType = getModel().getObject().getVisualization().getChangeType();
             if (changeType == null) {
                 return "";
             }
-            return WebComponentUtil.createLocalizedModelForEnum(changeType, ScenePanel.this).getObject();
+            return WebComponentUtil.createLocalizedModelForEnum(changeType, VisualizationPanel.this).getObject();
         }
     }
 
@@ -343,8 +338,8 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
         @Override
         public String getObject() {
-            Visualization scene = getModel().getObject().getScene();
-            PrismContainerDefinition<?> def = scene.getSourceDefinition();
+            Visualization visualization = getModel().getObject().getVisualization();
+            PrismContainerDefinition<?> def = visualization.getSourceDefinition();
             if (def == null) {
                 return "";
             }
@@ -369,23 +364,23 @@ public class ScenePanel extends BasePanel<SceneDto> {
                 : PageBase.createStringResourceStatic("ScenePanel.showOperationalItemsLink");
     }
 
-    private boolean isOperationalPartialScene(IModel<SceneDto> sceneDtoModel) {
-        if (sceneDtoModel == null || sceneDtoModel.getObject() == null) {
+    private boolean isOperationalPartialVisualization(IModel<VisualizationDto> visualizationDtoModel) {
+        if (visualizationDtoModel == null || visualizationDtoModel.getObject() == null) {
             return false;
         }
-        return sceneDtoModel.getObject().getScene().isOperational();
+        return visualizationDtoModel.getObject().getVisualization().isOperational();
     }
 
-    private boolean isOperationalItem(IModel<SceneItemDto> sceneDtoModel) {
-        if (sceneDtoModel == null || sceneDtoModel.getObject() == null) {
+    private boolean isOperationalItem(IModel<VisualizationItemDto> visualizationDtoModel) {
+        if (visualizationDtoModel == null || visualizationDtoModel.getObject() == null) {
             return false;
         }
-        return sceneDtoModel.getObject().isOperational();
+        return visualizationDtoModel.getObject().isOperational();
     }
 
     private boolean isAutorized() {
-        Visualization scene = getModelObject().getScene();
-        PrismContainerValue<?> value = scene.getSourceValue();
+        Visualization visualization = getModelObject().getVisualization();
+        PrismContainerValue<?> value = visualization.getSourceValue();
         if (value == null || !(value.getParent() instanceof PrismObject)) {
             return true;
         }

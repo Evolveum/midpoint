@@ -871,8 +871,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         final List<ModelProjectionContext> projectionContexts = new ArrayList<>();
 
-        final List<Visualization> primaryScenes;
-        final List<Visualization> secondaryScenes;
+        final List<Visualization> primary;
+        final List<Visualization> secondary;
 
         if (context.getFocusContext() != null) {
             addIgnoreNull(primaryDeltas, CloneUtil.clone(context.getFocusContext().getPrimaryDelta()));
@@ -896,13 +896,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.trace("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
         }
 
-        primaryScenes = visualizeDeltas(primaryDeltas, task, result);
-        secondaryScenes = visualizeDeltas(secondaryDeltas, task, result);
+        primary = visualizeDeltas(primaryDeltas, task, result);
+        secondary = visualizeDeltas(secondaryDeltas, task, result);
 
-        List<Visualization> projectionScenes = visualizer.visualizeProjectionContexts(projectionContexts, task, result);
-        secondaryScenes.addAll(projectionScenes);
+        List<Visualization> projectionVisualizations = visualizer.visualizeProjectionContexts(projectionContexts, task, result);
+        secondary.addAll(projectionVisualizations);
 
-        return new ModelContextVisualization(primaryScenes, secondaryScenes);
+        return new ModelContextVisualization(primary, secondary);
     }
 
     private boolean isEquivalentWithoutOperationAttr(ObjectDelta<ShadowType> primaryDelta, ObjectDelta<ShadowType> secondaryDelta) {

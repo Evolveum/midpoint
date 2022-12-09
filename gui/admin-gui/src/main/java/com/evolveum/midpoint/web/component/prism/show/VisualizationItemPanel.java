@@ -7,41 +7,40 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.List;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author lazyman
  */
-public class SceneItemPanel extends Panel {
+public class VisualizationItemPanel extends Panel {
 
     private static final String ID_ITEM_LINES = "itemLines";
     private static final String ID_ITEM_LINE = "itemLine";
 
-    private static final Trace LOGGER = TraceManager.getTrace(SceneItemPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(VisualizationItemPanel.class);
 
     private boolean showHeader = true;
 
-    public SceneItemPanel(String id, IModel<SceneItemDto> model) {
+    public VisualizationItemPanel(String id, IModel<VisualizationItemDto> model) {
         super(id);
 
         initLayout(model);
     }
 
-    private void initLayout(final IModel<SceneItemDto> model) {
-        ListView<SceneItemLineDto> items = new ListView<SceneItemLineDto>(ID_ITEM_LINES,
-            new PropertyModel<>(model, SceneItemDto.F_LINES)) {
+    private void initLayout(final IModel<VisualizationItemDto> model) {
+        ListView<VisualizationItemLineDto> items = new ListView<VisualizationItemLineDto>(ID_ITEM_LINES,
+                new PropertyModel<>(model, VisualizationItemDto.F_LINES)) {
 
             @Override
-            protected void populateItem(ListItem<SceneItemLineDto> item) {
-                SceneItemLinePanel panel = new SceneItemLinePanel(ID_ITEM_LINE, item.getModel());
+            protected void populateItem(ListItem<VisualizationItemLineDto> item) {
+                VisualizationItemLinePanel panel = new VisualizationItemLinePanel(ID_ITEM_LINE, item.getModel());
                 item.add(panel);
             }
         };
