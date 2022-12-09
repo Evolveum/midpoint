@@ -12,7 +12,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -24,6 +27,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -34,6 +38,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.PackageResourceReference;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -82,7 +87,7 @@ public class PageRoleMining extends PageAdmin {
     private static final String ID_TABLE_MEM_JACQUARD_USER = "table_jaccard_users";
     private static final String ID_ROLE_SEARCH = "role_search";
     private static final String ID_USER_SEARCH = "user_search";
-    private static final String ID_TABLE_REF = "table_ref";
+    private static final String ID_BUTTON_NEXT_RESULT = "button_next_result";
     private static final String ID_FORM_MIN_SIZE = "min_size_form";
     private static final String ID_MIN_SIZE = "input_min_size";
     private static final String ID_JACCARD_THRESHOLD_INPUT = "jaccard_threshold_input";
@@ -91,23 +96,28 @@ public class PageRoleMining extends PageAdmin {
     private static final String ID_CALCULATOR = "calculator";
     private static final String ID_JACCARD_AJAX_LINK = "jaccard_execute_search";
     private static final String ID_LABEL_DUPLICATES_BASIC = "repeatingCountBasicTable";
-    private static final String ID_LABEL_DUPLICATES = "repeatingCount";
     private static final String ID_LABEL_RESULT_COUNT = "resultCountLabel";
+    private static final String ID_AJAX_CHECK_DUPLICATE_BASIC = "checkDuplicates";
+    private static final String ID_BASIC_ROLE_TABLE_INFO = "basic_check_info";
+    private static final String ID_JACCARD_THRESHOLD_INPUT_INFO = "jaccard_threshold_input_info";
+    private static final String ID_JACCARD_MIN_ROLES_COUNT_INFO = "jaccard_min_roles_count_info";
+    private static final String ID_JACCARD_EXECUTE_SEARCH_INFO = "jaccard_execute_search_info";
+    private static final String ID_MIN_INTERSECTION_INPUT_INFO = "min_size_input_info";
+    private static final String ID_EXECUTE_JACCARD_SETTING = "jaccard_execute_details";
+    private static final String ID_HELPER_ALG_EXECUTE_INFO = "min_size_execute_info";
+
     double customSum = 0; //helper
-    int minSize = 4; //default 4 role;
-    String resultCount = "0/0";
-    int currentResult = 0;
-    List<List<String>> result;
+    int basicCombMinIntersection = 4; //default 4 role;
+    List<List<String>> basicCombResult;
+    int basicCombDisplayResultIterator = 0;
+
     List<PrismObject<RoleType>> jaccardResultRoles;
     List<PrismObject<UserType>> jaccardUsersAnalysed;
-
-    String jsScript;
-    List<ArrayList<String>> jaccardDataUsers;
-    double[][] fullJaccardMatrix;
+    List<JaccardDataStructure> jaccardDataStructureList;
     double jaccardThreshold = 0.5; //default
-    int jaccardMinRolesCount = 3; //default 3 role;
+    int jaccardMinRolesCount = 1; //default
 
-    boolean searchMode = false;  //false: role   true: user
+    boolean searchMode = true;  //false: user   true: role
 
     public PageRoleMining() {
         super();
@@ -116,7 +126,26 @@ public class PageRoleMining extends PageAdmin {
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
-        response.render(OnDomReadyHeaderItem.forScript(jsScript));
+
+        response.render(JavaScriptHeaderItem.forReference(
+                new PackageResourceReference(PageRoleMining.class, "js/jaccard_chart.js")));
+
+        List<String> objectName = new ArrayList<>();
+        List<Double> totalJaccard = new ArrayList<>();
+        List<List<Double>> partialJaccardMap = new ArrayList<>();
+        for (JaccardDataStructure jaccardDataStructure : jaccardDataStructureList) {
+            objectName.add(jaccardDataStructure.getObjectName());
+            totalJaccard.add(jaccardDataStructure.getObjectTotalResult());
+            partialJaccardMap.add(jaccardDataStructure.getObjectPartialResult());
+        }
+
+        String javaScript = "jaccard_chart('"
+                + objectName + "', '"
+                + totalJaccard + "', '"
+                + partialJaccardMap + "', '"
+                + jaccardThreshold + "');";
+
+        response.render(OnDomReadyHeaderItem.forScript(javaScript));
     }
 
     @Override
@@ -145,16 +174,16 @@ public class PageRoleMining extends PageAdmin {
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
-        searchSelector(mainForm, roles, users);
         basicOperationHelper(mainForm, roles, users);
+        searchSelector(mainForm, roles, users);
 
         try {
             if (isSearchMode()) {
-                mainForm.add(basicUserHelperTable());
-                mainForm.add(userRoleMiningTable(roles, users));
-            } else {
                 mainForm.add(basicRoleHelperTable());
                 mainForm.add(roleRoleMiningTable(users));
+            } else {
+                mainForm.add(basicUserHelperTable());
+                mainForm.add(userRoleMiningTable(roles));
             }
         } catch (CommonException e) {
             throw new RuntimeException("Failed to load basic role mining table: " + e);
@@ -168,8 +197,6 @@ public class PageRoleMining extends PageAdmin {
 
         executeJaccardRolesSearch(users, secondaryForm);
         fillJaccardData(roleMiningData, jaccardThreshold);
-
-        jsScript = writeJs(jaccardDataUsers);
 
         try {
             secondaryForm.add(confidencePermRoleMiningTable(roleMembersListList));
@@ -191,13 +218,14 @@ public class PageRoleMining extends PageAdmin {
         AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(ID_JACCARD_AJAX_LINK, Model.of("Execute intersection search")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                result = null;
+                basicCombResult = null;
                 getSelectionJaccardUserObjectId(users);
                 getMiningTable().replaceWith(getMiningTable());
                 target.add(getMiningTable());
             }
         };
         ajaxLinkPanel.setOutputMarkupId(true);
+        secondForm.add(WebComponentUtil.createHelp(ID_JACCARD_EXECUTE_SEARCH_INFO));
         secondForm.add(ajaxLinkPanel);
 
     }
@@ -218,8 +246,8 @@ public class PageRoleMining extends PageAdmin {
         }
 
         jaccardUsersAnalysed = new ArrayList<>();
-        for (int j = 0; j < fullJaccardMatrix.length - 1; j++) {
-            if (fullJaccardMatrix[rowPosition][j] > jaccardThreshold) {
+        for (int j = 0; j < jaccardDataStructureList.get(rowPosition).getObjectPartialResult().size(); j++) {
+            if (jaccardDataStructureList.get(rowPosition).getObjectPartialResult().get(j) > jaccardThreshold) {
                 jaccardUsersAnalysed.add(users.get(j));
             }
         }
@@ -242,43 +270,36 @@ public class PageRoleMining extends PageAdmin {
         }
     }
 
-    private void printCounterResult(String resultCount){
-     //   System.out.println("Calculator sum: " + resultCount);
+    private void printCounterResult(String resultCount) {
+        //   System.out.println("Calculator sum: " + resultCount);
     }
+
     private void fillJaccardData(List<UserRolesList> roleMiningData, double inputJaccardThreshold) {
 
-        jaccardDataUsers = new ArrayList<>();
+        jaccardDataStructureList = new ArrayList<>();
 
-        ArrayList<String> jaccardSingleUser = new ArrayList<>();
-        jaccardSingleUser.add("'Object name'");
-        jaccardSingleUser.add("'Intersection index'");
-        jaccardDataUsers.add(jaccardSingleUser);
+        int dataCount = roleMiningData.size();
+        for (int i = 0; i < dataCount; i++) {
+            String objectName = roleMiningData.get(i).getUserObject().getName().toString();
+            double objectTotalResult = 0.0;
+            ArrayList<Double> objectPartialResult = new ArrayList<>();
+            for (UserRolesList roleMiningDatum : roleMiningData) {
+                double jaccardIndex = new RoleAnalyseHelper().jaccardIndex(
+                        roleMiningData.get(i).getRoleObjectId(),
+                        roleMiningDatum.getRoleObjectId(), jaccardMinRolesCount
+                );
 
-        int matrixSize = roleMiningData.size();
-        fullJaccardMatrix = new double[matrixSize][matrixSize + 1];
-        for (int i = 0; i < matrixSize; i++) {
-            List<String> rolesI = roleMiningData.get(i).getRoleObjectId();
-            double sum = 0;
-            for (int j = 0; j < matrixSize + 1; j++) {
-                if (j >= matrixSize) {
-                    jaccardSingleUser = new ArrayList<>();
-
-                    jaccardSingleUser.add("'" + roleMiningData.get(i).getUserObject().getName().toString() + "'");
-                    jaccardSingleUser.add(String.valueOf(sum / matrixSize));
-                    jaccardDataUsers.add(jaccardSingleUser);
-                    fullJaccardMatrix[i][j] = sum;
-                } else {
-                    double jaccardIndex = new RoleAnalyseHelper().jaccardIndex(rolesI, roleMiningData.get(j).getRoleObjectId(), jaccardMinRolesCount);
-                    if (jaccardIndex < inputJaccardThreshold) {
-                        fullJaccardMatrix[i][j] = 0.0;
-                    } else {
-                        fullJaccardMatrix[i][j] = jaccardIndex;
-                        sum = sum + jaccardIndex;
-                    }
-
+                if (jaccardIndex < inputJaccardThreshold) {
+                    jaccardIndex = 0.0;
                 }
+
+                objectTotalResult = objectTotalResult + jaccardIndex;
+                objectPartialResult.add(jaccardIndex);
             }
+            objectTotalResult = objectTotalResult / dataCount;
+            jaccardDataStructureList.add(new JaccardDataStructure(objectName, objectTotalResult, objectPartialResult));
         }
+
     }
 
     private void jaccardThresholdSubmit(Form<?> mainForm, List<UserRolesList> roleMiningData) {
@@ -291,10 +312,13 @@ public class PageRoleMining extends PageAdmin {
         Form<?> form = new Form<Void>(ID_FORM_JACCARD_THRESHOLD) {
             @Override
             protected void onSubmit() {
-                jaccardThreshold = inputThreshold.getModelObject();
+                if (inputThreshold.getModelObject() <= 1) {
+                    jaccardThreshold = inputThreshold.getModelObject();
+                } else {
+                    jaccardThreshold = 1;
+                }
                 jaccardMinRolesCount = inputMinRolesCount.getModelObject();
                 fillJaccardData(roleMiningData, jaccardThreshold);
-                jsScript = writeJs(jaccardDataUsers);
             }
 
         };
@@ -302,6 +326,9 @@ public class PageRoleMining extends PageAdmin {
         form.setOutputMarkupId(true);
         add(form);
 
+        form.add(WebComponentUtil.createHelp(ID_EXECUTE_JACCARD_SETTING));
+        form.add(WebComponentUtil.createHelp(ID_JACCARD_THRESHOLD_INPUT_INFO));
+        form.add(WebComponentUtil.createHelp(ID_JACCARD_MIN_ROLES_COUNT_INFO));
         form.add(inputThreshold);
         form.add(inputMinRolesCount);
 
@@ -318,7 +345,7 @@ public class PageRoleMining extends PageAdmin {
         List<List<String>> allCombinations = new CombinationHelperAlgorithm().generateCombinations(rolesOid, minSize);
 
         List<List<String>> matrix = getMatrix(users);
-        result = new CombinationHelperAlgorithm().combinationsResult(allCombinations, matrix);
+        basicCombResult = new CombinationHelperAlgorithm().combinationsResult(allCombinations, matrix);
     }
 
     private AjaxLinkPanel calculatorReset() {
@@ -337,59 +364,48 @@ public class PageRoleMining extends PageAdmin {
 
         Label repeatingCountBasicTable = new Label(ID_LABEL_DUPLICATES_BASIC, Model.of("0 duplicates"));
         repeatingCountBasicTable.setOutputMarkupId(true);
+        repeatingCountBasicTable.setOutputMarkupPlaceholderTag(true);
+        repeatingCountBasicTable.add(new VisibleBehaviour((this::isSearchMode)));
         mainForm.add(repeatingCountBasicTable);
 
-        Label repeatingCount = new Label(ID_LABEL_DUPLICATES, Model.of(""));
-        repeatingCount.setOutputMarkupId(true);
-
-        mainForm.add(repeatingCount);
-
-        Label resultCountLabel = new Label(ID_LABEL_RESULT_COUNT, Model.of("0/0"));
+        Label resultCountLabel = new Label(ID_LABEL_RESULT_COUNT, Model.of(createIterationResultString(0, 0)));
         resultCountLabel.setOutputMarkupId(true);
 
         mainForm.add(resultCountLabel);
 
-        final TextField<Integer> inputMinIntersectionSize = new TextField<>(ID_MIN_SIZE, Model.of(minSize));
+        final TextField<Integer> inputMinIntersectionSize = new TextField<>(ID_MIN_SIZE, Model.of(basicCombMinIntersection));
         inputMinIntersectionSize.setOutputMarkupId(true);
 
         Form<?> form = new Form<Void>(ID_FORM_MIN_SIZE) {
             @Override
             protected void onSubmit() {
-                currentResult = 1;
-                minSize = inputMinIntersectionSize.getModelObject();
-                executeBasicMining(minSize, roles, users);
-                if (result != null) {
-                    resultCount = currentResult + "/" + result.size();
+                basicCombDisplayResultIterator = 1;
+                basicCombMinIntersection = inputMinIntersectionSize.getModelObject();
+                executeBasicMining(basicCombMinIntersection, roles, users);
 
-                } else {
-                    resultCount = "0/0";
-                }
-
-                getResultCountLabel().setDefaultModel(Model.of(resultCount));
-
-                if (result != null) {
-
-                    if (currentResult == result.size()) {
-                        currentResult = 0;
+                if (basicCombResult != null) {
+                    if (basicCombDisplayResultIterator == basicCombResult.size()) {
+                        basicCombDisplayResultIterator = 0;
                     }
+                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(basicCombDisplayResultIterator, basicCombResult.size())));
+                } else {
+                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(0, 0)));
 
-                    ArrayList<String> algorithmRoleOid = new ArrayList<>(result.get(currentResult));
-                    getResultCountLabel().setDefaultModel(Model.of(
-                            new CombinationHelperAlgorithm().findDuplicates(algorithmRoleOid, getMatrix(users)) + " duplicates"));
                 }
-
             }
 
         };
 
         form.setOutputMarkupId(true);
+        form.add(WebComponentUtil.createHelp(ID_HELPER_ALG_EXECUTE_INFO));
+        form.add(WebComponentUtil.createHelp(ID_MIN_INTERSECTION_INPUT_INFO));
         add(form);
 
         form.add(inputMinIntersectionSize);
 
         mainForm.add(form);
 
-        AjaxLink<Boolean> duplicateRolesComb = new AjaxLink<>("checkDuplicates") {
+        AjaxLink<?> duplicateRolesComb = new AjaxLink<>(ID_AJAX_CHECK_DUPLICATE_BASIC) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 if (getBasicTable().getSelectedObjects() != null) {
@@ -409,38 +425,36 @@ public class PageRoleMining extends PageAdmin {
         };
 
         duplicateRolesComb.setOutputMarkupId(true);
+        duplicateRolesComb.add(new VisibleBehaviour((this::isSearchMode)));
+        duplicateRolesComb.setOutputMarkupPlaceholderTag(true);
+        duplicateRolesComb.add(WebComponentUtil.createHelp(ID_BASIC_ROLE_TABLE_INFO));
+
         mainForm.add(duplicateRolesComb);
     }
 
     private void searchSelector(Form<?> mainForm, List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
 
-        AjaxLink<Boolean> tableRef = new AjaxLink<>(ID_TABLE_REF) {
+        AjaxLink<Boolean> buttonNextResult = new AjaxLink<>(ID_BUTTON_NEXT_RESULT) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                if (result != null) {
-                    if (currentResult == 0) {
-                        getResultCountLabel().setDefaultModel(Model.of(currentResult + 1 + "/" + result.size()));
-                        ajaxRequestTarget.add(getMiningTable());
-                        currentResult++;
-                    } else {
-                        if (currentResult == result.size()) {
-                            currentResult = 0;
+                if (basicCombResult != null) {
+                    if (basicCombDisplayResultIterator != 0) {
+                        if (basicCombDisplayResultIterator == basicCombResult.size()) {
+                            basicCombDisplayResultIterator = 0;
                         }
-                        getResultCountLabel().setDefaultModel(Model.of(currentResult + 1 + "/" + result.size()));
-                        currentResult++;
-                        ajaxRequestTarget.add(getMiningTable());
                     }
-
+                    basicCombDisplayResultIterator++;
+                    ajaxRequestTarget.add(getMiningTable());
+                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(basicCombDisplayResultIterator, basicCombResult.size())));
                 } else {
-                    resultCount = "0/0";
-                    getResultCountLabel().setDefaultModel(Model.of("0/0"));
+                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(0, 0)));
                 }
 
                 ajaxRequestTarget.add(getResultCountLabel());
             }
         };
 
-        mainForm.add(tableRef);
+        mainForm.add(buttonNextResult);
 
         AjaxLink<Boolean> roleSearch = new AjaxLink<>(ID_ROLE_SEARCH) {
             private static final long serialVersionUID = 1L;
@@ -449,7 +463,8 @@ public class PageRoleMining extends PageAdmin {
             public void onClick(AjaxRequestTarget target) {
                 setSearchMode(true);
 
-                currentResult++;
+                target.add(getRepeatingCountBasicTable());
+                target.add(getAjaxCheckDuplicateBasic());
                 getBasicTable().replaceWith(basicRoleHelperTable());
                 target.add(getBasicTable());
 
@@ -478,14 +493,14 @@ public class PageRoleMining extends PageAdmin {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-
                 setSearchMode(false);
-
+                target.add(getAjaxCheckDuplicateBasic());
+                target.add(getRepeatingCountBasicTable());
                 getBasicTable().replaceWith(basicUserHelperTable());
                 target.add(getBasicTable());
 
                 try {
-                    getMiningTable().replaceWith(userRoleMiningTable(roles, users));
+                    getMiningTable().replaceWith(userRoleMiningTable(roles));
                     target.add(getMiningTable());
                 } catch (CommonException e) {
                     throw new RuntimeException(e);
@@ -503,16 +518,16 @@ public class PageRoleMining extends PageAdmin {
         mainForm.add(userSearch);
     }
 
+    protected AjaxLink<?> getAjaxCheckDuplicateBasic() {
+        return (AjaxLink<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_AJAX_CHECK_DUPLICATE_BASIC));
+    }
+
     protected Label getResultCountLabel() {
         return (Label) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_LABEL_RESULT_COUNT));
     }
 
     protected Label getRepeatingCountBasicTable() {
         return (Label) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_LABEL_DUPLICATES_BASIC));
-    }
-
-    protected Label getRepeatingCountLabel() {
-        return (Label) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_LABEL_DUPLICATES));
     }
 
     protected AjaxLink<?> getUserSearchLink() {
@@ -746,7 +761,13 @@ public class PageRoleMining extends PageAdmin {
         return basicTable;
     }
 
-    protected MainObjectListPanel<?> userRoleMiningTable(List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) throws CommonException {
+    private void detailsPerformed(Class<? extends WebPage> pageClass, String objectOid) {
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, objectOid);
+        ((PageBase) getPage()).navigateToNext(pageClass, parameters);
+    }
+
+    protected MainObjectListPanel<?> userRoleMiningTable(List<PrismObject<RoleType>> roles) throws CommonException {
 
         MainObjectListPanel<?> miningTable = new MainObjectListPanel<>(ID_TABLE_MINING, UserType.class, true) {
 
@@ -778,13 +799,8 @@ public class PageRoleMining extends PageAdmin {
 
                 columns.add(column1);
 
-                if (result != null) {
-                    ArrayList<String> algorithmRoleOid = new ArrayList<>(result.get(currentResult));
-                    getRepeatingCountLabel().setDefaultModel(Model.of(
-                            new CombinationHelperAlgorithm().findDuplicates(algorithmRoleOid, getMatrix(users)) + " duplicates"));
-                }
-
                 for (int i = 0; i < roles.size(); i++) {
+
                     int finalI = i;
 
                     IColumn<SelectableBean<UserType>, String> column = new AbstractExportableColumn<>(
@@ -803,13 +819,12 @@ public class PageRoleMining extends PageAdmin {
 
                             PrismObject<UserType> modelUser = model.getObject().getValue().asPrismObject();
 
-                            if (result != null) {
-                                if (currentResult == result.size()) {
-                                    currentResult = 0;
+                            if (basicCombResult != null) {
+                                if (basicCombDisplayResultIterator == basicCombResult.size()) {
+                                    basicCombDisplayResultIterator = 0;
                                 }
-                                ArrayList<String> rolesOid = new ArrayList<>(result.get(currentResult));
+                                ArrayList<String> rolesOid = new ArrayList<>(basicCombResult.get(basicCombDisplayResultIterator));
 
-                                getRepeatingCountLabel().setDefaultModel(Model.of(rolesOid.size() + " duplicates"));
                                 if (rolesObjectIds.containsAll(rolesOid)) {
 
                                     if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
@@ -942,12 +957,6 @@ public class PageRoleMining extends PageAdmin {
 
     }
 
-    private void detailsPerformed(Class<? extends WebPage> pageClass, String objectOid) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, objectOid);
-        ((PageBase) getPage()).navigateToNext(pageClass, parameters);
-    }
-
     protected MainObjectListPanel<?> roleRoleMiningTable(List<PrismObject<UserType>> users) throws CommonException {
 
         MainObjectListPanel<?> miningTable = new MainObjectListPanel<>(ID_TABLE_MINING, RoleType.class, true) {
@@ -1007,11 +1016,11 @@ public class PageRoleMining extends PageAdmin {
                                 userRolesObjectIds.add(objectReferenceType.getOid());
                             }
 
-                            if (result != null) {
-                                if (currentResult == result.size()) {
-                                    currentResult = 0;
+                            if (basicCombResult != null) {
+                                if (basicCombDisplayResultIterator == basicCombResult.size()) {
+                                    basicCombDisplayResultIterator = 0;
                                 }
-                                ArrayList<String> algorithmRoleOid = new ArrayList<>(result.get(currentResult));
+                                ArrayList<String> algorithmRoleOid = new ArrayList<>(basicCombResult.get(basicCombDisplayResultIterator));
 
                                 if (userRolesObjectIds.containsAll(algorithmRoleOid) && algorithmRoleOid.contains(currentRoleOid)) {
                                     algMatchedRoleTypeCell(cellItem, componentId);
@@ -2052,148 +2061,13 @@ public class PageRoleMining extends PageAdmin {
         return matrix;
     }
 
-    private String writeJs(List<ArrayList<String>> jaccardData) {
+    public String createIterationResultString(int currentResultPosition, int resultSize) {
         StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append("new Chart(\"barChart\", {\n"
-                + "    type: 'bar',\n"
-                + "    data: {");
-
-        stringBuilder.append("labels: [");
-        for (int i = 1; i < jaccardData.size(); i++) {
-            stringBuilder.append(jaccardData.get(i).get(0).replace("'", "\"")).append(",");
+        if (resultSize == 0) {
+            stringBuilder.append(" 0 result(s)");
+            return String.valueOf(stringBuilder);
         }
-        stringBuilder.append("],");
-        stringBuilder.append("datasets: [{\n"
-                + "        label: 'Intersection index',");
-        stringBuilder.append("data: [");
-        for (int i = 1; i < jaccardData.size(); i++) {
-            stringBuilder.append(jaccardData.get(i).get(1)).append(",");
-        }
-        stringBuilder.append("],");
-        stringBuilder.append(" backgroundColor: 'rgb(81,140,184)',\n"
-                + "        borderRadius: 1,\n"
-                + "        borderSkipped: false,\n"
-                + "      }]\n"
-                + "    },");
-        stringBuilder.append(" options: {\n"
-                + "         maintainAspectRatio: false,\n"
-                + "      onClick: (event, elements, chart) => {\n"
-                + "      \n"
-                + "      \n"
-                + "        let datasetIndex = elements[0].datasetIndex;\n"
-                + "        let dataIndex = elements[0].index;\n"
-                + "        let datasetLabel = event.chart.data.datasets[datasetIndex].label;\n"
-                + "        let value = event.chart.data.datasets[datasetIndex].data[dataIndex];\n"
-                + "        let label = event.chart.data.labels[dataIndex];");
-
-        stringBuilder.append("const allData = [");
-        for (int i = 0; i < fullJaccardMatrix.length - 1; i++) {
-            stringBuilder.append("[");
-            for (int j = 0; j < fullJaccardMatrix[i].length - 1; j++) {
-                stringBuilder.append(fullJaccardMatrix[i][j]).append(",");
-            }
-
-            stringBuilder.append("],");
-
-        }
-        stringBuilder.append("];");
-
-        stringBuilder.append("let threshold = ").append(jaccardThreshold).append(";");
-
-        stringBuilder.append("var result = [];\n"
-                + "\t\t\t\t\n"
-                + "        var row = allData[dataIndex];\n"
-                + "         for (j = 0; j < row.length; j++) {  \n"
-                + "         if(row[j] >= threshold){\n"
-                + " \t\t\t\t\tresult.push(j);\n"
-                + "         }\n"
-                + "        }\n"
-                + "        \n"
-                + "      if (elements.length) {\n"
-                + "        const dataset = chart.data.datasets[0];\n"
-                + "        dataset.backgroundColor = [];\n"
-                + "        const ticks = chart.options.scales.x.ticks;\n"
-                + "        for (let i = 0; i < dataset.data.length; i++) {\n"
-                + "          if (result.includes(i)) {\n"
-                + "            dataset.backgroundColor[i] = 'rgb(32,32,32)';\n"
-                + "                  console.log(\"Position\", i,dataIndex,value);\n"
-                + "          } else {\n"
-                + "            dataset.backgroundColor[i] = 'rgb(81,140,184)'\n"
-                + "          }\n"
-                + "        }\n"
-                + "        chart.update(); \n"
-                + "      }\n"
-                + "    },\n"
-                + "    \n"
-                + "    plugins: {\n"
-                + "            legend: {\n"
-                + "              labels: {\n"
-                + "                color: \"black\",\n"
-                + "                font: {\n"
-                + "                  size: 12 \n"
-                + "                }\n"
-                + "              }\n"
-                + "            }\n"
-                + "          },\n"
-                + "  \n"
-                + "         scales: {\n"
-                + "      \n"
-                + "                 \n"
-                + "            y: {\n"
-                + "             display: true,\n"
-                + "              title: {\n"
-                + "                display: true,\n"
-                + "                text: 'SUM',\n"
-                + "                color: '#000000',\n"
-                + "                font: {\n"
-                + "                  family: 'Times',\n"
-                + "                  size: 15,\n"
-                + "                  weight: 'bold',\n"
-                + "                  lineHeight: 1.2\n"
-                + "                }},\n"
-                + "               grid: {\n"
-                + "                color: 'black',\n"
-                + "                drawBorder: true,\n"
-                + "                borderColor: 'black' \n"
-                + "              },\n"
-                + "              ticks: {\n"
-                + "                color: 'black',\n"
-                + "                font: {\n"
-                + "                  family: 'Times',\n"
-                + "                }\n"
-                + "              }\n"
-                + "            },\n"
-                + "            x: {\n"
-                + "            axis: 'black',\n"
-                + "            title: {\n"
-                + "                display: true,\n"
-                + "                text: 'USERS',\n"
-                + "                color: 'black',\n"
-                + "                font: {\n"
-                + "                  family: 'Times',\n"
-                + "                  size: 15,\n"
-                + "                  weight: 'bold',\n"
-                + "                  lineHeight: 1.2,\n"
-                + "                }},\n"
-                + "\n"
-                + "              grid: {\n"
-                + "              color: '#000000',\n"
-                + "                display: false,\n"
-                + "                 borderColor: 'black' \n"
-                + "              },\n"
-                + "              ticks: {\n"
-                + "                color: 'black',\n"
-                + "                font: {\n"
-                + "                  family: 'Times',\n"
-                + "\n"
-                + "                }\n"
-                + "              }\n"
-                + "            }\n"
-                + "          },\n"
-                + "  }\n"
-                + "});");
-
+        stringBuilder.append(currentResultPosition).append(" of ").append(resultSize).append(" result(s)");
         return String.valueOf(stringBuilder);
     }
 }

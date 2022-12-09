@@ -56,7 +56,6 @@ public class RoleMiningFilter implements Serializable {
 
         for (PrismObject<RoleType> role : roles) {
             roleMemberLists.add(new RoleMembersList(role, getMembers(modelService, task, result, role.getOid())));
-            System.out.println(role);
         }
 
         return roleMemberLists;
