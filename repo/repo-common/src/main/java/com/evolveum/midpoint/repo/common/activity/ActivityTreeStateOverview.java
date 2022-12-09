@@ -101,11 +101,11 @@ public class ActivityTreeStateOverview {
     }
 
     /**
-     * Records the start of distributing (coordinator) activity realization (NOT run).
+     * Records the start of distributed activity realization (NOT run).
      * It sets the fields that are not set by workers in their local runs.
      */
-    public void recordDistributingActivityRealizationStart(@NotNull DistributingActivityRun<?, ?, ?> run,
-            @NotNull OperationResult result) throws ActivityRunException {
+    public void recordDistributedActivityRealizationStart(
+            @NotNull DistributingActivityRun<?, ?, ?> run, @NotNull OperationResult result) throws ActivityRunException {
 
         modifyRootTask(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
@@ -125,8 +125,9 @@ public class ActivityTreeStateOverview {
      *
      * (Note: We only add records here. We assume that no children are ever deleted.)
      */
-    public void recordChildren(@NotNull LocalActivityRun<?, ?, ?> run, List<Activity<?, ?>> children,
-            @NotNull OperationResult result) throws ActivityRunException {
+    public void recordChildren(
+            @NotNull LocalActivityRun<?, ?, ?> run, List<Activity<?, ?>> children, @NotNull OperationResult result)
+            throws ActivityRunException {
 
         modifyRootTask(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
@@ -149,8 +150,8 @@ public class ActivityTreeStateOverview {
      *
      * Note that run result can be null only in the case of (very rare) uncaught exception.
      */
-    public void recordLocalRunFinish(@NotNull LocalActivityRun<?, ?, ?> run,
-            @Nullable ActivityRunResult runResult, @NotNull OperationResult result)
+    public void recordLocalRunFinish(
+            @NotNull LocalActivityRun<?, ?, ?> run, @Nullable ActivityRunResult runResult, @NotNull OperationResult result)
             throws ActivityRunException {
 
         modifyRootTask(taskBean -> {
@@ -179,11 +180,11 @@ public class ActivityTreeStateOverview {
     }
 
     /**
-     * Records the finish of distributing (coordinator) activity realization (NOT run).
+     * Records the finish of distributed activity realization (NOT run).
      * It sets the fields that are not set by workers in their local runs.
      */
-    public void recordDistributingActivityRealizationFinish(@NotNull DistributingActivityRun<?, ?, ?> run,
-            @NotNull ActivityRunResult runResult, @NotNull OperationResult result)
+    public void recordDistributedActivityRealizationFinish(
+            @NotNull DistributingActivityRun<?, ?, ?> run, @NotNull ActivityRunResult runResult, @NotNull OperationResult result)
             throws ActivityRunException {
         modifyRootTask(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
@@ -218,14 +219,14 @@ public class ActivityTreeStateOverview {
         }
     }
 
-    private void updateActivityTreeOnTaskDead(@NotNull ActivityStateOverviewType activity, @NotNull Task task,
-            @NotNull Holder<Boolean> changed) {
+    private void updateActivityTreeOnTaskDead(
+            @NotNull ActivityStateOverviewType activity, @NotNull Task task, @NotNull Holder<Boolean> changed) {
         updateActivityForTaskDead(activity, task, changed);
         activity.getActivity().forEach(child -> updateActivityTreeOnTaskDead(child, task, changed));
     }
 
-    private void updateActivityForTaskDead(@NotNull ActivityStateOverviewType activity, @NotNull Task task,
-            @NotNull Holder<Boolean> changed) {
+    private void updateActivityForTaskDead(
+            @NotNull ActivityStateOverviewType activity, @NotNull Task task, @NotNull Holder<Boolean> changed) {
         activity.getTask().stream()
                 .filter(taskOverview -> task.getOid().equals(getOid(taskOverview.getTaskRef())))
                 .filter(taskOverview -> taskOverview.getExecutionState() == ActivityTaskExecutionStateType.RUNNING)
@@ -245,8 +246,10 @@ public class ActivityTreeStateOverview {
      * of completed buckets), incorrect results may be stored in the overview. Therefore we use a hack
      * with {@link #isBefore(BucketProgressOverviewType, BucketProgressOverviewType)} method.
      */
-    public void updateBucketAndItemProgress(@NotNull LocalActivityRun<?, ?, ?> run,
-            @NotNull BucketProgressOverviewType bucketProgress, @NotNull OperationResult result)
+    public void updateBucketAndItemProgress(
+            @NotNull LocalActivityRun<?, ?, ?> run,
+            @NotNull BucketProgressOverviewType bucketProgress,
+            @NotNull OperationResult result)
             throws ActivityRunException {
 
         if (!run.shouldUpdateProgressInStateOverview()) {

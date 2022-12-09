@@ -12,15 +12,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.util.Collection;
 import java.util.List;
-
-import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
-import com.evolveum.midpoint.schema.TaskExecutionMode;
-
-import com.evolveum.midpoint.test.DummyTestResource;
-
-import com.evolveum.midpoint.util.exception.CommonException;
+import java.util.Objects;
 
 import org.testng.SkipException;
 import org.testng.annotations.Test;
@@ -32,9 +24,14 @@ import com.evolveum.midpoint.model.intest.TestPreviewChanges;
 import com.evolveum.midpoint.model.test.ObjectsCounter;
 import com.evolveum.midpoint.model.test.SimulationResult;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -671,7 +668,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     /**
      * As {@link #test200SimulatedAccountImportNoProjectionsForeground()} but on background.
      */
-    @Test(enabled = false) // not working for now
+    @Test
     public void test205SimulatedAccountImportNoProjectionsBackground() throws Exception {
         SimulationResultType simulationConfiguration = getSimulationConfiguration();
         if (simulationConfiguration == null) {
@@ -681,21 +678,29 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        SimulationResultContext simContext = simulationResultManager.newSimulationResult(simulationConfiguration, result);
-
         objectsCounter.remember(result);
 
         given("an account on production source");
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.controller.addAccount("test205");
 
         when("the account is imported");
-        executeAccountImportOnBackground("test205", result);
+        String taskOid = executeAccountImportOnBackground("test205", result);
 
         then("no new objects should be created (except for one shadow), no model deltas really executed");
         objectsCounter.assertShadowOnlyIncrement(1, result);
 
         and("there are simulation deltas in persistent storage");
-        Collection<ObjectDelta<?>> simulatedDeltas = simContext.getStoredDeltas(result);
+        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
+        assertTask(taskAfter, "import task after")
+                .display();
+        ObjectReferenceType simResultRef =
+                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
+                        .getSimulation()
+                        .getResultRef();
+        Collection<ObjectDelta<?>> simulatedDeltas =
+                simulationResultManager
+                        .newSimulationContext(simResultRef.getOid())
+                        .getStoredDeltas(result);
         assertTest20xDeltas("test205", simulatedDeltas, "simulated deltas in persistent storage");
 
         and("shadow should not have full sync info set");
@@ -707,9 +712,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .assertSynchronizationSituation(null);
     }
 
-    private void executeAccountImportOnBackground(String name, OperationResult result)
+    private String executeAccountImportOnBackground(String name, OperationResult result)
             throws CommonException {
-        importSingleAccountRequest()
+        return importSingleAccountRequest()
                 .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
                 .withNameValue(name)
                 .withTaskExecutionMode(getExecutionMode())

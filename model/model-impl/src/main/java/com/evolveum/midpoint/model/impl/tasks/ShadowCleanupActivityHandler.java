@@ -233,7 +233,7 @@ public class ShadowCleanupActivityHandler
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
             DebugUtil.debugDumpWithLabelLn(sb, "shadows", shadows, indent + 1);
-            DebugUtil.debugDumpWithLabelLn(sb, "interval", String.valueOf(interval), indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, "interval", String.valueOf(interval), indent + 1);
         }
     }
 }

@@ -49,6 +49,7 @@ public interface PlainIterativeActivityRunSpecifics<I>
      * Majority of current plain iterative activities do not know the number of items: for example, ConnId SyncOp does not
      * provide information about how many changes are on the resource. But there might be some activities that do.
      */
+    @SuppressWarnings({ "unused", "RedundantThrows" }) // These warnings are false ones.
     default @Nullable Integer determineOverallSize(OperationResult result) throws CommonException, ActivityRunException {
         return null;
     }
@@ -59,6 +60,7 @@ public interface PlainIterativeActivityRunSpecifics<I>
      * Not applicable to the majority of current plain iterative activities, just like
      * {@link #determineOverallSize(OperationResult)}.
      */
+    @SuppressWarnings("unused") // This warning is a false one.
     default @Nullable Integer determineCurrentBucketSize(OperationResult result) throws CommonException {
         return null;
     }

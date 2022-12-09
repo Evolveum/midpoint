@@ -7,10 +7,6 @@
 
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-
-import org.jetbrains.annotations.NotNull;
-
 import java.io.Serializable;
 
 /**
@@ -42,19 +38,6 @@ public class TaskExecutionMode implements Serializable {
         this.productionConfiguration = productionConfiguration;
     }
 
-    // Preliminary implementation
-    public static @NotNull TaskExecutionMode fromActivityExecutionMode(@NotNull ExecutionModeType activityExecutionMode) {
-        switch (activityExecutionMode) {
-            case PREVIEW:
-                return TaskExecutionMode.SIMULATED_PRODUCTION;
-            case DEVELOPMENT_PREVIEW:
-                return TaskExecutionMode.SIMULATED_DEVELOPMENT;
-            default:
-                // dry run, none, bucket analysis - these are treated in a special way (for now)
-                return PRODUCTION;
-        }
-    }
-
     /** Should the effects of this task be persistent or not? The latter means "simulation", "preview", etc. */
     public boolean isPersistent() {
         return persistent;
@@ -66,7 +49,7 @@ public class TaskExecutionMode implements Serializable {
      * - Production usually means `active` and `deprecated` lifecycle states.
      * - Development usually means `active` and `proposed` states.
      *
-     * However, in the future we may provide more customization options here (e.g. explicit enumeration of livecycle states
+     * However, in the future we may provide more customization options here (e.g. explicit enumeration of lifecycle states
      * to use, or even a set of specific deltas to apply).
      *
      * If {@link #persistent} is `true` then {@link #productionConfiguration} should be `true` as well.

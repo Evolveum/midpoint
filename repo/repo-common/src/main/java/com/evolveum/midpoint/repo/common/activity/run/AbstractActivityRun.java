@@ -21,6 +21,10 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import java.util.Collection;
 import java.util.Map;
 
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +47,6 @@ import com.evolveum.midpoint.schema.statistics.Operation;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -53,9 +56,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcessingOutcomeType;
 
 /**
  * Implements (represents) a run (execution) of an activity in the current task.
@@ -71,14 +71,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.QualifiedItemProcess
  *
  * . Provides methods for navigation to more distant objects of the framework and other auxiliary objects (beans).
  *
- * . Provides skeleton of the execution - see {@link #run(OperationResult)}:
- *    a. initializes activity state (if needed),
- *    b. skips run of the activity if the activity realization is complete,
- *    c. executes "before run" and the real code,
- *    d. handles exceptions thrown by the execution code, converting them into {@link ActivityRunResult}
- *       (such conversion is done at various other levels, btw),
- *    e. logs the start/end,
- *    f. updates execution and result (op) status in the repository,
+ * . Provides skeleton of the execution - see {@link #run(OperationResult)}, managing (among others):
+ *    a. activity state initialization and closing,
+ *    b. execution of "before run" code,
+ *    c. conversion of exceptions into {@link ActivityRunResult} (such conversion is done at various other levels, btw),
+ *    d. start/end logging,
+ *    e. updating task statistics,
+ *    f. sending notifications.
+ *
+ * +
+ * Some of these duties are related to ones of {@link LocalActivityRun#runInternal(OperationResult)}
  *
  * @param <WD> Definition of the work that this activity has to do.
  * @param <AH> Type of the activity handler.
@@ -134,7 +136,12 @@ public abstract class AbstractActivityRun<
 
     /**
      * Reporting characteristics of this kind of activity run. Can be used only after the concrete instance is
-     * ready (i.e. fully initialized)!
+     * ready (i.e. fully initialized)! This is because the instance initialization goes down the inheritance hierarchy
+     * (from super classes to sub-classes) and the characteristics are defined progressively, usually being finalized
+     * at the lowest levels. Therefore, the super classes must _not_ ask about reporting characteristics during their
+     * own initialization.
+     *
+     * TODO Isn't there a cleaner way how to do this?
      */
     @NotNull final Lazy<ActivityReportingCharacteristics> reportingCharacteristics =
             Lazy.from(this::createReportingCharacteristics);
@@ -200,6 +207,8 @@ public abstract class AbstractActivityRun<
      *
      * Note that the work can be delegated to other (asynchronous) tasks. This is the case of worker tasks in multi-node
      * task run, or of activities executed as separate subtasks.
+     *
+     * @see LocalActivityRun#runInternal(OperationResult)
      */
     public @NotNull ActivityRunResult run(OperationResult result) throws ActivityRunException {
 
@@ -220,7 +229,9 @@ public abstract class AbstractActivityRun<
 
         updateAndCloseActivityState(runResult, result);
 
-        if (runResult.isFinished()) {
+        if (activityState.isComplete()) {
+            // TODO Is this really called only once on activity completion? Not sure about distributed/delegated ones.
+            onActivityRealizationComplete(result);
             sendActivityRealizationCompleteEvent(result);
         }
 
@@ -251,8 +262,7 @@ public abstract class AbstractActivityRun<
     /**
      * Executes the activity, converting any exceptions into appropriate {@link ActivityRunResult} instances.
      */
-    @NotNull
-    private ActivityRunResult runTreatingExceptions(OperationResult result) {
+    private @NotNull ActivityRunResult runTreatingExceptions(OperationResult result) {
         try {
             invokePreRunnable(result);
             return runInternal(result);
@@ -261,6 +271,7 @@ public abstract class AbstractActivityRun<
         }
     }
 
+    /** Temporary implementation. */
     private void invokePreRunnable(OperationResult result) throws ActivityRunException, CommonException {
         if (!(activity instanceof EmbeddedActivity)) {
             return;
@@ -294,7 +305,8 @@ public abstract class AbstractActivityRun<
 
         activityState.updateProgressAndStatisticsNoCommit();
 
-        completeRunResult(runResult);
+        runResult.close(
+                getTaskRun().canRun(), activityState.getResultStatus());
 
         OperationResultStatus currentResultStatus = runResult.getOperationResultStatus();
         if (runResult.isFinished()) {
@@ -315,25 +327,6 @@ public abstract class AbstractActivityRun<
         }
 
         activityState.close();
-    }
-
-    /**
-     * Converts null or "in progress" values into finished/interrupted/success/default ones.
-     *
-     * TODO Or should we require the activity run code to do this?
-     */
-    private void completeRunResult(ActivityRunResult runResult) {
-        if (runResult.getRunResultStatus() == null) {
-            runResult.setRunResultStatus(getTaskRun().canRun() ?
-                    TaskRunResult.TaskRunResultStatus.FINISHED : TaskRunResult.TaskRunResultStatus.INTERRUPTED);
-        }
-        if (runResult.getOperationResultStatus() == null) {
-            runResult.setOperationResultStatus(activityState.getResultStatus());
-        }
-        if ((runResult.getOperationResultStatus() == null ||
-                runResult.getOperationResultStatus() == OperationResultStatus.IN_PROGRESS) && runResult.isFinished()) {
-            runResult.setOperationResultStatus(OperationResultStatus.SUCCESS);
-        }
     }
 
     private void logStart() {
@@ -375,11 +368,6 @@ public abstract class AbstractActivityRun<
     }
 
     protected void debugDumpExtra(StringBuilder sb, int indent) {
-    }
-
-    @SuppressWarnings("unused")
-    public @Nullable ActivityPath getActivityLocalPath() {
-        return activity.getLocalPath();
     }
 
     public @NotNull ActivityPath getActivityPath() {
@@ -434,8 +422,8 @@ public abstract class AbstractActivityRun<
     }
 
     /**
-     * @return true if the work (business) state should be created right on activity run initialization,
-     * along with the rest of the state
+     * Returns true if the work (business) state should be created right on activity run initialization,
+     * along with the rest of the state.
      *
      * Maybe we should provide this customization in the "specifics" interface for iterative activities.
      */
@@ -534,12 +522,15 @@ public abstract class AbstractActivityRun<
         return activity.getWorkDefinition();
     }
 
-    public @NotNull ActivityDefinition<WD> getActivityDefinition() {
+    @NotNull ActivityExecutionModeDefinition getExecutionModeDefinition() {
+        return getActivityDefinition().getExecutionModeDefinition();
+    }
+
+    protected @NotNull ActivityDefinition<WD> getActivityDefinition() {
         return activity.getDefinition();
     }
 
-    @NotNull
-    public ActivityReportingDefinition getReportingDefinition() {
+    @NotNull ActivityReportingDefinition getReportingDefinition() {
         return getActivityDefinition().getReportingDefinition();
     }
 
@@ -547,18 +538,10 @@ public abstract class AbstractActivityRun<
         return requireNonNull(reportingCharacteristics.get());
     }
 
-    public Long getStartTimestamp() {
-        return startTimestamp;
-    }
-
     public long getStartTimestampRequired() {
         return requireNonNull(
                 startTimestamp,
                 () -> "no start timestamp in " + this);
-    }
-
-    public Long getEndTimestamp() {
-        return endTimestamp;
     }
 
     @Override
@@ -587,5 +570,41 @@ public abstract class AbstractActivityRun<
     @NotNull String getDiagName() {
         RunningTask task = getRunningTask();
         return getActivityPath().toDebugName() + " activity in '" + task.getName() + "' task (OID " + task.getOid() + ")";
+    }
+
+    /**
+     * Called when the activity realization starts.
+     *
+     * - For delegated activities this is _after_ the delegation occurred. (I.e. in the delegate run.)
+     * - For distributed activities this is before any of the workers are started.
+     * - For non-delegated, non-distributed (local-only) activities this is when the local run starts the first time.
+     *
+     * Overall, this should happen exactly once per activity realization.
+     *
+     * In subclasses: Do not forget to call the implementation in the super-class.
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected void onActivityRealizationStart(OperationResult result) throws ActivityRunException {
+        if (getExecutionModeDefinition().shouldCreateSimulationResult()) {
+            createSimulationResult(result);
+        }
+    }
+
+    private void createSimulationResult(OperationResult result) throws ActivityRunException {
+        ObjectReferenceType simResultRef =
+                getBeans().getAdvancedActivityRunSupport().createSimulationResult(result);
+        activityState.setSimulationResultRef(simResultRef);
+        activityState.flushPendingTaskModificationsChecked(result);
+    }
+
+    /**
+     * Called when the activity realization is complete. It should be called at most once for any given activity.
+     * (Regardless of its delegation or distribution.)
+     *
+     * TODO probably will not work currently
+     */
+    @SuppressWarnings({ "WeakerAccess", "unused" })
+    protected void onActivityRealizationComplete(OperationResult result) {
+        // To be overridden in subclasses.
     }
 }

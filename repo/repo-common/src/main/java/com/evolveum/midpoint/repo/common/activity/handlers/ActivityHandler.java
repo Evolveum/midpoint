@@ -22,7 +22,6 @@ import com.evolveum.midpoint.repo.common.activity.ActivityRunSupplier;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Spring component that ensures handling activity invocations.
@@ -36,7 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public interface ActivityHandler<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
         extends ActivityRunSupplier<WD, AH>, CandidateIdentifierFormatter {
 
-    default ArrayList<Activity<?,?>> createChildActivities(Activity<WD, AH> activity) throws SchemaException {
+    default ArrayList<Activity<?,?>> createChildActivities(Activity<WD, AH> activity) {
         return new ArrayList<>();
     }
 

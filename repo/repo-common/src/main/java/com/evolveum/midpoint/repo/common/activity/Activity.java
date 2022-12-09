@@ -422,6 +422,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return definition.getControlFlowDefinition().isSkip();
     }
 
+    public @NotNull ExecutionModeType getExecutionMode() {
+        return definition.getExecutionMode();
+    }
+
     private enum RunType {
         LOCAL, DELEGATING, DISTRIBUTING
     }

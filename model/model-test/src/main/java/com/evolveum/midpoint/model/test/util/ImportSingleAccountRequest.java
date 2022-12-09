@@ -94,7 +94,12 @@ public class ImportSingleAccountRequest {
                                                 .query(PrismContext.get().getQueryConverter().createQueryType(query))
                                                 .queryApplication(ResourceObjectSetQueryApplicationModeType.REPLACE))))
                         .executionMode(
-                                getBackgroundTaskExecutionMode()));
+                                getBackgroundTaskExecutionMode())
+                        .execution(new ActivityExecutionDefinitionType()
+                                .productionConfiguration(
+                                        taskExecutionMode.isProductionConfiguration())
+                                .createSimulationResult(
+                                        !taskExecutionMode.isPersistent())));
         String taskOid = test.addObject(importTask, task, result);
         if (tracingProfile != null) {
             test.traced(
@@ -115,10 +120,8 @@ public class ImportSingleAccountRequest {
     private @NotNull ExecutionModeType getBackgroundTaskExecutionMode() {
         if (taskExecutionMode.isPersistent()) {
             return ExecutionModeType.FULL;
-        } else if (taskExecutionMode.isProductionConfiguration()) {
-            return ExecutionModeType.PREVIEW;
         } else {
-            return ExecutionModeType.DEVELOPMENT_PREVIEW;
+            return ExecutionModeType.PREVIEW;
         }
     }
 

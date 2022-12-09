@@ -10,9 +10,7 @@ import javax.annotation.PreDestroy;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -134,5 +132,10 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
             }
         }
         return deltas;
+    }
+
+    @Override
+    public SimulationResultContext newSimulationContext(@NotNull String resultOid) {
+        return new SimulationResultContextImpl(this, resultOid, new SimulationResultType()); // FIXME (config)
     }
 }

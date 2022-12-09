@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.repo.common.tasks.handlers.search;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
@@ -54,7 +53,7 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
 
     private @NotNull ObjectSetType getObjectSet(PrismContainerValue<?> pcv) {
         ObjectSetType specified = pcv.getItemRealValue(OBJECT_SET_NAME, ObjectSetType.class);
-        ObjectSetType resulting = specified != null ? specified : new ObjectSetType(PrismContext.get());
+        ObjectSetType resulting = specified != null ? specified : new ObjectSetType();
         ObjectSetUtil.assumeObjectType(resulting, ObjectType.COMPLEX_TYPE);
         return resulting;
     }
@@ -71,7 +70,7 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
         return failOn;
     }
 
-    public boolean isFreezeIfScavenger() {
+    boolean isFreezeIfScavenger() {
         return freezeIfScavenger;
     }
 
@@ -80,7 +79,7 @@ public class SearchIterativeMockWorkDefinition extends AbstractWorkDefinition im
         DebugUtil.debugDumpWithLabelLn(sb, "objectSet", objectSet, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "failOn", failOn, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "freezeIfScavenger", freezeIfScavenger, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "freezeIfScavenger", freezeIfScavenger, indent+1);
     }
 
     @Override

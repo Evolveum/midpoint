@@ -8,7 +8,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -127,7 +126,7 @@ public class SimulationResultContextImpl implements SimulationResultContext, Agg
     }
 
     @Override
-    public AggregatedObjectProcessingListener aggregatedObjectProcessingListener() {
+    public @NotNull AggregatedObjectProcessingListener aggregatedObjectProcessingListener() {
         return this;
     }
 

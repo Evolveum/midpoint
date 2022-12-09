@@ -8,12 +8,14 @@
 package com.evolveum.midpoint.repo.common.activity.run;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.common.activity.definition.ActivityExecutionModeDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.handlers.ActivityHandler;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -22,6 +24,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractActivityWorkStateType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
@@ -34,6 +37,7 @@ import java.util.Objects;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.IN_PROGRESS;
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.UNKNOWN;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityRealizationStateType.IN_PROGRESS_LOCAL;
 
 import static java.util.Objects.requireNonNull;
@@ -80,12 +84,16 @@ public abstract class LocalActivityRun<
 
         RunningTask runningTask = getRunningTask();
         TaskExecutionMode oldExecutionMode = runningTask.getExecutionMode();
+        AggregatedObjectProcessingListener processingListener = getObjectProcessingListener();
 
         ActivityRunResult runResult;
         OperationResult localResult = result.createSubresult(OP_RUN_LOCALLY);
         try {
             runningTask.setExcludedFromStalenessChecking(isExcludedFromStalenessChecking());
-            setTaskExecutionMode();
+            runningTask.setExecutionMode(getTaskExecutionMode());
+            if (processingListener != null) {
+                runningTask.addObjectProcessingListener(processingListener);
+            }
             runResult = runLocally(localResult);
         } catch (Exception e) {
             runResult = ActivityRunResult.handleException(e, localResult, this); // sets the local result status
@@ -93,6 +101,9 @@ public abstract class LocalActivityRun<
             localResult.close();
             runningTask.setExcludedFromStalenessChecking(false);
             runningTask.setExecutionMode(oldExecutionMode);
+            if (processingListener != null) {
+                runningTask.removeObjectProcessingListener(processingListener);
+            }
         }
 
         updateStateOnRunEnd(localResult, runResult, result);
@@ -100,10 +111,27 @@ public abstract class LocalActivityRun<
         return runResult;
     }
 
-    private void setTaskExecutionMode() {
-        getRunningTask()
-                .setExecutionMode(
-                        TaskExecutionMode.fromActivityExecutionMode(getActivityExecutionMode()));
+    public TaskExecutionMode getTaskExecutionMode() {
+        ExecutionModeType activityExecutionMode = getActivityExecutionMode();
+        if (activityExecutionMode != ExecutionModeType.PREVIEW) {
+            // dry run, none, bucket analysis - these are treated in a special way (for now)
+            return TaskExecutionMode.PRODUCTION;
+        } else if (getActivityDefinition().getExecutionModeDefinition().isProductionConfiguration()) {
+            return TaskExecutionMode.SIMULATED_PRODUCTION;
+        } else {
+            return TaskExecutionMode.SIMULATED_DEVELOPMENT;
+        }
+    }
+
+    public AggregatedObjectProcessingListener getObjectProcessingListener() {
+        ActivityExecutionModeDefinition modeDef = getExecutionModeDefinition();
+        if (modeDef.getMode() != ExecutionModeType.PREVIEW || !modeDef.shouldCreateSimulationResult()) {
+            return null;
+        }
+        ObjectReferenceType simulationResultRef = activityState.getSimulationResultRef();
+        stateCheck(simulationResultRef != null,
+                "No simulation result reference in %s even if simulation was requested", this);
+        return getBeans().getAdvancedActivityRunSupport().getObjectProcessingListener(simulationResultRef);
     }
 
     /** Updates {@link #activityState} (including flushing) and the tree state overview. */
@@ -126,6 +154,11 @@ public abstract class LocalActivityRun<
                 realizationStart = XmlTypeConverter.createXMLGregorianCalendar(startTimestamp);
             }
             activityState.recordRealizationStart(realizationStart);
+            if (!isWorker()) {
+                onActivityRealizationStart(result);
+            } else {
+                // already done in DistributingActivityRun
+            }
         }
 
         activityState.setResultStatus(IN_PROGRESS);

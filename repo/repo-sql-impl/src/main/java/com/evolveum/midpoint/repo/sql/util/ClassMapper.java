@@ -68,6 +68,9 @@ public final class ClassMapper {
         TYPES.put(ObjectTypes.MESSAGE_TEMPLATE, RObjectType.MESSAGE_TEMPLATE);
 
         for (ObjectTypes type : ObjectTypes.values()) {
+            if (type == ObjectTypes.SIMULATION_RESULT) {
+                continue; // FIXME ugly hack
+            }
             if (!TYPES.containsKey(type)) {
                 String message = "Not all object types are mapped by sql repo impl. Found '" + type + "' unmapped.";
                 System.err.println(message);

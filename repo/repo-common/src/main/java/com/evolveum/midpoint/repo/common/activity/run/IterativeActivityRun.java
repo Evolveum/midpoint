@@ -47,7 +47,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.task.BucketingUtil;
 import com.evolveum.midpoint.task.api.ExecutionSupport;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -190,8 +189,7 @@ public abstract class IterativeActivityRun<
 
             ActivityRunResult runResult = createRunResult();
 
-            LOGGER.trace("{} run finished (task {}, run result {})", shortName, getRunningTask(),
-                    runResult);
+            LOGGER.trace("{} run finished (task {}, run result {})", shortName, getRunningTask(), runResult);
 
             return runResult;
 
@@ -638,10 +636,6 @@ public abstract class IterativeActivityRun<
         return coordinator;
     }
 
-    public final long getStartTimeMillis() {
-        return transientRunStatistics.startTimeMillis;
-    }
-
     public final boolean isMultithreaded() {
         return coordinator.isMultithreaded();
     }
@@ -678,7 +672,7 @@ public abstract class IterativeActivityRun<
         return shortName;
     }
 
-    public final @NotNull String getShortNameUncapitalized() {
+    final @NotNull String getShortNameUncapitalized() {
         return StringUtils.uncapitalize(shortName);
     }
 
@@ -709,21 +703,6 @@ public abstract class IterativeActivityRun<
 
     public final @NotNull String getRootTaskOid() {
         return getRunningTask().getRootTaskOid();
-    }
-
-    protected final @NotNull Task getRootTask(OperationResult result) throws SchemaException {
-        String rootTaskOid = getRootTaskOid();
-        RunningTask task = getRunningTask();
-        if (task.getOid().equals(rootTaskOid)) {
-            return task;
-        } else {
-            try {
-                return beans.taskManager.getTaskPlain(rootTaskOid, result);
-            } catch (ObjectNotFoundException e) {
-                // This is quite unexpected so it can be rethrown as SystemException
-                throw new SystemException("The root task was not found", e);
-            }
-        }
     }
 
     /**

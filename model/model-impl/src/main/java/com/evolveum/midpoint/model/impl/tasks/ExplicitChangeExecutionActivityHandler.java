@@ -194,7 +194,7 @@ public class ExplicitChangeExecutionActivityHandler
 
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
-            DebugUtil.debugDumpWithLabelLn(sb, "requests", requests, indent+1);
+            DebugUtil.debugDumpWithLabel(sb, "requests", requests, indent+1);
         }
     }
 

@@ -75,6 +75,6 @@ public class IterativeMockWorkDefinition extends AbstractWorkDefinition {
         DebugUtil.debugDumpWithLabelLn(sb, "from", from, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "to", to, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "delay", delay, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "delay", delay, indent+1);
     }
 }
