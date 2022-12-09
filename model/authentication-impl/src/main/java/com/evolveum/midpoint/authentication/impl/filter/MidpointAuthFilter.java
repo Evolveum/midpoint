@@ -34,6 +34,7 @@ import com.evolveum.midpoint.authentication.api.RemoveUnusedSecurityFilterPublis
 
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -459,7 +460,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private PrismObject<SecurityPolicyType> resolveSecurityPolicy(MidpointAuthentication mpAuthentication) throws SchemaException {
-        if (!isPrincipalAuthenticated(mpAuthentication)) {
+        if (!principalExists(mpAuthentication)) {
             return getGlobalSecurityPolicy();
         }
         PrismObject<SecurityPolicyType> securityPolicy = null;
@@ -472,7 +473,14 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     private boolean isPrincipalAuthenticated(MidpointAuthentication mpAuthentication) {
         return mpAuthentication != null && mpAuthentication.isAuthenticated() && mpAuthentication.getPrincipal() != null && !mpAuthentication.isAnonymous();
-        }
+    }
+
+    private boolean principalExists(MidpointAuthentication mpAuthentication) {
+        return mpAuthentication != null && mpAuthentication.getPrincipal() != null
+                && mpAuthentication.getPrincipal() instanceof MidPointPrincipal;
+    }
+
+
 
     private PrismObject<SecurityPolicyType> getGlobalSecurityPolicy() throws SchemaException {
         return systemObjectCache.getSecurityPolicy();

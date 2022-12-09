@@ -18,15 +18,19 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.security.util.SecurityQuestionDto;
+import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeVerificationAuthenticationModuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -54,6 +58,7 @@ public class PageAttributeVerification extends PageAuthenticationBase {
     private static final String ID_ATTRIBUTE_VALUE = "attributeValue";
     private static final String ID_SUBMIT_BUTTON = "submit";
     private static final String ID_BACK_BUTTON = "back";
+    private static final String ID_CSRF_FIELD = "csrfField";
 
     LoadableDetachableModel<List<ItemPathType>> attributesPathModel;
     private LoadableDetachableModel<UserType> userModel;
@@ -76,28 +81,51 @@ public class PageAttributeVerification extends PageAuthenticationBase {
 
             @Override
             protected List<ItemPathType> load() {
-                UserType user = userModel.getObject();
-                if (user == null) {
-                    getSession().error(getString("User not found"));
-                    throw new RestartResponseException(PageAttributeVerification.class);
-                }
-                SecurityPolicyType securityPolicy = resolveSecurityPolicy(((UserType) user).asPrismObject());
-                if (securityPolicy == null) {
-                    getSession().error(getString("Security policy not found"));
-                    throw new RestartResponseException(PageAttributeVerification.class);
-                }
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                 if (authentication instanceof MidpointAuthentication) {
-                    MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-                    ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-                    if (moduleAuthentication != null
-                            && AuthenticationModuleNameConstants.ATTRIBUTE_VERIFICATION.equals(moduleAuthentication.getModuleTypeName())) {
-
-                    }
+                    getSession().error(getString("No midPoint authentication is found"));
+                    throw new RestartResponseException(PageError.class);
                 }
-                return new ArrayList<>();
+                MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+                ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+                if (moduleAuthentication == null
+                        && !AuthenticationModuleNameConstants.ATTRIBUTE_VERIFICATION.equals(moduleAuthentication.getModuleTypeName())) {
+                    getSession().error(getString("No authentication module is found"));
+                    throw new RestartResponseException(PageError.class);
+                }
+                if (StringUtils.isEmpty(moduleAuthentication.getModuleIdentifier())) {
+                    getSession().error(getString("No module identifier is defined"));
+                    throw new RestartResponseException(PageError.class);
+                }
+                AttributeVerificationAuthenticationModuleType module = getModuleByIdentifier(moduleAuthentication.getModuleIdentifier());
+                if (module == null) {
+                    getSession().error(getString("No module with identifier \"" + moduleAuthentication.getModuleIdentifier() + "\" is found"));
+                    throw new RestartResponseException(PageError.class);
+                }
+                return module.getPath();
             }
         };
+    }
+
+    private AttributeVerificationAuthenticationModuleType getModuleByIdentifier(String moduleIdentifier) {
+        if (StringUtils.isEmpty(moduleIdentifier)) {
+            return null;
+        }
+        UserType user = userModel.getObject();
+        if (user == null) {
+            getSession().error(getString("User not found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(((UserType) user).asPrismObject());
+        if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
+            getSession().error(getString("Security policy not found"));
+            throw new RestartResponseException(PageError.class);
+        }
+        return securityPolicy.getAuthentication().getModules().getAttributeVerification()
+                .stream()
+                .filter(m -> moduleIdentifier.equals(m.getIdentifier()) || moduleIdentifier.equals(m.getName()))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -105,10 +133,12 @@ public class PageAttributeVerification extends PageAuthenticationBase {
         MidpointForm<?> form = new MidpointForm<>(ID_MAIN_FORM);
         add(form);
 
+        WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
+        form.add(csrfField);
+
         initAttributesLayout(form);
 
         initButtons(form);
-
     }
 
     private void initAttributesLayout(MidpointForm<?> form) {
