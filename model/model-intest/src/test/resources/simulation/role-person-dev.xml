@@ -1,0 +1,25 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="5049daa8-5af8-4036-88af-5f374daf1340">
+    <name>person-dev</name>
+    <lifecycleState>proposed</lifecycleState>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <expression>
+                    <value>role:person-dev</value>
+                </expression>
+                <target>
+                    <path>organization</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+</role>

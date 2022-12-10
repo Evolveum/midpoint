@@ -20,6 +20,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.expr.SequentialValueExpressionEvaluator;
 
+import com.evolveum.midpoint.schema.*;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,10 +48,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.*;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.VirtualAssignmentSpecification;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -400,8 +398,10 @@ public class LensUtil {
     /**
      * Used for assignments and similar objects that do not have separate lifecycle.
      */
-    public static boolean isAssignmentValid(AssignmentHolderType focus, AssignmentType assignment, XMLGregorianCalendar now,
-            ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
+    public static boolean isAssignmentValid(
+            AssignmentHolderType focus, AssignmentType assignment,
+            XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel,
+            @NotNull TaskExecutionMode taskExecutionMode) {
         ObjectReferenceType targetRef = assignment.getTargetRef();
         if (targetRef != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
             // Archetype assignments are always valid, even in non-valid lifecycle states.
@@ -410,10 +410,16 @@ public class LensUtil {
         }
         String focusLifecycleState = focus.getLifecycleState();
 
-        if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState, focusStateModel)) {
+        if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState, focusStateModel, taskExecutionMode)) {
             return false;
         }
-        return isValid(assignment.getLifecycleState(), assignment.getActivation(), now, activationComputer, focusStateModel);
+        return isValid(
+                assignment.getLifecycleState(),
+                assignment.getActivation(),
+                now,
+                activationComputer,
+                focusStateModel,
+                taskExecutionMode);
     }
 
     @NotNull
@@ -438,16 +444,32 @@ public class LensUtil {
         return forcedAssignments;
     }
 
-    public static boolean isFocusValid(AssignmentHolderType focus, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
-        if (FocusType.class.isAssignableFrom(focus.getClass())) {
-            return isValid(focus.getLifecycleState(),  ((FocusType) focus).getActivation(), now, activationComputer, focusStateModel);
-        }
-        return isValid(focus.getLifecycleState(),  null, now, activationComputer, focusStateModel);
+    public static boolean isFocusValid(
+            AssignmentHolderType focus,
+            XMLGregorianCalendar now,
+            ActivationComputer activationComputer,
+            LifecycleStateModelType focusStateModel,
+            @NotNull TaskExecutionMode taskExecutionMode) {
+        ActivationType activation = focus instanceof FocusType ? ((FocusType) focus).getActivation() : null;
+        return isValid(focus.getLifecycleState(), activation, now, activationComputer, focusStateModel, taskExecutionMode);
     }
 
-    private static boolean isValid(String lifecycleState, ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
+    private static boolean isValid(
+            String lifecycleState,
+            ActivationType activationType,
+            XMLGregorianCalendar now,
+            ActivationComputer activationComputer,
+            LifecycleStateModelType focusStateModel,
+            @NotNull TaskExecutionMode taskExecutionMode) {
+        String lifecycleStateHacked;
+        if (!taskExecutionMode.isProductionConfiguration() && SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState)) {
+            lifecycleStateHacked = SchemaConstants.LIFECYCLE_ACTIVE; // FIXME brutal hack
+        } else {
+            lifecycleStateHacked = lifecycleState;
+        }
         TimeIntervalStatusType validityStatus = activationComputer.getValidityStatus(activationType, now);
-        ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(lifecycleState, activationType, validityStatus, focusStateModel);
+        ActivationStatusType effectiveStatus =
+                activationComputer.getEffectiveStatus(lifecycleStateHacked, activationType, validityStatus, focusStateModel);
         return effectiveStatus == ActivationStatusType.ENABLED;
     }
 

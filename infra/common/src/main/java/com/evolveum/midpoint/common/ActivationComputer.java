@@ -9,6 +9,7 @@ package com.evolveum.midpoint.common;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.LifecycleUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -16,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -49,7 +52,11 @@ public class ActivationComputer {
         return getEffectiveStatus(lifecycleStatus, activationType, getValidityStatus(activationType), stateModel);
     }
 
-    public ActivationStatusType getEffectiveStatus(String lifecycleStatus, ActivationType activationType, TimeIntervalStatusType validityStatus, LifecycleStateModelType stateModel) {
+    public ActivationStatusType getEffectiveStatus(
+            String lifecycleStatus,
+            ActivationType activationType,
+            TimeIntervalStatusType validityStatus,
+            LifecycleStateModelType stateModel) {
         ActivationStatusType forcedLifecycleActivationStatus = getForcedLifecycleActivationStatus(lifecycleStatus, stateModel);
         if (forcedLifecycleActivationStatus != null) {
             return forcedLifecycleActivationStatus;
@@ -133,19 +140,25 @@ public class ActivationComputer {
         activationType.setValidityStatus(validityStatus);
     }
 
-    public boolean lifecycleHasActiveAssignments(String lifecycleStatus, LifecycleStateModelType stateModel) {
+    public boolean lifecycleHasActiveAssignments(
+            String lifecycleStatus, LifecycleStateModelType stateModel, @NotNull TaskExecutionMode taskExecutionMode) {
         LifecycleStateType stateDefinition = LifecycleUtil.findStateDefinition(stateModel, lifecycleStatus);
         if (stateDefinition == null) {
-            return defaultLifecycleHasActiveAssignments(lifecycleStatus, stateModel);
+            return defaultLifecycleHasActiveAssignments(lifecycleStatus, stateModel, taskExecutionMode);
         }
         Boolean activeAssignments = stateDefinition.isActiveAssignments();
         if (activeAssignments == null) {
-            return defaultLifecycleHasActiveAssignments(lifecycleStatus, stateModel);
+            return defaultLifecycleHasActiveAssignments(lifecycleStatus, stateModel, taskExecutionMode);
         }
-        return activeAssignments;
+        return activeAssignments; // TODO do we want to have the same property for all task execution modes?
     }
 
-    private boolean defaultLifecycleHasActiveAssignments(String lifecycleStatus, LifecycleStateModelType stateModel) {
+    private boolean defaultLifecycleHasActiveAssignments(
+            String lifecycleStatus, LifecycleStateModelType stateModel, @NotNull TaskExecutionMode taskExecutionMode) {
+        if (!taskExecutionMode.isProductionConfiguration() && SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleStatus)) {
+            return true; // FIXME TEMPORARY IMPLEMENTATION
+        }
+
         ActivationStatusType forcedLifecycleActivationStatus = getForcedLifecycleActivationStatus(lifecycleStatus, stateModel);
         if (forcedLifecycleActivationStatus == null) {
             return true;
@@ -154,7 +167,6 @@ public class ActivationComputer {
             case ENABLED:
                 return true;
             case DISABLED:
-                return false;
             case ARCHIVED:
                 return false;
             default:
@@ -163,7 +175,7 @@ public class ActivationComputer {
     }
 
 
-    public ActivationStatusType getForcedLifecycleActivationStatus(String lifecycleStatus, LifecycleStateModelType stateModel) {
+    private ActivationStatusType getForcedLifecycleActivationStatus(String lifecycleStatus, LifecycleStateModelType stateModel) {
         LifecycleStateType stateDefinition = LifecycleUtil.findStateDefinition(stateModel, lifecycleStatus);
         if (stateDefinition == null) {
             return getHardcodedForcedLifecycleActivationStatus(lifecycleStatus);
@@ -173,7 +185,9 @@ public class ActivationComputer {
 
 
     private ActivationStatusType getHardcodedForcedLifecycleActivationStatus(String lifecycleStatus) {
-        if (lifecycleStatus == null || lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE) || lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
+        if (lifecycleStatus == null
+                || lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ACTIVE)
+                || lifecycleStatus.equals(SchemaConstants.LIFECYCLE_DEPRECATED)) {
             return null;
         } else if (lifecycleStatus.equals(SchemaConstants.LIFECYCLE_ARCHIVED)) {
             return ActivationStatusType.ARCHIVED;
