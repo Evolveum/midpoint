@@ -13,7 +13,14 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.jetbrains.annotations.NotNull;
 import org.testng.SkipException;
 import org.testng.annotations.Test;
 
@@ -31,7 +38,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -44,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * - `test1xx` deal with creation, modification, and deletion of user objects
  * - `test2xx` deal with importing single accounts from source resources
+ * - `test3xx` deal with simulated archetypes, roles, assignments/inducements, mappings
  */
 public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimulationsTest {
 
@@ -622,12 +629,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         }
 
         and("shadow should not have full sync info set");
-        assertShadowAfter(
-                findAccountByUsername("test200", RESOURCE_SIMPLE_PRODUCTION_SOURCE.getResource(), task, result))
-                .assertKind(ShadowKindType.ACCOUNT)
-                .assertIntent("default")
-                .assertIsExists()
-                .assertSynchronizationSituation(null);
+        assertTest20xShadow("test200", task, result);
     }
 
     private void assertTest20xDeltas(String name, Collection<ObjectDelta<?>> simulatedDeltas, String message) {
@@ -677,35 +679,44 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         Task task = getTestTask();
         OperationResult result = task.getResult();
-
         objectsCounter.remember(result);
 
         given("an account on production source");
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.controller.addAccount("test205");
 
-        when("the account is imported");
+        when("the account is imported (on background)");
         String taskOid = executeAccountImportOnBackground("test205", result);
 
         then("no new objects should be created (except for one shadow), no model deltas really executed");
         objectsCounter.assertShadowOnlyIncrement(1, result);
 
         and("there are simulation deltas in persistent storage");
-        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
-        assertTask(taskAfter, "import task after")
-                .display();
-        ObjectReferenceType simResultRef =
-                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
-                        .getSimulation()
-                        .getResultRef();
-        Collection<ObjectDelta<?>> simulatedDeltas =
-                simulationResultManager
-                        .newSimulationContext(simResultRef.getOid())
-                        .getStoredDeltas(result);
+        Collection<ObjectDelta<?>> simulatedDeltas = getTaskSimDeltas(taskOid, result);
         assertTest20xDeltas("test205", simulatedDeltas, "simulated deltas in persistent storage");
 
         and("shadow should not have full sync info set");
+        assertTest20xShadow("test205", task, result);
+    }
+
+    @NotNull
+    private Collection<ObjectDelta<?>> getTaskSimDeltas(String taskOid, OperationResult result) throws CommonException {
+        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
+        assertTask(taskAfter, "import task after")
+                .display();
+        ActivitySimulationStateType simState =
+                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
+                        .getSimulation();
+        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
+        ObjectReferenceType simResultRef = simState.getResultRef();
+        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
+        return simulationResultManager
+                .newSimulationContext(simResultRef.getOid())
+                .getStoredDeltas(result);
+    }
+
+    private void assertTest20xShadow(String name, Task task, OperationResult result) throws CommonException {
         assertShadowAfter(
-                findAccountByUsername("test205", RESOURCE_SIMPLE_PRODUCTION_SOURCE.getResource(), task, result))
+                findAccountByUsername(name, RESOURCE_SIMPLE_PRODUCTION_SOURCE.getResource(), task, result))
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent("default")
                 .assertIsExists()
@@ -720,6 +731,100 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .withTaskExecutionMode(getExecutionMode())
                 .build()
                 .execute(result);
+    }
+
+    /**
+     * Creates a user of archetype `person`, with a rich (conditional) configuration:
+     *
+     * - development-mode assignment of a metarole (with induced focus mapping)
+     * - development-mode inducement of a focus mapping
+     * - development-mode inducement of a regular role
+     * - regular inducement of a development-mode role
+     * - template with:
+     * ** included development-mode sub-template
+     * ** development-mode mapping
+     * ** regular mapping
+     *
+     * So the result depends on the actual evaluation mode.
+     */
+    @Test
+    public void test300CreatePerson() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        objectsCounter.remember(result);
+
+        given("a user");
+        UserType user = new UserType()
+                .name("test300")
+                .assignment(
+                        new AssignmentType()
+                                .targetRef(ARCHETYPE_PERSON.ref()));
+
+        when("user is created in simulation");
+        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        SimulationResult simResult =
+                executeInSimulationMode(
+                        List.of(user.asPrismObject().createAddDelta()),
+                        getExecutionMode(), simulationConfiguration, task, result);
+
+        then("everything is OK");
+        assertSuccess(result);
+
+        and("no new objects should be created, no deltas really executed");
+        objectsCounter.assertNoNewObjects(result);
+        simResult.assertNoExecutedNorAuditedDeltas();
+
+        and("there is a single ADD simulation delta (in testing storage)");
+        assertTest300UserDeltas(simResult.getSimulatedDeltas(), "simulated deltas in testing storage");
+
+        if (simulationConfiguration != null) {
+            and("there is a single ADD simulation delta (in persistent storage)");
+            Collection<ObjectDelta<?>> simulatedDeltas = simResult.getStoredDeltas(result);
+            assertTest300UserDeltas(simulatedDeltas, "simulated deltas in persistent storage");
+        }
+    }
+
+    private void assertTest300UserDeltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
+        // @formatter:off
+        FocusType user = assertDeltaCollection(simulatedDeltas, message)
+                .display()
+                .single()
+                    .assertAdd()
+                    .assertObjectTypeClass(UserType.class)
+                    .objectToAdd()
+                        .assertName("test300")
+                        .objectMetadata()
+                            .assertRequestTimestampPresent()
+                            .assertCreateTimestampPresent()
+                            .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
+                        .end()
+                        .asFocus()
+                        .activation()
+                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                            .assertEnableTimestampPresent()
+                        .end()
+                        .getObjectable();
+        // @formatter:on
+
+        Set<String> orgs = ((UserType) user).getOrganization().stream()
+                .map(PolyStringType::getOrig)
+                .collect(Collectors.toSet());
+        if (isDevelopmentConfiguration()) {
+            assertThat(orgs).as("user orgs").containsExactlyInAnyOrder(
+                    "template:person (proposed)",
+                    "template:person (active)",
+                    "template:person-included-dev",
+                    "archetype:person",
+                    "metarole",
+                    "role:person",
+                    "role:person-dev");
+        } else {
+            assertThat(orgs).as("user orgs").containsExactlyInAnyOrder(
+                    "template:person (active)",
+                    "template:person (proposed)", // FIXME this one should not be here
+                    "template:person-included-dev"); // FIXME this one should not be here
+        }
     }
 
     private boolean isDevelopmentConfiguration() {

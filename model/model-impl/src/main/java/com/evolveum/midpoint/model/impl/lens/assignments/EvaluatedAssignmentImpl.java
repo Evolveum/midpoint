@@ -440,11 +440,10 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
             if (trigger instanceof EvaluatedExclusionTrigger) {
                 EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
-                if (exclTrigger.getConflictingAssignment() != null) {
-                    hasException = hasException ||
-                            processRuleExceptions((EvaluatedAssignmentImpl<AH>) exclTrigger.getConflictingAssignment(),
-                                    rule, triggers);
-                }
+                //noinspection unchecked
+                hasException = hasException
+                        || processRuleExceptions(
+                                (EvaluatedAssignmentImpl<AH>) exclTrigger.getConflictingAssignment(), rule, triggers);
             }
         }
 
