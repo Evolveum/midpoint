@@ -55,7 +55,8 @@ public class MidpointExceptionTranslationFilter extends ExceptionTranslationFilt
         if (authentication instanceof MidpointAuthentication){
             MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
             ModuleAuthenticationImpl moduleAuthentication = (ModuleAuthenticationImpl) mpAuthentication.getProcessingModuleAuthentication();
-            if (moduleAuthentication != null && moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken) {
+            if (moduleAuthentication != null && moduleAuthentication.getAuthentication() instanceof AnonymousAuthenticationToken
+                    && !mpAuthentication.hasSucceededAuthentication()) {
                 moduleAuthentication.setAuthentication(
                         createNewAuthentication((AnonymousAuthenticationToken) moduleAuthentication.getAuthentication()));
                 mpAuthentication.setPrincipal(null);

@@ -19,6 +19,11 @@ import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
@@ -64,7 +69,19 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
             moduleAuthentication.setState(AuthenticationModuleState.SUCCESSFULLY);
             if (mpAuthentication.getAuthenticationChannel() != null) {
                 authenticatedChannel = mpAuthentication.getAuthenticationChannel().getChannelId();
-                if (mpAuthentication.isAuthenticated()) {
+                boolean continueSequence = false;
+                if (mpAuthentication.getPrincipal() instanceof MidPointPrincipal) {
+                    MidPointPrincipal principal = (MidPointPrincipal) mpAuthentication.getPrincipal();
+                    SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
+                    if (securityPolicy != null) {
+                        AuthenticationSequenceType processingSequence = mpAuthentication.getSequence();
+                        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, processingSequence.getIdentifier());
+                        if (processingSequence.getModule().size() != sequence.getModule().size()) {
+                            continueSequence = true;
+                        }
+                    }
+                }
+                if (mpAuthentication.isAuthenticated() && !continueSequence) {
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
                     mpAuthentication.getAuthenticationChannel().postSuccessAuthenticationProcessing();
                     if (mpAuthentication.getAuthenticationChannel().isPostAuthenticationEnabled()) {

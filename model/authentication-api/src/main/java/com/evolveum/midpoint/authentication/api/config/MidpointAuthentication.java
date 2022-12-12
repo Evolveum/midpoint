@@ -66,6 +66,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private Collection<? extends GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
     public static int NO_PROCESSING_MODULE_INDEX = -2;
     public static int NO_MODULE_FOUND_INDEX = -1;
+    private boolean merged = false;
+
 
     public MidpointAuthentication(AuthenticationSequenceType sequence) {
         super(null);
@@ -246,6 +248,14 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return !isAuthenticated()
                 && getProcessingModuleAuthentication() == null
                 && getAuthentications().size() == getAuthModules().size();
+    }
+
+    public boolean isMerged() {
+        return merged;
+    }
+
+    public void setMerged(boolean merged) {
+        this.merged = merged;
     }
 
     @Override

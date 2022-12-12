@@ -152,13 +152,14 @@ public class MidpointAuthFilter extends GenericFilterBean {
         authWrapper.authenticationChannel = AuthSequenceUtil.buildAuthChannel(authChannelRegistry, authWrapper.sequence);
         try {
             initAuthenticationModule(mpAuthentication, authWrapper, httpRequest);
-            if (mpAuthentication != null && authWrapper.switchSecurityPolicy) {
+            if (mpAuthentication != null && authWrapper.switchSecurityPolicy && !mpAuthentication.isMerged()) {
                 mpAuthentication.getAuthModules().clear();
                 mpAuthentication.setAuthModules(authWrapper.authModules);
                 AuthModule module = getUnauthenticatedModule(authWrapper.authModules, mpAuthentication);
                 if (module != null) {
                     mpAuthentication.addAuthentications(module.getBaseModuleAuthentication());
                 }
+                mpAuthentication.setMerged(true);
             }
 
             if (isRequestAuthenticated(mpAuthentication, authWrapper)) {

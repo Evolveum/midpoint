@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema.util;
 import java.util.Objects;
 import java.util.*;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
@@ -141,5 +143,21 @@ public class SecurityPolicyUtil {
         }
 
         return selfRegistrationPolicy;
+    }
+
+    public static AuthenticationSequenceType findSequenceByIdentifier(@NotNull SecurityPolicyType securityPolicy, String identifier) {
+        if (StringUtils.isEmpty(identifier)) {
+            return null;
+        }
+        if (securityPolicy.getAuthentication() == null || CollectionUtils.isEmpty(securityPolicy.getAuthentication().getSequence())) {
+            return null;
+        }
+        return securityPolicy
+                .getAuthentication()
+                .getSequence()
+                .stream()
+                .filter(s -> s.getIdentifier().equals(identifier))
+                .findFirst()
+                .orElse(null);
     }
 }
