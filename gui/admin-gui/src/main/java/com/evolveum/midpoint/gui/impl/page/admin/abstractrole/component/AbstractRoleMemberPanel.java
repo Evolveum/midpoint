@@ -234,7 +234,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
             }
 
             protected PageStorage getPageStorage(String storageKey) {
-                return getSession().getSessionStorage().getPageStorageMap().get(storageKey);
+                return getMemberPanelStorage();
             }
 
             @Override
