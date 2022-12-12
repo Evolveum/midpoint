@@ -27,23 +27,24 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReferenceSearchItemWrapper<T extends Serializable> extends PropertySearchItemWrapper {
+public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<ObjectReferenceType> {
 
     PrismReferenceDefinition def;
     Class<? extends Containerable> searchType;
-    List<T> availableValues = new ArrayList<>();
+//    List<T> availableValues = new ArrayList<>();
 
     public ReferenceSearchItemWrapper(PrismReferenceDefinition def, Class<? extends Containerable> searchType) {
-        this(def, new ArrayList<>(), searchType);
-    }
-
-    public ReferenceSearchItemWrapper(PrismReferenceDefinition def,
-            List<T> availableValues, Class<? extends Containerable> searchType) {
         super(def.getItemName());
         this.def = def;
         this.searchType = searchType;
-        this.availableValues.addAll(availableValues);
     }
+
+//    public ReferenceSearchItemWrapper(PrismReferenceDefinition def, Class<? extends Containerable> searchType) {
+//        super(def.getItemName());
+//        this.def = def;
+//        this.searchType = searchType;
+////        this.availableValues.addAll(availableValues);
+//    }
 
     public PrismReferenceDefinition getDef() {
         return def;
@@ -87,7 +88,7 @@ public class ReferenceSearchItemWrapper<T extends Serializable> extends Property
         return refFilter;
     }
 
-    public List<T> getAvailableValues() {
-        return availableValues;
-    }
+//    public List<T> getAvailableValues() {
+//        return availableValues;
+//    }
 }

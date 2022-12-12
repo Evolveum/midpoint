@@ -21,7 +21,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import java.io.Serializable;
 import java.util.Objects;
 
-public abstract class AbstractSearchItemWrapper<T extends Serializable> implements Serializable, SelectableRow {
+public abstract class AbstractSearchItemWrapper<T> implements Serializable, SelectableRow {
 
     public static final String F_SELECTED = "selected";
     public static final String F_VALUE = "value.value";

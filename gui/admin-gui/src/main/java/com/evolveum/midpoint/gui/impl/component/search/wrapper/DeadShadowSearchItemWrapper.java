@@ -11,9 +11,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.apache.commons.lang3.BooleanUtils;
 import java.util.List;
 
-public class DeadShadowSearchItemWrapper<T> extends ChoicesSearchItemWrapper<T> {
+public class DeadShadowSearchItemWrapper extends ChoicesSearchItemWrapper<Boolean> {
 
-    public DeadShadowSearchItemWrapper(List<DisplayableValue<T>> availableValues) {
+    public DeadShadowSearchItemWrapper(List<DisplayableValue<Boolean>> availableValues) {
         super(ShadowType.F_DEAD, availableValues);
     }
 

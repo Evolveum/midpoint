@@ -21,7 +21,7 @@ public class AutoCompleteSearchItemPanel extends SingleSearchItemPanel<AutoCompl
     @Override
     protected Component initSearchItemField(String id) {
         return createAutoCompetePanel(id, new PropertyModel<>(getModel(), AutoCompleteSearchItemWrapper.F_VALUE),
-                getModelObject().getLookupTable());
+                getModelObject().getLookupTableOid());
     }
 
 }

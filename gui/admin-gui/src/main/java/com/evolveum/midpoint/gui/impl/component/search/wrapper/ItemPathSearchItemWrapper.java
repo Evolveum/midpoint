@@ -16,7 +16,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-public class ItemPathSearchItemWrapper extends PropertySearchItemWrapper {
+public class ItemPathSearchItemWrapper extends PropertySearchItemWrapper<ItemPathType> {
 
     public ItemPathSearchItemWrapper(ItemPath path) {
         super(path);

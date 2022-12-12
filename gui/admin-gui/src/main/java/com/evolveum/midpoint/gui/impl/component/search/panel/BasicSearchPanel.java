@@ -43,12 +43,12 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
         initBasicSearchItemsModel();
         initMorePopupModel();
         initLayout();
-
     }
 
     private void initBasicSearchItemsModel() {
-        basicSearchItemsModel = new LoadableDetachableModel<List<AbstractSearchItemWrapper>>() {
+        basicSearchItemsModel = new LoadableDetachableModel<>() {
             private static final long serialVersionUID = 1L;
+
             @Override
             protected List<AbstractSearchItemWrapper> load() {
                 return getModelObject().getItemsList()
@@ -127,9 +127,7 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
                 popoverPanel.togglePopover(target);
             }
         };
-        more.add(new VisibleBehaviour(() -> {
-            return CollectionUtils.isNotEmpty(morePopupModel.getObject());
-        }));
+        more.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(morePopupModel.getObject())));
         more.setOutputMarkupId(true);
         add(more);
     }
@@ -166,7 +164,7 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
             }
         });
         target.add(BasicSearchPanel.this);
-//        refreshSearchForm(target);
+        target.add(getParent());
     }
 
 }

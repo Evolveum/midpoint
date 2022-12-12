@@ -163,11 +163,11 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
     protected abstract Component initSearchItemField(String id);
 
     protected boolean canRemoveSearchItem() {
-        return getModelObject().canRemoveSearchItem();
+        return getModelObject() != null && getModelObject().canRemoveSearchItem();
     }
 
     private boolean isSearchItemFieldVisible() {
-        return getModelObject().isVisible() && noFilterOrHasParameters();
+        return getModelObject() != null && getModelObject().isVisible() && noFilterOrHasParameters();
     }
 
     private boolean noFilterOrHasParameters() {
@@ -198,27 +198,21 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
         getModelObject().setVisible(false);
         getModelObject().setValue(getModelObject().getDefaultValue());
         SearchPanel panel = findParent(SearchPanel.class);
+        target.add(panel);
 //        panel.displayedSearchItemsModelReset();
-        panel.refreshSearchForm(target);
+//        panel.refreshSearchForm(target);
         panel.searchPerformed(target);
     }
 
-    protected IModel<List<DisplayableValue<Boolean>>> createBooleanChoices() {
-        List<DisplayableValue<Boolean>> list = new ArrayList<>();
-        list.add(new SearchValue<>(Boolean.TRUE, "Boolean.TRUE"));
-        list.add(new SearchValue<>(Boolean.FALSE, "Boolean.FALSE"));
-        return Model.ofList(list);
-    }
-
-    protected AutoCompleteTextPanel createAutoCompetePanel(String id, IModel<String> model, LookupTableType lookupTable) {
+    protected AutoCompleteTextPanel createAutoCompetePanel(String id, IModel<String> model, String lookupTableOid) {
         AutoCompleteTextPanel<String> autoCompletePanel = new AutoCompleteTextPanel<String>(id, model, String.class,
-                true, lookupTable) {
+                true, lookupTableOid) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public Iterator<String> getIterator(String input) {
-                return WebComponentUtil.prepareAutoCompleteList(lookupTable, input).iterator();
+                return WebComponentUtil.prepareAutoCompleteList(getLookupTable(), input).iterator();
             }
         };
 
@@ -253,6 +247,6 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
     }
 
     private boolean isCheckPanelVisible() {
-        return getModelObject().getPredefinedFilter() != null;
+        return getModelObject() != null && getModelObject().getPredefinedFilter() != null;
     }
 }

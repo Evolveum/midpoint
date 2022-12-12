@@ -39,7 +39,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class PropertySearchItemWrapper<T extends Serializable> extends AbstractSearchItemWrapper<T> {
+public class PropertySearchItemWrapper<T> extends AbstractSearchItemWrapper<T> {
 
     public static final Trace LOGGER = TraceManager.getTrace(PropertySearchItemWrapper.class);
 

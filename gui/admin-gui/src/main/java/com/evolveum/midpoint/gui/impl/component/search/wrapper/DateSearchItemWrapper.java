@@ -19,7 +19,7 @@ import com.evolveum.midpoint.web.component.search.SearchValue;
 
 import java.io.Serializable;
 
-public class DateSearchItemWrapper extends PropertySearchItemWrapper {
+public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregorianCalendar> {
 
     private static final long serialVersionUID = 1L;
 
@@ -67,10 +67,11 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper {
         isInterval = interval;
     }
 
+
     @Override
-    public DisplayableValue<?> getValue() {
+    public DisplayableValue<XMLGregorianCalendar> getValue() {
         if (!isInterval && singleDate != null) {
-            return new SearchValue<>((Serializable)singleDate);
+            return new SearchValue<>(singleDate);
         }
         return super.getValue();
     }

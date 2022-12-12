@@ -30,17 +30,17 @@ public class TextSearchItemPanel extends PropertySearchItemPanel<TextSearchItemW
     @Override
     protected Component initSearchItemField(String id) {
         String valueEnumerationRefOid = getModelObject().getValueEnumerationRefOid();
-        QName valueEnumerationRefType = getModelObject().getValueEnumerationRefType();
-        PrismObject<LookupTableType> lookupTablePrism = null;
-        if (StringUtils.isNotEmpty(valueEnumerationRefOid)) {
-            ObjectReferenceType ort = new ObjectReferenceType();
-            ort.setOid(valueEnumerationRefOid);
-            ort.setType(valueEnumerationRefType);
-            lookupTablePrism = WebComponentUtil.findLookupTable(ort.asReferenceValue(), getPageBase());
-        }
-        LookupTableType lookupTable = lookupTablePrism != null ? lookupTablePrism.asObjectable() : null;
-        if (lookupTable != null) {
-            return createAutoCompetePanel(id, new PropertyModel<>(getModel(), TextSearchItemWrapper.F_VALUE), lookupTable);
+//        QName valueEnumerationRefType = getModelObject().getValueEnumerationRefType();
+//        PrismObject<LookupTableType> lookupTablePrism = null;
+//        if (StringUtils.isNotEmpty(valueEnumerationRefOid)) {
+//            ObjectReferenceType ort = new ObjectReferenceType();
+//            ort.setOid(valueEnumerationRefOid);
+//            ort.setType(valueEnumerationRefType);
+//            lookupTablePrism = WebComponentUtil.findLookupTable(ort.asReferenceValue(), getPageBase());
+//        }
+//        LookupTableType lookupTable = lookupTablePrism != null ? lookupTablePrism.asObjectable() : null;
+        if (valueEnumerationRefOid != null) {
+            return createAutoCompetePanel(id, new PropertyModel<>(getModel(), TextSearchItemWrapper.F_VALUE), valueEnumerationRefOid);
         } else {
             return new TextPanel<String>(id, new PropertyModel<>(getModel(), TextSearchItemWrapper.F_VALUE));
         }

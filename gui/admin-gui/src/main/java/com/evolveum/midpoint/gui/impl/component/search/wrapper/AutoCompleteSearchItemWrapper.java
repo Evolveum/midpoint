@@ -12,21 +12,21 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
-public class AutoCompleteSearchItemWrapper extends PropertySearchItemWrapper {
+public class AutoCompleteSearchItemWrapper extends PropertySearchItemWrapper<String> {
 
-    private LookupTableType lookupTable;
+    private String lookupTableOid;
 
-    public AutoCompleteSearchItemWrapper(ItemPath path, LookupTableType lookupTable) {
+    public AutoCompleteSearchItemWrapper(ItemPath path, String lookupTableOid) {
         super(path);
-        this.lookupTable = lookupTable;
+        this.lookupTableOid = lookupTableOid;
     }
 
     public Class<AutoCompleteSearchItemPanel> getSearchItemPanelClass() {
         return AutoCompleteSearchItemPanel.class;
     }
 
-    public LookupTableType getLookupTable() {
-        return lookupTable;
+    public String getLookupTableOid() {
+        return lookupTableOid;
     }
 
     public DisplayableValue<String> getDefaultValue() {

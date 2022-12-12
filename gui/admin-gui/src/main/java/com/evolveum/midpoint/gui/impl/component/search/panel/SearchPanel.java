@@ -249,25 +249,32 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         form.add(choices);
 
 
+        initSpecificSearchPanel(panelId, form);
+    }
+
+    public void initSpecificSearchPanel(String panelId, Form form) {
         SearchBoxModeType modeType = getModelObject().getSearchMode();
         switch (modeType) {
             case BASIC:
                 BasicSearchPanel<C> basicSearchPanel = new BasicSearchPanel<>(panelId, new PropertyModel<>(getModel(), "searchConfigurationWrapper"));
+                basicSearchPanel.setOutputMarkupId(true);
                 form.addOrReplace(basicSearchPanel);
                 break;
             case AXIOM_QUERY:
                 AxiomSearchPanel<C> axiomSearchPanel = new AxiomSearchPanel<>(panelId, new PropertyModel<>(getModel(), "axiomQueryWrapper"));
+                axiomSearchPanel.setOutputMarkupId(true);
                 form.addOrReplace(axiomSearchPanel);
                 break;
             case ADVANCED:
                 XmlSearchPanel xmlSearchPanel = new XmlSearchPanel(panelId, new PropertyModel<>(getModel(), "advancedQueryWrapper"));
+                xmlSearchPanel.setOutputMarkupId(true);
                 form.addOrReplace(xmlSearchPanel);
                 break;
             default:
                 BasicSearchPanel<C> defaultSearchpanel = new BasicSearchPanel<>(panelId, new PropertyModel<>(getModel(), "searchConfigurationWrapper"));
+                defaultSearchpanel.setOutputMarkupId(true);
                 form.addOrReplace(defaultSearchpanel);
         }
-
     }
 
     private void initSavedFiltersContainer(MidpointForm form) {
@@ -664,7 +671,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 //        displayedSearchItemsModelReset();
 //        morePopupModel.detach();
         Form form = (Form) get(ID_FORM);
-        initSearchPanel(ID_SEARCH_ITEMS_PANEL, form);
+        initSpecificSearchPanel(ID_SEARCH_ITEMS_PANEL, form);
         target.add(form);
         saveSearch(getModelObject(), target);
     }

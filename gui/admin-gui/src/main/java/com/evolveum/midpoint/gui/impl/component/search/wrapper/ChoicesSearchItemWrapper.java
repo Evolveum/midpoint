@@ -15,9 +15,10 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class ChoicesSearchItemWrapper<T> extends PropertySearchItemWrapper {
+public class ChoicesSearchItemWrapper<T extends Serializable> extends PropertySearchItemWrapper<T> {
 
     List<DisplayableValue<T>> availableValues;
 

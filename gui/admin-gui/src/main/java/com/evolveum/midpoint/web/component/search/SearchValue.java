@@ -18,7 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class SearchValue<T extends Serializable> implements DisplayableValue<T>, Serializable {
+public class SearchValue<T> implements DisplayableValue<T>, Serializable {
 
     private static final long serialVersionUID = 1L;
 
