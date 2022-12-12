@@ -2095,12 +2095,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         then("Delta should be marked as broken and preview should show add shadow delta");
 
-        ModelContextVisualization modelScene = modelInteractionService.visualizeModelContext(modelContext, task, result);
-        List<? extends Visualization> secondaryScenes = modelScene.getSecondary();
+        ModelContextVisualization mcVisualization = modelInteractionService.visualizeModelContext(modelContext, task, result);
+        List<? extends Visualization> secondary = mcVisualization.getSecondary();
 
-        AssertJUnit.assertEquals(1, secondaryScenes.size());
+        AssertJUnit.assertEquals(1, secondary.size());
 
-        Visualization scene = secondaryScenes.get(0);
+        Visualization scene = secondary.get(0);
         AssertJUnit.assertTrue(scene.isBroken());
         AssertJUnit.assertEquals(ChangeType.ADD, scene.getChangeType());
 

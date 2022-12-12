@@ -9,30 +9,29 @@ package com.evolveum.midpoint.model.impl.visualizer.output;
 
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.SingleLocalizableMessage;
 
-public class SceneItemValueImpl implements VisualizationItemValue {
+public class VisualizationItemValueImpl implements VisualizationItemValue {
 
     private final LocalizableMessage text;
     private final LocalizableMessage additionalText;
     private PrismValue sourceValue;
 
-    public SceneItemValueImpl(String text) {
+    public VisualizationItemValueImpl(String text) {
         this(text, null);
     }
 
-    public SceneItemValueImpl(String text, String additionalText) {
+    public VisualizationItemValueImpl(String text, String additionalText) {
         this.text = text != null ? new SingleLocalizableMessage(text, new Object[0], text) : null;
         this.additionalText = additionalText != null ? new SingleLocalizableMessage(additionalText, new Object[0], additionalText) : null;
     }
 
-    public SceneItemValueImpl(LocalizableMessage text) {
+    public VisualizationItemValueImpl(LocalizableMessage text) {
         this(text, null);
     }
 
-    public SceneItemValueImpl(LocalizableMessage text, LocalizableMessage additionalText) {
+    public VisualizationItemValueImpl(LocalizableMessage text, LocalizableMessage additionalText) {
         this.text = text;
         this.additionalText = additionalText;
     }
@@ -66,7 +65,7 @@ public class SceneItemValueImpl implements VisualizationItemValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SceneItemValueImpl that = (SceneItemValueImpl) o;
+        VisualizationItemValueImpl that = (VisualizationItemValueImpl) o;
 
         if (text != null ? !text.equals(that.text) : that.text != null) return false;
         return !(sourceValue != null ? !sourceValue.equals(that.sourceValue) : that.sourceValue != null);

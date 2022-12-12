@@ -19,7 +19,7 @@
                 </small>
                 <i class="fa fa-triangle-exclamation text-warning mr-1" wicket:id="warning" wicket:message="title:ScenePanel.warningMessage"></i>
             </h3>
-            <div class="card-tools" wicket:id="optionButtons" />
+            <div class="card-tools" wicket:id="optionButtons"/>
         </div>
 
         <div wicket:id="body" class="card-body p-0">
@@ -29,18 +29,24 @@
                         <wicket:message key="ScenePanel.item"/>
                         <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-tool"></button>
                     </th>
-                    <th wicket:id="oldValueLabel"><wicket:message key="ScenePanel.oldValue"/></th>
-                    <th wicket:id="newValueLabel"><wicket:message key="ScenePanel.newValue"/></th>
-                    <th wicket:id="valueLabel"><wicket:message key="ScenePanel.value"/></th>
+                    <th wicket:id="oldValueLabel">
+                        <wicket:message key="ScenePanel.oldValue"/>
+                    </th>
+                    <th wicket:id="newValueLabel">
+                        <wicket:message key="ScenePanel.newValue"/>
+                    </th>
+                    <th wicket:id="valueLabel">
+                        <wicket:message key="ScenePanel.value"/>
+                    </th>
                 </tr>
                 <wicket:container wicket:id="items">
                     <span wicket:id="item"/>
                 </wicket:container>
             </table>
-            <wicket:container wicket:id="partialScenes">
-                <div wicket:id="partialScene" style="padding: 10px;"/>
+            <wicket:container wicket:id="partialVisualizations">
+                <div wicket:id="partialVisualization" style="padding: 10px;"/>
             </wicket:container>
-            <div class="show-empty-button" wicket:id="showOperationalItemsLink" />
+            <div class="show-empty-button" wicket:id="showOperationalItemsLink"/>
         </div>
     </div>
 </wicket:panel>

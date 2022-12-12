@@ -21,16 +21,16 @@ import java.util.List;
 
 import static org.apache.commons.lang3.Validate.notNull;
 
-public class SceneItemImpl implements VisualizationItem, DebugDumpable {
+public class VisualizationItemImpl implements VisualizationItem, DebugDumpable {
 
     protected final NameImpl name;
-    protected List<SceneItemValueImpl> newValues;
+    protected List<VisualizationItemValueImpl> newValues;
     protected boolean operational;
     protected Item<?,?> sourceItem;
     protected ItemPath sourceRelPath;
     protected boolean descriptive;                    // added only as a description of container value being changed
 
-    public SceneItemImpl(NameImpl name) {
+    public VisualizationItemImpl(NameImpl name) {
         notNull(name);
         this.name = name;
     }
@@ -45,7 +45,7 @@ public class SceneItemImpl implements VisualizationItem, DebugDumpable {
         return newValues;
     }
 
-    public void setNewValues(List<SceneItemValueImpl> newValues) {
+    public void setNewValues(List<VisualizationItemValueImpl> newValues) {
         this.newValues = newValues;
     }
 
@@ -122,14 +122,14 @@ public class SceneItemImpl implements VisualizationItem, DebugDumpable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SceneItemImpl sceneItem = (SceneItemImpl) o;
+        VisualizationItemImpl other = (VisualizationItemImpl) o;
 
-        if (operational != sceneItem.operational) return false;
-        if (descriptive != sceneItem.descriptive) return false;
-        if (name != null ? !name.equals(sceneItem.name) : sceneItem.name != null) return false;
-        if (newValues != null ? !newValues.equals(sceneItem.newValues) : sceneItem.newValues != null) return false;
-        if (sourceItem != null ? !sourceItem.equals(sceneItem.sourceItem) : sceneItem.sourceItem != null) return false;
-        return !(sourceRelPath != null ? !sourceRelPath.equals(sceneItem.sourceRelPath) : sceneItem.sourceRelPath != null);
+        if (operational != other.operational) return false;
+        if (descriptive != other.descriptive) return false;
+        if (name != null ? !name.equals(other.name) : other.name != null) return false;
+        if (newValues != null ? !newValues.equals(other.newValues) : other.newValues != null) return false;
+        if (sourceItem != null ? !sourceItem.equals(other.sourceItem) : other.sourceItem != null) return false;
+        return !(sourceRelPath != null ? !sourceRelPath.equals(other.sourceRelPath) : other.sourceRelPath != null);
 
     }
 

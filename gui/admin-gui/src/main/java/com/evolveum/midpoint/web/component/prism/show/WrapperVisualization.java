@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.web.component.prism.show;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.api.visualizer.Name;
 import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.api.visualizer.VisualizationItem;
@@ -16,24 +22,19 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
- * Artificial implementation of a scene used to hold a list of deltas.
+ * Artificial implementation of a visualization used to hold a list of deltas.
  * (A bit of hack, unfortunately.)
  */
-public class WrapperScene implements Visualization {
+public class WrapperVisualization implements Visualization {
 
     private String displayNameKey;
     private Object[] displayNameParameters;
-    private List<? extends Visualization> partialScenes;
+    private List<? extends Visualization> partialVisualizations;
 
-    public WrapperScene(List<? extends Visualization> partialScenes, String displayNameKey, Object... displayNameParameters) {
-        this.partialScenes = partialScenes;
+    public WrapperVisualization(List<? extends Visualization> partialVisualizations, String displayNameKey, Object... displayNameParameters) {
+        this.partialVisualizations = partialVisualizations;
         this.displayNameKey = displayNameKey;
         this.displayNameParameters = displayNameParameters;
     }
@@ -85,7 +86,7 @@ public class WrapperScene implements Visualization {
     @NotNull
     @Override
     public List<? extends Visualization> getPartialVisualizations() {
-        return partialScenes;
+        return partialVisualizations;
     }
 
     @NotNull
@@ -136,11 +137,11 @@ public class WrapperScene implements Visualization {
 
     @Override
     public boolean isEmpty() {
-        if (partialScenes == null) {
+        if (partialVisualizations == null) {
             return true;
         }
-        for (Visualization scene : partialScenes) {
-            if (!scene.isEmpty()) {
+        for (Visualization visualization : partialVisualizations) {
+            if (!visualization.isEmpty()) {
                 return false;
             }
         }
@@ -154,21 +155,20 @@ public class WrapperScene implements Visualization {
 
     @Override
     public String debugDump(int indent) {
-        return DebugUtil.debugDump(partialScenes, indent);
+        return DebugUtil.debugDump(partialVisualizations, indent);
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
 
-        WrapperScene that = (WrapperScene) o;
+        WrapperVisualization that = (WrapperVisualization) o;
 
-        if (displayNameKey != null ? !displayNameKey.equals(that.displayNameKey) : that.displayNameKey != null)
-            return false;
+        if (displayNameKey != null ? !displayNameKey.equals(that.displayNameKey) : that.displayNameKey != null) {return false;}
         // Probably incorrect - comparing Object[] arrays with Arrays.equals
-        if (!Arrays.equals(displayNameParameters, that.displayNameParameters)) return false;
-        return !(partialScenes != null ? !partialScenes.equals(that.partialScenes) : that.partialScenes != null);
+        if (!Arrays.equals(displayNameParameters, that.displayNameParameters)) {return false;}
+        return !(partialVisualizations != null ? !partialVisualizations.equals(that.partialVisualizations) : that.partialVisualizations != null);
 
     }
 
@@ -176,7 +176,7 @@ public class WrapperScene implements Visualization {
     public int hashCode() {
         int result = displayNameKey != null ? displayNameKey.hashCode() : 0;
         result = 31 * result + (displayNameParameters != null ? Arrays.hashCode(displayNameParameters) : 0);
-        result = 31 * result + (partialScenes != null ? partialScenes.hashCode() : 0);
+        result = 31 * result + (partialVisualizations != null ? partialVisualizations.hashCode() : 0);
         return result;
     }
 }

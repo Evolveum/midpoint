@@ -21,19 +21,19 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
  * @author mserbak
  * @author lazyman
  */
-public class SceneButtonPanel extends Panel {
+public class VisualizationButtonPanel extends Panel {
     private static final long serialVersionUID = 1L;
 
     public static final String ID_MINIMIZE_BUTTON = "minimizeButton";
     public static final String ID_ICON = "icon";
 
-    public SceneButtonPanel(String id, IModel<SceneDto> model) {
+    public VisualizationButtonPanel(String id, IModel<VisualizationDto> model) {
         super(id);
 
         initLayout(model);
     }
 
-    private void initLayout(final IModel<SceneDto> model) {
+    private void initLayout(final IModel<VisualizationDto> model) {
         AjaxLink<String> minimize = new AjaxLink<String>(ID_MINIMIZE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
@@ -50,7 +50,7 @@ public class SceneButtonPanel extends Panel {
 
             @Override
             public String getObject() {
-                SceneDto dto = model.getObject();
+                VisualizationDto dto = model.getObject();
                 if (dto.isMinimized()) {
                     return GuiStyleConstants.CLASS_ICON_EXPAND;
                 }
@@ -65,7 +65,7 @@ public class SceneButtonPanel extends Panel {
 
             @Override
             public String getObject() {
-                SceneDto dto = model.getObject();
+                VisualizationDto dto = model.getObject();
                 if (dto.isMinimized()) {
                     return getString("prismOptionButtonPanel.maximize");
                 }
