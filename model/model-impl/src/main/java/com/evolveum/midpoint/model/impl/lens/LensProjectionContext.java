@@ -1716,7 +1716,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     /**
-     * @return True if the projection is "current" i.e. it was not completed and its wave is
+     * Returns true if the projection is "current" i.e. it was not completed and its wave is
      * either not yet determined or equal to the current projection wave.
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -1865,5 +1865,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             throw new IllegalStateException("No resource"); // temporary
         }
         return SimulationUtil.isInProduction(resource, getStructuralObjectDefinition());
+    }
+
+    public boolean hasResource() {
+        return resource != null;
     }
 }

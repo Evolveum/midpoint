@@ -263,6 +263,13 @@ public class Projector {
             return;
         }
 
+        if (!projectionContext.hasResource()) {
+            // There's probably no point in computing projections that have no resource
+            recordSkipReason(parentResult,
+                    "Skipping projection because the resource for the projection context is not known");
+            return;
+        }
+
         if (!projectionContext.isVisible()) {
             recordSkipReason(parentResult,
                     "Skipping projection because the resource or object definition is not visible in current task"
