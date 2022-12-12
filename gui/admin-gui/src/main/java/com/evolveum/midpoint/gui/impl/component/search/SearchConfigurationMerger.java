@@ -196,36 +196,6 @@ public class SearchConfigurationMerger {
         if (customConfig == null) {
             return config;
         }
-//        if (CollectionUtils.isNotEmpty(customConfig.getAllowedModeList())) {
-//            config.getAllowedModeList().clear();
-//            config.getAllowedModeList().addAll(customConfig.getAllowedModeList());
-//        }
-//        if (StringUtils.isNotEmpty(customConfig.getCollectionRefOid())) {
-//            config.setCollectionRefOid(customConfig.getCollectionRefOid());
-//        }
-//        if (StringUtils.isNotEmpty(customConfig.getCollectionViewName())) {
-//            config.setCollectionViewName(customConfig.getCollectionViewName());
-//        }
-//        if (customConfig.getDefaultSearchBoxMode() != null  && config.getAllowedModeList().contains(customConfig.getDefaultScope())) {
-//            config.setDefaultSearchBoxMode(customConfig.getDefaultSearchBoxMode());
-//        }
-//        if (customConfig.getDefaultScope() != null) {
-//            config.setDefaultScope(customConfig.getDefaultScope());
-//        }
-//        if (customConfig.getTypeClass() != null) {
-//            config.setTypeClass(customConfig.getTypeClass());
-//        }
-//        if (CollectionUtils.isNotEmpty(customConfig.getAllowedTypeList())) {
-//            config.getAllowedTypeList().clear();
-//            config.getAllowedTypeList().addAll(customConfig.getAllowedTypeList());
-//        }
-//        if (customConfig.getDefaultRelation() != null) {
-//            config.setDefaultRelation(customConfig.getDefaultRelation());
-//        }
-//        if (CollectionUtils.isNotEmpty(customConfig.getSupportedRelations())) {
-//            config.getSupportedRelations().clear();
-//            config.getSupportedRelations().addAll(customConfig.getSupportedRelations());
-//        }
 
         if (CollectionUtils.isNotEmpty(customConfig.getItemsList())) {
             if (replaceSearchItems) {

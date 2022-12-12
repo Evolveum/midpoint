@@ -42,21 +42,6 @@ public class SearchFactory {
     private static final String LOAD_ADMIN_GUI_CONFIGURATION = DOT_CLASS + "loadAdminGuiConfiguration";
     protected static final String OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION = DOT_CLASS + "loadFullTextSearchConfiguration";
 
-//    public static <C extends Containerable> Search<C> createMemberSearch(Class<C> type, List<QName> supportedTypes, List<QName> supportedRelations,
-//            QName abstractRoleType, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
-//        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultOrgMembersSearchBoxConfiguration(type, supportedTypes, supportedRelations, modelServiceLocator);
-//
-//        SearchBoxConfigurationType mergedConfig = getMergedConfiguration(defaultSearchBox, collectionView);
-//        SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(type, collectionView, mergedConfig, modelServiceLocator);
-//
-//
-//        return createSearch(type, mergedConfig, collectionView, basicSearchWrapper, modelServiceLocator);
-//
-//    }
-//    public static <C extends Containerable> Search<C> createSearch(Class<C> type, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
-//        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, modelServiceLocator);
-//        return createSearch(type,  defaultSearchBox, collectionView, modelServiceLocator);
-//    }
 
     public static <C extends Containerable> Search<C> createSearch(PrismContainerDefinition<C> definition, SearchBoxConfigurationType defaultSearchBoxConfig, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
         SearchBoxConfigurationType mergedConfig = getMergedConfiguration(defaultSearchBoxConfig, collectionView);
@@ -104,50 +89,6 @@ public class SearchFactory {
         return search;
     }
 
-//    protected PrismContainerDefinition<C> getTypeDefinitionForSearch() {
-//        return getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
-//    }
-
-//    public static Search<AssignmentType> createAssignmnetSearch(QName targetType, boolean isRepoSearchEnabled, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
-//
-//        PrismContainerDefinition<AssignmentType> definitionOverwrite;
-//        PrismContainerDefinition<AssignmentType> orig = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
-//        if (targetType == null) {
-//            definitionOverwrite = orig;
-//        } else {
-//            // We have more concrete assignment type, we should replace targetRef definition
-//            // with one with concrete assignment type.
-//            definitionOverwrite = modelServiceLocator.getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, targetType);
-//        }
-//
-//        var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(targetType), ObjectType.F_EXTENSION);
-//        SearchBoxConfigurationType defaultSearchBox = SearchBoxConfigurationUtil.getDefaultAssignmentSearchBoxConfiguration(targetType, definitionOverwrite, Arrays.asList(ObjectType.F_EXTENSION, targetExtensionPath), modelServiceLocator);
-//
-//        SearchBoxConfigurationType mergedConfig = getMergedConfiguration(defaultSearchBox, collectionView);
-//
-//        SearchConfigurationWrapper<AssignmentType> basicSearchWrapper = createBasicSearchWrapper(AssignmentType.class, collectionView, mergedConfig, modelServiceLocator);
-////        addAssignmentTargetSpecificItems(targetType, definitionOverwrite, basicSearchWrapper, modelServiceLocator);
-//
-//        Search<AssignmentType> search = createSearch(AssignmentType.class, mergedConfig, collectionView, basicSearchWrapper, modelServiceLocator);
-//
-//        search.setContainerDefinition(definitionOverwrite);
-//        if (isRepoSearchEnabled) {
-//            OperationResult result = new OperationResult(OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION);
-//            try {
-//                FullTextSearchConfigurationType config = modelServiceLocator.getModelInteractionService().getSystemConfiguration(result).getFullTextSearch();
-//                if (config != null && FullTextSearchUtil.isEnabledFor(config, Collections.singletonList(targetType == null ? AbstractRoleType.COMPLEX_TYPE : targetType))) {
-//                    defaultSearchBox.getAllowedMode().add(SearchBoxModeType.FULLTEXT);
-//                    defaultSearchBox.setDefaultMode(SearchBoxModeType.FULLTEXT);
-//                }
-//            } catch (Exception e) {
-//                LOGGER.debug("Unable to load full text search configuration from system configuration, {}", e.getMessage());
-//            }
-//        }
-//        //TODo allowed mode list
-//        search.setAllowedModeList(createAllowedModeList(AssignmentType.class, modelServiceLocator));
-//
-//        return search;
-//    }
 
     //TODO REVIEW NEEDED!!!!
     private static <C extends Containerable> SearchConfigurationWrapper<C> createBasicSearchWrapper(PrismContainerDefinition<C> definition,
@@ -230,12 +171,7 @@ public class SearchFactory {
         }
 
     }
-
-//    public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(PrismContainerDefinition<C> type,
-//            ModelServiceLocator modelServiceLocator) {
-//        return createDefaultSearchBoxConfigurationWrapper(type, null, modelServiceLocator);
-//    }
-
+    
     public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(PrismContainerDefinition<C> definition,
             SearchBoxConfigurationType mergedConfig, ModelServiceLocator modelServiceLocator) {
         return createDefaultSearchBoxConfigurationWrapper(definition, mergedConfig, null, modelServiceLocator);
