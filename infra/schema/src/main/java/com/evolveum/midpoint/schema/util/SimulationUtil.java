@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -75,5 +76,10 @@ public class SimulationUtil {
     // TEMPORARY IMPLEMENTATION
     public static boolean isVisible(ObjectType object, TaskExecutionMode taskExecutionMode) {
         return isInProduction(object) || !taskExecutionMode.isProductionConfiguration();
+    }
+
+    // TEMPORARY IMPLEMENTATION
+    public static boolean isVisible(AbstractMappingType mapping, TaskExecutionMode taskExecutionMode) {
+        return isInProduction(mapping.getLifecycleState()) || !taskExecutionMode.isProductionConfiguration();
     }
 }

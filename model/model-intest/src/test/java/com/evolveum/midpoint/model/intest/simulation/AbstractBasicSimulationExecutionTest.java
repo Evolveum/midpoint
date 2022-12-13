@@ -820,9 +820,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     "role:person",
                     "role:person-dev");
         } else {
-            assertThat(orgs).as("user orgs").containsExactlyInAnyOrder(
-                    "template:person (active)",
-                    "template:person (proposed)"); // FIXME this one should not be here
+            assertThat(orgs).as("user orgs").containsExactlyInAnyOrder("template:person (active)");
         }
     }
 

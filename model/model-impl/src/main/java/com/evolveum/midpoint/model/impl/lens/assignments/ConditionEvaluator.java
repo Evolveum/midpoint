@@ -38,32 +38,37 @@ class ConditionEvaluator {
         this.ctx = evaluationContext;
     }
 
-    ConditionState computeConditionState(MappingType condition, ObjectType source, String description, Object loggingDesc,
-            OperationResult result)
+    ConditionState computeConditionState(
+            MappingType condition, ObjectType source, String description, Object loggingDesc, OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
-        if (condition != null) {
+        if (condition == null) {
+            return ConditionState.allTrue();
+        } else if (!ctx.task.canSee(condition)) {
+            LOGGER.trace("Condition is not visible for the current task");
+            return ConditionState.allTrue();
+        } else {
             AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
-            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTripleAbsolute = evaluateConditionAbsolute(condition,
-                    source, assignmentPathVariables,
-                    description, ctx, result);
-            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTripleRelative = evaluateConditionRelative(condition,
-                    source, assignmentPathVariables,
-                    description, ctx, result);
+            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTripleAbsolute =
+                    evaluateConditionAbsolute(condition, source, assignmentPathVariables, description, result);
+            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTripleRelative =
+                    evaluateConditionRelative(condition, source, assignmentPathVariables, description, result);
             // TODO eliminate repeated "new" computation
             boolean condOld = ExpressionUtil.computeConditionResult(conditionTripleAbsolute.getNonPositiveValues());
             boolean condCurrent = ExpressionUtil.computeConditionResult(conditionTripleRelative.getNonPositiveValues());
             boolean condNew = ExpressionUtil.computeConditionResult(conditionTripleAbsolute.getNonNegativeValues());
             return ConditionState.from(condOld, condCurrent, condNew);
-        } else {
-            return ConditionState.allTrue();
         }
     }
 
-    private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateConditionAbsolute(MappingType condition,
-            ObjectType source, AssignmentPathVariables assignmentPathVariables, String contextDescription, EvaluationContext<?> ctx,
-            OperationResult result) throws ExpressionEvaluationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+    private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateConditionAbsolute(
+            MappingType condition,
+            ObjectType source,
+            AssignmentPathVariables assignmentPathVariables,
+            String contextDescription,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
         MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
                 ctx.ae.mappingFactory.createMappingBuilder();
         builder = builder.mappingBean(condition)
@@ -91,8 +96,11 @@ class ConditionEvaluator {
     }
 
     // TODO deduplicate, optimize
-    private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateConditionRelative(MappingType condition,
-            ObjectType source, AssignmentPathVariables assignmentPathVariables, String contextDescription, EvaluationContext<?> ctx,
+    private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateConditionRelative(
+            MappingType condition,
+            ObjectType source,
+            AssignmentPathVariables assignmentPathVariables,
+            String contextDescription,
             OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
