@@ -198,7 +198,7 @@
         <!-- Dependencies global versions -->
         <commons.io.version>2.9.0</commons.io.version>
         <commons.cli>1.5.0</commons.cli>
-        <cxf.version>3.4.4</cxf.version>
+        <cxf.version>3.4.10</cxf.version>
         <cxf-xjc.version>3.3.1</cxf-xjc.version>
         <wss4j.version>2.3.3</wss4j.version>
         <opendj.version>2.6.2</opendj.version>
