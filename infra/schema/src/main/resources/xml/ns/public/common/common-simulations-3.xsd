@@ -33,8 +33,6 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
-
-
     <xsd:complexType name="SimulationResultType">
         <xsd:annotation>
             <xsd:documentation>

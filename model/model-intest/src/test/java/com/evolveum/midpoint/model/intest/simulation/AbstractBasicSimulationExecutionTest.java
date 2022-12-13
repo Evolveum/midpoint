@@ -12,15 +12,9 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.util.exception.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.jetbrains.annotations.NotNull;
 import org.testng.SkipException;
 import org.testng.annotations.Test;
 
@@ -35,10 +29,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Basic scenarios of production/development simulations: e.g., no create-on-demand.
@@ -73,7 +68,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .name("test100");
 
         when("user is created in simulation");
-        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
@@ -100,14 +95,6 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         displayDumpable("model context", modelContext);
 
         assertUserPrimaryAndSecondaryDeltas(modelContext);
-    }
-
-    private SimulationResultType getSimulationConfiguration() {
-        if (isNativeRepository()) {
-            return simulationResultManager.newConfiguration();
-        } else {
-            return null; // No simulation storage in old repo
-        }
     }
 
     private void assertTest100UserDeltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
@@ -182,7 +169,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .linkRef(createLinkRefWithFullObject(target));
 
         when("user is created in simulation");
-        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
@@ -309,7 +296,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                         createAssignmentValue(target));
 
         when("user is created in simulation");
-        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),
@@ -408,7 +395,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.remember(result);
 
         when("account is linked in simulation");
-        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(createLinkRefDelta(userOid, target)),
@@ -495,7 +482,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.remember(result);
 
         when("account is linked in simulation");
-        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(createAssignmentDelta(userOid, target)),
@@ -600,20 +587,13 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.controller.addAccount("test200");
 
         when("the account is imported");
-        SimulationResultType simulationConfiguration = getSimulationConfiguration();
-        SimulationResult simResult =
-                executeInSimulationMode(
-                        getExecutionMode(),
-                        simulationConfiguration,
-                        task,
-                        result,
-                        (localSimResult) ->
-                                importSingleAccountRequest()
-                                        .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
-                                        .withNameValue("test200")
-                                        .withTaskExecutionMode(getExecutionMode())
-                                        .build()
-                                        .executeOnForeground(result));
+        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
+        SimulationResult simResult = importSingleAccountRequest()
+                .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
+                .withNameValue("test200")
+                .withTaskExecutionMode(getExecutionMode())
+                .build()
+                .executeOnForegroundSimulated(simulationConfiguration, task, result);
 
         then("no new objects should be created (except for one shadow), no model deltas really executed");
         objectsCounter.assertShadowOnlyIncrement(1, result);
@@ -672,7 +652,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
      */
     @Test
     public void test205SimulatedAccountImportNoProjectionsBackground() throws Exception {
-        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         if (simulationConfiguration == null) {
             throw new SkipException("Simulations not supported here");
         }
@@ -696,22 +676,6 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         and("shadow should not have full sync info set");
         assertTest20xShadow("test205", task, result);
-    }
-
-    @NotNull
-    private Collection<ObjectDelta<?>> getTaskSimDeltas(String taskOid, OperationResult result) throws CommonException {
-        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
-        assertTask(taskAfter, "import task after")
-                .display();
-        ActivitySimulationStateType simState =
-                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
-                        .getSimulation();
-        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
-        ObjectReferenceType simResultRef = simState.getResultRef();
-        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
-        return simulationResultManager
-                .newSimulationContext(simResultRef.getOid())
-                .getStoredDeltas(result);
     }
 
     private void assertTest20xShadow(String name, Task task, OperationResult result) throws CommonException {
@@ -762,7 +726,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                                 .targetRef(ARCHETYPE_PERSON.ref()));
 
         when("user is created in simulation");
-        SimulationResultType simulationConfiguration = getSimulationConfiguration();
+        SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
         SimulationResult simResult =
                 executeInSimulationMode(
                         List.of(user.asPrismObject().createAddDelta()),

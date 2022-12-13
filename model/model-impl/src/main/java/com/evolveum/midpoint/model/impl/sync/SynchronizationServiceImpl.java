@@ -65,7 +65,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     @Autowired private PrismContext prismContext;
     @Autowired private ModelBeans beans;
-    @Autowired private SynchronizationContextLoader syncContextLoader;
+    @Autowired private SynchronizationContextCreator syncContextCreator;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private Clock clock;
 
@@ -85,7 +85,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             checkConsistence(change);
 
             // Object type and synchronization policy are determined here. Sorter is evaluated, if present.
-            SynchronizationContext<?> syncCtx = syncContextLoader.loadSynchronizationContextFromChange(change, task, result);
+            SynchronizationContext<?> syncCtx = syncContextCreator.createSynchronizationContext(change, task, result);
 
             if (shouldSkipSynchronization(syncCtx, result)) {
                 return; // sync metadata are saved by the above method
@@ -181,6 +181,21 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      */
     private boolean shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
             throws SchemaException {
+        if (!syncCtx.isVisible()) {
+            String message = String.format(
+                    "SYNCHRONIZATION the synchronization policy for %s (%s) on %s is not visible, ignoring change from channel %s",
+                    syncCtx.getShadowedResourceObject(),
+                    syncCtx.getShadowedResourceObject().getObjectClass(),
+                    syncCtx.getResource(),
+                    syncCtx.getChannel());
+            LOGGER.debug(message);
+            syncCtx.getUpdater()
+                    .updateAllSyncMetadata()
+                    .commit(result);
+            result.recordNotApplicable(message);
+            syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY); // at least temporary
+            return true;
+        }
         if (!syncCtx.isComplete()) {
             // This means that either the shadow is not classified, or there is no type definition nor sync section
             // for its type (kind/intent).

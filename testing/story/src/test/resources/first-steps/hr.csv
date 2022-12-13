@@ -1,0 +1,6 @@
+empNo,firstName,lastName,email,phone,note
+1,John,Smith,jsmith1@evolveum.com,+421-123-456-001,
+2,John,Smith,jsmith2@evolveum.com,+421-123-456-002,
+3,Alice,Green,agreen3@evolveum.com,+421-123-456-003,
+4,Robert,Black,rblack4@evolveum.com,+421-123-456-004,
+5,Robert,Black,rblack5@evolveum.com,+421-123-456-005,Person different from rblack4

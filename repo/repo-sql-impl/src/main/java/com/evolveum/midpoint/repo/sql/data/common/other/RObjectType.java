@@ -50,19 +50,19 @@ public enum RObjectType {
     MESSAGE_TEMPLATE(RMessageTemplate.class, MessageTemplateType.class),
     DASHBOARD(RDashboard.class, DashboardType.class);
 
-    private final Class<? extends RObject> clazz;
-    private final Class<? extends ObjectType> jaxbClass;
+    @NotNull private final Class<? extends RObject> clazz;
+    @NotNull private final Class<? extends ObjectType> jaxbClass;
 
-    RObjectType(Class<? extends RObject> clazz, Class<? extends ObjectType> jaxbClass) {
+    RObjectType(@NotNull Class<? extends RObject> clazz, @NotNull Class<? extends ObjectType> jaxbClass) {
         this.clazz = clazz;
         this.jaxbClass = jaxbClass;
     }
 
-    public Class<? extends RObject> getClazz() {
+    public @NotNull Class<? extends RObject> getClazz() {
         return clazz;
     }
 
-    public Class<? extends ObjectType> getJaxbClass() {
+    public @NotNull Class<? extends ObjectType> getJaxbClass() {
         return jaxbClass;
     }
 

@@ -12,11 +12,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
@@ -24,6 +22,7 @@ import com.evolveum.midpoint.test.asserter.ContainerDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.PropertyDeltaAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -96,6 +95,18 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
     /** Asserts that the specified paths are modified (among other ones - optionally). */
     public ObjectDeltaAsserter<O,RA> assertModifiedPaths(ItemPath... expectedPaths) {
         return assertModifiedPaths(false, expectedPaths);
+    }
+
+    /** Asserts that _nothing_ residing in the specified paths is modified. */
+    public ObjectDeltaAsserter<O,RA> assertNotModifiedPaths(ItemPath... expectedToBeUnmodified) {
+        for (ItemDelta<?, ?> modification : delta.getModifications()) {
+            ItemPath modificationPath = modification.getPath();
+            if (ItemPathCollectionsUtil.containsSubpathOrEquivalent(List.of(expectedToBeUnmodified), modificationPath)) {
+                fail(String.format("Assumed that paths %s should not be modified by there is: %s",
+                        Arrays.toString(expectedToBeUnmodified), modification));
+            }
+        }
+        return this;
     }
 
     /** Asserts that the set of modified paths is exactly the same as expected. */

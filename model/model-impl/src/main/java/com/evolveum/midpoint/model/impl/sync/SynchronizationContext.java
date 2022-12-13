@@ -12,6 +12,7 @@ import java.util.Objects;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
+import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.task.api.TaskUtil;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -478,6 +479,15 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     boolean isPersistentExecution() {
         return task.isPersistentExecution();
+    }
+
+    // TEMPORARY IMPLEMENTATION
+    public boolean isVisible() {
+        if (task.isProductionConfiguration()) {
+            return SimulationUtil.isInProduction(resource, resourceObjectDefinition);
+        } else {
+            return true; // TODO
+        }
     }
 
     /**

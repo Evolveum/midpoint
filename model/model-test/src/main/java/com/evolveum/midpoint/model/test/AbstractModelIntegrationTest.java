@@ -6971,7 +6971,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         void execute(SimulationResult simResult) throws CommonException;
     }
 
-    protected SimulationResult executeInSimulationMode(
+    public SimulationResult executeInSimulationMode(
             TaskExecutionMode mode,
             SimulationResultType simulationConfiguration,
             Task task,
@@ -7005,5 +7005,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             task.setExecutionMode(oldMode);
         }
         return simulationResult;
+    }
+
+    protected SimulationResultType getDefaultSimulationConfiguration() {
+        if (isNativeRepository()) {
+            return simulationResultManager.newConfiguration();
+        } else {
+            return null; // No simulation storage in old repo
+        }
+    }
+
+    protected @NotNull Collection<ObjectDelta<?>> getTaskSimDeltas(String taskOid, OperationResult result)
+            throws CommonException {
+        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
+        assertTask(taskAfter, "import task after")
+                .display();
+        ActivitySimulationStateType simState =
+                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
+                        .getSimulation();
+        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
+        ObjectReferenceType simResultRef = simState.getResultRef();
+        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
+        return simulationResultManager
+                .newSimulationContext(simResultRef.getOid())
+                .getStoredDeltas(result);
     }
 }

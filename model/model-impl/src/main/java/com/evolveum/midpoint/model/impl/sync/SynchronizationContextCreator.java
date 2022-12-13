@@ -42,32 +42,14 @@ import javax.xml.namespace.QName;
  * - determining the tag.
  */
 @Component
-class SynchronizationContextLoader {
+class SynchronizationContextCreator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContextLoader.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContextCreator.class);
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ModelBeans beans;
 
-    SynchronizationContext<FocusType> loadSynchronizationContextFromChange(
-            @NotNull ResourceObjectShadowChangeDescription change,
-            @NotNull Task task,
-            @NotNull OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
-
-        // TODO consider inlining this method
-        SynchronizationContext<FocusType> syncCtx = loadSynchronizationContext(change, task, result);
-
-        if (Boolean.FALSE.equals(change.getShadowExistsInRepo())) {
-            syncCtx.setShadowExistsInRepo(false);
-            // TODO shadowExistsInRepo in syncCtx perhaps should be tri-state as well
-        }
-        LOGGER.trace("SYNCHRONIZATION context created: {}", syncCtx);
-        return syncCtx;
-    }
-
-    private <F extends FocusType> SynchronizationContext<F> loadSynchronizationContext(
+    SynchronizationContext<FocusType> createSynchronizationContext(
             @NotNull ResourceObjectShadowChangeDescription change,
             @NotNull Task task,
             @NotNull OperationResult result)
@@ -75,34 +57,22 @@ class SynchronizationContextLoader {
             CommunicationException, ConfigurationException, SecurityViolationException {
 
         ShadowType shadow = change.getShadowedResourceObject().asObjectable();
-
-        ResourceType updatedResource;
-        if (SynchronizationContext.isSkipMaintenanceCheck()) {
-            updatedResource = change.getResource().asObjectable();
-        } else {
-            updatedResource = checkNotInMaintenance(change.getResource().asObjectable(), task, result);
-        }
-
-        SystemConfigurationType systemConfiguration = systemObjectCache.getSystemConfigurationBean(result);
-
-        @Nullable ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(updatedResource);
+        ResourceType updatedResource = checkNotInMaintenance(change.getResource().asObjectable(), task, result);
 
         ResourceObjectProcessingContextImpl processingContext =
                 aResourceObjectProcessingContext(shadow, updatedResource, task, beans)
                         .withResourceObjectDelta(change.getObjectDelta())
                         .withExplicitChannel(change.getSourceChannel())
-                        .withSystemConfiguration(systemConfiguration)
+                        .withSystemConfiguration(
+                                systemObjectCache.getSystemConfigurationBean(result))
                         .build();
 
         ObjectSynchronizationDiscriminatorType sorterResult =
                 beans.synchronizationSorterEvaluator.evaluate(
-                        shadow,
-                        processingContext.getResource(),
-                        task,
-                        result);
+                        shadow, processingContext.getResource(), task, result);
 
         // Note this may update shadow kind/intent.
-        TypeAndDefinition typeAndDefinition = determineObjectTypeAndDefinition(processingContext, schema, sorterResult, result);
+        TypeAndDefinition typeAndDefinition = determineObjectTypeAndDefinition(processingContext, sorterResult, result);
         LOGGER.trace("Type and definition: {}", typeAndDefinition);
 
         String tag = getOrGenerateTag(processingContext, typeAndDefinition.definition, result);
@@ -118,8 +88,9 @@ class SynchronizationContextLoader {
 
         // i.e. type identification == null => policy == null
 
+        SynchronizationContext<FocusType> syncCtx;
         if (policy != null && typeAndDefinition.definition != null) {
-            return new SynchronizationContext.Complete<>(
+            syncCtx = new SynchronizationContext.Complete<>(
                     change,
                     processingContext,
                     typeAndDefinition.typeIdentification,
@@ -127,9 +98,8 @@ class SynchronizationContextLoader {
                     policy,
                     sorterResult,
                     tag);
-
         } else {
-            return new SynchronizationContext.Incomplete<>(
+            syncCtx = new SynchronizationContext.Incomplete<>(
                     change,
                     processingContext,
                     typeAndDefinition.typeIdentification,
@@ -137,6 +107,13 @@ class SynchronizationContextLoader {
                     sorterResult,
                     tag);
         }
+
+        if (Boolean.FALSE.equals(change.getShadowExistsInRepo())) {
+            syncCtx.setShadowExistsInRepo(false);
+            // TODO shadowExistsInRepo in syncCtx perhaps should be tri-state as well
+        }
+        LOGGER.trace("SYNCHRONIZATION context created: {}", syncCtx);
+        return syncCtx;
     }
 
     /**
@@ -148,19 +125,21 @@ class SynchronizationContextLoader {
     private @NotNull ResourceType checkNotInMaintenance(ResourceType resource, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, CommunicationException, SecurityViolationException,
             ConfigurationException, ObjectNotFoundException {
-        resource = beans.provisioningService
-                .getObject(ResourceType.class, resource.getOid(), null, task, result)
-                .asObjectable();
-        ResourceTypeUtil.checkNotInMaintenance(resource);
+        if (!SynchronizationContext.isSkipMaintenanceCheck()) {
+            resource = beans.provisioningService
+                    .getObject(ResourceType.class, resource.getOid(), null, task, result)
+                    .asObjectable();
+            ResourceTypeUtil.checkNotInMaintenance(resource);
+        }
         return resource;
     }
 
     private @NotNull TypeAndDefinition determineObjectTypeAndDefinition(
             @NotNull ResourceObjectProcessingContextImpl processingContext,
-            @Nullable ResourceSchema schema,
             @Nullable ObjectSynchronizationDiscriminatorType sorterResult,
             @NotNull OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        @Nullable ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(processingContext.getResource());
         ShadowType shadow = processingContext.getShadowedResourceObject();
         if (ShadowUtil.isClassified(shadow)) {
             if (isClassificationInSorterResult(sorterResult)) {

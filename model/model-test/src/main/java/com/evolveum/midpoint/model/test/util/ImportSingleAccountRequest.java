@@ -9,11 +9,13 @@ package com.evolveum.midpoint.model.test.util;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.ICFS_NAME;
 import static com.evolveum.midpoint.test.AbstractIntegrationTest.DEFAULT_SHORT_TASK_WAIT_TIMEOUT;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.test.SimulationResult;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 
 import com.evolveum.midpoint.util.exception.*;
@@ -181,6 +183,17 @@ public class ImportSingleAccountRequest {
     private void executeImportOnForeground(OperationResult result, String shadowOid) throws CommonException {
         TestSpringBeans.getBean(ModelService.class)
                 .importFromResource(shadowOid, task, result);
+    }
+
+    public SimulationResult executeOnForegroundSimulated(
+            SimulationResultType simulationConfiguration, Task task, OperationResult result) throws CommonException {
+        stateCheck(!taskExecutionMode.isPersistent(), "No simulation? %s", taskExecutionMode);
+        return test.executeInSimulationMode(
+                taskExecutionMode,
+                simulationConfiguration,
+                task,
+                result,
+                (localSimResult) -> executeOnForeground(result));
     }
 
     @SuppressWarnings("unused")
