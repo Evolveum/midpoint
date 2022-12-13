@@ -24,4 +24,12 @@ public class FulltextQueryWrapper implements Serializable {
                 .fullText(fullText).build();
 
     }
+
+    public void setFullText(String fullText) {
+        this.fullText = fullText;
+    }
+
+    public String getFullText() {
+        return fullText;
+    }
 }

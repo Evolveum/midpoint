@@ -95,30 +95,9 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         this.collectionRefOid = collectionRefOid;
     }
 
-    @Deprecated
-    public Search(SearchConfigurationWrapper searchConfigurationWrapper) {
-        this.searchConfigurationWrapper = searchConfigurationWrapper;
-    }
-
     public Search(Class type, SearchBoxConfigurationType searchBoxConfigurationType) {
         this.typeClass = type;
         this.defaultSearchBoxMode = searchBoxConfigurationType.getDefaultMode();
-
-        //TODO collection view
-//        if (collectionViewN == null) {
-//            //todo we need to get saved searches here for the specified type
-//            List<CompiledObjectCollectionView> views = modelServiceLocator.getCompiledGuiProfile()
-//                    .findAllApplicableObjectCollectionViews(WebComponentUtil.containerClassToQName(PrismContext.get(), type))
-//                    .stream()
-//                    .filter(v -> v.getFilter() != null)     //todo should we check also collectionRef?
-//                    .collect(Collectors.toList());
-//            if (CollectionUtils.isNotEmpty(views)) {
-//                ObjectCollectionListSearchItemWrapper<C> viewListItem = new ObjectCollectionListSearchItemWrapper<>(type,
-//                        views);
-//                viewListItem.setVisible(true);
-//                basicSearchWrapper.getItemsList().add(viewListItem);
-//            }
-//        }
     }
 
     public void setAllowedTypeList(List<QName> allowedTypeList) {
@@ -196,22 +175,17 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return advancedError;
     }
 
-    @Deprecated
-    //TODO
     public String getAdvancedQuery() {
-        return null;
+        return advancedQueryWrapper.getAdvancedQuery();
     }
 
-    @Deprecated
-    //TODO
     public String getDslQuery() {
-        return null;
+        return axiomQueryWrapper.getDslQuery();
     }
 
-    @Deprecated
-    //TODO
     public void setDslQuery(String dslQuery) {
-
+        axiomQueryWrapper = new AxiomQueryWrapper();
+        axiomQueryWrapper.setDslQuery(dslQuery);
     }
 
     private ObjectQuery createAdvancedObjectFilter(PrismContext ctx) throws SchemaException {
@@ -486,22 +460,19 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return variables;
     }
 
-    @Deprecated
-    //TODO
     public void setAdvancedQuery(String advancedQuery) {
+        advancedQueryWrapper = new AdvancedQueryWrapper();
+        advancedQueryWrapper.setAdvancedQuery(advancedQuery);
 //        this.advancedQuery = advancedQuery;
     }
 
-    @Deprecated
-    //TODO
     public String getFullText() {
-        return null;
+        return fulltextQueryWrapper.getFullText();
     }
 
-    @Deprecated
-    //TODO
     public void setFullText(String fullText) {
-
+        fulltextQueryWrapper = new FulltextQueryWrapper();
+        fulltextQueryWrapper.setFullText(fullText);
     }
 
     public boolean allPropertyItemsPresent(List<AbstractSearchItemWrapper> items) {

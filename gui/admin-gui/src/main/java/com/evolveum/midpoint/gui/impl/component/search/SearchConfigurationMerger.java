@@ -7,21 +7,16 @@
 
 package com.evolveum.midpoint.gui.impl.component.search;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Iterator;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class SearchConfigurationMerger {
 
@@ -30,7 +25,7 @@ public class SearchConfigurationMerger {
         if (scopeConfig != scope2) {
             if (scope2 != null && scope2.getDefaultValue() != null) {
                 scopeConfig.setDefaultValue(scope2.getDefaultValue());
-            } else if (scope1 != null) {
+            } else {
                 scopeConfig.setDefaultValue(scope1.getDefaultValue());
             }
         }
@@ -70,14 +65,16 @@ public class SearchConfigurationMerger {
         if (customSearchItems == null || CollectionUtils.isEmpty(customSearchItems.getSearchItem())) {
             return searchItems;
         }
-        customSearchItems.getSearchItem().forEach(customItem -> {
+        List<SearchItemType> mergedItems = customSearchItems.getSearchItem().stream().map(customItem -> {
             SearchItemType item = findSearchItemByPath(searchItems.getSearchItem(), customItem.getPath());
             if (item != null) {
-                combineSearchItem(item, customItem);
+                return combineSearchItem(item, customItem);
             } else {
-                searchItems.getSearchItem().add(customItem.clone());
+                return customItem.clone();
             }
-        });
+        }).collect(Collectors.toList());
+        searchItems.getSearchItem().clear();
+        searchItems.getSearchItem().addAll(mergedItems);
         return searchItems;
     }
 
@@ -124,11 +121,6 @@ public class SearchConfigurationMerger {
         return item;
     }
 
-    private static SearchConfigurationWrapper combineSearchBoxConfiguration(SearchConfigurationWrapper config, SearchConfigurationWrapper customConfig) {
-        return combineSearchBoxConfiguration(config, customConfig, false);
-    }
-
-
     public static SearchBoxConfigurationType mergeConfigurations(SearchBoxConfigurationType defaultConfig, SearchBoxConfigurationType customizedConfig) {
         if (customizedConfig == null) {
             return defaultConfig.clone();
@@ -155,7 +147,7 @@ public class SearchConfigurationMerger {
         }
 
         if (customizedConfig.getScopeConfiguration() != null) {
-            mergedConfig.setScopeConfiguration(customizedConfig.getScopeConfiguration());
+            mergedConfig.setScopeConfiguration(combineScopeSearchItem(mergedConfig.getScopeConfiguration(), customizedConfig.getScopeConfiguration()));
         }
 
         if (customizedConfig.getDefaultMode() != null) {
@@ -181,75 +173,12 @@ public class SearchConfigurationMerger {
         //TODO more intelligent merge for search items
 //        if (customizedConfig.getSearchItems() != null) {
 //            for (SearchItemType customizedItem : customizedConfig.getSearchItems().getSearchItem()) {
-                combineSearchItems(mergedConfig.getSearchItems(), customizedConfig.getSearchItems());
+        SearchItemsType mergedSearchItems = combineSearchItems(mergedConfig.getSearchItems(), customizedConfig.getSearchItems());
+        mergedConfig.setSearchItems(mergedSearchItems);
 //            }
 //            mergedConfig.setSearchItems(customizedConfig.getSearchItems());
 //        }
         return mergedConfig;
     }
-
-    public static SearchConfigurationWrapper combineSearchBoxConfiguration(SearchConfigurationWrapper config,
-            SearchConfigurationWrapper customConfig, boolean replaceSearchItems) {
-        if (config == null) {
-            return customConfig;
-        }
-        if (customConfig == null) {
-            return config;
-        }
-
-        if (CollectionUtils.isNotEmpty(customConfig.getItemsList())) {
-            if (replaceSearchItems) {
-                config.getItemsList().clear();
-                config.getItemsList().addAll(customConfig.getItemsList());
-            } else {
-                customConfig.getItemsList().forEach(item -> {
-                    addOrReplaceSearchItemWrapper(config, (AbstractSearchItemWrapper) item);
-                });
-            }
-        }
-        config.setAllowToConfigureSearchItems(customConfig.isAllowToConfigureSearchItems());
-        return config;
-    }
-
-    private static void addOrReplaceSearchItemWrapper(SearchConfigurationWrapper config, AbstractSearchItemWrapper customItem) {
-        List<AbstractSearchItemWrapper> items = config.getItemsList();
-        boolean execute = false;
-        if (customItem instanceof PropertySearchItemWrapper) {
-            Iterator<AbstractSearchItemWrapper> itemsIterator = items.iterator();
-            while (itemsIterator.hasNext()) {
-                AbstractSearchItemWrapper item = itemsIterator.next();
-                if (!hasParameter(item) && item instanceof PropertySearchItemWrapper &&
-                        ((PropertySearchItemWrapper<?>) item).getPath().equivalent(((PropertySearchItemWrapper<?>) customItem).getPath())) {
-                    execute = true;
-                } else if (item instanceof AbstractRoleSearchItemWrapper && customItem.getClass().equals(item.getClass())) {
-                    execute = true;
-                }
-                if (execute) {
-                    itemsIterator.remove();
-                    items.add(customItem);
-                    break;
-                }
-            }
-            if (!execute) {
-                items.add(customItem);
-            }
-            return;
-        }
-
-        for (AbstractSearchItemWrapper item : items) {
-            if (item.getClass().equals(customItem.getClass())) {
-                items.remove(item);
-                items.add(customItem);
-                execute = true;
-                break;
-            }
-        }
-        if (!execute) {
-            items.add(customItem);
-        }
-    }
-
-    private static boolean hasParameter(AbstractSearchItemWrapper searchItem) {
-        return searchItem != null && StringUtils.isNotEmpty(searchItem.getParameterName());
-    }
+    
 }

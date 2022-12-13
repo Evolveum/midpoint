@@ -140,9 +140,16 @@ public class PageDebugList extends PageAdminConfiguration {
 
                 if (search == null) {
                     Class<? extends Containerable> type = getType();
-                    SearchBoxConfigurationType defaultSearchConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, PageDebugList.this);
+                    SearchBoxConfigurationType defaultSearchConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, null, PageDebugList.this);
                     defaultSearchConfig.setObjectTypeConfiguration(SearchBoxConfigurationUtil.createObjectTypeSearchItemConfiguration(SystemConfigurationType.class, getAllowedTypes()));
-                    search = SearchFactory.createSearch(getSchemaService().findContainerDefinitionByCompileTimeClass(type), defaultSearchConfig, null, PageDebugList.this);
+
+                    SearchFactory<? extends Containerable> factory = new SearchFactory<>()
+                            .definition(getSchemaService().findContainerDefinitionByCompileTimeClass((Class<Containerable>) type))
+                            .defaultSearchBoxConfig(defaultSearchConfig)
+                            .modelServiceLocator(PageDebugList.this);
+
+                    search = factory.createSearch();
+                //SearchFactory.createSearch(getSchemaService().findContainerDefinitionByCompileTimeClass(type), defaultSearchConfig, null, PageDebugList.this);
 //                    search = SearchFactory.createSearch((Class) confDialogModel.getObject().getType(),  PageDebugList.this);
                     //TODO axiom?
                     search.setAllowedModeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));

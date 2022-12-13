@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplateProvider.TemplateType;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.ResourceTemplateProvider.ResourceTemplate;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -74,8 +75,12 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
                 protected Search<AssignmentHolderType> load() {
                     PageStorage storage = getStorage();
                     if (storage.getSearch() == null || !storage.getSearch().getTypeClass().equals(templateType.getObject().getType())) {
-                        Search<AssignmentHolderType> search
-                                = SearchFactory.createSearch(templateType.getObject().getType(), getPageBase());
+                        SearchFactory<AssignmentHolderType> factory = new SearchFactory<>()
+                                .type(templateType.getObject().getType())
+                                .modelServiceLocator(getPageBase());
+
+                        Search<AssignmentHolderType> search = factory.createSearch();
+//                                = SearchFactory.createSearch(templateType.getObject().getType(), getPageBase());
                         storage.setSearch(search);
                         return search;
                     }

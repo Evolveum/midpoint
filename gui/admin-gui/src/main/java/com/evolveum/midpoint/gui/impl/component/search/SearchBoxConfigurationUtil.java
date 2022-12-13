@@ -52,9 +52,9 @@ public class SearchBoxConfigurationUtil {
         ));
     }
 
-    public static <C extends Containerable> SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<C> type, Collection<ItemPath> extensionPaths, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
+    public static <C extends Containerable> SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<C> type, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
         SearchBoxConfigurationType defaultSearchBoxConfig = createDefaultSearchBoxConfig();
-        SearchItemsType searchItemsType = createSearchItemsForType(type, extensionPaths, coordinates, modelServiceLocator);
+        SearchItemsType searchItemsType = createSearchItemsForType(type, Arrays.asList(ObjectType.F_EXTENSION), coordinates, modelServiceLocator);
         defaultSearchBoxConfig.setSearchItems(searchItemsType);
         return defaultSearchBoxConfig;
     }

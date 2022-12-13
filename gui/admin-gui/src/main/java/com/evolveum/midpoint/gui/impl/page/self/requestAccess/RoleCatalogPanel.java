@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -338,7 +340,12 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
             @Override
             protected Search<? extends ObjectType> load() {
                 Class<? extends ObjectType> type = queryModel.getObject().getType();
-                return SearchFactory.createSearch(type, page);
+
+                SearchFactory<? extends ObjectType> factory = new SearchFactory<>()
+                        .type(type)
+                        .modelServiceLocator(page);
+
+                return factory.createSearch();
             }
         };
 
@@ -602,7 +609,11 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
         Search search = searchModel.getObject();
         if (!Objects.equals(search.getTypeClass(), query.getType())) {
-            searchModel.setObject(SearchFactory.createSearch(query.getType(), page));
+            SearchFactory factory = new SearchFactory()
+                    .type(query.getType())
+                    .modelServiceLocator(page);
+
+            searchModel.setObject(factory.createSearch());
         }
 
         target.add(get(ID_TILES));

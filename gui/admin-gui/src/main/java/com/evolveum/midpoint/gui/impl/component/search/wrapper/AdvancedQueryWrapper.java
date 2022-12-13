@@ -32,4 +32,8 @@ public class AdvancedQueryWrapper implements Serializable {
     public void setAdvancedQuery(String advancedQuery) {
         this.advancedQuery = advancedQuery;
     }
+
+    public String getAdvancedQuery() {
+        return advancedQuery;
+    }
 }

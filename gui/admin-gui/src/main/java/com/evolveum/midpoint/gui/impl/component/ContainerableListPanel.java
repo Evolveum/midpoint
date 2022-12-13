@@ -10,14 +10,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.ObjectCollectionSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
-import com.evolveum.midpoint.web.component.data.*;
-
-import com.evolveum.midpoint.web.component.search.SearchValue;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,7 +37,11 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.search.*;
+import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
@@ -66,7 +62,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -74,6 +69,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
+import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -166,101 +162,47 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
 
         String searchByName = getSearchByNameParameterValue();
-        if (searchByName != null && search.searchByNameEquals(searchByName)) {
-            return false;
-        }
-        return true;
+        return searchByName == null || !search.searchByNameEquals(searchByName);
     }
 
-    protected LoadableDetachableModel<Search<C>> createSearchModel() {
+    private LoadableDetachableModel<Search<C>> createSearchModel() {
         return new LoadableDetachableModel<>() {
-
-            private static final long serialVersionUID = 1L;
 
             @Override
             public Search<C> load() {
-
-                Search<C> search = null;
-                PageStorage storage = getPageStorage();
-                if (storage != null) {
-                    search = storage.getSearch();
-                }
-
-                if (!isUseStorageSearch(search)) {
-                    search = createSearch(getType());
-                }
-
-
-
-
-
-//                Search<C> newSearch = createSearch(getType());
-//
-//                Search<C> search = null;
-//                PageStorage storage = getPageStorage();
-//                String searchByName = getSearchByNameParameterValue();
-//                if (storage != null && storage.getSearch() != null && (searchByName == null || storage.getSearch().searchByNameEquals(searchByName))) {  // do NOT use storage when using name search (e.g. from dashboard)
-//                    search = storage.getSearch();
-//                }
-//
-//                if (search == null || search.isTypeChanged() ||
-//                        (!SearchBoxModeType.BASIC.equals(search.getSearchMode()) && !search.allPropertyItemsPresent(newSearch.getItems()))) {
-//                    search = newSearch;
-////                    search.searchWasReload();
-//                }
-
-//                if (searchByName != null && !search.searchByNameEquals(searchByName)) {
-//                    if (SearchBoxModeType.FULLTEXT.equals(search.getSearchMode())) {
-//                        search.setFullText(searchByName);
-//                    } else {
-//                        for (AbstractSearchItemWrapper item : search.getItems()) {
-//                            if (!(item instanceof PropertySearchItemWrapper)) {
-//                                continue;
-//                            }
-//                            if (ItemPath.create(ObjectType.F_NAME).equivalent(((PropertySearchItemWrapper) item).getPath())) {
-//                                item.setValue(new SearchValue<>(searchByName));
-//                            }
-//                        }
-//                    }
-//                }
-
-                // todo this should not be here! Search model doesn't handle paging, only query. Paging is handled by table (which technically doesn't care about specific query)
-//                if (isCollectionViewPanel()) {
-//                    CompiledObjectCollectionView view = getObjectCollectionView();
-//                    if (view == null) {
-//                        getPageBase().redirectToNotFoundPage();
-//                    }
-//
-//                    if (isCollectionViewPanelForWidget()) {
-//                        search.getItems().add(new ObjectCollectionSearchItemWrapper(view));
-//                    }
-//
-//                    if (storage != null && view.getPaging() != null) {
-//                        ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging(), getPrismContext());
-//                        if (storage.getPaging() == null) {
-//                            storage.setPaging(paging);
-//                        }
-//                        if (getTableId() != null && paging.getMaxSize() != null
-//                                && !getPageBase().getSessionStorage().getUserProfile().isExistPagingSize(getTableId())) {
-//                            getPageBase().getSessionStorage().getUserProfile().setPagingSize(getTableId(), paging.getMaxSize());
-//                        }
-//                    }
-//                }
-
-                if (storage != null) {
-                    storage.setSearch(search);
-                }
-                getPageBase().getPageParameters().remove(PageBase.PARAMETER_SEARCH_BY_NAME);
-                return search;
+                return loadSearchModel();
             }
         };
+    }
+
+    private Search<C> loadSearchModel() {
+        PageStorage storage = getPageStorage();
+        Search<C> search = loadSearch(storage);
+
+        if (storage != null) {
+            storage.setSearch(search);
+        }
+        getPageBase().getPageParameters().remove(PageBase.PARAMETER_SEARCH_BY_NAME);
+        return search;
+    }
+
+    private Search<C> loadSearch(PageStorage storage) {
+        Search<C> search = null;
+        if (storage != null) {
+            search = storage.getSearch();
+        }
+
+        if (!isUseStorageSearch(search)) {
+            search = createSearch();
+        }
+        return search;
     }
 
     protected String getSearchByNameParameterValue() {
         return null;
     }
 
-    protected Search<C> createSearch(Class<C> type) {
+    private Search<C> createSearch() {
         Class<C> defaultType = getType();
 
         SearchFactory<C> searchFactory = new SearchFactory<>()
@@ -273,12 +215,10 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 .isViewForDashboard(isCollectionViewPanelForWidget());
 
         return searchFactory.createSearch();
-
-//        return SearchFactory.createSearch(getContainerDefinitionForColumns(), getDefaultSearchBoxConfiguration(defaultType), getObjectCollectionView(), getPageBase());
     }
 
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<C> type) {
-        return SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, getPageBase());
+        return SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, null, getPageBase());
     }
 
     private void initLayout() {
@@ -287,7 +227,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         itemTable.setOutputMarkupPlaceholderTag(true);
         add(itemTable);
 
-        itemTable.add(new VisibleBehaviour(() -> isListPanelVisible()));
+        itemTable.add(new VisibleBehaviour(this::isListPanelVisible));
         setOutputMarkupId(true);
 
     }
@@ -394,10 +334,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private int getDefaultPageSize() {
         if (isPreview()) {
             Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();
-            if (previewSize == null) {
-                return UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE;
-            }
-            return previewSize;
+            return Objects.requireNonNullElse(previewSize, UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
         }
 
         Integer collectionViewPagingSize = getViewPagingMaxSize();
@@ -718,7 +655,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected IModel<?> getExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
-        return new ReadOnlyModel<>(() -> loadExportableColumnDataModel(rowModel, customColumn, columnPath, expression));
+        return () -> loadExportableColumnDataModel(rowModel, customColumn, columnPath, expression);
     }
 
     public Collection<String> loadExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
@@ -729,7 +666,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         Item<?, ?> item = findItem(value, columnPath);
 
         if (expression != null) {
-            Collection collection = evaluateExpression(value, item, expression, customColumn);
+            Collection<String> collection = evaluateExpression(value, item, expression, customColumn);
             return getValuesString(collection, customColumn.getDisplayValue());
         }
         if (item != null) {
@@ -778,6 +715,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             String number;
             //This is really ugly HACK FIXME TODO
             if (item.getDefinition() != null && UserType.F_LINK_REF.equivalent(item.getDefinition().getItemName())) {
+                //noinspection unchecked
                 number = WebComponentUtil.countLinkFroNonDeadShadows((Collection<ObjectReferenceType>) item.getRealValues());
             } else {
                 number = String.valueOf(item.getValues().size());
@@ -790,14 +728,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 .collect(Collectors.toList());
     }
 
-    private List<String> getValuesString(Collection collection, DisplayValueType displayValue) {
+    private List<String> getValuesString(Collection<String> collection, DisplayValueType displayValue) {
         if (collection == null) {
             return null;
         }
         if (DisplayValueType.NUMBER.equals(displayValue)) {
             return Collections.singletonList(String.valueOf(collection.size()));
         }
-        return (List<String>) collection.stream()
+        return collection.stream()
                 .filter(Objects::nonNull)
                 .map(object -> getStringValue(object, null))
                 .collect(Collectors.toList());
@@ -1058,7 +996,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         if (view != null) {
             return view;
         }
-        String collectionName = WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString();
+        String collectionName = WebComponentUtil.getCollectionNameParameterValueAsString(getPageBase());
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView
                 (WebComponentUtil.containerClassToQName(getPageBase().getPrismContext(), getType()), collectionName);
     }
@@ -1152,8 +1090,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isCollectionViewPanelForCompiledView() {
-        return WebComponentUtil.getCollectionNameParameterValue(getPageBase()) != null
-                && WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() != null;
+        return WebComponentUtil.getCollectionNameParameterValueAsString(getPageBase()) != null;
     }
 
     protected boolean isCollectionViewPanel() {

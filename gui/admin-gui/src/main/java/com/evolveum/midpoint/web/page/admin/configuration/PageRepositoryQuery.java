@@ -464,11 +464,11 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             // TODO add containerable option too
             //noinspection unchecked
             //createSearchConfigWrapper((Class<? extends ObjectType>) request.getType()),
-            Search<?> search = SearchFactory.createSearch(request.getType(),  this);
+            Search<?> search = new SearchFactory().type(request.getType()).modelServiceLocator(this).createSearch();//createSearch(request.getType(),  this);
             AdvancedQueryWrapper wrapper = new AdvancedQueryWrapper();
             wrapper.setAdvancedQuery(filterAsString);
 //            search.setAdvancedQuery(filterAsString);
-            search.getAllowedModeList().add(SearchBoxModeType.ADVANCED);
+            search.addAllowedModelType(SearchBoxModeType.ADVANCED);
             search.setSearchMode(SearchBoxModeType.ADVANCED);
 //            search.setSearchType(SearchBoxModeType.ADVANCED);
             if (!search.isAdvancedQueryValid(getPrismContext())) {

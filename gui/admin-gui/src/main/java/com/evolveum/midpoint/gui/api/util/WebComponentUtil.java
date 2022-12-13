@@ -5118,6 +5118,10 @@ public final class WebComponentUtil {
         return allowedValues;
     }
 
+    public static String getCollectionNameParameterValueAsString(PageBase pageBase) {
+        StringValue stringValue = getCollectionNameParameterValue(pageBase);
+        return stringValue == null ? null : stringValue.toString();
+    }
     public static StringValue getCollectionNameParameterValue(PageBase pageBase) {
         PageParameters parameters = pageBase.getPageParameters();
         return parameters == null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);

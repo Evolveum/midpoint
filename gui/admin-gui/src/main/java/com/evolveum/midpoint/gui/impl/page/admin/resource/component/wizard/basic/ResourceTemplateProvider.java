@@ -70,13 +70,13 @@ public class ResourceTemplateProvider
         TEMPLATE(ResourceType.class),
         CONNECTOR(ConnectorType.class);
 
-        private final Class<AssignmentHolderType> type;
+        private final Class<? extends AssignmentHolderType> type;
 
         private TemplateType(Class<? extends AssignmentHolderType> type) {
-            this.type = (Class<AssignmentHolderType>) type;
+            this.type = type;
         }
 
-        public Class<AssignmentHolderType> getType() {
+        public Class<? extends AssignmentHolderType> getType() {
             return type;
         }
     }

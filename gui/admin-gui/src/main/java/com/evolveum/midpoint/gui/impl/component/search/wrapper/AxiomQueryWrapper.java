@@ -29,4 +29,12 @@ public class AxiomQueryWrapper<C extends Containerable> implements Serializable 
         ObjectFilter filter = parser.parseFilter(containerDefinitionOverride, dslQuery);
         return ctx.queryFactory().createQuery(filter);
     }
+
+    public void setDslQuery(String dslQuery) {
+        this.dslQuery = dslQuery;
+    }
+
+    public String getDslQuery() {
+        return dslQuery;
+    }
 }
