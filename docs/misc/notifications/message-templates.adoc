@@ -4,7 +4,7 @@
 
 *Message template* is an object that provides a template for the content of a message, i.e. a notification message.
 It specifies typical components of such a message - like subject, body and attachments.
-In addition to the `defaultContent` for the message, additional localized contents can be defined.
+In addition to the `defaultContent` for the message, additional localized contents can be defined based on _recipient's_ `preferredLanguage` or `locale` property.
 
 == Message template structure
 
@@ -21,6 +21,9 @@ image::images/message-templates-gui-list.png[]
 The detail allows to enter the expressions for each content component:
 
 image::images/message-templates-gui-edit-content.png[]
+
+The *Localized content* allows having localized templates for specific languages.
+The message template language is selected according to _recipient's_ `preferredLanguage` or `locale` property.
 
 Expressions in the message template produce string results.
 For this reason, use of xref:../velocity/[Velocity templates] is a natural fit.
