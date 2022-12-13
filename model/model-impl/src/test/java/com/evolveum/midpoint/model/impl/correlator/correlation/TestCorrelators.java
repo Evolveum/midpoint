@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Co
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
 import com.evolveum.midpoint.model.impl.correlation.TemplateCorrelationConfigurationImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -385,7 +386,9 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         if (!Objects.equals(userTemplateOid, currentlyUsedTemplateOid)) {
             if (userTemplateResource != null && userTemplateResource.getObject() == null) {
                 repoAdd(userTemplateResource, result);
-                ObjectTemplateType expanded = archetypeManager.getExpandedObjectTemplate(userTemplateResource.oid, result);
+                ObjectTemplateType expanded =
+                        archetypeManager.getExpandedObjectTemplate(
+                                userTemplateResource.oid, TaskExecutionMode.PRODUCTION, result);
                 userTemplateResource.object = expanded.asPrismObject();
             }
             System.out.println("Setting user template OID (in system config) to be " + userTemplateOid);

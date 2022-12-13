@@ -17,9 +17,11 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.merger.template.ObjectTemplateMergeOperation;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 
+import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -429,9 +431,10 @@ public class ArchetypeManager implements Cache {
      *
      * @return Immutable expanded template
      */
-    public @NotNull ObjectTemplateType getExpandedObjectTemplate(@NotNull String oid, @NotNull OperationResult result)
+    public @NotNull ObjectTemplateType getExpandedObjectTemplate(
+            @NotNull String oid, @NotNull TaskExecutionMode executionMode, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
-        ObjectTemplateType cached = objectTemplateCache.get(oid);
+        ObjectTemplateType cached = objectTemplateCache.get(oid, executionMode);
         if (cached != null) {
             return cached;
         }
@@ -439,10 +442,9 @@ public class ArchetypeManager implements Cache {
         ObjectTemplateType main = cacheRepositoryService
                 .getObject(ObjectTemplateType.class, oid, null, result)
                 .asObjectable();
-        expandObjectTemplate(main, new ResolutionChain(oid), result);
+        expandObjectTemplate(main, new ResolutionChain(oid), executionMode, result);
         main.freeze();
-        objectTemplateCache.put(main);
-
+        objectTemplateCache.put(main, executionMode);
         return main;
     }
 
@@ -456,28 +458,38 @@ public class ArchetypeManager implements Cache {
      * The `resolutionChain` contains OIDs on the "resolution path" from the main template to the currently-expanded one.
      * It is used to check for cycles as well as to describe the path in case of problems.
      */
-    private void expandObjectTemplate(ObjectTemplateType template, ResolutionChain resolutionChain, OperationResult result)
+    private void expandObjectTemplate(
+            ObjectTemplateType template, ResolutionChain resolutionChain, TaskExecutionMode executionMode, OperationResult result)
             throws ConfigurationException, SchemaException {
-        List<ObjectReferenceType> includeRefList = template.getIncludeRef();
-        LOGGER.trace("Starting expansion of {}: {} include(s); chain = {}", template, includeRefList.size(), resolutionChain);
-        for (ObjectReferenceType includeRef : includeRefList) {
-            String includedOid =
-                    MiscUtil.configNonNull(includeRef.getOid(), () -> "OID-less includeRef is not supported in " + template);
-            ObjectTemplateType included = getExpandedObjectTemplateInternal(includedOid, resolutionChain, result);
-            if (included != null) {
-                new ObjectTemplateMergeOperation(template, included)
-                        .execute();
+        if (!SimulationUtil.isVisible(template, executionMode)) {
+            LOGGER.trace("Not expanding template {} as it is not visible for the current task", template);
+        } else {
+            List<ObjectReferenceType> includeRefList = template.getIncludeRef();
+            LOGGER.trace("Starting expansion of {}: {} include(s); chain = {}", template, includeRefList.size(), resolutionChain);
+            for (ObjectReferenceType includeRef : includeRefList) {
+                String includedOid =
+                        MiscUtil.configNonNull(includeRef.getOid(), () -> "OID-less includeRef is not supported in " + template);
+                ObjectTemplateType included =
+                        getExpandedObjectTemplateInternal(includedOid, resolutionChain, executionMode, result);
+                if (included != null) {
+                    if (!SimulationUtil.isVisible(included, executionMode)) {
+                        LOGGER.trace("Not including template {} as it is not visible for the current task", template);
+                    } else {
+                        new ObjectTemplateMergeOperation(template, included)
+                                .execute();
+                    }
+                }
             }
+            LOGGER.trace("Expansion of {} done; chain = {}", template, resolutionChain);
         }
-        LOGGER.trace("Expansion of {} done; chain = {}", template, resolutionChain);
     }
 
     /** @return Mutable expanded template - to allow potential modifications during merging (is this really needed?) */
     private @Nullable ObjectTemplateType getExpandedObjectTemplateInternal(
-            String oid, ResolutionChain resolutionChain, OperationResult result)
+            String oid, ResolutionChain resolutionChain, TaskExecutionMode executionMode, OperationResult result)
             throws SchemaException, ConfigurationException {
 
-        ObjectTemplateType cached = objectTemplateCache.get(oid);
+        ObjectTemplateType cached = objectTemplateCache.get(oid, executionMode);
         if (cached != null) {
             return cached.clone();
         }
@@ -493,8 +505,8 @@ public class ArchetypeManager implements Cache {
                 LOGGER.warn("Included object template {} was not found; the resolution chain is: {}", oid, resolutionChain);
                 return null;
             }
-            expandObjectTemplate(template, resolutionChain, result);
-            objectTemplateCache.put(template);
+            expandObjectTemplate(template, resolutionChain, executionMode, result);
+            objectTemplateCache.put(template, executionMode);
             return template;
         } finally {
             resolutionChain.removeLast(oid);
@@ -529,6 +541,7 @@ public class ArchetypeManager implements Cache {
         }
     }
 
+    /** Stores cached object templates. Currently only for production-configuration execution modes. */
     private static class ObjectTemplateCache {
 
         /** Indexed by OID. Contains immutable objects. */
@@ -539,15 +552,21 @@ public class ArchetypeManager implements Cache {
         }
 
         /** Returns immutable object. */
-        public ObjectTemplateType get(@NotNull String oid) {
-            return objects.get(oid);
+        public ObjectTemplateType get(@NotNull String oid, @NotNull TaskExecutionMode executionMode) {
+            if (executionMode.isProductionConfiguration()) {
+                return objects.get(oid);
+            } else {
+                return null;
+            }
         }
 
         /** Does not modify the object being added - creates a clone, if needed. */
-        public void put(@NotNull ObjectTemplateType template) {
-            objects.put(
-                    Objects.requireNonNull(template.getOid()),
-                    CloneUtil.toImmutable(template));
+        public void put(@NotNull ObjectTemplateType template, @NotNull TaskExecutionMode executionMode) {
+            if (executionMode.isProductionConfiguration()) {
+                objects.put(
+                        Objects.requireNonNull(template.getOid()),
+                        CloneUtil.toImmutable(template));
+            }
         }
     }
 }

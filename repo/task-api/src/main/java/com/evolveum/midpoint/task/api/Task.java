@@ -1005,6 +1005,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
         return getExecutionMode().isPersistent();
     }
 
+    default boolean isProductionConfiguration() {
+        return getExecutionMode().isProductionConfiguration();
+    }
+
     /**
      * Sets the execution mode of this task. Use with care - preferably only for new tasks.
      * Returns the original value.

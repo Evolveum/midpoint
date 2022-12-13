@@ -822,8 +822,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         } else {
             assertThat(orgs).as("user orgs").containsExactlyInAnyOrder(
                     "template:person (active)",
-                    "template:person (proposed)", // FIXME this one should not be here
-                    "template:person-included-dev"); // FIXME this one should not be here
+                    "template:person (proposed)"); // FIXME this one should not be here
         }
     }
 

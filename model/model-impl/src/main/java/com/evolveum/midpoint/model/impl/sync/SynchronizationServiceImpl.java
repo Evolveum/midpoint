@@ -322,8 +322,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      *
      * We need to update the correlator state.
      */
-    private <F extends FocusType> void determineSituationWithCorrelators(SynchronizationContext.Complete<F> syncCtx,
-            ResourceObjectShadowChangeDescription change, OperationResult result)
+    private <F extends FocusType> void determineSituationWithCorrelators(
+            SynchronizationContext.Complete<F> syncCtx, ResourceObjectShadowChangeDescription change, OperationResult result)
             throws CommonException {
 
         if (change.isDelete()) {
@@ -341,7 +341,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         setupResourceRefInShadowIfNeeded(change);
 
         evaluatePreMappings(syncCtx, result);
-        setObjectTemplateForCorrelation(syncCtx, result);
+        setObjectTemplateForCorrelation(syncCtx, syncCtx.getTask(), result);
 
         if (syncCtx.isUpdatingCorrelatorsOnly()) {
             new CorrelationProcessing<>(syncCtx, beans)
@@ -391,12 +391,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     private <F extends FocusType> void setObjectTemplateForCorrelation(
-            SynchronizationContext.Complete<F> syncCtx, OperationResult result)
+            SynchronizationContext.Complete<F> syncCtx, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         syncCtx.setObjectTemplateForCorrelation(
                 beans.correlationServiceImpl.determineObjectTemplate(
                         syncCtx.getSynchronizationPolicy(),
                         syncCtx.getPreFocus(),
+                        task,
                         result));
     }
 

@@ -189,7 +189,7 @@ class ContextLoadOperation<F extends ObjectType> {
 
         LensFocusContext<F> focusContext = context.getFocusContext();
         if (focusContext != null) {
-            beans.contextLoader.updateArchetypePolicyAndRelatives(focusContext, false, result);
+            beans.contextLoader.updateArchetypePolicyAndRelatives(focusContext, false, task, result);
         }
 
         SystemConfigurationType systemConfiguration = context.getSystemConfigurationBean();

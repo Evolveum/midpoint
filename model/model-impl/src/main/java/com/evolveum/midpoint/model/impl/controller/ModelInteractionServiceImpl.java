@@ -252,7 +252,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+    public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
         TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
         try {
@@ -270,7 +273,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 result.recordNotApplicable();
                 return null;
             } else {
-                applyArchetypePolicy(objectDefinition, object, result);
+                applyArchetypePolicy(objectDefinition, object, task, result);
                 schemaTransformer.applySecurityConstraints(objectDefinition, securityConstraints, phase);
                 if (object.canRepresent(ShadowType.class)) {
                     applyObjectClassDefinition(objectDefinition, object, phase, task, result);
@@ -311,8 +314,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
-    private <O extends ObjectType> void applyArchetypePolicy(PrismObjectDefinition<O> objectDefinition,
-            PrismObject<O> object, OperationResult result) throws SchemaException {
+    private <O extends ObjectType> void applyArchetypePolicy(
+            PrismObjectDefinition<O> objectDefinition, PrismObject<O> object, Task task, OperationResult result)
+            throws SchemaException {
         try {
             ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(object, result);
             if (archetypePolicy != null) {
@@ -323,7 +327,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 if (objectTemplateRef != null) {
                     PrismObject<ObjectTemplateType> objectTemplate = cacheRepositoryService.getObject(
                             ObjectTemplateType.class, objectTemplateRef.getOid(), createReadOnlyCollection(), result);
-                    schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplate.asObjectable(), result);
+                    schemaTransformer.applyObjectTemplateToDefinition(
+                            objectDefinition, objectTemplate.asObjectable(), task, result);
                 }
 
             }

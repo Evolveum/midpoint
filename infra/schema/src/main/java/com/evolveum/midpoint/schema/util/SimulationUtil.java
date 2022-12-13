@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectClassDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.jetbrains.annotations.NotNull;
@@ -39,8 +42,12 @@ public class SimulationUtil {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean isInProduction(@NotNull ResourceType resource) {
-        return isInProduction(resource.getLifecycleState());
+    public static boolean isInProduction(@NotNull ObjectType object) {
+        return isInProduction(object.getLifecycleState());
+    }
+
+    public static boolean isInProduction(@NotNull PrismObject<? extends ObjectType> object) {
+        return isInProduction(object.asObjectable());
     }
 
     public static boolean isInProduction(@NotNull ResourceObjectDefinition objectDefinition) {
@@ -63,5 +70,10 @@ public class SimulationUtil {
             // If there is an object class, it must be in production
             return objectDefinition == null || isInProduction(objectDefinition);
         }
+    }
+
+    // TEMPORARY IMPLEMENTATION
+    public static boolean isVisible(ObjectType object, TaskExecutionMode taskExecutionMode) {
+        return isInProduction(object) || !taskExecutionMode.isProductionConfiguration();
     }
 }
