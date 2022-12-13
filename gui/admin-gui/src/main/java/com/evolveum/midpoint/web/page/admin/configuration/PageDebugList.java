@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 
 import com.evolveum.midpoint.web.session.GenericPageStorage;
@@ -30,6 +31,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -112,7 +114,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_TABLE_HEADER = "tableHeader";
 
     // search form model;
-    private LoadableModel<Search<? extends ObjectType>> searchModel = null;
+    private LoadableDetachableModel<Search<? extends ObjectType>> searchModel = null;
     // todo make this persistent (in user session)
     private final IModel<Boolean> showAllItemsModel = Model.of(true);
     // confirmation dialog model
@@ -129,8 +131,7 @@ public class PageDebugList extends PageAdminConfiguration {
         searchDto.setType(SystemConfigurationType.class);
         confDialogModel = Model.of(searchDto);
 
-        searchModel = new LoadableModel<>(false) {
-            private static final long serialVersionUID = 1L;
+        searchModel = new LoadableDetachableModel<>() {
 
             @Override
             protected Search<? extends ObjectType> load() {
@@ -138,11 +139,13 @@ public class PageDebugList extends PageAdminConfiguration {
                 Search search = storage.getSearch();
 
                 if (search == null) {
-                    //createSearchConfigWrapper(confDialogModel.getObject().getType(), SystemConfigurationType.COMPLEX_TYPE),
-                    search = SearchFactory.createSearch((Class) confDialogModel.getObject().getType(),  PageDebugList.this);
+                    Class<? extends Containerable> type = getType();
+                    SearchBoxConfigurationType defaultSearchConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, PageDebugList.this);
+                    defaultSearchConfig.setObjectTypeConfiguration(SearchBoxConfigurationUtil.createObjectTypeSearchItemConfiguration(SystemConfigurationType.class, getAllowedTypes()));
+                    search = SearchFactory.createSearch(getSchemaService().findContainerDefinitionByCompileTimeClass(type), defaultSearchConfig, null, PageDebugList.this);
+//                    search = SearchFactory.createSearch((Class) confDialogModel.getObject().getType(),  PageDebugList.this);
                     //TODO axiom?
-                    search.getAllowedModeList().addAll(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
-
+                    search.setAllowedModeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
 
                     storage.setSearch(search);
                 }
@@ -162,10 +165,10 @@ public class PageDebugList extends PageAdminConfiguration {
         return searchConfigurationWrapper;
     }
 
-    private List<Class<ObjectType>> getAllowedTypes() {
-        List<Class<ObjectType>> choices = new ArrayList<>();
+    private List<QName> getAllowedTypes() {
+        List<QName> choices = new ArrayList<>();
         WebComponentUtil.createObjectTypesList().stream()
-                .forEach(type -> choices.add(type.getClassDefinition()));
+                .forEach(type -> choices.add(type.getTypeQName()));
         return choices;
     }
 
@@ -336,7 +339,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     @NotNull
     private Class<? extends ObjectType> getType() {
-        return searchModel.isLoaded() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
+        return searchModel.isAttached() ? searchModel.getObject().getTypeClass() : SystemConfigurationType.class;
     }
 
     private List<InlineMenuItem> initInlineMenu() {
@@ -500,21 +503,23 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private <C extends Containerable> void listObjectsPerformed(AjaxRequestTarget target) {
         Table table = getListTable();
-        if (searchModel.getObject().isTypeChanged()) {
-            ObjectTypeSearchItemWrapper<C> objectType = searchModel.getObject().getObjectTypeSearchItemWrapper();
-            Class<? extends Containerable> type =
-                    (Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), objectType.getValue().getValue());
-            // createSearchConfigWrapper(type, objectType.getValue().getValue()),
-            Search search = SearchFactory.createSearch((Class) type, PageDebugList.this);
-            //TODO axiom?
-            search.getAllowedModeList().addAll(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
-//            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
-            searchModel.setObject(search);//TODO: this is veeery ugly, available definitions should refresh when the type changed
-//            configureSearch(search);
-            table.getDataTable().getColumns().clear();
-            //noinspection unchecked
-            table.getDataTable().getColumns().addAll(createColumns());
-        }
+//        if (searchModel.getObject().isTypeChanged()) {
+//            ObjectTypeSearchItemWrapper<C> objectType = searchModel.getObject().getObjectTypeSearchItemWrapper();
+//            Class<? extends Containerable> type =
+//                    (Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), objectType.getValue().getValue());
+//            // createSearchConfigWrapper(type, objectType.getValue().getValue()),
+//            SearchBoxConfigurationType defaultSearchConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, this);
+//            Search search = SearchFactory.createSearch(getSchemaService().findContainerDefinitionByCompileTimeClass(type), defaultSearchConfig, null, this);
+//
+//            //TODO axiom?
+//            search.setAllowedTypeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
+////            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
+//            searchModel.setObject(search);//TODO: this is veeery ugly, available definitions should refresh when the type changed
+////            configureSearch(search);
+//            table.getDataTable().getColumns().clear();
+//            //noinspection unchecked
+//            table.getDataTable().getColumns().addAll(createColumns());
+//        }
 
         // save object type category to session storage, used by back button
         GenericPageStorage storage = getSessionStorage().getConfiguration();

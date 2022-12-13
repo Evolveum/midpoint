@@ -43,18 +43,18 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private static final String DOT_CLASS = Search.class.getName() + ".";
     private static final String OPERATION_EVALUATE_COLLECTION_FILTER = DOT_CLASS + "evaluateCollectionFilter";
     public static final String F_FULL_TEXT = "fullText";
-    public static final String F_TYPE = "typeClass";
+    public static final String F_TYPE = "type";
 
     public static final String F_MODE = "defaultSearchBoxMode";
     public static final String F_ALLOWED_MODES = "allowedModeList";
     public static final String F_ALLOWED_TYPES = "allowedTypeList";
-
-
-    public enum PanelType {
-        DEFAULT,
-        MEMBER_PANEL,
-    }
-
+//
+//
+//    public enum PanelType {
+//        DEFAULT,
+//        MEMBER_PANEL,
+//    }
+//
 
     private Class<C> typeClass;
 
@@ -76,6 +76,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     private String collectionViewName;
     private String collectionRefOid;
+
+    private boolean forceReload;
 
     public String getCollectionViewName() {
         return collectionViewName;
@@ -599,5 +601,21 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public void setTypeClass(Class<C> typeClass) {
         this.typeClass = typeClass;
+    }
+
+    public QName getType() {
+        return WebComponentUtil.containerClassToQName(PrismContext.get(), typeClass);
+    }
+
+    public void setType(QName type) {
+        this.typeClass = WebComponentUtil.qnameToContainerClass(PrismContext.get(), type);
+    }
+
+    public void setForceReload(boolean forceReload) {
+        this.forceReload = forceReload;
+    }
+
+    public boolean isForceReload() {
+        return forceReload;
     }
 }

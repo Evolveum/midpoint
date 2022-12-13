@@ -119,18 +119,18 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         return null;
     }
 
-    @Override
-    protected Search<AuditEventRecordType> createSearch(Class<AuditEventRecordType> type) {
-        Search<AuditEventRecordType> search = SearchFactory.createSearch(type, getPageBase());
-
-        DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
-        if (timestampItem != null && timestampItem.getSingleDate() == null && timestampItem.getIntervalSecondDate() == null
-                && !isCollectionViewPanelForWidget() && !isPreview()) {
-            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-            timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
-        }
-        return search;
-    }
+//    @Override
+//    protected Search<AuditEventRecordType> createSearch(Class<AuditEventRecordType> type) {
+//        Search<AuditEventRecordType> search = SearchFactory.createSearch(type, getPageBase());
+//
+//        DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
+//        if (timestampItem != null && timestampItem.getSingleDate() == null && timestampItem.getIntervalSecondDate() == null
+//                && !isCollectionViewPanelForWidget() && !isPreview()) {
+//            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+//            timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
+//        }
+//        return search;
+//    }
 
 //    @Override
 //    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<AuditEventRecordType> type) {

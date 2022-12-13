@@ -36,16 +36,6 @@ public abstract class SearchButtonWithDropdownMenu<E extends Enum> extends BaseP
 
     private IModel<E> mode;
 
-    public SearchButtonWithDropdownMenu(String id, @NotNull IModel<List<E>> menuItemsModel) {
-        this(id, menuItemsModel, (IModel<E>) null);
-    }
-
-    public SearchButtonWithDropdownMenu(String id, @NotNull IModel<List<E>> menuItemsModel, E defaultValue) {
-        super(id, menuItemsModel);
-//        this.mode = defaultValue
-//        selectedValue = defaultValue == null ? menuItemsModel.getObject().get(0) : defaultValue;
-    }
-
     public SearchButtonWithDropdownMenu(String id, @NotNull IModel<List<E>> menuItemsModel, IModel<E> defaultValue) {
         super(id, menuItemsModel);
         this.mode = defaultValue;

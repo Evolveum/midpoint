@@ -222,7 +222,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private void initSearchPanel(String panelId, Form form) {
 
 // type search.. applicable for all types of searches
-        DropDownChoicePanel<QName> choices = new DropDownChoicePanel<>(ID_TYPE_SEARCH, () -> WebComponentUtil.containerClassToQName(PrismContext.get(), getModelObject().getTypeClass()),
+        DropDownChoicePanel<QName> choices = new DropDownChoicePanel<>(ID_TYPE_SEARCH, new PropertyModel<>(getModel(), Search.F_TYPE),
                 new PropertyModel<>(getModel(), Search.F_ALLOWED_TYPES), new QNameObjectTypeChoiceRenderer(), true) {
 
             private static final long serialVersionUID = 1L;
@@ -238,11 +238,16 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
+                Search<C> search = getModelObject();
+                search.setForceReload(true);
+//                getModel().detach();
+
 //                super.onUpdate(target);
 //                getModelObject().setTypeChanged(true);
 //                SearchPanel panel = findParent(SearchPanel.class);
 //                panel.displayedSearchItemsModelReset();
-//                panel.searchPerformed(target);
+                SearchPanel.this.refreshSearchForm(target);
+                SearchPanel.this.searchPerformed(target);
             }
         });
         choices.add(new VisibleBehaviour(() -> getModelObject().getAllowedTypeList().size() > 1));

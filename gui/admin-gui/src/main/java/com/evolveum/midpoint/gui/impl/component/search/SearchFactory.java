@@ -7,9 +7,10 @@
 
 package com.evolveum.midpoint.gui.impl.component.search;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,21 +20,25 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-public class SearchFactory {
+public class SearchFactory<C extends Containerable> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchFactory.class);
     private static final String DOT_CLASS = SearchFactory.class.getName() + ".";
@@ -42,6 +47,104 @@ public class SearchFactory {
     private static final String LOAD_ADMIN_GUI_CONFIGURATION = DOT_CLASS + "loadAdminGuiConfiguration";
     protected static final String OPERATION_LOAD_FULLTEXT_SEARCH_CONFIGURATION = DOT_CLASS + "loadFullTextSearchConfiguration";
 
+    private PrismContainerDefinition<C> definition;
+    private SearchBoxConfigurationType defaultSearchBoxConfig;
+    private CompiledObjectCollectionView collectionView;
+    private ModelServiceLocator modelServiceLocator;
+
+    private String nameSearch;
+
+    private boolean isPreview;
+
+    private boolean isViewForDashboard;
+
+    public SearchFactory() {
+
+    }
+
+    public SearchFactory definition(PrismContainerDefinition<C> definition) {
+        this.definition = definition;
+        return this;
+    }
+
+    public SearchFactory defaultSearchBoxConfig(SearchBoxConfigurationType defaultSearchBoxConfig) {
+        this.defaultSearchBoxConfig = defaultSearchBoxConfig;
+        return this;
+    }
+
+    public SearchFactory collectionView(CompiledObjectCollectionView collectionView) {
+        this.collectionView = collectionView;
+        return this;
+    }
+    public SearchFactory modelServiceLocator(ModelServiceLocator modelServiceLocator) {
+        this.modelServiceLocator = modelServiceLocator;
+        return this;
+    }
+    public SearchFactory nameSearch(String nameSearch) {
+        this.nameSearch = nameSearch;
+        return this;
+    }
+    public SearchFactory isPreview(boolean isPreview) {
+        this.isPreview = isPreview;
+        return this;
+    }
+
+    public SearchFactory isViewForDashboard(boolean isViewForDashboard) {
+        this.isViewForDashboard = isViewForDashboard;
+        return this;
+    }
+
+    public Search<C> createSearch() {
+        SearchBoxConfigurationType mergedConfig = getMergedConfiguration(defaultSearchBoxConfig, collectionView);
+
+        SearchConfigurationWrapper<C> basicSearchWrapper = createBasicSearchWrapper(definition, collectionView, mergedConfig, modelServiceLocator);
+
+        createAbstractRoleSearchItemWrapperList(basicSearchWrapper, mergedConfig);
+
+        Search<C> search = createSearch(definition, mergedConfig, collectionView, basicSearchWrapper, modelServiceLocator);
+
+        if (nameSearch != null && !search.searchByNameEquals(nameSearch)) {
+            if (SearchBoxModeType.FULLTEXT.equals(search.getSearchMode())) {
+                search.setFullText(nameSearch);
+            } else {
+                for (AbstractSearchItemWrapper item : search.getItems()) {
+                    if (!(item instanceof PropertySearchItemWrapper)) {
+                        continue;
+                    }
+                    if (ItemPath.create(ObjectType.F_NAME).equivalent(((PropertySearchItemWrapper) item).getPath())) {
+                        item.setValue(new SearchValue<>(nameSearch));
+                    }
+                }
+            }
+        }
+
+        if (AuditEventRecordType.class.equals(definition.getTypeClass())) {
+            DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
+            if (timestampItem != null && timestampItem.getSingleDate() == null && timestampItem.getIntervalSecondDate() == null
+                    && !isViewForDashboard && !isPreview) {
+                Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
+            }
+        }
+
+            if (isViewForDashboard) {
+                search.getItems().add(new ObjectCollectionSearchItemWrapper(collectionView));
+            }
+
+//            if (storage != null && view.getPaging() != null) {
+//                ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging(), getPrismContext());
+//                if (storage.getPaging() == null) {
+//                    storage.setPaging(paging);
+//                }
+//                if (getTableId() != null && paging.getMaxSize() != null
+//                        && !getPageBase().getSessionStorage().getUserProfile().isExistPagingSize(getTableId())) {
+//                    getPageBase().getSessionStorage().getUserProfile().setPagingSize(getTableId(), paging.getMaxSize());
+//                }
+//            }
+
+
+        return search;
+    }
 
     public static <C extends Containerable> Search<C> createSearch(PrismContainerDefinition<C> definition, SearchBoxConfigurationType defaultSearchBoxConfig, CompiledObjectCollectionView collectionView, ModelServiceLocator modelServiceLocator) {
         SearchBoxConfigurationType mergedConfig = getMergedConfiguration(defaultSearchBoxConfig, collectionView);
@@ -140,6 +243,7 @@ public class SearchFactory {
     }
 
     //TODO
+    @Deprecated
     public static <C extends Containerable> Search<C> createSearch(Class<C> type, ModelServiceLocator modelServiceLocator) {
         PrismContainerDefinition<C> def = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
         return createSearch(def, SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, modelServiceLocator), null, modelServiceLocator);
@@ -171,7 +275,7 @@ public class SearchFactory {
         }
 
     }
-    
+
     public static <C extends Containerable> SearchConfigurationWrapper<C> createDefaultSearchBoxConfigurationWrapper(PrismContainerDefinition<C> definition,
             SearchBoxConfigurationType mergedConfig, ModelServiceLocator modelServiceLocator) {
         return createDefaultSearchBoxConfigurationWrapper(definition, mergedConfig, null, modelServiceLocator);
@@ -184,6 +288,8 @@ public class SearchFactory {
         for (SearchItemType searchItem : searchItems.getSearchItem()) {
             searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(definition, searchItem,  coordinates, modelServiceLocator));
         }
+
+
         return searchConfigWrapper;
     }
 
@@ -193,35 +299,35 @@ public class SearchFactory {
         return searchItemType;
     }
 
-    public static List<SearchItemDefinition> getConfiguredSearchItemDefinitions(List<SearchItemDefinition> availableDefinitions,
-            ModelServiceLocator modelServiceLocator, QName type, String collectionViewName, Search.PanelType panelType) {
-        SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
-        if (searchConfig == null) {
-            return null;
-        }
-        SearchItemsType configuredSearchItems = searchConfig.getSearchItems();
-        if (configuredSearchItems == null || CollectionUtils.isEmpty(configuredSearchItems.getSearchItem())) {
-            return null;
-        }
-        List<SearchItemDefinition> configuredSearchItemList = new ArrayList<>();
-        configuredSearchItems.getSearchItem().forEach(searchItem -> {
-            for (SearchItemDefinition def : availableDefinitions) {
-                ItemPathType searchItemPath = new ItemPathType(def.getPath());
-                if (searchItem.getPath() != null && searchItem.getPath().equivalent(searchItemPath)) {
-                    def.setDisplayName(searchItem.getDisplayName());
-                    configuredSearchItemList.add(def);
-                    return;
-                }
-            }
-        });
-        configuredSearchItems.getSearchItem().forEach(searchItem -> {
-            if (searchItem.getFilter() != null || searchItem.getFilterExpression() != null) {
-                configuredSearchItemList.add(new SearchItemDefinition(searchItem));
-                return;
-            }
-        });
-        return configuredSearchItemList;
-    }
+//    public static List<SearchItemDefinition> getConfiguredSearchItemDefinitions(List<SearchItemDefinition> availableDefinitions,
+//            ModelServiceLocator modelServiceLocator, QName type, String collectionViewName, Search.PanelType panelType) {
+//        SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName, panelType);
+//        if (searchConfig == null) {
+//            return null;
+//        }
+//        SearchItemsType configuredSearchItems = searchConfig.getSearchItems();
+//        if (configuredSearchItems == null || CollectionUtils.isEmpty(configuredSearchItems.getSearchItem())) {
+//            return null;
+//        }
+//        List<SearchItemDefinition> configuredSearchItemList = new ArrayList<>();
+//        configuredSearchItems.getSearchItem().forEach(searchItem -> {
+//            for (SearchItemDefinition def : availableDefinitions) {
+//                ItemPathType searchItemPath = new ItemPathType(def.getPath());
+//                if (searchItem.getPath() != null && searchItem.getPath().equivalent(searchItemPath)) {
+//                    def.setDisplayName(searchItem.getDisplayName());
+//                    configuredSearchItemList.add(def);
+//                    return;
+//                }
+//            }
+//        });
+//        configuredSearchItems.getSearchItem().forEach(searchItem -> {
+//            if (searchItem.getFilter() != null || searchItem.getFilterExpression() != null) {
+//                configuredSearchItemList.add(new SearchItemDefinition(searchItem));
+//                return;
+//            }
+//        });
+//        return configuredSearchItemList;
+//    }
 
     private static <T extends Containerable> boolean isFullTextSearchEnabled(ModelServiceLocator modelServiceLocator, Class<T> type) {
         OperationResult result = new OperationResult(LOAD_SYSTEM_CONFIGURATION);
@@ -240,25 +346,25 @@ public class SearchFactory {
         return searchBoxConfigurationType.isAllowToConfigureSearchItems();
     }
 
-    private static SearchBoxConfigurationType getSearchBoxConfiguration(ModelServiceLocator modelServiceLocator,
-            QName type, String collectionViewName, Search.PanelType panelType) {
-        OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
-        try {
-            CompiledGuiProfile guiConfig = modelServiceLocator.getModelInteractionService().getCompiledGuiProfile(null, result);
-            CompiledObjectCollectionView view = guiConfig.findObjectCollectionView(type, collectionViewName);
-            if (view != null) {
-                if (Search.PanelType.MEMBER_PANEL.equals(panelType) && view.getAdditionalPanels() != null
-                        && view.getAdditionalPanels().getMemberPanel() != null) {
-                    return view.getAdditionalPanels().getMemberPanel().getSearchBoxConfiguration();
-                }
-                return view.getSearchBoxConfiguration();
-            }
-            return null;
-        } catch (SchemaException | ObjectNotFoundException | CommunicationException
-                | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
-            throw new SystemException(ex);
-        }
-    }
+//    private static SearchBoxConfigurationType getSearchBoxConfiguration(ModelServiceLocator modelServiceLocator,
+//            QName type, String collectionViewName, Search.PanelType panelType) {
+//        OperationResult result = new OperationResult(LOAD_ADMIN_GUI_CONFIGURATION);
+//        try {
+//            CompiledGuiProfile guiConfig = modelServiceLocator.getModelInteractionService().getCompiledGuiProfile(null, result);
+//            CompiledObjectCollectionView view = guiConfig.findObjectCollectionView(type, collectionViewName);
+//            if (view != null) {
+//                if (Search.PanelType.MEMBER_PANEL.equals(panelType) && view.getAdditionalPanels() != null
+//                        && view.getAdditionalPanels().getMemberPanel() != null) {
+//                    return view.getAdditionalPanels().getMemberPanel().getSearchBoxConfiguration();
+//                }
+//                return view.getSearchBoxConfiguration();
+//            }
+//            return null;
+//        } catch (SchemaException | ObjectNotFoundException | CommunicationException
+//                | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
+//            throw new SystemException(ex);
+//        }
+//    }
 
     public static <C extends Containerable> Map<ItemPath, ItemDefinition<?>> getSearchableDefinitionMap(
             PrismContainerDefinition<C> containerDef, ModelServiceLocator modelServiceLocator) {

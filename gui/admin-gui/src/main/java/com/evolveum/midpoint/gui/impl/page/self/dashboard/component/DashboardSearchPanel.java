@@ -98,22 +98,21 @@ public class DashboardSearchPanel extends BasePanel<T> {
         searchInput.setOutputMarkupPlaceholderTag(true);
         searchForm.add(searchInput);
 
-        SearchButtonWithDropdownMenu<SearchType> searchButton = new SearchButtonWithDropdownMenu<SearchType>(ID_SEARCH_BUTTON_PANEL,
+        SearchButtonWithDropdownMenu<SearchType> searchButton = new SearchButtonWithDropdownMenu<>(ID_SEARCH_BUTTON_PANEL,
                 Model.ofList(Arrays.asList(SearchType.values())),
-                selectedSearchType) {
+                Model.of(selectedSearchType)) {
             private static final long serialVersionUID = 1L;
+
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
                 performSearch();
             }
-
 
             @Override
             protected void menuItemSelected(AjaxRequestTarget target, SearchType searchBoxModeType) {
                 selectedSearchType = searchBoxModeType;
                 target.add(DashboardSearchPanel.this);
             }
-
 
 //            @Override
 //            public IModel<Boolean> isMenuItemVisible(SearchBoxModeType searchBoxModeType) {

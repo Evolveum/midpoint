@@ -594,6 +594,13 @@ public final class WebComponentUtil {
     public static <T extends Containerable> QName containerClassToQName(PrismContext prismContext, Class<T> clazz) {
         return prismContext.getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(clazz).getTypeName();
     }
+    public static <C extends Containerable> Class<C> qnameToContainerClass(PrismContext prismContext, QName type) {
+        PrismContainerDefinition<C> def = prismContext.getSchemaRegistry().findContainerDefinitionByType(type);
+        if (def == null) {
+            return null;
+        }
+        return def.getTypeClass();
+    }
 
     public static boolean canSuspendTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task.asPrismObject())

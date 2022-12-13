@@ -16,6 +16,8 @@ import com.evolveum.midpoint.gui.impl.component.search.wrapper.ObjectCollectionS
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.web.component.data.*;
 
+import com.evolveum.midpoint.web.component.search.SearchValue;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -75,7 +77,6 @@ import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -156,6 +157,21 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
     }
 
+    private boolean isUseStorageSearch(Search<C> search) {
+        if (search == null) {
+            return false;
+        }
+        if (search.isForceReload()) {
+            return false;
+        }
+
+        String searchByName = getSearchByNameParameterValue();
+        if (searchByName != null && search.searchByNameEquals(searchByName)) {
+            return false;
+        }
+        return true;
+    }
+
     protected LoadableDetachableModel<Search<C>> createSearchModel() {
         return new LoadableDetachableModel<>() {
 
@@ -163,62 +179,78 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             public Search<C> load() {
-                Search<C> newSearch = createSearch(getType());
 
                 Search<C> search = null;
                 PageStorage storage = getPageStorage();
-                String searchByName = getSearchByNameParameterValue();
-                if (storage != null && storage.getSearch() != null && (searchByName == null || storage.getSearch().searchByNameEquals(searchByName))) {  // do NOT use storage when using name search (e.g. from dashboard)
+                if (storage != null) {
                     search = storage.getSearch();
                 }
 
-                if (search == null || search.isTypeChanged() ||
-                        (!SearchBoxModeType.BASIC.equals(search.getSearchMode()) && !search.allPropertyItemsPresent(newSearch.getItems()))) {
-                    search = newSearch;
-//                    search.searchWasReload();
+                if (!isUseStorageSearch(search)) {
+                    search = createSearch(getType());
                 }
 
-                if (searchByName != null && !search.searchByNameEquals(searchByName)) {
-                    if (SearchBoxModeType.FULLTEXT.equals(search.getSearchMode())) {
-                        search.setFullText(searchByName);
-                    } else {
-                        for (AbstractSearchItemWrapper item : search.getItems()) {
-                            if (!(item instanceof PropertySearchItemWrapper)) {
-                                continue;
-                            }
-                            if (ItemPath.create(ObjectType.F_NAME).equivalent(((PropertySearchItemWrapper) item).getPath())) {
-                                item.setValue(new SearchValue<>(searchByName));
-                            }
-                        }
-                    }
-                }
+
+
+
+
+//                Search<C> newSearch = createSearch(getType());
+//
+//                Search<C> search = null;
+//                PageStorage storage = getPageStorage();
+//                String searchByName = getSearchByNameParameterValue();
+//                if (storage != null && storage.getSearch() != null && (searchByName == null || storage.getSearch().searchByNameEquals(searchByName))) {  // do NOT use storage when using name search (e.g. from dashboard)
+//                    search = storage.getSearch();
+//                }
+//
+//                if (search == null || search.isTypeChanged() ||
+//                        (!SearchBoxModeType.BASIC.equals(search.getSearchMode()) && !search.allPropertyItemsPresent(newSearch.getItems()))) {
+//                    search = newSearch;
+////                    search.searchWasReload();
+//                }
+
+//                if (searchByName != null && !search.searchByNameEquals(searchByName)) {
+//                    if (SearchBoxModeType.FULLTEXT.equals(search.getSearchMode())) {
+//                        search.setFullText(searchByName);
+//                    } else {
+//                        for (AbstractSearchItemWrapper item : search.getItems()) {
+//                            if (!(item instanceof PropertySearchItemWrapper)) {
+//                                continue;
+//                            }
+//                            if (ItemPath.create(ObjectType.F_NAME).equivalent(((PropertySearchItemWrapper) item).getPath())) {
+//                                item.setValue(new SearchValue<>(searchByName));
+//                            }
+//                        }
+//                    }
+//                }
 
                 // todo this should not be here! Search model doesn't handle paging, only query. Paging is handled by table (which technically doesn't care about specific query)
-                if (isCollectionViewPanel()) {
-                    CompiledObjectCollectionView view = getObjectCollectionView();
-                    if (view == null) {
-                        getPageBase().redirectToNotFoundPage();
-                    }
-
-                    if (isCollectionViewPanelForWidget()) {
-                        search.getItems().add(new ObjectCollectionSearchItemWrapper(view));
-                    }
-
-                    if (storage != null && view.getPaging() != null) {
-                        ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging(), getPrismContext());
-                        if (storage.getPaging() == null) {
-                            storage.setPaging(paging);
-                        }
-                        if (getTableId() != null && paging.getMaxSize() != null
-                                && !getPageBase().getSessionStorage().getUserProfile().isExistPagingSize(getTableId())) {
-                            getPageBase().getSessionStorage().getUserProfile().setPagingSize(getTableId(), paging.getMaxSize());
-                        }
-                    }
-                }
+//                if (isCollectionViewPanel()) {
+//                    CompiledObjectCollectionView view = getObjectCollectionView();
+//                    if (view == null) {
+//                        getPageBase().redirectToNotFoundPage();
+//                    }
+//
+//                    if (isCollectionViewPanelForWidget()) {
+//                        search.getItems().add(new ObjectCollectionSearchItemWrapper(view));
+//                    }
+//
+//                    if (storage != null && view.getPaging() != null) {
+//                        ObjectPaging paging = ObjectQueryUtil.convertToObjectPaging(view.getPaging(), getPrismContext());
+//                        if (storage.getPaging() == null) {
+//                            storage.setPaging(paging);
+//                        }
+//                        if (getTableId() != null && paging.getMaxSize() != null
+//                                && !getPageBase().getSessionStorage().getUserProfile().isExistPagingSize(getTableId())) {
+//                            getPageBase().getSessionStorage().getUserProfile().setPagingSize(getTableId(), paging.getMaxSize());
+//                        }
+//                    }
+//                }
 
                 if (storage != null) {
                     storage.setSearch(search);
                 }
+                getPageBase().getPageParameters().remove(PageBase.PARAMETER_SEARCH_BY_NAME);
                 return search;
             }
         };
@@ -231,7 +263,18 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     protected Search<C> createSearch(Class<C> type) {
         Class<C> defaultType = getType();
 
-        return SearchFactory.createSearch(getContainerDefinitionForColumns(), getDefaultSearchBoxConfiguration(defaultType), getObjectCollectionView(), getPageBase());
+        SearchFactory<C> searchFactory = new SearchFactory<>()
+                .definition((PrismContainerDefinition<Containerable>) getContainerDefinitionForColumns())
+                .defaultSearchBoxConfig(getDefaultSearchBoxConfiguration(defaultType))
+                .collectionView(getObjectCollectionView())
+                .modelServiceLocator(getPageBase())
+                .nameSearch(getSearchByNameParameterValue())
+                .isPreview(isPreview())
+                .isViewForDashboard(isCollectionViewPanelForWidget());
+
+        return searchFactory.createSearch();
+
+//        return SearchFactory.createSearch(getContainerDefinitionForColumns(), getDefaultSearchBoxConfiguration(defaultType), getObjectCollectionView(), getPageBase());
     }
 
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<C> type) {
