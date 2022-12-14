@@ -35,6 +35,8 @@ import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformation
 import static com.evolveum.midpoint.schema.util.task.TaskResolver.empty;
 import static com.evolveum.midpoint.util.MiscUtil.assertCheck;
 
+import static com.evolveum.midpoint.util.MiscUtil.or0;
+
 import static java.util.Objects.requireNonNullElseGet;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -548,5 +550,28 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         assertThat(objectRef.getOid()).as("objectRef.oid").isEqualTo(expectedOid);
         assertThat(objectRef.getType()).as("objectRef.type").isEqualTo(expectedType);
         return this;
+    }
+
+    // Simple version until more elaborate asserter is created
+    public TaskAsserter<RA> assertInternalOperationExecutionCount(String operation, int expected) {
+        assertThat(getInternalOperationExecutionCount(operation))
+                .as("operation '" + operation + "' exec count")
+                .isEqualTo(expected);
+        return this;
+    }
+
+    private int getInternalOperationExecutionCount(String operation) {
+        OperationStatsType operationStats = getTaskBean().getOperationStats();
+        if (operationStats == null) {
+            return 0;
+        }
+        OperationsPerformanceInformationType opPerformanceInfo = operationStats.getOperationsPerformanceInformation();
+        if (opPerformanceInfo == null) {
+            return 0;
+        }
+        return opPerformanceInfo.getOperation().stream()
+                .filter(op -> operation.equals(op.getName()))
+                .mapToInt(op -> or0(op.getInvocationCount()))
+                .sum();
     }
 }

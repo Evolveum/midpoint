@@ -343,7 +343,7 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
 
         given("new account is added and imported");
         getTargetResource().append("mx1,Martin,Black,,,,");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(getTargetResource().oid)
                 .withNamingAttribute("login")
                 .withNameValue("mx1")
@@ -373,7 +373,7 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
 
         when("account is updated and re-imported");
         getTargetResource().replaceLine("mx1,.*", "mx1,Martin,Green,,,,");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(getTargetResource().oid)
                 .withNamingAttribute("login")
                 .withNameValue("mx1")

@@ -60,7 +60,7 @@ public class TestCorrelationDuringResourceLifecycle extends AbstractInternalMode
         RESOURCE_DUMMY_ACTIVE.controller.addAccount(accountName);
 
         when("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ACTIVE.oid)
                 .withNameValue(accountName)
                 .execute(result);
@@ -87,7 +87,7 @@ public class TestCorrelationDuringResourceLifecycle extends AbstractInternalMode
                 result);
 
         and("the account is re-imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ACTIVE.oid)
                 .withNameValue(accountName)
                 .execute(result);
@@ -115,7 +115,7 @@ public class TestCorrelationDuringResourceLifecycle extends AbstractInternalMode
         RESOURCE_DUMMY_PROPOSED.controller.addAccount(accountName);
 
         when("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_PROPOSED.oid)
                 .withNameValue(accountName)
                 .execute(result);
@@ -142,7 +142,7 @@ public class TestCorrelationDuringResourceLifecycle extends AbstractInternalMode
                 result);
 
         and("the account is re-imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_PROPOSED.oid)
                 .withNameValue(accountName)
                 .execute(result);

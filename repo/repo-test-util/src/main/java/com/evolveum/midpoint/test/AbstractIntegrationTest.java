@@ -4306,7 +4306,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     @SuppressWarnings("WeakerAccess")
-    protected boolean isNativeRepository() {
+    public boolean isNativeRepository() {
         return repositoryService.isNative();
     }
 

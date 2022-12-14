@@ -223,6 +223,24 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return asserter;
     }
 
+    public <F extends FocusType> FocusAsserter<F, PrismObjectAsserter<O, RA>> asFocus() {
+        assertThat(object.asObjectable()).as("object").isInstanceOf(FocusType.class);
+        //noinspection unchecked
+        FocusAsserter<F, PrismObjectAsserter<O, RA>> asserter =
+                new FocusAsserter<>((PrismObject<F>) object, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    public ShadowAsserter<PrismObjectAsserter<O, RA>> asShadow() {
+        assertThat(object.asObjectable()).as("object").isInstanceOf(ShadowType.class);
+        //noinspection unchecked
+        ShadowAsserter<PrismObjectAsserter<O, RA>> asserter =
+                new ShadowAsserter<>((PrismObject<ShadowType>) object, this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
+    }
+
     protected String desc() {
         return descWithDetails(object);
     }
@@ -668,24 +686,6 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         MetadataType metadata = object.asObjectable().getMetadata();
         MetadataAsserter<PrismObjectAsserter<O, RA>> asserter =
                 new MetadataAsserter<>(metadata, this, "object metadata in " + desc());
-        copySetupTo(asserter);
-        return asserter;
-    }
-
-    /** The returned asserter will have the same parent as this one. */
-    public <F extends FocusType> FocusAsserter<F, RA> asFocus() {
-        assertThat(object.asObjectable()).as("object").isInstanceOf(FocusType.class);
-        //noinspection unchecked
-        FocusAsserter<F, RA> asserter = new FocusAsserter<>((PrismObject<F>) object, getReturnAsserter(), desc());
-        copySetupTo(asserter);
-        return asserter;
-    }
-
-    /** The returned asserter will have the same parent as this one. */
-    public ShadowAsserter<RA> asShadow() {
-        assertThat(object.asObjectable()).as("object").isInstanceOf(ShadowType.class);
-        //noinspection unchecked
-        ShadowAsserter<RA> asserter = new ShadowAsserter<>((PrismObject<ShadowType>) object, getReturnAsserter(), desc());
         copySetupTo(asserter);
         return asserter;
     }

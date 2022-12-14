@@ -2857,7 +2857,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
 
         when("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -2905,7 +2905,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 result);
 
         when("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -2956,7 +2956,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 result);
 
         when("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED_FILTER_BASED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -2986,7 +2986,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
 
         and("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -3007,7 +3007,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .assertNoArchetypeRef();
 
         when("the account is imported again");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -3033,7 +3033,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
 
         and("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -3061,10 +3061,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .assertArchetypeRef(ARCHETYPE_OTHER.oid);
 
         when("the account is imported again");
-        var taskOid = importSingleAccountRequest()
+        var taskOid = importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
-                .withAssertSuccess(false)
+                .withNotAssertingSuccess()
                 .execute(result);
 
         then("the task has failed");
