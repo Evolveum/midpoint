@@ -11,6 +11,15 @@
 :page-alias: { "parent" : "/midpoint/features/current/" }
 :page-upkeep-status: yellow
 
+[NOTE]
+.deprecation notice
+====
+The Subtype is currently deprecated since 4.2 for ObjectType (UserType, ServiceType, etc).
+The deprecation is not relevant for AssignmentType.
+
+This docs page is focused to deprecated usage of subtype - usage for ObjectType.
+====
+
 MidPoint has several built-in object types such as xref:/midpoint/reference/roles-policies/rbac/[roles], xref:/midpoint/reference/org/organizational-structure/[orgs], and xref:/midpoint/reference/misc/services/[services].
 Those object types may look innocent at the first sight.
 They look like ordinary concepts that almost any other IDM system has.
