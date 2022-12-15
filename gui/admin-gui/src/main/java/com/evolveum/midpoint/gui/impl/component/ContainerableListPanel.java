@@ -373,7 +373,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     public PageStorage getPageStorage() {
-        if(isCollectionViewPanelForWidget()) {
+        if(isCollectionViewPanelForWidget() || isDashboard()) {
             return null;
         }
 
@@ -1090,9 +1090,13 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isCollectionViewPanel() {
-        return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()
+        return (isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget()
                 || defaultCollectionExists() || getCompiledCollectionViewFromPanelConfiguration() != null
-                || getObjectCollectionView() != null;
+                || getObjectCollectionView() != null) && !isDashboard();
+    }
+
+    protected boolean isDashboard() {
+        return false;
     }
 
     protected boolean defaultCollectionExists() {
