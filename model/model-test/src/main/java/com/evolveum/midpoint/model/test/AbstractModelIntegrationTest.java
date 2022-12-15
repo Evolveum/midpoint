@@ -83,7 +83,7 @@ import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.*;
-import com.evolveum.midpoint.model.test.util.ImportSingleAccountRequest.ImportSingleAccountRequestBuilder;
+import com.evolveum.midpoint.model.test.util.ImportAccountsRequest.ImportAccountsRequestBuilder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
@@ -6023,6 +6023,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
+    protected void assertNoUserByUsername(String username)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, ObjectNotFoundException {
+        assertThat(findUserByUsername(username)).as("user named '" + username + "'").isNull();
+    }
+
     protected UserAsserter<Void> assertUserByUsername(String username, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         PrismObject<UserType> user = findUserByUsername(username);
         assertNotNull("User with username '" + username + "' was not found", user);
@@ -6891,11 +6897,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return modelService.testResource(oid, task, result);
     }
 
-    /**
-     * Imports a single account (or other kind of object) by creating a specialized task.
-     */
-    public ImportSingleAccountRequestBuilder importSingleAccountRequest() {
-        return new ImportSingleAccountRequestBuilder(this);
+    /** Import a single or multiple accounts (or other kind of object) by creating a specialized task - or on foreground. */
+    protected ImportAccountsRequestBuilder importAccountsRequest() {
+        return new ImportAccountsRequestBuilder(this);
     }
 
     /**
@@ -6904,7 +6908,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * Simulation deltas are stored in returned {@link SimulationResult} and optionally also in the storage provided by the
      * {@link SimulationResultManager} - if `simulationConfiguration` is present. (To be implemented.)
      */
-    protected SimulationResult executeInProductionSimulationMode(
+    private SimulationResult executeInProductionSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @Nullable SimulationResultType simulationConfiguration,
             @NotNull Task task,
@@ -7018,8 +7022,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected @NotNull Collection<ObjectDelta<?>> getTaskSimDeltas(String taskOid, OperationResult result)
             throws CommonException {
         Task taskAfter = taskManager.getTaskPlain(taskOid, result);
-        assertTask(taskAfter, "import task after")
-                .display();
         ActivitySimulationStateType simState =
                 Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
                         .getSimulation();

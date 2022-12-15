@@ -176,6 +176,13 @@ call apply_change(12, $aa$
 $aa$);
 
 call apply_change(13, $aa$
+-- TODO delete before release
+DROP TABLE IF EXISTS m_simulation_result CASCADE;
+DROP TABLE IF EXISTS m_simulation_result_processed_object_default CASCADE;
+DROP TABLE IF EXISTS m_simulation_result_processed_object CASCADE;
+DROP TYPE IF EXISTS ObjectProcessingStateType;
+-- TODO end of the block
+
 CREATE TABLE m_simulation_result (
     oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
     objectType ObjectType GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED
@@ -258,7 +265,7 @@ LANGUAGE plpgsql;
 CREATE TRIGGER m_simulation_result_delete_partition BEFORE DELETE ON m_simulation_result
   FOR EACH ROW EXECUTE FUNCTION m_simulation_result_delete_partition();
 
-$aa$);
+$aa$, true); -- TODO remove `true` before M2 or before RC1! (Also, the first 3 table drops)
 
 
 -- WRITE CHANGES ABOVE ^^

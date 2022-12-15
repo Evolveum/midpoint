@@ -1074,7 +1074,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         RESOURCE_DUMMY_LIMITED.controller.addAccount(accountName);
 
         when("account is imported (the first time)");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_LIMITED.oid)
                 .withNameValue(accountName)
                 .execute(result);
@@ -1106,7 +1106,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
                 result);
 
         and("account is re-imported");
-        var taskOid = importSingleAccountRequest()
+        var taskOid = importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_LIMITED.oid)
                 .withNameValue(accountName)
                 .execute(result);

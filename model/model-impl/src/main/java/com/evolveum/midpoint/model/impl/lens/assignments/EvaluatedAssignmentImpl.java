@@ -182,7 +182,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     /**
      * Construction is not a part of model-api. To avoid heavy refactoring at present time, there is not a classical
-     * Construction-ConstructionImpl separation, but we use artificial (simplified) EvaluatedConstruction
+     * Construction-ConstructionImpl separation, but we use artificial (simplified) {@link EvaluatedResourceObjectConstruction}
      * API class instead.
      */
     @Override

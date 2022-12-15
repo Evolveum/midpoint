@@ -1,0 +1,111 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="bb554a60-3e83-40e5-be21-ca913ee58a43"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+    <name>OpenDJ template</name>
+
+    <template>true</template>
+    <abstract>true</abstract>
+
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal>
+                <q:path>c:connectorType</q:path>
+                <q:value>com.evolveum.polygon.connector.ldap.LdapConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+
+        <icfc:configurationProperties>
+            <icfcldap:port>10389</icfcldap:port>
+            <!-- host, password, and baseContext must be provided by the specific resource -->
+            <icfcldap:bindDn>cn=directory manager</icfcldap:bindDn>
+            <icfcldap:pagingStrategy>auto</icfcldap:pagingStrategy>
+            <icfcldap:vlvSortAttribute>entryUUID</icfcldap:vlvSortAttribute>
+            <icfcldap:operationalAttributes>ds-pwp-account-disabled</icfcldap:operationalAttributes>
+            <icfcldap:operationalAttributes>isMemberOf</icfcldap:operationalAttributes>
+        </icfc:configurationProperties>
+
+        <icfc:resultsHandlerConfiguration>
+            <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+            <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+            <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+        </icfc:resultsHandlerConfiguration>
+
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <delineation>
+                <objectClass>ri:inetOrgPerson</objectClass>
+            </delineation>
+            <focus>
+                <type>UserType</type>
+            </focus>
+            <!-- We don't want to import these accounts in our scenarios, so we mark them as protected. -->
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                        <q:path>attributes/ri:dn</q:path>
+                        <q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                        <q:path>attributes/ri:dn</q:path>
+                        <q:value>uid=jgibbs,ou=People,dc=example,dc=com</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                        <q:path>attributes/ri:dn</q:path>
+                        <q:value>uid=hbarbossa,ou=People,dc=example,dc=com</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+            <protected>
+                <filter>
+                    <q:equal>
+                        <q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
+                        <q:path>attributes/ri:dn</q:path>
+                        <q:value>uid=jbeckett,ou=People,dc=example,dc=com</q:value>
+                    </q:equal>
+                </filter>
+            </protected>
+        </objectType>
+    </schemaHandling>
+    <capabilities>
+        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                    <cap:enableValue/>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
+    </capabilities>
+</resource>

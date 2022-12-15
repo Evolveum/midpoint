@@ -21,6 +21,7 @@ import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ContainerDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.PropertyDeltaAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -109,6 +110,11 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public ObjectDeltaAsserter<O,RA> assertNoRealResourceObjectModifications() {
+        return assertNotModifiedPaths(
+                ShadowType.F_ATTRIBUTES, ShadowType.F_CREDENTIALS, ShadowType.F_AUXILIARY_OBJECT_CLASS);
+    }
+
     /** Asserts that the set of modified paths is exactly the same as expected. */
     public ObjectDeltaAsserter<O,RA> assertModifiedPathsStrict(ItemPath... expectedPaths) {
         return assertModifiedPaths(true, expectedPaths);
@@ -158,6 +164,10 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
                 new PrismObjectAsserter<>(objectToAdd, this, "object to add in " + desc());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public String getOid() {
+        return delta.getOid();
     }
 
     protected String desc() {

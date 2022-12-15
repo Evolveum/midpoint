@@ -112,9 +112,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
                         .end()
                         .asFocus()
-                        .activation()
-                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
-                            .assertEnableTimestampPresent();
+                            .activation()
+                                .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                                .assertEnableTimestampPresent();
         // @formatter:on
     }
 
@@ -246,13 +246,13 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
                         .end()
                         .asFocus()
-                        .activation()
-                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
-                            .assertEnableTimestampPresent()
+                            .activation()
+                                .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                                .assertEnableTimestampPresent()
+                            .end()
+                            .assertLiveLinks(accountShouldExist ? 1 : 0)
                         .end()
-                        .assertLiveLinks(accountShouldExist ? 1 : 0)
-                    .end()
-                .end();
+                    .end();
 
         if (accountShouldExist) {
             assertAccountAddDelta(name, target, simulatedDeltas, message);
@@ -347,18 +347,18 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
                         .end()
                         .asFocus()
-                        .activation()
-                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
-                            .assertEnableTimestampPresent()
-                        .end()
-                        .assignments()
-                            .single()
-                                .assertResource(target.oid)
+                            .activation()
+                                .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                                .assertEnableTimestampPresent()
                             .end()
+                            .assignments()
+                                .single()
+                                    .assertResource(target.oid)
+                                .end()
+                            .end()
+                            .assertLiveLinks(accountShouldExist ? 1 : 0)
                         .end()
-                        .assertLiveLinks(accountShouldExist ? 1 : 0)
-                    .end()
-                .end();
+                    .end();
         if (accountShouldExist) {
             assertAccountAddDelta(name, target, simulatedDeltas, message);
         } else {
@@ -588,11 +588,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
         when("the account is imported");
         SimulationResultType simulationConfiguration = getDefaultSimulationConfiguration();
-        SimulationResult simResult = importSingleAccountRequest()
+        SimulationResult simResult = importAccountsRequest()
                 .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
                 .withNameValue("test200")
                 .withTaskExecutionMode(getExecutionMode())
-                .build()
                 .executeOnForegroundSimulated(simulationConfiguration, task, result);
 
         then("no new objects should be created (except for one shadow), no model deltas really executed");
@@ -626,11 +625,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .assertCreateChannel(CHANNEL_IMPORT_URI)
                         .end()
                         .asFocus()
-                        .activation()
-                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
-                            .assertEnableTimestampPresent()
+                            .activation()
+                                .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                                .assertEnableTimestampPresent()
+                            .end()
+                            .assertLiveLinks(1)
                         .end()
-                        .assertLiveLinks(1)
                     .end()
                 .end()
                 .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).index(0).find()
@@ -689,11 +689,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
     private String executeAccountImportOnBackground(String name, OperationResult result)
             throws CommonException {
-        return importSingleAccountRequest()
+        return importAccountsRequest()
                 .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
                 .withNameValue(name)
                 .withTaskExecutionMode(getExecutionMode())
-                .build()
                 .execute(result);
     }
 
@@ -764,11 +763,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             .assertCreateChannel(SchemaConstants.CHANNEL_USER_URI)
                         .end()
                         .asFocus()
-                        .activation()
-                            .assertEffectiveStatus(ActivationStatusType.ENABLED)
-                            .assertEnableTimestampPresent()
-                        .end()
-                        .getObjectable();
+                            .activation()
+                                .assertEffectiveStatus(ActivationStatusType.ENABLED)
+                                .assertEnableTimestampPresent()
+                            .end()
+                            .getObjectable();
         // @formatter:on
 
         Set<String> orgs = ((UserType) user).getOrganization().stream()
