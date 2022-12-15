@@ -316,6 +316,14 @@ public class ImportAccountsRequest {
                     test.createModelLoggingTracingProfile());
         }
 
+        public ImportAccountsRequestBuilder simulatedDevelopment() {
+            return withTaskExecutionMode(TaskExecutionMode.SIMULATED_DEVELOPMENT);
+        }
+
+        public ImportAccountsRequestBuilder simulatedProduction() {
+            return withTaskExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
+        }
+
         public ImportAccountsRequestBuilder withTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
             this.taskExecutionMode = taskExecutionMode;
             return this;
@@ -325,8 +333,17 @@ public class ImportAccountsRequest {
             return new ImportAccountsRequest(this);
         }
 
-        public String execute(OperationResult result) throws CommonException, PreconditionViolationException {
+        public String execute(OperationResult result) throws CommonException {
             return build().execute(result);
+        }
+
+        public void executeOnForeground(OperationResult result) throws CommonException {
+            build().executeOnForeground(result);
+        }
+
+        public SimulationResult executeOnForegroundSimulated(
+                SimulationResultType simulationConfiguration, Task task, OperationResult result) throws CommonException {
+            return build().executeOnForegroundSimulated(simulationConfiguration, task, result);
         }
 
         AccountsSpecification getAccountsSpecification() {

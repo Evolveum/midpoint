@@ -592,7 +592,6 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
                 .withNameValue("test200")
                 .withTaskExecutionMode(getExecutionMode())
-                .build()
                 .executeOnForegroundSimulated(simulationConfiguration, task, result);
 
         then("no new objects should be created (except for one shadow), no model deltas really executed");
@@ -694,7 +693,6 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                 .withResourceOid(RESOURCE_SIMPLE_PRODUCTION_SOURCE.oid)
                 .withNameValue(name)
                 .withTaskExecutionMode(getExecutionMode())
-                .build()
                 .execute(result);
     }
 

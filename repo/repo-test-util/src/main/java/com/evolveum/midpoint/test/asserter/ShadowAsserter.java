@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -31,6 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("UnusedReturnValue")
 public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
@@ -402,6 +404,25 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
             return List.of();
         } else {
             return state.getOwnerOptions().getOption();
+        }
+    }
+
+    public ShadowAsserter<RA> assertCandidateOwners(String... expectedOids) {
+        assertThat(getCandidateOwnerOids())
+                .as("candidate owners OIDs")
+                .containsExactlyInAnyOrder(expectedOids);
+        return this;
+    }
+
+    private Set<String> getCandidateOwnerOids() {
+        ShadowCorrelationStateType state = getObjectable().getCorrelation();
+        if (state == null || state.getOwnerOptions() == null) {
+            return Set.of();
+        } else {
+            return state.getOwnerOptions().getOption().stream()
+                    .map(o -> Referencable.getOid(o.getCandidateOwnerRef()))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
         }
     }
 

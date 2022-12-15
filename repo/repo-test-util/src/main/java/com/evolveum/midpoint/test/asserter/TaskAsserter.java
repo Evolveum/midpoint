@@ -45,6 +45,8 @@ import static org.testng.AssertJUnit.assertEquals;
 @SuppressWarnings("UnusedReturnValue")
 public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
+    private static final String OP_CLOCKWORK_RUN = "com.evolveum.midpoint.model.impl.lens.Clockwork.run";
+
     private TaskAsserter(PrismObject<TaskType> object) {
         super(object);
     }
@@ -550,6 +552,10 @@ public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
         assertThat(objectRef.getOid()).as("objectRef.oid").isEqualTo(expectedOid);
         assertThat(objectRef.getType()).as("objectRef.type").isEqualTo(expectedType);
         return this;
+    }
+
+    public TaskAsserter<RA> assertClockworkRunCount(int expected) {
+        return assertInternalOperationExecutionCount(OP_CLOCKWORK_RUN, expected);
     }
 
     // Simple version until more elaborate asserter is created

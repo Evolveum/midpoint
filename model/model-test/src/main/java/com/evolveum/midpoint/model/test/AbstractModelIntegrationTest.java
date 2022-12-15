@@ -188,8 +188,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected static final String LOG_PREFIX_DENY = "SSSSS=- ";
     protected static final String LOG_PREFIX_ALLOW = "SSSSS=+ ";
 
-    protected static final String OP_CLOCKWORK_RUN = "com.evolveum.midpoint.model.impl.lens.Clockwork.run";
-
     @Autowired protected TaskActivityManager activityManager;
     @Autowired protected ModelService modelService;
     @Autowired protected ModelInteractionService modelInteractionService;
