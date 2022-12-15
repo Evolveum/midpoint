@@ -4338,6 +4338,22 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         setMaintenanceMode(resourceOid, AdministrativeAvailabilityStatusType.OPERATIONAL, result);
     }
 
+    protected void putResourceIntoProduction(String resourceOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        setLifecycleState(ResourceType.class, resourceOid, SchemaConstants.LIFECYCLE_ACTIVE, result);
+    }
+
+    protected <O extends ObjectType> void setLifecycleState(Class<O> type, String oid, String state, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                type, oid,
+                deltaFor(type)
+                        .item(ObjectType.F_LIFECYCLE_STATE)
+                        .replace(state)
+                        .asItemDeltas(),
+                result);
+    }
+
     @SuppressWarnings("SameParameterValue")
     protected void assertAttributeFlags(ResourceObjectDefinition def,
             QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {

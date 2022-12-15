@@ -1,0 +1,11 @@
+dn: uid=jsmith1,ou=People,dc=example,dc=com
+uid: jsmith1
+cn: John Smith
+sn: Smith
+givenname: John
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+mail: jsmith1@evolveum.com
+employeeNumber: 1

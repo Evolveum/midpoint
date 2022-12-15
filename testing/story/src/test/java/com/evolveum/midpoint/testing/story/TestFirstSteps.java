@@ -6,20 +6,30 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
+import static com.evolveum.midpoint.test.ldap.OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+
+import org.opends.server.util.LDIFException;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.test.ObjectsCounter;
 import com.evolveum.midpoint.model.test.SimulationResult;
@@ -29,21 +39,14 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.Resource;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AnyResource;
 import com.evolveum.midpoint.test.CsvResource;
-
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-
-import org.testng.annotations.Test;
 
 /**
  * Here we check comprehensive "First steps" scenario.
@@ -72,6 +75,16 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final CsvResource RESOURCE_HR_5 = createHrResource("resource-hr-5.xml");
     private static final CsvResource RESOURCE_HR_6 = createHrResource("resource-hr-6.xml");
     private static final CsvResource RESOURCE_HR_7 = createHrResource("resource-hr-7.xml");
+    private static final CsvResource RESOURCE_HR_8 = createHrResource("resource-hr-8.xml");
+
+    private static final File INITIAL_LDIF_FILE = new File(TEST_DIR, "initial.ldif");
+
+    private static final String RESOURCE_OPENDJ_OID = "0934922f-0f63-4768-b1b1-eab4275b31d1";
+
+    private static final TestResource<ResourceType> RESOURCE_OPENDJ_TEMPLATE =
+            new TestResource<>(TEST_DIR, "resource-opendj-template.xml", "bb554a60-3e83-40e5-be21-ca913ee58a43");
+
+    private static final AnyResource RESOURCE_OPENDJ_1 = createOpenDjResource("resource-opendj-1.xml");
 
     private static final ObjectsCounter objectsCounter = new ObjectsCounter(FocusType.class);
 
@@ -79,16 +92,17 @@ public class TestFirstSteps extends AbstractStoryTest {
         return new CsvResource(TEST_DIR, fileName, RESOURCE_HR_OID, "hr.csv");
     }
 
-    private static final ItemName ATTR_EMP_NO = new ItemName(NS_RI, "empNo");
-
-    @Override
-    protected void startResources() throws Exception {
-        //openDJController.startCleanServer(); // later
+    private static AnyResource createOpenDjResource(String fileName) {
+        return new AnyResource(TEST_DIR, fileName, RESOURCE_OPENDJ_OID);
     }
+
+    private static final ItemName ATTR_EMP_NO = new ItemName(NS_RI, "empNo");
 
     @AfterClass
     public static void stopResources() {
-        //openDJController.stop();
+        if (openDJController.isRunning()) {
+            openDJController.stop();
+        }
     }
 
     @Override
@@ -295,8 +309,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                .assertNotModifiedPaths(
-                        ShadowType.F_ATTRIBUTES, ShadowType.F_CREDENTIALS, ShadowType.F_AUXILIARY_OBJECT_CLASS);
+                .assertNoRealResourceObjectModifications();
         // @formatter:on
     }
 
@@ -380,8 +393,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                .assertNotModifiedPaths(
-                        ShadowType.F_ATTRIBUTES, ShadowType.F_CREDENTIALS, ShadowType.F_AUXILIARY_OBJECT_CLASS);
+                .assertNoRealResourceObjectModifications();
         // @formatter:on
     }
 
@@ -472,8 +484,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                .assertNotModifiedPaths(
-                        ShadowType.F_ATTRIBUTES, ShadowType.F_CREDENTIALS, ShadowType.F_AUXILIARY_OBJECT_CLASS);
+                .assertNoRealResourceObjectModifications();
 
         when("Will the full import run this time?");
         String taskOid = importAccountsRequest()
@@ -505,6 +516,197 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         and("one new focus object is there");
         objectsCounter.assertUserOnlyIncrement(1, result);
+    }
+
+    /**
+     * Going towards more serious solution: we add mapping from `empNo` to `employeeNumber` along with enabling correlation
+     * on this attribute/property, make `empNo` -> `name` mapping weak (anticipating taking usernames from LDAP),
+     * and add all necessary synchronization reactions.
+     *
+     * We put the resource into development mode to test everything before committing the changes.
+     *
+     * After the simulation, we put the resource into `active` state and run the import again.
+     */
+    @Test
+    public void test170AddEmployeeNumberMappingAndCorrelationAndReactions() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        objectsCounter.remember(result);
+
+        given("improved definition is imported and tested");
+        reimportAndTestHrResource(RESOURCE_HR_8, task, result);
+
+        and("a testing employee is added");
+        RESOURCE_HR_8.append("999,Alice,Test,atest999@evolveum.com,,testing employee");
+
+        when("the testing employee is imported (on foreground, simulated development execution)");
+        SimulationResult simResult1 = importAccountsRequest()
+                .withResourceOid(RESOURCE_HR_OID)
+                .withNamingAttribute(ATTR_EMP_NO)
+                .withNameValue("999")
+                .withTaskExecutionMode(TaskExecutionMode.SIMULATED_DEVELOPMENT)
+                .build()
+                .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result);
+
+        then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
+        // @formatter:off
+        var shadowOid999 = assertDeltaCollection(simResult1.getSimulatedDeltas(), "simulated production execution")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
+                    .objectToAdd()
+                        .asUser()
+                            .assertName("999")
+                            .assertEmployeeNumber("999")
+                            .assertGivenName("Alice")
+                            .assertFamilyName("Test")
+                            .assertEmailAddress("atest999@evolveum.com")
+                            .assertTelephoneNumber(null)
+                            .assertLinks(1, 0)
+                        .end()
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
+                .assertNoRealResourceObjectModifications()
+                .getOid();
+        // @formatter:on
+
+        assertRepoShadow(shadowOid999, "test account after")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
+                .assertSynchronizationSituation(null); // Not updated because of the simulated execution.
+
+        when("existing employee 4 is imported (on foreground, simulated development execution)");
+        SimulationResult simResult4 = importAccountsRequest()
+                .withResourceOid(RESOURCE_HR_OID)
+                .withNamingAttribute(ATTR_EMP_NO)
+                .withNameValue("4")
+                .withTaskExecutionMode(TaskExecutionMode.SIMULATED_DEVELOPMENT)
+                .build()
+                .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result);
+
+        then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
+        // @formatter:off
+        assertDeltaCollection(simResult4.getSimulatedDeltas(), "simulated production execution")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertModifiedPaths(
+                            UserType.F_EMPLOYEE_NUMBER, // the effect of the newly added mapping
+                            PATH_METADATA_MODIFY_CHANNEL,
+                            PATH_METADATA_MODIFY_TIMESTAMP,
+                            PATH_METADATA_MODIFIER_REF,
+                            PATH_METADATA_MODIFY_TASK_REF,
+                            PATH_METADATA_MODIFY_APPROVER_REF,
+                            PATH_METADATA_MODIFY_APPROVAL_COMMENT)
+                .end();
+        // @formatter:on
+
+        assertShadow(findShadowByPrismName("4", RESOURCE_HR_8.getObject(), result), "shadow 4 after")
+                .display()
+                .assertSynchronizationSituation(LINKED);
+                // The correlation situation is still "NO_OWNER". It is not updated after the user is linked. Is that OK?
+
+        when("let us try simulate import of all accounts");
+        String simulatedTaskOid = importAccountsRequest()
+                .withResourceOid(RESOURCE_HR_OID)
+                .withImportingAllAccounts()
+                .withTaskExecutionMode(TaskExecutionMode.SIMULATED_DEVELOPMENT)
+                .build()
+                .execute(result);
+
+        // @formatter:off
+        assertTask(simulatedTaskOid, "full simulated import")
+                .rootActivityState()
+                    .progress()
+                        .display()
+                        .assertCommitted(6, 0, 0)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
+                        .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0)
+                        .assertTransitions(2)
+                    .end()
+                .end()
+                .assertInternalOperationExecutionCount(OP_CLOCKWORK_RUN, 6); // All users went through the clockwork
+        // @formatter:on
+
+        and("no new focus object is there");
+        objectsCounter.assertNoNewObjects(result);
+
+        when("the resource is switched into production mode");
+        putResourceIntoProduction(RESOURCE_HR_OID, result);
+
+        and("testing account is deleted");
+        RESOURCE_HR_8.deleteLine("999,.*");
+
+        when("running production import of all accounts");
+        String realTaskOid = importAccountsRequest()
+                .withResourceOid(RESOURCE_HR_OID)
+                .withImportingAllAccounts()
+                .build()
+                .execute(result);
+
+        then("task is OK");
+        // @formatter:off
+        assertTask(realTaskOid, "full import")
+                .rootActivityState()
+                    .progress()
+                        .display()
+                        .assertCommitted(5, 0, 0)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
+                        .assertTransitions(1)
+                    .end()
+                .end()
+                .assertInternalOperationExecutionCount(OP_CLOCKWORK_RUN, 5); // All users went through the clockwork
+        // @formatter:on
+
+        and("employeeNumber is set");
+        assertUserAfterByUsername("5")
+                .assertEmployeeNumber("5");
+    }
+
+    /** We simply create OpenDJ from template and try to read its content. */
+    @Test
+    public void test200AddOpenDj() throws CommonException, IOException, URISyntaxException, LDIFException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        objectsCounter.remember(result);
+
+        given("OpenDJ is started and initialized");
+        openDJController.startCleanServer();
+        openDJController.addEntriesFromLdifFile(INITIAL_LDIF_FILE);
+
+        and("template and the first version of the resource are imported");
+        importObjectFromFile(RESOURCE_OPENDJ_TEMPLATE.file, task, result);
+        RESOURCE_OPENDJ_1.initializeAndTest(this, task, result);
+
+        when("OpenDJ content is listed");
+        List<PrismObject<ShadowType>> accounts = modelService.searchObjects(
+                ShadowType.class,
+                Resource.of(RESOURCE_OPENDJ_1.object)
+                        .queryFor(OBJECT_CLASS_INETORGPERSON_QNAME)
+                        .build(),
+                null, task, result);
+
+        then("there are 5 accounts");
+        displayCollection("accounts", accounts);
+        assertThat(accounts).as("accounts").hasSize(5);
+
+        and("but only single regular one");
+        List<PrismObject<ShadowType>> regularAccounts = accounts.stream()
+                .filter(account -> !ShadowUtil.isProtected(account))
+                .collect(Collectors.toList());
+        assertThat(regularAccounts).as("regular accounts").hasSize(1);
+
+        and("kind/intent is OK (defined in the template)");
+        for (PrismObject<ShadowType> account : accounts) {
+            assertShadow(account, "account")
+                    .assertKind(ShadowKindType.ACCOUNT)
+                    .assertIntent(INTENT_DEFAULT);
+        }
     }
 
     private void reimportAndTestHrResource(CsvResource resource, Task task, OperationResult result)
