@@ -51,7 +51,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     private static final String OP_EVALUATE = EvaluatedResourceObjectConstructionImpl.class.getName() + ".evaluate";
 
     /**
-     * Parent construction to which this EvaluatedConstruction belongs.
+     * Parent construction to which this {@link EvaluatedResourceObjectConstruction} belongs.
      */
     @NotNull protected final ROC construction;
 
@@ -160,7 +160,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
         DebugUtil.debugDumpLabelLn(sb, this.getClass().getSimpleName(), indent);
         DebugUtil.debugDumpWithLabelShortDumpLn(sb, "target", targetKey, indent + 1);
         // We do not want to dump construction here. This can lead to cycles.
-        // We usually dump EvaluatedConstruction in a Construction dump anyway, therefore the context should be quite clear.
+        // We usually dump EvaluatedResourceObjectConstruction in a Construction dump anyway, therefore the context should be quite clear.
         DebugUtil.debugDumpWithLabelToString(sb, "projectionContext", projectionContext, indent + 1);
         if (!attributeMappings.isEmpty()) {
             sb.append("\n");
@@ -224,7 +224,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     public NextRecompute evaluate(Task task, OperationResult parentResult) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         if (evaluation != null) {
-            throw new IllegalStateException("Attempting to evaluate an EvaluatedConstruction twice: " + this);
+            throw new IllegalStateException("Attempting to evaluate an EvaluatedResourceObjectConstruction twice: " + this);
         }
         OperationResult result = parentResult.subresult(OP_EVALUATE)
                 .addParam("resourceShadowDiscriminator", targetKey.toHumanReadableDescription())

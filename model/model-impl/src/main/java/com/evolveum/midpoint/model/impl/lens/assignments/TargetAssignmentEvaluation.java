@@ -72,7 +72,7 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .source((AssignmentHolderType) segment.target)
                 .sourceDescription(segment.target+" in "+segment.sourceDescription)
                 .assignment(nextAssignment)
-                .isAssignment(true)
+                .isAssignment()
                 .evaluationOrder(nextEvaluationOrder)
                 .evaluationOrderForTarget(nextEvaluationOrderForTarget)
                 .pathToSourceValid(targetActivity.pathAndTargetActive)

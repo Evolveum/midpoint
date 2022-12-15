@@ -475,7 +475,7 @@ public class RequestAccess implements Serializable {
             return;
         }
 
-        for (EvaluatedAssignment<UserType> evaluatedAssignment : assignments) {
+        for (EvaluatedAssignment evaluatedAssignment : assignments) {
             for (EvaluatedPolicyRule policyRule : evaluatedAssignment.getAllTargetsPolicyRules()) {
                 if (!policyRule.containsEnabledAction()) {
                     continue;
@@ -489,10 +489,10 @@ public class RequestAccess implements Serializable {
         }
     }
 
-    private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+    private <F extends FocusType> void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment evaluatedAssignment,
             EvaluatedExclusionTrigger trigger, boolean warning) {
 
-        EvaluatedAssignment<F> conflictingAssignment = trigger.getConflictingAssignment();
+        EvaluatedAssignment conflictingAssignment = trigger.getConflictingAssignment();
         PrismObject<F> addedAssignmentTargetObj = (PrismObject<F>) evaluatedAssignment.getTarget();
         PrismObject<F> exclusionTargetObj = (PrismObject<F>) conflictingAssignment.getTarget();
 
@@ -531,7 +531,7 @@ public class RequestAccess implements Serializable {
         }
     }
 
-    private void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment<UserType> evaluatedAssignment,
+    private void createConflicts(ObjectReferenceType userRef, Map<String, Conflict> conflicts, EvaluatedAssignment evaluatedAssignment,
             Collection<EvaluatedPolicyRuleTrigger<?>> triggers, boolean warning) {
 
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {

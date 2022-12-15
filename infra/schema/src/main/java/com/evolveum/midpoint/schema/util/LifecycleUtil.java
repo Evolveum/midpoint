@@ -8,7 +8,7 @@ package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
+import com.evolveum.midpoint.schema.VirtualAssignmentSpecification;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,7 +41,7 @@ public class LifecycleUtil {
         return null;
     }
 
-    public static <R extends AbstractRoleType> VirtualAssignmenetSpecification<R> getForcedAssignmentSpecification(LifecycleStateModelType lifecycleStateModel,
+    public static <R extends AbstractRoleType> VirtualAssignmentSpecification<R> getForcedAssignmentSpecification(LifecycleStateModelType lifecycleStateModel,
             String targetLifecycleState, PrismContext prismContext) throws SchemaException {
         LifecycleStateType stateDefinition = findStateDefinition(lifecycleStateModel, targetLifecycleState);
         if (stateDefinition == null) {
@@ -64,14 +64,14 @@ public class LifecycleUtil {
             targetClass = (Class<R>) prismContext.getSchemaRegistry().getCompileTimeClassForObjectType(targetType);
         }
 
-        VirtualAssignmenetSpecification<R> virtualAssignmenetSpecification = new VirtualAssignmenetSpecification();
-        virtualAssignmenetSpecification.setType(targetClass);
+        VirtualAssignmentSpecification<R> virtualAssignmentSpecification = new VirtualAssignmentSpecification();
+        virtualAssignmentSpecification.setType(targetClass);
 
 
         ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetClass);
-        virtualAssignmenetSpecification.setFilter(objectFilter);
+        virtualAssignmentSpecification.setFilter(objectFilter);
 
-        return virtualAssignmenetSpecification;
+        return virtualAssignmentSpecification;
     }
 
     /**

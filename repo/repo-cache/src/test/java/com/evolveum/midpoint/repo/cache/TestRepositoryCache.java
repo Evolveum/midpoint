@@ -676,18 +676,16 @@ public class TestRepositoryCache extends AbstractSpringTest implements InfraTest
     private int getOperationCount(String operation) {
         PerformanceInformation performanceInformation =
                 repositoryCache.getPerformanceMonitor().getGlobalPerformanceInformation();
-        OperationPerformanceInformation opData =
-//                performanceInformation.getAllData().get(operation);
-                performanceInformation.getAllData().get(opNamePrefix + operation);
+        OperationPerformanceInformation opData = performanceInformation.getAllData().get(opNamePrefix + operation);
         return opData != null ? opData.getInvocationCount() : 0;
     }
 
     private void dumpStatistics() {
         PerformanceInformation performanceInformation = repositoryCache.getPerformanceMonitor().getGlobalPerformanceInformation();
-        displayValue("Repository statistics", RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
+        displayValue("Repository statistics",
+                RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
 
-        Map<String, CachePerformanceCollector.CacheData> cache = CachePerformanceCollector.INSTANCE
-                .getGlobalPerformanceMap();
+        Map<String, CachePerformanceCollector.CacheData> cache = CachePerformanceCollector.INSTANCE.getGlobalPerformanceMap();
         displayValue("Cache performance information (standard)",
                 CachePerformanceInformationUtil.format(CachePerformanceInformationUtil.toCachesPerformanceInformationType(cache)));
         displayValue("Cache performance information (extra)",

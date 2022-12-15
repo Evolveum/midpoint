@@ -103,7 +103,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         assertCanSearchPirateMembers(true);
 
         ModelContext<UserType> previewContext = previewUser(USER_MANCOMB_OID);
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = previewContext.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = previewContext.getEvaluatedAssignmentTriple();
         assertNotNull("Preview evaluated assignment triple is null", evaluatedAssignmentTriple);
         assertFalse("Preview evaluated assignment triple is empty", evaluatedAssignmentTriple.isEmpty());
 
@@ -148,7 +148,7 @@ public class TestRoleMembers extends AbstractStoryTest {
                 .assertName(USER_MANCOMB_USERNAME)
                 .assertFullName(USER_MANCOMB_FULL_NAME)
                 .assertNoGivenName();
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = previewContext.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = previewContext.getEvaluatedAssignmentTriple();
         assertNull("Preview evaluated assignment triple sneaked in", evaluatedAssignmentTriple);
 
         // THEN
