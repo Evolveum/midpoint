@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -144,6 +143,7 @@ public class ImportAccountsRequest {
         return TestSpringBeans.getBean(ProvisioningService.class);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void executeOnForeground(OperationResult result) throws CommonException {
         List<PrismObject<ShadowType>> shadows =
                 getProvisioningService().searchObjects(
@@ -183,6 +183,7 @@ public class ImportAccountsRequest {
                 .importFromResource(shadowOid, task, result);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public SimulationResult executeOnForegroundSimulated(
             SimulationResultType simulationConfiguration, Task task, OperationResult result) throws CommonException {
         stateCheck(!taskExecutionMode.isPersistent(), "No simulation? %s", taskExecutionMode);
@@ -295,6 +296,7 @@ public class ImportAccountsRequest {
             return withAssertSuccess(true);
         }
 
+        @SuppressWarnings("WeakerAccess")
         public ImportAccountsRequestBuilder withAssertSuccess(boolean assertSuccess) {
             this.assertSuccess = assertSuccess;
             return this;

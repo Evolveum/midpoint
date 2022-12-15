@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -311,6 +312,12 @@ public abstract class SchemaConstants {
             qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assignmentState"));
     public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =
             qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));
+
+    // TODO decide on the final form of the following (e.g. namespace = model? provisioning? something else?)
+    @Experimental public static final String MODEL_POLICY_SITUATION_PROTECTED_SHADOW =
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "protectedShadow"));
+    @Experimental public static final String MODEL_POLICY_SITUATION_INVALID_DATA =
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "invalidData"));
 
     /**
      * An orphaned task is such that has a parent but that parent does not exist.

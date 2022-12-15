@@ -45,3 +45,59 @@ objectclass: person
 objectclass: organizationalPerson
 objectclass: inetOrgPerson
 description: This is rblack4 but only experts know it.
+
+# Alternative form of given name - hence he will not be correlated by the current algorithms
+dn: uid=bob,ou=People,dc=example,dc=com
+uid: bob
+cn: Bob Black
+sn: Black
+givenname: Bob
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+description: Number five.
+
+# Forgotten account (this man is no longer with us)
+dn: uid=tesla,ou=People,dc=example,dc=com
+uid: tesla
+cn: Nikola Tesla
+sn: Tesla
+givenname: Nikola
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+
+# Illegal account (security breach)
+dn: uid=hacker,ou=People,dc=example,dc=com
+uid: hacker
+cn: Jim Hacker
+sn: Hacker
+givenname: Jim
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+description: I was here!
+
+# Forgotten protected account (not matched by the rules in provisioning)
+dn: uid=admin,ou=People,dc=example,dc=com
+uid: admin
+cn: OpenDJ Administrator
+sn: Administrator
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+
+# Legal account, yet not in HR (part-time worker)
+dn: uid=junior1,ou=People,dc=example,dc=com
+uid: junior1
+cn: Jack Junior
+sn: Junior
+givenname: Nikola
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson

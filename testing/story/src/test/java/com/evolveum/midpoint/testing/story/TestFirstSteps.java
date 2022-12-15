@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.testing.story;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.POLICY_SITUATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
 
@@ -14,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.test.ldap.OpenDJController.OBJECT_CLASS_INETORGPERSON_QNAME;
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +25,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.cases.api.CaseManager;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.opends.server.util.LDIFException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -45,7 +57,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AnyResource;
 import com.evolveum.midpoint.test.CsvResource;
 import com.evolveum.midpoint.test.TestResource;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -57,6 +68,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * . Gradually evolving HR CSV resource in development (`proposed`) mode - see `test1xx`
  * . TODO
+ *
+ * Planned improvements:
+ *
+ * . Treating bad data in HR (~ shadow marks)
  */
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -78,7 +93,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final CsvResource RESOURCE_HR_8 = createHrResource("resource-hr-8.xml");
 
     private static final int PROTECTED_OPENDJ_ACCOUNTS = 4;
-    private static final int REGULAR_INITIAL_OPENDJ_ACCOUNTS = 4;
+    private static final int REGULAR_INITIAL_OPENDJ_ACCOUNTS = 9;
     private static final int ALL_INITIAL_OPENDJ_ACCOUNTS = PROTECTED_OPENDJ_ACCOUNTS + REGULAR_INITIAL_OPENDJ_ACCOUNTS;
     private static final File INITIAL_LDIF_FILE = new File(TEST_DIR, "initial.ldif");
 
@@ -90,12 +105,22 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final AnyResource RESOURCE_OPENDJ_1 = createOpenDjResource("resource-opendj-1.xml");
     private static final AnyResource RESOURCE_OPENDJ_2 = createOpenDjResource("resource-opendj-2.xml");
     private static final AnyResource RESOURCE_OPENDJ_3 = createOpenDjResource("resource-opendj-3.xml");
+    private static final AnyResource RESOURCE_OPENDJ_4 = createOpenDjResource("resource-opendj-4.xml");
+    private AnyResource currentOpenDjResource = RESOURCE_OPENDJ_1;
 
-    private static final ObjectsCounter objectsCounter = new ObjectsCounter(FocusType.class);
+    private static final ObjectsCounter focusCounter = new ObjectsCounter(FocusType.class);
     private static final String DN_JSMITH1 = "uid=jsmith1,ou=People,dc=example,dc=com";
     private static final String DN_JSMITH2 = "uid=jsmith2,ou=People,dc=example,dc=com";
     private static final String DN_AGREEN3 = "uid=agreen3,ou=People,dc=example,dc=com";
     private static final String DN_RBLACK = "uid=rblack,ou=People,dc=example,dc=com";
+    private static final String DN_BOB = "uid=bob,ou=People,dc=example,dc=com";
+    private static final String DN_TESLA = "uid=tesla,ou=People,dc=example,dc=com";
+    private static final String DN_HACKER = "uid=hacker,ou=People,dc=example,dc=com";
+    private static final String DN_ADMIN = "uid=admin,ou=People,dc=example,dc=com";
+    private static final String DN_JUNIOR1 = "uid=junior1,ou=People,dc=example,dc=com";
+
+    @Autowired CorrelationCaseManager correlationCaseManager;
+    @Autowired CaseManager caseManager;
 
     private static CsvResource createHrResource(String fileName) {
         return new CsvResource(TEST_DIR, fileName, RESOURCE_HR_OID, "hr.csv");
@@ -193,7 +218,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     public void test120AddUnmatchedReaction() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        objectsCounter.remember(result);
+        focusCounter.remember(result);
 
         given("definition with simple `schemaHandling` is imported and tested");
         reimportAndTestHrResource(RESOURCE_HR_3, task, result);
@@ -223,7 +248,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .hasMessageContaining("No name in new object");
 
         and("no new focus objects are there");
-        objectsCounter.assertNoNewObjects(result);
+        focusCounter.assertNoNewObjects(result);
     }
 
     /**
@@ -233,7 +258,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     public void test130AddEmpNoMapping() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        objectsCounter.remember(result);
+        focusCounter.remember(result);
 
         given("definition with mapping for `empNo` is imported and tested");
         reimportAndTestHrResource(RESOURCE_HR_4, task, result);
@@ -274,7 +299,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         }
 
         and("no new focus objects are there");
-        objectsCounter.assertNoNewObjects(result);
+        focusCounter.assertNoNewObjects(result);
     }
 
     private void assertTest130SimulatedDeltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
@@ -302,7 +327,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     public void test140AddAllMappingWithBrokenDescriptionMapping() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        objectsCounter.remember(result);
+        focusCounter.remember(result);
 
         given("definition with more mappings (one faulty) is imported and tested");
         reimportAndTestHrResource(RESOURCE_HR_5, task, result);
@@ -346,7 +371,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         }
 
         and("no new focus objects are there");
-        objectsCounter.assertNoNewObjects(result);
+        focusCounter.assertNoNewObjects(result);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -379,7 +404,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     public void test150FixTheBugIntroduceAnother() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        objectsCounter.remember(result);
+        focusCounter.remember(result);
 
         given("production-mode definition (with a different bug) is imported and tested");
         reimportAndTestHrResource(RESOURCE_HR_6, task, result);
@@ -405,7 +430,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         // @formatter:on
 
         and("four new focus objects are there");
-        objectsCounter.assertUserOnlyIncrement(4, result);
+        focusCounter.assertUserOnlyIncrement(4, result);
         assertUserByUsername("1", "after")
                 .display()
                 .assertName("1")
@@ -425,7 +450,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     public void test160FixAllBugs() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        objectsCounter.remember(result);
+        focusCounter.remember(result);
 
         given("definition with no bugs is imported and tested");
         reimportAndTestHrResource(RESOURCE_HR_7, task, result);
@@ -479,7 +504,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         // @formatter:on
 
         and("one new focus object is there");
-        objectsCounter.assertUserOnlyIncrement(1, result);
+        focusCounter.assertUserOnlyIncrement(1, result);
     }
 
     /**
@@ -495,7 +520,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     public void test170AddEmployeeNumberMappingAndCorrelationAndReactions() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        objectsCounter.remember(result);
+        focusCounter.remember(result);
 
         given("improved definition is imported and tested");
         reimportAndTestHrResource(RESOURCE_HR_8, task, result);
@@ -584,7 +609,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         // @formatter:on
 
         and("no new focus object is there");
-        objectsCounter.assertNoNewObjects(result);
+        focusCounter.assertNoNewObjects(result);
 
         when("the resource is switched into production mode");
         putResourceIntoProduction(RESOURCE_HR_OID, result);
@@ -622,7 +647,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     public void test200AddOpenDj() throws CommonException, IOException, URISyntaxException, LDIFException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        objectsCounter.remember(result);
+        focusCounter.remember(result);
 
         given("OpenDJ is started and initialized");
         openDJController.startCleanServer();
@@ -663,7 +688,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     public void test210OpenDjCorrelationOnEmpNo() throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        objectsCounter.remember(result);
+        focusCounter.remember(result);
 
         given("improved definition is imported and tested");
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_2, task, result);
@@ -685,7 +710,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .synchronizationStatistics()
                         .display()
                         .assertTransition(null, UNLINKED, UNLINKED, null, 1, 0, 0)
-                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 3, 0, 0)
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, REGULAR_INITIAL_OPENDJ_ACCOUNTS - 1, 0, 0)
                         .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
                         .assertTransitions(3)
                     .end()
@@ -693,7 +718,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertClockworkRunCount(0); // no reactions are there
         // @formatter:on
 
-        assertShadow(findShadowByPrismName(DN_JSMITH1, RESOURCE_OPENDJ_2.object, result), "shadow after")
+        assertShadow(getJSmith1OpenDjShadow(result), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER)
                 .assertSynchronizationSituation(null); // no real execution was there
@@ -712,7 +737,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     public void test220OpenDjCorrelationFinal() throws CommonException, IOException {
         Task task = getTestTask();
         OperationResult result = task.getResult();
-        objectsCounter.remember(result);
+        focusCounter.remember(result);
 
         given("improved definition is imported and tested");
         reimportAndTestOpenDjResource(RESOURCE_OPENDJ_3, task, result);
@@ -735,39 +760,87 @@ public class TestFirstSteps extends AbstractStoryTest {
                         .display()
                         .assertTransition(null, UNLINKED, UNLINKED, null, 2, 0, 0)
                         .assertTransition(null, DISPUTED, DISPUTED, null, 2, 0, 0)
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 5, 0, 0)
                         .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS)
-                        .assertTransitions(3)
+                        .assertTransitions(4)
                     .end()
                 .end()
                 .assertClockworkRunCount(0); // still no reactions
         // @formatter:on
 
-        assertShadow(findShadowByPrismName(DN_JSMITH1, RESOURCE_OPENDJ_2.object, result), "shadow after")
+        String oidUser1 = assertUserByUsername("1", "after")
+                .assertLinks(1, 0) // No OpenDJ link (no execution)
+                .getOid();
+        assertShadow(getJSmith1OpenDjShadow(result), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER) // by empNo
+                .assertPotentialOwnerOptions(1)
+                .assertCandidateOwners(oidUser1)
+                .assertResultingOwner(oidUser1)
                 .assertSynchronizationSituation(null);
 
-        assertShadow(findShadowByPrismName(DN_JSMITH2, RESOURCE_OPENDJ_2.object, result), "shadow after")
+        String oidUser2 = assertUserByUsername("2", "after")
+                .assertLinks(1, 0) // No OpenDJ link (no execution)
+                .getOid();
+        assertShadow(getJSmith2OpenDjShadow(result), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER) // by mail
+                .assertPotentialOwnerOptions(1)
+                .assertCandidateOwners(oidUser2)
+                .assertResultingOwner(oidUser2)
                 .assertSynchronizationSituation(null);
 
-        UserType agreen3 = findUserByUsernameFullRequired("3").asObjectable();
-        assertShadow(findShadowByPrismName(DN_AGREEN3, RESOURCE_OPENDJ_2.object, result), "shadow after")
+        String oidUser3 = assertUserByUsername("3", "after")
+                .assertLinks(1, 0) // No OpenDJ link (no correlation)
+                .getOid();
+        assertShadow(getAGreenOpenDjShadow(result), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN) // by name (1 candidate)
                 .assertPotentialOwnerOptions(2)
-                .assertCandidateOwners(agreen3.getOid())
+                .assertCandidateOwners(oidUser3)
+                .assertResultingOwner(null)
                 .assertSynchronizationSituation(null);
 
-        UserType rblack4 = findUserByUsernameFullRequired("4").asObjectable();
-        UserType rblack5 = findUserByUsernameFullRequired("5").asObjectable();
-        assertShadow(findShadowByPrismName(DN_RBLACK, RESOURCE_OPENDJ_2.object, result), "shadow after")
+        String oidUser4 = assertUserByUsername("4", "after")
+                .assertLinks(1, 0) // No OpenDJ link (no correlation)
+                .getOid();
+        String oidUser5 = assertUserByUsername("5", "after")
+                .assertLinks(1, 0) // No OpenDJ link (no correlation)
+                .getOid();
+        assertShadow(getRBlackOpenDjShadow(result), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN) // by name (2 candidates)
                 .assertPotentialOwnerOptions(3)
-                .assertCandidateOwners(rblack4.getOid(), rblack5.getOid())
+                .assertCandidateOwners(oidUser4, oidUser5)
+                .assertResultingOwner(null)
                 .assertSynchronizationSituation(null);
+
+        assertShadow(getBobOpenDjShadow(result), "shadow after")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.NO_OWNER) // alternate name -> no candidates found
+                .assertSynchronizationSituation(null);
+
+        assertShadow(getTeslaOpenDjShadow(result), "shadow after")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
+                .assertSynchronizationSituation(null);
+
+        assertShadow(getHackerOpenDjShadow(result), "shadow after")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
+                .assertSynchronizationSituation(null);
+
+        assertShadow(getAdminOpenDjShadow(result), "shadow after")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
+                .assertSynchronizationSituation(null);
+
+        assertShadow(getJunior1OpenDjShadow(result), "shadow after")
+                .display()
+                .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
+                .assertSynchronizationSituation(null);
+
+        focusCounter.assertNoNewObjects(result);
 
         if (isNativeRepository()) {
             and("there are no simulation deltas");
@@ -776,6 +849,176 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .display()
                     .assertSize(0);
         }
+    }
+
+    /**
+     * Ref: _(Optional) Account marking phase_
+     *
+     * We review and mark unmatched shadows:
+     *
+     * - `tesla`: as "keep but do not touch" (legacy)
+     * - `hacker`: as "investigate and delete" (illegal)
+     * - `admin`: as protected
+     * - `junior1`: as "please add to HR" (pending)
+     *
+     * *HIGHLY EXPERIMENTAL* Just to implement "Account marking phase" in the First Steps Solution Notes document.
+     */
+    @Test
+    public void test230MarkUnmatchedAccounts() throws CommonException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        focusCounter.remember(result);
+
+        when("marking shadows with respective policy situations");
+        addShadowPolicySituation(
+                getTeslaOpenDjShadow(result).getOid(),
+                TEST_POLICY_SITUATION_LEGACY,
+                result);
+        addShadowPolicySituation(
+                getHackerOpenDjShadow(result).getOid(),
+                TEST_POLICY_SITUATION_ILLEGAL,
+                result);
+        addShadowPolicySituation(
+                getAdminOpenDjShadow(result).getOid(),
+                MODEL_POLICY_SITUATION_PROTECTED_SHADOW,
+                result);
+        addShadowPolicySituation(
+                getJunior1OpenDjShadow(result).getOid(),
+                TEST_POLICY_SITUATION_PENDING,
+                result);
+
+        when("the import is run in simulated development mode");
+        String taskOid = importAllOpenDjAccountsRequest()
+                .simulatedDevelopment()
+                .execute(result);
+
+        then("the task skips marked accounts");
+        // @formatter:off
+        assertTask(taskOid, "after")
+                .rootActivityState()
+                    .progress()
+                        .display()
+                        .assertCommitted(5, 0, 8)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(null, UNLINKED, UNLINKED, null, 2, 0, 0)
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 1, 0, 0)
+                        .assertTransition(null, DISPUTED, DISPUTED, null, 2, 0, 0)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 1)
+                        .assertTransition(null, null, null, POLICY_SITUATION, 0, 0, 3)
+                        .assertTransitions(5)
+                    .end();
+        // @formatter:on
+
+        focusCounter.assertNoNewObjects(result);
+    }
+
+    /**
+     * Ref: _Link accounts phase_
+     *
+     * We want to link accounts but still without executing any mappings (inbound / outbound).
+     *
+     * . Two unlinked shadows will be linked automatically by the synchronization reaction.
+     * . One unmatched shadow will be linked manually.
+     * . One of two disputed shadows will be linked manually, the other one by resolving the respective correlation case.
+     */
+    @Test
+    public void test240LinkAccounts() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        focusCounter.remember(result);
+
+        given("improved definition is imported and tested");
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_4, task, result);
+
+        when("import task is run (real execution)");
+        String taskOid = importAllOpenDjAccountsRequest().execute(result);
+
+        then("task is OK");
+        // @formatter:off
+        assertTask(taskOid, "simulated task after")
+                .display()
+                .rootActivityState()
+                    .progress()
+                        .display()
+                        .assertCommitted(5, 0, 8)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(null, UNLINKED, LINKED, null, 2, 0, 0)
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 1, 0, 0)
+                        .assertTransition(null, DISPUTED, DISPUTED, null, 2, 0, 0)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 1)
+                        .assertTransition(null, null, null, POLICY_SITUATION, 0, 0, 3)
+                        .assertTransitions(5)
+                    .end()
+                .end()
+                .assertClockworkRunCount(2); // Two unlinked->linked accounts
+        // @formatter:on
+
+        when("Unmatched 'bob' and disputed 'agreen3' are linked manually");
+        linkOpenDjAccount(DN_BOB, "5", task, result);
+        linkOpenDjAccount(DN_AGREEN3, "3", task, result);
+
+        and("Disputed 'rblack' is linked by resolving the case");
+        CaseType aCase = findCorrelationCase(DN_RBLACK, result);
+        caseManager.completeWorkItem(
+                WorkItemId.of(aCase.getWorkItem().get(0)),
+                new AbstractWorkItemOutputType().outcome(
+                        OwnerOptionIdentifier.forExistingOwner(
+                                        findUserRequired("4").getOid())
+                                .getStringValue()),
+                null, task, result);
+
+        then("Users are correctly linked");
+        assertUserLinked("1", DN_JSMITH1, result);
+        assertUserLinked("2", DN_JSMITH2, result);
+        assertUserLinked("3", DN_AGREEN3, result);
+        assertUserLinked("4", DN_RBLACK, result);
+        assertUserLinked("5", DN_BOB, result);
+
+        focusCounter.assertNoNewObjects(result);
+    }
+
+    private void assertUserLinked(String username, String dn, OperationResult result) throws CommonException {
+        UserType user = findUserRequired(username).asObjectable();
+        ShadowType shadow = findOpenDjShadow(dn, result);
+        assertUser(user, "")
+                .links()
+                .by().resourceOid(RESOURCE_OPENDJ_OID).dead(false).find()
+                .assertOid(shadow.getOid());
+        assertShadow(shadow, "")
+                .assertSynchronizationSituation(LINKED);
+    }
+
+    private @NotNull CaseType findCorrelationCase(String dn, OperationResult result) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                correlationCaseManager.findCorrelationCase(
+                        findOpenDjShadowRequired(dn, result), true, result),
+                () -> "No correlation case for " + dn);
+    }
+
+    private void linkOpenDjAccount(String accountName, String userName, Task task, OperationResult result) throws CommonException {
+        ObjectReferenceType linkRef =
+                ObjectTypeUtil.createObjectRef(
+                        MiscUtil.requireNonNull(
+                                findShadowByPrismName(accountName, currentOpenDjResource.object, result),
+                                () -> "no shadow named " + accountName));
+        String userOid = findUserRequired(userName).getOid();
+
+        executeChanges(
+                deltaFor(UserType.class)
+                        .item(UserType.F_LINK_REF)
+                        .add(linkRef)
+                        .asObjectDelta(userOid),
+                null, task, result);
+    }
+
+    private PrismObject<UserType> findUserRequired(String userName) throws CommonException {
+        return MiscUtil.requireNonNull(
+                findUserByUsername(userName),
+                () -> "no user named " + userName);
     }
 
     private void reimportAndTestHrResource(CsvResource resource, Task task, OperationResult result)
@@ -788,6 +1031,7 @@ public class TestFirstSteps extends AbstractStoryTest {
             throws CommonException, IOException {
         deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, task, result);
         resource.initializeAndTest(this, task, result);
+        currentOpenDjResource = resource;
     }
 
     private ImportAccountsRequestBuilder importHrAccountRequest(String name) {
@@ -807,5 +1051,52 @@ public class TestFirstSteps extends AbstractStoryTest {
         return importAccountsRequest()
                 .withResourceOid(RESOURCE_OPENDJ_OID)
                 .withImportingAllAccounts();
+    }
+
+    private ShadowType findOpenDjShadowRequired(String dn, OperationResult result) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                findOpenDjShadow(dn, result),
+                () -> "No OpenDJ shadow " + dn);
+    }
+
+    private ShadowType findOpenDjShadow(String dn, OperationResult result) throws SchemaException {
+        return asObjectable(
+                findShadowByPrismName(dn, RESOURCE_OPENDJ_2.object, result));
+    }
+
+    private ShadowType getJSmith1OpenDjShadow(OperationResult result) throws SchemaException {
+        return findOpenDjShadow(DN_JSMITH1, result);
+    }
+
+    private ShadowType getJSmith2OpenDjShadow(OperationResult result) throws SchemaException {
+        return findOpenDjShadow(DN_JSMITH2, result);
+    }
+
+    private ShadowType getAGreenOpenDjShadow(OperationResult result) throws SchemaException {
+        return findOpenDjShadow(DN_AGREEN3, result);
+    }
+
+    private ShadowType getRBlackOpenDjShadow(OperationResult result) throws SchemaException {
+        return findOpenDjShadow(DN_RBLACK, result);
+    }
+
+    private ShadowType getBobOpenDjShadow(OperationResult result) throws SchemaException {
+        return findOpenDjShadow(DN_BOB, result);
+    }
+
+    private ShadowType getTeslaOpenDjShadow(OperationResult result) throws SchemaException {
+        return findOpenDjShadow(DN_TESLA, result);
+    }
+
+    private ShadowType getHackerOpenDjShadow(OperationResult result) throws SchemaException {
+        return findOpenDjShadow(DN_HACKER, result);
+    }
+
+    private ShadowType getAdminOpenDjShadow(OperationResult result) throws SchemaException {
+        return findOpenDjShadow(DN_ADMIN, result);
+    }
+
+    private ShadowType getJunior1OpenDjShadow(OperationResult result) throws SchemaException {
+        return findOpenDjShadow(DN_JUNIOR1, result);
     }
 }

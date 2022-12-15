@@ -40,6 +40,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 /**
  * Synchronization service receives change notifications from provisioning. It
  * decides which synchronization policy to use and evaluates it (correlation,
@@ -181,13 +183,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      */
     private boolean shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
             throws SchemaException {
+        ShadowType shadow = syncCtx.getShadowedResourceObject();
+        QName objectClass = shadow.getObjectClass();
+        ResourceType resource = syncCtx.getResource();
+        String channel = syncCtx.getChannel();
+
         if (!syncCtx.isVisible()) {
             String message = String.format(
                     "SYNCHRONIZATION the synchronization policy for %s (%s) on %s is not visible, ignoring change from channel %s",
-                    syncCtx.getShadowedResourceObject(),
-                    syncCtx.getShadowedResourceObject().getObjectClass(),
-                    syncCtx.getResource(),
-                    syncCtx.getChannel());
+                    shadow, objectClass, resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater()
                     .updateAllSyncMetadata()
@@ -196,16 +200,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY); // at least temporary
             return true;
         }
+
         if (!syncCtx.isComplete()) {
             // This means that either the shadow is not classified, or there is no type definition nor sync section
             // for its type (kind/intent).
             String message = String.format(
                     "SYNCHRONIZATION no applicable synchronization policy and/or type definition for %s (%s) on %s, "
-                            + "ignoring change from channel %s",
-                    syncCtx.getShadowedResourceObject(),
-                    syncCtx.getShadowedResourceObject().getObjectClass(),
-                    syncCtx.getResource(),
-                    syncCtx.getChannel());
+                            + "ignoring change from channel %s", shadow, objectClass, resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater()
                     .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
@@ -217,8 +218,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         if (!syncCtx.isSynchronizationEnabled()) {
             String message = String.format(
-                    "SYNCHRONIZATION is not enabled for %s, ignoring change from channel %s",
-                    syncCtx.getResource(), syncCtx.getChannel());
+                    "SYNCHRONIZATION is not enabled for %s, ignoring change from channel %s", resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater()
                     .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
@@ -231,8 +231,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         if (syncCtx.isProtected()) {
             String message = String.format(
-                    "SYNCHRONIZATION is skipped for protected shadow %s, ignoring change from channel %s",
-                    syncCtx.getShadowedResourceObject(), syncCtx.getChannel());
+                    "SYNCHRONIZATION is skipped for protected shadow %s, ignoring change from channel %s", shadow, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater()
                     .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
@@ -240,6 +239,19 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .commit(result);
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(PROTECTED);
+            return true;
+        }
+
+        if (syncCtx.isSynchronizationPreventedByShadowPolicySituation()) {
+            String message = String.format(
+                    "SYNCHRONIZATION is skipped for %s because of the policy situation %s, ignoring change from channel %s",
+                    shadow, shadow.getPolicySituation(), channel);
+            LOGGER.debug(message);
+            syncCtx.getUpdater()
+                    .updateAllSyncMetadata()
+                    .commit(result);
+            result.recordNotApplicable(message);
+            syncCtx.recordSyncExclusionInTask(POLICY_SITUATION);
             return true;
         }
 

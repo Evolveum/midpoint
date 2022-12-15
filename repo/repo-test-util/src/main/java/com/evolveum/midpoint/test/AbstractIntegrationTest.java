@@ -3206,6 +3206,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return asserter;
     }
 
+    protected ShadowAsserter<Void> assertShadow(ShadowType shadow, String details) {
+        return assertShadow(shadow.asPrismObject(), details);
+    }
+
     protected ShadowAsserter<Void> assertRepoShadow(String oid) throws ObjectNotFoundException, SchemaException {
         return assertRepoShadow(oid, "repository")
                 .display();
@@ -4362,5 +4366,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertThat(attrDef.canRead()).as("readability flag for " + attrName).isEqualTo(expectedRead);
         assertThat(attrDef.canAdd()).as("addition flag for " + attrName).isEqualTo(expectedAdd);
         assertThat(attrDef.canModify()).as("modification flag for " + attrName).isEqualTo(expectedModify);
+    }
+
+    /**
+     * TEMPORARY IMPLEMENTATION! We should use "policyException" or similar persistent structure.
+     * The reason is that, in the future - `policySituation` - even for shadows - may be recomputed at any time.
+     */
+    protected void addShadowPolicySituation(String oid, String situationUri, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                ShadowType.class,
+                oid,
+                prismContext.deltaFor(ShadowType.class)
+                        .item(ShadowType.F_POLICY_SITUATION)
+                        .add(situationUri)
+                        .asItemDeltas(),
+                result);
     }
 }

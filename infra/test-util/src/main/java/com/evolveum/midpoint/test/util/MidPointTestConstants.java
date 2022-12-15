@@ -14,7 +14,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import javax.xml.namespace.QName;
 import java.io.File;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_MIDPOINT_TEST_PREFIX;
 import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
 
 public class MidPointTestConstants {
 
@@ -43,4 +45,9 @@ public class MidPointTestConstants {
     public static final ItemName QNAME_ENTRY_UUID = new ItemName(NS_RI, "entryUUID");
     public static final ItemPath PATH_ENTRY_UUID = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_ENTRY_UUID);
     public static final ItemName QNAME_CAR_LICENSE = new ItemName(MidPointConstants.NS_RI, "carLicense");
-    public static final ItemName QNAME_EMPLOYEE_TYPE = new ItemName(MidPointConstants.NS_RI, "employeeType");}
+    public static final ItemName QNAME_EMPLOYEE_TYPE = new ItemName(MidPointConstants.NS_RI, "employeeType");
+
+    public static final String TEST_POLICY_SITUATION_LEGACY = qNameToUri(new QName(NS_MIDPOINT_TEST_PREFIX, "legacy"));
+    public static final String TEST_POLICY_SITUATION_ILLEGAL = qNameToUri(new QName(NS_MIDPOINT_TEST_PREFIX, "illegal"));
+    public static final String TEST_POLICY_SITUATION_PENDING = qNameToUri(new QName(NS_MIDPOINT_TEST_PREFIX, "pending"));
+}
