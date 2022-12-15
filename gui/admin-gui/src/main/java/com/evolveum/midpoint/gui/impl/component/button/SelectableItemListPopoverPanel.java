@@ -10,7 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.panel.Popover;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * Popupable panel with listed items which can be searched and selected
  * The component can be used as More button popup or saved searches popup on search panel
  */
-public abstract class SelectableItemListPopoverPanel<T extends AbstractSearchItemWrapper> extends BasePanel<List<T>> {
+public abstract class SelectableItemListPopoverPanel<T extends FilterableSearchItemWrapper> extends BasePanel<List<T>> {
 
     private static final long serialVersionUID = 1L;
     private static final String ID_POPOVER = "popover";
@@ -115,7 +115,7 @@ public abstract class SelectableItemListPopoverPanel<T extends AbstractSearchIte
             @Override
             protected void populateItem(final ListItem<T> item) {
                 CheckBox check = new CheckBox(ID_ITEM_CHECKBOX,
-                        new PropertyModel<>(item.getModel(), AbstractSearchItemWrapper.F_SELECTED));
+                        new PropertyModel<>(item.getModel(), FilterableSearchItemWrapper.F_SELECTED));
                 check.add(new AjaxFormComponentUpdatingBehavior("change") {
 
                     private static final long serialVersionUID = 1L;

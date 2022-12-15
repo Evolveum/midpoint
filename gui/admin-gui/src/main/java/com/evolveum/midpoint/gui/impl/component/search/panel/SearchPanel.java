@@ -124,8 +124,8 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     private static final String ID_TYPE_SEARCH = "typeSelector";
 
-//    private LoadableDetachableModel<List<AbstractSearchItemWrapper>> basicSearchItemsModel;
-//    private LoadableDetachableModel<List<AbstractSearchItemWrapper>> morePopupModel;
+//    private LoadableDetachableModel<List<FilterableSearchItemWrapper>> basicSearchItemsModel;
+//    private LoadableDetachableModel<List<FilterableSearchItemWrapper>> morePopupModel;
     private LoadableDetachableModel<List<InlineMenuItem>> savedSearchListModel;
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
 
@@ -136,57 +136,16 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     @Override
     protected void onInitialize() {
         super.onInitialize();
-//        initBasicSearchItemsModel();
-//        initMorePopupModel();
         initLayout();
     }
 
-//    private void initBasicSearchItemsModel() {
-//        basicSearchItemsModel = new LoadableDetachableModel<List<AbstractSearchItemWrapper>>() {
-//            private static final long serialVersionUID = 1L;
-//            @Override
-//            protected List<AbstractSearchItemWrapper> load() {
-//                return getModelObject().getItems()
-//                        .stream().filter(item
-//                                -> !(item instanceof OidSearchItemWrapper))
-//                        .collect(Collectors.toList());
-//            }
-//        };
-//    }
-
-//    private void initMorePopupModel() {
-//        morePopupModel = new LoadableDetachableModel<List<AbstractSearchItemWrapper>>() {
-//            @Override
-//            protected List<AbstractSearchItemWrapper> load() {
-//                return getModelObject().getItems();
-//            }
-//        };
-//    }
-
-//    public void displayedSearchItemsModelReset() {
-//        basicSearchItemsModel.detach();
-//    }
-
-    private <S extends AbstractSearchItemWrapper, T extends Serializable> void initLayout() {
+    private <S extends FilterableSearchItemWrapper, T extends Serializable> void initLayout() {
         setOutputMarkupId(true);
 
         MidpointForm<?> form = new MidpointForm<>(ID_FORM);
         add(form);
 
         initSearchPanel(ID_SEARCH_ITEMS_PANEL, form);
-//        RepeatingView searchItemsRepeatingView = new RepeatingView(ID_SEARCH_ITEMS_PANEL);
-//        searchItemsRepeatingView.setOutputMarkupId(true);
-//        form.add(searchItemsRepeatingView);
-//        initSearchItemsPanel(searchItemsRepeatingView);
-
-//        LoadableDetachableModel<String> labelModel = new LoadableDetachableModel<String>() {
-//            @Override
-//            protected String load() {
-//                return createStringResource(SearchPanel.this.getModelObject().getSearchMode()).getString();
-//            }
-//        }; //todo not used?
-
-//        List<SearchBoxModeType> modesList = getModelObject().getAllowedModeList();
         SearchButtonWithDropdownMenu<SearchBoxModeType> searchButtonPanel = new SearchButtonWithDropdownMenu<>(ID_SEARCH_BUTTON_PANEL,
                 new PropertyModel<>(getModel(), Search.F_ALLOWED_MODES), new PropertyModel<>(getModelObject(), Search.F_MODE)) {
             private static final long serialVersionUID = 1L;
@@ -198,7 +157,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
             @Override
             protected void menuItemSelected(AjaxRequestTarget target, SearchBoxModeType searchBoxModeType) {
-                searchBoxTypeUpdated(target, searchBoxModeType);
+                searchBoxTypeUpdated(target);
             }
 
             @Override
@@ -240,12 +199,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             protected void onUpdate(AjaxRequestTarget target) {
                 Search<C> search = getModelObject();
                 search.setForceReload(true);
-//                getModel().detach();
-
-//                super.onUpdate(target);
-//                getModelObject().setTypeChanged(true);
-//                SearchPanel panel = findParent(SearchPanel.class);
-//                panel.displayedSearchItemsModelReset();
                 SearchPanel.this.refreshSearchForm(target);
                 SearchPanel.this.searchPerformed(target);
             }
@@ -329,7 +282,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
             @Override
             public void onClick(AjaxRequestTarget target) {
                 boolean containesCollectionFilter = false;
-                for (AbstractSearchItemWrapper item : SearchPanel.this.getModelObject().getItems()) {
+                for (FilterableSearchItemWrapper item : SearchPanel.this.getModelObject().getItems()) {
                     if (item instanceof ObjectCollectionListSearchItemWrapper && item.getValue() != null && item.getValue().getValue() != null) {
                         containesCollectionFilter = true;
                         break;
@@ -624,7 +577,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
-                            searchBoxTypeUpdated(target, searchBoxModeType);
+                            searchBoxTypeUpdated(target);
                         }
                     };
                 }
@@ -643,38 +596,13 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         return searchItems;
     }
 
-    private void searchBoxTypeUpdated(AjaxRequestTarget target, SearchBoxModeType searchType) {
-//        if (searchType.equals(getModelObject().getSearchMode())) {
-//            return;
-//        }
-//        if (SearchBoxModeType.OID.equals(searchType) && getModelObject().findOidSearchItemWrapper() != null) {
-//            getModelObject().findOidSearchItemWrapper().setValue(new SearchValue<>());
-//        }
-//
-//        getModelObject().setSearchMode(searchType);
-
-//        searchPerformed(target);
+    private void searchBoxTypeUpdated(AjaxRequestTarget target) {
         refreshSearchForm(target);
     }
-
-//    private void addItemPerformed(List<AbstractSearchItemWrapper> itemList, AjaxRequestTarget target) {
-//        if (itemList == null) {
-//            itemList = morePopupModel.getObject();
-//        }
-//        itemList.forEach(item -> {
-//            if (item.isSelected()) {
-//                item.setVisible(true);
-//                item.setSelected(false);
-//            }
-//        });
-//        refreshSearchForm(target);
-//    }
 
     protected abstract void searchPerformed(AjaxRequestTarget target);
 
     void refreshSearchForm(AjaxRequestTarget target) {
-//        displayedSearchItemsModelReset();
-//        morePopupModel.detach();
         Form form = (Form) get(ID_FORM);
         initSpecificSearchPanel(ID_SEARCH_ITEMS_PANEL, form);
         target.add(form);
@@ -683,22 +611,10 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
 
     protected void saveSearch(Search search, AjaxRequestTarget target) {
     }
-
-    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType... searchType) {
-        return new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return getModelObject() != null && getModelObject().getSearchMode() != null
-                        && Arrays.asList(searchType).contains(getModelObject().getSearchMode());
-            }
-        };
-    }
-
     private IModel<String> getIconLabelByModeModel() {
-        return (IModel<String>) () -> {
+//        return createStringResource("SearchBoxModeType.${searchMode}", getModel());
+        return () -> {
+
             if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())) {
                 return "Adv";
             } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
@@ -713,11 +629,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         };
     }
 
-    private RepeatingView getSearchItemsPanel() {
-        return (RepeatingView) get(ID_FORM).get(ID_SEARCH_ITEMS_PANEL);
-    }
-
-    public <SIP extends SingleSearchItemPanel, S extends AbstractSearchItemWrapper> SIP createSearchItemPanel(String panelId, IModel<S> searchItemModel) {
+    public <SIP extends SingleSearchItemPanel, S extends FilterableSearchItemWrapper> SIP createSearchItemPanel(String panelId, IModel<S> searchItemModel) {
         Class<?> panelClass = searchItemModel.getObject().getSearchItemPanelClass();
         Constructor<?> constructor;
         try {
@@ -728,9 +640,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
     }
 
-    private SearchConfigurationWrapper getSearchConfigurationWrapper() {
-        return getModelObject().getSearchConfigurationWrapper();
-    }
 
     private List<AvailableFilterType> getSavedFilterList() {
         ContainerableListPanel listPanel = findParent(ContainerableListPanel.class);
@@ -790,42 +699,20 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
     }
 
+    private boolean noPathDefined(SearchItemType searchItem, ObjectFilter filter) {
+        return searchItem.getPath() == null && filter instanceof ValueFilter && ((ValueFilter) filter).getPath() == null;
+    }
+
     private void applyBasicModeSearchItem(SearchItemType searchItem) {
         try {
             ObjectFilter filter = getPageBase().getQueryConverter().parseFilter(searchItem.getFilter(), getModelObject().getTypeClass());
-            if (searchItem.getPath() == null && filter instanceof ValueFilter && ((ValueFilter) filter).getPath() == null) {
+            if (noPathDefined(searchItem, filter)) {
                 return;
             }
 
-            AbstractSearchItemWrapper item = null;
-            if (filter instanceof ValueFilter) {
-                ItemPath path = searchItem.getPath().getItemPath();
-                Iterator<AbstractSearchItemWrapper> it = getModelObject().getItems().iterator();
-                while (it.hasNext()) {
-                    AbstractSearchItemWrapper itemWrapper = it.next();
-                    if (itemWrapper instanceof PropertySearchItemWrapper && ((PropertySearchItemWrapper<?>) itemWrapper).getPath().equivalent(path)) {
-                        item = itemWrapper;
-                        break;
-                    }
-                }
-                List<? extends PrismValue> values = ((ValueFilter) filter).getValues();
-                if (values != null && values.size() > 0) {//todo can it be there multiple values?
-                    if (TextSearchItemPanel.class.equals(item.getSearchItemPanelClass())) {
-                        item.setValue(new SearchValue<>(values.get(0).getRealValue().toString()));
-                    } else {
-                        item.setValue(new SearchValue(values.get(0).getRealValue()));
-                    }
-                }
-            } else if (filter instanceof InOidFilter) {
-                item = getModelObject().findOidSearchItemWrapper();
-                if (((InOidFilter)filter).getOids() != null) {
-                    item.setValue(new SearchValue<String>(StringUtils.join(((InOidFilter) filter).getOids(), " ")));
-                }
-            }
+            FilterableSearchItemWrapper<?> item = prepareFilterableSearchItemWrapper(searchItem, filter);
 
-            if (item == null) {
-                return;
-            }
+
             item.setVisible(true);
 
         } catch (SchemaException e) {
@@ -833,6 +720,70 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }
     }
 
+    private FilterableSearchItemWrapper<?> prepareFilterableSearchItemWrapper(SearchItemType searchItem, ObjectFilter filter) {
+        FilterableSearchItemWrapper item = null;
+        if (filter instanceof ValueFilter) {
+            item = parseSearchItemFromValueFilter(searchItem, (ValueFilter) filter);
+        } else if (filter instanceof InOidFilter) {
+            item = parseSearchItemFromInOidFilter((InOidFilter) filter);
+        }
+
+        return item;
+    }
+
+    private FilterableSearchItemWrapper parseSearchItemFromValueFilter(SearchItemType searchItem, ValueFilter filter) {
+        FilterableSearchItemWrapper item = findPropertySeachItemWrapper(searchItem);
+        if (item == null) {
+            return null;
+        }
+
+        setupFilterValues(item, filter);
+
+        return item;
+    }
+
+    private FilterableSearchItemWrapper parseSearchItemFromInOidFilter(InOidFilter filter) {
+        FilterableSearchItemWrapper item = getModelObject().findOidSearchItemWrapper();
+        if (item == null) {
+            return null;
+        }
+        if (filter.getOids() != null) {
+            item.setValue(new SearchValue<>(StringUtils.join(filter.getOids(), " ")));
+        }
+        return item;
+    }
+
+    private PropertySearchItemWrapper<?> findPropertySeachItemWrapper(SearchItemType searchItem) {
+        ItemPath path = searchItem.getPath().getItemPath();
+        Iterator<FilterableSearchItemWrapper> it = getModelObject().getItems().iterator();
+        while (it.hasNext()) {
+            FilterableSearchItemWrapper itemWrapper = it.next();
+            if (!(itemWrapper instanceof PropertySearchItemWrapper)) {
+                continue;
+            }
+
+            PropertySearchItemWrapper propertySearchItemWrapper = (PropertySearchItemWrapper) itemWrapper;
+            if (propertySearchItemWrapper.getPath() == null) {
+                continue;
+            }
+
+            if (propertySearchItemWrapper.getPath().equivalent(path)) {
+                return propertySearchItemWrapper;
+            }
+        }
+        return null;
+    }
+
+    private void setupFilterValues(FilterableSearchItemWrapper item, ValueFilter filter) {
+        List<? extends PrismValue> values = filter.getValues();
+        if (values != null && values.size() > 0) {//todo can it be there multiple values?
+            if (TextSearchItemPanel.class.equals(item.getSearchItemPanelClass())) {
+                item.setValue(new SearchValue<>(values.get(0).getRealValue().toString()));
+            } else {
+                item.setValue(new SearchValue(values.get(0).getRealValue()));
+            }
+        }
+    }
     private List<AvailableFilterType> getAvailableFilterList(SearchBoxConfigurationType config) {
         if (config == null || CollectionUtils.isEmpty(config.getAvailableFilter())) {
             return null;
@@ -845,125 +796,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         }).collect(Collectors.toList());
     }
 
-//    class AdvancedSearchFragment extends Fragment {
-//        private static final long serialVersionUID = 1L;
-//
-//        public AdvancedSearchFragment(String id, String markupId, SearchPanel markupProvider) {
-//            super(id, markupId, markupProvider);
-//            initAdvancedSearchLayout();
-//        }
-//
-////        private <S extends SearchItem, T extends Serializable> void initAdvancedSearchLayout() {
-////            AjaxButton debug = new AjaxButton(ID_DEBUG, createStringResource("SearchPanel.debug")) {
-////
-////                private static final long serialVersionUID = 1L;
-////
-////                @Override
-////                public void onClick(AjaxRequestTarget target) {
-////                    debugPerformed();
-////                }
-////            };
-////            debug.add(new VisibleBehaviour(() -> isQueryPlaygroundAccessible()));
-////            add(debug);
-////
-////            WebMarkupContainer advancedGroup = new WebMarkupContainer(ID_ADVANCED_GROUP);
-////            advancedGroup.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY));
-////            advancedGroup.setOutputMarkupId(true);
-////            add(advancedGroup);
-////
-////            TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_QUERY));
-////            advancedArea.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-////            advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
-////            advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
-////            advancedArea.add(AttributeAppender.append("class", createValidityStyle()));
-////            advancedGroup.add(advancedArea);
-////
-////            TextField<String> queryDslField = new TextField<>(ID_AXIOM_QUERY_FIELD,
-////                    new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_DSL_QUERY));
-////            queryDslField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-////            queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
-////            queryDslField.add(createVisibleBehaviour(SearchBoxModeType.AXIOM_QUERY));
-////            queryDslField.add(AttributeAppender.append("class", createValidityStyle()));
-////            advancedGroup.add(queryDslField);
-////
-////            Label advancedError = new Label(ID_ADVANCED_ERROR,
-////                    new PropertyModel<String>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_ERROR));
-////            advancedError.setOutputMarkupId(true);
-////            advancedError.add(AttributeAppender.append("class",
-////                    () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "valid-feedback" : "invalid-feedback"));
-////            advancedError.add(new VisibleBehaviour(() -> {
-////                Search search = getModelObject();
-////
-////                if (!isAdvancedMode()) {
-////                    return false;
-////                }
-////
-////                return StringUtils.isNotEmpty(search.getAdvancedError());
-////            }));
-////            advancedGroup.add(advancedError);
-////        }
-////
-////        private boolean isAdvancedMode() {
-////            return SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
-////                    || SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode());
-////        }
-////        private boolean isQueryPlaygroundAccessible() {
-////            return SecurityUtils.isPageAuthorized(PageRepositoryQuery.class) && SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())
-////                    && ObjectType.class.isAssignableFrom(getModelObject().getTypeClass());
-////        }
-////
-////        private void debugPerformed() {
-////            Search search = getModelObject();
-////            PageRepositoryQuery pageQuery;
-////            if (search != null) {
-////                ObjectTypes type = search.getTypeClass() != null ? ObjectTypes.getObjectType(search.getTypeClass().getSimpleName()) : null;
-////                QName typeName = type != null ? type.getTypeQName() : null;
-////                String inner = search.getAdvancedQuery();
-////                if (StringUtils.isNotBlank(inner)) {
-////                    inner = "\n" + inner + "\n";
-////                } else if (inner == null) {
-////                    inner = "";
-////                }
-////                pageQuery = new PageRepositoryQuery(typeName, "<query>" + inner + "</query>");
-////            } else {
-////                pageQuery = new PageRepositoryQuery();
-////            }
-////            SearchPanel.this.setResponsePage(pageQuery);
-////        }
-////
-////        private IModel<String> createValidityStyle() {
-////            return () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "is-valid" : "is-invalid";
-////        }
-////
-////        private void updateAdvancedArea(Component area, AjaxRequestTarget target) {
-////            Search search = getModelObject();
-////            PrismContext ctx = getPageBase().getPrismContext();
-////
-////            search.isAdvancedQueryValid(ctx);
-////
-////            target.prependJavaScript("storeTextAreaSize('" + area.getMarkupId() + "');");
-////            target.appendJavaScript("restoreTextAreaSize('" + area.getMarkupId() + "');");
-////
-////            target.add(
-////                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP)),
-////                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_BUTTON_PANEL)));
-////        }
-////
-////        private void updateQueryDSLArea(Component child, Component parent, AjaxRequestTarget target) {
-////            Search search = getModelObject();
-////            PrismContext ctx = getPageBase().getPrismContext();
-////
-////            search.isAdvancedQueryValid(ctx);
-////
-////            target.appendJavaScript("$('#" + child.getMarkupId() + "').updateParentClass('fa-check-circle-o', 'has-success',"
-////                    + " '" + parent.getMarkupId() + "', 'fa-exclamation-triangle', 'has-error');");
-////
-////            target.add(
-////                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_ITEMS_PANEL, "2", ID_ADVANCED_GROUP, ID_ADVANCED_ERROR)),
-////                    SearchPanel.this.get(createComponentPath(ID_FORM, ID_SEARCH_BUTTON_PANEL)));
-////        }
-//
-//    }
 
     class FulltextSearchFragment extends Fragment {
         private static final long serialVersionUID = 1L;

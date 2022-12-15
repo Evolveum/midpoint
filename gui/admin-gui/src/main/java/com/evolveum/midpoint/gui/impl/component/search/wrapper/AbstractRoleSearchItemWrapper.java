@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,7 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.xml.namespace.QName;
 import java.util.List;
 
-public class AbstractRoleSearchItemWrapper extends AbstractSearchItemWrapper {
+public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
 
     public static final String F_SCOPE = "scopeSearchItemWrapper";
     public static final String F_RELATION = "relationSearchItemWrapper";

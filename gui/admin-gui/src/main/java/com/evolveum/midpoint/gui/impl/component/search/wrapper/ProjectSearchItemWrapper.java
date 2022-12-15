@@ -55,19 +55,6 @@ public class ProjectSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRe
     }
 
     @Override
-    public <C extends Containerable> ObjectFilter createFilter(Class<C> type, PageBase pageBase, VariablesMap variables) {
-        return null;
-    }
-
-//    @Override
-//    public DisplayableValue<ObjectReferenceType> getValue() {
-//        if (getSearchConfig().getProjectRef() == null) {
-//            return getDefaultValue();
-//        }
-//        return new SearchValue<>(getSearchConfig().getProjectRef());
-//    }
-
-    @Override
     public String getName() {
         return "abstractRoleMemberPanel.project";
     }

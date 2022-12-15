@@ -46,17 +46,6 @@ public class IndirectSearchItemWrapper extends AbstractSearchItemWrapper<Boolean
     }
 
     @Override
-    public <C extends Containerable> ObjectFilter createFilter(Class<C> type, PageBase pageBase, VariablesMap variables) {
-        return null;
-    }
-
-//    @Override
-//    public DisplayableValue<Boolean> getValue() {
-//
-//        return new SearchValue<>(getSearchConfig().isIndirect());
-//    }
-
-    @Override
     public String getName() {
         return "abstractRoleMemberPanel.indirectMembers";
     }

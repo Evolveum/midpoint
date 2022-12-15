@@ -27,8 +27,8 @@ public interface PrismReferenceWrapper<R extends Referencable> extends ItemWrapp
 
     List<QName> getTargetTypes();
 
-//    Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemFunctions();
-//    void setSpecialSearchItemFunctions(Set<SerializableSupplier<AbstractSearchItemWrapper>> specialItems);
+//    Set<SerializableSupplier<FilterableSearchItemWrapper>> getSpecialSearchItemFunctions();
+//    void setSpecialSearchItemFunctions(Set<SerializableSupplier<FilterableSearchItemWrapper>> specialItems);
 
     Set<SearchItemType> getPredefinedSearchItem();
     void setPredefinedSearchItem(Set<SearchItemType> searchItems);

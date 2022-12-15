@@ -71,7 +71,7 @@ public class ReferenceSearchItemWrapper extends PropertySearchItemWrapper<Object
 
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
-        PrismReferenceValue refValue = ((ObjectReferenceType) getValue().getValue()).asReferenceValue();
+        PrismReferenceValue refValue = getValue().getValue().asReferenceValue();
         if (refValue.isEmpty()) {
             return null;
         }

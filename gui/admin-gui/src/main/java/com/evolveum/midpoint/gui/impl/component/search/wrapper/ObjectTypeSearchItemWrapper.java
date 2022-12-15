@@ -24,7 +24,7 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ObjectTypeSearchItemWrapper<C extends Containerable> extends AbstractSearchItemWrapper<QName> {
+public class ObjectTypeSearchItemWrapper<C extends Containerable> extends FilterableSearchItemWrapper<QName> {
 
     private QName oldType;
     private boolean typeChanged;

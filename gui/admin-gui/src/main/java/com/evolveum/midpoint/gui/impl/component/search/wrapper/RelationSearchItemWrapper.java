@@ -33,7 +33,6 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
     private List<QName> supportedRelations;
 
 
-
     public RelationSearchItemWrapper(RelationSearchItemConfigurationType relationSearchItemConfigurationType) {
         super();
         this.relationSearchItemConfigurationType = relationSearchItemConfigurationType;
@@ -48,9 +47,6 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
     //TODO should be in panel!!!
     public boolean isVisible() {
         return true;
-//        return CollectionUtils.isEmpty(relationSearchItemConfigurationType.getSupportedRelations())
-//                || relationSearchItemConfigurationType.getDefaultScope() == null
-//                || !SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
     }
 
     @Override
@@ -68,29 +64,6 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
         return "relationDropDownChoicePanel.tooltip.relation";
     }
 
-//    @Override
-//    public DisplayableValue<QName> getDefaultValue() {
-//        return new SearchValue<>();
-//    }
-
-//    @Override
-//    public DisplayableValue<QName> getValue() {
-//        return new Se
-////        if (relationSearchItemConfigurationType.getDefaultValue() == null) {
-////            return getDefaultValue();
-////        }
-////        return new SearchValue<>(relationSearchItemConfigurationType.getDefaultValue());
-//    }
-
-//    @Override
-//    protected String getNameResourceKey() {
-//        return "relationDropDownChoicePanel.relation";
-//    }
-
-//    @Override
-//    protected String getHelpResourceKey() {
-//        return "relationDropDownChoicePanel.tooltip.relation";
-//    }
 
     @Override
     public String getTitle() {
@@ -100,11 +73,6 @@ public class RelationSearchItemWrapper extends AbstractSearchItemWrapper<QName> 
     @Override
     public DisplayableValue<QName> getDefaultValue() {
         return new SearchValue<>(relationSearchItemConfigurationType.getDefaultValue());
-    }
-
-    @Override
-    public <C extends Containerable> ObjectFilter createFilter(Class<C> type, PageBase pageBase, VariablesMap variables) {
-        return null;
     }
 
     public List<QName> getRelationsForSearch() {

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.OidSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -161,9 +161,9 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         saveSearchItemToAdminConfig(availableFilter, ajaxRequestTarget);
     }
 
-    private List<SearchItemType> getAvailableFilterSearchItems(Class<C> typeClass, List<AbstractSearchItemWrapper> items, SearchBoxModeType mode) {
+    private List<SearchItemType> getAvailableFilterSearchItems(Class<C> typeClass, List<FilterableSearchItemWrapper> items, SearchBoxModeType mode) {
         List<SearchItemType> searchItems = new ArrayList<>();
-        for (AbstractSearchItemWrapper item : items) {
+        for (FilterableSearchItemWrapper item : items) {
             if (!item.isApplyFilter(mode)) {
                 continue;
             }

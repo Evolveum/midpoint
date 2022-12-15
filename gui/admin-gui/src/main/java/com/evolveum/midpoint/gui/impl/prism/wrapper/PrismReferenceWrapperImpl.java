@@ -30,7 +30,7 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
 
     private ObjectFilter filter;
     private Set<SearchItemType> predefinedSearchItems = new HashSet<>();
-//    private Set<SerializableSupplier<AbstractSearchItemWrapper>> specialItemFunctions = Collections.emptySet();
+//    private Set<SerializableSupplier<FilterableSearchItemWrapper>> specialItemFunctions = Collections.emptySet();
     private boolean onlyForDeltaComputation;
 
     public PrismReferenceWrapperImpl(PrismContainerValueWrapper<?> parent, PrismReference item, ItemStatus status) {
@@ -87,12 +87,12 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     }
 
 //    @Override
-//    public Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemFunctions() {
+//    public Set<SerializableSupplier<FilterableSearchItemWrapper>> getSpecialSearchItemFunctions() {
 //        return specialItemFunctions;
 //    }
 
 //    @Override
-//    public void setSpecialSearchItemFunctions(Set<SerializableSupplier<AbstractSearchItemWrapper>> functions) {
+//    public void setSpecialSearchItemFunctions(Set<SerializableSupplier<FilterableSearchItemWrapper>> functions) {
 //        this.specialItemFunctions = functions;
 //    }
 

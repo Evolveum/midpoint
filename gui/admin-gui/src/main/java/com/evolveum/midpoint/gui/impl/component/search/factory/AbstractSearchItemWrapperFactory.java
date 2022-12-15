@@ -28,8 +28,8 @@ public abstract class AbstractSearchItemWrapperFactory<T, PSW extends PropertySe
 
         if (ctx.hasPredefinedFilter()) {
             searchItem.setPredefinedFilter(ctx.getPredefinedFilter());
-            searchItem.setVisible(true);
-            searchItem.setApplyFilter(true);
+        }
+        if (ctx.getFilterExpression() != null) {
             searchItem.setFilterExpression(ctx.getFilterExpression());
         }
         return searchItem;

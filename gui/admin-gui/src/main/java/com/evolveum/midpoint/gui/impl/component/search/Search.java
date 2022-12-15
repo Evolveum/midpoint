@@ -128,7 +128,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return searchConfigurationWrapper;
     }
 
-    public List<AbstractSearchItemWrapper> getItems() {
+    public List<FilterableSearchItemWrapper> getItems() {
         return searchConfigurationWrapper.getItemsList();
     }
 
@@ -315,8 +315,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public OidSearchItemWrapper findOidSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
+        List<FilterableSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
+        for (FilterableSearchItemWrapper item : items) {
             if (item instanceof OidSearchItemWrapper) {
                 return (OidSearchItemWrapper) item;
             }
@@ -325,8 +325,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public ObjectCollectionSearchItemWrapper findObjectCollectionSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
+        List<FilterableSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
+        for (FilterableSearchItemWrapper item : items) {
             if (item instanceof ObjectCollectionSearchItemWrapper) {
                 return (ObjectCollectionSearchItemWrapper) item;
             }
@@ -335,8 +335,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public ObjectTypeSearchItemWrapper findObjectTypeSearchItemWrapper() {
-        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
+        List<FilterableSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
+        for (FilterableSearchItemWrapper item : items) {
             if (item instanceof ObjectTypeSearchItemWrapper) {
                 return (ObjectTypeSearchItemWrapper) item;
             }
@@ -400,7 +400,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     private ObjectQuery createObjectQuerySimple(VariablesMap defaultVariables, PageBase pageBase) {
-        List<AbstractSearchItemWrapper> searchItems = getItems();
+        List<FilterableSearchItemWrapper> searchItems = getItems();
         if (searchItems.isEmpty()) {
             return null;
         }
@@ -425,31 +425,37 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         if (!SearchBoxModeType.BASIC.equals(getSearchMode())) {
             return conditions;
         }
-        boolean abstractRoleFilterCheck = false;
-        for (AbstractSearchItemWrapper item : getItems()) {
-            if (hasParameter(item) ||
-                    !item.isApplyFilter(getSearchMode()) ||
-                    (item instanceof AbstractRoleSearchItemWrapper && abstractRoleFilterCheck)) {
-                continue;
-            }
+//        boolean abstractRoleFilterCheck = false;
+        for (FilterableSearchItemWrapper item : getItems()) {
+
             ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
             if (filter != null) {
                 conditions.add(filter);
             }
-            if (item instanceof  AbstractRoleSearchItemWrapper) {
-                abstractRoleFilterCheck = true;
-            }
+
+//            if (//hasParameter(item) ||
+//                    !item.isApplyFilter(getSearchMode()) ||
+//                    (item instanceof AbstractRoleSearchItemWrapper && abstractRoleFilterCheck)) {
+//                continue;
+//            }
+//            ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
+//            if (filter != null) {
+//                conditions.add(filter);
+//            }
+//            if (item instanceof  AbstractRoleSearchItemWrapper) {
+//                abstractRoleFilterCheck = true;
+//            }
         }
         return conditions;
     }
 
-    private boolean hasParameter(AbstractSearchItemWrapper<?> searchItemWrapper) {
-        return StringUtils.isNotEmpty(searchItemWrapper.getParameterName());
-    }
+//    private boolean hasParameter(FilterableSearchItemWrapper<?> searchItemWrapper) {
+//        return StringUtils.isNotEmpty(searchItemWrapper.getParameterName());
+//    }
 
     public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
-        List<AbstractSearchItemWrapper> items = getItems();
+        List<FilterableSearchItemWrapper> items = getItems();
         items.forEach(item -> {
             if (StringUtils.isNotEmpty(item.getParameterName())) {
                 Object parameterValue = item.getValue() != null ? item.getValue().getValue() : null;
@@ -475,8 +481,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         fulltextQueryWrapper.setFullText(fullText);
     }
 
-    public boolean allPropertyItemsPresent(List<AbstractSearchItemWrapper> items) {
-        for (AbstractSearchItemWrapper item : items) {
+    public boolean allPropertyItemsPresent(List<FilterableSearchItemWrapper> items) {
+        for (FilterableSearchItemWrapper item : items) {
             if (item instanceof PropertySearchItemWrapper && ((PropertySearchItemWrapper)item).getPath() != null &&
                     findPropertySearchItem(((PropertySearchItemWrapper<?>) item).getPath()) == null) {
                 return false;
@@ -486,7 +492,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public PropertySearchItemWrapper findPropertyItemByPath(ItemPath path) {
-        for (AbstractSearchItemWrapper searchItemWrapper : getItems()) {
+        for (FilterableSearchItemWrapper searchItemWrapper : getItems()) {
             if (!(searchItemWrapper instanceof PropertySearchItemWrapper)) {
                 continue;
             }
@@ -503,7 +509,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     }
 
     public ObjectTypeSearchItemWrapper getObjectTypeSearchItemWrapper() {
-        for (AbstractSearchItemWrapper item : getItems()) {
+        for (FilterableSearchItemWrapper item : getItems()) {
             if (item instanceof ObjectTypeSearchItemWrapper) {
                 return (ObjectTypeSearchItemWrapper) item;
             }
@@ -515,7 +521,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         if (path == null) {
             return null;
         }
-        for (AbstractSearchItemWrapper searchItem : getItems()) {
+        for (FilterableSearchItemWrapper searchItem : getItems()) {
             if (!(searchItem instanceof PropertySearchItemWrapper)) {
                 continue;
             }
@@ -536,8 +542,8 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "type", getTypeClass(), indent + 1);
         DebugUtil.dumpObjectSizeEstimate(sb, "itemsList", searchConfigurationWrapper, indent + 2);
-        List<AbstractSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
-        for (AbstractSearchItemWrapper item : items) {
+        List<FilterableSearchItemWrapper> items = searchConfigurationWrapper.getItemsList();
+        for (FilterableSearchItemWrapper item : items) {
             DebugUtil.dumpObjectSizeEstimate(sb, "item " + item.getName(), item, indent + 2);
         }
 

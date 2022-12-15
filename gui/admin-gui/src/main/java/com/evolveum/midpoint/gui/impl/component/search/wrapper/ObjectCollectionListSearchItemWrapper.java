@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ObjectCollectionListSearchItemWrapper<C extends Containerable> extends AbstractSearchItemWrapper<String> {
+public class ObjectCollectionListSearchItemWrapper<C extends Containerable> extends FilterableSearchItemWrapper<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectCollectionSearchItemWrapper.class);
     private Class<C> type;
@@ -79,7 +79,7 @@ public class ObjectCollectionListSearchItemWrapper<C extends Containerable> exte
 
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
-        String value = (String) getValue().getValue();
+        String value = getValue().getValue();
         if (value == null) {
             return null;
         }

@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.web.component.input.CheckPanel;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +37,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 import org.apache.wicket.model.PropertyModel;
 
@@ -117,7 +117,7 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
         searchItemField.setOutputMarkupId(true);
         searchItemContainer.add(searchItemField);
 
-        CheckPanel checkPanel = new CheckPanel(ID_CHECK_DISABLE_FIELD, new PropertyModel<>(getModel(), AbstractSearchItemWrapper.F_APPLY_FILTER));
+        CheckPanel checkPanel = new CheckPanel(ID_CHECK_DISABLE_FIELD, new PropertyModel<>(getModel(), FilterableSearchItemWrapper.F_APPLY_FILTER));
         (checkPanel).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
             private static final long serialVersionUID = 1L;
 

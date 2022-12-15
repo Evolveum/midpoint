@@ -45,16 +45,6 @@ public class ScopeSearchItemWrapper extends AbstractSearchItemWrapper<SearchBoxS
     }
 
     @Override
-    public <C extends Containerable> ObjectFilter createFilter(Class<C> type, PageBase pageBase, VariablesMap variables) {
-        return null;
-    }
-
-//    @Override
-//    public DisplayableValue<SearchBoxScopeType> getValue() {
-//        return new SearchValue<>(scopeConfig.getDefaultValue());
-//    }
-
-    @Override
     public String getName() {
         return "abstractRoleMemberPanel.searchScope";
     }

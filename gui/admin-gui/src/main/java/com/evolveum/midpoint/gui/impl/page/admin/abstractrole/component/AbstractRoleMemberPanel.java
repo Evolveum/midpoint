@@ -12,7 +12,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 
@@ -498,8 +498,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 //                && (isNotRole() || !isSearchItemVisible(ProjectSearchItemWrapper.class, search));
     }
 
-    private <AH extends AssignmentHolderType> boolean isSearchItemVisible(Class<? extends AbstractSearchItemWrapper> searchItemClass, Search<AH> search) {
-        Optional<AbstractSearchItemWrapper> itemWrapper = search.getItems().stream().filter(item -> item.getClass().equals(searchItemClass)).findFirst();
+    private <AH extends AssignmentHolderType> boolean isSearchItemVisible(Class<? extends FilterableSearchItemWrapper> searchItemClass, Search<AH> search) {
+        Optional<FilterableSearchItemWrapper> itemWrapper = search.getItems().stream().filter(item -> item.getClass().equals(searchItemClass)).findFirst();
         return itemWrapper != null && itemWrapper.get() != null && itemWrapper.get().isVisible();
     }
 
@@ -1530,8 +1530,8 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     private AbstractRoleSearchItemWrapper getMemberSearchItems() {
-        List<AbstractSearchItemWrapper<?>> items = getMemberPanelStorage().getSearch().getItems();
-        for (AbstractSearchItemWrapper<?> item : items) {
+        List<FilterableSearchItemWrapper<?>> items = getMemberPanelStorage().getSearch().getItems();
+        for (FilterableSearchItemWrapper<?> item : items) {
             if (item instanceof AbstractRoleSearchItemWrapper) {
                 return (AbstractRoleSearchItemWrapper) item;
             }

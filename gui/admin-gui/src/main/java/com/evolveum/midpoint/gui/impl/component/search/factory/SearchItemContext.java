@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -40,16 +41,18 @@ public class SearchItemContext implements Serializable {
     PrismContainerDefinition<? extends Containerable> containerDefinition;
     private SearchItemType item;
 
-    private ItemDefinition<?> itemDef;
+    @Nullable private ItemDefinition<?> itemDef;
     private List<DisplayableValue<?>> availableValues;
     private QName valueTypeName;
     private String lookupTableOid;
-    private ItemPath path;
+    @Nullable private ItemPath path;
 
     public SearchItemContext(PrismContainerDefinition<? extends Containerable> containerDefinition, SearchItemType searchItem, ModelServiceLocator modelServiceLocator) {
         this.containerDefinition = containerDefinition;
         this.item = searchItem;
-        this.itemDef = containerDefinition.findItemDefinition(item.getPath().getItemPath());
+        if (item.getPath() != null) {
+            this.itemDef = containerDefinition.findItemDefinition(item.getPath().getItemPath());
+        }
         this.availableValues = getSearchItemAvailableValues(item, itemDef, modelServiceLocator);
         this.valueTypeName = getSearchItemValueTypeName(item, itemDef);
         LookupTableType lookupTable = getSearchItemLookupTable(itemDef, modelServiceLocator);
@@ -122,11 +125,11 @@ public class SearchItemContext implements Serializable {
         return lookupTableOid;
     }
 
-    public ItemDefinition<?> getItemDef() {
+    @Nullable public ItemDefinition<?> getItemDef() {
         return itemDef;
     }
 
-    public ItemPath getPath() {
+    @Nullable public ItemPath getPath() {
         return path;
     }
 

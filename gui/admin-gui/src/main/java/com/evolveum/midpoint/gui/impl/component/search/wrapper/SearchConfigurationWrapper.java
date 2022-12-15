@@ -11,7 +11,7 @@ import java.util.List;
 
 public class SearchConfigurationWrapper<C extends Containerable> implements Serializable {
 
-    private List<AbstractSearchItemWrapper> itemsList = new ArrayList<>();
+    private List<FilterableSearchItemWrapper> itemsList = new ArrayList<>();
 
     private boolean allowToConfigureSearchItems;
 
@@ -24,7 +24,7 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
     public SearchConfigurationWrapper() {
      }
 
-    public List<AbstractSearchItemWrapper> getItemsList() {
+    public List<FilterableSearchItemWrapper> getItemsList() {
         return itemsList;
     }
 
@@ -40,9 +40,9 @@ public class SearchConfigurationWrapper<C extends Containerable> implements Seri
         if (path == null) {
             return this;
         }
-        Iterator<AbstractSearchItemWrapper> it = getItemsList().iterator();
+        Iterator<FilterableSearchItemWrapper> it = getItemsList().iterator();
         while (it.hasNext()) {
-            AbstractSearchItemWrapper item = it.next();
+            FilterableSearchItemWrapper item = it.next();
             if (!(item instanceof PropertySearchItemWrapper)) {
                 continue;
             }

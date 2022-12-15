@@ -11,13 +11,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -29,7 +27,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 public class ResourceContentResourcePanel extends ResourceContentPanel {
@@ -74,9 +71,9 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 //    }
 
 
-    private <T extends ObjectType> List<AbstractSearchItemWrapper> createAttributeSearchItemWrappers() {
+    private <T extends ObjectType> List<FilterableSearchItemWrapper> createAttributeSearchItemWrappers() {
 
-        List<AbstractSearchItemWrapper> itemsList = new ArrayList<>();
+        List<FilterableSearchItemWrapper> itemsList = new ArrayList<>();
 
         ResourceObjectDefinition ocDef = null;
         try {

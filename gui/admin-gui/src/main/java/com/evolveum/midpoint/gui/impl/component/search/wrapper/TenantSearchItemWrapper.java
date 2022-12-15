@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.search.panel.TenantSearchItemPanel;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -55,27 +54,10 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
     }
 
     @Override
-    public <C extends Containerable> ObjectFilter createFilter(Class<C> type, PageBase pageBase, VariablesMap variables) {
-        return null;
-    }
-
-//    @Override
-//    public DisplayableValue<ObjectReferenceType> getValue() {
-////        if (tenantConfig.get.getTenantRef() == null) {
-////            return getDefaultValue();
-////        }
-////        return new SearchValue<>(getSearchConfig().getTenantRef());
-//    }
-
-    @Override
     public String getName() {
         return "abstractRoleMemberPanel.tenant";
     }
 
-//    @Override
-//    public String getHelp() {
-//        return "";
-//    }
 
     @Override
     public String getHelp() {

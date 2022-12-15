@@ -637,7 +637,7 @@ public class CollectionProcessor {
                 if (newSearchBoxConfig.getDefaultMode() == null) {
                     newSearchBoxConfig.setDefaultMode(oldSearchBoxConfig.getDefaultMode());
                 }
-                if (newSearchBoxConfig.getAllowedMode() == null) {
+                if (newSearchBoxConfig.getAllowedMode().isEmpty()) {
                     newSearchBoxConfig.getAllowedMode().addAll(oldSearchBoxConfig.getAllowedMode());
                 }
                 if (newSearchBoxConfig.getIndirectConfiguration() == null) {

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 import org.apache.commons.lang3.StringUtils;
 
-public class OidSearchItemWrapper extends AbstractSearchItemWrapper<String> {
+public class OidSearchItemWrapper extends FilterableSearchItemWrapper<String> {
 
     @Override
     public Class<OidSearchItemPanel> getSearchItemPanelClass() {

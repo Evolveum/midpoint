@@ -135,7 +135,7 @@ public class SearchFactory<C extends Containerable> {
                 fulltextWrapper.setFullText(nameSearch);
                 search.setFulltextQueryWrapper(fulltextWrapper);
             } else {
-                for (AbstractSearchItemWrapper<?> item : search.getItems()) {
+                for (FilterableSearchItemWrapper<?> item : search.getItems()) {
                     if (!(item instanceof PropertySearchItemWrapper)) {
                         continue;
                     }
@@ -166,7 +166,7 @@ public class SearchFactory<C extends Containerable> {
         if (defaultSearchBoxConfig == null) {
             this.defaultSearchBoxConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(definition.getTypeClass(), null, modelServiceLocator);
         }
-        return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox);
+        return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }
 
     private Search<C> createSearch(SearchBoxConfigurationType mergedConfig, SearchConfigurationWrapper<C> basicSearchWrapper) {
@@ -188,7 +188,7 @@ public class SearchFactory<C extends Containerable> {
         search.setFulltextQueryWrapper(fulltextQueryWrapper);
         search.setSearchConfigurationWrapper(basicSearchWrapper);
         search.setSearchMode(getDefaultSearchMode(mergedConfig, type));
-        search.setAllowedModeList(createAllowedModeList(type));
+        search.setAllowedModeList(mergedConfig.getAllowedMode());
         if (collectionView !=  null) {
             search.setCollectionViewName(collectionView.getViewIdentifier());
             if (collectionView.getCollection() != null && collectionView.getCollection().getCollectionRef() != null) {
@@ -241,12 +241,16 @@ public class SearchFactory<C extends Containerable> {
     }
 
     private SearchBoxModeType getDefaultSearchMode(SearchBoxConfigurationType config, Class<C> type) {
-        if (isFullTextSearchEnabled(type)) {
+        List<SearchBoxModeType> allowedModes = config.getAllowedMode();
+        if (isFullTextSearchEnabled(type) && allowedModes.contains(SearchBoxModeType.FULLTEXT)) {
             return SearchBoxModeType.FULLTEXT;
         }
-        if (config == null || config.getDefaultMode() == null) {
-            return SearchBoxModeType.BASIC;
+        if (allowedModes.size() == 1) {
+            return allowedModes.get(0);
         }
+//        if (config == null || config.getDefaultMode() == null) {
+//            return SearchBoxModeType.BASIC;
+//        }
 
         return config.getDefaultMode();
     }
@@ -258,14 +262,6 @@ public class SearchFactory<C extends Containerable> {
 
         //TODO legacy support for members?
         return collectionView.getSearchBoxConfiguration();
-    }
-
-    private List<SearchBoxModeType> createAllowedModeList(Class<C> type) {
-        List<SearchBoxModeType> allowedModeTypes = Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.AXIOM_QUERY);
-        if (isFullTextSearchEnabled(type)) {
-            allowedModeTypes.add(SearchBoxModeType.FULLTEXT);
-        }
-        return allowedModeTypes;
     }
 
     public void createAbstractRoleSearchItemWrapperList(SearchConfigurationWrapper<C> searchConfigWrapper, SearchBoxConfigurationType config) {
@@ -309,7 +305,7 @@ public class SearchFactory<C extends Containerable> {
         return searchBoxConfigurationType.isAllowToConfigureSearchItems();
     }
 
-    public void addShadowAttributeSearchItemWrapper(ItemPath path, List<? super AbstractSearchItemWrapper> defs) {
+    public void addShadowAttributeSearchItemWrapper(ItemPath path, List<? super FilterableSearchItemWrapper> defs) {
 //        addSearchPropertyWrapper(containerDef, path, defs, null, modelServiceLocator);
     }
 

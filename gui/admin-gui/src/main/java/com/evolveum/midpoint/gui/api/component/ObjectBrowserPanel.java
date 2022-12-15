@@ -271,7 +271,7 @@ public class ObjectBrowserPanel<O extends ObjectType> extends BasePanel<O> imple
 //        return searchConfigWrapper;
 //    }
 
-//    protected Set<SerializableSupplier<AbstractSearchItemWrapper>> getSpecialSearchItemWrappers() {
+//    protected Set<SerializableSupplier<FilterableSearchItemWrapper>> getSpecialSearchItemWrappers() {
 //        return Collections.emptySet();
 //    }
 

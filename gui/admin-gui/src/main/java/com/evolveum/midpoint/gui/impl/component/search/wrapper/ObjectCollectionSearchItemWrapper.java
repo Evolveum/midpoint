@@ -28,7 +28,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
-public class ObjectCollectionSearchItemWrapper extends AbstractSearchItemWrapper {
+public class ObjectCollectionSearchItemWrapper extends FilterableSearchItemWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectCollectionSearchItemWrapper.class);
     private CompiledObjectCollectionView objectCollectionView;
@@ -106,7 +106,7 @@ public class ObjectCollectionSearchItemWrapper extends AbstractSearchItemWrapper
         if (objectCollectionView.getFilter() == null) {
             return null;
         }
-        return WebComponentUtil.evaluateExpressionsInFilter(objectCollectionView.getFilter(), new OperationResult("evaluate filter"), pageBase);
+        return WebComponentUtil.evaluateExpressionsInFilter(objectCollectionView.getFilter(), variables, new OperationResult("evaluate filter"), pageBase);
     }
 
     @Override

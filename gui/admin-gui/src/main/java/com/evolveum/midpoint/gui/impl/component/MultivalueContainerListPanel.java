@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.FilterableSearchItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.web.component.*;
 
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
@@ -81,7 +81,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
 //            searchConfigWrapper.setCollectionRefOid(collectionView.getCollection().getCollectionRef().getOid());
 //        }
         PrismContainerDefinition<C> containerDefinition = getTypeDefinitionForSearch();
-        List<AbstractSearchItemWrapper> items = (List<AbstractSearchItemWrapper>) initSearchableItemWrappers(containerDefinition);
+        List<FilterableSearchItemWrapper> items = (List<FilterableSearchItemWrapper>) initSearchableItemWrappers(containerDefinition);
         if (items != null) {
             searchConfigWrapper.getItemsList().addAll(items);
         }
@@ -98,7 +98,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable>
         return getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(getType());
     }
 
-    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<C> containerDef){
+    protected List<? super FilterableSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<C> containerDef){
         return null;
     }
 

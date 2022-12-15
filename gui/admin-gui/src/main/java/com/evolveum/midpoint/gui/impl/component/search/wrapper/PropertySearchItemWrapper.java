@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 
-import java.io.Serializable;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -18,6 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,7 +39,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-public class PropertySearchItemWrapper<T> extends AbstractSearchItemWrapper<T> {
+public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T> {
 
     public static final Trace LOGGER = TraceManager.getTrace(PropertySearchItemWrapper.class);
 
@@ -144,32 +144,47 @@ public class PropertySearchItemWrapper<T> extends AbstractSearchItemWrapper<T> {
 
     @Override
     public ObjectFilter createFilter(Class type, PageBase pageBase, VariablesMap variables) {
+        if (variables == null) {
+            variables = new VariablesMap();
+        }
+        SearchFilterType filter = null;
+        ExpressionType filterExpression = getFilterExpression();
+        if (filterExpression != null) {
+            ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().createPropertyDefinition(
+                    ExpressionConstants.OUTPUT_ELEMENT_NAME, SearchFilterType.COMPLEX_TYPE);
+            Task task = pageBase.createSimpleTask("evaluate filter expression");
+            try {
+                variables.put(parameterName, new TypedValue(getValue().getValue(), parameterValueType));
+                PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, filterExpression,
+                        MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "", task, task.getResult());
+                if (filterValue == null || filterValue.getRealValue() == null) {
+                    LOGGER.error("FilterExpression returned null: {}", filterExpression);
+                } else {
+                    filter = filterValue.getRealValue();
+                }
+                if (filter != null) {
+                    return pageBase.getPrismContext().getQueryConverter().parseFilter(filter, type);
+                }
+            } catch (Exception e) {
+                LOGGER.error("Unable to evaluate filter expression, {} ", filterExpression);
+            }
+
+        } else
+
         if (getPredefinedFilter() != null) {
             if (!applyPredefinedFilter()) {
                 return null;
             }
-            SearchFilterType filter = getPredefinedFilter();
-            ExpressionType filterExpression = getFilterExpression();
+            filter = getPredefinedFilter();
+
             if (isEnabled()) {
-                if (filter == null && filterExpression != null) {
-                    ItemDefinition<?> outputDefinition = pageBase.getPrismContext().definitionFactory().createPropertyDefinition(
-                            ExpressionConstants.OUTPUT_ELEMENT_NAME, SearchFilterType.COMPLEX_TYPE);
-                    Task task = pageBase.createSimpleTask("evaluate filter expression");
-                    try {
-                        PrismValue filterValue = ExpressionUtil.evaluateExpression(variables, outputDefinition, filterExpression,
-                                MiscSchemaUtil.getExpressionProfile(), pageBase.getExpressionFactory(), "", task, task.getResult());
-                        if (filterValue == null || filterValue.getRealValue() == null) {
-                            LOGGER.error("FilterExpression returned null: {}", filterExpression);
-                        } else {
-                            filter = filterValue.getRealValue();
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Unable to evaluate filter expression, {} ", filterExpression);
-                    }
-                }
+
                 if (filter != null) {
                     try {
                         //noinspection unchecked
+                        if (parameterName != null && parameterValueType != null) {
+                            variables.put(parameterName, new TypedValue(getValue().getValue(), parameterValueType));
+                        }
                         ObjectFilter convertedFilter = pageBase.getPrismContext().getQueryConverter().parseFilter(filter, type);
                         convertedFilter = WebComponentUtil.evaluateExpressionsInFilter(convertedFilter, variables, new OperationResult("evaluated filter"), pageBase);
                         if (convertedFilter != null) {
