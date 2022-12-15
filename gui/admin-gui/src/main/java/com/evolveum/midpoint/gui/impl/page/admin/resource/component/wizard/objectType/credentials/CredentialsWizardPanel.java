@@ -11,14 +11,17 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceCredentialsDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -31,9 +34,9 @@ import java.util.List;
  */
 
 @Experimental
-public class CredentialsWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
+public class CredentialsWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
-    public CredentialsWizardPanel(String id, ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> helper) {
+    public CredentialsWizardPanel(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
     }
 
@@ -46,7 +49,7 @@ public class CredentialsWizardPanel extends AbstractResourceWizardPanel<Resource
     private List<WizardStep> createCredentialsSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
         PasswordStepPanel panel = new PasswordStepPanel(
-                getResourceModel(),
+                getAssignmentHolderModel(),
                 PrismContainerWrapperModel.fromContainerValueWrapper(
                         valueModel,
                         ItemPath.create(
@@ -65,7 +68,7 @@ public class CredentialsWizardPanel extends AbstractResourceWizardPanel<Resource
                 }
                 OperationResult result = CredentialsWizardPanel.this.onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
-                    WebComponentUtil.createToastForUpdateResource(target, this);
+                    WebComponentUtil.createToastForUpdateObject(target, this, ResourceType.COMPLEX_TYPE);
                     onExitPerformed(target);
                 }
             }

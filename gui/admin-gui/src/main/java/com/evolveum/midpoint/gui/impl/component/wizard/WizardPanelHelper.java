@@ -4,9 +4,11 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
+package com.evolveum.midpoint.gui.impl.component.wizard;
 
 import java.io.Serializable;
+
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -17,20 +19,25 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-public abstract class ResourceWizardPanelHelper<C extends Containerable> implements Serializable {
+public abstract class WizardPanelHelper<C extends Containerable, AHD extends AssignmentHolderDetailsModel> implements Serializable {
 
     private IModel<PrismContainerValueWrapper<C>> valueModel;
-    private final ResourceDetailsModel resourceModel;
+    private final AHD detailsModel;
 
-    public ResourceWizardPanelHelper(
-            @NotNull ResourceDetailsModel resourceModel,
+    public WizardPanelHelper(
+            @NotNull AHD resourceModel) {
+        this.detailsModel = resourceModel;
+    }
+
+    public WizardPanelHelper(
+            @NotNull AHD resourceModel,
             @NotNull IModel<PrismContainerValueWrapper<C>> valueModel) {
-        this.resourceModel = resourceModel;
+        this.detailsModel = resourceModel;
         this.valueModel = valueModel;
     }
 
-    public ResourceDetailsModel getResourceModel() {
-        return resourceModel;
+    public AHD getDetailsModel() {
+        return detailsModel;
     }
 
     public IModel<PrismContainerValueWrapper<C>> getValueModel() {

@@ -8,16 +8,24 @@
 package com.evolveum.midpoint.gui.impl.component.tile;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.data.column.RoundedImagePanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -69,16 +77,13 @@ public class FocusTilePanel<F extends Serializable, T extends Tile<F>> extends B
         title.add(new TooltipBehavior());
         add(title);
 
-//        add(new AjaxEventBehavior("click") {
-//
-//            @Override
-//            protected void onEvent(AjaxRequestTarget target) {
-//                FocusTilePanel.this.onClick(target);
-//            }
-//        });
-
         Component details = createDetailsButton(ID_DETAILS);
+        details.add(createDetailsBehaviour());
         add(details);
+    }
+
+    protected Behavior createDetailsBehaviour() {
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
     }
 
     protected Component createDetailsButton(String id) {
@@ -101,7 +106,28 @@ public class FocusTilePanel<F extends Serializable, T extends Tile<F>> extends B
     }
 
     protected DisplayType createDisplayType(IModel<T> model) {
-        return null;
+        Object object = model.getObject().getValue();
+
+        if (object instanceof SelectableBean) {
+            object = ((SelectableBean)object).getValue();
+        }
+
+        ObjectType obj = null;
+        if (object instanceof ObjectType) {
+            obj = (ObjectType) object;
+        } else if (object instanceof PrismObject) {
+            obj = (ObjectType) ((PrismObject)object).asObjectable();
+        }
+
+        if (obj == null) {
+            return null;
+        }
+
+        String icon = WebComponentUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
+
+        return new DisplayType()
+                .icon(new IconType()
+                        .cssClass(StringUtils.joinWith(" ", icon, "fa-2x")));
     }
 
     protected IModel<IResource> createPreferredImage(IModel<T> model) {

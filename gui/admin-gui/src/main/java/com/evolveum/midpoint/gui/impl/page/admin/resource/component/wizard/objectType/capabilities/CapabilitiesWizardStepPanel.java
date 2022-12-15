@@ -6,12 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.capabilities;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.CapabilitiesPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
@@ -25,7 +27,7 @@ public abstract class CapabilitiesWizardStepPanel extends AbstractResourceWizard
 
     public CapabilitiesWizardStepPanel(
             String id,
-            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> superHelper) {
+            WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> superHelper) {
         super(id, superHelper);
     }
 
@@ -36,7 +38,7 @@ public abstract class CapabilitiesWizardStepPanel extends AbstractResourceWizard
     }
 
     private void initLayout() {
-        CapabilitiesPanel panel = new CapabilitiesPanel(ID_PANEL, getResourceModel(), getValueModel());
+        CapabilitiesPanel panel = new CapabilitiesPanel(ID_PANEL, getAssignmentHolderDetailsModel(), getValueModel());
         panel.setOutputMarkupId(true);
         add(panel);
     }

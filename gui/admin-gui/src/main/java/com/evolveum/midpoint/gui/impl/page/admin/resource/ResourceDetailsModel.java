@@ -212,11 +212,6 @@ public class ResourceDetailsModel extends AssignmentHolderDetailsModel<ResourceT
         return (PageResource) super.getPageBase();
     }
 
-    public WrapperContext createWrapperContext(){
-        Task task = getModelServiceLocator().createSimpleTask("createWrapper");
-        OperationResult result = task.getResult();
-        return createWrapperContext(task, result);
-    }
     @Override
     protected WrapperContext createWrapperContext(Task task, OperationResult result) {
         WrapperContext ctx = new WrapperContext(task, result) {

@@ -4,7 +4,9 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
+package com.evolveum.midpoint.gui.impl.component.wizard;
+
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -14,14 +16,13 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * @author lskublik
  */
-public abstract class AbstractResourceWizardPanel<C extends Containerable> extends BasePanel {
+public abstract class AbstractWizardPanel<C extends Containerable, AHD extends AssignmentHolderDetailsModel> extends BasePanel {
 
     private static final String ID_FRAGMENT = "fragment";
     private static final String ID_CHOICE_FRAGMENT = "choiceFragment";
@@ -30,11 +31,11 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WIZARD = "wizard";
 
-    private final ResourceWizardPanelHelper<C> helper;
+    private final WizardPanelHelper<C, AHD> helper;
 
-    public AbstractResourceWizardPanel(
+    public AbstractWizardPanel(
             String id,
-            ResourceWizardPanelHelper<C> helper) {
+            WizardPanelHelper<C, AHD> helper) {
         super(id);
         this.helper = helper;
     }
@@ -48,7 +49,7 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
     protected abstract void initLayout();
 
     protected Fragment createChoiceFragment(Component choicePanel) {
-        Fragment fragment = new Fragment(ID_FRAGMENT, ID_CHOICE_FRAGMENT, AbstractResourceWizardPanel.this);
+        Fragment fragment = new Fragment(ID_FRAGMENT, ID_CHOICE_FRAGMENT, AbstractWizardPanel.this);
         fragment.setOutputMarkupId(true);
         choicePanel.setOutputMarkupId(true);
         fragment.add(choicePanel);
@@ -64,12 +65,12 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
     }
 
     private void showFragment(AjaxRequestTarget target, Fragment fragment) {
-        AbstractResourceWizardPanel.this.replace(fragment);
+        AbstractWizardPanel.this.replace(fragment);
         target.add(fragment);
     }
 
     protected Fragment createWizardFragment(Component wizardPanel) {
-        Fragment fragment = new Fragment(ID_FRAGMENT, ID_WIZARD_FRAGMENT, AbstractResourceWizardPanel.this);
+        Fragment fragment = new Fragment(ID_FRAGMENT, ID_WIZARD_FRAGMENT, AbstractWizardPanel.this);
         fragment.setOutputMarkupId(true);
         Form mainForm = new Form(ID_MAIN_FORM);
         fragment.add(mainForm);
@@ -90,43 +91,8 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
         helper.onExitPerformed(target);
     }
 
-//    protected IModel<PrismContainerValueWrapper<C>> createModelOfNewValue(ItemPath path) {
-//        return new IModel<>() {
-//
-//            private PrismContainerValueWrapper<C> newItemWrapper;
-//
-//            @Override
-//            public PrismContainerValueWrapper<C> getObject() {
-//                if (newItemWrapper == null) {
-//                    try {
-//                        PrismContainerWrapper<C> container = findContainer(path);
-//                        PrismContainerValue<C> newItem = container.getItem().createNewValue();
-//                        newItemWrapper = WebPrismUtil.createNewValueWrapper(
-//                                container, newItem, getPageBase(), getWrapperContext(container));
-//                        container.getValues().add(newItemWrapper);
-//                    } catch (SchemaException e) {
-//                        LOGGER.error("Cannot find wrapper: {}", e.getMessage());
-//                    }
-//                }
-//                return newItemWrapper;
-//            }
-//        };
-//    }
-
-//    private WrapperContext getWrapperContext(PrismContainerWrapper<C> container) {
-//        WrapperContext context = getResourceModel().createWrapperContext();
-//        context.setObjectStatus(container.findObjectStatus());
-//        context.setShowEmpty(true);
-//        context.setCreateIfEmpty(true);
-//        return context;
-//    }
-
-//    protected PrismContainerWrapper<C> findContainer(ItemPath path) throws SchemaException {
-//        return getResourceModel().getObjectWrapper().findContainer(path);
-//    }
-
-    public ResourceDetailsModel getResourceModel() {
-        return helper.getResourceModel();
+    public AHD getAssignmentHolderModel() {
+        return helper.getDetailsModel();
     }
 
     public IModel<PrismContainerValueWrapper<C>> getValueModel() {
@@ -141,7 +107,7 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
         return helper.isSavedAfterWizard();
     }
 
-    public ResourceWizardPanelHelper<C> getHelper() {
+    public WizardPanelHelper<C, AHD> getHelper() {
         return helper;
     }
 }
