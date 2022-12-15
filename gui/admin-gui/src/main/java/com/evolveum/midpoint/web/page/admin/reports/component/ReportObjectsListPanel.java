@@ -411,7 +411,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     }
 
     @Override
-    protected Collection evaluateExpression(C rowValue, com.evolveum.midpoint.prism.Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
+    protected <T> Collection<T> evaluateExpression(C rowValue, com.evolveum.midpoint.prism.Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
         Task task = getPageBase().createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
         OperationResult result = task.getResult();
         try {
@@ -430,12 +430,12 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
             if (object instanceof Collection) {
                 return (Collection)object;
             }
-            return Collections.singletonList(object);
+            return (Collection<T>) Collections.singletonList(object);
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression for {} column. Reason: {}", customColumn, e.getMessage(), e);
             result.recomputeStatus();
             OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
-            return Collections.singletonList(getPageBase().createStringResource(props.getStatusLabelKey()).getString());  //TODO: this is not entirely correct
+            return (Collection<T>) Collections.singletonList(getPageBase().createStringResource(props.getStatusLabelKey()).getString());  //TODO: this is not entirely correct
         }
     }
 

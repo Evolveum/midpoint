@@ -658,7 +658,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return () -> loadExportableColumnDataModel(rowModel, customColumn, columnPath, expression);
     }
 
-    public Collection<String> loadExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
+    public <T> Collection<String> loadExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
         C value = getRowRealValue(rowModel.getObject());
         if (value == null) {
             return Collections.singletonList("");
@@ -666,7 +666,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         Item<?, ?> item = findItem(value, columnPath);
 
         if (expression != null) {
-            Collection<String> collection = evaluateExpression(value, item, expression, customColumn);
+            Collection<T> collection = evaluateExpression(value, item, expression, customColumn);
             return getValuesString(collection, customColumn.getDisplayValue());
         }
         if (item != null) {
@@ -685,7 +685,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return null;
     }
 
-    protected Collection<String> evaluateExpression(C rowValue, Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
+    protected <T> Collection<T> evaluateExpression(C rowValue, Item<?, ?> columnItem, ExpressionType expression, GuiObjectColumnType customColumn) {
         Task task = getPageBase().createSimpleTask(OPERATION_EVALUATE_EXPRESSION);
         OperationResult result = task.getResult();
         try {
@@ -694,14 +694,14 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             if (columnItem != null) {
                 variablesMap.put(ExpressionConstants.VAR_INPUT, columnItem, columnItem.getDefinition());
             }
-            return ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
+            return (Collection<T>) ExpressionUtil.evaluateStringExpression(variablesMap, getPageBase().getPrismContext(), expression,
                     MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
                     task, result);
         } catch (Exception e) {
             LOGGER.error("Couldn't execute expression for {} column. Reason: {}", customColumn, e.getMessage(), e);
             result.recomputeStatus();
             OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
-            return Collections.singletonList(getPageBase().createStringResource(props.getStatusLabelKey()).getString());  //TODO: this is not entirely correct
+            return (Collection<T>) Collections.singletonList(getPageBase().createStringResource(props.getStatusLabelKey()).getString());  //TODO: this is not entirely correct
         }
     }
 
@@ -728,7 +728,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 .collect(Collectors.toList());
     }
 
-    private List<String> getValuesString(Collection<String> collection, DisplayValueType displayValue) {
+    private <T> List<String> getValuesString(Collection<T> collection, DisplayValueType displayValue) {
         if (collection == null) {
             return null;
         }
