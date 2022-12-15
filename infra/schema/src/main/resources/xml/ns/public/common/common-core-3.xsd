@@ -3748,6 +3748,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="connectorInstanceSpecification" type="c:ConnectorInstanceSpecificationType" />
 
     <xsd:complexType name="XmlSchemaType">
         <xsd:annotation>
