@@ -12,6 +12,7 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedResourceObjectConstruction;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
@@ -96,7 +97,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
 
     //region Construction evaluation
     /**
-     * Evaluates this construction. Note that evaluation is delegated to EvaluatedConstruction objects,
+     * Evaluates this construction. Note that evaluation is delegated to {@link EvaluatedResourceObjectConstruction} objects,
      * which are created here (based on tag mapping evaluation).
      */
     public NextRecompute evaluate(Task task, OperationResult parentResult)
