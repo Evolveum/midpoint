@@ -524,8 +524,7 @@ public class TestUtil {
         }
     }
 
-    public static void assertBetween(String message, Long start, Long end,
-            Long actual) {
+    public static void assertBetween(String message, Long start, Long end, Long actual) {
         assertNotNull(message + " is null", actual);
         if (start != null) {
             assertTrue(message + ": expected time to be after " + start + " but it was " + actual, actual >= start);

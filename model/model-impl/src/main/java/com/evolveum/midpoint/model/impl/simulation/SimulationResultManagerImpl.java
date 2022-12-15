@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.model.impl.simulation;
 
+import java.util.Objects;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -17,7 +18,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationSimulationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
-
 @Component
 public class SimulationResultManagerImpl implements SimulationResultManager, SystemConfigurationChangeListener {
 
@@ -34,11 +34,11 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
         return ret.asPrismObject();
     }
 
-
     @Override
     public void update(@Nullable SystemConfigurationType value) {
         // Get current simulations configuration
-        currentConfiguration = value.getSimulation() != null ? value.getSimulation() : new SystemConfigurationSimulationType();
+        SystemConfigurationSimulationType simulation = value != null ? value.getSimulation() : null;
+        currentConfiguration = Objects.requireNonNullElse(simulation, new SystemConfigurationSimulationType());
     }
 
     @PostConstruct
