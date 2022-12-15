@@ -102,7 +102,7 @@ public class TestCorrelationDuringResourceLifecycle extends AbstractInternalMode
 
     /**
      * As test100, but with "proposed" resource.
-     * Currently, the behavior is exactly the same.
+     * The new configuration (correlation, synchronization) is not visible.
      */
     @Test
     public void test110ReCorrelationForProposed() throws Exception {
@@ -129,8 +129,8 @@ public class TestCorrelationDuringResourceLifecycle extends AbstractInternalMode
         assertShadowAfter(shadow)
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent("default")
-                .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
-                .assertSynchronizationSituation(SynchronizationSituationType.UNMATCHED);
+                .assertCorrelationSituation(null)
+                .assertSynchronizationSituation(null);
         assertNoObjectByName(UserType.class, accountName, task, result);
 
         when("a user is created");
@@ -147,11 +147,11 @@ public class TestCorrelationDuringResourceLifecycle extends AbstractInternalMode
                 .withNameValue(accountName)
                 .execute(result);
 
-        then("the shadow has updated correlation state and synchronization situation");
+        then("the shadow still has no correlation and synchronization situation");
         assertRepoShadow(shadowOid)
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent("default")
-                .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER)
-                .assertSynchronizationSituation(SynchronizationSituationType.UNLINKED);
+                .assertCorrelationSituation(null)
+                .assertSynchronizationSituation(null);
     }
 }
