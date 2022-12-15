@@ -5463,4 +5463,19 @@ public final class WebComponentUtil {
 
         return application.getLocalizationService().translate(msg, getCurrentLocale());
     }
+
+    public static CompiledObjectCollectionView getCompiledObjectCollectionView(GuiObjectListViewType listViewType, ContainerPanelConfigurationType config, PageBase pageBase) {
+        Task task = pageBase.createSimpleTask("Compile collection");
+        OperationResult result = task.getResult();
+        try {
+            CompiledObjectCollectionView compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
+            pageBase.getModelInteractionService().compileView(compiledCollectionViewFromPanelConfiguration, listViewType, task, result);
+            return compiledCollectionViewFromPanelConfiguration;
+        } catch (Throwable e) {
+            LOGGER.error("Cannot compile object collection view for panel configuration {}. Reason: {}", config, e.getMessage(), e);
+            result.recordFatalError("Cannot compile object collection view for panel configuration " + config + ". Reason: " + e.getMessage(), e);
+            pageBase.showResult(result);
+        }
+        return null;
+    }
 }

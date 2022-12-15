@@ -16,6 +16,9 @@ import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.tile.*;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -85,9 +88,29 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         searchModel = new LoadableDetachableModel<>() {
             @Override
             protected Search<FocusType> load() {
-                return createMemberSearch(FocusType.class);
+
+                SearchFactory<FocusType> searchFactory = new SearchFactory<>()
+                        .type(FocusType.class)
+                        .defaultSearchBoxConfig(getDefaultMemberSearchBoxConfig(FocusType.class))
+                        .collectionView(getObjectCollectionView())
+                        .modelServiceLocator(getPageBase());
+
+                return searchFactory.createSearch();
+
+
+
+//                return createMemberSearch(FocusType.class);
             }
         };
+    }
+
+    private CompiledObjectCollectionView getObjectCollectionView() {
+        ContainerPanelConfigurationType config = getPanelConfiguration();
+        if (config == null) {
+            return null;
+        }
+        GuiObjectListViewType listViewType = config.getListView();
+        return WebComponentUtil.getCompiledObjectCollectionView(listViewType, config, getPageBase());
     }
 
     @Override

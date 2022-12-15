@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -34,6 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchFilterParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.jetbrains.annotations.Nullable;
 
 public class SearchItemContext implements Serializable {
 
@@ -166,7 +167,7 @@ public class SearchItemContext implements Serializable {
         if (StringUtils.isNotEmpty(name)) {
             return name;
         }
-        name = WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef, null);
+        name = WebComponentUtil.getItemDefinitionDisplayNameOrName(itemDef);
         if (StringUtils.isNotEmpty(name)) {
             return name;
         }

@@ -1019,16 +1019,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         if (listViewType == null) {
             return null;
         }
-        Task task = getPageBase().createSimpleTask("Compile collection");
-        OperationResult result = task.getResult();
-        try {
-            compiledCollectionViewFromPanelConfiguration = new CompiledObjectCollectionView();
-            getPageBase().getModelInteractionService().compileView(compiledCollectionViewFromPanelConfiguration, listViewType, task, result);
-        } catch (Throwable e) {
-            LOGGER.error("Cannot compile object collection view for panel configuration {}. Reason: {}", config, e.getMessage(), e);
-            result.recordFatalError("Cannot compile object collection view for panel configuration " + config + ". Reason: " + e.getMessage(), e);
-            getPageBase().showResult(result);
-        }
+        compiledCollectionViewFromPanelConfiguration = WebComponentUtil.getCompiledObjectCollectionView(listViewType, config, getPageBase());
         return compiledCollectionViewFromPanelConfiguration;
 
     }

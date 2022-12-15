@@ -239,7 +239,7 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
 
             @Override
             protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<AH> type) {
-                return SearchBoxConfigurationUtil.getDefaultOrgMembersSearchBoxConfiguration(type, getAbstractRoleType(), getDefaultSupportedObjectTypes(true), getSupportedRelations(), getPageBase());
+                return getDefaultMemberSearchBoxConfig(type);
             }
 
 //            @Override
@@ -308,6 +308,10 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
+    }
+
+    protected  <AH extends AssignmentHolderType> SearchBoxConfigurationType getDefaultMemberSearchBoxConfig(Class<AH> type) {
+        return SearchBoxConfigurationUtil.getDefaultOrgMembersSearchBoxConfiguration(type, getAbstractRoleType(), getDefaultSupportedObjectTypes(true), getSupportedRelations(), getPageBase());
     }
 
     protected boolean reloadPageOnRefresh() {
