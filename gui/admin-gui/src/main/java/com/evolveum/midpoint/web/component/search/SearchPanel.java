@@ -51,6 +51,7 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
@@ -150,7 +151,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
             @Override
             public MoreDialogDto getObject() {
-                if (SearchPanel.this.getModelObject() != null && SearchPanel.this.getModelObject().isTypeChanged()){
+                if (SearchPanel.this.getModelObject() != null && SearchPanel.this.getModelObject().isTypeChanged()) {
                     reset();
                 }
                 return super.getObject();
@@ -188,7 +189,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 && getModelObject().isCollectionItemVisible()));
 
         PropertyModel<ContainerTypeSearchItem> typeModel = new PropertyModel<>(getModel(), Search.F_TYPE);
-        SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel){
+        SearchTypePanel typePanel = new SearchTypePanel(ID_TYPE_PANEL, typeModel) {
             @Override
             protected void searchPerformed(AjaxRequestTarget target) {
                 resetMoreDialogModel();
@@ -206,7 +207,12 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         form.add(compositedItems);
 
         ListView<S> items = new ListView<S>(ID_ITEMS,
-                new PropertyModel<>(getModel(), Search.F_ITEMS)) {
+                new LoadableDetachableModel<>() {
+                    @Override
+                    protected List<S> load() {
+                        return (List<S>) getModelObject().getItems();
+                    }
+                }) {
 
             private static final long serialVersionUID = 1L;
 
@@ -500,7 +506,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
                 WebMarkupContainer menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, item.getModel());
                 menuItemBody.setRenderBodyOnly(true);
                 item.add(menuItemBody);
-                menuItemBody.add(new VisibleEnableBehaviour(){
+                menuItemBody.add(new VisibleEnableBehaviour() {
                     @Override
                     public boolean isVisible() {
                         return Boolean.TRUE.equals(item.getModelObject().getVisible().getObject());
@@ -661,7 +667,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
     }
 
     private IModel<String> getIconLabelByModeModel() {
-        return new IModel<String>(){
+        return new IModel<String>() {
             @Override
             public String getObject() {
                 if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType())) {
@@ -726,7 +732,7 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
         };
     }
 
-    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType ... searchType) {
+    private VisibleEnableBehaviour createVisibleBehaviour(SearchBoxModeType... searchType) {
         return new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
@@ -784,8 +790,8 @@ public class SearchPanel<C extends Containerable> extends BasePanel<Search<C>> {
 
                 Label help = new Label(ID_HELP);
                 IModel<String> helpModel = new PropertyModel<>(item.getModel(), SearchItemDefinition.F_HELP);
-                help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
-                help.add(new InfoTooltipBehavior(){
+                help.add(AttributeModifier.replace("title", createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
+                help.add(new InfoTooltipBehavior() {
                     @Override
                     public String getDataPlacement() {
                         return "left";

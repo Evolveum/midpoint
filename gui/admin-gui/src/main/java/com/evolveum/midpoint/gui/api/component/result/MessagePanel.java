@@ -70,8 +70,8 @@ public class MessagePanel extends BasePanel<String> {
                 case WARN:
                 default:
                     return " box-warning";
-                }
-            };
+            }
+        };
     }
 
     private void initHeader(WebMarkupContainer box) {
@@ -88,12 +88,12 @@ public class MessagePanel extends BasePanel<String> {
                 case WARN:
                 default:
                     return " fa-warning";
-                }
-            }));
+            }
+        }));
 
         box.add(iconType);
 
-        Label message =  new Label(ID_MESSAGE, getModel());
+        Label message = new Label(ID_MESSAGE, getModel());
         box.add(message);
 
         AjaxLink<Void> close = new AjaxLink<>(ID_CLOSE) {
@@ -102,15 +102,19 @@ public class MessagePanel extends BasePanel<String> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                close(target);
+                if (this.getParent() != null) {
+                    target.add(this.getParent().setVisible(false));
+                }
+                // close(target);
             }
         };
+        close.setOutputMarkupId(true);
         close.setVisible(closeVisible);
 
         box.add(close);
     }
 
-    public void close(AjaxRequestTarget target){
+    public void close(AjaxRequestTarget target) {
         this.setVisible(false);
         target.add(this);
     }

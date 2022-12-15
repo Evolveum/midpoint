@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,6 +43,10 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
     private boolean role;
     private boolean org;
 
+    SearchBoxScopeType scope;
+    QName relation;
+    Boolean indirect;
+
     public AbstractRoleCompositedSearchItem(Search search, SearchBoxConfigurationHelper searchBoxConfig, boolean role, boolean org) {
         super(search);
         this.searchBoxConfig = searchBoxConfig;
@@ -51,7 +54,6 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
         this.org = org;
         create();
     }
-
 
     public void create() {
         if (searchBoxConfig.isRelationVisible()) {
@@ -100,24 +102,24 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
         }
 
         Class type = getSearch().getTypeClass();
-        SearchBoxScopeType scope = searchBoxConfig.getDefaultSearchScopeConfiguration().getDefaultValue();
+        scope = searchBoxConfig.getDefaultSearchScopeConfiguration().getDefaultValue();
         if (SearchBoxScopeType.SUBTREE == scope) {
             return pageBase.getPrismContext().queryFor(type).isChildOf(parentRef.asReferenceValue()).buildFilter();
         }
 
         PrismContext prismContext = pageBase.getPrismContext();
         List relations;
-        QName relation = searchBoxConfig.getDefaultRelation();
-        if (QNameUtil.match(relation, PrismConstants.Q_ANY)){
+        relation = searchBoxConfig.getDefaultRelationConfiguration().getDefaultValue();
+        if (QNameUtil.match(relation, PrismConstants.Q_ANY)) {
             relations = searchBoxConfig.getSupportedRelations();
         } else {
             relations = Collections.singletonList(relation);
         }
 
         ObjectFilter filter;
-        Boolean indirect = searchBoxConfig.getDefaultIndirectConfiguration().isIndirect();
+        indirect = searchBoxConfig.getDefaultIndirectConfiguration().isIndirect();
 
-        if(BooleanUtils.isTrue(indirect)) {
+        if (BooleanUtils.isTrue(indirect)) {
             filter = prismContext.queryFor(type)
                     .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(MemberOperationsHelper.createReferenceValuesList(parentRef, relations))
                     .buildFilter();
@@ -139,7 +141,17 @@ public class AbstractRoleCompositedSearchItem<R extends AbstractRoleType> extend
         return filter;
     }
 
+    public SearchBoxScopeType getScope() {
+        return scope;
+    }
 
+    public QName getRelation() {
+        return relation;
+    }
+
+    public Boolean getIndirect() {
+        return indirect;
+    }
 
     @Override
     public String getName() {

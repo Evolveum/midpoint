@@ -55,9 +55,8 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
         if (!allowNull && defaultRelation == null) {
             defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
         }
-        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, createValueModel(defaultRelation), supportedRelationsModel, getRenderer(),
-                getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", "col-md-4",
-                getRelationLabelModel() == null || StringUtils.isEmpty(getRelationLabelModel().getObject()) ? "" : "col-md-8", !allowNull) {
+        DropDownFormGroup<QName> input = new DropDownFormGroup<>(ID_INPUT, createValueModel(defaultRelation), supportedRelationsModel, getRenderer(),
+                getRelationLabelModel(), createStringResource("relationDropDownChoicePanel.tooltip.relation"), null, null, !allowNull) {
             private static final long serialVersionUID = 1L;
 
             @Override

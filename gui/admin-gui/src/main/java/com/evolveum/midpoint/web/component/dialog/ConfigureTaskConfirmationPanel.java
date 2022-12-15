@@ -7,21 +7,18 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
-import com.evolveum.midpoint.prism.PrismObject;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxButton;
-
-import java.io.Serializable;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author lskublik
@@ -37,6 +34,11 @@ public class ConfigureTaskConfirmationPanel extends ConfirmationPanel {
 
     public ConfigureTaskConfirmationPanel(String id, IModel<String> message) {
         super(id, message);
+
+        MessagePanel warningMessage = new MessagePanel("warningMessage", MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
+        warningMessage.setOutputMarkupId(true);
+        warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
+        add(warningMessage);
     }
 
     @Override
@@ -52,10 +54,20 @@ public class ConfigureTaskConfirmationPanel extends ConfirmationPanel {
                 WebComponentUtil.dispatchToObjectDetailsPage(getTask(target), true, ConfigureTaskConfirmationPanel.this);
             }
         };
+        configuredButton.setOutputMarkupId(true);
+        configuredButton.add(new VisibleBehaviour((this::isConfigurationTaskVisible)));
         panel.add(configuredButton);
     }
 
     protected PrismObject<TaskType> getTask(AjaxRequestTarget target) {
         return null;
+    }
+
+    protected IModel<String> getWarningMessageModel() {
+        return null;
+    }
+
+    public boolean isConfigurationTaskVisible() {
+        return true;
     }
 }

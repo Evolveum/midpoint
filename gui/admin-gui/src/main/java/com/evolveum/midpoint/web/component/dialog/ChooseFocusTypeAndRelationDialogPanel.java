@@ -37,7 +37,7 @@ import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
-public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> implements Popupable{
+public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> implements Popupable {
 
     private static final String ID_OBJECT_TYPE = "type";
     private static final String ID_RELATION = "relation";
@@ -62,7 +62,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         MessagePanel warningMessage = new MessagePanel(ID_WARNING_FEEDBACK, MessagePanel.MessagePanelType.WARN, getWarningMessageModel());
         warningMessage.setOutputMarkupId(true);
         warningMessage.add(new VisibleBehaviour(() -> getWarningMessageModel() != null));
@@ -70,14 +70,14 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
 
         DropDownFormGroup<QName> type = new DropDownFormGroup<>(ID_OBJECT_TYPE, Model.of(getDefaultObjectType()), Model.ofList(getSupportedObjectTypes()),
                 new QNameObjectTypeChoiceRenderer(), createStringResource("chooseFocusTypeAndRelationDialogPanel.type"),
-                "chooseFocusTypeAndRelationDialogPanel.tooltip.type", "col-md-4", "col-md-8", true);
+                createStringResource("chooseFocusTypeAndRelationDialogPanel.tooltip.type"), "col-md-4", "col-md-8", true);
         type.getInput().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         type.setOutputMarkupId(true);
         type.add(new VisibleBehaviour(this::isFocusTypeSelectorVisible));
         add(type);
 
-            IModel<Map<String, String>> options = new Model(null);
-            options.setObject(new HashMap<>());
+        IModel<Map<String, String>> options = new Model(null);
+        options.setObject(new HashMap<>());
         ListMultipleChoicePanel<QName> relation = new ListMultipleChoicePanel<>(ID_RELATION, Model.ofList(getDefaultRelations()),
                 new ListModel<>(getSupportedRelations()), WebComponentUtil.getRelationChoicesRenderer(getPageBase()), options);
         relation.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
@@ -214,12 +214,12 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel<String> imp
     }
 
     @Override
-    public String getWidthUnit(){
+    public String getWidthUnit() {
         return "px";
     }
 
     @Override
-    public String getHeightUnit(){
+    public String getHeightUnit() {
         return "px";
     }
 
