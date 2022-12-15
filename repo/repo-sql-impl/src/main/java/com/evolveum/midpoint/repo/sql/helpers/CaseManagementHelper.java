@@ -7,7 +7,11 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import java.util.Collection;
 import java.util.Map;
+
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -37,20 +41,30 @@ public class CaseManagementHelper {
     @Autowired private ObjectRetriever objectRetriever;
 
     // TODO find a better name
-    public CaseWorkItemType updateLoadedCaseWorkItem(
-            GetContainerableIdOnlyResult result, Map<String, PrismObject<CaseType>> ownersMap,
-            Session session)
+    CaseWorkItemType updateLoadedCaseWorkItem(
+            GetContainerableIdOnlyResult result,
+            Map<String, PrismObject<CaseType>> ownersMap,
+            Session session,
+            Collection<SelectorOptions<GetOperationOptions>> options)
             throws SchemaException, ObjectNotFoundException, DtoTranslationException {
 
         String ownerOid = result.getOwnerOid();
+        Integer id = result.getId();
         PrismObject<CaseType> aCase = resolveCase(ownerOid, ownersMap, session);
         PrismContainer<Containerable> workItemContainer = aCase.findContainer(CaseType.F_WORK_ITEM);
         if (workItemContainer == null) {
-            throw new ObjectNotFoundException("Case " + aCase + " has no work items even if it should have " + result);
+            throw new ObjectNotFoundException(
+                    "Case " + aCase + " has no work items even if it should have " + result,
+                    CaseWorkItemType.class,
+                    ownerOid + ":" + id,
+                    GetOperationOptions.isAllowNotFound(options));
         }
-        PrismContainerValue<?> workItemPcv = workItemContainer.findValue(result.getId());
+        PrismContainerValue<?> workItemPcv = workItemContainer.findValue(id);
         if (workItemPcv == null) {
-            throw new ObjectNotFoundException("Case " + aCase + " has no work item " + result);
+            throw new ObjectNotFoundException("Case " + aCase + " has no work item " + result,
+                    CaseWorkItemType.class,
+                    ownerOid + ":" + id,
+                    GetOperationOptions.isAllowNotFound(options));
         }
         return (CaseWorkItemType) workItemPcv.asContainerable();
     }

@@ -20,6 +20,8 @@ public class Tile<T extends Serializable> implements Comparable<Tile>, Serializa
 
     private String title;
 
+    private String description;
+
     private boolean selected;
 
     private T value;
@@ -47,6 +49,14 @@ public class Tile<T extends Serializable> implements Comparable<Tile>, Serializa
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public boolean isSelected() {

@@ -477,13 +477,13 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             search.addAllowedModelType(SearchBoxModeType.ADVANCED);
             search.setSearchMode(SearchBoxModeType.ADVANCED);
 //            search.setSearchType(SearchBoxModeType.ADVANCED);
+
             if (!search.isAdvancedQueryValid(getPrismContext())) {
                 // shouldn't occur because the query was already parsed
                 error("Query is not valid: " + search.getAdvancedError());
                 target.add(getFeedbackPanel());
                 return;
             }
-
             storage.setSearch(search);
             setResponsePage(listPageClass);
         } catch (CommonException | RuntimeException e) {
@@ -637,12 +637,5 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
             }
         }
         return sb.toString();
-    }
-
-    private SearchConfigurationWrapper createSearchConfigWrapper(Class<? extends ObjectType> type) {
-        SearchBoxConfigurationType config = new SearchBoxConfigurationType();
-
-        //todo fix
-        return new SearchConfigurationWrapper();
     }
 }

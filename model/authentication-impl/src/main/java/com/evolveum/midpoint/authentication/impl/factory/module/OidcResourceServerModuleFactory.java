@@ -57,7 +57,6 @@ public class OidcResourceServerModuleFactory extends RemoteModuleFactory {
 
         isSupportedChannel(authenticationChannel);
 
-        OidcResourceServerModuleWebSecurityConfiguration.setProtector(getProtector());
         OidcResourceServerModuleWebSecurityConfiguration configuration = OidcResourceServerModuleWebSecurityConfiguration.build(
                 (OidcAuthenticationModuleType)moduleType, sequenceSuffix);
         configuration.setSequenceSuffix(sequenceSuffix);

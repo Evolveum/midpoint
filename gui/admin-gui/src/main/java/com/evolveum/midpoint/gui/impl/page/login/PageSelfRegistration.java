@@ -486,7 +486,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
                     noncePolicy.getValuePolicyRef().getOid(), PageSelfRegistration.this, task, result);
             if (valuePolicy == null) {
                 LOGGER.error("Nonce cannot be generated, as value policy {} cannot be fetched", noncePolicy.getValuePolicyRef().getOid());
-                throw new ObjectNotFoundException("Nonce cannot be generated");         // no more information (security); TODO implement more correctly
+                throw new ObjectNotFoundException("Nonce cannot be generated"); // no more information (security); TODO implement more correctly
             }
             policy = valuePolicy.asObjectable();
         }

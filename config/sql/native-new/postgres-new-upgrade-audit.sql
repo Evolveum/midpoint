@@ -100,6 +100,10 @@ call apply_audit_change(2, $aa$
 ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'MESSAGE_TEMPLATE' AFTER 'LOOKUP_TABLE';
 $aa$);
 
+-- SCHEMA-COMMIT 4.6: commit 71f2df50
+
+-- changes for 4.7
+
 -- WRITE CHANGES ABOVE ^^
 -- IMPORTANT: update apply_audit_change number at the end of postgres-new-audit.sql
 -- to match the number used in the last change here!

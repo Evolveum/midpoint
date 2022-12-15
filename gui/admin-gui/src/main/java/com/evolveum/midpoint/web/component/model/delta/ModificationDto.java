@@ -51,6 +51,14 @@ public class ModificationDto implements Serializable {
         return value;
     }
 
+    public String getAttribute() {
+        return attribute;
+    }
+
+    public String getChangeType() {
+        return changeType;
+    }
+
     public static Collection<? extends ModificationDto> createModificationDtoList(PropertyDelta delta) {
 
         String attribute = getItemName(delta);

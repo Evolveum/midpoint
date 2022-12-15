@@ -17,13 +17,9 @@ import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -53,7 +49,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
     protected void initLayout() {
         ItemPanelSettings settings = new ItemPanelSettingsBuilder()
                 .visibilityHandler(getVisibilityHandler())
-                .mandatoryHandler(w -> checkMandatory(w))
+                .mandatoryHandler(this::checkMandatory)
                 .build();
         VerticalFormPanel panel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
             @Override
@@ -97,9 +93,9 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
 
     @Override
     protected void updateFeedbackPanels(AjaxRequestTarget target) {
-        getVerticalForm().visitChildren(VerticalFormPrismPropertyValuePanel.class, (component, objectIVisit) -> {
-            ((VerticalFormPrismPropertyValuePanel) component).updateFeedbackPanel(target);
-        });
+        getVerticalForm().visitChildren(
+                VerticalFormPrismPropertyValuePanel.class,
+                (component, objectIVisit) -> ((VerticalFormPrismPropertyValuePanel<?>) component).updateFeedbackPanel(target));
     }
 
     private VerticalFormPanel getVerticalForm() {

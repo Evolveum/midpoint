@@ -239,7 +239,7 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         assertNotNull("No property "+path+" in "+desc(), property);
         XMLGregorianCalendar timestamp = property.getRealValue();
         assertNotNull("No value of property "+path+" in "+desc(), timestamp);
-        TestUtil.assertBetween("Wrong value of property "+path+" in "+desc(), startTs, endTs, timestamp);
+        TestUtil.assertBetween("Value of property "+path+" in "+desc(), startTs, endTs, timestamp);
         return this;
     }
 

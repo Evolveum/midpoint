@@ -1,0 +1,35 @@
+<!--
+  ~ Copyright (c) 2014 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<role oid="03d00775-6d5c-45d8-80d5-f0c4c419c5c6"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+    <name>role-accounts-autz</name>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ShadowType</type>
+        </object>
+        <!-- intentionally mixing qualified and unqualified paths -->
+        <item>attributes/ri:uid</item> <!-- in inetOrgPerson and posixAccount -->
+        <item>attributes/ri:cn</item> <!-- in inetOrgPerson and posixAccount -->
+        <item>c:attributes/preferredLanguage</item> <!-- in inetOrgPerson only -->
+        <item>attributes/carLicense</item> <!-- in inetOrgPerson only -->
+        <item>attributes/loginShell</item> <!-- in posixAccount only -->
+        <item>attributes/ri:gidNumber</item> <!-- in posixAccount only -->
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+        <object>
+            <type>ShadowType</type>
+        </object>
+        <!-- intentionally mixing qualified and unqualified paths -->
+        <item>attributes/uid</item> <!-- in inetOrgPerson and posixAccount -->
+        <item>c:attributes/preferredLanguage</item> <!-- in inetOrgPerson only -->
+        <item>attributes/ri:loginShell</item> <!-- in posixAccount only -->
+    </authorization>
+</role>

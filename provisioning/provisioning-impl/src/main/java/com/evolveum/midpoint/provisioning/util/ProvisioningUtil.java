@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asPrismObject;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType.COMPLETED;
 
 import java.util.Collection;
@@ -18,6 +19,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.provisioning.impl.shadows.manager.ShadowCreator;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +29,6 @@ import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -35,9 +37,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningOperationState;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
@@ -46,9 +46,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -62,7 +60,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 
 public class ProvisioningUtil {
@@ -79,8 +76,9 @@ public class ProvisioningUtil {
             ProvisioningScriptType scriptType, String desc, PrismContext prismContext) throws SchemaException {
         ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
-        MutablePrismPropertyDefinition scriptArgumentDefinition = prismContext.definitionFactory().createPropertyDefinition(
-                FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
+        MutablePrismPropertyDefinition<?> scriptArgumentDefinition =
+                prismContext.definitionFactory().createPropertyDefinition(
+                        FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING);
         scriptArgumentDefinition.setMinOccurs(0);
         scriptArgumentDefinition.setMaxOccurs(-1);
 
@@ -266,9 +264,12 @@ public class ProvisioningUtil {
         return false;
     }
 
-    public static <T> PropertyDelta<T> narrowPropertyDelta(PropertyDelta<T> propertyDelta,
-            PrismObject<ShadowType> currentShadow, QName overridingMatchingRuleQName, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-        ItemDefinition propertyDef = propertyDelta.getDefinition();
+    public static <T> PropertyDelta<T> narrowPropertyDelta(
+            PropertyDelta<T> propertyDelta,
+            ShadowType currentShadow,
+            QName overridingMatchingRuleQName,
+            MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+        ItemDefinition<?> propertyDef = propertyDelta.getDefinition();
 
         QName matchingRuleQName;
         if (overridingMatchingRuleQName != null) {
@@ -297,7 +298,8 @@ public class ProvisioningUtil {
         // We can safely narrow delta using real values, because we are not interested in value metadata here.
         // Because we are dealing with properties, container IDs are also out of questions, and operational items
         // as well.
-        PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, comparator, comparator, true); // MID-5280
+        PropertyDelta<T> filteredDelta =
+                propertyDelta.narrow(asPrismObject(currentShadow), comparator, comparator, true); // MID-5280
         if (filteredDelta == null || !filteredDelta.equals(propertyDelta)) {
             LOGGER.trace("Narrowed delta: {}", DebugUtil.debugDumpLazily(filteredDelta));
         }
@@ -313,19 +315,19 @@ public class ProvisioningUtil {
         return refinedSchema;
     }
 
-    public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, PrismObject<ShadowType> shadow,
-            MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry) throws SchemaException {
-        boolean isProtected = protectedAccountPatterns != null &&
-                ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry, relationRegistry);
+    public static boolean isProtectedShadow(Collection<ResourceObjectPattern> protectedAccountPatterns, ShadowType shadow)
+            throws SchemaException {
+        boolean isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns);
         LOGGER.trace("isProtectedShadow: {} = {}", shadow, isProtected);
         return isProtected;
     }
 
-    public static void setProtectedFlag(ProvisioningContext ctx, PrismObject<ShadowType> resourceObjectOrShadow,
-            MatchingRuleRegistry matchingRuleRegistry, RelationRegistry relationRegistry, ExpressionFactory factory, OperationResult result) throws SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
-        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), resourceObjectOrShadow, matchingRuleRegistry, relationRegistry)) {
-            resourceObjectOrShadow.asObjectable().setProtectedObject(true);
+    public static void setProtectedFlag(
+            ProvisioningContext ctx, ShadowType shadow, ExpressionFactory factory, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+            ExpressionEvaluationException, SecurityViolationException {
+        if (isProtectedShadow(ctx.getProtectedAccountPatterns(factory, result), shadow)) {
+            shadow.setProtectedObject(true);
         }
     }
 
@@ -340,9 +342,20 @@ public class ProvisioningUtil {
         // Should we log the exception? Actually, there's no reason to do it if the exception is rethrown.
         // Therefore we'll log the exception only on debug level here.
         LoggingUtils.logExceptionOnDebugLevel(logger, message, ex);
-        opResult.recordFatalErrorNotFinish(message, ex); // We are not the one who created the result, so we shouldn't close it
+        opResult.setFatalError(message, ex); // We are not the one who created the result, so we shouldn't close it
+        opResult.markExceptionRecorded();
     }
 
+    public static void recordExceptionWhileRethrowing(Trace logger, OperationResult opResult, String explicitMessage, Throwable ex) {
+        String message = explicitMessage != null ? explicitMessage : ex.getMessage();
+        // Should we log the exception? Actually, there's no reason to do it if the exception is rethrown.
+        // Therefore we'll log the exception only on debug level here.
+        LoggingUtils.logExceptionOnDebugLevel(logger, message, ex);
+        opResult.recordExceptionNotFinish(message, ex); // We are not the one who created the result, so we shouldn't close it
+        opResult.markExceptionRecorded();
+    }
+
+    /** See {@link ShadowCreator#createShadowForRepoStorage(ProvisioningContext, ShadowType)}. */
     public static boolean shouldStoreAttributeInShadow(ResourceObjectDefinition objectDefinition, QName attributeName,
             CachingStrategyType cachingStrategy) throws ConfigurationException {
         if (cachingStrategy == null || cachingStrategy == CachingStrategyType.NONE) {
@@ -367,15 +380,13 @@ public class ProvisioningUtil {
         }
     }
 
-    public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStrategyType cachingStrategy) {    // MID-2585
-        if (cachingStrategy == CachingStrategyType.PASSIVE) {
-            return true;
-        } else {
-            return QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP) ||
-                    QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP) ||
-                    QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP) ||
-                    QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON);
-        }
+    // MID-2585
+    public static boolean shouldStoreActivationItemInShadow(QName elementName, CachingStrategyType cachingStrategy) {
+        return cachingStrategy == CachingStrategyType.PASSIVE
+                || QNameUtil.match(elementName, ActivationType.F_ARCHIVE_TIMESTAMP)
+                || QNameUtil.match(elementName, ActivationType.F_DISABLE_TIMESTAMP)
+                || QNameUtil.match(elementName, ActivationType.F_ENABLE_TIMESTAMP)
+                || QNameUtil.match(elementName, ActivationType.F_DISABLE_REASON);
     }
 
     public static void cleanupShadowActivation(ShadowType repoShadowType) {
@@ -417,7 +428,7 @@ public class ProvisioningUtil {
     }
 
     public static void checkShadowActivationConsistency(PrismObject<ShadowType> shadow) {
-        if (shadow == null) {        // just for sure
+        if (shadow == null) { // just for sure
             return;
         }
         ActivationType activation = shadow.asObjectable().getActivation();
@@ -438,24 +449,14 @@ public class ProvisioningUtil {
         }
     }
 
-    public static CachingStrategyType getCachingStrategy(ProvisioningContext ctx) {
-        ResourceType resource = ctx.getResource();
-        CachingPolicyType caching = resource.getCaching();
-        if (caching == null || caching.getCachingStrategy() == null) {
-            ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEnabledCapability(resource, ReadCapabilityType.class);
-            if (readCapabilityType == null) {
-                return CachingStrategyType.NONE;
-            }
-            Boolean cachingOnly = readCapabilityType.isCachingOnly();
-            if (cachingOnly == Boolean.TRUE) {
-                return CachingStrategyType.PASSIVE;
-            }
-            return CachingStrategyType.NONE;
-        }
-        return caching.getCachingStrategy();
+    public static @NotNull List<ItemDelta<?, ?>> getResourceModifications(
+            @NotNull Collection<? extends ItemDelta<?, ?>> modifications) {
+        return modifications.stream()
+                .filter(ProvisioningUtil::isResourceModification)
+                .collect(Collectors.toList());
     }
 
-    public static boolean isResourceModification(ItemDelta modification) {
+    private static boolean isResourceModification(ItemDelta<?, ?> modification) {
         QName firstPathName = modification.getPath().firstName();
         return isAttributeModification(firstPathName) || isNonAttributeResourceModification(firstPathName);
     }
@@ -465,16 +466,10 @@ public class ProvisioningUtil {
     }
 
     public static boolean isNonAttributeResourceModification(QName firstPathName) {
-        return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION) || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS) ||
-                QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION) || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
-    }
-
-    public static boolean resourceReadIsCachingOnly(ResourceType resource) {
-        ReadCapabilityType readCapabilityType = ResourceTypeUtil.getEnabledCapability(resource, ReadCapabilityType.class);
-        if (readCapabilityType == null) {
-            return false;        // TODO reconsider this
-        }
-        return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
+        return QNameUtil.match(firstPathName, ShadowType.F_ACTIVATION)
+                || QNameUtil.match(firstPathName, ShadowType.F_CREDENTIALS)
+                || QNameUtil.match(firstPathName, ShadowType.F_ASSOCIATION)
+                || QNameUtil.match(firstPathName, ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
 
     public static Duration getGracePeriod(ProvisioningContext ctx) {
@@ -498,7 +493,8 @@ public class ProvisioningUtil {
         return period;
     }
 
-    public static boolean isOverPeriod(XMLGregorianCalendar now, Duration period, PendingOperationType pendingOperation) {
+    public static boolean isCompletedAndOverPeriod(
+            XMLGregorianCalendar now, Duration period, PendingOperationType pendingOperation) {
         if (!isCompleted(pendingOperation.getResultStatus())) {
             return false;
         }
@@ -538,16 +534,18 @@ public class ProvisioningUtil {
     }
 
     public static boolean isCompleted(OperationResultStatusType statusType) {
-        return statusType != null && statusType != OperationResultStatusType.IN_PROGRESS && statusType != OperationResultStatusType.UNKNOWN;
+        return statusType != null
+                && statusType != OperationResultStatusType.IN_PROGRESS
+                && statusType != OperationResultStatusType.UNKNOWN;
     }
 
-    public static boolean hasPendingAddOperation(PrismObject<ShadowType> shadow) {
-        return shadow.asObjectable().getPendingOperation().stream()
+    public static boolean hasPendingAddOperation(ShadowType shadow) {
+        return shadow.getPendingOperation().stream()
                 .anyMatch(ProvisioningUtil::isPendingAddOperation);
     }
 
-    public static boolean hasPendingDeleteOperation(PrismObject<ShadowType> shadow) {
-        return shadow.asObjectable().getPendingOperation().stream()
+    public static boolean hasPendingDeleteOperation(ShadowType shadow) {
+        return shadow.getPendingOperation().stream()
                 .anyMatch(ProvisioningUtil::isPendingDeleteOperation);
     }
 
@@ -566,51 +564,8 @@ public class ProvisioningUtil {
         return pit == PointInTimeType.FUTURE;
     }
 
-    public static ResourceOperationDescription createResourceFailureDescription(
-            PrismObject<ShadowType> conflictedShadow, ResourceType resource, ObjectDelta<ShadowType> delta, OperationResult parentResult) {
-        ResourceOperationDescription failureDesc = new ResourceOperationDescription();
-        failureDesc.setCurrentShadow(conflictedShadow);
-        failureDesc.setObjectDelta(delta);
-        failureDesc.setResource(resource.asPrismObject());
-        failureDesc.setResult(parentResult);
-        failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
-
-        return failureDesc;
-    }
-
-    public static boolean isDoDiscovery(ResourceType resource, GetOperationOptions rootOptions) {
-        return !GetOperationOptions.isDoNotDiscovery(rootOptions) && isDoDiscovery(resource);
-    }
-
-    public static boolean isDoDiscovery(ResourceType resource, ProvisioningOperationOptions options) {
-        return !ProvisioningOperationOptions.isDoNotDiscovery(options) && isDoDiscovery(resource);
-    }
-
-    public static boolean isDoDiscovery(ResourceType resource) {
-        return resource == null
-                || resource.getConsistency() == null
-                || resource.getConsistency().isDiscovery() == null
-                || resource.getConsistency().isDiscovery();
-    }
-
-    public static OperationResultStatus postponeModify(
-            ProvisioningContext ctx,
-            PrismObject<ShadowType> repoShadow,
-            Collection<? extends ItemDelta> modifications,
-            ProvisioningOperationState<AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>>> opState,
-            OperationResult failedOperationResult,
-            OperationResult result) {
-        LOGGER.trace("Postponing MODIFY operation for {}", repoShadow);
-        opState.setExecutionStatus(PendingOperationExecutionStatusType.EXECUTING);
-        AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncResult = new AsynchronousOperationReturnValue<>();
-        asyncResult.setOperationResult(failedOperationResult);
-        asyncResult.setOperationType(PendingOperationTypeType.RETRY);
-        opState.setAsyncResult(asyncResult);
-        if (opState.getAttemptNumber() == null) {
-            opState.setAttemptNumber(1);
-        }
-        result.setInProgress();
-        return OperationResultStatus.IN_PROGRESS;
+    public static boolean isDoDiscovery(@NotNull ResourceType resource, ProvisioningOperationOptions options) {
+        return !ProvisioningOperationOptions.isDoNotDiscovery(options) && ResourceTypeUtil.isDiscoveryAllowed(resource);
     }
 
     // TODO better place?
@@ -658,21 +613,21 @@ public class ProvisioningUtil {
      *
      * TODO better place?
      */
-    public static PrismObject<ShadowType> selectLiveOrAnyShadow(List<PrismObject<ShadowType>> shadows) {
+    public static ShadowType selectLiveOrAnyShadow(List<PrismObject<ShadowType>> shadows) {
         PrismObject<ShadowType> liveShadow = ProvisioningUtil.selectLiveShadow(shadows);
         if (liveShadow != null) {
-            return liveShadow;
+            return liveShadow.asObjectable();
         } else if (shadows.isEmpty()) {
             return null;
         } else {
-            return shadows.get(0);
+            return shadows.get(0).asObjectable();
         }
     }
 
     // TODO better place?
     @Nullable
-    public static PrismProperty<?> getSingleValuedPrimaryIdentifier(PrismObject<ShadowType> resourceObject) {
-        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
+    public static PrismProperty<?> getSingleValuedPrimaryIdentifier(ShadowType shadow) {
+        ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
         PrismProperty<?> identifier = attributesContainer.getPrimaryIdentifier();
         if (identifier == null) {
             return null;
@@ -710,6 +665,10 @@ public class ProvisioningUtil {
     }
 
     // TODO better place?
+    public static void validateShadow(@NotNull ShadowType shadow, boolean requireOid) {
+        validateShadow(shadow.asPrismObject(), requireOid);
+    }
+
     public static void validateShadow(PrismObject<ShadowType> shadow, boolean requireOid) {
         if (requireOid) {
             Validate.notNull(shadow.getOid(), "null shadow OID");

@@ -116,13 +116,13 @@ public class MockFactory {
 
             @Override
             public <T extends ObjectType> String modifyObject(
-                    Class<T> type,
-                    String oid,
-                    Collection<? extends ItemDelta<?, ?>> modifications,
-                    OperationProvisioningScriptsType scripts,
-                    ProvisioningOperationOptions options,
-                    Task task,
-                    OperationResult parentResult) {
+                    @NotNull Class<T> type,
+                    @NotNull String oid,
+                    @NotNull Collection<? extends ItemDelta<?, ?>> modifications,
+                    @Nullable OperationProvisioningScriptsType scripts,
+                    @Nullable ProvisioningOperationOptions options,
+                    @NotNull Task task,
+                    @NotNull OperationResult parentResult) {
                 return null;
             }
 
@@ -390,11 +390,6 @@ public class MockFactory {
             @NotNull
             @Override
             public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) {
-                return null;
-            }
-
-            @Override
-            public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
                 return null;
             }
 

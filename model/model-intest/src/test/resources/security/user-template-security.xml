@@ -82,4 +82,17 @@
         </target>
     </mapping>
 
+    <!-- MID-8347 -->
+    <item>
+        <ref>operationExecution/message</ref>
+        <limitations>
+            <layer>presentation</layer>
+            <access>
+                <read>true</read>
+                <add>false</add>
+                <modify>false</modify>
+            </access>
+        </limitations>
+    </item>
+
 </objectTemplate>

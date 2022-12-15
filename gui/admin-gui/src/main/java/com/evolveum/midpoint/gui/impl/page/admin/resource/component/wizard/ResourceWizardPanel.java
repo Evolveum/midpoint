@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic.*;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeTableWizardPanel;
@@ -59,28 +60,26 @@ public class ResourceWizardPanel extends BasePanel {
 
     protected ResourceObjectTypeWizardPanel createObjectTypeWizard(
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        ResourceObjectTypeWizardPanel wizard = new ResourceObjectTypeWizardPanel(ID_WIZARD_PANEL, getResourceModel(), valueModel) {
+
+        ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> helper = new ResourceWizardPanelHelper<>(getResourceModel(), valueModel) {
+
             @Override
-            protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
-                return ResourceWizardPanel.this.onSaveResourcePerformed(target);
+            public void onExitPerformed(AjaxRequestTarget target) {
+                showWizardPanel(createTablePanel(), target);
             }
 
             @Override
-            protected void onExitPerformed(AjaxRequestTarget target) {
-                showWizardPanel(createTablePanel(), target);
+            public OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
+                return ResourceWizardPanel.this.onSaveResourcePerformed(target);
             }
         };
+        ResourceObjectTypeWizardPanel wizard = new ResourceObjectTypeWizardPanel(ID_WIZARD_PANEL, helper);
         wizard.setOutputMarkupId(true);
         return wizard;
     }
 
     protected ResourceObjectTypeTableWizardPanel createTablePanel() {
-        ResourceObjectTypeTableWizardPanel table = new ResourceObjectTypeTableWizardPanel(ID_WIZARD_PANEL, getResourceModel()) {
-            @Override
-            protected void onAddNewObject(AjaxRequestTarget target) {
-                showWizardPanel(createObjectTypeWizard(null), target);
-            }
-
+        return new ResourceObjectTypeTableWizardPanel(ID_WIZARD_PANEL, getResourceModel()) {
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 showWizardPanel(createObjectTypeWizard(valueModel), target);
@@ -92,7 +91,6 @@ public class ResourceWizardPanel extends BasePanel {
                 exitToPreview(target);
             }
         };
-        return table;
     }
 
     public ResourceDetailsModel getResourceModel() {
@@ -102,13 +100,7 @@ public class ResourceWizardPanel extends BasePanel {
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSaveResourcePerformed(target);
         if (!result.isError()) {
-            new Toast()
-                    .success()
-                    .title(getString("ResourceWizardPanel.createResource"))
-                    .icon("fas fa-circle-check")
-                    .autohide(true)
-                    .delay(5_000)
-                    .body(getString("ResourceWizardPanel.createResource.text")).show(target);
+            WebComponentUtil.createToastForCreateResource(target, this);
             exitToPreview(target);
         }
     }

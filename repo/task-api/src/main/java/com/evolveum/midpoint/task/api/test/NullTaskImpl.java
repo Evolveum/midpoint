@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.task.api.*;
@@ -165,13 +166,6 @@ public class NullTaskImpl implements Task {
     @Override
     public void setRequesteeTransient(PrismObject<UserType> user) {
 
-    }
-
-    @Override public LensContextType getModelOperationContext() {
-        return null;
-    }
-
-    @Override public void setModelOperationContext(LensContextType modelOperationContext) {
     }
 
     @Override
@@ -546,6 +540,15 @@ public class NullTaskImpl implements Task {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public @NotNull TaskExecutionMode getExecutionMode() {
+        return TaskExecutionMode.PRODUCTION;
+    }
+
+    @Override
+    public void setExecutionMode(@NotNull TaskExecutionMode mode) {
+        throw new UnsupportedOperationException();
+    }
 
     @Override
     public Long getExpectedTotal() {

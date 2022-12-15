@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -14,13 +13,10 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ResourceAttributeMappingValueWrapper;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -29,80 +25,36 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.data.SelectableDataTable;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.validation.ValidatorAdapter;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author lskublik
  */
-public abstract class AttributeMappingsTable extends MultivalueContainerListPanel<MappingType> {
+public abstract class AttributeMappingsTable extends AbstractResourceWizardTable<MappingType, ResourceObjectTypeDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AttributeMappingsTable.class);
-
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
 
     public AttributeMappingsTable(
             String id,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, MappingType.class);
-        this.valueModel = valueModel;
+        super(id, valueModel, MappingType.class);
     }
 
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
-        getTable().setShowAsCard(false);
-    }
-
-    @Override
-    protected boolean isHeaderVisible() {
-        return false;
-    }
-
-
-    @Override
-    protected List<Component> createToolbarButtonsList(String idButton) {
-        List<Component> buttons = super.createToolbarButtonsList(idButton);
-        buttons.forEach(button -> {
-            if (button instanceof AjaxIconButton) {
-                ((AjaxIconButton) button).showTitleAsLabel(true);
-            }
-        });
-        return buttons;
-    }
-
-    @Override
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
-        createNewMapping(target);
-        refreshTable(target);
-    }
-
-    protected PrismContainerValueWrapper createNewMapping(AjaxRequestTarget target) {
+    protected PrismContainerValueWrapper createNewValue(AjaxRequestTarget target) {
         try {
             PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
-                    valueModel.getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+                    getValueModel().getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
             PrismContainerValue<ResourceAttributeDefinitionType> newMapping
                     = mappingAttributeContainer.getItem().createNewValue();
 
@@ -143,53 +95,6 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
 
     protected abstract WrapperContext.AttributeMappingType getMappingType();
 
-    @Override
-    protected boolean isCreateNewObjectVisible() {
-        return true;
-    }
-
-    @Override
-    protected List<InlineMenuItem> createInlineMenu() {
-
-        List<InlineMenuItem> items = new ArrayList<>();
-
-        InlineMenuItem item = new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createEditColumnAction();
-            }
-        };
-        items.add(item);
-
-        item = new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createDeleteColumnAction();
-            }
-        };
-        items.add(item);
-        return items;
-    }
-
     public void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<MappingType>> toDelete) {
         if (toDelete == null || toDelete.isEmpty()) {
             warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
@@ -216,7 +121,7 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
         return new LoadableDetachableModel<>() {
             @Override
             protected PrismContainerWrapper<MappingType> load() {
-                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> container = valueModel.getObject();
+                PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> container = getValueModel().getObject();
                 ItemDefinition<?> def = container.getDefinition().findContainerDefinition(
                         ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, getPathBaseOnMappingType()));
                 try {
@@ -227,7 +132,7 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
                     virtualMappingContainer.getValues().clear();
 
                     PrismContainerWrapper<ResourceAttributeDefinitionType> mappingAttributeContainer =
-                            valueModel.getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
+                            getValueModel().getObject().findContainer(ResourceObjectTypeDefinitionType.F_ATTRIBUTE);
 
                     PrismPropertyDefinition<Object> propertyDef = container.getDefinition().findPropertyDefinition(
                             ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF));
@@ -261,7 +166,7 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
     }
 
     private void createVirtualItemInMapping(PrismContainerValueWrapper<MappingType> mapping) throws SchemaException {
-        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> container = valueModel.getObject();
+        PrismContainerValueWrapper<ResourceObjectTypeDefinitionType> container = getValueModel().getObject();
 
         PrismPropertyDefinition<Object> propertyDef = container.getDefinition().findPropertyDefinition(
                 ItemPath.create(ResourceObjectTypeDefinitionType.F_ATTRIBUTE, ResourceAttributeDefinitionType.F_REF));
@@ -343,37 +248,5 @@ public abstract class AttributeMappingsTable extends MultivalueContainerListPane
                 return PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(MappingType.class);
             }
         };
-    }
-
-    @Override
-    public void refreshTable(AjaxRequestTarget target) {
-        getContainerModel().detach();
-        clearCache();
-        super.refreshTable(target);
-    }
-
-    public boolean isValidFormComponents(AjaxRequestTarget target) {
-        AtomicReference<Boolean> valid = new AtomicReference<>(true);
-        getTable().visitChildren(SelectableDataTable.SelectableRowItem.class, (row, object) -> {
-            ((SelectableDataTable.SelectableRowItem) row).visitChildren(FormComponent.class, (baseFormComponent, object2) -> {
-                baseFormComponent.getBehaviors().stream()
-                        .filter(behaviour -> behaviour instanceof ValidatorAdapter
-                                && ((ValidatorAdapter)behaviour).getValidator() instanceof NotNullValidator)
-                        .map(adapter -> ((ValidatorAdapter)adapter).getValidator())
-                        .forEach(validator -> ((NotNullValidator)validator).setUseModel(true));
-                ((FormComponent)baseFormComponent).validate();
-                if (baseFormComponent.hasErrorMessage()) {
-                    valid.set(false);
-                    if (target != null) {
-                        target.add(baseFormComponent);
-                        InputPanel inputParent = baseFormComponent.findParent(InputPanel.class);
-                        if (inputParent != null && inputParent.getParent() != null) {
-                            target.addChildren(inputParent.getParent(), FeedbackLabels.class);
-                        }
-                    }
-                }
-            });
-        });
-        return valid.get();
     }
 }

@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -63,7 +64,7 @@ public class DashboardWidgetDto implements Serializable {
         }
         DisplayType displayType = dashboardWidget.getDisplay();
         if (displayType != null && displayType.getLabel() != null) {
-            return displayType.getLabel().getOrig(); //TODO translate?
+            return WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
         }
 
         DashboardWidgetType dashboardWidgetType = dashboardWidget.getWidget();

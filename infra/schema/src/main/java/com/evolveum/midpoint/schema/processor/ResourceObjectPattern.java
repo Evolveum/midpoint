@@ -6,16 +6,17 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import java.io.Serializable;
 import java.util.Collection;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -34,23 +35,22 @@ public class ResourceObjectPattern implements Serializable {
         this.objectFilter = objectFilter;
     }
 
-    public static boolean matches(PrismObject<ShadowType> shadowToMatch,
-            Collection<ResourceObjectPattern> protectedAccountPatterns, MatchingRuleRegistry matchingRuleRegistry,
-            RelationRegistry relationRegistry) throws SchemaException {
-        for (ResourceObjectPattern pattern: protectedAccountPatterns) {
-            if (pattern.matches(shadowToMatch, matchingRuleRegistry, relationRegistry)) {
+    public static boolean matches(
+            @NotNull ShadowType shadowToMatch, @Nullable Collection<ResourceObjectPattern> protectedAccountPatterns)
+            throws SchemaException {
+        for (ResourceObjectPattern pattern : emptyIfNull(protectedAccountPatterns)) {
+            if (pattern.matches(shadowToMatch)) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean matches(
-            PrismObject<ShadowType> shadowToMatch,
-            MatchingRuleRegistry matchingRuleRegistry,
-            RelationRegistry relationRegistry) throws SchemaException {
-        ObjectTypeUtil.normalizeFilter(objectFilter, relationRegistry); // we suppose references in shadowToMatch are normalized (on return from repo)
-        return ObjectQuery.match(shadowToMatch, objectFilter, matchingRuleRegistry);
+    public boolean matches(@NotNull ShadowType shadowToMatch) throws SchemaException {
+        // we suppose references in shadowToMatch are normalized (on return from repo)
+        SchemaService schemaService = SchemaService.get();
+        ObjectTypeUtil.normalizeFilter(objectFilter, schemaService.relationRegistry());
+        return ObjectQuery.match(shadowToMatch, objectFilter, schemaService.matchingRuleRegistry());
     }
 
     public @NotNull ResourceObjectDefinition getResourceObjectDefinition() {

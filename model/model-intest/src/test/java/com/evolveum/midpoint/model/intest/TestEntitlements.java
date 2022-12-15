@@ -8,6 +8,10 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_GROUP_OBJECT_CLASS;
 
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_QNAME;
+
+import static com.evolveum.midpoint.test.IntegrationTestTools.createEntitleDelta;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -34,7 +38,6 @@ import com.evolveum.icf.dummy.resource.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -211,9 +214,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_SHADOW_GUYBRUSH_OID,
-                dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID, prismContext);
+        ObjectDelta<ShadowType> delta = createEntitleDelta(
+                ACCOUNT_SHADOW_GUYBRUSH_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID);
 
         // WHEN
         when();
@@ -1321,9 +1323,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<ShadowType> delta =
-                IntegrationTestTools.createEntitleDelta(ACCOUNT_SHADOW_GUYBRUSH_OID,
-                        dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                        SHADOW_GROUP_DUMMY_LANDLUBERS_OID, prismContext);
+                createEntitleDelta(ACCOUNT_SHADOW_GUYBRUSH_OID, DUMMY_ENTITLEMENT_GROUP_QNAME, SHADOW_GROUP_DUMMY_LANDLUBERS_OID);
 
         // WHEN
         executeChanges(delta, null, task, result);
@@ -1352,17 +1352,21 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME);
         ObjectDelta<ShadowType> delta1 =
-                IntegrationTestTools.createEntitleDelta(orangeAccount.getOid(),
-                        getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                        getGroupShadow(getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME), RI_GROUP_OBJECT_CLASS, "thug", task, result).getOid(),
-                        prismContext);
+                createEntitleDelta(orangeAccount.getOid(),
+                        DUMMY_ENTITLEMENT_GROUP_QNAME,
+                        getGroupShadow(
+                                getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME),
+                                RI_GROUP_OBJECT_CLASS,
+                                "thug", task, result).getOid());
 
         getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME);
         ObjectDelta<ShadowType> delta2 =
-                IntegrationTestTools.createEntitleDelta(orangeAccount.getOid(),
-                        getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME).getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-                        getGroupShadow(getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME), RI_GROUP_OBJECT_CLASS, "thug-wannabe", task, result).getOid(),
-                        prismContext);
+                createEntitleDelta(orangeAccount.getOid(),
+                        DUMMY_ENTITLEMENT_GROUP_QNAME,
+                        getGroupShadow(
+                                getDummyResourceController(RESOURCE_DUMMY_ORANGE_NAME),
+                                RI_GROUP_OBJECT_CLASS,
+                                "thug-wannabe", task, result).getOid());
 
         ObjectDelta<ShadowType> delta = ObjectDeltaCollectionsUtil.summarize(delta1, delta2);
 

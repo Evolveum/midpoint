@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 
 import org.testng.Assert;
@@ -36,14 +37,12 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
@@ -77,15 +76,14 @@ public class TestRefinedSchema extends AbstractUnitTest {
     private static final String ENTITLEMENT_GROUP_INTENT = "group";
     private static final String ENTITLEMENT_LDAP_GROUP_INTENT = "ldapGroup";
 
-    private final RelationRegistry relationRegistry = new RelationRegistryDummyImpl();
-
-    private MatchingRuleRegistry matchingRuleRegistry;
-
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         resetPrismContext(MidPointPrismContextFactory.FACTORY);
-        matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
+        SchemaService.init(
+                getPrismContext(),
+                new RelationRegistryDummyImpl(),
+                MatchingRuleRegistryFactory.createRegistry());
     }
 
     /**
@@ -545,12 +543,12 @@ public class TestRefinedSchema extends AbstractUnitTest {
         ResourceAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com", "confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
         attributesContainer.add(confusingAttr2);
 
-        assertTrue("Test attr not matched in " + message, protectedPattern.matches(shadow, matchingRuleRegistry, relationRegistry));
+        assertTrue("Test attr not matched in " + message, protectedPattern.matches(shadow.asObjectable()));
         nameAttr.setRealValue("huhulumululul");
-        assertFalse("Test attr nonsense was matched in " + message, protectedPattern.matches(shadow, matchingRuleRegistry, relationRegistry));
+        assertFalse("Test attr nonsense was matched in " + message, protectedPattern.matches(shadow.asObjectable()));
     }
 
-    private ResourceAttribute<String> createStringAttribute(QName attrName, String value) throws SchemaException {
+    private ResourceAttribute<String> createStringAttribute(QName attrName, String value) {
         RawResourceAttributeDefinition<String> testAttrDef =
                 ObjectFactory.createResourceAttributeDefinition(attrName, DOMUtil.XSD_STRING);
         ResourceAttribute<String> testAttr = testAttrDef.instantiate();

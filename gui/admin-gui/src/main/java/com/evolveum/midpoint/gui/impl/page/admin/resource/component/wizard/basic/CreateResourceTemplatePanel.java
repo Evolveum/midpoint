@@ -55,7 +55,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
 
     private LoadableDetachableModel<Search<AssignmentHolderType>> searchModel;
 
-    private Model<TemplateType> templateType = Model.of(TemplateType.CONNECTOR);
+    private final Model<TemplateType> templateType = Model.of(TemplateType.CONNECTOR);
 
     public CreateResourceTemplatePanel(String id) {
         super(id);
@@ -191,7 +191,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
             PrismObjectDefinition<ResourceType> def = PrismContext.get().getSchemaRegistry().findObjectDefinitionByType(getType());
             PrismObject<ResourceType> obj = def.instantiate();
 
-            ResourceTemplate resourceTemplate = tile.getTemplateObject();
+            ResourceTemplate resourceTemplate = tile.getValue();
             if (resourceTemplate != null) {
                 if (QNameUtil.match(ConnectorType.COMPLEX_TYPE, resourceTemplate.getType())) {
                     obj.asObjectable().beginConnectorRef()

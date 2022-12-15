@@ -103,7 +103,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
 
             @Override
-            protected Set<? extends O> getSelected() {
+            public Set<? extends O> getSelected() {
                 List<O> preselectedObjects = getPreselectedObjectList();
                 return preselectedObjects == null ? new HashSet<>() : new HashSet<>(preselectedObjects);
             }

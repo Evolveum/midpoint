@@ -6,41 +6,27 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.capabilities;
 
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.CapabilitiesPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation.CorrelationItemRefsTable;
-import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 
 /**
  * @author lskublik
  */
 @Experimental
-public abstract class CapabilitiesWizardStepPanel extends AbstractWizardBasicPanel {
+public abstract class CapabilitiesWizardStepPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
 
     private static final String ID_PANEL = "panel";
 
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
-
     public CapabilitiesWizardStepPanel(
             String id,
-            ResourceDetailsModel model,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, model);
-        this.valueModel = valueModel;
+            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> superHelper) {
+        super(id, superHelper);
     }
 
     @Override
@@ -50,39 +36,18 @@ public abstract class CapabilitiesWizardStepPanel extends AbstractWizardBasicPan
     }
 
     private void initLayout() {
-        CapabilitiesPanel panel = new CapabilitiesPanel(ID_PANEL, getResourceModel(), valueModel);
+        CapabilitiesPanel panel = new CapabilitiesPanel(ID_PANEL, getResourceModel(), getValueModel());
         panel.setOutputMarkupId(true);
         add(panel);
     }
 
-    protected String getSubmitIcon() {
-        return "fa fa-floppy-disk";
-    }
-
-    protected IModel<String> getSubmitLabelModel() {
-        return getPageBase().createStringResource("CapabilitiesWizardStepPanel.saveButton");
+    @Override
+    protected String getSaveLabelKey() {
+        return "CapabilitiesWizardStepPanel.saveButton";
     }
 
     @Override
-    protected void addCustomButtons(RepeatingView buttons) {
-        AjaxIconButton saveButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of(getSubmitIcon()),
-                getSubmitLabelModel()) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onSaveResourcePerformed(target);
-            }
-        };
-        saveButton.showTitleAsLabel(true);
-        saveButton.add(AttributeAppender.append("class", "btn btn-success"));
-        buttons.add(saveButton);
-    }
-
-    protected abstract void onSaveResourcePerformed(AjaxRequestTarget target);
-
-    @Override
-    protected IModel<String> getBreadcrumbLabel() {
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
         return getTextModel();
     }
 

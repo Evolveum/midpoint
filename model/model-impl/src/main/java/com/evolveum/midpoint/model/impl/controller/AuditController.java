@@ -150,7 +150,9 @@ public class AuditController implements ModelAuditService {
         AuditEventRecordType finalEvent = findEvent(finalEventIdentifier, result);
         if (finalEvent == null) {
             throw new ObjectNotFoundException(
-                    "Audit event ID " + finalEventIdentifier + " was not found");
+                    "Audit event ID " + finalEventIdentifier + " was not found",
+                    AuditEventRecordType.class,
+                    finalEventIdentifier);
         }
 
         LOGGER.trace("Final event:\n{}", finalEvent.debugDumpLazily(1));

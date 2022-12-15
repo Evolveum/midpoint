@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="10a8c24d-7031-4342-b20c-805e174b93a5">
+
+    <name>object template: simulation</name>
+
+    <mapping>
+        <name>sequence via evaluator</name>
+        <strength>strong</strength>
+        <expression>
+            <script>
+                <code>
+                    "FAMILY " + midpoint.getSequenceCounter("5e5731aa-476c-477b-b02e-372252004813")
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>familyName</path>
+        </target>
+    </mapping>
+
+    <mapping>
+        <name>sequence via script</name>
+        <strength>strong</strength>
+        <expression>
+            <script>
+                <code>
+                    "GIVEN + " + midpoint.getSequenceCounter("5e5731aa-476c-477b-b02e-372252004813")
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>givenName</path>
+        </target>
+    </mapping>
+</objectTemplate>

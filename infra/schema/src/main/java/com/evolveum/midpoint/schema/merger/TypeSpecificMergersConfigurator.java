@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.schema.merger;
 
 import com.evolveum.midpoint.schema.merger.key.DefaultNaturalKeyImpl;
-import com.evolveum.midpoint.schema.merger.key.SingletonItemPathNaturalKeyImpl;
+import com.evolveum.midpoint.schema.merger.key.ItemPathNaturalKeyImpl;
 import com.evolveum.midpoint.schema.merger.objdef.LimitationsMerger;
 import com.evolveum.midpoint.schema.merger.resource.ObjectTypeDefinitionMerger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -39,13 +39,13 @@ class TypeSpecificMergersConfigurator {
                 entry(
                         ObjectTemplateItemDefinitionType.class,
                         () -> new GenericItemMerger(
-                                marker, SingletonItemPathNaturalKeyImpl.of(ResourceAttributeDefinitionType.F_REF))),
+                                marker, ItemPathNaturalKeyImpl.of(ItemRefinedDefinitionType.F_REF))),
 
                 // for ResourceObjectTypeDefinitionType (object type definitions and embedded structures)
                 entry(
                         ResourceItemDefinitionType.class,
                         () -> new GenericItemMerger(
-                                marker, SingletonItemPathNaturalKeyImpl.of(ResourceAttributeDefinitionType.F_REF))),
+                                marker, ItemPathNaturalKeyImpl.of(ResourceAttributeDefinitionType.F_REF))),
                 entry(
                         PropertyLimitationsType.class,
                         () -> new LimitationsMerger(marker)),

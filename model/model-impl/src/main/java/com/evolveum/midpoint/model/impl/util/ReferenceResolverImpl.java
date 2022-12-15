@@ -59,6 +59,10 @@ public class ReferenceResolverImpl implements ReferenceResolver {
         Class<? extends ObjectType> targetClass = getTargetClass(reference);
 
         if (oid == null) {
+            if (reference.getObject() != null) {
+                return singletonList(reference.getObject());
+            }
+
             return resolveFromFilter(targetClass, reference, options, source, filterEvaluator, task, result);
         } else {
             return singletonList(resolveFromOid(targetClass, oid, options, source, task, result));

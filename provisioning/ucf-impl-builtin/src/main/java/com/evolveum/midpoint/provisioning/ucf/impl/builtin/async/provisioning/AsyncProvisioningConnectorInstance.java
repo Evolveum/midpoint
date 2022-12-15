@@ -197,7 +197,7 @@ public class AsyncProvisioningConnectorInstance extends AbstractManagedConnector
     }
 
     @Override
-    public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
+    public AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
             ResourceObjectIdentification identification, PrismObject<ShadowType> shadow, @NotNull Collection<Operation> changes,
             ConnectorOperationOptions options, UcfExecutionContext ctx, OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("modifyObject");

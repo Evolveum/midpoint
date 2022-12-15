@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.web.component.prism.show;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -27,10 +27,10 @@ import java.util.List;
 
 public class SceneUtil {
 
-    public static Scene visualizeObjectTreeDeltas(ObjectTreeDeltasType deltas, String displayNameKey,
-                                                      PrismContext prismContext, ModelInteractionService modelInteractionService,
-                                                      ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
-        List<Scene> scenes = new ArrayList<>();
+    public static Visualization visualizeObjectTreeDeltas(ObjectTreeDeltasType deltas, String displayNameKey,
+                                                          PrismContext prismContext, ModelInteractionService modelInteractionService,
+                                                          ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+        List<Visualization> scenes = new ArrayList<>();
         if (deltas != null) {
             if (deltas.getFocusPrimaryDelta() != null) {
                 ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(deltas.getFocusPrimaryDelta(), prismContext);
@@ -44,10 +44,10 @@ public class SceneUtil {
         return new WrapperScene(scenes, displayNameKey);
     }
 
-    public static Scene visualizeObjectDeltaType(ObjectDeltaType objectDeltaType, String displayNameKey,
-            PrismContext prismContext, ModelInteractionService modelInteractionService,
-            ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
-        List<Scene> scenes = new ArrayList<>();
+    public static Visualization visualizeObjectDeltaType(ObjectDeltaType objectDeltaType, String displayNameKey,
+                                                         PrismContext prismContext, ModelInteractionService modelInteractionService,
+                                                         ObjectReferenceType objectRef, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+        List<Visualization> scenes = new ArrayList<>();
         if (objectDeltaType != null) {
             ObjectDelta<? extends ObjectType> delta = DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
             scenes.add(modelInteractionService.visualizeDelta(delta, false, objectRef, task, result));

@@ -48,4 +48,39 @@ public class PrismPropertyDefinitionAsserter<T,RA> extends PrismDefinitionAssert
         PrismTestUtil.display(message, getDefinition());
         return this;
     }
+
+    public PrismPropertyDefinitionAsserter<T,RA> assertDenyAdd() {
+        assertAccess("Add", false, getDefinition().canAdd());
+        return this;
+    }
+
+    public PrismPropertyDefinitionAsserter<T,RA> assertAllowAdd() {
+        assertAccess("Add", true, getDefinition().canAdd());
+        return this;
+    }
+
+    public PrismPropertyDefinitionAsserter<T,RA> assertDenyModify() {
+        assertAccess("Modify", false, getDefinition().canModify());
+        return this;
+    }
+
+    public PrismPropertyDefinitionAsserter<T,RA> assertAllowModify() {
+        assertAccess("Modify", true, getDefinition().canModify());
+        return this;
+    }
+
+    public PrismPropertyDefinitionAsserter<T,RA> assertDenyRead() {
+        assertAccess("Read", false, getDefinition().canRead());
+        return this;
+    }
+
+    public PrismPropertyDefinitionAsserter<T,RA> assertAllowRead() {
+        assertAccess("Read", true, getDefinition().canRead());
+        return this;
+    }
+    private void assertAccess(String access, boolean expected, boolean actual) {
+        if (expected != actual) {
+            fail(access+" access is "+actual+" and we expected "+expected+" in "+desc());
+        }
+    }
 }

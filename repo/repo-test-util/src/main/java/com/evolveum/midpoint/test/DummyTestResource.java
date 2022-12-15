@@ -49,6 +49,10 @@ public class DummyTestResource extends TestResource<ResourceType> {
         return controller.getResource();
     }
 
+    public ResourceType getResourceBean() {
+        return controller.getResource().asObjectable();
+    }
+
     // It's logical for this functionality to be invokable right on the DummyTestResource object. Hence this method.
     public void initAndTest(DummyTestResourceInitializer initializer, Task task, OperationResult result) throws Exception {
         initializer.initAndTestDummyResource(this, task, result);

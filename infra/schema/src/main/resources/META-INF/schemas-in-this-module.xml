@@ -50,6 +50,8 @@ Notes:
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-gui-3" uri="../xml/ns/public/common/common-gui-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-provisioning-3" uri="../xml/ns/public/common/common-provisioning-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-correlation-3" uri="../xml/ns/public/common/common-correlation-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-simulations-3" uri="../xml/ns/public/common/common-simulations-3.xsd" />
+
 
     <!-- WSDLs -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../xml/ns/public/model/model-3.wsdl" />

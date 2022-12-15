@@ -243,8 +243,10 @@ final class RemainingShadowsActivityRun
             // 1. not read-only because we modify the shadow afterwards
             // 2. using provisioning (not the repository) to get the lifecycle state;
             //    but using raw mode to avoid deleting dead shadows
-            return getModelBeans().provisioningService.getObject(
+            PrismObject<ShadowType> shadow = getModelBeans().provisioningService.getObject(
                     ShadowType.class, originalShadow.getOid(), GetOperationOptions.createRawCollection(), task, result);
+            getModelBeans().provisioningService.determineShadowState(shadow, task, result);
+            return shadow;
         } catch (ObjectNotFoundException e) {
             result.muteLastSubresultError();
 

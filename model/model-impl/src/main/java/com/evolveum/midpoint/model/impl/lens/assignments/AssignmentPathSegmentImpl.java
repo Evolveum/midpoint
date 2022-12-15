@@ -10,25 +10,22 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-
-import com.evolveum.midpoint.schema.SchemaService;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Primary duty of this class is to be a part of assignment path. (This is what is visible through its interface,
@@ -63,7 +60,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      * Item-delta-item form of the assignment.
      * TODO which ODO (absolute/relative)? MID-6404
      */
-    @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
+    @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi;
 
     /**
      * Are we evaluating the old or new state of the assignment?
@@ -87,9 +84,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     private final boolean isAssignment;
 
     /**
-     *  Flag to make a difference between normal assignment/inducement and the one created based on the
-     *  archetype hierarchy. If true, assignment/inducement was created based on the superArchetypeRef
-     *  relation.
+     * Flag to make a difference between normal assignment/inducement and the one created based on the
+     * archetype hierarchy. If true, assignment/inducement was created based on the superArchetypeRef
+     * relation.
      */
     private final boolean archetypeHierarchy;
 
@@ -279,7 +276,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     }
 
     @NotNull
-    public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
+    public ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
         return assignmentIdi;
     }
 
@@ -409,7 +406,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((assignmentIdi == null) ? 0 : assignmentIdi.hashCode());
+        result = prime * result + assignmentIdi.hashCode();
         result = prime * result + ((source == null) ? 0 : source.hashCode());
         result = prime * result + ((target == null) ? 0 : target.hashCode());
         return result;
@@ -417,23 +414,26 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
     @SuppressWarnings({ "RedundantIfStatement" })
     private boolean equalsExceptForTarget(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         AssignmentPathSegmentImpl other = (AssignmentPathSegmentImpl) obj;
-        if (assignmentIdi == null) {
-            if (other.assignmentIdi != null)
-                return false;
-        } else if (!assignmentIdi.equals(other.assignmentIdi))
+        if (!assignmentIdi.equals(other.assignmentIdi)) {
             return false;
+        }
         if (source == null) {
-            if (other.source != null)
+            if (other.source != null) {
                 return false;
-        } else if (!source.equals(other.source))
+            }
+        } else if (!source.equals(other.source)) {
             return false;
+        }
         return true;
     }
 
@@ -514,16 +514,12 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabel(sb, "AssignmentPathSegment", indent);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "source", source==null?"null":source.toString(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "source", source == null ? "null" : source.toString(), indent + 1);
         String assignmentOrInducement = isAssignment ? "assignment" : "inducement";
-        if (assignmentIdi != null) {
-            DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement + " old", String.valueOf(assignmentIdi.getItemOld()), indent + 1);
-            DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement + " delta", String.valueOf(assignmentIdi.getDelta()), indent + 1);
-            DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement + " new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
-        } else {
-            DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement, "null", indent + 1);
-        }
-        DebugUtil.debugDumpWithLabelLn(sb, "target", target==null?"null":target.toString(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement + " old", String.valueOf(assignmentIdi.getItemOld()), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement + " delta", String.valueOf(assignmentIdi.getDelta()), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, assignmentOrInducement + " new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "target", target == null ? "null" : target.toString(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "evaluationOrder", evaluationOrder, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrder", isMatchingOrder, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrderForTarget", isMatchingOrderForTarget, indent + 1);
@@ -541,12 +537,10 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     @Override
     public AssignmentPathSegmentType toAssignmentPathSegmentType(boolean includeAssignmentsContent) {
         AssignmentPathSegmentType rv = new AssignmentPathSegmentType();
-        if (assignment != null) {
-            if (includeAssignmentsContent) {
-                rv.setAssignment(assignment.clone());
-            }
-            rv.setAssignmentId(assignment.getId());
+        if (includeAssignmentsContent) {
+            rv.setAssignment(assignment.clone());
         }
+        rv.setAssignmentId(assignment.getId());
         if (source != null) {
             rv.setSourceRef(ObjectTypeUtil.createObjectRef(source, getPrismContext()));
             rv.setSourceDisplayName(ObjectTypeUtil.getDisplayName(source));
@@ -600,11 +594,13 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         return assignment.getId();
     }
 
-    @NotNull private RelationRegistry getRelationRegistry() {
+    @NotNull
+    private RelationRegistry getRelationRegistry() {
         return SchemaService.get().relationRegistry();
     }
 
-    @NotNull private PrismContext getPrismContext() {
+    @NotNull
+    private PrismContext getPrismContext() {
         return PrismService.get().prismContext();
     }
 
@@ -661,8 +657,15 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
             return this;
         }
 
-        public Builder isAssignment(boolean val) {
-            isAssignment = val;
+        /** Declares the segment as an assignment, not inducement. */
+        public Builder isAssignment() {
+            isAssignment = true;
+            return this;
+        }
+
+        /** Declares the segment as an inducement. */
+        public Builder isInducement() {
+            isAssignment = false;
             return this;
         }
 

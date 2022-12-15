@@ -59,8 +59,7 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
                 type, query, new OperationResult("searchObjects"), pageBase);
         if (CollectionUtils.isNotEmpty(objectsList)) {
             if (objectsList.size() == 1) {
-                return ObjectTypeUtil.createObjectRefWithFullObject(
-                        objectsList.get(0), pageBase.getPrismContext());
+                return ObjectTypeUtil.createObjectRefWithFullObject(objectsList.get(0));
             }
             pageBase.error("Couldn't specify one object by name '" + value + "' and type " + type.getSimpleName() + ". Please will try specific type of object.");
         }

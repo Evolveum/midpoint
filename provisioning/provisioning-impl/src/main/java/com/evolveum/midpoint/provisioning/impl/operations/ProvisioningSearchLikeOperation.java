@@ -122,11 +122,8 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
             return createNoneFilterCount();
         }
 
-        if (ShadowType.class.isAssignableFrom(type)
-                && !GetOperationOptions.isNoFetch(rootOptions)
-                && !GetOperationOptions.isRaw(rootOptions)) {
-            // There is a irregularity: the shadow facade does not treat raw/no-fetch counting (like it does for searching)
-            return beans.shadowsFacade.countObjects(query, task, result);
+        if (ShadowType.class.isAssignableFrom(type)) {
+            return beans.shadowsFacade.countObjects(query, options, task, result);
         } else {
             return beans.cacheRepositoryService.countObjects(type, query, options, result);
         }
@@ -185,8 +182,11 @@ public class ProvisioningSearchLikeOperation<T extends ObjectType> {
         try {
             if (ResourceType.class.equals(type)) {
                 //noinspection unchecked
-                completedObject = (PrismObject<T>) beans.resourceManager.completeResource(
-                        (PrismObject<ResourceType>) object, rootOptions, task, result);
+                completedObject =
+                        (PrismObject<T>)
+                                beans.resourceManager.getCompletedResource(
+                                        (ResourceType) object.asObjectable(), rootOptions, task, result)
+                                        .asPrismObject();
             }
         } catch (Throwable t) {
             // FIXME: Strictly speaking, the runtime exceptions should not be handled here.

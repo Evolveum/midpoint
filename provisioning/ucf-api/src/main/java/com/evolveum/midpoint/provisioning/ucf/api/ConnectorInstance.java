@@ -310,7 +310,7 @@ public interface ConnectorInstance {
      *
      * @throws ObjectAlreadyExistsException in case that the modified object conflicts with another existing object (e.g. while renaming an object)
      */
-    AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> modifyObject(
+    AsynchronousOperationReturnValue<Collection<PropertyModificationOperation<?>>> modifyObject(
             ResourceObjectIdentification identification,
             PrismObject<ShadowType> shadow,
             @NotNull Collection<Operation> changes,

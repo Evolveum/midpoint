@@ -49,6 +49,7 @@ public class ProvisioningContextFactory {
 
     @Autowired private ResourceManager resourceManager;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
+    @Autowired private CommonBeans commonBeans;
 
     /**
      * Creates the context when exact resource + object type is known. This is the most direct approach;
@@ -252,6 +253,8 @@ public class ProvisioningContextFactory {
      * Spawns the context for given shadow.
      *
      * Currently assumes that the resource OID is the same.
+     *
+     * TODO what if the shadow is "less-classified" (no kind/intent) than the original context?
      */
     ProvisioningContext spawnForShadow(
             @NotNull ProvisioningContext originalCtx,
@@ -281,8 +284,7 @@ public class ProvisioningContextFactory {
 
     public @NotNull ResourceType getResource(String resourceOid, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException {
-        return resourceManager.getResource(resourceOid, GetOperationOptions.createReadOnly(), task, result)
-                .asObjectable();
+        return resourceManager.getCompletedResource(resourceOid, GetOperationOptions.createReadOnly(), task, result);
     }
 
     private ResourceObjectDefinition getObjectDefinition(
@@ -310,5 +312,9 @@ public class ProvisioningContextFactory {
             this.definition = definition;
             this.wholeClass = wholeClass;
         }
+    }
+
+    public @NotNull CommonBeans getCommonBeans() {
+        return commonBeans;
     }
 }

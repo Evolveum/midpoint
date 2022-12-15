@@ -20,6 +20,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import com.evolveum.midpoint.schema.reporting.ConnIdOperation;
@@ -102,6 +103,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class TaskQuartzImpl implements Task {
 
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
+
+    @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
 
     /** Synchronizes Quartz-related operations. */
     private final Object quartzAccess = new Object();
@@ -1644,21 +1647,6 @@ public class TaskQuartzImpl implements Task {
         requestee = user;
     }
 
-    // todo thread safety
-    @Override
-    public LensContextType getModelOperationContext() {
-        synchronized (prismAccess) {
-            return taskPrism.asObjectable().getModelOperationContext();
-        }
-    }
-
-    @Override
-    public void setModelOperationContext(LensContextType value) throws SchemaException {
-        synchronized (prismAccess) {
-            addPendingModification(setModelOperationContextAndPrepareDelta(value));
-        }
-    }
-
     private void setModelOperationContextTransient(LensContextType value) {
         synchronized (prismAccess) {
             taskPrism.asObjectable().setModelOperationContext(value);
@@ -2136,8 +2124,7 @@ public class TaskQuartzImpl implements Task {
     public @NotNull ObjectReferenceType getSelfReferenceFull() {
         if (getOid() != null) {
             return ObjectTypeUtil.createObjectRefWithFullObject(
-                    getRawTaskObjectClonedIfNecessary(),
-                    PrismContext.get());
+                    getRawTaskObjectClonedIfNecessary());
         } else {
             throw new IllegalStateException("Reference cannot be created for a transient task: " + this);
         }
@@ -2309,6 +2296,16 @@ public class TaskQuartzImpl implements Task {
         stateCheck(actionsExecutedCollector != null, "Actions executed collector not set in %s", this);
         actionsExecutedCollector.stop();
         actionsExecutedCollector = null;
+    }
+
+    @NotNull
+    @Override
+    public TaskExecutionMode getExecutionMode() {
+        return executionMode;
+    }
+
+    public void setExecutionMode(@NotNull TaskExecutionMode executionMode) {
+        this.executionMode = Objects.requireNonNull(executionMode);
     }
     //endregion
 }

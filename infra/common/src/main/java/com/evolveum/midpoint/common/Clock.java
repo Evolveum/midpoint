@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.common;
 
+import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -24,6 +25,17 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  */
 public class Clock {
+
+    private static Clock instance;
+
+    @PostConstruct
+    public void init() {
+        instance = this;
+    }
+
+    public static Clock get() {
+        return instance;
+    }
 
     private static final Trace LOGGER = TraceManager.getTrace(Clock.class);
 

@@ -15,12 +15,11 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
-import com.evolveum.midpoint.gui.impl.component.input.SourceMappingProvider;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.MappingOverrideTable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardTable;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -29,133 +28,44 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 
-import org.apache.wicket.model.Model;
 import org.wicketstuff.select2.Response;
 import org.wicketstuff.select2.StringTextChoiceProvider;
 
 /**
  * @author lskublik
  */
-public abstract class CorrelationItemsTable extends MultivalueContainerListPanel<ItemsSubCorrelatorType> {
+public abstract class CorrelationItemsTable extends AbstractResourceWizardTable<ItemsSubCorrelatorType, ResourceObjectTypeDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CorrelationItemsTable.class);
-
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
 
     public CorrelationItemsTable(
             String id,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, ItemsSubCorrelatorType.class);
-        this.valueModel = valueModel;
-    }
-
-    @Override
-    protected boolean isHeaderVisible() {
-        return false;
-    }
-
-    @Override
-    protected List<Component> createToolbarButtonsList(String idButton) {
-        List<Component> buttons = super.createToolbarButtonsList(idButton);
-        buttons.forEach(button -> {
-            if (button instanceof AjaxIconButton) {
-                ((AjaxIconButton) button).showTitleAsLabel(true);
-            }
-        });
-        return buttons;
-    }
-
-    @Override
-    protected void newItemPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSpec) {
-        createNewItems(target);
-        refreshTable(target);
-    }
-
-    private PrismContainerValueWrapper createNewItems(AjaxRequestTarget target) {
-        PrismContainerWrapper<ItemsSubCorrelatorType> container = getContainerModel().getObject();
-        PrismContainerValue<ItemsSubCorrelatorType> newReaction = container.getItem().createNewValue();
-        PrismContainerValueWrapper<ItemsSubCorrelatorType> newReactionWrapper =
-                createNewItemContainerValueWrapper(newReaction, container, target);
-        return newReactionWrapper;
-    }
-
-    @Override
-    protected boolean isCreateNewObjectVisible() {
-        return true;
-    }
-
-    @Override
-    protected List<InlineMenuItem> createInlineMenu() {
-        List<InlineMenuItem> items = new ArrayList<>();
-
-        InlineMenuItem item = new ButtonInlineMenuItem(createStringResource("PageBase.button.edit")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
-            }
-
-            @Override
-            public boolean isHeaderMenuItem() {
-                return false;
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createEditColumnAction();
-            }
-        };
-        items.add(item);
-
-        items.add(new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_TRASH);
-            }
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return createDeleteColumnAction();
-            }
-        });
-        return items;
+        super(id, valueModel, ItemsSubCorrelatorType.class);
     }
 
     @Override
     protected IModel<PrismContainerWrapper<ItemsSubCorrelatorType>> getContainerModel() {
         return PrismContainerWrapperModel.fromContainerValueWrapper(
-                valueModel,
+                getValueModel(),
                 ItemPath.create(
                         ResourceObjectTypeDefinitionType.F_CORRELATION,
                         CorrelationDefinitionType.F_CORRELATORS,
@@ -173,7 +83,7 @@ public abstract class CorrelationItemsTable extends MultivalueContainerListPanel
                 reactionDef,
                 ItemsSubCorrelatorType.F_NAME,
                 AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()){
+                getPageBase()) {
             @Override
             public String getCssClass() {
                 return "col-2";
@@ -191,7 +101,7 @@ public abstract class CorrelationItemsTable extends MultivalueContainerListPanel
                 ItemsSubCorrelatorType realValue = (ItemsSubCorrelatorType) rowModel.getObject().getParent().getRealValue();
                 StringBuilder items = new StringBuilder();
                 String prefix = "";
-                for (CorrelationItemType item : realValue.getItem()){
+                for (CorrelationItemType item : realValue.getItem()) {
                     if (item != null && item.getRef() != null) {
                         items.append(prefix).append(item.getRef().toString());
                     }
@@ -224,7 +134,6 @@ public abstract class CorrelationItemsTable extends MultivalueContainerListPanel
                 };
                 return panel;
             }
-
 
             @Override
             public String getCssClass() {
@@ -264,7 +173,7 @@ public abstract class CorrelationItemsTable extends MultivalueContainerListPanel
                         ItemsSubCorrelatorType.F_COMPOSITION,
                         CorrelatorCompositionDefinitionType.F_IGNORE_IF_MATCHED_BY),
                 AbstractItemWrapperColumn.ColumnType.VALUE,
-                getPageBase()){
+                getPageBase()) {
             @Override
             protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
                 IModel<Collection<String>> multiselectModel = new IModel<>() {
@@ -275,7 +184,7 @@ public abstract class CorrelationItemsTable extends MultivalueContainerListPanel
                         return ((PrismPropertyWrapper<String>) rowModel.getObject())
                                 .getValues().stream()
                                 .filter(value -> !ValueStatus.DELETED.equals(value.getStatus()) && value.getRealValue() != null)
-                                .map(value -> value.getRealValue())
+                                .map(PrismValueWrapperImpl::getRealValue)
                                 .collect(Collectors.toList());
                     }
 
@@ -285,10 +194,8 @@ public abstract class CorrelationItemsTable extends MultivalueContainerListPanel
                         PrismPropertyWrapper<String> ignoreIfMatchedByItem =
                                 ((PrismPropertyWrapper<String>) rowModel.getObject());
                         List<PrismPropertyValueWrapper<String>> toRemoveValues
-                                = new ArrayList<>(
-                                ignoreIfMatchedByItem.getValues().stream()
-                                        .filter(v -> v.getRealValue() != null)
-                                        .collect(Collectors.toList()));
+                                = ignoreIfMatchedByItem.getValues().stream()
+                                .filter(v -> v.getRealValue() != null).collect(Collectors.toList());
 
                         newValues.forEach(newValue -> {
                             if (StringUtils.isEmpty(newValue)) {
@@ -331,7 +238,7 @@ public abstract class CorrelationItemsTable extends MultivalueContainerListPanel
                     public void query(String input, int i, Response<String> response) {
                         response.addAll(getContainerModel().getObject().getValues().stream()
                                 .map(value -> value.getRealValue().getName())
-                                .filter(name -> StringUtils.isNotEmpty(name))
+                                .filter(StringUtils::isNotEmpty)
                                 .filter(name -> StringUtils.isEmpty(input) || name.startsWith(input))
                                 .collect(Collectors.toList()));
                     }
@@ -362,7 +269,7 @@ public abstract class CorrelationItemsTable extends MultivalueContainerListPanel
         return new LoadableModel<>() {
             @Override
             protected PrismContainerDefinition<ItemsSubCorrelatorType> load() {
-                return valueModel.getObject().getDefinition().findContainerDefinition(
+                return getValueModel().getObject().getDefinition().findContainerDefinition(
                         ItemPath.create(
                                 ResourceObjectTypeDefinitionType.F_CORRELATION,
                                 CorrelationDefinitionType.F_CORRELATORS,
@@ -379,5 +286,10 @@ public abstract class CorrelationItemsTable extends MultivalueContainerListPanel
     @Override
     protected String getKeyOfTitleForNewObjectButton() {
         return "CorrelationItemsTable.newObject";
+    }
+
+    @Override
+    protected boolean isCreateNewObjectVisible() {
+        return false;
     }
 }

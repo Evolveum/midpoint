@@ -103,13 +103,6 @@
             <unpack>false</unpack>
         </dependencySet>
         <dependencySet>
-            <outputDirectory>bin</outputDirectory>
-            <includes>
-                <include>*:*:*:bin:*</include>
-            </includes>
-            <unpack>true</unpack>
-        </dependencySet>
-        <dependencySet>
             <outputDirectory>doc/samples</outputDirectory>
             <includes>
                 <include>com.evolveum.midpoint:midpoint-samples</include>

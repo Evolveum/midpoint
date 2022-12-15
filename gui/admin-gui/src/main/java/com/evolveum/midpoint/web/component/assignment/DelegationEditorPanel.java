@@ -589,4 +589,18 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         }
         return list;
     }
+
+    protected IModel<String> createHeaderClassModel(final IModel<AssignmentEditorDto> model) {
+        return () -> {
+            if (model != null && model.getObject() != null) {
+                if (UserDtoStatus.ADD.equals(model.getObject().getStatus())) {
+                    return "table-success";
+                }
+                if (UserDtoStatus.DELETE.equals(model.getObject().getStatus())) {
+                    return "table-danger";
+                }
+            }
+            return "";
+        };
+    }
 }

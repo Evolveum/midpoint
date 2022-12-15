@@ -8,41 +8,31 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import java.util.List;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.SynchronizationReactionTable;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lskublik
  */
 @Experimental
-public abstract class AssociationsTableWizardPanel extends AbstractWizardBasicPanel {
+public abstract class AssociationsTableWizardPanel extends AbstractResourceWizardBasicPanel<ResourceObjectTypeDefinitionType> {
 
     private static final String ID_TABLE = "table";
 
-    private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel;
-
     public AssociationsTableWizardPanel(
             String id,
-            ResourceDetailsModel model,
-            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        super(id, model);
-        this.valueModel = valueModel;
+            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> superHelper) {
+        super(id, superHelper);
     }
 
     @Override
@@ -52,7 +42,7 @@ public abstract class AssociationsTableWizardPanel extends AbstractWizardBasicPa
     }
 
     private void initLayout() {
-        AssociationsTable table = new AssociationsTable(ID_TABLE, valueModel) {
+        AssociationsTable table = new AssociationsTable(ID_TABLE, getValueModel()) {
             @Override
             protected void editItemPerformed(
                     AjaxRequestTarget target,
@@ -67,57 +57,18 @@ public abstract class AssociationsTableWizardPanel extends AbstractWizardBasicPa
 
     protected abstract void inEditNewValue(IModel<PrismContainerValueWrapper<ResourceObjectAssociationType>> value, AjaxRequestTarget target);
 
-    public AssociationsTable getTablePanel() {
-        //noinspection unchecked
-        return (AssociationsTable) get(ID_TABLE);
+    @Override
+    protected boolean isValid(AjaxRequestTarget target) {
+        return getTable().isValidFormComponents(target);
     }
 
     @Override
-    protected void addCustomButtons(RepeatingView buttons) {
-        AjaxIconButton newObjectTypeButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of("fa fa-circle-plus"),
-                getPageBase().createStringResource("AssociationsTableWizardPanel.addNewAssociation")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onAddNewObject(target);
-            }
-        };
-        newObjectTypeButton.showTitleAsLabel(true);
-        newObjectTypeButton.add(AttributeAppender.append("class", "btn btn-primary"));
-        buttons.add(newObjectTypeButton);
-
-        AjaxIconButton saveButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of(getSubmitIcon()),
-                getSubmitLabelModel()) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onSaveResourcePerformed(target);
-            }
-        };
-        saveButton.showTitleAsLabel(true);
-        saveButton.add(AttributeAppender.append("class", "btn btn-success"));
-        buttons.add(saveButton);
+    protected String getSaveLabelKey() {
+        return "AssociationsTableWizardPanel.saveButton";
     }
-
-    private void onAddNewObject(AjaxRequestTarget target) {
-        AssociationsTable table = getTablePanel();
-        inEditNewValue(Model.of(table.createNewAssociation(target)), target);
-    }
-
-    protected String getSubmitIcon() {
-        return "fa fa-floppy-disk";
-    }
-
-    protected IModel<String> getSubmitLabelModel() {
-        return getPageBase().createStringResource("AssociationsTableWizardPanel.saveButton");
-    }
-
-    protected abstract void onSaveResourcePerformed(AjaxRequestTarget target);
 
     @Override
-    protected IModel<String> getBreadcrumbLabel() {
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
         return getTextModel();
     }
 
@@ -129,5 +80,9 @@ public abstract class AssociationsTableWizardPanel extends AbstractWizardBasicPa
     @Override
     protected IModel<String> getSubTextModel() {
         return getPageBase().createStringResource("AssociationsTableWizardPanel.subText");
+    }
+
+    protected AssociationsTable getTable() {
+        return (AssociationsTable) get(ID_TABLE);
     }
 }

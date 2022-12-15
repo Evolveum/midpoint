@@ -147,7 +147,7 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     /**
      * @return List of all executed deltas (in fact, {@link ObjectDeltaOperation} objects).
      */
-    List<? extends ObjectDeltaOperation<?>> getExecutedDeltas();
+    List<? extends ObjectDeltaOperation<O>> getExecutedDeltas();
 
     /**
      * TODO is this method ever used?

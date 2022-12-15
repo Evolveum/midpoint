@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalPolicyActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessSpecificationType;
@@ -71,7 +71,7 @@ public class ProcessSpecifications implements DebugDumpable {
     }
 
     static ProcessSpecifications createFromRules(List<? extends EvaluatedPolicyRule> rules, PrismContext prismContext)
-            throws ObjectNotFoundException {
+            throws ConfigurationException {
         // Step 1: plain list of approval actions -> map: process-spec -> list of related actions/rules ("collected")
         LinkedHashMap<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> collectedSpecifications = new LinkedHashMap<>();
         for (EvaluatedPolicyRule rule : rules) {
@@ -139,12 +139,12 @@ public class ProcessSpecifications implements DebugDumpable {
     private static void processActionToInclude(
             String actionToInclude, Map<String, Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>> actionsMap,
             Map.Entry<WfProcessSpecificationType, List<Pair<ApprovalPolicyActionType, EvaluatedPolicyRule>>> processSpecificationEntry,
-            boolean mustBePresent) throws ObjectNotFoundException {
+            boolean mustBePresent) throws ConfigurationException {
         Pair<ApprovalPolicyActionType, EvaluatedPolicyRule> actionWithRule = actionsMap.get(actionToInclude);
         if (actionWithRule != null) {
             processSpecificationEntry.getValue().add(actionWithRule);
         } else if (mustBePresent) {
-            throw new ObjectNotFoundException("Approval action '" + actionToInclude + "' cannot be found");
+            throw new ConfigurationException("Approval action '" + actionToInclude + "' cannot be found");
         }
     }
 

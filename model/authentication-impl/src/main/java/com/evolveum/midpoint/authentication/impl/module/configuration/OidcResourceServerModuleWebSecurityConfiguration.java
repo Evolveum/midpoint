@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.authentication.impl.module.configuration;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -42,8 +41,6 @@ import java.security.interfaces.RSAPublicKey;
 
 public class OidcResourceServerModuleWebSecurityConfiguration extends RemoteModuleWebSecurityConfiguration {
 
-    private static Protector protector;
-
     private JwtDecoder decoder;
 
     private OidcResourceServerModuleWebSecurityConfiguration() {
@@ -51,10 +48,6 @@ public class OidcResourceServerModuleWebSecurityConfiguration extends RemoteModu
 
     public JwtDecoder getDecoder() {
         return decoder;
-    }
-
-    public static void setProtector(Protector protector) {
-        OidcResourceServerModuleWebSecurityConfiguration.protector = protector;
     }
 
     public static OidcResourceServerModuleWebSecurityConfiguration build(OidcAuthenticationModuleType modelType, String prefixOfSequence) {

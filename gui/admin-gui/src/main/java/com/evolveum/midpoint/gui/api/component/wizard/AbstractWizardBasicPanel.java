@@ -14,7 +14,6 @@ import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -79,7 +78,7 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
 
     @NotNull protected abstract IModel<String> getBreadcrumbLabel();
 
-    private void removeLastBreadcrumb() {
+    protected void removeLastBreadcrumb() {
         int index = getBreadcrumb().size() - 1;
         getBreadcrumb().remove(index);
     }
@@ -147,6 +146,35 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
 
         addCustomButtons(buttons);
         buttonsContainer.add(buttons);
+
+        AjaxIconButton saveButton = new AjaxIconButton(
+                buttons.newChildId(),
+                Model.of(getSubmitIcon()),
+                getSubmitLabelModel()) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onSubmitPerformed(target);
+            }
+        };
+        saveButton.showTitleAsLabel(true);
+        saveButton.add(new VisibleBehaviour(() -> isSubmitButtonVisible()));
+        saveButton.add(AttributeAppender.append("class", "btn btn-success"));
+        buttons.add(saveButton);
+    }
+
+    protected boolean isSubmitButtonVisible() {
+        return false;
+    }
+
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+    }
+
+    protected String getSubmitIcon() {
+        return "fa fa-floppy-disk";
+    }
+
+    protected IModel<String> getSubmitLabelModel() {
+        return getPageBase().createStringResource("WizardPanel.submit");
     }
 
     protected boolean isExitButtonVisible() {

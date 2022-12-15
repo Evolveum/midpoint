@@ -18,7 +18,12 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AbstractSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.model.common.util.PopulatorUtil;
@@ -79,16 +84,22 @@ public abstract class AbstractSearchExpressionEvaluator<
 
     private final ObjectResolver objectResolver;
     private final ModelService modelService;
+    /**
+     * todo preview changes method calls in this class should be removed and everything should go through ModelService.executeChanges()
+     */
+    @Deprecated
+    private final ModelInteractionService modelInteractionService;
     protected CacheConfigurationManager cacheConfigurationManager;
 
     AbstractSearchExpressionEvaluator(QName elementName, E expressionEvaluatorType,
             D outputDefinition, Protector protector, PrismContext prismContext,
-            ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager,
+            ObjectResolver objectResolver, ModelService modelService, ModelInteractionService modelInteractionService, SecurityContextManager securityContextManager,
             LocalizationService localizationService,
             CacheConfigurationManager cacheConfigurationManager) {
         super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, securityContextManager, localizationService);
         this.objectResolver = objectResolver;
         this.modelService = modelService;
+        this.modelInteractionService = modelInteractionService;
         this.cacheConfigurationManager = cacheConfigurationManager;
     }
 
@@ -139,7 +150,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             resultValues = new ArrayList<>(1);
             resultValues.add(
                     createPrismValue(
-                            expressionEvaluatorBean.getOid(), targetTypeQName, additionalAttributeDeltas, context));
+                            expressionEvaluatorBean.getOid(), null, targetTypeQName, additionalAttributeDeltas, context));
 
         } else {
 
@@ -154,6 +165,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                     targetTypeClass,
                     targetTypeQName,
                     query,
+                    false,
                     additionalAttributeDeltas,
                     context,
                     contextDescription,
@@ -165,7 +177,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 if (defaultTargetRef != null) {
                     resultValues.add(
                             createPrismValue(
-                                    defaultTargetRef.getOid(), targetTypeQName, additionalAttributeDeltas, context));
+                                    defaultTargetRef.getOid(), null, targetTypeQName, additionalAttributeDeltas, context));
                 }
             }
         }
@@ -173,10 +185,24 @@ public abstract class AbstractSearchExpressionEvaluator<
         if (resultValues.isEmpty()
                 && Boolean.TRUE.equals(expressionEvaluatorBean.isCreateOnDemand())
                 && (valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
-            String createdObjectOid =
-                    createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, result);
-            resultValues.add(
-                    createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, context));
+
+            try {
+                PrismObject createdObject = createOnDemand(targetTypeClass, variables, context, context.getContextDescription(), task, result);
+                resultValues.add(
+                        createPrismValue(createdObject.getOid(), createdObject, targetTypeQName, additionalAttributeDeltas, context));
+            } catch (ObjectAlreadyExistsException ex) {
+                // object was created in the meantime, so we should try to search for it once more
+                resultValues = executeSearchUsingCache(
+                        targetTypeClass,
+                        targetTypeQName,
+                        query,
+                        true,
+                        additionalAttributeDeltas,
+                        context,
+                        contextDescription,
+                        task,
+                        result);
+            }
         }
 
         LOGGER.trace("Search expression {} (valueDestination={}) got {} results for query {}",
@@ -239,6 +265,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             Class<O> targetTypeClass,
             final QName targetTypeQName,
             ObjectQuery query,
+            boolean createOnDemandRetry,
             List<ItemDelta<V, D>> additionalAttributeDeltas,
             final ExpressionEvaluationContext params,
             String contextDescription,
@@ -264,7 +291,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 log("Cache: NULL {} ({})", false, query, targetTypeClass.getSimpleName());
                 collector.registerNotAvailable(cacheClass, targetTypeClass, statisticsLevel);
             }
-            return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy,
+            return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, createOnDemandRetry,
                     additionalAttributeDeltas, params, contextDescription, task, result);
         }
 
@@ -274,7 +301,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             log("Cache: PASS {} ({})", tracePass, query, targetTypeClass.getSimpleName());
             cache.registerPass();
             collector.registerPass(cacheClass, targetTypeClass, statisticsLevel);
-            return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy,
+            return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, createOnDemandRetry,
                     additionalAttributeDeltas, params, contextDescription, task, result);
         }
 
@@ -295,6 +322,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 targetTypeQName,
                 query,
                 searchStrategy,
+                createOnDemandRetry,
                 additionalAttributeDeltas,
                 params,
                 contextDescription,
@@ -327,6 +355,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             final QName targetTypeQName,
             ObjectQuery query,
             ObjectSearchStrategyType searchStrategy,
+            boolean createOnDemandRetry,
             List<ItemDelta<V, D>> additionalAttributeDeltas,
             ExpressionEvaluationContext params,
             String contextDescription,
@@ -344,13 +373,13 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         switch (searchStrategy) {
             case IN_REPOSITORY:
-                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false,
+                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false, createOnDemandRetry,
                         additionalAttributeDeltas, params, contextDescription, task, result);
             case ON_RESOURCE:
-                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, true,
+                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, true,createOnDemandRetry,
                         additionalAttributeDeltas, params, contextDescription, task, result);
             case ON_RESOURCE_IF_NEEDED:
-                List<V> inRepo = executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false,
+                List<V> inRepo = executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, false, false,createOnDemandRetry,
                         additionalAttributeDeltas, params, contextDescription, task, result);
                 if (!inRepo.isEmpty()) {
                     return inRepo;
@@ -358,7 +387,7 @@ public abstract class AbstractSearchExpressionEvaluator<
                 if (rawResult != null) {
                     rawResult.clear();
                 }
-                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, false, additionalAttributeDeltas, params, contextDescription, task, result);
+                return executeSearchAttempt(rawResult, targetTypeClass, targetTypeQName, query, true, false, createOnDemandRetry, additionalAttributeDeltas, params, contextDescription, task, result);
             default:
                 throw new IllegalArgumentException("Unknown search strategy: " + searchStrategy);
         }
@@ -371,6 +400,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             ObjectQuery query,
             boolean searchOnResource,
             boolean tryAlsoRepository,
+            boolean createOnDemandRetry,
             List<ItemDelta<V, D>> additionalAttributeDeltas,
             ExpressionEvaluationContext params,
             String contextDescription,
@@ -385,6 +415,10 @@ public abstract class AbstractSearchExpressionEvaluator<
         }
         options = GetOperationOptions.updateToReadOnly(options);
         extendOptions(options, searchOnResource);
+
+        if (createOnDemandRetry) {
+            options = GetOperationOptions.updateRootOptions(options, opt -> opt.setStaleness(0L));
+        }
 
         try {
             executeSearch(valueResults, rawResults, targetTypeClass, targetTypeQName, query, options, task, result, params, additionalAttributeDeltas);
@@ -442,7 +476,7 @@ public abstract class AbstractSearchExpressionEvaluator<
             if (rawResults != null) {
                 rawResults.add(object);
             }
-            valueResults.add(createPrismValue(object.getOid(), targetTypeQName, additionalAttributeDeltas, params));
+            valueResults.add(createPrismValue(object.getOid(), null, targetTypeQName, additionalAttributeDeltas, params));
         }
     }
 
@@ -459,13 +493,15 @@ public abstract class AbstractSearchExpressionEvaluator<
 
     protected abstract V createPrismValue(
             String oid,
+            PrismObject object,
             QName targetTypeQName,
             List<ItemDelta<V, D>> additionalAttributeDeltas,
             ExpressionEvaluationContext params);
 
-    private String createOnDemand(Class<O> targetTypeClass, VariablesMap variables,
+    private PrismObject createOnDemand(Class<O> targetTypeClass, VariablesMap variables,
             ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
+
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Going to create assignment targets on demand, variables:\n{}", variables.formatVariables());
         }
@@ -490,15 +526,44 @@ public abstract class AbstractSearchExpressionEvaluator<
 
         ObjectDelta<O> addDelta = newObject.createAddDelta();
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
+
+        boolean isCreateOnDemandSafe = isCreateOnDemandSafe();
+        if (isCreateOnDemandSafe) {
+            try {
+                ModelContext<O> context = modelInteractionService.previewChanges(deltas, null, task, result);
+                ModelElementContext focusContext = context.getFocusContext();
+                return focusContext.getObjectNew();
+            } catch (Exception ex) {
+                throw new ExpressionEvaluationException(ex.getMessage(), ex);
+            }
+        }
+
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedChanges;
         try {
             executedChanges = modelService.executeChanges(deltas, null, task, result);
-        } catch (ObjectAlreadyExistsException | CommunicationException | ConfigurationException
+        } catch (CommunicationException | ConfigurationException
                 | PolicyViolationException | SecurityViolationException e) {
             throw new ExpressionEvaluationException(e.getMessage(), e);
         }
 
-        return ObjectDeltaOperation.findAddDeltaOid(executedChanges, newObject);
+        ObjectDeltaOperation deltaOperation = ObjectDeltaOperation.findAddDelta(executedChanges, newObject);
+        return deltaOperation != null ? deltaOperation.getObjectDelta().getObjectToAdd() : null;
+    }
+
+    protected boolean isCreateOnDemandSafe() {
+        boolean isCreateOnDemandSafe = false;
+
+        ModelExecuteOptions options = ModelExpressionThreadLocalHolder.getLensContextRequired().getOptions();
+        if (options == null || options.getSimulationOptions() == null) {
+            return isCreateOnDemandSafe;
+        }
+
+        SimulationOptionsType simulation = options.getSimulationOptions();
+        if (simulation.getCreateOnDemand() == null) {
+            return isCreateOnDemandSafe;
+        }
+
+        return SimulationOptionType.SAFE.equals(simulation.getCreateOnDemand());
     }
 
     // Override the default in this case. It makes more sense like this.

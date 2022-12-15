@@ -7,8 +7,8 @@
 
 package com.evolveum.midpoint.model.impl.visualizer.output;
 
-import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
-import com.evolveum.midpoint.model.api.visualizer.SceneItemValue;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationDeltaItem;
+import com.evolveum.midpoint.model.api.visualizer.VisualizationItemValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -17,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem, DebugDumpable {
+public class SceneDeltaItemImpl extends SceneItemImpl implements VisualizationDeltaItem, DebugDumpable {
 
     @NotNull private List<SceneItemValueImpl> oldValues = Collections.emptyList();
     @NotNull private List<SceneItemValueImpl> addedValues = Collections.emptyList();
@@ -31,7 +31,7 @@ public class SceneDeltaItemImpl extends SceneItemImpl implements SceneDeltaItem,
 
     @NotNull
     @Override
-    public List<? extends SceneItemValue> getOldValues() {
+    public List<? extends VisualizationItemValue> getOldValues() {
         return oldValues;
     }
 

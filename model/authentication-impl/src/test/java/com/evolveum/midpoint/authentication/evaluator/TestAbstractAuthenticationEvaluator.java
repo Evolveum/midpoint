@@ -822,8 +822,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result,
-                SchemaConstants.LIFECYCLE_PROPOSED);
+        modifyUserReplace(USER_JACK_OID, UserType.F_LIFECYCLE_STATE, task, result, SchemaConstants.LIFECYCLE_PROPOSED);
 
         loginJackGoodPasswordExpectDenied();
     }
@@ -1099,12 +1098,12 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         LoginEventType lastSuccessfulLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastSuccessfulLogin();
         assertNotNull("no last successful login in " + user, lastSuccessfulLogin);
         XMLGregorianCalendar successfulLoginTs = lastSuccessfulLogin.getTimestamp();
-        TestUtil.assertBetween("wrong last successful login timestamp", startTs, endTs, successfulLoginTs);
+        TestUtil.assertBetween("last successful login timestamp", startTs, endTs, successfulLoginTs);
 
         LoginEventType lastSuccessfulLoginFromBehavior = getAuthenticationBehavior(user.asObjectable()).getLastSuccessfulLogin();
         assertNotNull("no last successful login in " + user, lastSuccessfulLoginFromBehavior);
         XMLGregorianCalendar successfulLoginTsFromBehavior = lastSuccessfulLoginFromBehavior.getTimestamp();
-        TestUtil.assertBetween("wrong last successful login timestamp", startTs, endTs, successfulLoginTsFromBehavior);
+        TestUtil.assertBetween("last successful login timestamp", startTs, endTs, successfulLoginTsFromBehavior);
     }
 
     private void assertLastFailedLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
@@ -1112,12 +1111,12 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         LoginEventType lastFailedLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastFailedLogin();
         assertNotNull("no last failed login in " + user, lastFailedLogin);
         XMLGregorianCalendar failedLoginTs = lastFailedLogin.getTimestamp();
-        TestUtil.assertBetween("wrong last failed login timestamp", startTs, endTs, failedLoginTs);
+        TestUtil.assertBetween("last failed login timestamp", startTs, endTs, failedLoginTs);
 
         LoginEventType lastFailedLoginFromBehavior = getAuthenticationBehavior(user.asObjectable()).getLastFailedLogin();
         assertNotNull("no last failed login in " + user, lastFailedLoginFromBehavior);
         XMLGregorianCalendar failedLoginTsFromBehavior = lastFailedLoginFromBehavior.getTimestamp();
-        TestUtil.assertBetween("wrong last failed login timestamp", startTs, endTs, failedLoginTsFromBehavior);
+        TestUtil.assertBetween("last failed login timestamp", startTs, endTs, failedLoginTsFromBehavior);
     }
 
     private void addFakeAuthorization(MidPointPrincipal principal) {

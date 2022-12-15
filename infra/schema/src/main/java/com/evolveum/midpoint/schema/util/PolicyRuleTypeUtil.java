@@ -508,7 +508,11 @@ public class PolicyRuleTypeUtil {
                     return rv;
                 }
                 if (usedSuppliers >= constraintsSuppliers.size()) {
-                    throw new ObjectNotFoundException("No policy constraint named '" + name + "' could be found. Known constraints: " + constraintsMap.keySet());
+                    throw new ObjectNotFoundException(
+                            String.format(
+                                    "No policy constraint named '%s' could be found. Known constraints: %s",
+                                    name, constraintsMap.keySet()),
+                            AbstractPolicyConstraintType.class, name);
                 }
                 List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>> newEntries =
                         constraintsSuppliers.get(usedSuppliers++).get();

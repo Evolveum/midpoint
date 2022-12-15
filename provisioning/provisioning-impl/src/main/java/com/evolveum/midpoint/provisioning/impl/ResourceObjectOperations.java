@@ -9,33 +9,27 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
- *
  */
 public class ResourceObjectOperations {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectOperations.class);
-
     private final Collection<Operation> operations = new ArrayList<>();
-    private PrismObject<ShadowType> currentShadow = null;
+    private ShadowType currentShadow = null;
     private ProvisioningContext resourceObjectContext = null;
     private Collection<? extends ResourceAttribute<?>> allIdentifiers;
 
-    public PrismObject<ShadowType> getCurrentShadow() {
+    public ShadowType getCurrentShadow() {
         return currentShadow;
     }
 
-    public void setCurrentShadow(PrismObject<ShadowType> currentShadow) {
+    public void setCurrentShadow(ShadowType currentShadow) {
         this.currentShadow = currentShadow;
     }
 

@@ -27,6 +27,8 @@ import com.evolveum.midpoint.authentication.impl.saml.MidpointAssertingPartyMeta
 
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 
+import com.evolveum.midpoint.prism.PrismContext;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.Base64Exception;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -40,7 +42,6 @@ import org.springframework.security.saml2.provider.service.registration.RelyingP
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -56,7 +57,6 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
     public static final String SSO_LOCATION_URL_SUFFIX = "/SSO/alias/{registrationId}";
     public static final String LOGOUT_LOCATION_URL_SUFFIX = "/logout/alias/{registrationId}";
 
-    private static Protector protector;
     private static final ResourceLoader RESOURCE_LOADER = new DefaultResourceLoader();
     private static final MidpointAssertingPartyMetadataConverter ASSERTING_PARTY_METADATA_CONVERTER = new MidpointAssertingPartyMetadataConverter();
 
@@ -64,10 +64,6 @@ public class SamlModuleWebSecurityConfiguration extends RemoteModuleWebSecurityC
     private final Map<String, SamlAdditionalConfiguration> additionalConfiguration = new HashMap<>();
 
     private SamlModuleWebSecurityConfiguration() {
-    }
-
-    public static void setProtector(Protector protector) {
-        SamlModuleWebSecurityConfiguration.protector = protector;
     }
 
     public static SamlModuleWebSecurityConfiguration build(Saml2AuthenticationModuleType modelType, String prefixOfSequence,

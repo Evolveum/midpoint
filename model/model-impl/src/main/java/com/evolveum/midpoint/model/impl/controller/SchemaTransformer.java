@@ -752,15 +752,14 @@ public class SchemaTransformer {
                         + " as specified in item definition in " + objectTemplateType);
                 continue;
             }
-            Item<?, ?> item = object.findItem(itemPath);
-            if (item != null) {
+            Collection<Item<?, ?>> items = object.getAllItems(itemPath);
+            for (Item<?, ?> item : items) {
                 ItemDefinition itemDef = item.getDefinition();
                 if (itemDef != itemDefFromObject) {
                     applyObjectTemplateItem(itemDef, templateItemDefType, "item "+itemPath+" in " + object
                             + " as specified in item definition in "+objectTemplateType);
                 }
             }
-
         }
     }
 

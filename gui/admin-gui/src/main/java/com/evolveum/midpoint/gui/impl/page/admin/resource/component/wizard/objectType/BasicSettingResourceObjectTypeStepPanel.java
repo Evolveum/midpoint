@@ -6,31 +6,18 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractValueFormResourceWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.*;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
-import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-
-import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType.*;
 
 /**
  * @author lskublik
@@ -43,7 +30,9 @@ public class BasicSettingResourceObjectTypeStepPanel extends AbstractValueFormRe
 
     public static final String PANEL_TYPE = "rw-type-basic";
 
-    public BasicSettingResourceObjectTypeStepPanel(ResourceDetailsModel model, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
+    public BasicSettingResourceObjectTypeStepPanel(
+            ResourceDetailsModel model,
+            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> newValueModel) {
         super(model, newValueModel);
     }
 

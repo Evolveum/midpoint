@@ -538,4 +538,8 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     protected abstract GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder);
 
     protected abstract boolean isUseObjectCounting();
+
+    public ShadowTablePanel getTable() {
+        return (ShadowTablePanel) get(ID_TABLE);
+    }
 }

@@ -558,9 +558,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     //endregion
 
     //region Executed deltas
-    @NotNull
     @Override
-    public List<LensObjectDeltaOperation<O>> getExecutedDeltas() {
+    public @NotNull List<LensObjectDeltaOperation<O>> getExecutedDeltas() {
         return executedDeltas;
     }
 

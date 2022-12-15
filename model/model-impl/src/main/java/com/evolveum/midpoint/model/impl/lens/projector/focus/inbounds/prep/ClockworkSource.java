@@ -26,8 +26,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.processor.PropertyLimitations;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -35,10 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
@@ -50,6 +49,8 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 class ClockworkSource extends MSource {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkSource.class);
+
+    private static final String OP_RESOLVE_ENTITLEMENT = ClockworkSource.class.getName() + ".resolveEntitlement";
 
     @NotNull private final LensProjectionContext projectionContext;
 
@@ -292,19 +293,36 @@ class ClockworkSource extends MSource {
     }
 
     private void resolveEntitlementFromResource(PrismReference shadowRef) {
-        if (projectionContext.getEntitlementMap().containsKey(shadowRef.getOid())) {
-            shadowRef.getValue().setObject(projectionContext.getEntitlementMap().get(shadowRef.getOid()));
+        PrismReferenceValue value = shadowRef.getValue();
+        if (value == null || value.getObject() != null) {
+            return;
+        }
+
+        PrismObject<ShadowType> object;
+        Map<String, PrismObject<ShadowType>> entitlementMap = projectionContext.getEntitlementMap();
+        String oid = shadowRef.getOid();
+        if (entitlementMap.containsKey(oid)) {
+            object = entitlementMap.get(oid);
         } else {
+            // FIXME improve error handling here
+            OperationResult subResult = context.result.createMinorSubresult(OP_RESOLVE_ENTITLEMENT);
             try {
-                PrismObject<ShadowType> entitlement = beans.provisioningService.getObject(ShadowType.class,
-                        shadowRef.getOid(), createReadOnlyCollection(), context.env.task, context.result);
-                projectionContext.getEntitlementMap().put(entitlement.getOid(), entitlement);
-            } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException
-                    | SecurityViolationException | ExpressionEvaluationException e) {
-                LOGGER.error("failed to load entitlement.");
+                object = beans.provisioningService.getObject(
+                        ShadowType.class, oid, createReadOnlyCollection(), context.env.task, subResult);
+                entitlementMap.put(object.getOid(), object); // The OID may be different -- is that OK?
+                entitlementMap.put(oid, object);
+                subResult.close();
+                subResult.muteError(); // We don't want to propagate e.g. maintenance errors to upper layers (for now)
+            } catch (CommonException e) {
+                LoggingUtils.logExceptionAsWarning(LOGGER, "failed to load entitlement: {}", e, shadowRef);
+                entitlementMap.put(oid, null); // To avoid repeated attempts
+                object = null;
                 // TODO: can we just ignore and continue?
+            } finally {
+                subResult.close();
             }
         }
+        value.setObject(object);
     }
 
     @Override

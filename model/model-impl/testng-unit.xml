@@ -26,6 +26,7 @@
         <classes>
             <class name="com.evolveum.midpoint.model.impl.sync.SynchronizationSituationTest"/>
             <class name="com.evolveum.midpoint.model.impl.sync.TestSynchronizationService"/>
+            <class name="com.evolveum.midpoint.model.impl.sync.TestCorrelationDuringResourceLifecycle"/>
             <class name="com.evolveum.midpoint.model.impl.correlator.correlation.TestCorrelators"/>
             <class name="com.evolveum.midpoint.model.impl.correlator.correlation.TestExpressionCorrelator"/>
         </classes>

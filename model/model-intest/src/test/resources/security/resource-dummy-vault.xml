@@ -13,9 +13,7 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
 
     <name>Dummy Resource: Vault</name>
     <description>Dummy resource for security testing</description>
@@ -37,7 +35,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId>vault</icfi:instanceId> <!-- Default instance. -->
+            <icfi:instanceId>vault</icfi:instanceId>
             <icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
             <icfi:uselessGuardedString>
                 <clearValue>whatever</clearValue>
@@ -264,7 +262,6 @@
             </credentials>
 
         </objectType>
-
 
         <objectType>
             <kind>entitlement</kind>

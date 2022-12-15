@@ -259,6 +259,11 @@ public abstract class AbstractResourceObjectDefinitionImpl
     }
 
     @Override
+    public @Nullable String getLifecycleState() {
+        return definitionBean.getLifecycleState();
+    }
+
+    @Override
     public ResourceObjectMultiplicityType getObjectMultiplicity() {
         return definitionBean.getMultiplicity();
     }

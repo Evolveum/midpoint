@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectClassification;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningContext;
@@ -57,8 +56,8 @@ class ClassificationHelper {
      */
     ResourceObjectClassification classify(
             ProvisioningContext ctx,
-            PrismObject<ShadowType> shadow,
-            PrismObject<ShadowType> resourceObject,
+            ShadowType shadow,
+            ShadowType resourceObject,
             OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
@@ -99,16 +98,16 @@ class ClassificationHelper {
      * In particular, we hope that the object class is roughly OK, and things like entitlement, credentials, and so on
      * are not needed.
      */
-    private ShadowType combine(PrismObject<ShadowType> resourceObject, PrismObject<ShadowType> shadow)
+    private ShadowType combine(ShadowType resourceObject, ShadowType shadow)
             throws SchemaException {
-        PrismObject<ShadowType> combined = shadow.clone();
+        ShadowType combined = shadow.clone();
         ResourceAttributeContainer fullAttributes = ShadowUtil.getAttributesContainer(resourceObject);
         if (fullAttributes != null) {
-            combined.removeContainer(ShadowType.F_ATTRIBUTES);
-            combined.add(fullAttributes.clone());
+            combined.asPrismObject().removeContainer(ShadowType.F_ATTRIBUTES);
+            combined.asPrismObject().add(fullAttributes.clone());
         }
         LOGGER.trace("Combined object:\n{}", combined.debugDumpLazily(1));
-        return combined.asObjectable();
+        return combined;
     }
 
     /**
@@ -146,5 +145,35 @@ class ClassificationHelper {
     private boolean isDifferent(ResourceObjectClassification classification, ShadowType shadow) {
         return classification.getKind() != shadow.getKind()
                 || !Objects.equals(classification.getIntent(), shadow.getIntent());
+    }
+
+    /**
+     * In the future, here can be a complex algorithm that determines whether a particular shadow should be classified
+     * (reclassified) or not.
+     *
+     * But for now, let us keep it simple.
+     *
+     * See https://docs.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/#shadow-classification.
+     */
+    boolean shouldClassify(ProvisioningContext ctx, ShadowType repoShadow) throws SchemaException, ConfigurationException {
+        if (!ShadowUtil.isClassified(repoShadow)) {
+            LOGGER.trace("Shadow is not classified -> we will do that");
+            return true;
+        }
+
+        ProvisioningContext subCtx = ctx.spawnForShadow(repoShadow);
+        if (subCtx.isObjectDefinitionInProduction()) {
+            LOGGER.trace("Current object definition is in production and the shadow is already classified "
+                    + "-> will NOT re-classify the shadow");
+            return false;
+        } else if (subCtx.isProductionConfigurationTask()) {
+            LOGGER.trace("Current object definition is NOT in production but the task is using production configuration "
+                    + "-> will NOT re-classify the shadow");
+            return false;
+        } else {
+            LOGGER.trace("Current object definition is NOT in production and the task is using development configuration "
+                    + "-> will re-classify the shadow");
+            return true;
+        }
     }
 }

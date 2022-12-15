@@ -312,8 +312,7 @@ public class ObjectUpdater {
             Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(type);
             RObject object = session.get(clazz, oid);
             if (object == null) {
-                throw new ObjectNotFoundException(
-                        "Object of type '" + type.getSimpleName() + "' with oid '" + oid + "' was not found.", clazz, oid);
+                throw new ObjectNotFoundException(clazz, oid, false);
             }
             Class<? extends ObjectType> actualType = ClassMapper.getObjectTypeForHQLType(object.getClass()).getClassDefinition();
 

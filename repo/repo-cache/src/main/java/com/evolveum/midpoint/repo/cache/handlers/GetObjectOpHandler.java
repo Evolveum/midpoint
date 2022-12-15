@@ -10,8 +10,6 @@ package com.evolveum.midpoint.repo.cache.handlers;
 import static com.evolveum.midpoint.repo.cache.RepositoryCache.CLASS_NAME_WITH_DOT;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpEnd;
 import static com.evolveum.midpoint.repo.cache.other.MonitoringUtil.repoOpStart;
-import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
-import static com.evolveum.midpoint.schema.SelectorOptions.findRootOptions;
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
 
 import java.util.Collection;
@@ -107,9 +105,7 @@ public class GetObjectOpHandler extends CachedOpHandler {
                 }
             }
         } catch (ObjectNotFoundException e) {
-            if (!isAllowNotFound(findRootOptions(options))) {
-                exec.result.recordFatalError(e);
-            }
+            exec.result.recordException(e);
             throw e;
         } catch (Throwable t) {
             exec.result.recordFatalError(t);

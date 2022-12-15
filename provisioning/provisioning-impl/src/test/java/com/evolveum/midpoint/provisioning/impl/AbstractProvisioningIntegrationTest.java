@@ -16,9 +16,7 @@ import com.evolveum.midpoint.provisioning.impl.resources.ConnectorManager;
 import com.evolveum.midpoint.provisioning.impl.resources.ResourceManager;
 import com.evolveum.midpoint.schema.processor.ResourceSchemaParser;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.DummyTestResource;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.util.FailableProcessor;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +40,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -50,7 +47,9 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
 
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegrationTest {
+public abstract class AbstractProvisioningIntegrationTest
+        extends AbstractIntegrationTest
+        implements DummyTestResourceInitializer {
 
     public static final File COMMON_DIR = ProvisioningTestUtil.COMMON_TEST_DIR_FILE;
 
@@ -176,7 +175,8 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
     }
 
     protected void rememberConnectorInstance(PrismObject<ResourceType> resource) throws ConfigurationException {
-        rememberConnectorInstance(resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class));
+        rememberConnectorInstance(
+                resourceManager.getConfiguredConnectorInstanceFromCache(resource.asObjectable(), ReadCapabilityType.class));
     }
 
     protected void rememberConnectorInstance(ConnectorInstance currentConnectorInstance) {
@@ -190,7 +190,7 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
             return;
         }
         ConnectorInstance currentConfiguredConnectorInstance =
-                resourceManager.getConfiguredConnectorInstanceFromCache(resource, ReadCapabilityType.class);
+                resourceManager.getConfiguredConnectorInstanceFromCache(resource.asObjectable(), ReadCapabilityType.class);
         assertSame("Connector instance has changed", lastConfiguredConnectorInstance, currentConfiguredConnectorInstance);
     }
 
@@ -285,13 +285,15 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
         return testResult;
     }
 
+    /** This method is limited to single-connector resources. */
     protected DummyResourceContoller initDummyResource(DummyTestResource resource, OperationResult result) throws Exception {
-        DummyResourceContoller controller = initDummyResource(resource.name, resource.file, resource.oid,
-                resource.controllerInitLambda, result);
+        DummyResourceContoller controller =
+                initDummyResource(resource.name, resource.file, resource.oid, resource.controllerInitLambda, result);
         resource.controller = controller;
         return controller;
     }
 
+    /** This method is limited to single-connector resources. */
     protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
             FailableProcessor<DummyResourceContoller> controllerInitLambda, OperationResult result) throws Exception {
         DummyResourceContoller controller = DummyResourceContoller.create(name);
@@ -308,5 +310,14 @@ public abstract class AbstractProvisioningIntegrationTest extends AbstractIntegr
             controller.setResource(resource);
         }
         return controller;
+    }
+
+    /** This method is limited to single-connector resources. */
+    @Override
+    public void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
+        initDummyResource(resource, result);
+        assertSuccess(
+                provisioningService.testResource(resource.controller.getResource().getOid(), task, result));
+        resource.reload(result); // To have schema, etc
     }
 }

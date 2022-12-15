@@ -161,7 +161,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         ConnectorStruct struct = connectorMap.get(type);
         if (struct == null) {
             LOGGER.error("No built-in connector type {}; known types: {}", type, connectorMap);
-            throw new ObjectNotFoundException("No built-in connector type "+type);
+            throw new ObjectNotFoundException("No built-in connector type " + type, ConnectorType.class, null);
         }
         return struct;
     }
@@ -256,7 +256,13 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
         try {
             connectorInstance = connectorClass.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            throw new ObjectNotFoundException("Cannot create instance of connector "+connectorClass+": "+e.getMessage(), e);
+            // TODO is this really "object not found" exception?
+            throw new ObjectNotFoundException(
+                    "Cannot create instance of connector " + connectorClass + ": " + e.getMessage(),
+                    e,
+                    ConnectorInstance.class,
+                    instanceName,
+                    false);
         }
         if (connectorInstance instanceof AbstractManagedConnectorInstance) {
             setupAbstractConnectorInstance((AbstractManagedConnectorInstance)connectorInstance, instanceName, connectorType,

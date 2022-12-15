@@ -97,6 +97,7 @@ public class RelationRegistryImpl implements RelationRegistry {
         RelationDefinitionType relationDef = new RelationDefinitionType();
         relationDef.setRef(defaultRelationDefinition.getRelation());
         DisplayType display = new DisplayType();
+        display.setCssClass(defaultRelationDefinition.getDefaultCssClass());
         PolyStringType label = new PolyStringType(QNameUtil.getLocalPart(defaultRelationDefinition.getRelation()));
         PolyStringTranslationType translation = new PolyStringTranslationType();
         translation.setKey(defaultRelationDefinition.getLabelKey());

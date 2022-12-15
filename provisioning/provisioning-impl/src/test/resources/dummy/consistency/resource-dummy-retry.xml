@@ -8,14 +8,10 @@
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
-                              http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
     <name>Dummy Resource: Failure and Retry</name>
     <connectorRef oid="will-be-supplied-by-the-test-code"/>

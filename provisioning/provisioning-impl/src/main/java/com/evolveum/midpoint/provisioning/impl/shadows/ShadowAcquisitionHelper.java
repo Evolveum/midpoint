@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -51,8 +50,8 @@ class ShadowAcquisitionHelper {
      * It may look like this method would rather belong to ShadowManager. But it does NOT. It does too much stuff
      * (e.g. change notification).
      */
-    @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx,
-            PrismObject<ShadowType> resourceObject, boolean skipClassification, OperationResult result)
+    @NotNull ShadowType acquireRepoShadow(
+            ProvisioningContext ctx, ShadowType resourceObject, boolean skipClassification, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, SecurityViolationException,
             CommunicationException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
 
@@ -60,19 +59,20 @@ class ShadowAcquisitionHelper {
                 ProvisioningUtil.getSingleValuedPrimaryIdentifier(resourceObject),
                 () -> "No primary identifier value in " + ShadowUtil.shortDumpShadow(resourceObject));
         QName objectClass = requireNonNull(
-                resourceObject.asObjectable().getObjectClass(),
+                resourceObject.getObjectClass(),
                 () -> "No object class in " + ShadowUtil.shortDumpShadow(resourceObject));
 
         return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, () -> resourceObject, skipClassification, commonBeans)
                 .execute(result);
     }
 
-    @NotNull PrismObject<ShadowType> acquireRepoShadow(ProvisioningContext ctx, PrismProperty<?> primaryIdentifier,
+    @NotNull ShadowType acquireRepoShadow(ProvisioningContext ctx, PrismProperty<?> primaryIdentifier,
             QName objectClass, ResourceObjectSupplier resourceObjectSupplier, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
             GenericConnectorException, ExpressionEvaluationException, EncryptionException, SecurityViolationException {
 
-        return new ShadowAcquisition(ctx, primaryIdentifier, objectClass, resourceObjectSupplier, false, commonBeans)
+        return new ShadowAcquisition(
+                ctx, primaryIdentifier, objectClass, resourceObjectSupplier, false, commonBeans)
                 .execute(result);
     }
 }

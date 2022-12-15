@@ -6,35 +6,22 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
  * @author lskublik
  */
 public abstract class AbstractResourceWizardPanel<C extends Containerable> extends BasePanel {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractResourceWizardPanel.class);
 
     private static final String ID_FRAGMENT = "fragment";
     private static final String ID_CHOICE_FRAGMENT = "choiceFragment";
@@ -43,13 +30,13 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_WIZARD = "wizard";
 
-    private final ResourceDetailsModel resourceModel;
+    private final ResourceWizardPanelHelper<C> helper;
 
     public AbstractResourceWizardPanel(
             String id,
-            ResourceDetailsModel model) {
+            ResourceWizardPanelHelper<C> helper) {
         super(id);
-        this.resourceModel = model;
+        this.helper = helper;
     }
 
     @Override
@@ -100,48 +87,61 @@ public abstract class AbstractResourceWizardPanel<C extends Containerable> exten
     }
 
     protected void onExitPerformed(AjaxRequestTarget target) {
+        helper.onExitPerformed(target);
     }
 
-    protected IModel<PrismContainerValueWrapper<C>> createModelOfNewValue(ItemPath path) {
-        return new IModel() {
+//    protected IModel<PrismContainerValueWrapper<C>> createModelOfNewValue(ItemPath path) {
+//        return new IModel<>() {
+//
+//            private PrismContainerValueWrapper<C> newItemWrapper;
+//
+//            @Override
+//            public PrismContainerValueWrapper<C> getObject() {
+//                if (newItemWrapper == null) {
+//                    try {
+//                        PrismContainerWrapper<C> container = findContainer(path);
+//                        PrismContainerValue<C> newItem = container.getItem().createNewValue();
+//                        newItemWrapper = WebPrismUtil.createNewValueWrapper(
+//                                container, newItem, getPageBase(), getWrapperContext(container));
+//                        container.getValues().add(newItemWrapper);
+//                    } catch (SchemaException e) {
+//                        LOGGER.error("Cannot find wrapper: {}", e.getMessage());
+//                    }
+//                }
+//                return newItemWrapper;
+//            }
+//        };
+//    }
 
-            private PrismContainerValueWrapper<C> newItemWrapper;
+//    private WrapperContext getWrapperContext(PrismContainerWrapper<C> container) {
+//        WrapperContext context = getResourceModel().createWrapperContext();
+//        context.setObjectStatus(container.findObjectStatus());
+//        context.setShowEmpty(true);
+//        context.setCreateIfEmpty(true);
+//        return context;
+//    }
 
-            @Override
-            public Object getObject() {
-                if (newItemWrapper == null) {
-                    try {
-                        PrismContainerWrapper<C> container = findContainer(path);
-                        PrismContainerValue<C> newItem = container.getItem().createNewValue();
-                        newItemWrapper = WebPrismUtil.createNewValueWrapper(
-                                container, newItem, getPageBase(), getWrapperContext(container));
-                        container.getValues().add(newItemWrapper);
-                    } catch (SchemaException e) {
-                        LOGGER.error("Cannot find wrapper: {}", e.getMessage());
-                    }
-                }
-                return newItemWrapper;
-            }
-        };
-    }
-
-    private WrapperContext getWrapperContext(PrismContainerWrapper<C> container) {
-        WrapperContext context = getResourceModel().createWrapperContext();
-        context.setObjectStatus(container.findObjectStatus());
-        context.setShowEmpty(true);
-        context.setCreateIfEmpty(true);
-        return context;
-    }
-
-    protected PrismContainerWrapper<C> findContainer(ItemPath path) throws SchemaException {
-        return getResourceModel().getObjectWrapper().findContainer(path);
-    }
+//    protected PrismContainerWrapper<C> findContainer(ItemPath path) throws SchemaException {
+//        return getResourceModel().getObjectWrapper().findContainer(path);
+//    }
 
     public ResourceDetailsModel getResourceModel() {
-        return resourceModel;
+        return helper.getResourceModel();
+    }
+
+    public IModel<PrismContainerValueWrapper<C>> getValueModel() {
+        return helper.getValueModel();
     }
 
     protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
-        return null;
+        return helper.onSaveResourcePerformed(target);
+    }
+
+    protected boolean isSavedAfterWizard() {
+        return helper.isSavedAfterWizard();
+    }
+
+    public ResourceWizardPanelHelper<C> getHelper() {
+        return helper;
     }
 }

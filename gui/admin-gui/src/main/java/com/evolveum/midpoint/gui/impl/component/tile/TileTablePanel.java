@@ -45,6 +45,8 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
     private static final String ID_TILE = "tile";
     private static final String ID_TABLE = "table";
 
+    private static final String ID_FOOTER_CONTAINER = "footerContainer";
+    private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
     private static final String ID_TILES_PAGING = "tilesPaging";
 
     private IModel<ViewToggle> viewToggleModel;
@@ -81,7 +83,9 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
     private void initLayout(ISortableDataProvider<O, String> provider, List<IColumn<O, String>> columns) {
         setOutputMarkupId(true);
 
-        add(createTilesHeader(ID_TILES_HEADER));
+        Component header = createTilesHeader(ID_TILES_HEADER);
+        header.add(AttributeAppender.append("class", getTilesHeaderCssClasses()));
+        add(header);
 
         WebMarkupContainer tilesContainer = new WebMarkupContainer(ID_TILES_CONTAINER);
         tilesContainer.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TILE));
@@ -105,6 +109,11 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         tilesContainer.setOutputMarkupId(true);
         tilesContainer.add(tiles);
 
+        WebMarkupContainer footerContainer = new WebMarkupContainer(ID_FOOTER_CONTAINER);
+        footerContainer.setOutputMarkupId(true);
+        footerContainer.add(AttributeAppender.append("class", getTilesFooterCssClasses()));
+        add(footerContainer);
+
         NavigatorPanel tilesPaging = new NavigatorPanel(ID_TILES_PAGING, tiles, true) {
 
             @Override
@@ -112,7 +121,10 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
                 return null;
             }
         };
-        add(tilesPaging);
+        footerContainer.add(tilesPaging);
+
+        WebMarkupContainer buttonToolbar = createTilesButtonToolbar(ID_BUTTON_TOOLBAR);
+        footerContainer.add(buttonToolbar);
 
         BoxedTablePanel table = new BoxedTablePanel(ID_TABLE, provider, columns, tableId) {
 
@@ -133,6 +145,19 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         };
         table.add(new VisibleBehaviour(() -> viewToggleModel.getObject() == ViewToggle.TABLE));
         add(table);
+    }
+
+    protected String getTilesHeaderCssClasses() {
+        return "";
+    }
+
+    protected String getTilesFooterCssClasses() {
+        return "pt-3";
+    }
+
+    public IModel getTilesModel() {
+        PageableListView view = (PageableListView) get(ID_TILES_CONTAINER).get(ID_TILES);
+        return view.getModel();
     }
 
     public ISortableDataProvider<O, String> getProvider() {
@@ -158,7 +183,7 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
         if (viewToggleModel.getObject() == ViewToggle.TABLE) {
             target.add(get(ID_TABLE));
         } else {
-            target.add(get(ID_TILES_CONTAINER), get(ID_TILES_PAGING));
+            target.add(get(ID_TILES_CONTAINER), get(createComponentPath(ID_FOOTER_CONTAINER, ID_TILES_PAGING)));
         }
     }
 
@@ -189,6 +214,10 @@ public class TileTablePanel<T extends Tile, O extends Serializable> extends Base
     }
 
     protected WebMarkupContainer createTableButtonToolbar(String id) {
+        return new WebMarkupContainer(id);
+    }
+
+    protected WebMarkupContainer createTilesButtonToolbar(String id) {
         return new WebMarkupContainer(id);
     }
 

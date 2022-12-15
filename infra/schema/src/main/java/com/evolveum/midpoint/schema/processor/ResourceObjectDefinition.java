@@ -320,6 +320,14 @@ public interface ResourceObjectDefinition
      * @see ResourceObjectTypeDefinitionType#getMappingsEvaluation()
      */
     @Nullable DefaultInboundMappingEvaluationPhasesType getDefaultInboundMappingEvaluationPhases();
+
+    /**
+     * What lifecycle state is the (refined) object class or object type definition?
+     * Raw object class definition should always return `null` here.
+     *
+     * @see ResourceObjectTypeDefinitionType#getLifecycleState()
+     */
+    @Nullable String getLifecycleState();
     //endregion
 
     //region Creating artifacts (shadow, query, PCD, instances, ...)
@@ -379,18 +387,6 @@ public interface ResourceObjectDefinition
      * Returns the present capability, but only if it's enabled.
      */
     <T extends CapabilityType> T getEnabledCapability(@NotNull Class<T> capabilityClass, ResourceType resource);
-
-    default PagedSearchCapabilityType getPagedSearches(ResourceType resource) {
-        return getEnabledCapability(PagedSearchCapabilityType.class, resource);
-    }
-
-    default boolean isPagedSearchEnabled(ResourceType resourceType) {
-        return getPagedSearches(resourceType) != null; // null means nothing or disabled
-    }
-
-    default boolean isObjectCountingEnabled(ResourceType resourceType) {
-        return getEnabledCapability(CountObjectsCapabilityType.class, resourceType) != null;
-    }
     //endregion
 
     //region Diagnostics and administration

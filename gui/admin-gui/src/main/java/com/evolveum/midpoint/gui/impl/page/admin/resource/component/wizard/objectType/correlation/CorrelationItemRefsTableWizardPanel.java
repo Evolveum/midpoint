@@ -6,35 +6,28 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation;
 
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 
 /**
  * @author lskublik
  */
-public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizardBasicPanel {
+public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardBasicPanel<ItemsSubCorrelatorType> {
 
     private static final String ID_TABLE = "table";
 
-    private final IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel;
-
     public CorrelationItemRefsTableWizardPanel(
             String id,
-            ResourceDetailsModel model,
-            IModel<PrismContainerValueWrapper<ItemsSubCorrelatorType>> valueModel) {
-        super(id, model);
-        this.valueModel = valueModel;
+            ResourceWizardPanelHelper<ItemsSubCorrelatorType> superHelper) {
+        super(id, superHelper);
     }
 
     @Override
@@ -44,35 +37,29 @@ public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizard
     }
 
     private void initLayout() {
-        CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, valueModel);
+        CorrelationItemRefsTable table = new CorrelationItemRefsTable(ID_TABLE, getValueModel());
         table.setOutputMarkupId(true);
         add(table);
     }
 
     @Override
-    protected void addCustomButtons(RepeatingView buttons) {
-        AjaxIconButton saveButton = new AjaxIconButton(
-                buttons.newChildId(),
-                Model.of("fa fa-check"),
-                getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.confirmSettings")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                onExitPerformed(target);
-            }
-        };
-        saveButton.showTitleAsLabel(true);
-        saveButton.add(AttributeAppender.append("class", "btn btn-success"));
-        buttons.add(saveButton);
+    protected void onSubmitPerformed(AjaxRequestTarget target) {
+        onExitPerformed(target);
     }
 
     @Override
-    protected void onExitPerformed(AjaxRequestTarget target) {
-        super.onExitPerformed(target);
+    protected String getSubmitIcon() {
+        return "fa fa-check";
     }
 
     @Override
-    protected IModel<String> getBreadcrumbLabel() {
-        String name = GuiDisplayNameUtil.getDisplayName(valueModel.getObject().getRealValue());
+    protected IModel<String> getSubmitLabelModel() {
+        return getPageBase().createStringResource("CorrelationItemRefsTableWizardPanel.confirmSettings");
+    }
+
+    @Override
+    protected @NotNull IModel<String> getBreadcrumbLabel() {
+        String name = GuiDisplayNameUtil.getDisplayName(getValueModel().getObject().getRealValue());
         if (StringUtils.isNotBlank(name)) {
             return Model.of(name);
         }
@@ -91,6 +78,11 @@ public abstract class CorrelationItemRefsTableWizardPanel extends AbstractWizard
 
     protected CorrelationItemRefsTable getTable() {
         return (CorrelationItemRefsTable) get(ID_TABLE);
+    }
+
+    @Override
+    protected boolean isValid(AjaxRequestTarget target) {
+        return getTable().isValidFormComponents(target);
     }
 
     @Override

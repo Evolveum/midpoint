@@ -162,7 +162,7 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
                         return;
                     }
                     SearchFilterConfigurationPanel.this.getModel().setObject(SearchFilterConfigurationPanel.this.getPageBase().getQueryConverter().createSearchFilterType(configuredFilter));
-                    target.add(get(ID_CONTAINER));
+                    target.add(SearchFilterConfigurationPanel.this.get(ID_CONTAINER));
                     target.add(getPageBase().getFeedbackPanel());
                 } catch (SchemaException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);

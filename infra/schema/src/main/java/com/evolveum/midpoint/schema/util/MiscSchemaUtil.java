@@ -297,23 +297,6 @@ public class MiscSchemaUtil {
         return MiscUtil.equals(a.getOid(), b.getOid());
     }
 
-    // Some searches may return duplicate objects. This is an utility method to remove the duplicates.
-    public static <O extends ObjectType> void reduceSearchResult(List<PrismObject<O>> results) {
-        if (results == null || results.isEmpty()) {
-            return;
-        }
-        Set<String> oidsSeen = new HashSet<>();
-        Iterator<PrismObject<O>> iterator = results.iterator();
-        while (iterator.hasNext()) {
-            PrismObject<O> prismObject = iterator.next();
-            if (oidsSeen.contains(prismObject.getOid())) {
-                iterator.remove();
-            } else {
-                oidsSeen.add(prismObject.getOid());
-            }
-        }
-    }
-
     /**
      * Returns modification time or creation time (if there was no mo
      */

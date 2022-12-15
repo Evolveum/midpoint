@@ -179,7 +179,7 @@ public class TracingOutputCreator {
             dictionary.beginEntry()
                     .identifier(newEntryId)
                     .originDictionaryId(dictionaryId)
-                    .object(ObjectTypeUtil.createObjectRefWithFullObject(objectToStore, prismContext));
+                    .object(ObjectTypeUtil.createObjectRefWithFullObject(objectToStore));
             objectsAdded++;
             return dictionaryId + ":" + newEntryId;
         }

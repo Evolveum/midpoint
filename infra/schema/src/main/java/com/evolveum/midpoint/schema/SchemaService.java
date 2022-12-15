@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +37,16 @@ public class SchemaService {
     @PostConstruct
     public void init() {
         instance = this;
+    }
+
+    @VisibleForTesting
+    public static void init(
+            PrismContext prismContext, RelationRegistry relationRegistry, MatchingRuleRegistry matchingRuleRegistry) {
+        SchemaService newInstance = new SchemaService();
+        newInstance.prismContext = prismContext;
+        newInstance.relationRegistry = relationRegistry;
+        newInstance.matchingRuleRegistry = matchingRuleRegistry;
+        newInstance.init();
     }
 
     public static SchemaService get() {

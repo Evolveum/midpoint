@@ -147,8 +147,12 @@ public class ModelObjectResolver implements ObjectResolver {
             objectType = object.asObjectable();
             if (!clazz.isInstance(objectType)) {
                 throw new ObjectNotFoundException(
-                        "Bad object type returned for referenced oid '" + oid + "'. Expected '" + clazz + "', but was '"
-                                + objectType.getClass() + "'.");
+                        String.format(
+                                "Bad object type returned for referenced oid '%s'. Expected '%s', but was '%s'.",
+                                oid, clazz, objectType.getClass()),
+                        clazz,
+                        oid,
+                        GetOperationOptions.isAllowNotFound(options));
             }
 
             if (hookRegistry != null) {
@@ -241,7 +245,7 @@ public class ModelObjectResolver implements ObjectResolver {
     public <O extends ObjectType, R extends ObjectType> PrismObject<R> searchOrgTreeWidthFirstReference(PrismObject<O> object,
             Function<PrismObject<OrgType>, ObjectReferenceType> function, String shortDesc, Task task, OperationResult result) throws SchemaException {
         if (object == null) {
-            LOGGER.trace("No object provided. Cannost find security policy specific for an object.");
+            LOGGER.trace("No object provided. Cannot find security policy specific for an object.");
             return null;
         }
         PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);

@@ -12,7 +12,6 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -26,7 +25,6 @@ import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDto;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
@@ -45,7 +43,6 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -77,7 +74,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
         selectedItems = new LoadableModel<>() {
             @Override
             protected Map<QName, Boolean> load() {
-                Map<QName, Boolean> map = new HashMap();
+                Map<QName, Boolean> map = new HashMap<>();
                 try {
                     PrismPropertyWrapper<QName> generationConstraints = getResourceModel().getObjectWrapper().findProperty(
                             ItemPath.create(
@@ -166,7 +163,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
             protected void populateItem(ListItem<QName> item) {
                 QName objectClass = item.getModelObject();
 
-                item.add(new Label(ID_SELECTED_ITEM, () -> objectClass.getLocalPart()));
+                item.add(new Label(ID_SELECTED_ITEM, objectClass::getLocalPart));
                 AjaxButton deselectButton = new AjaxButton(ID_DESELECT_BUTTON) {
                     @Override
                     public void onClick(AjaxRequestTarget target) {
@@ -180,14 +177,15 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
         selectedContainer.setOutputMarkupId(true);
         selectedItemsContainer.add(selectedContainer);
 
-        BoxedTablePanel<SelectableBean<ObjectClassDto>> table = new BoxedTablePanel(ID_TABLE, provider, createColumns());
+        BoxedTablePanel<SelectableBean<ObjectClassWrapper>> table = new BoxedTablePanel<>(ID_TABLE, provider, createColumns());
+        table.setShowAsCard(false);
         add(table);
     }
 
     private void deselectItem(QName objectClass, AjaxRequestTarget target) {
         selectedItems.getObject().remove(objectClass);
 
-        BoxedTablePanel table = getTable();
+        BoxedTablePanel<SelectableBean<ObjectClassWrapper>> table = getTable();
         ((ObjectClassDataProvider) table.getDataTable().getDataProvider()).clearCache();
 
         target.add(table);
@@ -195,18 +193,18 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
     }
 
     private void updateSearchPerformed(AjaxRequestTarget target) {
-        BoxedTablePanel table = getTable();
+        BoxedTablePanel<SelectableBean<ObjectClassWrapper>> table = getTable();
         ((ObjectClassDataProvider) table.getDataTable().getDataProvider()).setFilter(getObjectClassText().getModelObject());
         ((ObjectClassDataProvider) table.getDataTable().getDataProvider()).clearCache();
         target.add(table);
     }
 
     private TextField<String> getObjectClassText() {
-        return (TextField) get(getPageBase().createComponentPath(ID_SEARCH_FORM, ID_SEARCH_FIELD));
+        return (TextField<String>) get(getPageBase().createComponentPath(ID_SEARCH_FORM, ID_SEARCH_FIELD));
     }
 
-    private BoxedTablePanel getTable() {
-        return (BoxedTablePanel) get(ID_TABLE);
+    private BoxedTablePanel<SelectableBean<ObjectClassWrapper>> getTable() {
+        return (BoxedTablePanel<SelectableBean<ObjectClassWrapper>>) get(ID_TABLE);
     }
 
     private List<IColumn<SelectableBean<ObjectClassWrapper>, String>> createColumns() {
@@ -257,7 +255,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
             protected IModel<Boolean> getEnabled(IModel<SelectableBean<ObjectClassWrapper>> rowModel) {
                 if (rowModel == null) {
                     if (selectedItems.getObject().size() == getResourceModel().getObjectClassesModel().getObject().size()) {
-                       return Model.of(!selectedItems.getObject().values().stream().allMatch(enabled -> !enabled));
+                       return Model.of(selectedItems.getObject().values().stream().anyMatch(enabled -> enabled));
                     }
                     return super.getEnabled(rowModel);
                 }

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.component.input.Select2MultiChoicePanel;
 import com.evolveum.midpoint.gui.impl.component.input.SourceMappingProvider;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -65,7 +66,7 @@ public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTa
 
     @Override
     protected String getKeyOfTitleForNewObjectButton() {
-        return "OutboundAttributeMappingsTable.newObject.simple";
+        return "OutboundAttributeMappingsTable.newObject";
     }
 
     @Override
@@ -93,7 +94,7 @@ public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTa
                         return ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject())
                                 .getValues().stream()
                                 .filter(value -> !ValueStatus.DELETED.equals(value.getStatus()) && value.getRealValue() != null)
-                                .map(value -> value.getRealValue())
+                                .map(PrismValueWrapperImpl::getRealValue)
                                 .collect(Collectors.toList());
                     }
 
@@ -103,10 +104,8 @@ public abstract class OutboundAttributeMappingsTable extends AttributeMappingsTa
                         PrismPropertyWrapper<VariableBindingDefinitionType> sourceItem =
                                 ((PrismPropertyWrapper<VariableBindingDefinitionType>) rowModel.getObject());
                         List<PrismPropertyValueWrapper<VariableBindingDefinitionType>> toRemoveValues
-                                = new ArrayList<>(
-                                        sourceItem.getValues().stream()
-                                            .filter(v -> v.getRealValue() != null)
-                                            .collect(Collectors.toList()));
+                                = sourceItem.getValues().stream()
+                                .filter(v -> v.getRealValue() != null).collect(Collectors.toList());
 
                         newValues.forEach(newValue -> {
                             if (newValue.getPath() == null) {

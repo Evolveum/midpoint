@@ -5,6 +5,8 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
+@use "sass:math";
+
 // simple width, mainly usable for table columns. Bootstrap has only w-* for 25%, 50%, 75%, 100%
 @each $breakpoint in map-keys($grid-breakpoints) {
   $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
@@ -14,7 +16,7 @@
     @if $grid-columns > 0 {
       @for $i from 1 through $grid-columns {
         .mp-w#{$infix}-#{$i} {
-          width: (100% / $grid-columns * $i);
+          width: math.div(100%, $grid-columns) * $i;
         }
       }
     }

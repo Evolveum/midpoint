@@ -534,12 +534,17 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         PrismObject<E> baseObject = elementContext.getObjectCurrent();
         try {
             OwnerResolver ownerResolver = createOwnerResolver(result);
-            b.securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.EXECUTION,
-                    AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta), ownerResolver, task, result);
+            b.securityEnforcer.authorize(
+                    ModelAuthorizationAction.MODIFY.getUrl(),
+                    AuthorizationPhaseType.EXECUTION,
+                    AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta),
+                    ownerResolver,
+                    task,
+                    result);
 
             if (shouldApplyModifyMetadata(objectClass, context.getSystemConfigurationBean())) {
-                b.metadataManager.applyMetadataModify(delta, objectClass, elementContext,
-                        b.clock.currentTimeXMLGregorianCalendar(), task, context);
+                b.metadataManager.applyMetadataModify(
+                        delta, objectClass, elementContext, b.clock.currentTimeXMLGregorianCalendar(), task, context);
             }
             b.indexingManager.updateIndexDataOnElementModify(
                     asObjectable(baseObject), delta, objectClass, elementContext, task, result);
@@ -563,8 +568,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 FocusConstraintsChecker.clearCacheForDelta(delta.getModifications());
                 ModificationPrecondition<E> precondition = createRepoModificationPrecondition();
                 try {
-                    b.cacheRepositoryService.modifyObject(objectClass, delta.getOid(),
-                            delta.getModifications(), precondition, null, result);
+                    b.cacheRepositoryService.modifyObject(
+                            objectClass, delta.getOid(), delta.getModifications(), precondition, null, result);
                 } catch (PreconditionViolationException e) {
                     throw new ConflictDetectedException(e);
                 }
@@ -679,8 +684,13 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         PrismObject<E> objectOld = elementContext.getObjectOld();
         try {
             OwnerResolver ownerResolver = createOwnerResolver(result);
-            b.securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), AuthorizationPhaseType.EXECUTION,
-                    AuthorizationParameters.Builder.buildObjectDelete(objectOld), ownerResolver, task, result);
+            b.securityEnforcer.authorize(
+                    ModelAuthorizationAction.DELETE.getUrl(),
+                    AuthorizationPhaseType.EXECUTION,
+                    AuthorizationParameters.Builder.buildObjectDelete(objectOld),
+                    ownerResolver,
+                    task,
+                    result);
 
             if (TaskType.class.isAssignableFrom(objectTypeClass)) {
                 b.taskManager.deleteTask(oid, result);

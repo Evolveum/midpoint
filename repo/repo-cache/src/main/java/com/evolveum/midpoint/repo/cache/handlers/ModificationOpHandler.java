@@ -89,7 +89,7 @@ public class ModificationOpHandler extends BaseOpHandler {
                 trace.setOid(oid);
                 if (isAtLeastNormal(level)) {
                     // We put the object into the trace here, because now it has OID set
-                    trace.setObjectRef(ObjectTypeUtil.createObjectRefWithFullObject(object.clone(), prismContext));
+                    trace.setObjectRef(ObjectTypeUtil.createObjectRefWithFullObject(object.clone()));
                 }
             }
             return oid;
