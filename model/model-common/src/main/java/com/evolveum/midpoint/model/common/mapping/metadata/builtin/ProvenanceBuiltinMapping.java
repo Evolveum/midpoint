@@ -1,26 +1,18 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 
-import java.util.*;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.model.common.mapping.metadata.ConsolidationMetadataComputation;
-import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.ListUtils;
@@ -28,10 +20,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.common.mapping.metadata.ConsolidationMetadataComputation;
+import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-
-import static com.evolveum.midpoint.util.DebugUtil.lazy;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 /**
  * Mapping that manages provenance metadata.
@@ -64,8 +66,8 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
 
         LOGGER.trace("Computing provenance during value transformation. Input values:\n{}", lazy(() -> dumpInput(input)));
 
-        ProvenanceMetadataType provenance = new ProvenanceMetadataType(prismContext)
-                .mappingSpec(computation.getMappingSpecification());
+        ProvenanceMetadataType provenance = new ProvenanceMetadataType()
+                .mappingSpecification(computation.getMappingSpecification());
         provenance.getAcquisition().addAll(collectAcquisitions(input));
 
         LOGGER.trace("Output: provenance:\n{}", lazy(() -> provenance.asPrismContainerValue().debugDump()));
@@ -99,8 +101,8 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
     /**
      * Consolidation merges the information for one specific yield.
      * All inputs have the same basic characteristics:
-     *  - equivalent mapping spec
-     *  - equivalent set of acquisitions
+     * - equivalent mapping spec
+     * - equivalent set of acquisitions
      *
      * We have to construct a new set of acquisitions, selecting the oldest ones of each kind.
      */
@@ -112,7 +114,7 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
         }
     }
 
-    private class ProvenanceComputation {
+    private static class ProvenanceComputation {
 
         @NotNull private final ConsolidationMetadataComputation computation;
         @NotNull private final List<ValueMetadataType> allValues;
@@ -139,8 +141,8 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
                 return null;
             }
 
-            ProvenanceMetadataType resultingProvenance = new ProvenanceMetadataType(prismContext);
-            resultingProvenance.setMappingSpec(CloneUtil.clone(representativeProvenance.getMappingSpec()));
+            ProvenanceMetadataType resultingProvenance = new ProvenanceMetadataType();
+            resultingProvenance.setMappingSpecification(CloneUtil.clone(representativeProvenance.getMappingSpecification()));
 
             for (ProvenanceAcquisitionType representativeAcquisition : representativeProvenance.getAcquisition()) {
                 List<ProvenanceAcquisitionType> compatibleAcquisitions = getCompatibleAcquisitions(representativeAcquisition);
