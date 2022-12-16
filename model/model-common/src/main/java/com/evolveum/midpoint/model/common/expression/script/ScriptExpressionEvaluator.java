@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
@@ -39,15 +38,20 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Radovan Semancik
  */
-public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefinition>
-                extends AbstractValueTransformationExpressionEvaluator<V,D,ScriptExpressionEvaluatorType> {
+public class ScriptExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>>
+                extends AbstractValueTransformationExpressionEvaluator<V, D, ScriptExpressionEvaluatorType> {
 
     private final ScriptExpression scriptExpression;
 
-    ScriptExpressionEvaluator(QName elementName, ScriptExpressionEvaluatorType scriptType, D outputDefinition, Protector protector, PrismContext prismContext,
+    ScriptExpressionEvaluator(
+            QName elementName,
+            ScriptExpressionEvaluatorType scriptBean,
+            D outputDefinition,
+            Protector protector,
             ScriptExpression scriptExpression,
-            SecurityContextManager securityContextManager, LocalizationService localizationService) {
-        super(elementName, scriptType, outputDefinition, protector, prismContext, securityContextManager, localizationService);
+            SecurityContextManager securityContextManager,
+            LocalizationService localizationService) {
+        super(elementName, scriptBean, outputDefinition, protector, securityContextManager, localizationService);
         this.scriptExpression = scriptExpression;
     }
 

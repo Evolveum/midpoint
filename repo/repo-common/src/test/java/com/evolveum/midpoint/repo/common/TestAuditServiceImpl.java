@@ -8,9 +8,7 @@ package com.evolveum.midpoint.repo.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
+import java.io.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -33,7 +31,7 @@ public class TestAuditServiceImpl extends AbstractRepoCommonTest {
     private TaskManager taskManager;
 
     @Test
-    public void testAuditSimple() throws FileNotFoundException {
+    public void testAuditSimple() throws IOException {
         given();
         AuditEventRecord auditRecord = new AuditEventRecord(AuditEventType.ADD_OBJECT);
         Task task = taskManager.createTaskInstance();
@@ -50,7 +48,7 @@ public class TestAuditServiceImpl extends AbstractRepoCommonTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private String parseAuditLineFromLogFile(String filename) throws FileNotFoundException {
+    private String parseAuditLineFromLogFile(String filename) throws IOException {
         File log = new File(filename);
         if (!log.exists()) {
             fail("Log file " + filename + " does not exist");
@@ -59,16 +57,15 @@ public class TestAuditServiceImpl extends AbstractRepoCommonTest {
         if (log.length() == 0) {
             fail("Log file " + filename + " is empty");
         }
-        String auditLine = null;
-        Scanner input = new Scanner(log);
-
-        while (input.hasNext()) {
-            String line = input.nextLine();
-            if (line.matches(".*" + LoggingConfigurationManager.AUDIT_LOGGER_NAME + ".*")) {
-                auditLine = line;
+        try (BufferedReader br = new BufferedReader(new FileReader(log))) {
+            for (;;) {
+                String line = br.readLine();
+                if (line == null) {
+                    return null;
+                } else if (line.contains(LoggingConfigurationManager.AUDIT_LOGGER_NAME)) {
+                    return line;
+                }
             }
         }
-        input.close();
-        return auditLine;
     }
 }

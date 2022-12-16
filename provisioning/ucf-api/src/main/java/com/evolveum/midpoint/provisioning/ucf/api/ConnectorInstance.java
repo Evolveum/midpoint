@@ -418,9 +418,8 @@ public interface ConnectorInstance {
     /**
      * Method create collection of capabilities which connector support.
      *
-     * @return  Return supported operations for connector.
+     * @return Return supported operations for connector.
      */
-    CapabilityCollectionType getNativeCapabilities(OperationResult result)
+    @NotNull CapabilityCollectionType getNativeCapabilities(OperationResult result)
             throws CommunicationException, GenericFrameworkException, ConfigurationException;
-
 }

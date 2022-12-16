@@ -32,7 +32,6 @@ import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinit
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
@@ -134,10 +133,9 @@ public class DeletionActivityHandler
 
         /** Checks the safety of parameters, and fills-in fields in this object. */
         @Override
-        public void beforeRun(OperationResult opResult) throws CommonException, ActivityRunException {
+        public void beforeRun(OperationResult result) {
             executeSafetyChecks();
-            effectiveModelExecuteOptions = getExecuteOptionsWithRawSet(
-                    getWorkDefinition().executionOptions);
+            effectiveModelExecuteOptions = getExecuteOptionsWithRawSet(getWorkDefinition().executionOptions);
         }
 
         /**
@@ -183,8 +181,7 @@ public class DeletionActivityHandler
 
         @Override
         public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result)
-                throws CommonException {
+                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) {
             return getSearchOptionsWithRawSet(configuredOptions);
         }
 
@@ -214,9 +211,12 @@ public class DeletionActivityHandler
         }
 
         @Override
-        public boolean processItem(@NotNull ObjectType object,
-                @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, ActivityRunException {
+        public boolean processItem(
+                @NotNull ObjectType object,
+                @NotNull ItemProcessingRequest<ObjectType> request,
+                RunningTask workerTask,
+                OperationResult result)
+                throws CommonException {
 
             if (isFullExecution()) {
                 deleteObject(object, workerTask, result);
@@ -304,15 +304,11 @@ public class DeletionActivityHandler
             return objects;
         }
 
-        public @NotNull ModelExecuteOptions getExecutionOptions() {
-            return executionOptions;
-        }
-
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
             DebugUtil.debugDumpWithLabelLn(sb, "legacyRawMode", legacyRawMode, indent+1);
             DebugUtil.debugDumpWithLabelLn(sb, "objects (default for raw not yet applied)", objects, indent+1);
-            DebugUtil.debugDumpWithLabelLn(sb, "executionOptions (default for raw not yet applied)",
+            DebugUtil.debugDumpWithLabel(sb, "executionOptions (default for raw not yet applied)",
                     String.valueOf(executionOptions), indent+1);
         }
     }

@@ -10,15 +10,13 @@ package com.evolveum.midpoint.task.api.test;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
@@ -279,7 +277,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public <T> void setPropertyRealValue(ItemPath path, T value) throws SchemaException {
+    public <T> void setPropertyRealValue(ItemPath path, T value) {
         throw new UnsupportedOperationException();
     }
 
@@ -486,7 +484,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public List<? extends Task> listSubtasksDeeply(OperationResult result) throws SchemaException {
+    public List<? extends Task> listSubtasksDeeply(OperationResult result) {
         throw new UnsupportedOperationException();
     }
 
@@ -546,7 +544,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void setExecutionMode(@NotNull TaskExecutionMode mode) {
+    public @NotNull TaskExecutionMode setExecutionMode(@NotNull TaskExecutionMode mode) {
         throw new UnsupportedOperationException();
     }
 
@@ -614,10 +612,8 @@ public class NullTaskImpl implements Task {
         return null;
     }
 
-    @Override public void modify(@NotNull ItemDelta<?, ?> delta) {
-    }
-
-    public void modifyAndFlush(ItemDelta<?, ?> delta, OperationResult result) {
+    @Override
+    public void modify(@NotNull ItemDelta<?, ?> delta) {
     }
 
     @Override
@@ -668,7 +664,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public @NotNull ParentAndRoot getParentAndRoot(OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public @NotNull ParentAndRoot getParentAndRoot(OperationResult result) {
         throw new UnsupportedOperationException();
     }
 
@@ -679,12 +675,12 @@ public class NullTaskImpl implements Task {
 
     @Override
     public @NotNull ObjectReferenceType getSelfReferenceFull() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public @NotNull ObjectReferenceType getSelfReference() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -693,7 +689,7 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public List<Task> getPathToRootTask(OperationResult result) throws SchemaException {
+    public List<Task> getPathToRootTask(OperationResult result) {
         throw new UnsupportedOperationException();
     }
 
@@ -759,11 +755,11 @@ public class NullTaskImpl implements Task {
     }
 
     @Override
-    public void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+    public void applyDeltasImmediate(Collection<ItemDelta<?, ?>> itemDeltas, OperationResult result) {
     }
 
     @Override
-    public void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) throws SchemaException {
+    public void applyModificationsTransient(Collection<ItemDelta<?, ?>> modifications) {
     }
 
     @Override
@@ -772,5 +768,21 @@ public class NullTaskImpl implements Task {
 
     @Override
     public void stopCollectingActionsExecuted() {
+    }
+
+    @Override
+    public void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
+    }
+
+    @Override
+    public void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
+    }
+
+    @Override
+    public <O extends ObjectType> void onItemProcessed(
+            @Nullable O stateBefore,
+            @Nullable ObjectDelta<O> executedDelta,
+            @Nullable ObjectDelta<O> simulatedDelta,
+            @NotNull OperationResult result) {
     }
 }

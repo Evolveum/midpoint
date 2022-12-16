@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.model.impl.correlation.CorrelationServiceImpl;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +26,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Everything necessary to carry out pre-clockwork inbounds evaluation.
+ *
+ * It is to {@link PreInboundsProcessing} just like {@link LensContext} is to {@link ClockworkInboundsProcessing}.
+ *
+ * It exists in more flavors depending on the situation: synchronization-time inbounds, or "extra" inbounds
+ * e.g. invoked via {@link MidpointFunctions} or {@link CorrelationServiceImpl} method(s).
  *
  * @param <F> the focus type
  */

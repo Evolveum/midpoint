@@ -33,6 +33,8 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
  * implementation may choose any one to process.
  *
  * @author Radovan Semancik
+ *
+ * @see ResourceObjectChangeListener
  */
 public class ResourceObjectShadowChangeDescription implements ProvisioningEvent, DebugDumpable, Serializable {
     private static final long serialVersionUID = 1L;
@@ -64,9 +66,6 @@ public class ResourceObjectShadowChangeDescription implements ProvisioningEvent,
 
     /** Related resource. Must be present. */
     private PrismObject<ResourceType> resource;
-
-    /** Is this a simulated operation? TODO reconsider this flag here. */
-    private boolean simulate;
 
     /**
      * Does the shadow exist in repo? Null means "we don't know".
@@ -114,14 +113,6 @@ public class ResourceObjectShadowChangeDescription implements ProvisioningEvent,
         this.resource = resource;
     }
 
-    public boolean isSimulate() {
-        return simulate;
-    }
-
-    public void setSimulate(boolean simulate) {
-        this.simulate = simulate;
-    }
-
     public Boolean getShadowExistsInRepo() {
         return shadowExistsInRepo;
     }
@@ -163,7 +154,6 @@ public class ResourceObjectShadowChangeDescription implements ProvisioningEvent,
                 + ", sourceChannel=" + sourceChannel
                 + ", resource=" + resource
                 + ", processing=" + itemProcessingIdentifier
-                + (simulate ? " SIMULATE" : "")
                 + ")";
     }
 
@@ -206,10 +196,6 @@ public class ResourceObjectShadowChangeDescription implements ProvisioningEvent,
             sb.append("\n");
             sb.append(shadowedResourceObject.debugDump(indent+2));
         }
-
-        sb.append("\n");
-        SchemaDebugUtil.indentDebugDump(sb, indent+1);
-        sb.append("simulate: ").append(simulate);
 
         sb.append("\n");
         SchemaDebugUtil.indentDebugDump(sb, indent+1);

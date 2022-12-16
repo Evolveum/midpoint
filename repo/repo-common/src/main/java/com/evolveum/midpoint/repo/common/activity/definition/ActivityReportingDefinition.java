@@ -55,7 +55,7 @@ public class ActivityReportingDefinition implements DebugDumpable, Cloneable {
     }
 
     /**
-     * The task can be null for children of pure-composite activities.
+     * The task can be null for children of custom composite activities.
      */
     @NotNull
     public static ActivityReportingDefinition create(@Nullable ActivityDefinitionType definitionBean, @Nullable Task task) {

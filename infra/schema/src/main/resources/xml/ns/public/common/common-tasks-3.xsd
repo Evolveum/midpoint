@@ -5,7 +5,8 @@
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
-  -->
+-->
+<!--suppress XmlUnusedNamespaceDeclaration, HttpUrlsUsage -->
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -82,7 +83,7 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Task (lightweight) identifier. This is an unique identification of any task,
+                                    Task (lightweight) identifier. This is a unique identification of any task,
                                     regardless whether it is persistent or transient (cf. OID). Therefore this can be used
                                     to identify all tasks, e.g. for the purposes of auditing and logging.
                                 </p>
@@ -1748,6 +1749,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Execution mode for this activity: full, preview, dryRun, none, bucketAnalysis.
+                        TODO move this into "execution" item.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -1772,6 +1774,17 @@
                         How various aspects of activity run are reported, using logging, tracing,
                         profiling, reporting, and so on.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="execution" type="tns:ActivityExecutionDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Detailed definition of the execution.
+                        TODO better name
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="tailoring" type="tns:ActivitiesTailoringType" minOccurs="0">
@@ -2521,6 +2534,8 @@
                             A preview (simulation) of changes: Changes are computed, but nothing is executed.
                             Used for example to check the thresholds before the full (real) execution.
                             In the future midPoint may also store the computed changes for later analysis.
+
+                            TODO we use also the term "simulation"
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2638,6 +2653,44 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <xsd:complexType name="ActivityExecutionDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Detailed definition of the execution.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.7</a:since>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <!-- TODO "mode" will be here. -->
+            <xsd:element name="productionConfiguration" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        What configuration should the actions take into account? Production or "development" one?
+
+                        - Production usually means `active` and `deprecated` lifecycle states.
+                        - Development will probably `active` and `proposed` states. (Currently: `active`, `proposed` and `deprecated`.)
+
+                        TEMPORARY. May change in near future.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO parameters for the simulation -->
+            <xsd:element name="createSimulationResult" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should we create a simulation result for this activity?
+
+                        TEMPORARY. May change in near future.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
 
     <xsd:complexType name="SchedulerInformationType">
         <xsd:annotation>
@@ -2827,6 +2880,17 @@
 
                         Note: The counters may be moved to separate repository object later to improve performance.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simulation" type="tns:ActivitySimulationStateType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        State related to the "simulated" execution of this activity (and its children).
+                        Contains e.g. the OID of the simulation result object after it is created.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="reports" type="tns:ActivityReportsType" minOccurs="0">
@@ -7503,10 +7567,14 @@
         <xsd:annotation>
             <xsd:documentation>
                 Work state for a pure composite activity.
+                Replaced by CustomCompositeWorkStateType.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
                 <a:since>4.4</a:since>
+                <a:deprecated>true</a:deprecated>
+                <a:deprecatedSince>4.7</a:deprecatedSince>
+                <a:deprecatedSince>4.4.4</a:deprecatedSince>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -7514,6 +7582,23 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="pureCompositeWorkState" type="tns:PureCompositeWorkStateType" />
+
+    <xsd:complexType name="CustomCompositeWorkStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Work state for a custom composite activity.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.7</a:since>
+                <a:since>4.4.4</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractActivityWorkStateType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="customCompositeWorkState" type="tns:CustomCompositeWorkStateType" />
 
     <xsd:complexType name="ScanWorkStateType">
         <xsd:annotation>
@@ -8726,5 +8811,30 @@
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ActivitySimulationStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                State related to the "simulated" execution of this activity (and its children).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="resultRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the object into which the results of the simulation should be stored.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:SimulationResultType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 </xsd:schema>

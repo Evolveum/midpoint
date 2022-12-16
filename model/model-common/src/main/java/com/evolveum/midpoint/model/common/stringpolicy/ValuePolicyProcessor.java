@@ -36,6 +36,7 @@ import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.text.StrBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -117,9 +118,14 @@ public class ValuePolicyProcessor {
         return expressionFactory;
     }
 
-    // Used in tests
-    public void setExpressionFactory(ExpressionFactory expressionFactory) {
+    public ValuePolicyProcessor() {
+    }
+
+    @VisibleForTesting
+    public ValuePolicyProcessor(ExpressionFactory expressionFactory) {
+        this.prismContext = PrismContext.get();
         this.expressionFactory = expressionFactory;
+        this.protector = prismContext.getDefaultProtector();
     }
 
     public String generate(ItemPath path, ValuePolicyType policy, int defaultLength, boolean generateMinimalSize,
@@ -130,9 +136,14 @@ public class ValuePolicyProcessor {
         OperationResult result = parentResult.createSubresult(OP_GENERATE);
 
         if (policy == null) {
-            //lets create some default policy
-            policy = new ValuePolicyType().stringPolicy(new StringPolicyType().limitations(new LimitationsType().maxLength(defaultLength).minLength(defaultLength)));
-
+            // let's create some default policy
+            policy = new ValuePolicyType()
+                    .stringPolicy(
+                            new StringPolicyType()
+                                    .limitations(
+                                            new LimitationsType()
+                                                    .maxLength(defaultLength)
+                                                    .minLength(defaultLength)));
         }
 
         StringPolicyType stringPolicy = policy.getStringPolicy();

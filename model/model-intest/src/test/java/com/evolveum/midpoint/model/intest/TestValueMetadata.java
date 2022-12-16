@@ -936,7 +936,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .end()
                         .end()
                     .end()
-                    .value(pcv -> pcv.asContainerable().getProvenance().getMappingSpec() == null)
+                    .value(pcv -> pcv.asContainerable().getProvenance().getMappingSpecification() == null)
                         .provenance()
                             .singleAcquisition()
                                 .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)

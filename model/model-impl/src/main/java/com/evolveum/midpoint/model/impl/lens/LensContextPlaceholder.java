@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -22,7 +23,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class LensContextPlaceholder<F extends ObjectType> extends LensContext<F> {
 
-    public LensContextPlaceholder(@NotNull PrismObject<F> focus) {
+    public LensContextPlaceholder(@NotNull PrismObject<F> focus, TaskExecutionMode taskExecutionMode) {
+        super(taskExecutionMode);
         //noinspection unchecked
         createFocusContext((Class<F>) focus.asObjectable().getClass());
         getFocusContext().setInitialObject(focus);

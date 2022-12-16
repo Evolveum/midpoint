@@ -58,6 +58,10 @@ import ch.qos.logback.classic.LoggerContext;
 
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 
+import com.evolveum.midpoint.test.asserter.prism.DeltaCollectionAsserter;
+
+import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
+
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -140,6 +144,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+@SuppressWarnings("SameParameterValue")
 public abstract class AbstractIntegrationTest extends AbstractSpringTest
         implements InfraTestMixin {
 
@@ -3229,6 +3234,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         OperationResult result = createSubresult("markShadowTombstone");
         List<ItemDelta<?, ?>> deadModifications = deltaFor(ShadowType.class)
                 .item(ShadowType.F_DEAD).replace(true)
+                .item(ShadowType.F_DEATH_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
                 .item(ShadowType.F_EXISTS).replace(false)
                 .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
                 .asItemDeltas();
@@ -3447,11 +3453,19 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .orElseThrow(() -> new AssertionError("Account '" + name + "' was not found"));
     }
 
-    protected void waitForTaskStatusUpdated(String taskOid, String message, Checker checker, long timeoutInterval, long sleepInterval) throws CommonException {
+    protected void waitForTaskStatusUpdated(
+            String taskOid, String message, Checker checker, long timeoutInterval) throws CommonException {
         var statusQueue = new ArrayBlockingQueue<Task>(10);
         TaskUpdatedListener waitListener = (task, result) -> {
-            if (Objects.equals(taskOid, task.getOid())) {
-                statusQueue.add(task);
+            try {
+                List<Task> pathToRootTask = task.getPathToRootTask(result);
+                if (TaskUtil.tasksToOids(pathToRootTask).contains(taskOid)) {
+                    statusQueue.add(task);
+                } else {
+                    System.out.println("Missed update; waiting for " + taskOid + ", got " + task);
+                }
+            } catch (SchemaException e) {
+                throw SystemException.unexpected(e);
             }
         };
         try {
@@ -3462,13 +3476,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 long currentTime = System.currentTimeMillis();
 
                 if (currentTime > endTime) {
-                    // Cicle timeouted
+                    // Cycle timeouted
                     checker.timeout();
                     break;
                 }
                 try {
                     var timeout = endTime - currentTime;
-                    var currentTask = statusQueue.poll(timeout, TimeUnit.MILLISECONDS);
+                    statusQueue.poll(timeout, TimeUnit.MILLISECONDS);
                     boolean done = checker.check();
                     if (done) {
                         IntegrationTestTools.println("... done");
@@ -3484,13 +3498,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
     }
 
-    protected void waitForTaskClose(String taskOid, OperationResult result, long timeoutInterval, long sleepInterval)
+    protected void waitForTaskClose(String taskOid, OperationResult result, long timeoutInterval)
             throws CommonException {
         waitForTaskStatusUpdated(taskOid, "Waiting for task to close", () -> {
             Task task = taskManager.getTaskWithResult(taskOid, result);
             displaySingleTask("Task while waiting for it to close", task);
             return task.getSchedulingState() == TaskSchedulingStateType.CLOSED;
-        }, timeoutInterval, sleepInterval);
+        }, timeoutInterval);
     }
 
     protected void displaySingleTask(String label, Task task) {
@@ -3568,7 +3582,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void waitForTaskTreeCloseCheckingSuspensionWithError(String taskOid, OperationResult result,
-            long timeoutInterval, long sleepInterval) throws CommonException {
+            long timeoutInterval) throws CommonException {
         waitForTaskStatusUpdated(taskOid, "Waiting for task manager to finish the task", () -> {
             Collection<SelectorOptions<GetOperationOptions>> options = schemaService.getOperationOptionsBuilder()
                     .item(TaskType.F_RESULT).retrieve()
@@ -3587,7 +3601,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 return true;
             }
             return false;
-        }, timeoutInterval, sleepInterval);
+        }, timeoutInterval);
     }
 
     protected void waitForTaskTreeCloseOrCondition(String taskOid, OperationResult result,
@@ -3779,6 +3793,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected TaskAsserter<Void> assertTask(TaskType task, String message) {
         return initializeAsserter(
                 TaskAsserter.forTask(task.asPrismObject(), message));
+    }
+
+    protected <O extends ObjectType> ObjectDeltaAsserter<O, Void> assertDelta(ObjectDelta<O> delta, String message) {
+        return initializeAsserter(
+                ObjectDeltaAsserter.forDelta(delta, message));
+    }
+
+    protected DeltaCollectionAsserter<Void> assertDeltaCollection(Collection<? extends ObjectDelta<?>> deltas, String message) {
+        return initializeAsserter(
+                DeltaCollectionAsserter.forDeltas(deltas, message));
     }
 
     protected void assertTaskExecutionState(String taskOid, TaskExecutionStateType expectedExecutionState)
@@ -4282,7 +4306,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     @SuppressWarnings("WeakerAccess")
-    protected boolean isNativeRepository() {
+    public boolean isNativeRepository() {
         return repositoryService.isNative();
     }
 
@@ -4312,6 +4336,22 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected void turnMaintenanceModeOff(String resourceOid, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         setMaintenanceMode(resourceOid, AdministrativeAvailabilityStatusType.OPERATIONAL, result);
+    }
+
+    protected void putResourceIntoProduction(String resourceOid, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        setLifecycleState(ResourceType.class, resourceOid, SchemaConstants.LIFECYCLE_ACTIVE, result);
+    }
+
+    protected <O extends ObjectType> void setLifecycleState(Class<O> type, String oid, String state, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                type, oid,
+                deltaFor(type)
+                        .item(ObjectType.F_LIFECYCLE_STATE)
+                        .replace(state)
+                        .asItemDeltas(),
+                result);
     }
 
     @SuppressWarnings("SameParameterValue")

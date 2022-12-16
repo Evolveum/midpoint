@@ -78,7 +78,7 @@ public abstract class MockComponentActivityRun
         getRecorder().recordExecution(itemName);
 
         QualifiedItemProcessingOutcomeType qualifiedOutcome =
-                new QualifiedItemProcessingOutcomeType(getPrismContext())
+                new QualifiedItemProcessingOutcomeType()
                         .outcome(ItemProcessingOutcomeType.SUCCESS);
         operation.done(qualifiedOutcome, null);
         incrementProgress(qualifiedOutcome);

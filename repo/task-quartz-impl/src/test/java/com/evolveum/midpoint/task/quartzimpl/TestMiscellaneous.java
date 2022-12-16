@@ -167,7 +167,7 @@ public class TestMiscellaneous extends AbstractTaskManagerTest {
         assertSchedulingState(closed, TaskSchedulingStateType.CLOSED);
 
         // this one should be started, so wa cannot assert its state (can be ready or closed)
-        waitForTaskClose(TASK_42_RUNNABLE.oid, result, 10000, 500);
+        waitForTaskClose(TASK_42_RUNNABLE.oid, result, 10000);
     }
 
     /**

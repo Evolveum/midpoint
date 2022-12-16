@@ -157,7 +157,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
         judgeOwner.setRelation(SchemaConstants.ORG_OWNER);
         executeChanges(prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT).add(createAssignmentTo(judgeAfter, SchemaConstants.ORG_OWNER))
-                        .asObjectDeltaCast(USER_JUDGE_OWNER_OID),
+                        .asObjectDelta(USER_JUDGE_OWNER_OID),
                 null, task, result);
 
         display("Judge role", judgeAfter);
@@ -176,7 +176,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
                         createAssignmentTo(OID2, ObjectTypes.ROLE, prismContext))
                 .item(RoleType.F_DESCRIPTION)
                 .replace("hi")
-                .asObjectDeltaCast(roleJudgeOid);
+                .asObjectDelta(roleJudgeOid);
 
         executeTest(new TestDetails() {
             @Override
@@ -432,7 +432,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
         ObjectDelta<RoleType> captainDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT)
                 .delete(cloneCollectionMembers(captainBefore.findContainer(RoleType.F_INDUCEMENT).getValues()))
-                .asObjectDeltaCast(roleCaptainOid);
+                .asObjectDelta(roleCaptainOid);
 
         executeTest(new TestDetails() {
             @Override
@@ -618,7 +618,7 @@ public class TestObjectLifecycleApprovalGlobal extends AbstractTestObjectLifecyc
         ObjectDelta<RoleType> captainDelta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT)
                 .delete(cloneCollectionMembers(thiefBefore.findContainer(RoleType.F_INDUCEMENT).getValues()))
-                .asObjectDeltaCast(roleThiefOid);
+                .asObjectDelta(roleThiefOid);
 
         executeTest(new TestDetails() {
             @Override

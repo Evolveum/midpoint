@@ -10,6 +10,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -48,8 +50,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
-import com.evolveum.midpoint.web.component.prism.show.SceneDto;
-import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -93,7 +93,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
     private static final String ID_CASE_WORK_ITEM_EVIDENCE = "caseWorkItemEvidence";
     private static final String ID_CASE_WORK_ITEM_EVIDENCE_FORM = "caseWorkItemEvidenceForm";
 
-    private IModel<SceneDto> sceneModel;
+    private IModel<VisualizationDto> visualizationModel;
     private LoadableDetachableModel<PrismObject<CaseType>> caseModel;
 
     public WorkItemDetailsPanel(String id, IModel<CaseWorkItemType> caseWorkItemTypeIModel) {
@@ -108,15 +108,15 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private void initModels() {
-        sceneModel = new LoadableModel<>(false) {
+        visualizationModel = new LoadableModel<>(false) {
             @Override
-            protected SceneDto load() {
+            protected VisualizationDto load() {
                 PageBase pageBase = WorkItemDetailsPanel.this.getPageBase();
                 CaseType parentCase = CaseTypeUtil.getCase(WorkItemDetailsPanel.this.getModelObject());
                 if (CaseTypeUtil.isManualProvisioningCase(parentCase)) {
-                    return WebComponentUtil.createSceneDtoForManualCase(parentCase, pageBase, OPERATION_PREPARE_DELTA_VISUALIZATION);
+                    return WebComponentUtil.createVisualizationDtoForManualCase(parentCase, pageBase, OPERATION_PREPARE_DELTA_VISUALIZATION);
                 } else {
-                    return WebComponentUtil.createSceneDto(WorkItemDetailsPanel.this.getModelObject(), pageBase, OPERATION_PREPARE_DELTA_VISUALIZATION);
+                    return WebComponentUtil.createVisualizationDto(WorkItemDetailsPanel.this.getModelObject(), pageBase, OPERATION_PREPARE_DELTA_VISUALIZATION);
                 }
             }
         };
@@ -212,9 +212,9 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType> {
         add(reasonPanel);
 
         if (CaseTypeUtil.isApprovalCase(parentCase) || CaseTypeUtil.isManualProvisioningCase(parentCase)) {
-            ScenePanel scenePanel = new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel);
-            scenePanel.setOutputMarkupId(true);
-            add(scenePanel);
+            VisualizationPanel visualizationPanel = new VisualizationPanel(ID_DELTAS_TO_APPROVE, visualizationModel);
+            visualizationPanel.setOutputMarkupId(true);
+            add(visualizationPanel);
         } else if (CaseTypeUtil.isCorrelationCase(parentCase)) {
             add(new CorrelationContextPanel(ID_DELTAS_TO_APPROVE, new CaseDetailsModels(caseModel, getPageBase()), getModel(), new ContainerPanelConfigurationType()));
         } else {

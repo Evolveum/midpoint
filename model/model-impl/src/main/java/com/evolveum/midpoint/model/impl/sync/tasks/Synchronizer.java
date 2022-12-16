@@ -42,20 +42,17 @@ public class Synchronizer {
     @NotNull private final PostSearchFilter postSearchFilter;
     @NotNull private final ResourceObjectChangeListener objectChangeListener;
     @NotNull private final QName sourceChannel;
-    private final boolean simulate;
     private final boolean forceAdd;
 
     public Synchronizer(@NotNull ResourceType resource,
             @NotNull PostSearchFilter postSearchFilter,
             @NotNull ResourceObjectChangeListener objectChangeListener,
             @NotNull QName sourceChannel,
-            boolean simulate,
             boolean forceAdd) {
         this.resource = resource;
         this.postSearchFilter = postSearchFilter;
         this.objectChangeListener = objectChangeListener;
         this.sourceChannel = sourceChannel;
-        this.simulate = simulate;
         this.forceAdd = forceAdd;
     }
 
@@ -102,7 +99,6 @@ public class Synchronizer {
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setSourceChannel(QNameUtil.qNameToUri(sourceChannel));
         change.setResource(resource.asPrismObject());
-        change.setSimulate(simulate);
         change.setItemProcessingIdentifier(itemProcessingIdentifier);
 
         if (forceAdd) {

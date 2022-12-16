@@ -31,9 +31,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.show.SceneDto;
-import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
-import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
+import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.ApprovalProcessesPreviewPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupListPanel;
@@ -46,15 +46,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPr
 public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<ModelContext<O>> {
     private static final long serialVersionUID = 1L;
 
-    private static final String ID_PRIMARY_DELTAS_SCENE = "primaryDeltas";
-    private static final String ID_SECONDARY_DELTAS_SCENE = "secondaryDeltas";
+    private static final String ID_PRIMARY_DELTAS = "primaryDeltas";
+    private static final String ID_SECONDARY_DELTAS = "secondaryDeltas";
     private static final String ID_APPROVALS_CONTAINER = "approvalsContainer";
     private static final String ID_APPROVALS = "approvals";
     private static final String ID_POLICY_VIOLATIONS_CONTAINER = "policyViolationsContainer";
     private static final String ID_POLICY_VIOLATIONS = "policyViolations";
 
-    private IModel<SceneDto> primaryDeltasModel;
-    private IModel<SceneDto> secondaryDeltasModel;
+    private IModel<VisualizationDto> primaryDeltasModel;
+    private IModel<VisualizationDto> secondaryDeltasModel;
     private IModel<List<EvaluatedTriggerGroupDto>> policyViolationsModel;
     private IModel<List<ApprovalProcessExecutionInformationDto>> approvalsModel;
 
@@ -73,36 +73,36 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
     }
 
     private void initModels() {
-        ModelContextVisualization modelScene;
+        ModelContextVisualization mcVisualization;
 
         ModelContext<O> modelContext = getModelObject();
         try {
             Task task = getPageBase().createSimpleTask("visualize");
             OperationResult result = task.getResult();
 
-            modelScene = getPageBase().getModelInteractionService().visualizeModelContext(modelContext, task, result);
+            mcVisualization = getPageBase().getModelInteractionService().visualizeModelContext(modelContext, task, result);
         } catch (SchemaException | ExpressionEvaluationException | ConfigurationException e) {
             throw new SystemException(e);        // TODO
         }
 
-        final List<? extends Visualization> primaryScenes = modelScene.getPrimary();
-        final List<? extends Visualization> secondaryScenes = modelScene.getSecondary();
+        final List<? extends Visualization> primary = mcVisualization.getPrimary();
+        final List<? extends Visualization> secondary = mcVisualization.getSecondary();
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Creating context DTO for primary deltas:\n{}", DebugUtil.debugDump(primaryScenes));
-            LOGGER.trace("Creating context DTO for secondary deltas:\n{}", DebugUtil.debugDump(secondaryScenes));
+            LOGGER.trace("Creating context DTO for primary deltas:\n{}", DebugUtil.debugDump(primary));
+            LOGGER.trace("Creating context DTO for secondary deltas:\n{}", DebugUtil.debugDump(secondary));
         }
 
-        final WrapperScene primaryScene = new WrapperScene(primaryScenes,
-                primaryScenes.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryScenes.size());
-        final WrapperScene secondaryScene = new WrapperScene(secondaryScenes,
-                secondaryScenes.size() != 1 ? "PagePreviewChanges.secondaryChangesMore" : "PagePreviewChanges.secondaryChangesOne", secondaryScenes.size());
+        final WrapperVisualization primaryVisualization = new WrapperVisualization(primary,
+                primary.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primary.size());
+        final WrapperVisualization secondaryVisualization = new WrapperVisualization(secondary,
+                secondary.size() != 1 ? "PagePreviewChanges.secondaryChangesMore" : "PagePreviewChanges.secondaryChangesOne", secondary.size());
 
-        final SceneDto primarySceneDto = new SceneDto(primaryScene);
-        final SceneDto secondarySceneDto = new SceneDto(secondaryScene);
+        final VisualizationDto primaryDto = new VisualizationDto(primaryVisualization);
+        final VisualizationDto secondaryDto = new VisualizationDto(secondaryVisualization);
 
-        primaryDeltasModel = () -> primarySceneDto;
-        secondaryDeltasModel = () -> secondarySceneDto;
+        primaryDeltasModel = () -> primaryDto;
+        secondaryDeltasModel = () -> secondaryDto;
 
         PolicyRuleEnforcerPreviewOutputType enforcements = modelContext != null
                 ? modelContext.getPolicyRuleEnforcerPreviewOutput()
@@ -139,8 +139,8 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
     }
 
     private void initLayout() {
-        add(new ScenePanel(ID_PRIMARY_DELTAS_SCENE, primaryDeltasModel));
-        add(new ScenePanel(ID_SECONDARY_DELTAS_SCENE, secondaryDeltasModel));
+        add(new VisualizationPanel(ID_PRIMARY_DELTAS, primaryDeltasModel));
+        add(new VisualizationPanel(ID_SECONDARY_DELTAS, secondaryDeltasModel));
 
         WebMarkupContainer policyViolationsContainer = new WebMarkupContainer(ID_POLICY_VIOLATIONS_CONTAINER);
         policyViolationsContainer.add(new VisibleBehaviour(() -> !violationsEmpty()));

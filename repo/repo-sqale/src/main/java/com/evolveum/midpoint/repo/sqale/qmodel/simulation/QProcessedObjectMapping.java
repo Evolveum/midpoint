@@ -106,8 +106,10 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         MProcessedObject row = initRowObject(object, ownerRow);
         //row.oid
         row.oid = SqaleUtils.oidToUUid(object.getOid());
-        row.nameOrig = object.getName().getOrig();
-        row.nameNorm = object.getName().getNorm();
+        if (object.getName() != null) {
+            row.nameOrig = object.getName().getOrig();
+            row.nameNorm = object.getName().getNorm();
+        }
         row.state = object.getState();
 
         row.metricIdentifiers = stringsToArray(object.getMetricIdentifier());

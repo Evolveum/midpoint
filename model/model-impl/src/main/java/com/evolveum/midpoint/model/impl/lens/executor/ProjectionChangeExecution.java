@@ -99,8 +99,14 @@ public class ProjectionChangeExecution<O extends ObjectType> {
         try {
             LOGGER.trace("Executing projection context {}", projCtx.toHumanReadableString());
 
-            context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
-                    projCtx.getKey(), ENTERING));
+            // We want to execute the changes for no-resource contexts e.g. to remove dead links
+            if (projCtx.hasResource() && !projCtx.isVisible()) {
+                LOGGER.trace("Resource object definition is not visible; skipping change execution (if there's any)");
+                result.recordNotApplicable("Not visible");
+                return;
+            }
+
+            context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION, projCtx.getKey(), ENTERING));
 
             ScriptExecutor<O> scriptExecutor = new ScriptExecutor<>(context, projCtx, task, b);
             scriptExecutor.executeReconciliationScripts(BeforeAfterType.BEFORE, result);

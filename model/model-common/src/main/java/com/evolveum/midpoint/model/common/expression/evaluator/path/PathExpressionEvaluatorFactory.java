@@ -13,12 +13,10 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
 import org.apache.commons.lang3.Validate;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
@@ -30,7 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
- * This is NOT autowired evaluator.
+ * This is NOT autowired evaluator factory.
  *
  * @author semancik
  */
@@ -38,13 +36,10 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
 
     private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_PATH;
 
-    private final PrismContext prismContext;
     private final Protector protector;
 
-    public PathExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext, Protector protector,
-            CacheConfigurationManager cacheConfigurationManager) {
-        super(expressionFactory, cacheConfigurationManager);
-        this.prismContext = prismContext;
+    public PathExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector) {
+        super(expressionFactory);
         this.protector = protector;
     }
 
@@ -54,7 +49,7 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
     }
 
     @Override
-    public <V extends PrismValue, D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(
+    public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
             Collection<JAXBElement<?>> evaluatorElements,
             D outputDefinition,
             ExpressionProfile expressionProfile,
@@ -66,6 +61,6 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
         ItemPathType path = Objects.requireNonNull(
                 getSingleEvaluatorBean(evaluatorElements, ItemPathType.class, contextDescription),
                 () -> "missing path specification in " + contextDescription);
-        return new PathExpressionEvaluator<>(ELEMENT_NAME, path, outputDefinition, protector, prismContext);
+        return new PathExpressionEvaluator<>(ELEMENT_NAME, path, outputDefinition, protector);
     }
 }

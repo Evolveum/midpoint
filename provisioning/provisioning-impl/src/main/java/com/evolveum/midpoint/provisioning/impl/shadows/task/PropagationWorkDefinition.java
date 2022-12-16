@@ -37,6 +37,6 @@ public class PropagationWorkDefinition extends AbstractWorkDefinition {
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceOid", resourceOid, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "resourceOid", resourceOid, indent+1);
     }
 }

@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
@@ -36,7 +35,6 @@ public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionE
 
     private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_AS_IS;
 
-    @Autowired private PrismContext prismContext;
     @Autowired private Protector protector;
 
     @SuppressWarnings("unused") // Used by Spring
@@ -44,8 +42,7 @@ public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionE
     }
 
     @VisibleForTesting
-    public AsIsExpressionEvaluatorFactory(PrismContext prismContext, Protector protector) {
-        this.prismContext = prismContext;
+    public AsIsExpressionEvaluatorFactory(Protector protector) {
         this.protector = protector;
     }
 
@@ -55,14 +52,17 @@ public class AsIsExpressionEvaluatorFactory extends AbstractAutowiredExpressionE
     }
 
     @Override
-    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(
+    public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
             Collection<JAXBElement<?>> evaluatorElements,
             D outputDefinition,
             ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory,
-            String contextDescription, Task task, OperationResult result) throws SchemaException {
+            String contextDescription,
+            Task task,
+            OperationResult result) throws SchemaException {
 
-        AsIsExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBean(evaluatorElements, AsIsExpressionEvaluatorType.class, contextDescription);
-        return new AsIsExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector, prismContext);
+        AsIsExpressionEvaluatorType evaluatorBean =
+                getSingleEvaluatorBean(evaluatorElements, AsIsExpressionEvaluatorType.class, contextDescription);
+        return new AsIsExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector);
     }
 }

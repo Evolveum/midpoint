@@ -154,13 +154,14 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         return mappingBean;
     }
 
-    public boolean hasEvaluatedMapping() {
+    boolean hasEvaluatedMapping() {
         return evaluatedMapping != null && evaluatedMapping.isEnabled();
     }
 
     // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)
     private MappingImpl<V, D> evaluateMapping()
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         MappingBuilder<V, D> mappingBuilder = construction.getMappingFactory().createMappingBuilder(mappingBean, getShortDesc());
 
@@ -169,8 +170,11 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
         LensContext<AH> context = construction.lensContext;
 
-        if (construction.initializeMappingBuilder(mappingBuilder, itemPath, itemName, itemPrismDefinition,
-                getAssociationTargetObjectClassDefinition()) == null) {
+        mappingBuilder = construction.initializeMappingBuilder(
+                mappingBuilder, itemPath, itemName, itemPrismDefinition,
+                getAssociationTargetObjectClassDefinition(), constructionEvaluation.task);
+
+        if (mappingBuilder == null) {
             return null;
         }
 

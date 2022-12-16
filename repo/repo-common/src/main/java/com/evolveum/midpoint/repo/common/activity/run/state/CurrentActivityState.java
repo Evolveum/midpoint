@@ -22,8 +22,6 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,7 +61,10 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
 
     private static final Trace LOGGER = TraceManager.getTrace(CurrentActivityState.class);
 
-    private static final @NotNull ItemPath ROOT_ACTIVITY_STATE_PATH = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
+    private static final @NotNull ItemPath ROOT_ACTIVITY_STATE_PATH =
+            ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_ACTIVITY);
+    private static final @NotNull ItemPath SIMULATION_RESULT_REF_PATH =
+            ItemPath.create(ActivityStateType.F_SIMULATION, ActivitySimulationStateType.F_RESULT_REF);
 
     @NotNull private final AbstractActivityRun<?, ?, WS> activityRun;
 
@@ -345,16 +346,12 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         return workStateComplexTypeDefinition;
     }
 
-    /**
-     * Returns the whole state as a bean, presumably cloned (because the task is running).
-     *
-     * Precondition: the state is initialized, i.e. {@link #stateItemPath} is not null.
-     */
-    @Experimental
-    public @NotNull ActivityStateType getBeanClone() {
-        stateCheck(stateItemPath != null,
-                "State item path is null, i.e. the state was not initialized yet: %s", this);
-        return activityRun.getRunningTask().getActivityStateOrClone(stateItemPath);
+    public void setSimulationResultRef(ObjectReferenceType simResultRef) throws ActivityRunException {
+        setItemRealValues(SIMULATION_RESULT_REF_PATH, simResultRef);
+    }
+
+    public ObjectReferenceType getSimulationResultRef() {
+        return getReferenceRealValue(SIMULATION_RESULT_REF_PATH);
     }
     //endregion
 
@@ -363,7 +360,7 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
         return liveProgress;
     }
 
-    public ActivityProgressType getStoredProgress() {
+    private ActivityProgressType getStoredProgress() {
         return getItemRealValueClone(ActivityStateType.F_PROGRESS, ActivityProgressType.class);
     }
 
@@ -373,14 +370,6 @@ public class CurrentActivityState<WS extends AbstractActivityWorkStateType>
 
     public @NotNull ActivityItemProcessingStatistics getLiveItemProcessingStatistics() {
         return liveStatistics.getLiveItemProcessing();
-    }
-
-    public ActivityItemProcessingStatisticsType getStoredItemProcessingStatistics() {
-        return liveStatistics.getStoredItemProcessing();
-    }
-
-    public ActivityBucketManagementStatisticsType getStoredBucketManagementStatistics() {
-        return liveStatistics.getStoredBucketManagement();
     }
 
     public void updateProgressAndStatisticsNoCommit() throws ActivityRunException {

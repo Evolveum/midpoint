@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Evaluation of the "path" expression.
  */
-class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition> {
+class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition<?>> {
 
     private final PathExpressionEvaluator<V, D> evaluator;
     private final ExpressionEvaluationContext context;

@@ -132,7 +132,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
                     }
 
                     if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
-                        ReportDataType reportDataObject = new ReportDataType(prismContext)
+                        ReportDataType reportDataObject = new ReportDataType()
                                 .name(createObjectName(tracingProfile, templateParameters))
                                 .archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
                                 .filePath(file.getAbsolutePath())
@@ -303,16 +303,17 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
     }
 
     @Override
-    public TracingProfileType getDefaultProfile() {
-        TracingConfigurationType tracingConfiguration = getTracingConfiguration();
-        if (tracingConfiguration == null || tracingConfiguration.getProfile().isEmpty()) {
-            return new TracingProfileType(prismContext);
+    public @NotNull TracingProfileType getDefaultProfile() {
+        TracingConfigurationType configuration = getTracingConfiguration();
+        List<TracingProfileType> profiles = configuration != null ? configuration.getProfile() : List.of();
+        if (profiles.isEmpty()) {
+            return new TracingProfileType();
         } else {
-            List<TracingProfileType> defaultProfiles = tracingConfiguration.getProfile().stream()
+            List<TracingProfileType> defaultProfiles = profiles.stream()
                     .filter(p -> Boolean.TRUE.equals(p.isDefault()))
                     .collect(Collectors.toList());
             if (defaultProfiles.isEmpty()) {
-                return tracingConfiguration.getProfile().get(0);
+                return profiles.get(0);
             } else if (defaultProfiles.size() == 1) {
                 return defaultProfiles.get(0);
             } else {
@@ -323,8 +324,10 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
     }
 
     @Override
-    public CompiledTracingProfile compileProfile(TracingProfileType profile, OperationResult result) throws SchemaException {
-        TracingProfileType resolvedProfile = resolve(profile, result);
+    public CompiledTracingProfile compileProfile(@Nullable TracingProfileType profile, @NotNull OperationResult result)
+            throws SchemaException {
+        TracingProfileType resolvedProfile =
+                resolve(profile != null ? profile : getDefaultProfile(), result);
         return CompiledTracingProfile.create(resolvedProfile, prismContext);
     }
 

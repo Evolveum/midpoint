@@ -33,8 +33,6 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
-
-
     <xsd:complexType name="SimulationResultType">
         <xsd:annotation>
             <xsd:documentation>
@@ -50,7 +48,7 @@
                 <xsd:sequence>
                     <xsd:element name="metric" type="tns:SimulationMetricType" maxOccurs="unbounded"/>
                     <xsd:element name="processedObject" type="tns:SimulationResultProcessedObjectType" maxOccurs="unbounded" />
-                    <xsd:element name="useOwnPartitionForProcessedObjects" type="xsd:boolean" />
+                    <xsd:element name="useOwnPartitionForProcessedObjects" type="xsd:boolean" minOccurs="0" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -72,7 +70,7 @@
         <xsd:sequence>
             <xsd:element name="useOwnPartitionForProcessedObjects" type="xsd:boolean" />
             <!--  TODO: Do we want storage strategies per type? or per metric?
-                  
+
                   Storage strategies may be beneficial for large deployments
                    - eg. do not store information about objects, that do not match any metric
                      or are unmodified.
@@ -135,7 +133,7 @@
         <xsd:element name="matchedObjects" type="xsd:decimal"/>
       </xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:complexType name="SimulationResultProcessedObjectType">
        <xsd:annotation>
           <xsd:documentation>
@@ -152,10 +150,11 @@
           <xsd:element name="name" type="t:PolyStringType" />
           <xsd:element name="state" type="tns:ObjectProcessingStateType" />
           <xsd:element name="metricIdentifier" type="xsd:string" maxOccurs="unbounded" />
-          
+
           <!--  Extra stored state -->
           <xsd:element name="before" type="tns:ObjectType" />
           <xsd:element name="after" type="tns:ObjectType" />
+          <xsd:element name="delta" type="t:ObjectDeltaType" />
        </xsd:sequence>
     </xsd:complexType>
 

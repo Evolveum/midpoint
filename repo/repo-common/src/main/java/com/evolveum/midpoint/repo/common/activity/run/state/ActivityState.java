@@ -48,8 +48,10 @@ public abstract class ActivityState implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityState.class);
 
-    private static final @NotNull ItemPath BUCKETING_ROLE_PATH = ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_BUCKETS_PROCESSING_ROLE);
-    private static final @NotNull ItemPath SCAVENGER_PATH = ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
+    private static final @NotNull ItemPath BUCKETING_ROLE_PATH =
+            ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_BUCKETS_PROCESSING_ROLE);
+    private static final @NotNull ItemPath SCAVENGER_PATH =
+            ItemPath.create(ActivityStateType.F_BUCKETING, ActivityBucketingStateType.F_SCAVENGER);
 
     private static final int MAX_TREE_DEPTH = 30;
 
@@ -60,14 +62,13 @@ public abstract class ActivityState implements DebugDumpable {
      * yet initialized (for the {@link CurrentActivityState}) or if the state does not exist in a given
      * task (for the {@link OtherActivityState}).
      */
-    protected ItemPath stateItemPath;
+    ItemPath stateItemPath;
 
     protected ActivityState(@NotNull CommonTaskBeans beans) {
         this.beans = beans;
     }
 
     //region Specific getters
-
     public ActivityRealizationStateType getRealizationState() {
         return getTask().getPropertyRealValue(getRealizationStateItemPath(), ActivityRealizationStateType.class);
     }
@@ -76,6 +77,7 @@ public abstract class ActivityState implements DebugDumpable {
         return stateItemPath.append(ActivityStateType.F_REALIZATION_STATE);
     }
 
+    /** TODO */
     public boolean isComplete() {
         return getRealizationState() == ActivityRealizationStateType.COMPLETE;
     }
@@ -117,6 +119,11 @@ public abstract class ActivityState implements DebugDumpable {
     public <T> T getPropertyRealValue(ItemPath path, Class<T> expectedType) {
         return getTask()
                 .getPropertyRealValue(stateItemPath.append(path), expectedType);
+    }
+
+    ObjectReferenceType getReferenceRealValue(ItemPath path) {
+        return getTask()
+                .getReferenceRealValue(stateItemPath.append(path));
     }
 
     <T> T getItemRealValueClone(ItemPath path, Class<T> expectedType) {

@@ -521,11 +521,16 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         LOGGER.trace("Global policy rules instantiated {} times for further evaluation", globalRulesInstantiated);
     }
 
-    private <AH extends AssignmentHolderType> boolean isRuleConditionTrue(GlobalPolicyRuleType globalPolicyRule, PrismObject<AH> focus,
+    private <AH extends AssignmentHolderType> boolean isRuleConditionTrue(
+            GlobalPolicyRuleType globalPolicyRule, PrismObject<AH> focus,
             EvaluatedAssignmentImpl<AH> evaluatedAssignment, LensContext<AH> context, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         MappingType condition = globalPolicyRule.getCondition();
         if (condition == null) {
+            return true;
+        }
+        if (!task.canSee(condition)) {
+            LOGGER.trace("Condition is not visible for the current task");
             return true;
         }
 

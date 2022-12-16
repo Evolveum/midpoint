@@ -16,6 +16,7 @@ import com.evolveum.midpoint.repo.common.activity.definition.*;
 import com.evolveum.midpoint.repo.common.activity.run.DelegatingActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.DistributingActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.state.ActivityState;
 import com.evolveum.midpoint.repo.common.activity.run.state.ActivityStateDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.task.ActivityBasedTaskRun;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
@@ -40,35 +41,47 @@ import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 /**
  * Binds together all the information about an activity and its run (if present).
  *
+ * The {@link Activity} itself is a binder for (shortly speaking):
+ *
+ * . ({@link #definition}) {@link ActivityDefinition}
+ * . ({@link #run}) {@link AbstractActivityRun} (optional - only if we are dealing with the currently executing activity)
+ *   * {@link ActivityState};
+ * . ({@link #tree}) {@link ActivityTree}
+ *   * {@link ActivityTreeStateOverview}
+ * . {@link ActivityHandler}
+ *
  * @param <WD> Type of the work definition object
  * @param <AH> Type of the activity handler object
  */
 public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>>
         implements DebugDumpable {
 
-    private static final @NotNull ItemPath TASK_ROLE_PATH = ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_TASK_ROLE);
+    private static final @NotNull ItemPath TASK_ROLE_PATH =
+            ItemPath.create(TaskType.F_ACTIVITY_STATE, TaskActivityStateType.F_TASK_ROLE);
 
     /**
      * Identifier of the activity. It is unique at the current level in the activity tree.
+     * May be defined in {@link ActivityDefinition#explicitlyDefinedIdentifier}, but usually it is generated
+     * when the list of sub-activities is finalized.
+     *
+     * See {@link #setupIdentifiers(List)}.
      */
     private String identifier;
 
-    /**
-     * Definition of the activity.
-     */
+    /** Definition of the activity. Parsed from XML of the activity and from the legacy task extension. */
     @NotNull private final ActivityDefinition<WD> definition;
 
-    /**
-     * Run of the activity. May be null.
-     */
+    /** Run of the activity. May be null. The current activity state is here. */
     private AbstractActivityRun<WD, AH, ?> run;
 
-    /**
-     * Reference to the tree object.
-     */
+    /** Reference to the tree object. The tree state is here. */
     @NotNull private final ActivityTree tree;
 
-    /** TODO */
+    /**
+     * Is this activity the local root i.e. top-level activity running in the current task?
+     * If the task is a root task, this implies the activity is the global root of the activity tree.
+     * But if the task is a subtask, the activity may be a sub-activity.
+     */
     private boolean localRoot;
 
     /**
@@ -78,10 +91,13 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
      */
     @NotNull private final Map<String, Activity<?, ?>> childrenMap = Collections.synchronizedMap(new LinkedHashMap<>());
 
+    /** Was {@link #childrenMap} already initialized? TODO move to a special class with the map. */
     private boolean childrenMapInitialized;
 
+    /** (Global) path of this activity in the activity tree. */
     @NotNull private final Lazy<ActivityPath> pathLazy = Lazy.from(this::computePath);
 
+    /** (Local) path of this activity in the current task. */
     @NotNull private final Lazy<ActivityPath> localPathLazy = Lazy.from(this::computeLocalPath);
 
     Activity(@NotNull ActivityDefinition<WD> definition, @NotNull ActivityTree tree) {
@@ -93,17 +109,11 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return identifier;
     }
 
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-    }
-
-    @NotNull
-    public ActivityDefinition<WD> getDefinition() {
+    public @NotNull ActivityDefinition<WD> getDefinition() {
         return definition;
     }
 
-    @NotNull
-    public WD getWorkDefinition() {
+    public @NotNull WD getWorkDefinition() {
         return definition.getWorkDefinition();
     }
 
@@ -119,14 +129,18 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return definition.getControlFlowDefinition();
     }
 
-    @NotNull
-    public abstract AH getHandler();
+    public abstract @NotNull AH getHandler();
 
-    @NotNull
-    protected abstract ActivityRunSupplier<WD, AH> getLocalRunSupplier();
+    /**
+     * Returns objects that create {@link AbstractActivityRun} objects for this activity.
+     * It is used in cases where the activity runs locally i.e. is not delegated nor distributed.
+     *
+     * See {@link ActivityRunSupplier}.
+     */
+    protected abstract @NotNull ActivityRunSupplier<WD, AH> getLocalRunSupplier();
 
-    @NotNull
-    protected abstract CandidateIdentifierFormatter getCandidateIdentifierFormatter();
+    /** Returns objects that suggest child activity identifiers. */
+    protected abstract @NotNull CandidateIdentifierFormatter getCandidateIdentifierFormatter();
 
     public abstract @NotNull ActivityStateDefinition<?> getActivityStateDefinition();
 
@@ -134,13 +148,12 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return run;
     }
 
-    @NotNull
-    public ActivityTree getTree() {
+    public @NotNull ActivityTree getTree() {
         return tree;
     }
 
-    public void setLocalRoot(boolean localRoot) {
-        this.localRoot = localRoot;
+    public void setLocalRoot() {
+        this.localRoot = true;
     }
 
     public abstract Activity<?, ?> getParent();
@@ -179,14 +192,14 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return sb.toString();
     }
 
-    @NotNull
-    private String getDebugDumpLabel() {
+    private @NotNull String getDebugDumpLabel() {
         return getClass().getSimpleName() + " [identifier '" + identifier + "']" +
                 (isRoot() ? " (root)" : "") +
                 (isLocalRoot() ? " (local root)" : "");
     }
 
-    public AbstractActivityRun<?, ?, ?> createRun(ActivityBasedTaskRun taskRun, OperationResult result) {
+    /** Creates and sets the activity run ({@link #run}). */
+    public @NotNull AbstractActivityRun<?, ?, ?> createRun(ActivityBasedTaskRun taskRun, OperationResult result) {
         stateCheck(run == null, "Run is already created in %s", this);
         ActivityRunInstantiationContext<WD, AH> context = new ActivityRunInstantiationContext<>(this, taskRun);
         RunType runType = determineRunType(taskRun.getRunningTask());
@@ -247,15 +260,15 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return activityTask.getPropertyRealValue(TASK_ROLE_PATH, TaskRoleType.class);
     }
 
-    @NotNull
-    public Activity<?, ?> getChild(String identifier) throws SchemaException {
+    public @NotNull Activity<?, ?> getChild(String identifier) throws SchemaException {
         initializeChildrenMapIfNeeded();
         Activity<?, ?> child = childrenMap.get(identifier);
         if (child != null) {
             return child;
         } else {
-            throw new IllegalArgumentException("Child with identifier " + identifier + " was not found among children of "
-                    + this + ". Known children are: " + getChildrenMapCopy().keySet());
+            throw new IllegalArgumentException(
+                    String.format("Child with identifier %s was not found among children of %s. Known children are: %s",
+                            identifier, this, getChildrenMapCopy().keySet()));
         }
     }
 
@@ -337,13 +350,12 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
                 .execute();
     }
 
+    /** Is this activity the (global) root of the activity tree? */
     public boolean isRoot() {
         return getParent() == null;
     }
 
-    /**
-     * Is this activity the local root i.e. root of run in the current task?
-     */
+    /** Is this activity the local root i.e. root of run in the current task? */
     public boolean isLocalRoot() {
         return localRoot;
     }
@@ -355,13 +367,11 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
                 '}';
     }
 
-    @NotNull
-    public ActivityPath getPath() {
+    public @NotNull ActivityPath getPath() {
         return pathLazy.get();
     }
 
-    @NotNull
-    private ActivityPath computePath() {
+    private @NotNull ActivityPath computePath() {
         LinkedList<String> identifiers = new LinkedList<>();
         Activity<?, ?> current = this;
         while (!current.isRoot()) {
@@ -371,13 +381,11 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
         return ActivityPath.fromList(identifiers);
     }
 
-    @Nullable
-    public ActivityPath getLocalPath() {
+    public @Nullable ActivityPath getLocalPath() {
         return localPathLazy.get();
     }
 
-    @Nullable
-    private ActivityPath computeLocalPath() {
+    private @Nullable ActivityPath computeLocalPath() {
         LinkedList<String> identifiers = new LinkedList<>();
         Activity<?, ?> current = this;
         while (!current.isLocalRoot()) {
@@ -412,6 +420,10 @@ public abstract class Activity<WD extends WorkDefinition, AH extends ActivityHan
 
     public boolean isSkipped() {
         return definition.getControlFlowDefinition().isSkip();
+    }
+
+    public @NotNull ExecutionModeType getExecutionMode() {
+        return definition.getExecutionMode();
     }
 
     private enum RunType {

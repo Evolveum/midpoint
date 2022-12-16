@@ -62,7 +62,6 @@ public final class ResourceObjectsReconciliationActivityRun
                 processingScope.getPostSearchFilter(),
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_RECON,
-                isPreview(),
                 false);
     }
 

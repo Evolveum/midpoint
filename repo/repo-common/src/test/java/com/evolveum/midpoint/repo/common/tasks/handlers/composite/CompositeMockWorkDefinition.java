@@ -56,19 +56,19 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
         return steps;
     }
 
-    public Boolean isOpening() {
+    private Boolean isOpening() {
         return opening;
     }
 
-    public Boolean isClosing() {
+    private Boolean isClosing() {
         return closing;
     }
 
-    public boolean isOpeningEnabled() {
+    boolean isOpeningEnabled() {
         return !Boolean.FALSE.equals(isOpening());
     }
 
-    public boolean isClosingEnabled() {
+    boolean isClosingEnabled() {
         return !Boolean.FALSE.equals(isClosing());
     }
 
@@ -78,6 +78,6 @@ public class CompositeMockWorkDefinition extends AbstractWorkDefinition {
         DebugUtil.debugDumpWithLabelLn(sb, "delay", delay, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "steps", steps, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "opening", opening, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "closing", closing, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "closing", closing, indent+1);
     }
 }

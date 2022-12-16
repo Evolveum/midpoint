@@ -189,7 +189,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
         RESOURCE_SIS.appendLine("3,Ian,Smith,2004-02-06,040206-1328,math");
 
         when();
-        var taskOid = importSingleAccountRequest()
+        var taskOid = importAccountsRequest()
                 .withResourceOid(RESOURCE_SIS.oid)
                 .withNamingAttribute(SIS_ID_NAME)
                 .withNameValue("3")
@@ -253,7 +253,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
         dummyTransport.clearMessages();
 
         when("import is run");
-        var taskOid = importSingleAccountRequest()
+        var taskOid = importAccountsRequest()
                 .withResourceOid(RESOURCE_SIS.oid)
                 .withNamingAttribute(SIS_ID_NAME)
                 .withNameValue("4")
@@ -435,7 +435,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
         RESOURCE_SIS.appendLine("6,John,Smith,2004-02-06,040206/8824,sw-eng-doctoral");
 
         when("the task is executed");
-        var taskOid = importSingleAccountRequest()
+        var taskOid = importAccountsRequest()
                 .withResourceOid(RESOURCE_SIS.oid)
                 .withNamingAttribute(SIS_ID_NAME)
                 .withNameValue("6")
@@ -547,7 +547,7 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
         RESOURCE_SIS.appendLine("7,Jim,Sanchez,2004-02-06,040206/8824,math");
 
         when("the task is executed");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_SIS.oid)
                 .withNamingAttribute(SIS_ID_NAME)
                 .withNameValue("7")

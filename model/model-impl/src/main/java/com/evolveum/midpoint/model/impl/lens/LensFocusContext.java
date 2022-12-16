@@ -463,8 +463,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
      *
      * CURRENTLY CALLED ONLY FOR FOCUS. ASSUMES SUCCESSFUL EXECUTION.
      */
-    void updateAfterExecution() {
-        state.updateAfterExecution(lensContext.getExecutionWave());
+    void updateAfterExecution() throws SchemaException {
+        state.updateAfterExecution(lensContext.getTaskExecutionMode(), lensContext.getExecutionWave());
     }
 
     boolean primaryItemDeltaExists(ItemPath path) {

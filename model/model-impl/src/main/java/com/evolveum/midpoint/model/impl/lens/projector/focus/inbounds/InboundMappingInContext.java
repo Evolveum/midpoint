@@ -7,17 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.inbounds;
 
-import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 /**
  * Inbound mapping along with its {@link LensProjectionContext} (if relevant).
@@ -48,24 +45,12 @@ public class InboundMappingInContext<V extends PrismValue, D extends ItemDefinit
         return projectionContext;
     }
 
-    @NotNull LensProjectionContext getProjectionContextRequired() {
-        return Objects.requireNonNull(projectionContext);
-    }
-
-    @NotNull ProjectionContextKey getProjectionContextKeyRequired() {
-        return getProjectionContextRequired().getKey();
-    }
-
     public @Nullable LensContext<?> getLensContext() {
         return projectionContext != null ? projectionContext.getLensContext() : null;
     }
 
     boolean isProjectionBeingDeleted() {
         return projectionContext != null && projectionContext.isDelete();
-    }
-
-    boolean isProjectionGone() {
-        return projectionContext != null && projectionContext.isGone();
     }
 
     @Override

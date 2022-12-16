@@ -72,7 +72,7 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         RESOURCE_SIS.appendLine("1,John,Smith,2004-02-06,040206/1328");
 
         when("import for #1 is run");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_SIS.oid)
                 .withNamingAttribute(SIS_ID_NAME)
                 .withNameValue("1")
@@ -104,7 +104,7 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         RESOURCE_SIS.appendLine("2,John,Smith,2004-02-06,040206/132x");
 
         when("import for #2 is run");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_SIS.oid)
                 .withNamingAttribute(SIS_ID_NAME)
                 .withNameValue("2")
@@ -131,7 +131,7 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         assertFailure(result);
 
         // May be fragile. Adapt as needed.
-        assertThat(result.getMessage()).as("error message").contains("already exists in context");
+        assertThat(result.getMessage()).as("error message").contains("already exists in lens context");
 
         assertUserByUsername("smith1", "after case resolution")
                 .display()
@@ -157,7 +157,7 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         correlationService.clearCorrelationState(a2.getOid(), result);
 
         when("import for #3 is run");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_SIS.oid)
                 .withNamingAttribute(SIS_ID_NAME)
                 .withNameValue("3")

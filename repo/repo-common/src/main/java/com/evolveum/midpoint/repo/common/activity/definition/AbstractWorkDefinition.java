@@ -10,17 +10,13 @@ package com.evolveum.midpoint.repo.common.activity.definition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivityDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 
-import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * IMPLEMENTATION NOTE: The fields in sub-classes should be immutable! (TODO: why?)
  */
 public abstract class AbstractWorkDefinition implements WorkDefinition {
-
-    @NotNull private ExecutionModeType executionMode = ExecutionModeType.FULL;
 
     /**
      * *TODO* decide if the tailoring should be here or in {@link ActivityDefinition}.
@@ -29,15 +25,6 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
      *   just like distribution, flow control, etc does.
      */
     @NotNull private ActivityTailoring activityTailoring = new ActivityTailoring();
-
-    @Override
-    public @NotNull ExecutionModeType getExecutionMode() {
-        return executionMode;
-    }
-
-    public void setExecutionMode(ExecutionModeType executionMode) {
-        this.executionMode = MoreObjects.firstNonNull(executionMode, ExecutionModeType.FULL);
-    }
 
     @Override
     public @NotNull ActivityTailoring getActivityTailoring() {
@@ -59,12 +46,13 @@ public abstract class AbstractWorkDefinition implements WorkDefinition {
         DebugUtil.debugDumpLabelLn(sb, getClass().getSimpleName(), indent);
         debugDumpContent(sb, indent);
         if (!activityTailoring.isEmpty()) {
-            DebugUtil.debugDumpWithLabelLn(sb, "activity tailoring", String.valueOf(activityTailoring), indent + 1);
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "activity tailoring", String.valueOf(activityTailoring), indent + 1);
         }
-        DebugUtil.debugDumpWithLabel(sb, "execution mode", String.valueOf(executionMode), indent+1);
         return sb.toString();
     }
 
+    /** Provides specific debug dump. Should not append last newline. */
     protected abstract void debugDumpContent(StringBuilder sb, int indent);
 
     @Override

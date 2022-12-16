@@ -15,6 +15,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Creates (typed) {@link AbstractActivityRun} objects for given activity.
+ *
+ * - For standalone activities it is usually the {@link ActivityHandler} itself.
+ * - For embedded activities it is usually a custom piece of code used when defining a child activity.
+ */
 @FunctionalInterface
 public interface ActivityRunSupplier<WD extends WorkDefinition, AH extends ActivityHandler<WD, AH>> {
 

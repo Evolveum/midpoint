@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sql.util;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.jetbrains.annotations.Contract;
@@ -68,6 +70,9 @@ public final class ClassMapper {
         TYPES.put(ObjectTypes.MESSAGE_TEMPLATE, RObjectType.MESSAGE_TEMPLATE);
 
         for (ObjectTypes type : ObjectTypes.values()) {
+            if (type == ObjectTypes.SIMULATION_RESULT) {
+                continue; // FIXME ugly hack
+            }
             if (!TYPES.containsKey(type)) {
                 String message = "Not all object types are mapped by sql repo impl. Found '" + type + "' unmapped.";
                 System.err.println(message);
@@ -115,12 +120,11 @@ public final class ClassMapper {
         Objects.requireNonNull(clazz, "Class must not be null.");
 
         ObjectTypes type = ObjectTypes.getObjectType(clazz);
-        Class<? extends RObject> hqlType = TYPES.get(type).getClazz();
-        if (hqlType == null) {
-            throw new IllegalStateException("Couldn't find DB type for '" + clazz + "'.");
-        }
-
-        return hqlType;
+        return MiscUtil.requireNonNull(
+                        TYPES.get(type),
+                        () -> new UnsupportedOperationException(
+                                "Generic repository does not support objects of type '" + clazz + "'"))
+                .getClazz();
     }
 
     @Contract("!null -> !null; null -> null")
