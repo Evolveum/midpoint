@@ -102,7 +102,7 @@ public class AccessApplicationStepPanel extends AbstractWizardStepPanel<RoleType
         searchModel = new LoadableModel<>(false) {
             @Override
             protected Search<ServiceType> load() {
-                return SearchFactory.createSearch(ServiceType.class, getPageBase());
+                return new SearchFactory().type(ServiceType.class).modelServiceLocator(getPageBase()).createSearch();
             }
         };
     }
