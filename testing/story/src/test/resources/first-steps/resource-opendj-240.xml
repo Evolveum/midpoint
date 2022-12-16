@@ -112,8 +112,12 @@
                             <tier>1</tier>
                         </composition>
                     </items>
-                    <!-- TODO we need some "negative conditions" like telling that emailAddress matching should not apply
-                          if the employeeNumber is present and not matching -->
+                    <!--
+                     We need some "negative conditions" here. In particular, we need to tell midPoint that emailAddress
+                     matching should not apply if the employeeNumber is present and not matching. Because of the tier 1
+                     definition above, the condition could be simply "employeeNumber != null".
+                     See https://docs.evolveum.com/midpoint/methodology/first-steps/solution/#conditions-for-items-correlators.
+                    -->
                     <items>
                         <item>
                             <ref>emailAddress</ref>

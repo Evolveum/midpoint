@@ -95,10 +95,11 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final CsvResource RESOURCE_HR_160 = createHrResource("resource-hr-160.xml");
     private static final CsvResource RESOURCE_HR_170 = createHrResource("resource-hr-170.xml");
 
+    private static final File INITIAL_LDIF_FILE = new File(TEST_DIR, "initial.ldif");
+
     private static final int PROTECTED_OPENDJ_ACCOUNTS = 4;
     private static final int REGULAR_INITIAL_OPENDJ_ACCOUNTS = 9;
     private static final int ALL_INITIAL_OPENDJ_ACCOUNTS = PROTECTED_OPENDJ_ACCOUNTS + REGULAR_INITIAL_OPENDJ_ACCOUNTS;
-    private static final File INITIAL_LDIF_FILE = new File(TEST_DIR, "initial.ldif");
 
     private static final String RESOURCE_OPENDJ_OID = "0934922f-0f63-4768-b1b1-eab4275b31d1";
 

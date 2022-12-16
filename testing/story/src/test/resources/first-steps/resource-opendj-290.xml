@@ -50,7 +50,8 @@
                     </target>
                     <!-- This is a kind of hack. We want to correlate on this attribute by a simple mapping but do not want
                          to use it to really modify the focus. This may happen for correlation attributes on non-authoritative
-                         resources (e.g. target ones, or "auxiliary" source ones). Repeated for other attributes. -->
+                         resources (e.g. target ones, or "auxiliary" source ones). Repeated for other attributes.
+                         See https://docs.evolveum.com/midpoint/methodology/first-steps/solution/#correlation-only-mappings. -->
                     <evaluationPhases>
                         <include>beforeCorrelation</include>
                         <exclude>clockwork</exclude>
