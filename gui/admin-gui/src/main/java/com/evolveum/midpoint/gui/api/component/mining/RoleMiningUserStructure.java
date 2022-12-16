@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.mining;
+package com.evolveum.midpoint.gui.api.component.mining;
 
 import java.io.Serializable;
 import java.util.List;
@@ -13,12 +13,12 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class UserRolesList implements Serializable {
+public class RoleMiningUserStructure implements Serializable {
 
     PrismObject<UserType> userObject;
     List<String> roleObjectId;
 
-    public UserRolesList(PrismObject<UserType> userObject, List<String> roleObjectId) {
+    public RoleMiningUserStructure(PrismObject<UserType> userObject, List<String> roleObjectId) {
         this.userObject = userObject;
         this.roleObjectId = roleObjectId;
     }

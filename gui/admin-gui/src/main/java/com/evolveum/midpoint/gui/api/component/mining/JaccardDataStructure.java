@@ -5,34 +5,40 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.mining;
+package com.evolveum.midpoint.gui.api.component.mining;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 
 public class JaccardDataStructure implements Serializable {
 
-    public static final String F_NAME = "objectName";
+    public static final String F_NAME = "userObject";
     public static final String F_RESULT_ARRAY = "objectPartialResult";
     public static final String F_SUM_RESULT = "objectTotalResult";
 
-    String objectName;
+    public PrismObject<UserType> getUserObject() {
+        return userObject;
+    }
+
+    public void setUserObject(PrismObject<UserType> userObject) {
+        this.userObject = userObject;
+    }
+
+    PrismObject<UserType> userObject;
     ArrayList<Double> objectPartialResult;
     double objectTotalResult;
 
-    public JaccardDataStructure(String objectName, double objectTotalResult, ArrayList<Double> objectPartialResult) {
-        this.objectName = objectName;
+    public JaccardDataStructure(PrismObject<UserType> userObject, double objectTotalResult, ArrayList<Double> objectPartialResult) {
+        this.userObject = userObject;
         this.objectPartialResult = objectPartialResult;
         this.objectTotalResult = objectTotalResult;
     }
 
-    public String getObjectName() {
-        return objectName;
-    }
 
-    public void setObjectName(String objectName) {
-        this.objectName = objectName;
-    }
+
 
     public ArrayList<Double> getObjectPartialResult() {
         return objectPartialResult;

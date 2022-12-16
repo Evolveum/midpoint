@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.gui.api.component.mining.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
-import com.evolveum.midpoint.model.api.mining.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -134,9 +134,12 @@ public class PageRoleMining extends PageAdmin {
         List<Double> totalJaccard = new ArrayList<>();
         List<List<Double>> partialJaccardMap = new ArrayList<>();
         for (JaccardDataStructure jaccardDataStructure : jaccardDataStructureList) {
-            objectName.add(jaccardDataStructure.getObjectName());
+            objectName.add(jaccardDataStructure.getUserObject().getName().toString());
+            System.out.println(jaccardDataStructure.getUserObject().getName().toString());
             totalJaccard.add(jaccardDataStructure.getObjectTotalResult());
+            System.out.println(jaccardDataStructure.getObjectTotalResult());
             partialJaccardMap.add(jaccardDataStructure.getObjectPartialResult());
+            System.out.println(jaccardDataStructure.getObjectPartialResult());
         }
 
         String javaScript = "jaccard_chart('"
@@ -162,7 +165,7 @@ public class PageRoleMining extends PageAdmin {
         }
 
         List<RoleMembersList> roleMembersListList;
-        List<UserRolesList> roleMiningData;
+        List<RoleMiningUserStructure> roleMiningData;
         try {
             roleMembersListList = getRolesAndMembers(roles);
             roleMiningData = getRoleMiningData(users);
@@ -274,16 +277,16 @@ public class PageRoleMining extends PageAdmin {
         //   System.out.println("Calculator sum: " + resultCount);
     }
 
-    private void fillJaccardData(List<UserRolesList> roleMiningData, double inputJaccardThreshold) {
+    private void fillJaccardData(List<RoleMiningUserStructure> roleMiningData, double inputJaccardThreshold) {
 
         jaccardDataStructureList = new ArrayList<>();
 
         int dataCount = roleMiningData.size();
         for (int i = 0; i < dataCount; i++) {
-            String objectName = roleMiningData.get(i).getUserObject().getName().toString();
+            PrismObject<UserType> objectName = roleMiningData.get(i).getUserObject();
             double objectTotalResult = 0.0;
             ArrayList<Double> objectPartialResult = new ArrayList<>();
-            for (UserRolesList roleMiningDatum : roleMiningData) {
+            for (RoleMiningUserStructure roleMiningDatum : roleMiningData) {
                 double jaccardIndex = new RoleAnalyseHelper().jaccardIndex(
                         roleMiningData.get(i).getRoleObjectId(),
                         roleMiningDatum.getRoleObjectId(), jaccardMinRolesCount
@@ -302,7 +305,7 @@ public class PageRoleMining extends PageAdmin {
 
     }
 
-    private void jaccardThresholdSubmit(Form<?> mainForm, List<UserRolesList> roleMiningData) {
+    private void jaccardThresholdSubmit(Form<?> mainForm, List<RoleMiningUserStructure> roleMiningData) {
         final TextField<Double> inputThreshold = new TextField<>(ID_JACCARD_THRESHOLD_INPUT, Model.of(jaccardThreshold));
         inputThreshold.setOutputMarkupId(true);
 
@@ -1643,7 +1646,7 @@ public class PageRoleMining extends PageAdmin {
         return confidenceTable;
     }
 
-    protected MainObjectListPanel<?> intersectionMemUserMiningTable(List<UserRolesList> roleMiningData) throws CommonException {
+    protected MainObjectListPanel<?> intersectionMemUserMiningTable(List<RoleMiningUserStructure> roleMiningData) throws CommonException {
         RoleAnalyseHelper roleAnalyseHelper = new RoleAnalyseHelper();
 
         MainObjectListPanel<?> confidenceTable = new MainObjectListPanel<>(ID_TABLE_MEM_INTERSECTION_USER, UserType.class, true) {
@@ -1700,7 +1703,7 @@ public class PageRoleMining extends PageAdmin {
                             String userObjectIdA = model.getObject().getValue().getOid();
                             List<String> membersUserA = null;
 
-                            for (UserRolesList roleMiningDatum : roleMiningData) {
+                            for (RoleMiningUserStructure roleMiningDatum : roleMiningData) {
                                 if (roleMiningDatum.getUserObject().getOid().equals(userObjectIdA)) {
                                     membersUserA = roleMiningDatum.getRoleObjectId();
                                 }
@@ -1791,7 +1794,7 @@ public class PageRoleMining extends PageAdmin {
         }
     }
 
-    protected MainObjectListPanel<?> jaccardIndexUserRoleMiningTable(List<UserRolesList> roleMiningData) throws CommonException {
+    protected MainObjectListPanel<?> jaccardIndexUserRoleMiningTable(List<RoleMiningUserStructure> roleMiningData) throws CommonException {
         RoleAnalyseHelper roleAnalyseHelper = new RoleAnalyseHelper();
 
         MainObjectListPanel<?> confidenceTable = new MainObjectListPanel<>(ID_TABLE_MEM_JACQUARD_USER, UserType.class, true) {
@@ -1853,7 +1856,7 @@ public class PageRoleMining extends PageAdmin {
                             String userObjectIdA = model.getObject().getValue().getOid();
                             List<String> membersUserA = null;
 
-                            for (UserRolesList roleMiningDatum : roleMiningData) {
+                            for (RoleMiningUserStructure roleMiningDatum : roleMiningData) {
                                 if (roleMiningDatum.getUserObject().getOid().equals(userObjectIdA)) {
                                     membersUserA = roleMiningDatum.getRoleObjectId();
                                 }
@@ -2009,7 +2012,7 @@ public class PageRoleMining extends PageAdmin {
         return new RoleMiningFilter().filterRolesMembers(roles, ((PageBase) getPage()).getModelService(), task, result);
     }
 
-    public List<UserRolesList> getRoleMiningData(List<PrismObject<UserType>> users) {
+    public List<RoleMiningUserStructure> getRoleMiningData(List<PrismObject<UserType>> users) {
         return new RoleMiningFilter().filterUsersRoles(users);
     }
 

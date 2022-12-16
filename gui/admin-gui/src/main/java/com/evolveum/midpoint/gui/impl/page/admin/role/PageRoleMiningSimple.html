@@ -12,131 +12,152 @@
 <body>
 
 <wicket:extend>
-    <form wicket:id="main_form" class="clearfix form-horizontal">
+    <wicket:child/>
 
 
-        <div class="col-xl-12 row">
-            <div class="d-flex flex-wrap  col-xl-7  ">
-                <div class="btn-group col-xl-5 align-self-start">
-                    <button class="btn btn-default" wicket:id="role_search">
-                        <wicket:message key="Role.searchType.role"/>
-                    </button>
-                    <button class="btn btn-default" wicket:id="user_search">
-                        <wicket:message key="Role.searchType.users"/>
-                    </button>
+    <div class="col-xl-12">
+        <form wicket:id="main_form" class="clearfix form-horizontal">
 
-                </div>
+            <div class="row col-xl-12" style="display:-webkit-box; display:-webkit-flex; display:-ms-flexbox; display:flex;">
 
-                <div class="col-xl-2"></div>
-
-                <div class="btn-group btn-group-sm col-xl-5 align-self-end">
-
-                    <form wicket:id="min_size_form">
-                        <div class="row">
-                            <div>
-                                <input class="form-control" style="width: 50px" wicket:id="input_min_size" type="text" placeholder="Enter min. role counts" size="20"/>
-                            </div>
-                            <div>
-                                <i wicket:id="min_size_input_info" wicket:message="title:Role.basic.intersection.search.tooltip"/>
-                            </div>
-                            <input class="btn btn-default" type="submit" value="Execute search"/>
-                            <div>
-                                <i wicket:id="min_size_execute_info" wicket:message="title:Role.basic.execute.search.tooltip"/>
-                            </div>
+                <div class="col-xl-7">
+                    <div class="row">
+                        <div class="row col justify-content-start">
+                            <button class="btn btn-warning" wicket:id="generate_data_panel">
+                            </button>
+                            <button class="btn btn-default" wicket:id="reset_table">
+                            </button>
                         </div>
-                    </form>
+                        <div class="row col justify-content-end btn-group btn-group-sm ">
 
-                    <button class="btn btn-default ml-4" wicket:id="button_next_result">
-                        <wicket:message key="PageRoleMining.users.table.result"/>
-                    </button>
+                            <form wicket:id="min_size_form">
+                                <div class="row">
+                                    <div>
+                                        <input class="form-control" style="width: 50px" wicket:id="input_min_size" type="text" placeholder="Enter min. role counts" size="20"/>
+                                    </div>
+                                    <div>
+                                        <i wicket:id="min_size_input_info" wicket:message="title:Role.basic.intersection.search.tooltip"></i>
+                                    </div>
+                                    <input class="btn btn-default" type="submit" value="Execute search"/>
+                                    <div>
+                                        <i wicket:id="min_size_execute_info" wicket:message="title:Role.basic.execute.search.tooltip"></i>
+                                    </div>
+                                </div>
+                            </form>
 
-                    <a class="btn btn-default">
-                        <label wicket:id="resultCountLabel">
-                        </label>
-                    </a>
+                            <button class="btn btn-default ml-4" wicket:id="button_next_result">
+                                <wicket:message key="PageRoleMining.users.table.result"/>
+                            </button>
 
+                            <a class="btn btn-default">
+                                <label wicket:id="resultCountLabel">
+                                </label>
+                            </a>
+
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div wicket:id="datatable_mining_main" class="col overflow-auto" style="height:900px"></div>
+                    </div>
                 </div>
+
+                <div class="col-xl-5  ">
+                    <div class="row col-xl-12 justify-content-between">
+                        <div class="row btn-group col-xl-5 align-self-start">
+                            <button class="btn btn-default" wicket:id="role_search">
+                                <wicket:message key="Role.searchType.role"/>
+                            </button>
+                            <button class="btn btn-default" wicket:id="user_search">
+                                <wicket:message key="Role.searchType.users"/>
+                            </button>
+                        </div>
+                        <div class="btn-group col-xl-7 row justify-content-end">
+                            <button class="btn btn-default" wicket:id="checkDuplicates">
+                                <wicket:message key="Role.check.intersection.count"/>
+                                <i wicket:id="basic_check_info" wicket:message="title:Role.check.intersection.count.tooltip"></i>
+                            </button>
+                            <a class="btn btn-default" wicket:id="repeatingCountBasicTable">
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div wicket:id="datatable_details" class="col overflow-auto" style="height:900px"></div>
+                    </div>
+                </div>
+
             </div>
 
-
-            <wicket:child/>
-
-            <div class="d-flex flex-wrap  col-xl-5 flex-row-reverse">
-
-                <div class="btn-group btn-group-sm ">
-                    <button class="btn btn-default" wicket:id="checkDuplicates">
-                        <wicket:message key="Role.check.intersection.count"/>
-                        <i wicket:id="basic_check_info" wicket:message="title:Role.check.intersection.count.tooltip"/>
-                    </button>
-                    <a class="btn btn-default" wicket:id="repeatingCountBasicTable">
-                    </a>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="row" style="display:-webkit-box; display:-webkit-flex; display:-ms-flexbox; display:flex;">
-
-            <div class="col-12 col-xl-7 overflow-auto" style="height:900px">
-                <div wicket:id="table_mining"></div>
-            </div>
-
-            <div class="col-12 col-xl-5 overflow-auto" style="height:900px">
-                <div wicket:id="table_basic"></div>
-            </div>
-
-        </div>
-
-    </form>
-
-    <div class="border-top my-3"></div>
-    <form wicket:id="secondary_form" class="clearfix form-horizontal">
-
-        <form wicket:id="jaccard_threshold_form">
-            <div class="row">
-                <div>
-                    <input class="form-control" style="width: 50px" wicket:id="jaccard_threshold_input" type="text" placeholder="Jaccard threshold" size="3"/>
-                </div>
-                <div>
-                    <i wicket:id="jaccard_threshold_input_info" wicket:message="title:Role.jaccard.single.threshold.tooltip"/>
-                </div>
-                <div>
-                    <input class="form-control" style="width: 50px" wicket:id="jaccard_min_roles_count_input" type="text" placeholder="Jaccard threshold" size="2"/>
-                </div>
-                <div>
-                    <i wicket:id="jaccard_min_roles_count_info" wicket:message="title:Role.jaccard.intersection.count.tooltip"/>
-                </div>
-                <input class="btn btn-default" type="submit" value="Submit settings"/>
-                <div>
-                    <i wicket:id="jaccard_execute_details" wicket:message="title:Role.jaccard.execute.setting.tooltip"/>
-                </div>
-            </div>
         </form>
+    </div>
 
-        <div class="row" style="display:-webkit-box; display:-webkit-flex; display:-ms-flexbox; display:flex;">
+    <div class="col-xl-12">
+        <div class="border-top my-3"></div>
+    </div>
 
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
-            <div class="col-12 col-xl-12 overflow-auto" style="height:500px">
-                <canvas id="barChart" style="height:500px;background-color: white"></canvas>
+    <div class="col-xl-12">
+        <form wicket:id="secondary_form" class="clearfix form-horizontal">
+
+            <div class="col-xl-12">
+                <form wicket:id="jaccard_threshold_form">
+                    <div class="row">
+                        <div>
+                            <input class="form-control" style="width: 50px" wicket:id="jaccard_threshold_input" type="text" placeholder="Jaccard threshold" size="3"/>
+                        </div>
+                        <div>
+                            <i wicket:id="jaccard_threshold_input_info" wicket:message="title:Role.jaccard.single.threshold.tooltip"></i>
+                        </div>
+                        <div>
+                            <input class="form-control" style="width: 50px" wicket:id="jaccard_min_roles_count_input" type="text" placeholder="Jaccard threshold" size="2"/>
+                        </div>
+                        <div>
+                            <i wicket:id="jaccard_min_roles_count_info" wicket:message="title:Role.jaccard.intersection.count.tooltip"></i>
+                        </div>
+                        <input class="btn btn-default" type="submit" value="Submit settings"/>
+                        <div>
+                            <i wicket:id="jaccard_execute_details" wicket:message="title:Role.jaccard.execute.setting.tooltip"></i>
+                        </div>
+                    </div>
+                </form>
             </div>
 
-            <div class="col-12 col-xl-12  overflow-auto">
+            <div class="row col-xl-12" style="display:-webkit-box; display:-webkit-flex; display:-ms-flexbox; display:flex;">
+
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+                <div class="col-xl-12 row overflow-auto" style="height:500px">
+                    <canvas id="barChart" style="height:500px;background-color: white"></canvas>
+                </div>
+            </div>
+
+            <div class="col-xl-12">
+                <div class="border-top my-3"></div>
+            </div>
+
+            <div class="col-xl-12">
                 <div class="row">
-                    <button wicket:id="calculator" type="button" class="btn btn-outline-primary"></button>
+                    <div class="row col">
                     <button wicket:id="jaccard_execute_search" type="button" class="btn btn-outline-primary">
                     </button>
                     <div>
-                        <i wicket:id="jaccard_execute_search_info" wicket:message="title:Role.jaccard.execute.search.tooltip"/>
+                        <i wicket:id="jaccard_execute_search_info" wicket:message="title:Role.jaccard.execute.search.tooltip"></i>
+                    </div>
+                    </div>
+
+                    <div class="row col justify-content-end">
+                    <button wicket:id="calculator" type="button" class="btn btn-outline-primary"></button>
                     </div>
                 </div>
-                <div wicket:id="table_jaccard_users"></div>
+            </div>
+
+            <div>
+                <div wicket:id="datatable_jaccard" class="col overflow-auto"></div>
             </div>
 
             <div class="border-top my-3"></div>
 
-        </div>
 
-    </form>
+        </form>
+    </div>
 </wicket:extend>
 
 </body>

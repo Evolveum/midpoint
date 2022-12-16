@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.mining;
+package com.evolveum.midpoint.gui.api.component.mining;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -22,6 +23,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
 
 public class RoleMiningFilter implements Serializable {
 
@@ -61,12 +64,12 @@ public class RoleMiningFilter implements Serializable {
         return roleMemberLists;
     }
 
-    public List<UserRolesList> filterUsersRoles(List<PrismObject<UserType>> users) {
-        List<UserRolesList> list = new ArrayList<>();
+    public List<RoleMiningUserStructure> filterUsersRoles(List<PrismObject<UserType>> users) {
+        List<RoleMiningUserStructure> list = new ArrayList<>();
 
         for (PrismObject<UserType> user : users) {
             AssignmentHolderType assignmentHolderType = user.asObjectable();
-            list.add(new UserRolesList(user, roleObjectIdRefType(assignmentHolderType)));
+            list.add(new RoleMiningUserStructure(user, roleObjectIdRefType(assignmentHolderType)));
         }
         return list;
     }
@@ -94,6 +97,21 @@ public class RoleMiningFilter implements Serializable {
         return IntStream.range(0, object.getRoleMembershipRef().size())
                 .filter(i -> object.getRoleMembershipRef().get(i).getType().getLocalPart()
                         .equals("RoleType")).mapToObj(i -> object.getRoleMembershipRef().get(i).getOid()).collect(Collectors.toList());
+
+    }
+
+
+    protected PrismObject<RoleType> getRoleByOid(String oid, PageBase pageBase) throws CommonException {
+        String getRole = DOT_CLASS + "getRole";
+        OperationResult result = new OperationResult(getRole);
+        Task task = pageBase.createSimpleTask(getRole);
+        return pageBase.getModelService().getObject(RoleType.class, oid, null, task, result);
+    }
+
+    protected List<ObjectReferenceType> getRoleObjectReferenceTypes(AssignmentHolderType object) {
+        return IntStream.range(0, object.getRoleMembershipRef().size())
+                .filter(i -> object.getRoleMembershipRef().get(i).getType().getLocalPart()
+                        .equals("RoleType")).mapToObj(i -> object.getRoleMembershipRef().get(i)).collect(Collectors.toList());
 
     }
 

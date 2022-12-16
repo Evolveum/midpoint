@@ -17,6 +17,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -29,8 +30,8 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
@@ -38,24 +39,26 @@ import com.evolveum.midpoint.authentication.api.authorization.AuthorizationActio
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.mining.*;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.page.admin.user.PageUser;
-import com.evolveum.midpoint.model.api.mining.*;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
-import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -73,9 +76,6 @@ public class PageRoleMiningSimple extends PageAdmin {
     private static final String DOT_CLASS = PageRoleMiningSimple.class.getName() + ".";
     private static final String ID_MAIN_FORM = "main_form";
     private static final String ID_SECONDARY_FORM = "secondary_form";
-    private static final String ID_TABLE_BASIC = "table_basic";
-    private static final String ID_TABLE_MINING = "table_mining";
-    private static final String ID_TABLE_MEM_JACQUARD_USER = "table_jaccard_users";
     private static final String ID_ROLE_SEARCH = "role_search";
     private static final String ID_USER_SEARCH = "user_search";
     private static final String ID_BUTTON_NEXT_RESULT = "button_next_result";
@@ -96,6 +96,10 @@ public class PageRoleMiningSimple extends PageAdmin {
     private static final String ID_MIN_INTERSECTION_INPUT_INFO = "min_size_input_info";
     private static final String ID_EXECUTE_JACCARD_SETTING = "jaccard_execute_details";
     private static final String ID_HELPER_ALG_EXECUTE_INFO = "min_size_execute_info";
+    private static final String ID_GENERATE_DATA_PANEL = "generate_data_panel";
+    private static final String ID_DATATABLE_JACCARD = "datatable_jaccard";
+    private static final String ID_DATATABLE_MINING_MAIN = "datatable_mining_main";
+    private static final String ID_DATATABLE_DETAILS = "datatable_details";
 
     double customSum = 0; //helper
     int basicCombMinIntersection = 4; //default 4 role;
@@ -104,7 +108,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
     List<PrismObject<RoleType>> jaccardResultRoles;
     List<PrismObject<UserType>> jaccardUsersAnalysed;
-    List<JaccardDataStructure> jaccardDataStructureList;
+    List<RoleMiningStructureList> roleMiningStructureLists;
     double jaccardThreshold = 0.5; //default
     int jaccardMinRolesCount = 1; //default
 
@@ -119,22 +123,26 @@ public class PageRoleMiningSimple extends PageAdmin {
         super.renderHead(response);
 
         response.render(JavaScriptHeaderItem.forReference(
-                new PackageResourceReference(PageRoleMining.class, "js/jaccard_chart.js")));
+                new PackageResourceReference(PageRoleMiningSimple.class, "js/jaccard_chart_sortable.js")));
 
         List<String> objectName = new ArrayList<>();
         List<Double> totalJaccard = new ArrayList<>();
         List<List<Double>> partialJaccardMap = new ArrayList<>();
-        for (JaccardDataStructure jaccardDataStructure : jaccardDataStructureList) {
-            objectName.add(jaccardDataStructure.getObjectName());
+        List<Integer> staticIndex = new ArrayList<>();
+
+        for (RoleMiningStructureList jaccardDataStructure : roleMiningStructureLists) {
+            objectName.add(jaccardDataStructure.getUserObject().getName().toString());
             totalJaccard.add(jaccardDataStructure.getObjectTotalResult());
             partialJaccardMap.add(jaccardDataStructure.getObjectPartialResult());
+            staticIndex.add(jaccardDataStructure.getStaticIndex());
         }
 
-        String javaScript = "jaccard_chart('"
+        String javaScript = "jaccard_chart_sortable('"
                 + objectName + "', '"
                 + totalJaccard + "', '"
                 + partialJaccardMap + "', '"
-                + jaccardThreshold + "');";
+                + jaccardThreshold + "', '"
+                + staticIndex + "');";
 
         response.render(OnDomReadyHeaderItem.forScript(javaScript));
     }
@@ -152,27 +160,25 @@ public class PageRoleMiningSimple extends PageAdmin {
             throw new RuntimeException("Failed to load basic role mining list: " + e);
         }
 
-        List<UserRolesList> roleMiningData;
+        List<RoleMiningUserStructure> roleMiningData;
         roleMiningData = getRoleMiningData(users);
+        fillJaccardData(roleMiningData);
 
         Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 
+        mainForm.add(createGeneratePanel(roles,users));
         mainForm.add(calculatorReset());
         basicOperationHelper(mainForm, roles, users);
-        searchSelector(mainForm, roles, users);
+        searchSelector(mainForm);
+        mainForm.add(createResetTablePanel());
+        mainForm.add(generateMiningTable(roleMiningStructureLists, roles));
 
-        try {
-            if (isSearchMode()) {
-                mainForm.add(basicRoleHelperTable());
-                mainForm.add(roleRoleMiningTable(users));
-            } else {
-                mainForm.add(basicUserHelperTable());
-                mainForm.add(userRoleMiningTable(roles));
-            }
-        } catch (CommonException e) {
-            throw new RuntimeException("Failed to load basic role mining table: " + e);
+        if (isSearchMode()) {
+            mainForm.add(basicRoleHelperTable());
+        } else {
+            mainForm.add(basicUserHelperTable());
         }
 
         Form<?> secondaryForm = new MidpointForm<>(ID_SECONDARY_FORM);
@@ -180,352 +186,70 @@ public class PageRoleMiningSimple extends PageAdmin {
         add(secondaryForm);
 
         jaccardThresholdSubmit(secondaryForm, roleMiningData);
-        executeJacquardRoleSearch(users, secondaryForm);
-        fillJaccardData(roleMiningData, jaccardThreshold);
+        ajaxLinkExecuteJacquardMining(users, secondaryForm);
 
-        try {
-            secondaryForm.add(calculatorReset());
-            secondaryForm.add(jaccardIndexUserRoleMiningTable(roleMiningData));
-        } catch (CommonException e) {
-            throw new RuntimeException("Failed to load analyze role mining table: " + e);
-        }
+        secondaryForm.add(calculatorReset());
+        secondaryForm.add(generateBoxedTable(roleMiningStructureLists));
     }
 
-    private void executeJacquardRoleSearch(List<PrismObject<UserType>> users, Form<?> secondForm) {
-        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(ID_JACCARD_AJAX_LINK, Model.of("Execute intersection search")) {
+    private AjaxLinkPanel createResetTablePanel(){
+        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel("reset_table",Model.of("Reset table")){
             @Override
             public void onClick(AjaxRequestTarget target) {
                 basicCombResult = null;
-                getSelectionJaccardUserObjectId(users);
-                getMiningTable().replaceWith(getMiningTable());
-                target.add(getMiningTable());
+                basicCombDisplayResultIterator = 0;
+                jaccardUsersAnalysed = null;
+                jaccardResultRoles = null;
+                getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(0, 0)));
+                target.add(getResultCountLabel());
+
+                getBoxedMiningTable().getDataTable().setItemsPerPage(30);
+                getBoxedMiningTable().replaceWith(getBoxedMiningTable());
+                target.add(getBoxedMiningTable());
             }
         };
         ajaxLinkPanel.setOutputMarkupId(true);
-        secondForm.add(WebComponentUtil.createHelp(ID_JACCARD_EXECUTE_SEARCH_INFO));
-        secondForm.add(ajaxLinkPanel);
 
+        return ajaxLinkPanel;
     }
 
-    private void getSelectionJaccardUserObjectId(List<PrismObject<UserType>> users) {
-        String userObjectId = null;
-        if (getJaccardTable().getSelectedObjects() != null && getJaccardTable().getSelectedObjects().size() == 1) {
-            PrismObject<? extends ObjectType> userTypePrismObject = getJaccardTable().getSelectedObjects().get(0).getValue().asPrismObject();
-            userObjectId = userTypePrismObject.getOid();
-        }
-        int rowPosition = 0;
-
-        for (int i = 0; i < users.size(); i++) {
-            if (users.get(i).getOid().equals(userObjectId)) {
-                rowPosition = i;
-                break;
-            }
-        }
-
-        jaccardUsersAnalysed = new ArrayList<>();
-        for (int j = 0; j < jaccardDataStructureList.get(rowPosition).getObjectPartialResult().size(); j++) {
-            if (jaccardDataStructureList.get(rowPosition).getObjectPartialResult().get(j) > jaccardThreshold) {
-                jaccardUsersAnalysed.add(users.get(j));
-            }
-        }
-
-        RoleAnalyseHelper roleAnalyseHelper = new RoleAnalyseHelper();
-        List<ObjectReferenceType> rolesForCompare = getRoleObjectReferenceTypes(users.get(rowPosition).asObjectable());
-        for (PrismObject<UserType> userTypePrismObject : jaccardUsersAnalysed) {
-            rolesForCompare = roleAnalyseHelper.roleIntersected(rolesForCompare,
-                    getRoleObjectReferenceTypes(userTypePrismObject.asObjectable()));
-        }
-
-        jaccardResultRoles = new ArrayList<>();
-        for (ObjectReferenceType objectReferenceType : rolesForCompare) {
-            try {
-                jaccardResultRoles.add(getRoleByOid(objectReferenceType.getOid()));
-            } catch (CommonException e) {
-                e.printStackTrace();
-            }
-
-        }
-    }
-
-    private void fillJaccardData(List<UserRolesList> roleMiningData, double inputJaccardThreshold) {
-
-        jaccardDataStructureList = new ArrayList<>();
-
-        int dataCount = roleMiningData.size();
-        for (int i = 0; i < dataCount; i++) {
-            String objectName = roleMiningData.get(i).getUserObject().getName().toString();
-            double objectTotalResult = 0.0;
-            ArrayList<Double> objectPartialResult = new ArrayList<>();
-            for (UserRolesList roleMiningDatum : roleMiningData) {
-                double jaccardIndex = new RoleAnalyseHelper().jaccardIndex(
-                        roleMiningData.get(i).getRoleObjectId(),
-                        roleMiningDatum.getRoleObjectId(), jaccardMinRolesCount
-                );
-
-                if (jaccardIndex < inputJaccardThreshold) {
-                    jaccardIndex = 0.0;
-                }
-
-                objectTotalResult = objectTotalResult + jaccardIndex;
-                objectPartialResult.add(jaccardIndex);
-            }
-            objectTotalResult = objectTotalResult / dataCount;
-            jaccardDataStructureList.add(new JaccardDataStructure(objectName, objectTotalResult, objectPartialResult));
-        }
-
-    }
-
-    private void jaccardThresholdSubmit(Form<?> mainForm, List<UserRolesList> roleMiningData) {
-        final TextField<Double> inputThreshold = new TextField<>(ID_JACCARD_THRESHOLD_INPUT, Model.of(jaccardThreshold));
-        inputThreshold.setOutputMarkupId(true);
-
-        final TextField<Integer> inputMinRolesCount = new TextField<>(ID_JACCARD_MIN_ROLES_COUNT_INPUT, Model.of(jaccardMinRolesCount));
-        inputMinRolesCount.setOutputMarkupId(true);
-
-        Form<?> form = new Form<Void>(ID_FORM_JACCARD_THRESHOLD) {
-            @Override
-            protected void onSubmit() {
-                if (inputThreshold.getModelObject() <= 1) {
-                    jaccardThreshold = inputThreshold.getModelObject();
-                } else {
-                    jaccardThreshold = 1;
-                }
-                jaccardMinRolesCount = inputMinRolesCount.getModelObject();
-                fillJaccardData(roleMiningData, jaccardThreshold);
-            }
-
-        };
-
-        form.setOutputMarkupId(true);
-        add(form);
-
-        form.add(WebComponentUtil.createHelp(ID_EXECUTE_JACCARD_SETTING));
-        form.add(WebComponentUtil.createHelp(ID_JACCARD_THRESHOLD_INPUT_INFO));
-        form.add(WebComponentUtil.createHelp(ID_JACCARD_MIN_ROLES_COUNT_INFO));
-        form.add(inputThreshold);
-        form.add(inputMinRolesCount);
-
-        mainForm.add(form);
-    }
-
-    private void executeBasicMining(int minSize, List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
-        List<String> rolesOid = new ArrayList<>();
-
-        for (PrismObject<RoleType> role : roles) {
-            rolesOid.add(role.getOid());
-        }
-
-        List<List<String>> allCombinations = new CombinationHelperAlgorithm().generateCombinations(rolesOid, minSize);
-
-        List<List<String>> matrix = getMatrix(users);
-        basicCombResult = new CombinationHelperAlgorithm().combinationsResult(allCombinations, matrix);
-    }
-
-    private AjaxLinkPanel calculatorReset() {
-        AjaxLinkPanel calculator = new AjaxLinkPanel(ID_CALCULATOR, Model.of("Reset calculator")) {
+    private AjaxLinkPanel createGeneratePanel(List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users){
+        AjaxLinkPanel ajaxLinkAssign = new AjaxLinkPanel(ID_GENERATE_DATA_PANEL, Model.of("Generate data")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                customSum = 0;
+                GenerateDataPanel pageGenerateData = new GenerateDataPanel(getPageBase().getMainPopupBodyId(), createStringResource("RoleMining.generateDataPanel.title"), users, roles);
+                getPageBase().showMainPopup(pageGenerateData, target);
             }
         };
-        calculator.setOutputMarkupId(true);
-        return calculator;
+        ajaxLinkAssign.setOutputMarkupId(true);
+        return ajaxLinkAssign;
     }
 
-    private void basicOperationHelper(Form<?> mainForm, List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
 
-        Label repeatingCountBasicTable = new Label(ID_LABEL_DUPLICATES_BASIC, Model.of("0 duplicates"));
-        repeatingCountBasicTable.setOutputMarkupId(true);
-        repeatingCountBasicTable.setOutputMarkupPlaceholderTag(true);
-        repeatingCountBasicTable.add(new VisibleBehaviour((this::isSearchMode)));
-        mainForm.add(repeatingCountBasicTable);
-
-        Label resultCountLabel = new Label(ID_LABEL_RESULT_COUNT, Model.of(createIterationResultString(0, 0)));
-        resultCountLabel.setOutputMarkupId(true);
-
-        mainForm.add(resultCountLabel);
-
-        final TextField<Integer> inputMinIntersectionSize = new TextField<>(ID_MIN_SIZE, Model.of(basicCombMinIntersection));
-        inputMinIntersectionSize.setOutputMarkupId(true);
-
-        Form<?> form = new Form<Void>(ID_FORM_MIN_SIZE) {
-            @Override
-            protected void onSubmit() {
-                basicCombDisplayResultIterator = 1;
-                basicCombMinIntersection = inputMinIntersectionSize.getModelObject();
-                executeBasicMining(basicCombMinIntersection, roles, users);
-
-                if (basicCombResult != null) {
-                    if (basicCombDisplayResultIterator == basicCombResult.size()) {
-                        basicCombDisplayResultIterator = 0;
-                    }
-                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(basicCombDisplayResultIterator, basicCombResult.size())));
-                } else {
-                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(0, 0)));
-                }
-
-            }
-
-        };
-
-        form.setOutputMarkupId(true);
-        add(form);
-
-        form.add(WebComponentUtil.createHelp(ID_HELPER_ALG_EXECUTE_INFO));
-        form.add(WebComponentUtil.createHelp(ID_MIN_INTERSECTION_INPUT_INFO));
-        form.add(inputMinIntersectionSize);
-
-        mainForm.add(form);
-
-        AjaxLink<?> duplicateRolesComb = new AjaxLink<>(ID_AJAX_CHECK_DUPLICATE_BASIC) {
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                if (getBasicTable().getSelectedObjects() != null) {
-
-                    List<String> combination = new ArrayList<>();
-                    for (int i = 0; i < getBasicTable().getSelectedObjects().size(); i++) {
-                        combination.add(getBasicTable().getSelectedObjects().get(i).getValue().getOid());
-                    }
-
-                    getRepeatingCountBasicTable().setDefaultModel(Model.of(
-                            new CombinationHelperAlgorithm().findDuplicates(combination, getMatrix(users)) + " duplicates"));
-
-                    ajaxRequestTarget.add(getRepeatingCountBasicTable());
-
-                }
-            }
-        };
-
-        duplicateRolesComb.setOutputMarkupId(true);
-        duplicateRolesComb.add(new VisibleBehaviour((this::isSearchMode)));
-        duplicateRolesComb.setOutputMarkupPlaceholderTag(true);
-        duplicateRolesComb.add(WebComponentUtil.createHelp(ID_BASIC_ROLE_TABLE_INFO));
-        mainForm.add(duplicateRolesComb);
-    }
-
-    private void searchSelector(Form<?> mainForm, List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
-
-        AjaxLink<Boolean> buttonNextResult = new AjaxLink<>(ID_BUTTON_NEXT_RESULT) {
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                if (basicCombResult != null) {
-                    if (basicCombDisplayResultIterator != 0) {
-                        if (basicCombDisplayResultIterator == basicCombResult.size()) {
-                            basicCombDisplayResultIterator = 0;
-                        }
-                    }
-                    basicCombDisplayResultIterator++;
-                    ajaxRequestTarget.add(getMiningTable());
-                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(basicCombDisplayResultIterator, basicCombResult.size())));
-
-                } else {
-                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(0, 0)));
-
-                }
-
-                ajaxRequestTarget.add(getResultCountLabel());
-            }
-        };
-
-        mainForm.add(buttonNextResult);
-
-        AjaxLink<Boolean> roleSearch = new AjaxLink<>(ID_ROLE_SEARCH) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                setSearchMode(true);
-
-                target.add(getRepeatingCountBasicTable());
-                target.add(getAjaxCheckDuplicateBasic());
-                getBasicTable().replaceWith(basicRoleHelperTable());
-                target.add(getBasicTable());
-
-                try {
-                    getMiningTable().replaceWith(roleRoleMiningTable(users));
-                    target.add(getMiningTable());
-                } catch (CommonException e) {
-                    throw new RuntimeException(e);
-                }
-
-                getUserSearchLink().add(new AttributeModifier("class", " btn btn-default"));
-                target.add(getUserSearchLink());
-
-                getRoleSearchLink().add(new AttributeModifier("class", " btn btn-secondary"));
-                target.add(getRoleSearchLink());
-            }
-        };
-
-        roleSearch.setOutputMarkupId(true);
-
-        roleSearch.add(new AttributeModifier("class", " btn btn-secondary"));
-        mainForm.add(roleSearch);
-
-        AjaxLink<Boolean> userSearch = new AjaxLink<>(ID_USER_SEARCH) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                setSearchMode(false);
-                target.add(getAjaxCheckDuplicateBasic());
-                target.add(getRepeatingCountBasicTable());
-                getBasicTable().replaceWith(basicUserHelperTable());
-                target.add(getBasicTable());
-
-                try {
-                    getMiningTable().replaceWith(userRoleMiningTable(roles));
-                    target.add(getMiningTable());
-                } catch (CommonException e) {
-                    throw new RuntimeException(e);
-                }
-
-                getRoleSearchLink().add(new AttributeModifier("class", " btn btn-default"));
-                target.add(getRoleSearchLink());
-
-                getUserSearchLink().add(new AttributeModifier("class", " btn btn-secondary"));
-                target.add(getUserSearchLink());
-            }
-
-        };
-        userSearch.setOutputMarkupId(true);
-        mainForm.add(userSearch);
-    }
-
-    protected AjaxLink<?> getAjaxCheckDuplicateBasic() {
-        return (AjaxLink<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_AJAX_CHECK_DUPLICATE_BASIC));
-    }
-
-    protected Label getResultCountLabel() {
-        return (Label) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_LABEL_RESULT_COUNT));
-    }
-
-    protected Label getRepeatingCountBasicTable() {
-        return (Label) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_LABEL_DUPLICATES_BASIC));
-    }
-
-    protected AjaxLink<?> getUserSearchLink() {
-        return (AjaxLink<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_USER_SEARCH));
-    }
-
-    protected AjaxLink<?> getRoleSearchLink() {
-        return (AjaxLink<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_ROLE_SEARCH));
-    }
-
-    protected MainObjectListPanel<?> getBasicTable() {
-        return (MainObjectListPanel<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_TABLE_BASIC));
-    }
-
-    protected MainObjectListPanel<?> getMiningTable() {
-        return (MainObjectListPanel<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_TABLE_MINING));
-    }
-
-    protected MainObjectListPanel<?> getJaccardTable() {
-        return (MainObjectListPanel<?>) get(((PageBase) getPage()).createComponentPath(ID_SECONDARY_FORM, ID_TABLE_MEM_JACQUARD_USER));
-    }
 
     protected MainObjectListPanel<?> basicUserHelperTable() {
 
-        MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_TABLE_BASIC, UserType.class) {
+        MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_DATATABLE_DETAILS, UserType.class) {
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                FocusListInlineMenuHelper<UserType> helper = new FocusListInlineMenuHelper<>(UserType.class, PageRoleMiningSimple.this, this) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected boolean isShowConfirmationDialog(ColumnMenuAction<?> action) {
+                        return PageRoleMiningSimple.this.getBasicTable().getSelectedObjectsCount() > 0;
+                    }
+
+                    @Override
+                    protected IModel<String> getConfirmationMessageModel(ColumnMenuAction<?> action, String actionName) {
+                        return PageRoleMiningSimple.this.getBasicTable().getConfirmationMessageModel(action, actionName);
+                    }
+                };
+
+                return helper.createRowActions(UserType.class);
+            }
 
             @Override
             protected ISelectableDataProvider<SelectableBean<UserType>> createProvider() {
@@ -554,8 +278,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
                     @Override
                     public IModel<String> getDataModel(IModel<SelectableBean<UserType>> rowModel) {
-                        return Model.of(rowModel.getObject().getValue() != null && rowModel.getObject().getValue().getAssignment() != null ?
-                                Integer.toString(rowModel.getObject().getValue().getAssignment().size()) : "");
+                        return Model.of("");
                     }
 
                     @Override
@@ -587,10 +310,6 @@ public class PageRoleMiningSimple extends PageAdmin {
 
                     @Override
                     public IModel<String> getDataModel(IModel<SelectableBean<UserType>> rowModel) {
-                        if (rowModel.getObject().getValue() != null && rowModel.getObject().getValue().getAssignment() != null) {
-                            AssignmentHolderType object = rowModel.getObject().getValue();
-                            return Model.of(Integer.toString(getRoleObjectReferenceTypes(object).size()));
-                        }
                         return Model.of("");
                     }
 
@@ -630,10 +349,30 @@ public class PageRoleMiningSimple extends PageAdmin {
 
     protected MainObjectListPanel<?> basicRoleHelperTable() {
 
-        MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_TABLE_BASIC, RoleType.class) {
+        MainObjectListPanel<?> basicTable = new MainObjectListPanel<>(ID_DATATABLE_DETAILS, RoleType.class) {
             @Override
             public List<SelectableBean<RoleType>> isAnythingSelected(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> selectedObject) {
                 return super.isAnythingSelected(target, selectedObject);
+            }
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                FocusListInlineMenuHelper<RoleType> helper = new FocusListInlineMenuHelper<>(RoleType.class, PageRoleMiningSimple.this, this) {
+
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected boolean isShowConfirmationDialog(ColumnMenuAction<?> action) {
+                        return PageRoleMiningSimple.this.getBasicTable().getSelectedObjectsCount() > 0;
+                    }
+
+                    @Override
+                    protected IModel<String> getConfirmationMessageModel(ColumnMenuAction<?> action, String actionName) {
+                        return PageRoleMiningSimple.this.getBasicTable().getConfirmationMessageModel(action, actionName);
+                    }
+                };
+
+                return helper.createRowActions(RoleType.class);
             }
 
             @Override
@@ -646,9 +385,36 @@ public class PageRoleMiningSimple extends PageAdmin {
 
                 List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
 
-                IColumn<SelectableBean<RoleType>, String> column = new PropertyColumn<>(createStringResource("RoleType.description"),
-                        null,
-                        SelectableBeanImpl.F_VALUE + ".description");
+                IColumn<SelectableBean<RoleType>, String> column;
+
+                column = new AbstractExportableColumn<>(
+                        createStringResource("RoleType.assignments.count")) {
+                    @Override
+                    public String getSortProperty() {
+                        return super.getSortProperty();
+                    }
+
+                    @Override
+                    public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
+                            String componentId, IModel<SelectableBean<RoleType>> model) {
+                        if (model.getObject().getValue() != null && model.getObject().getValue().getAssignment() != null) {
+                            int  object = model.getObject().getValue().getAssignment().size();
+                            cellItem.add(new Label(componentId,object));
+                        } else {
+                            cellItem.add(new Label(componentId, 0));
+                        }
+                    }
+
+                    @Override
+                    public IModel<String> getDataModel(IModel<SelectableBean<RoleType>> rowModel) {
+                        return Model.of("");
+                    }
+
+                    @Override
+                    public String getCssClass() {
+                        return "col-md-2 col-lg-1";
+                    }
+                };
                 columns.add(column);
 
                 column = new AbstractExportableColumn<>(
@@ -666,8 +432,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
                     @Override
                     public IModel<String> getDataModel(IModel<SelectableBean<RoleType>> rowModel) {
-                        return Model.of(rowModel.getObject().getValue() != null && rowModel.getObject().getValue().getAssignment() != null ?
-                                Integer.toString(rowModel.getObject().getValue().getAssignment().size()) : "");
+                        return Model.of(" ");
                     }
 
                     @Override
@@ -694,8 +459,7 @@ public class PageRoleMiningSimple extends PageAdmin {
 
                     @Override
                     public IModel<String> getDataModel(IModel<SelectableBean<RoleType>> rowModel) {
-                        return Model.of(rowModel.getObject().getValue() != null && rowModel.getObject().getValue().getAssignment() != null ?
-                                Integer.toString(rowModel.getObject().getValue().getAssignment().size()) : "");
+                        return Model.of(" ");
                     }
 
                     @Override
@@ -734,502 +498,747 @@ public class PageRoleMiningSimple extends PageAdmin {
         return basicTable;
     }
 
-    protected MainObjectListPanel<?> userRoleMiningTable(List<PrismObject<RoleType>> roles) throws CommonException {
+    public BoxedTablePanel<RoleMiningStructureList> generateBoxedTable(List<RoleMiningStructureList> roleMiningStructureLists) {
 
-        MainObjectListPanel<?> miningTable = new MainObjectListPanel<>(ID_TABLE_MINING, UserType.class, true) {
+        RoleMiningProvider<RoleMiningStructureList> provider = new RoleMiningProvider<>(this, new ListModel<>(roleMiningStructureLists) {
 
-            @Override
-            protected ISelectableDataProvider<SelectableBean<UserType>> createProvider() {
-                return super.createProvider();
-            }
+            private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn<SelectableBean<UserType>, String>> createDefaultColumns() {
-
-                List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
-
-                IColumn<SelectableBean<UserType>, String> column1 = new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getCssClass() {
-                        return "col-sm-1 overflow-auto";
-                    }
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
-                        UserType object = rowModel.getObject().getValue();
-                        PageRoleMiningSimple.this.detailsPerformed(PageUser.class, object.getOid());
-                    }
-                };
-
-                columns.add(column1);
-
-                for (int i = 0; i < roles.size(); i++) {
-
-                    int finalI = i;
-
-                    IColumn<SelectableBean<UserType>, String> column = new AbstractExportableColumn<>(
-                            createStringResource(roles.get(finalI).getName().toString())) {
-
-                        @Override
-                        public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
-                                String componentId, IModel<SelectableBean<UserType>> model) {
-                            tableUserTypeStyle(cellItem);
-                            List<ObjectReferenceType> objectReferenceTypes = getRoleObjectReferenceTypes(model.getObject().getValue());
-
-                            ArrayList<String> rolesObjectIds = new ArrayList<>();
-                            for (ObjectReferenceType objectReferenceType : objectReferenceTypes) {
-                                rolesObjectIds.add(objectReferenceType.getOid());
-                            }
-
-                            if (basicCombResult != null) {
-                                if (basicCombDisplayResultIterator == basicCombResult.size()) {
-                                    basicCombDisplayResultIterator = 0;
-                                }
-                                ArrayList<String> rolesOid = new ArrayList<>(basicCombResult.get(basicCombDisplayResultIterator));
-
-                                if (rolesObjectIds.containsAll(rolesOid)) {
-
-                                    if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
-                                        if (rolesOid.contains(roles.get(finalI).getOid())) {
-                                            algMatchedUserTypeCell(cellItem, componentId);
-                                        } else {
-                                            filledUserTypeCell(cellItem, componentId);
-                                        }
-                                    } else {
-                                        basicUserTypeCell(cellItem, componentId);
-
-                                    }
-
-                                } else {
-
-                                    if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
-                                        filledUserTypeCell(cellItem, componentId);
-                                    } else {
-                                        basicUserTypeCell(cellItem, componentId);
-
-                                    }
-
-                                }
-                            } else if (jaccardUsersAnalysed != null && jaccardResultRoles != null) {
-
-                                ArrayList<String> jaccardResultRolesOid = new ArrayList<>();
-                                for (PrismObject<RoleType> jaccardResultRole : jaccardResultRoles) {
-                                    jaccardResultRolesOid.add(jaccardResultRole.getOid());
-                                }
-
-                                if (jaccardUsersAnalysed.contains(model.getObject().getValue().asPrismObject()) &&
-                                        rolesObjectIds.containsAll(jaccardResultRolesOid)) {
-
-                                    if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
-                                        if (jaccardResultRolesOid.contains(roles.get(finalI).getOid())) {
-                                            algMatchedUserTypeCell(cellItem, componentId);
-                                        } else {
-                                            filledUserTypeCell(cellItem, componentId);
-                                        }
-                                    } else {
-                                        basicUserTypeCell(cellItem, componentId);
-
-                                    }
-
-                                } else {
-
-                                    if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
-                                        filledUserTypeCell(cellItem, componentId);
-                                    } else {
-                                        basicUserTypeCell(cellItem, componentId);
-
-                                    }
-
-                                }
-
-                            } else {
-
-                                if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
-                                    filledUserTypeCell(cellItem, componentId);
-                                } else {
-                                    basicUserTypeCell(cellItem, componentId);
-                                }
-
-                            }
-
-                        }
-
-                        @Override
-                        public IModel<String> getDataModel(IModel<SelectableBean<UserType>> rowModel) {
-                            AssignmentHolderType assignmentHolderType = rowModel.getObject().getValue();
-                            List<ObjectReferenceType> objectReferenceTypes = getRoleObjectReferenceTypes(assignmentHolderType);
-
-                            ArrayList<String> rolesObjectIds = new ArrayList<>();
-
-                            for (ObjectReferenceType objectReferenceType : objectReferenceTypes) {
-                                rolesObjectIds.add(objectReferenceType.getOid());
-                            }
-
-                            if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
-                                return Model.of(roles.get(finalI).getOid());
-                            }
-                            return Model.of("");
-                        }
-
-                        @Override
-                        public Component getHeader(String componentId) {
-                            return new AjaxLinkPanel(componentId, createStringResource(roles.get(finalI).getName().toString())) {
-                                @Override
-                                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                                    RoleType object = roles.get(finalI).asObjectable();
-                                    PageRoleMiningSimple.this.detailsPerformed(PageRole.class, object.getOid());
-                                }
-                            };
-                        }
-
-                        @Override
-                        public String getCssClass() {
-                            return " role-mining-rotated-header";
-                        }
-                    };
-                    columns.add(column);
-                }
-
-                return columns;
+            public void setObject(List<RoleMiningStructureList> object) {
+                super.setObject(object);
             }
 
-            @Override
-            protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.TABLE_USERS;
-            }
+        }, true);
 
-            @Override
-            protected String getNothingSelectedMessage() {
-                return getString("pageUsers.message.nothingSelected");
-            }
-
-            @Override
-            protected String getConfirmMessageKeyForMultiObject() {
-                return "pageUsers.message.confirmationMessageForMultipleObject";
-            }
-
-            @Override
-            protected String getConfirmMessageKeyForSingleObject() {
-                return "pageUsers.message.confirmationMessageForSingleObject";
-            }
-        };
-
-        miningTable.setOutputMarkupId(true);
-
-        return miningTable;
-
+        provider.setSort(RoleMiningStructureList.F_SUM_RESULT, SortOrder.DESCENDING);
+        BoxedTablePanel<RoleMiningStructureList> table = new BoxedTablePanel<>(ID_DATATABLE_JACCARD, provider, initColumnsJaccard(), null, true, true);
+        table.setOutputMarkupId(true);
+        table.setItemsPerPage(30);
+        return table;
     }
 
-    protected MainObjectListPanel<?> roleRoleMiningTable(List<PrismObject<UserType>> users) throws CommonException {
 
-        MainObjectListPanel<?> miningTable = new MainObjectListPanel<>(ID_TABLE_MINING, RoleType.class, true) {
-            @Override
-            protected ISelectableDataProvider<SelectableBean<RoleType>> createProvider() {
-                return super.createProvider();
-            }
+    public BoxedTablePanel<RoleMiningStructureList> generateMiningTable(List<RoleMiningStructureList> roleMiningStructureLists, List<PrismObject<RoleType>> roles) {
 
-            @Override
-            public LoadableDetachableModel<Search<RoleType>> getSearchModel() {
-                return super.getSearchModel();
-            }
+        RoleMiningProvider<RoleMiningStructureList> provider = new RoleMiningProvider<>(this, new ListModel<>(roleMiningStructureLists) {
+
+            private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn<SelectableBean<RoleType>, String>> createDefaultColumns() {
-
-                List<IColumn<SelectableBean<RoleType>, String>> columns = new ArrayList<>();
-
-                IColumn<SelectableBean<RoleType>, String> column1 = new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getCssClass() {
-                        return " col-sm-1 overflow-auto";
-                    }
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
-                        RoleType object = rowModel.getObject().getValue();
-                        PageRoleMiningSimple.this.detailsPerformed(PageRole.class, object.getOid());
-                    }
-                };
-
-                columns.add(column1);
-
-                for (int i = 0; i < users.size(); i++) {
-                    int finalI = i;
-
-                    IColumn<SelectableBean<RoleType>, String> column = new AbstractExportableColumn<>(
-                            createStringResource(users.get(finalI).getName().toString())) {
-
-                        @Override
-                        public void populateItem(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem,
-                                String componentId, IModel<SelectableBean<RoleType>> model) {
-
-                            tableRoleTypeStyle(cellItem);
-
-                            PrismObject<UserType> userTypePrismObject = users.get(finalI);
-                            AssignmentHolderType assignmentHolderType = userTypePrismObject.asObjectable();
-
-                            String currentRoleOid = model.getObject().getValue().asPrismObject().getOid();
-                            List<ObjectReferenceType> objectReferenceTypes = getRoleObjectReferenceTypes(assignmentHolderType);
-
-                            ArrayList<String> userRolesObjectIds = new ArrayList<>();
-                            for (ObjectReferenceType objectReferenceType : objectReferenceTypes) {
-                                userRolesObjectIds.add(objectReferenceType.getOid());
-                            }
-
-                            if (basicCombResult != null) {
-                                if (basicCombDisplayResultIterator == basicCombResult.size()) {
-                                    basicCombDisplayResultIterator = 0;
-                                }
-                                ArrayList<String> algorithmRoleOid = new ArrayList<>(basicCombResult.get(basicCombDisplayResultIterator));
-
-                                if (userRolesObjectIds.containsAll(algorithmRoleOid) && algorithmRoleOid.contains(currentRoleOid)) {
-                                    algMatchedRoleTypeCell(cellItem, componentId);
-                                } else if (userRolesObjectIds.contains(currentRoleOid)) {
-                                    filledRoleTypeCell(cellItem, componentId);
-                                } else {
-                                    basicRoleTypeCell(cellItem, componentId);
-                                }
-                            } else if (jaccardUsersAnalysed != null && jaccardResultRoles != null) {
-                                ArrayList<String> jaccardResultRolesOid = new ArrayList<>();
-                                for (PrismObject<RoleType> jaccardResultRole : jaccardResultRoles) {
-                                    jaccardResultRolesOid.add(jaccardResultRole.getOid());
-                                }
-
-                                if (userRolesObjectIds.containsAll(jaccardResultRolesOid) && jaccardResultRolesOid.contains(currentRoleOid)) {
-                                    algMatchedRoleTypeCell(cellItem, componentId);
-                                } else if (userRolesObjectIds.contains(currentRoleOid)) {
-                                    filledRoleTypeCell(cellItem, componentId);
-                                } else {
-                                    basicRoleTypeCell(cellItem, componentId);
-                                }
-
-                            } else {
-                                if (userRolesObjectIds.contains(currentRoleOid)) {
-                                    filledRoleTypeCell(cellItem, componentId);
-                                } else {
-                                    basicRoleTypeCell(cellItem, componentId);
-                                }
-                            }
-
-                        }
-
-                        @Override
-                        public IModel<String> getDataModel(IModel<SelectableBean<RoleType>> rowModel) {
-                            String oid = rowModel.getObject().getValue().getOid();
-
-                            AssignmentHolderType assignmentHolderType = users.get(finalI).asObjectable();
-                            List<ObjectReferenceType> objectReferenceTypes = getRoleObjectReferenceTypes(assignmentHolderType);
-
-                            ArrayList<String> rolesObjectIds = new ArrayList<>();
-
-                            for (ObjectReferenceType objectReferenceType : objectReferenceTypes) {
-                                rolesObjectIds.add(objectReferenceType.getOid());
-                            }
-
-                            if (rolesObjectIds.contains(oid)) {
-                                return Model.of(users.get(finalI).getDisplayName());
-                            }
-                            return Model.of("");
-                        }
-
-                        @Override
-                        public Component getHeader(String componentId) {
-
-                            return new AjaxLinkPanel(componentId, createStringResource(users.get(finalI).getName().toString())) {
-                                @Override
-                                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                                    UserType object = users.get(finalI).asObjectable();
-                                    PageRoleMiningSimple.this.detailsPerformed(PageUser.class, object.getOid());
-                                }
-                            };
-                        }
-
-                        @Override
-                        public String getCssClass() {
-                            return " role-mining-rotated-header";
-                        }
-                    };
-
-                    columns.add(column);
-                }
-
-                return columns;
+            public void setObject(List<RoleMiningStructureList> object) {
+                super.setObject(object);
             }
 
-            @Override
-            protected UserProfileStorage.TableId getTableId() {
-                return UserProfileStorage.TableId.TABLE_USERS;
-            }
+        }, true);
 
-            @Override
-            protected String getNothingSelectedMessage() {
-                return getString("pageUsers.message.nothingSelected");
-            }
+        provider.setSort(RoleMiningStructureList.F_SUM_RESULT, SortOrder.DESCENDING);
+        BoxedTablePanel<RoleMiningStructureList> table = new BoxedTablePanel<>(ID_DATATABLE_MINING_MAIN, provider, initColumnsUser(roles), null, true, true);
+        table.setOutputMarkupId(true);
+        table.getDataTable().setItemsPerPage(30);
+        table.enableSavePageSize();
 
-            @Override
-            protected String getConfirmMessageKeyForMultiObject() {
-                return "pageUsers.message.confirmationMessageForMultipleObject";
-            }
 
-            @Override
-            protected String getConfirmMessageKeyForSingleObject() {
-                return "pageUsers.message.confirmationMessageForSingleObject";
-            }
-        };
-
-        miningTable.setOutputMarkupId(true);
-
-        return miningTable;
+        return table;
     }
 
-    protected MainObjectListPanel<?> jaccardIndexUserRoleMiningTable(List<UserRolesList> roleMiningData) throws CommonException {
-        RoleAnalyseHelper roleAnalyseHelper = new RoleAnalyseHelper();
 
-        MainObjectListPanel<?> confidenceTable = new MainObjectListPanel<>(ID_TABLE_MEM_JACQUARD_USER, UserType.class, true) {
+    protected BoxedTablePanel<?> getBoxedMiningTable() {
+        return (BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_DATATABLE_MINING_MAIN));
+    }
+
+
+
+    public List<IColumn<RoleMiningStructureList, String>> initColumnsUser(List<PrismObject<RoleType>> roles) {
+
+        List<IColumn<RoleMiningStructureList, String>> columns = new ArrayList<>();
+
+        columns.add(new CheckBoxColumn<>(createStringResource(" ")) {
             @Override
-            public List<SelectableBean<UserType>> isAnythingSelected(AjaxRequestTarget target, IModel<SelectableBean<UserType>> selectedObject) {
-                return super.isAnythingSelected(target, selectedObject);
+            protected IModel<Boolean> getEnabled(IModel<RoleMiningStructureList> rowModel) {
+                return () -> rowModel.getObject() != null;
             }
 
             @Override
-            protected ISelectableDataProvider<SelectableBean<UserType>> createProvider() {
-                return super.createProvider();
+            public String getCssClass() {
+                return " role-mining-static-header";
+            }
+
+        });
+
+        columns.add(new IconColumn<>(null) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getCssClass() {
+                return " role-mining-static-header";
             }
 
             @Override
-            public LoadableDetachableModel<Search<UserType>> getSearchModel() {
-                return super.getSearchModel();
+            protected DisplayType getIconDisplayType(IModel<RoleMiningStructureList> rowModel) {
+
+                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
+            }
+        });
+
+        columns.add(new AbstractExportableColumn<>(createStringResource("RoleMining.name.column")) {
+
+            @Override
+            public String getSortProperty() {
+                return RoleMiningStructureList.F_NAME;
             }
 
             @Override
-            protected UserProfileStorage.TableId getTableId() {
+            public IModel<?> getDataModel(IModel<RoleMiningStructureList> iModel) {
                 return null;
             }
 
             @Override
-            protected List<IColumn<SelectableBean<UserType>, String>> createDefaultColumns() {
+            public boolean isSortable() {
+                return true;
+            }
 
-                List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
+            @Override
+            public void populateItem(Item<ICellPopulator<RoleMiningStructureList>> item, String componentId,
+                    IModel<RoleMiningStructureList> rowModel) {
 
-                IColumn<SelectableBean<UserType>, String> column1 = new ObjectNameColumn<>(createStringResource("ObjectType.name")) {
+                item.add(AttributeAppender.replace("class", " overflow-auto"));
+                item.add(new AttributeAppender("style", " width:150px"));
 
-                    private static final long serialVersionUID = 1L;
-
+                item.add(new AjaxLinkPanel(componentId, createStringResource(rowModel.getObject().getUserObject().getName())) {
                     @Override
-                    public String getCssClass() {
-                        return " col-sm-1 overflow-auto";
-                    }
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
-                        UserType object = rowModel.getObject().getValue();
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        UserType object = rowModel.getObject().getUserObject().asObjectable();
                         PageRoleMiningSimple.this.detailsPerformed(PageUser.class, object.getOid());
                     }
-                };
+                });
+            }
 
-                columns.add(column1);
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(componentId, createStringResource("RoleMining.name.column")).add(
+                        new AttributeAppender("style", "  writing-mode: vertical-lr;  -webkit-transform: rotate(-270deg);"));
+            }
 
-                for (int i = 0; i < roleMiningData.size(); i++) {
-                    int finalI = i;
+            @Override
+            public String getCssClass() {
+                return "overflow-auto role-mining-static-row-header role-mining-static-header-name";
+            }
+        });
 
-                    IColumn<SelectableBean<UserType>, String> column = new AbstractExportableColumn<>(
-                            createStringResource(roleMiningData.get(finalI).getUserObject().getName().toString())) {
+        IColumn<RoleMiningStructureList, String> column;
 
-                        @Override
-                        public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
-                                String componentId, IModel<SelectableBean<UserType>> model) {
+        for (int i = 0; i < roles.size(); i++) {
+            int finalI = i;
+            column = new AbstractExportableColumn<>(
+                    createStringResource(roles.get(i).getName())) {
 
-                            tableUserTypeStyle(cellItem);
+                @Override
+                public void populateItem(Item<ICellPopulator<RoleMiningStructureList>> cellItem,
+                        String componentId, IModel<RoleMiningStructureList> model) {
 
-                            String userObjectIdA = model.getObject().getValue().getOid();
-                            List<String> membersUserA = null;
+                    tableMiningStyle(cellItem);
 
-                            for (UserRolesList roleMiningData : roleMiningData) {
-                                if (roleMiningData.getUserObject().getOid().equals(userObjectIdA)) {
-                                    membersUserA = roleMiningData.getRoleObjectId();
+                    List<String> rolesObjectIds = model.getObject().getRoleObjectRef();
+
+                    if (basicCombResult != null) {
+
+                        if (basicCombDisplayResultIterator == basicCombResult.size()) {
+                            basicCombDisplayResultIterator = 0;
+                        }
+                        ArrayList<String> rolesOid = new ArrayList<>(basicCombResult.get(basicCombDisplayResultIterator));
+                        if (rolesObjectIds.containsAll(rolesOid)) {
+                            if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
+                                if (rolesOid.contains(roles.get(finalI).getOid())) {
+                                    algMatchedCell(cellItem, componentId);
+                                } else {
+                                    filledCell(cellItem, componentId);
                                 }
+                            } else {
+                                emptyCell(cellItem, componentId);
+                            }
+                        } else {
+                            if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
+                                filledCell(cellItem, componentId);
+                            } else {
+                                emptyCell(cellItem, componentId);
+
                             }
 
-                            String roleObjectIdB = roleMiningData.get(finalI).getUserObject().getOid();
-                            List<String> membersRoleB = roleMiningData.get(finalI).getRoleObjectId();
+                        }
+                    } else if (jaccardUsersAnalysed != null && jaccardResultRoles != null) {
 
-                            boolean sameObject = userObjectIdA.equals(roleObjectIdB);
-                            double confidence = roleAnalyseHelper.jaccardIndex(membersUserA, membersRoleB, jaccardMinRolesCount);
-
-                            cellItem.add(new AjaxLinkPanel(componentId, Model.of(confidence)) {
-                                @Override
-                                public void onClick(AjaxRequestTarget target) {
-                                    customSum = customSum + confidence;
-                                    printCounterResult(String.valueOf(customSum));
+                        ArrayList<String> jaccardResultRolesOid = new ArrayList<>();
+                        for (PrismObject<RoleType> jaccardResultRole : jaccardResultRoles) {
+                            jaccardResultRolesOid.add(jaccardResultRole.getOid());
+                        }
+                        if (jaccardUsersAnalysed.contains(model.getObject().getUserObject()) &&
+                                rolesObjectIds.containsAll(jaccardResultRolesOid)) {
+                            if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
+                                if (jaccardResultRolesOid.contains(roles.get(finalI).getOid())) {
+                                    algMatchedCell(cellItem, componentId);
+                                } else {
+                                    filledCell(cellItem, componentId);
                                 }
-                            }.add(new AttributeAppender("class", "row")));
+                            } else {
+                                emptyCell(cellItem, componentId);
 
-                            if (sameObject) {
-                                cellItem.add(new AttributeAppender("class", " table-warning"));
-                            } else if (confidence < jaccardThreshold && confidence > 0.0) {
-                                cellItem.add(new AttributeAppender("class", " table-info"));
-                            } else if (confidence > 0.5) {
-                                cellItem.add(new AttributeAppender("class", " table-danger"));
-                            } else if (confidence < 0.5 && confidence > 0.3) {
-                                cellItem.add(new AttributeAppender("class", " table-active"));
+                            }
+
+                        } else {
+
+                            if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
+                                filledCell(cellItem, componentId);
+                            } else {
+                                emptyCell(cellItem, componentId);
                             }
 
                         }
+                    } else {
 
-                        @Override
-                        public IModel<String> getDataModel(IModel<SelectableBean<UserType>> rowModel) {
-                            return Model.of("");
+                        if (rolesObjectIds.contains(roles.get(finalI).getOid())) {
+                            filledCell(cellItem, componentId);
+                        } else {
+                            emptyCell(cellItem, componentId);
                         }
+                    }
 
-                        @Override
-                        public Component getHeader(String componentId) {
-
-                            return new AjaxLinkPanel(componentId, createStringResource(roleMiningData.get(finalI).getUserObject().getName().toString())) {
-                                @Override
-                                public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                                    UserType object = roleMiningData.get(finalI).getUserObject().asObjectable();
-                                    PageRoleMiningSimple.this.detailsPerformed(PageUser.class, object.getOid());
-                                }
-                            };
-                        }
-
-                        @Override
-                        public String getCssClass() {
-                            return " role-mining-rotated-header";
-                        }
-                    };
-
-                    columns.add(column);
                 }
 
-                return columns;
+                @Override
+                public IModel<String> getDataModel(IModel<RoleMiningStructureList> rowModel) {
+                    return Model.of(" ");
+                }
+
+                @Override
+                public Component getHeader(String componentId) {
+                    return new AjaxLinkPanel(componentId, createStringResource(roles.get(finalI).getName().toString())) {
+                        @Override
+                        public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                            RoleType object = roles.get(finalI).asObjectable();
+                            PageRoleMiningSimple.this.detailsPerformed(PageRole.class, object.getOid());
+                        }
+                    };
+                }
+
+            };
+            columns.add(column);
+        }
+
+        column = new AbstractExportableColumn<>(
+                createStringResource("Overlay (%)")) {
+            @Override
+            public String getCssClass() {
+                return " role-mining-rotated-header";
             }
 
             @Override
-            protected String getNothingSelectedMessage() {
-                return getString("pageUsers.message.nothingSelected");
+            public String getSortProperty() {
+                return RoleMiningStructureList.F_SUM_RESULT;
             }
 
             @Override
-            protected String getConfirmMessageKeyForMultiObject() {
-                return "pageUsers.message.confirmationMessageForMultipleObject";
+            public boolean isSortable() {
+                return true;
             }
 
             @Override
-            protected String getConfirmMessageKeyForSingleObject() {
-                return "pageUsers.message.confirmationMessageForSingleObject";
+            public void populateItem(Item<ICellPopulator<RoleMiningStructureList>> cellItem,
+                    String componentId, IModel<RoleMiningStructureList> model) {
+
+                tableMiningStyle(cellItem);
+
+                double confidence = model.getObject().getObjectTotalResult();
+                cellItem.add(new AjaxLinkPanel(componentId, Model.of(Math.round(confidence * 100.0) / 100.0)) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        customSum = customSum + confidence;
+                        printCounterResult(String.valueOf(customSum));
+                    }
+                }.add(new AttributeAppender("class", "row")));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<RoleMiningStructureList> rowModel) {
+                return Model.of(" ");
+            }
+
+        };
+        columns.add(column);
+
+        return columns;
+    }
+
+    public List<IColumn<RoleMiningStructureList, String>> initColumnsJaccard() {
+
+        List<IColumn<RoleMiningStructureList, String>> columns = new ArrayList<>();
+
+        columns.add(new CheckBoxColumn<>(createStringResource(" ")) {
+            @Override
+            protected IModel<Boolean> getEnabled(IModel<RoleMiningStructureList> rowModel) {
+                return () -> rowModel.getObject() != null;
+            }
+
+            @Override
+            public String getCssClass() {
+                return " role-mining-static-header";
+            }
+
+        });
+
+        columns.add(new IconColumn<>(null) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getCssClass() {
+                return " role-mining-static-header";
+            }
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<RoleMiningStructureList> rowModel) {
+
+                return GuiDisplayTypeUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(UserType.COMPLEX_TYPE));
+            }
+        });
+
+        columns.add(new AbstractExportableColumn<>(createStringResource("RoleMining.name.column")) {
+
+            @Override
+            public String getSortProperty() {
+                return RoleMiningStructureList.F_NAME;
+            }
+
+            @Override
+            public IModel<?> getDataModel(IModel<RoleMiningStructureList> iModel) {
+                return null;
+            }
+
+            @Override
+            public boolean isSortable() {
+                return true;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<RoleMiningStructureList>> item, String componentId,
+                    IModel<RoleMiningStructureList> rowModel) {
+
+                item.add(AttributeAppender.replace("class", " overflow-auto"));
+                item.add(new AttributeAppender("style", " width:150px"));
+
+                item.add(new AjaxLinkPanel(componentId, createStringResource(rowModel.getObject().getUserObject().getName())) {
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        UserType object = rowModel.getObject().getUserObject().asObjectable();
+                        PageRoleMiningSimple.this.detailsPerformed(PageUser.class, object.getOid());
+                    }
+                });
+            }
+
+            @Override
+            public Component getHeader(String componentId) {
+                return new Label(componentId, createStringResource("RoleMining.name.column")).add(
+                        new AttributeAppender("style", "  writing-mode: vertical-lr;  -webkit-transform: rotate(-270deg);"));
+            }
+
+            @Override
+            public String getCssClass() {
+                return " role-mining-static-row-header overflow-auto role-mining-static-header-name";
+            }
+        });
+
+        IColumn<RoleMiningStructureList, String> column;
+
+        for (int i = 0; i < roleMiningStructureLists.size(); i++) {
+            int finalI = i;
+            column = new AbstractExportableColumn<>(
+                    createStringResource(roleMiningStructureLists.get(i).getUserObject().getName())) {
+
+                @Override
+                public void populateItem(Item<ICellPopulator<RoleMiningStructureList>> cellItem,
+                        String componentId, IModel<RoleMiningStructureList> model) {
+
+                    tableMiningStyle(cellItem);
+
+                    int position = roleMiningStructureLists.get(finalI).getStaticIndex();
+                    double confidence = model.getObject().getObjectPartialResult().get(position);
+
+                    cellItem.add(new AjaxLinkPanel(componentId, Model.of(confidence)) {
+                        @Override
+                        public void onClick(AjaxRequestTarget target) {
+                            customSum = customSum + confidence;
+                            System.out.println(model.getObject().getUserObject().getName());
+                            printCounterResult(String.valueOf(customSum));
+                        }
+                    }.add(new AttributeAppender("class", "row")));
+
+                    if (model.getObject().getUserObject().getName().equals(roleMiningStructureLists.get(finalI).getUserObject().getName())) {
+                        cellItem.add(new AttributeAppender("class", " table-warning"));
+                    } else if (confidence < jaccardThreshold && confidence > 0.0) {
+                        cellItem.add(new AttributeAppender("class", " table-info"));
+                    } else if (confidence >= jaccardThreshold) {
+                        cellItem.add(new AttributeAppender("class", "table-danger"));
+                    }
+
+                }
+
+                @Override
+                public IModel<String> getDataModel(IModel<RoleMiningStructureList> rowModel) {
+                    return Model.of(" ");
+                }
+
+                @Override
+                public Component getHeader(String componentId) {
+
+                    return new AjaxLinkPanel(componentId, createStringResource(roleMiningStructureLists.get(finalI).getUserObject().getName().toString())) {
+                        @Override
+                        public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                            UserType object = roleMiningStructureLists.get(finalI).getUserObject().asObjectable();
+                            PageRoleMiningSimple.this.detailsPerformed(PageUser.class, object.getOid());
+                        }
+                    };
+                }
+
+            };
+            columns.add(column);
+        }
+
+        column = new AbstractExportableColumn<>(
+                createStringResource("Overlay (%)")) {
+            @Override
+            public String getCssClass() {
+                return " role-mining-rotated-header";
+            }
+
+            @Override
+            public String getSortProperty() {
+                return RoleMiningStructureList.F_SUM_RESULT;
+            }
+
+            @Override
+            public boolean isSortable() {
+                return true;
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<RoleMiningStructureList>> cellItem,
+                    String componentId, IModel<RoleMiningStructureList> model) {
+
+                tableMiningStyle(cellItem);
+
+                double confidence = model.getObject().getObjectTotalResult();
+                cellItem.add(new AjaxLinkPanel(componentId, Model.of(Math.round(confidence * 100.0) / 100.0)) {
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        customSum = customSum + confidence;
+                        printCounterResult(String.valueOf(customSum));
+                    }
+                }.add(new AttributeAppender("class", "row")));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<RoleMiningStructureList> rowModel) {
+                return Model.of(" ");
+            }
+
+        };
+        columns.add(column);
+
+        return columns;
+    }
+
+    private void ajaxLinkExecuteJacquardMining(List<PrismObject<UserType>> users, Form<?> secondForm) {
+        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(ID_JACCARD_AJAX_LINK, Model.of("Execute intersection search")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                basicCombResult = null;
+                basicCombDisplayResultIterator = 0;
+                executeJaccardMining(users);
+
+                getBoxedMiningTable().getDataTable().setItemsPerPage(30);
+                getBoxedMiningTable().replaceWith(getBoxedMiningTable());
+
+                getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(0, 0)));
+
+                target.add(getResultCountLabel());
+                target.add(getBoxedMiningTable());
+            }
+        };
+        ajaxLinkPanel.setOutputMarkupId(true);
+        secondForm.add(WebComponentUtil.createHelp(ID_JACCARD_EXECUTE_SEARCH_INFO));
+        secondForm.add(ajaxLinkPanel);
+    }
+
+    private void executeJaccardMining(List<PrismObject<UserType>> users) {
+        RoleMiningStructureList selectedRoleMiningTableData = null;
+        for (RoleMiningStructureList data : roleMiningStructureLists) {
+            if (data.isSelected()) {
+                selectedRoleMiningTableData = data;
+                data.setSelected(false);
+            }
+        }
+
+        if(selectedRoleMiningTableData !=null){
+            jaccardUsersAnalysed = new RoleAnalyseHelper()
+                    .jaccardGetUserGroup(selectedRoleMiningTableData, jaccardThreshold, users);
+            jaccardResultRoles = new RoleAnalyseHelper()
+                    .jaccardGetRolesGroup(selectedRoleMiningTableData, jaccardUsersAnalysed, getPageBase());
+        }
+
+
+    }
+
+    private void fillJaccardData(List<RoleMiningUserStructure> roleMiningData) {
+
+        roleMiningStructureLists = new ArrayList<>();
+
+        int dataCount = roleMiningData.size();
+        for (int i = 0; i < dataCount; i++) {
+            PrismObject<UserType> objectName = roleMiningData.get(i).getUserObject();
+            double objectTotalResult = 0.0;
+            ArrayList<Double> objectPartialResult = new ArrayList<>();
+            for (RoleMiningUserStructure roleMiningDatum : roleMiningData) {
+                double jaccardIndex = new RoleAnalyseHelper().jaccardIndex(
+                        roleMiningData.get(i).getRoleObjectId(),
+                        roleMiningDatum.getRoleObjectId(), jaccardMinRolesCount
+                );
+
+                objectTotalResult = objectTotalResult + jaccardIndex;
+                objectPartialResult.add(jaccardIndex);
+            }
+            objectTotalResult = objectTotalResult / dataCount;
+
+            List<String> rolesObjectId = new ArrayList<>();
+
+            List<ObjectReferenceType> objectReferenceTypeList = getRoleObjectReferenceTypes(objectName.asObjectable());
+
+            for (ObjectReferenceType objectReferenceType : objectReferenceTypeList) {
+                rolesObjectId.add(objectReferenceType.getOid());
+            }
+
+            roleMiningStructureLists.add(new RoleMiningStructureList(objectName, objectPartialResult, objectTotalResult, rolesObjectId, i));
+
+        }
+
+    }
+
+    private void jaccardThresholdSubmit(Form<?> mainForm, List<RoleMiningUserStructure> roleMiningData) {
+        final TextField<Double> inputThreshold = new TextField<>(ID_JACCARD_THRESHOLD_INPUT, Model.of(jaccardThreshold));
+        inputThreshold.setOutputMarkupId(true);
+
+        final TextField<Integer> inputMinRolesCount = new TextField<>(ID_JACCARD_MIN_ROLES_COUNT_INPUT, Model.of(jaccardMinRolesCount));
+        inputMinRolesCount.setOutputMarkupId(true);
+
+        Form<?> form = new Form<Void>(ID_FORM_JACCARD_THRESHOLD) {
+            @Override
+            protected void onSubmit() {
+                if (inputThreshold.getModelObject() <= 1) {
+                    jaccardThreshold = inputThreshold.getModelObject();
+                } else {
+                    jaccardThreshold = 1;
+                }
+                jaccardMinRolesCount = inputMinRolesCount.getModelObject();
+                fillJaccardData(roleMiningData);
+
+                getDatatableJaccard().replaceWith(generateBoxedTable(roleMiningStructureLists));
+            }
+
+        };
+
+        form.setOutputMarkupId(true);
+        add(form);
+
+        form.add(WebComponentUtil.createHelp(ID_EXECUTE_JACCARD_SETTING));
+        form.add(WebComponentUtil.createHelp(ID_JACCARD_THRESHOLD_INPUT_INFO));
+        form.add(WebComponentUtil.createHelp(ID_JACCARD_MIN_ROLES_COUNT_INFO));
+        form.add(inputThreshold);
+        form.add(inputMinRolesCount);
+
+        mainForm.add(form);
+    }
+
+    private void executeBasicMining(int minSize, List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
+        List<String> rolesOid = new ArrayList<>();
+
+        if(roles !=null && users != null) {
+            for (PrismObject<RoleType> role : roles) {
+                rolesOid.add(role.getOid());
+            }
+
+            List<List<String>> allCombinations = new CombinationHelperAlgorithm().generateCombinations(rolesOid, minSize);
+
+            List<List<String>> matrix = getMatrix(users);
+            basicCombResult = new CombinationHelperAlgorithm().combinationsResult(allCombinations, matrix);
+        }
+    }
+
+    private AjaxLinkPanel calculatorReset() {
+        AjaxLinkPanel calculator = new AjaxLinkPanel(ID_CALCULATOR, Model.of("Reset calculator")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                customSum = 0;
+            }
+        };
+        calculator.setOutputMarkupId(true);
+        return calculator;
+    }
+
+    private void basicOperationHelper(Form<?> mainForm, List<PrismObject<RoleType>> roles, List<PrismObject<UserType>> users) {
+
+        Label repeatingCountBasicTable = new Label(ID_LABEL_DUPLICATES_BASIC, Model.of("0 duplicates"));
+        repeatingCountBasicTable.setOutputMarkupId(true);
+        repeatingCountBasicTable.setOutputMarkupPlaceholderTag(true);
+        repeatingCountBasicTable.add(new VisibleBehaviour((this::isSearchMode)));
+        mainForm.add(repeatingCountBasicTable);
+
+        Label resultCountLabel = new Label(ID_LABEL_RESULT_COUNT, Model.of(createIterationResultString(0, 0)));
+        resultCountLabel.setOutputMarkupId(true);
+
+        mainForm.add(resultCountLabel);
+
+        final TextField<Integer> inputMinIntersectionSize = new TextField<>(ID_MIN_SIZE, Model.of(basicCombMinIntersection));
+        inputMinIntersectionSize.setOutputMarkupId(true);
+
+        Form<?> form = new Form<Void>(ID_FORM_MIN_SIZE) {
+            @Override
+            protected void onSubmit() {
+                basicCombDisplayResultIterator = 1;
+                basicCombMinIntersection = inputMinIntersectionSize.getModelObject();
+                executeBasicMining(basicCombMinIntersection, roles, users);
+
+                if (basicCombResult != null) {
+                    if (basicCombDisplayResultIterator == basicCombResult.size()) {
+                        basicCombDisplayResultIterator = 1;
+                    }
+                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(basicCombDisplayResultIterator, basicCombResult.size())));
+                } else {
+                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(0, 0)));
+                }
+                getBoxedMiningTable().getDataTable().setItemsPerPage(30);
+                getBoxedMiningTable().replaceWith(getBoxedMiningTable());
+            }
+
+        };
+
+        form.setOutputMarkupId(true);
+        add(form);
+
+        form.add(WebComponentUtil.createHelp(ID_HELPER_ALG_EXECUTE_INFO));
+        form.add(WebComponentUtil.createHelp(ID_MIN_INTERSECTION_INPUT_INFO));
+        form.add(inputMinIntersectionSize);
+
+        mainForm.add(form);
+
+        AjaxLink<?> duplicateRolesComb = new AjaxLink<>(ID_AJAX_CHECK_DUPLICATE_BASIC) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                if (getBasicTable().getSelectedObjects() != null) {
+
+                    List<String> combination = new ArrayList<>();
+                    for (int i = 0; i < getBasicTable().getSelectedObjects().size(); i++) {
+                        combination.add(getBasicTable().getSelectedObjects().get(i).getValue().getOid());
+                    }
+
+                    getRepeatingCountBasicTable().setDefaultModel(Model.of(
+                            new CombinationHelperAlgorithm().findDuplicates(combination, getMatrix(users)) + " duplicates"));
+
+                    ajaxRequestTarget.add(getRepeatingCountBasicTable());
+
+                }
             }
         };
 
-        confidenceTable.setOutputMarkupId(true);
+        duplicateRolesComb.setOutputMarkupId(true);
+        duplicateRolesComb.add(new VisibleBehaviour((this::isSearchMode)));
+        duplicateRolesComb.setOutputMarkupPlaceholderTag(true);
+        duplicateRolesComb.add(WebComponentUtil.createHelp(ID_BASIC_ROLE_TABLE_INFO));
+        mainForm.add(duplicateRolesComb);
+    }
 
-        return confidenceTable;
+    private void searchSelector(Form<?> mainForm) {
+
+        AjaxLink<Boolean> buttonNextResult = new AjaxLink<>(ID_BUTTON_NEXT_RESULT) {
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                if (basicCombResult != null) {
+                    if (basicCombDisplayResultIterator != 0) {
+                        if (basicCombDisplayResultIterator == basicCombResult.size()) {
+                            basicCombDisplayResultIterator = 0;
+                        }
+                    }
+                    basicCombDisplayResultIterator++;
+                    getBoxedMiningTable().getDataTable().setItemsPerPage(30);
+                    getBoxedMiningTable().replaceWith(getBoxedMiningTable());
+                    ajaxRequestTarget.add(getBoxedMiningTable());
+                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(basicCombDisplayResultIterator, basicCombResult.size())));
+
+                } else {
+                    getResultCountLabel().setDefaultModel(Model.of(createIterationResultString(0, 0)));
+                }
+
+                ajaxRequestTarget.add(getResultCountLabel());
+            }
+        };
+
+        mainForm.add(buttonNextResult);
+
+        AjaxLink<Boolean> roleSearch = new AjaxLink<>(ID_ROLE_SEARCH) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                setSearchMode(true);
+
+                target.add(getRepeatingCountBasicTable());
+                target.add(getAjaxCheckDuplicateBasic());
+                getBasicTable().replaceWith(basicRoleHelperTable());
+                target.add(getBasicTable());
+
+                getUserSearchLink().add(new AttributeModifier("class", " btn btn-default"));
+                target.add(getUserSearchLink());
+
+                getRoleSearchLink().add(new AttributeModifier("class", " btn btn-secondary"));
+                target.add(getRoleSearchLink());
+            }
+        };
+
+        roleSearch.setOutputMarkupId(true);
+
+        if (!isSearchMode()) {
+            roleSearch.add(new AttributeModifier("class", " btn btn-default"));
+        } else {
+            roleSearch.add(new AttributeModifier("class", " btn btn-secondary"));
+        }
+
+        mainForm.add(roleSearch);
+
+        AjaxLink<Boolean> userSearch = new AjaxLink<>(ID_USER_SEARCH) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                setSearchMode(false);
+                target.add(getAjaxCheckDuplicateBasic());
+                target.add(getRepeatingCountBasicTable());
+                getBasicTable().replaceWith(basicUserHelperTable());
+                target.add(getBasicTable());
+
+                getRoleSearchLink().add(new AttributeModifier("class", " btn btn-default"));
+                target.add(getRoleSearchLink());
+
+                getUserSearchLink().add(new AttributeModifier("class", " btn btn-secondary"));
+                target.add(getUserSearchLink());
+            }
+
+        };
+        userSearch.setOutputMarkupId(true);
+
+        if (!isSearchMode()) {
+            userSearch.add(new AttributeModifier("class", " btn btn-secondary"));
+        } else {
+            userSearch.add(new AttributeModifier("class", " btn btn-default"));
+        }
+
+        mainForm.add(userSearch);
     }
 
     private void detailsPerformed(Class<? extends WebPage> pageClass, String objectOid) {
@@ -1238,42 +1247,21 @@ public class PageRoleMiningSimple extends PageAdmin {
         ((PageBase) getPage()).navigateToNext(pageClass, parameters);
     }
 
-    private void basicRoleTypeCell(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem, String componentId) {
+    private void emptyCell(Item<ICellPopulator<RoleMiningStructureList>> cellItem, String componentId) {
         cellItem.add(new Label(componentId, " "));
     }
 
-    private void filledRoleTypeCell(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem, String componentId) {
+    private void filledCell(Item<ICellPopulator<RoleMiningStructureList>> cellItem, String componentId) {
         cellItem.add(new AttributeAppender("class", " table-dark"));
         cellItem.add(new Label(componentId, " "));
     }
 
-    private void algMatchedRoleTypeCell(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem, String componentId) {
+    private void algMatchedCell(Item<ICellPopulator<RoleMiningStructureList>> cellItem, String componentId) {
         cellItem.add(new AttributeAppender("class", " table-info"));
         cellItem.add(new Label(componentId, " "));
     }
 
-    private void tableRoleTypeStyle(Item<ICellPopulator<SelectableBean<RoleType>>> cellItem) {
-        cellItem.getParent().getParent().add(AttributeAppender.replace("class", " d-flex"));
-        cellItem.getParent().getParent().add(AttributeAppender.replace("style", " height:40px"));
-        cellItem.add(new AttributeAppender("style", " width:40px; height:40px; border: 1px solid #f4f4f4;"));
-        cellItem.add(AttributeAppender.remove("class"));
-    }
-
-    private void basicUserTypeCell(Item<ICellPopulator<SelectableBean<UserType>>> cellItem, String componentId) {
-        cellItem.add(new Label(componentId, " "));
-    }
-
-    private void filledUserTypeCell(Item<ICellPopulator<SelectableBean<UserType>>> cellItem, String componentId) {
-        cellItem.add(new AttributeAppender("class", " table-dark"));
-        cellItem.add(new Label(componentId, " "));
-    }
-
-    private void algMatchedUserTypeCell(Item<ICellPopulator<SelectableBean<UserType>>> cellItem, String componentId) {
-        cellItem.add(new AttributeAppender("class", " table-info"));
-        cellItem.add(new Label(componentId, " "));
-    }
-
-    private void tableUserTypeStyle(Item<ICellPopulator<SelectableBean<UserType>>> cellItem) {
+    private void tableMiningStyle(Item<ICellPopulator<RoleMiningStructureList>> cellItem) {
         cellItem.getParent().getParent().add(AttributeAppender.replace("class", " d-flex"));
         cellItem.getParent().getParent().add(AttributeAppender.replace("style", " height:40px"));
         cellItem.add(new AttributeAppender("style", " width:40px; height:40px; border: 1px solid #f4f4f4;"));
@@ -1303,7 +1291,7 @@ public class PageRoleMiningSimple extends PageAdmin {
         return new RoleMiningFilter().filterRoles(((PageBase) getPage()).getModelService(), task, result);
     }
 
-    private List<UserRolesList> getRoleMiningData(List<PrismObject<UserType>> users) {
+    private List<RoleMiningUserStructure> getRoleMiningData(List<PrismObject<UserType>> users) {
         return new RoleMiningFilter().filterUsersRoles(users);
     }
 
@@ -1328,13 +1316,6 @@ public class PageRoleMiningSimple extends PageAdmin {
     private ObjectQuery createMembersQuery(String roleOid) {
         return getPrismContext().queryFor(UserType.class)
                 .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(roleOid).build();
-    }
-
-    protected PrismObject<RoleType> getRoleByOid(String oid) throws CommonException {
-        String getRole = DOT_CLASS + "getRole";
-        OperationResult result = new OperationResult(getRole);
-        Task task = ((PageBase) getPage()).createSimpleTask(getRole);
-        return getModelService().getObject(RoleType.class, oid, null, task, result);
     }
 
     List<List<String>> getMatrix(List<PrismObject<UserType>> users) {
@@ -1368,4 +1349,37 @@ public class PageRoleMiningSimple extends PageAdmin {
         stringBuilder.append(currentResultPosition).append(" of ").append(resultSize).append(" result(s)");
         return String.valueOf(stringBuilder);
     }
+
+    public PageBase getPageBase() {
+        return ((PageBase) getPage());
+    }
+
+    protected BoxedTablePanel<?> getDatatableJaccard() {
+        return (BoxedTablePanel<?>) get(((PageBase) getPage()).createComponentPath(ID_SECONDARY_FORM, ID_DATATABLE_JACCARD));
+    }
+
+    protected AjaxLink<?> getAjaxCheckDuplicateBasic() {
+        return (AjaxLink<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_AJAX_CHECK_DUPLICATE_BASIC));
+    }
+
+    protected Label getResultCountLabel() {
+        return (Label) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_LABEL_RESULT_COUNT));
+    }
+
+    protected Label getRepeatingCountBasicTable() {
+        return (Label) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_LABEL_DUPLICATES_BASIC));
+    }
+
+    protected AjaxLink<?> getUserSearchLink() {
+        return (AjaxLink<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_USER_SEARCH));
+    }
+
+    protected AjaxLink<?> getRoleSearchLink() {
+        return (AjaxLink<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_ROLE_SEARCH));
+    }
+
+    protected MainObjectListPanel<?> getBasicTable() {
+        return (MainObjectListPanel<?>) get(((PageBase) getPage()).createComponentPath(ID_MAIN_FORM, ID_DATATABLE_DETAILS));
+    }
+
 }

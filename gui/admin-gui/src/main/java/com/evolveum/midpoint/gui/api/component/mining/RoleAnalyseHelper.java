@@ -5,19 +5,67 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.mining;
+package com.evolveum.midpoint.gui.api.component.mining;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class RoleAnalyseHelper implements Serializable {
+
+
+    public List<PrismObject<RoleType>> jaccardGetRolesGroup(RoleMiningStructureList selectedData,
+            List<PrismObject<UserType>> jaccardUsersAnalysed,
+            PageBase pageBase) {
+
+        List<PrismObject<RoleType>> jaccardResultRoles = new ArrayList<>();
+        if (selectedData != null) {
+
+
+            List<ObjectReferenceType> rolesForCompare = new RoleMiningFilter().getRoleObjectReferenceTypes(selectedData.getUserObject().asObjectable());
+            for (PrismObject<UserType> userTypePrismObject : jaccardUsersAnalysed) {
+                rolesForCompare = roleIntersected(rolesForCompare,
+                        new RoleMiningFilter().getRoleObjectReferenceTypes(userTypePrismObject.asObjectable()));
+            }
+
+            for (ObjectReferenceType objectReferenceType : rolesForCompare) {
+                try {
+                    jaccardResultRoles.add(new RoleMiningFilter().getRoleByOid(objectReferenceType.getOid(), pageBase));
+                } catch (CommonException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return jaccardResultRoles;
+    }
+
+
+    public List<PrismObject<UserType>> jaccardGetUserGroup(RoleMiningStructureList selectedData,
+            double jaccardThreshold,
+            List<PrismObject<UserType>> users) {
+
+        List<PrismObject<UserType>> jaccardUsersAnalysed = new ArrayList<>();
+
+        if (selectedData != null) {
+
+            for (int j = 0; j < selectedData.getObjectPartialResult().size(); j++) {
+                if (selectedData.getObjectPartialResult().get(j) > jaccardThreshold) {
+                    jaccardUsersAnalysed.add(users.get(j));
+                }
+            }
+        }
+        return jaccardUsersAnalysed;
+    }
+
+
+
+
 
     public double jaccardIndex(List<String> membersRoleA, List<String> membersRoleB, int minRolesCount) {
         if (membersRoleA == null || membersRoleB == null) {

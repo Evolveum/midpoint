@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.api.mining;
+package com.evolveum.midpoint.gui.api.component.mining;
 
 import java.util.*;
 
@@ -38,19 +38,24 @@ public class CombinationHelperAlgorithm {
                 }
             }
 
-            counts.add(counter);
-            combinationHelperLists.add(new CombinationHelperList(counter, combinationForCheck));
-        }
-
-        Integer maxCount = Collections.max(counts);
-
-        List<List<String>> result = new ArrayList<>();
-        for (CombinationHelperList storageRow : combinationHelperLists) {
-            if (storageRow.getCount() == maxCount) {
-                result.add(storageRow.getCombinations());
+            if(counter != 0) {
+                counts.add(counter);
+                combinationHelperLists.add(new CombinationHelperList(counter, combinationForCheck));
             }
         }
-        return sort(result);
+
+        if(counts.size() > 0) {
+            Integer maxCount = Collections.max(counts);
+
+            List<List<String>> result = new ArrayList<>();
+            for (CombinationHelperList storageRow : combinationHelperLists) {
+                if (storageRow.getCount() == maxCount) {
+                    result.add(storageRow.getCombinations());
+                }
+            }
+            return sort(result);
+        }
+        return null;
     }
 
     public int findDuplicates(List<String> combination, List<List<String>> matrix) {

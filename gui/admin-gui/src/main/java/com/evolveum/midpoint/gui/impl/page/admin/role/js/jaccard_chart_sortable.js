@@ -9,11 +9,12 @@ function JavaArrayToJsArray(array) {
     return array.replace(/[\[\]]/g, ' ').split(", ");
 }
 
-function jaccard_chart(labelsNames, datasetValues, jaccardSortedMatrix, inputThreshold) {
+function jaccard_chart_sortable(labelsNames, datasetValues, jaccardSortedMatrix, inputThreshold, staticIndex) {
     let datasetData = JSON.parse(datasetValues);
     let datasetLabel = JavaArrayToJsArray(labelsNames);
     let matrix = JSON.parse(jaccardSortedMatrix);
     let jaccardThreshold = inputThreshold;
+    let staticIndexName = JSON.parse(staticIndex);
 
     new Chart("barChart", {
         type: 'bar',
@@ -42,11 +43,20 @@ function jaccard_chart(labelsNames, datasetValues, jaccardSortedMatrix, inputThr
                     }
                 }
 
+                let staticResult = [];
+                for (let j = 0; j < result.length; j++) {
+                    for (let k = 0; k < staticIndexName.length; k++) {
+                        if (result[j] === staticIndexName[k]) {
+                            staticResult.push(k);
+                        }
+                    }
+                }
+
                 if (elements.length) {
                     const dataset = chart.data.datasets[0];
                     dataset.backgroundColor = [];
                     for (let i = 0; i < dataset.data.length; i++) {
-                        if (result.includes(i)) {
+                        if (staticResult.includes(i)) {
                             dataset.backgroundColor[i] = 'rgb(32,32,32)';
                         } else {
                             dataset.backgroundColor[i] = 'rgb(81,140,184)'

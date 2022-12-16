@@ -54,14 +54,15 @@ public class RoleMiningTableHeadersToolbar<T> extends AjaxFallbackHeadersToolbar
                 SortOrder dir = sortState.getPropertySortOrder(property);
                 String cssClass;
                 if (dir == SortOrder.ASCENDING) {
-                    cssClass = "sortable asc";
+                    cssClass = "sortable asc role-mining-rotated-header";
                 } else if (dir == SortOrder.DESCENDING) {
-                    cssClass = "sortable desc";
+                    cssClass = "sortable desc role-mining-rotated-header";
                 } else {
                     cssClass = "sortable";
                 }
 
                 if (!Strings.isEmpty(cssClass)) {
+                    tag.remove("class");
                     tag.append("class", cssClass, " ");
                 }
             }
