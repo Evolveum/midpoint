@@ -10,6 +10,7 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
@@ -124,24 +125,18 @@ public class SearchBoxConfigurationUtil {
         indirectItem.setVisibility(UserInterfaceElementVisibilityType.VISIBLE);
         searchBoxConfig.setIndirectConfiguration(indirectItem);
 
-        //TODO tenant and project only for roles
-//        defaultScope = searchBoxConfig.getScopeConfiguration() != null ? searchBoxConfig.getScopeConfiguration().getDefaultValue()
-//                : searchBoxConfig.getDefaultScope();
-//        if (searchBoxConfig.getRelationConfiguration() != null) {
-//            defaultRelation = searchBoxConfig.getRelationConfiguration().getDefaultValue() != null ?
-//                    searchBoxConfig.getRelationConfiguration().getDefaultValue() : RelationTypes.MEMBER.getRelation();
-//            searchBoxConfig.getRelationConfiguration().getSupportedRelations()
-//                    .forEach(relation -> supportedRelations.add(relation));
-//        }
-//        if (searchBoxConfig.getIndirectConfiguration() != null && searchBoxConfig.getIndirectConfiguration().isIndirect() != null) {
-//            indirect = searchBoxConfig.getIndirectConfiguration().isIndirect();
-//        }
-//        if  (searchBoxConfig.getProjectConfiguration() != null) {
-//            //todo
-//        }
-//        if (searchBoxConfig.getTenantConfiguration() != null) {
-//            //todo
-//        }
+        if (QNameUtil.match(RoleType.COMPLEX_TYPE, abstractRoleType)) {
+            UserInterfaceFeatureType defaultTenantConfiguration = new UserInterfaceFeatureType();
+            DisplayType tenantDisplay = GuiDisplayTypeUtil.createDisplayTypeWith("Tenant", "abstractRoleMemberPanel.tenant", null);
+            defaultTenantConfiguration.setDisplay(tenantDisplay);
+            searchBoxConfig.setTenantConfiguration(defaultTenantConfiguration);
+
+            UserInterfaceFeatureType defaultProjectConfiguration = new UserInterfaceFeatureType();
+            DisplayType projectDisplay = GuiDisplayTypeUtil.createDisplayTypeWith("Project/Org", "abstractRoleMemberPanel.project", null);
+            defaultProjectConfiguration.setDisplay(projectDisplay);
+            searchBoxConfig.setProjectConfiguration(defaultProjectConfiguration);
+        }
+
 
         SearchItemsType searchItemsType = createSearchItemsForType(defaultType, Arrays.asList(ObjectType.F_EXTENSION), null, modelServiceLocator);
         searchBoxConfig.searchItems(searchItemsType);

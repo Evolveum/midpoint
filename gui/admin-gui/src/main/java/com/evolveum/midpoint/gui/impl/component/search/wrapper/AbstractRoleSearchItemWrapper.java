@@ -46,10 +46,7 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     private TenantSearchItemWrapper tenantSearchItemWrapper;
     private ProjectSearchItemWrapper projectSearchItemWrapper;
 
-//    private QName abstractRoleType;
-
     public AbstractRoleSearchItemWrapper(SearchBoxConfigurationType config) {
-//        this.abstractRoleType = absctratRoleType;
         if (config.getRelationConfiguration() != null) {
             relationSearchItemWrapper = new RelationSearchItemWrapper(config.getRelationConfiguration());
         }
@@ -99,16 +96,58 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
                     .item(AssignmentType.F_TARGET_REF)
                     .ref(MemberOperationsHelper.createReferenceValuesList(ref, relations));
 
-//            if (tenantSearchItemWrapper.getValue().getValue() != null) { //TODO is empty?
-//                q = q.and().item(AssignmentType.F_TENANT_REF).ref(tenantSearchItemWrapper.getValue().getValue().getOid());
-//            }
-//
-//            if (projectSearchItemWrapper.getValue().getValue() != null) {
-//                q = q.and().item(AssignmentType.F_ORG_REF).ref(projectSearchItemWrapper.getValue().getValue().getOid());
-//            }
+            if (!isIndirect()) {
+                if (tenantSearchDefined()) { //TODO is empty?
+                    q = q.and().item(AssignmentType.F_TENANT_REF).ref(getTenantOid());
+                }
+
+                if (projectSearchDefined()) {
+                    q = q.and().item(AssignmentType.F_ORG_REF).ref(getProjectOid());
+                }
+            }
             filter = q.endBlock().buildFilter();
         }
         return filter;
+    }
+
+    private boolean tenantSearchDefined() {
+        return getTenantValue() != null;
+    }
+
+    private ObjectReferenceType getTenantValue() {
+        if (tenantSearchItemWrapper == null) {
+            return null;
+        }
+
+        return tenantSearchItemWrapper.getValue().getValue();
+    }
+
+    private String getTenantOid() {
+        ObjectReferenceType tenantValue = getTenantValue();
+        if (tenantValue == null) {
+            return null;
+        }
+        return tenantValue.getOid();
+    }
+
+    private boolean projectSearchDefined() {
+        return getProjectValue() != null;
+    }
+
+    private ObjectReferenceType getProjectValue() {
+        if (projectSearchItemWrapper == null) {
+            return null;
+        }
+
+        return projectSearchItemWrapper.getValue().getValue();
+    }
+
+    private String getProjectOid() {
+        ObjectReferenceType projectValue = getProjectValue();
+        if (projectValue == null) {
+            return null;
+        }
+        return projectValue.getOid();
     }
 
     @Override
@@ -127,10 +166,6 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
         }
         return null;
     }
-
-//    public SearchConfigurationWrapper getSearchConfig() {
-//        return searchConfig;
-//    }
 
     private ScopeSearchItemWrapper getScopeSearchItemWrapper() {
         return scopeSearchItemWrapper;
@@ -170,13 +205,12 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     }
 
     public boolean isSearchScope(SearchBoxScopeType scope) {
-        SearchBoxScopeType searchScope = scopeSearchItemWrapper.getValue().getValue();
+        SearchBoxScopeType searchScope = getScopeValue();
         return scope == searchScope;
     }
 
     public boolean isSearchScopeVisible() {
         return scopeSearchItemWrapper != null;
-//        return QNameUtil.match(OrgType.COMPLEX_TYPE, abstractRoleType);
     }
 
     public boolean isRelationVisible() {
@@ -184,11 +218,11 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     }
 
     public boolean isIndirectVisible() {
-        return CollectionUtils.isNotEmpty(getSupportedRelations()) && isSearchScope(SearchBoxScopeType.ONE_LEVEL);
+        return !isSearchScope(SearchBoxScopeType.SUBTREE);
     }
 
     public boolean isParameterSearchVisible() {
-        return !isIndirect();// && QNameUtil.match(RoleType.COMPLEX_TYPE, abstractRoleType);
+        return !isIndirect();
     }
 
     public List<QName> getSupportedRelations() {
@@ -200,6 +234,9 @@ public class AbstractRoleSearchItemWrapper extends FilterableSearchItemWrapper {
     }
 
     public SearchBoxScopeType getScopeValue() {
+        if (scopeSearchItemWrapper == null) {
+            return null;
+        }
         return scopeSearchItemWrapper.getValue().getValue();
     }
 

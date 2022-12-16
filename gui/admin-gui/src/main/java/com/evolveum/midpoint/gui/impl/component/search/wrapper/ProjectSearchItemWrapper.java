@@ -31,17 +31,6 @@ public class ProjectSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRe
         this.projectConfig = projectConfig;
     }
 
-    //TODO in panel
-//    @Override
-//    public boolean isEnabled() {
-//        return !getSearchConfig().isIndirect();
-//    }
-//
-//    @Override
-//    public boolean isVisible() {
-//        return !getSearchConfig().isIndirect();
-//    }
-
     @Override
     public Class<ProjectSearchItemPanel> getSearchItemPanelClass() {
         return ProjectSearchItemPanel.class;
@@ -78,11 +67,6 @@ public class ProjectSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRe
         return ""; //todo
     }
 
-    @Override
-    public boolean isApplyFilter(SearchBoxModeType searchBoxMode) {
-        return true;
-    }
-
     public PrismReferenceDefinition getProjectRefDef() {
         return getReferenceDefinition(AssignmentType.F_ORG_REF);
     }
@@ -91,5 +75,10 @@ public class ProjectSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRe
         return PrismContext.get().getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(AssignmentType.class)
                 .findReferenceDefinition(refName);
+    }
+
+    @Override
+    public boolean isVisible() {
+        return true;
     }
 }

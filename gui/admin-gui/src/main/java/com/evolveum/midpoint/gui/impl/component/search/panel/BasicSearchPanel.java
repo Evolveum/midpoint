@@ -81,6 +81,7 @@ public class BasicSearchPanel<C extends Containerable> extends BasePanel<SearchC
             @Override
             protected void populateItem(ListItem<FilterableSearchItemWrapper> item) {
                 AbstractSearchItemPanel searchItemPanel = createSearchItemPanel(ID_ITEM, item.getModel());
+                searchItemPanel.setOutputMarkupId(true);
                 searchItemPanel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible()));
                 item.add(searchItemPanel);
             }

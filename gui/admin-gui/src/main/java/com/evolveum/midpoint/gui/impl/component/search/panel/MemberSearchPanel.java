@@ -3,6 +3,8 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AbstractRoleSearchItemWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -23,28 +25,61 @@ public class MemberSearchPanel extends AbstractSearchItemPanel<AbstractRoleSearc
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
+        setOutputMarkupId(true);
+        add(AttributeAppender.append("style", "display: contents !important; background-color: white!important;"));
+        add(AttributeAppender.append("class", "d-flex gap-1 pl-1 bg-light rounded-sm align-items-center"));
     }
 
     private void initLayout() {
-        ScopeSearchItemPanel scopeSearchItemPanel = new ScopeSearchItemPanel(ID_SCOPE, new PropertyModel<>(getModel(), AbstractRoleSearchItemWrapper.F_SCOPE));
+        ScopeSearchItemPanel scopeSearchItemPanel = new ScopeSearchItemPanel(ID_SCOPE,
+                new PropertyModel<>(getModel(), AbstractRoleSearchItemWrapper.F_SCOPE)){
+
+            @Override
+            protected void onScopeItemChanged(AjaxRequestTarget target) {
+                refreshSearchItems(target);
+//                target.add(MemberSearchPanel.this);
+//                SearchPanel searchPanel = (SearchPanel) findParent(SearchPanel.class);
+//                if (searchPanel != null) {
+//                    target.add(searchPanel);
+//                }
+            }
+        };
         scopeSearchItemPanel.add(new VisibleBehaviour(() -> isScopeVisible()));
+        scopeSearchItemPanel.setOutputMarkupId(true);
+        scopeSearchItemPanel.setOutputMarkupPlaceholderTag(true);
         add(scopeSearchItemPanel);
 
-        RelationSearchItemPanel relationSearchItemPanel = new RelationSearchItemPanel(ID_RELATION, new PropertyModel<>(getModel(), AbstractRoleSearchItemWrapper.F_RELATION));
+        RelationSearchItemPanel relationSearchItemPanel = new RelationSearchItemPanel(ID_RELATION,
+                new PropertyModel<>(getModel(), AbstractRoleSearchItemWrapper.F_RELATION));
         relationSearchItemPanel.add(new VisibleBehaviour(() -> isRelationVisible()));
+        relationSearchItemPanel.setOutputMarkupId(true);
         add(relationSearchItemPanel);
 
-        IndirectSearchItemPanel indirectSearchItemPanel = new IndirectSearchItemPanel(ID_INDIRECT, new PropertyModel<>(getModel(), AbstractRoleSearchItemWrapper.F_INDIRECT));
+        IndirectSearchItemPanel indirectSearchItemPanel = new IndirectSearchItemPanel(ID_INDIRECT,
+                new PropertyModel<>(getModel(), AbstractRoleSearchItemWrapper.F_INDIRECT)) {
+            @Override
+            protected void onIndirectItemChanged(AjaxRequestTarget target) {
+                refreshSearchItems(target);
+//                SearchPanel searchPanel = (SearchPanel) findParent(SearchPanel.class);
+//                if (searchPanel != null) {
+//                    target.add(searchPanel);
+//                }
+            }
+        };
         indirectSearchItemPanel.add(new VisibleBehaviour(() -> isIndirectVisible()));
-//        indirectSearchItemPanel.add(new EnableBehaviour(() -> getModelObject().isSearchScope(SearchBoxScopeType.SUBTREE)));
+        indirectSearchItemPanel.setOutputMarkupId(true);
         add(indirectSearchItemPanel);
 
-        TenantSearchItemPanel tenantSearchItemPanel = new TenantSearchItemPanel(ID_TENANT, new PropertyModel<>(getModel(), AbstractRoleSearchItemWrapper.F_TENANT));
+        TenantSearchItemPanel tenantSearchItemPanel = new TenantSearchItemPanel(ID_TENANT,
+                new PropertyModel<>(getModel(), AbstractRoleSearchItemWrapper.F_TENANT));
         tenantSearchItemPanel.add(new VisibleBehaviour(() -> isParameterSearchVisible()));
+        tenantSearchItemPanel.setOutputMarkupId(true);
         add(tenantSearchItemPanel);
 
-        ProjectSearchItemPanel projectSearchItemWrapper = new ProjectSearchItemPanel(ID_PROJECT, new PropertyModel<>(getModel(), AbstractRoleSearchItemWrapper.F_PROJECT));
+        ProjectSearchItemPanel projectSearchItemWrapper = new ProjectSearchItemPanel(ID_PROJECT,
+                new PropertyModel<>(getModel(), AbstractRoleSearchItemWrapper.F_PROJECT));
         projectSearchItemWrapper.add(new VisibleBehaviour(() -> isParameterSearchVisible()));
+        projectSearchItemWrapper.setOutputMarkupId(true);
         add(projectSearchItemWrapper);
 
 
@@ -52,6 +87,15 @@ public class MemberSearchPanel extends AbstractSearchItemPanel<AbstractRoleSearc
 //                && (!isOrg() || !isSearchItemVisible(ScopeSearchItemWrapper.class, search))
 //                && (isNotRole() || !isSearchItemVisible(TenantSearchItemWrapper.class, search))
 //                && (isNotRole() || !isSearchItemVisible(ProjectSearchItemWrapper.class, search));
+    }
+
+    private void refreshSearchItems(AjaxRequestTarget target) {
+//        target.add(get(ID_SCOPE));
+//        target.add(get(ID_INDIRECT));
+//        target.add(get(ID_TENANT));
+//        target.add(get(ID_PROJECT));
+//        target.add(get(ID_RELATION));
+        target.add(MemberSearchPanel.this);
     }
 
     private boolean isScopeVisible() {

@@ -36,6 +36,7 @@ public class TenantSearchItemPanel extends SingleSearchItemPanel<TenantSearchIte
                 return Collections.singletonList(RelationTypes.MEMBER.getRelation());
             }
         };
+        searchItemField.setOutputMarkupId(true);
         return searchItemField;
     }
 

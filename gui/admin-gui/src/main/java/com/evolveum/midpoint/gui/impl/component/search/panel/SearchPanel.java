@@ -200,7 +200,7 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
                 Search<C> search = getModelObject();
                 search.setForceReload(true);
                 SearchPanel.this.refreshSearchForm(target);
-                SearchPanel.this.searchPerformed(target);
+//                SearchPanel.this.searchPerformed(target);
             }
         });
         choices.add(new VisibleBehaviour(() -> getModelObject().getAllowedTypeList().size() > 1));

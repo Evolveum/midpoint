@@ -30,42 +30,31 @@ public class RelationSearchItemPanel extends SingleSearchItemPanel<RelationSearc
 
     @Override
     protected Component initSearchItemField(String id) {
-//        PropertyModel<List<QName>> availableRelations = new PropertyModel<>(getModel(), RelationSearchItemWrapper.F_SUPPORTED_RELATIONS);
-//        IModel<Lis> availableRelations = new ReadOnlyModel<>(() -> {
-//            List<QName> choices = new ArrayList<>();
-//            List<QName> relations = getModelObject().getSearchConfig().getSupportedRelations();
-//            if (relations != null && relations.size() > 1) {
-//                choices.add(PrismConstants.Q_ANY);
-//            }
-//            choices.addAll(relations);
-//            return choices;
-//        });
-
-
         DropDownChoicePanel inputPanel = new DropDownChoicePanel(id,
                 new PropertyModel(getModel(), RelationSearchItemWrapper.F_VALUE),
-                new PropertyModel<>(getModel(), RelationSearchItemWrapper.F_SUPPORTED_RELATIONS), new QNameIChoiceRenderer() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public Object getDisplayValue(QName relation) {
-                RelationDefinitionType relationDef = WebComponentUtil.getRelationDefinition(relation);
-                if (relationDef != null) {
-                    DisplayType display = relationDef.getDisplay();
-                    if (display != null) {
-                        PolyStringType label = display.getLabel();
-                        if (PolyStringUtils.isNotEmpty(label)) {
-                            return WebComponentUtil.getTranslatedPolyString(label);
-                        }
-                    }
-                }
-                if (QNameUtil.match(PrismConstants.Q_ANY, relation)) {
-                    return new ResourceModel("RelationTypes.ANY", relation.getLocalPart()).getObject();
-                }
-                return super.getDisplayValue(relation);
-            }
-        }, false);
+                new PropertyModel<>(getModel(), RelationSearchItemWrapper.F_SUPPORTED_RELATIONS), new RelationChoiceRenderer() , false);
         return inputPanel;
     }
 
+    class RelationChoiceRenderer extends QNameIChoiceRenderer {
+
+        @Override
+        public Object getDisplayValue(QName relation) {
+            RelationDefinitionType relationDef = WebComponentUtil.getRelationDefinition(relation);
+            if (relationDef != null) {
+                DisplayType display = relationDef.getDisplay();
+                if (display != null) {
+                    PolyStringType label = display.getLabel();
+                    if (PolyStringUtils.isNotEmpty(label)) {
+                        return WebComponentUtil.getTranslatedPolyString(label);
+                    }
+                }
+            }
+            if (QNameUtil.match(PrismConstants.Q_ANY, relation)) {
+                return new ResourceModel("RelationTypes.ANY", relation.getLocalPart()).getObject();
+            }
+            return super.getDisplayValue(relation);
+        }
+
+    }
 }

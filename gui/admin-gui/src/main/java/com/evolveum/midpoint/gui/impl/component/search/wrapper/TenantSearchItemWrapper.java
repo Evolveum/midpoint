@@ -30,17 +30,6 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
         this.tenantConfig = tenantConfig;
     }
 
-    //TODO in  panel!
-//    @Override
-//    public boolean isEnabled() {
-//        return !getSearchConfig().isIndirect();
-//    }
-//
-//    @Override
-//    public boolean isVisible() {
-//        return !getSearchConfig().isIndirect();
-//    }
-
     @Override
     public Class<TenantSearchItemPanel> getSearchItemPanelClass() {
         return TenantSearchItemPanel.class;
@@ -77,11 +66,6 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
         return ""; //todo
     }
 
-//    public boolean isApplyFilter() {
-//        //todo check
-//        return SearchBoxScopeType.SUBTREE.equals(getSearchConfig().getDefaultScope());
-//    }
-
     public PrismReferenceDefinition getTenantDefinition() {
         return getReferenceDefinition(AssignmentType.F_TENANT_REF);
     }
@@ -92,4 +76,8 @@ public class TenantSearchItemWrapper extends AbstractSearchItemWrapper<ObjectRef
                 .findReferenceDefinition(refName);
     }
 
+    @Override
+    public boolean isVisible() {
+        return true;
+    }
 }

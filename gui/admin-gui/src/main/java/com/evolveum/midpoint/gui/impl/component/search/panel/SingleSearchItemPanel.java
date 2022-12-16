@@ -107,10 +107,10 @@ public abstract class SingleSearchItemPanel<S extends AbstractSearchItemWrapper>
                     return isFieldEnabled();
                 }
 
-                @Override
-                public boolean isVisible() {
-                    return getModelObject().isVisible();
-                }
+//                @Override
+//                public boolean isVisible() {
+//                    return getModelObject().isVisible();
+//                }
             });
         }
         searchItemField.add(new VisibleBehaviour(this::isSearchItemFieldVisible));

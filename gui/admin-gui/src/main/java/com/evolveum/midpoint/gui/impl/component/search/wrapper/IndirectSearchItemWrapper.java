@@ -24,16 +24,10 @@ public class IndirectSearchItemWrapper extends AbstractSearchItemWrapper<Boolean
         this.indirectConfig = indirectConfig;
     }
 
-//    @Override
-//    public boolean isEnabled() {
-//        return getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
-//    }
-
-    //TODO in panel!
-//    public boolean isVisible() {
-//        return CollectionUtils.isNotEmpty(getSearchConfig().getSupportedRelations())
-//                && !getSearchConfig().isSearchScope(SearchBoxScopeType.SUBTREE);
-//    }
+    @Override
+    public boolean isVisible() {
+        return true;
+    }
 
     @Override
     public Class<IndirectSearchItemPanel> getSearchItemPanelClass() {
