@@ -1,0 +1,161 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="0934922f-0f63-4768-b1b1-eab4275b31d1"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>OpenDJ</name>
+    <description>
+        Ref: Link accounts phase
+
+        Linking the accounts. There should be no active clockwork-time inbound mapping.
+        <!-- TODO This should be somehow switchable globally. Currently, it requires inspecting the mappings one by one. -->
+        There is no outbound mapping defined, either.
+    </description>
+
+    <lifecycleState>active</lifecycleState>
+
+    <super>
+        <resourceRef oid="bb554a60-3e83-40e5-be21-ca913ee58a43"/>
+    </super>
+
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+        <icfc:configurationProperties>
+            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+            <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <attribute>
+                <ref>ri:employeeNumber</ref>
+                <!-- the simple correlator was moved to the complex correlation configuration -->
+                <inbound>
+                    <target>
+                        <path>employeeNumber</path>
+                    </target>
+                    <!-- This is a kind of hack. We want to correlate on this attribute by a simple mapping but do not want
+                         to use it to really modify the focus. This may happen for correlation attributes on non-authoritative
+                         resources (e.g. target ones, or "auxiliary" source ones). Repeated for other attributes. -->
+                    <evaluationPhases>
+                        <include>beforeCorrelation</include>
+                        <exclude>clockwork</exclude>
+                    </evaluationPhases>
+                </inbound>
+            </attribute>
+            <!-- TODO We want to make sure this information is (eventually) consistent with the one in midPoint and HR. -->
+            <attribute>
+                <ref>ri:mail</ref>
+                <inbound>
+                    <target>
+                        <path>emailAddress</path>
+                    </target>
+                    <evaluationPhases>
+                        <include>beforeCorrelation</include>
+                        <exclude>clockwork</exclude>
+                    </evaluationPhases>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <inbound>
+                    <target>
+                        <path>givenName</path>
+                    </target>
+                    <evaluationPhases>
+                        <include>beforeCorrelation</include>
+                        <exclude>clockwork</exclude>
+                    </evaluationPhases>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>
+                <inbound>
+                    <target>
+                        <path>familyName</path>
+                    </target>
+                    <evaluationPhases>
+                        <include>beforeCorrelation</include>
+                        <exclude>clockwork</exclude>
+                    </evaluationPhases>
+                </inbound>
+            </attribute>
+            <attribute>
+                <!-- This is intentionally not the final form of the mapping -->
+                <ref>ri:uid</ref>
+                <inbound>
+                    <lifecycleState>proposed</lifecycleState>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <correlation>
+                <correlators>
+                    <items>
+                        <item>
+                            <ref>employeeNumber</ref>
+                        </item>
+                        <composition>
+                            <tier>1</tier>
+                        </composition>
+                    </items>
+                    <!-- TODO we need some "negative conditions" like telling that emailAddress matching should not apply
+                          if the employeeNumber is present and not matching -->
+                    <items>
+                        <item>
+                            <ref>emailAddress</ref>
+                        </item>
+                        <composition>
+                            <tier>2</tier>
+                        </composition>
+                    </items>
+                    <items>
+                        <item>
+                            <ref>givenName</ref>
+                        </item>
+                        <item>
+                            <ref>familyName</ref>
+                        </item>
+                        <composition>
+                            <weight>0.8</weight>
+                            <tier>3</tier>
+                        </composition>
+                    </items>
+                </correlators>
+            </correlation>
+            <synchronization>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>disputed</situation>
+                    <actions>
+                        <createCorrelationCase/>
+                    </actions>
+                </reaction>
+            </synchronization>
+        </objectType>
+    </schemaHandling>
+</resource>

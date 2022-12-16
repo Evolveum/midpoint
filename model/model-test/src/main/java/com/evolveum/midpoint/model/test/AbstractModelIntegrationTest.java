@@ -6809,7 +6809,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <X> X traced(FunctionCall<X> tracedCall)
-            throws CommonException, PreconditionViolationException, IOException {
+            throws CommonException, IOException {
         return traced(createModelLoggingTracingProfile(), tracedCall);
     }
 
@@ -6827,7 +6827,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     public <X> X traced(TracingProfileType profile, FunctionCall<X> tracedCall)
-            throws CommonException, PreconditionViolationException, IOException {
+            throws CommonException, IOException {
         setGlobalTracingOverride(profile);
         try {
             return tracedCall.execute();

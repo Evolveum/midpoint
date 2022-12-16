@@ -30,6 +30,7 @@ import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -81,16 +82,18 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
+    private static final int INITIAL_HR_ACCOUNTS = 6;
+
     private static final String RESOURCE_HR_OID = "a1864c6e-b154-4384-bc7f-0b0c92379c3f";
 
-    private static final CsvResource RESOURCE_HR_1 = createHrResource("resource-hr-1.xml");
-    private static final CsvResource RESOURCE_HR_2 = createHrResource("resource-hr-2.xml");
-    private static final CsvResource RESOURCE_HR_3 = createHrResource("resource-hr-3.xml");
-    private static final CsvResource RESOURCE_HR_4 = createHrResource("resource-hr-4.xml");
-    private static final CsvResource RESOURCE_HR_5 = createHrResource("resource-hr-5.xml");
-    private static final CsvResource RESOURCE_HR_6 = createHrResource("resource-hr-6.xml");
-    private static final CsvResource RESOURCE_HR_7 = createHrResource("resource-hr-7.xml");
-    private static final CsvResource RESOURCE_HR_8 = createHrResource("resource-hr-8.xml");
+    private static final CsvResource RESOURCE_HR_100 = createHrResource("resource-hr-100.xml");
+    private static final CsvResource RESOURCE_HR_110 = createHrResource("resource-hr-110.xml");
+    private static final CsvResource RESOURCE_HR_120 = createHrResource("resource-hr-120.xml");
+    private static final CsvResource RESOURCE_HR_130 = createHrResource("resource-hr-130.xml");
+    private static final CsvResource RESOURCE_HR_140 = createHrResource("resource-hr-140.xml");
+    private static final CsvResource RESOURCE_HR_150 = createHrResource("resource-hr-150.xml");
+    private static final CsvResource RESOURCE_HR_160 = createHrResource("resource-hr-160.xml");
+    private static final CsvResource RESOURCE_HR_170 = createHrResource("resource-hr-170.xml");
 
     private static final int PROTECTED_OPENDJ_ACCOUNTS = 4;
     private static final int REGULAR_INITIAL_OPENDJ_ACCOUNTS = 9;
@@ -102,11 +105,14 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final TestResource<ResourceType> RESOURCE_OPENDJ_TEMPLATE =
             new TestResource<>(TEST_DIR, "resource-opendj-template.xml", "bb554a60-3e83-40e5-be21-ca913ee58a43");
 
-    private static final AnyResource RESOURCE_OPENDJ_1 = createOpenDjResource("resource-opendj-1.xml");
-    private static final AnyResource RESOURCE_OPENDJ_2 = createOpenDjResource("resource-opendj-2.xml");
-    private static final AnyResource RESOURCE_OPENDJ_3 = createOpenDjResource("resource-opendj-3.xml");
-    private static final AnyResource RESOURCE_OPENDJ_4 = createOpenDjResource("resource-opendj-4.xml");
-    private AnyResource currentOpenDjResource = RESOURCE_OPENDJ_1;
+    private static final AnyResource RESOURCE_OPENDJ_200 = createOpenDjResource("resource-opendj-200.xml");
+    private static final AnyResource RESOURCE_OPENDJ_210 = createOpenDjResource("resource-opendj-210.xml");
+    private static final AnyResource RESOURCE_OPENDJ_220 = createOpenDjResource("resource-opendj-220.xml");
+    private static final AnyResource RESOURCE_OPENDJ_240 = createOpenDjResource("resource-opendj-240.xml");
+    private static final AnyResource RESOURCE_OPENDJ_250 = createOpenDjResource("resource-opendj-250.xml");
+    private static final AnyResource RESOURCE_OPENDJ_260 = createOpenDjResource("resource-opendj-260.xml");
+    private static final AnyResource RESOURCE_OPENDJ_270 = createOpenDjResource("resource-opendj-270.xml");
+    private AnyResource currentOpenDjResource = RESOURCE_OPENDJ_200;
 
     private static final ObjectsCounter focusCounter = new ObjectsCounter(FocusType.class);
     private static final String DN_JSMITH1 = "uid=jsmith1,ou=People,dc=example,dc=com";
@@ -118,6 +124,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final String DN_HACKER = "uid=hacker,ou=People,dc=example,dc=com";
     private static final String DN_ADMIN = "uid=admin,ou=People,dc=example,dc=com";
     private static final String DN_JUNIOR1 = "uid=junior1,ou=People,dc=example,dc=com";
+    private static final String DN_EMPNO_6 = "uid=empNo:6,ou=People,dc=example,dc=com";
 
     @Autowired CorrelationCaseManager correlationCaseManager;
     @Autowired CaseManager caseManager;
@@ -158,19 +165,19 @@ public class TestFirstSteps extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         given("first definition is imported and tested");
-        RESOURCE_HR_1.initializeAndTest(this, task, result);
+        RESOURCE_HR_100.initializeAndTest(this, task, result);
 
         when("accounts are retrieved");
         List<PrismObject<ShadowType>> accounts = modelService.searchObjects(
                 ShadowType.class,
-                Resource.of(RESOURCE_HR_1.object)
+                Resource.of(RESOURCE_HR_100.object)
                         .queryFor(RI_ACCOUNT_OBJECT_CLASS)
                         .build(),
                 null, task, result);
 
-        then("there are 5 accounts");
+        then("there are all accounts");
         displayCollection("accounts", accounts);
-        assertThat(accounts).as("accounts").hasSize(5);
+        assertThat(accounts).as("accounts").hasSize(INITIAL_HR_ACCOUNTS);
 
         and("there is no known kind/intent");
         for (PrismObject<ShadowType> account : accounts) {
@@ -189,19 +196,19 @@ public class TestFirstSteps extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         given("definition with simple `schemaHandling` is imported and tested");
-        reimportAndTestHrResource(RESOURCE_HR_2, task, result);
+        reimportAndTestHrResource(RESOURCE_HR_110, task, result);
 
         when("accounts are retrieved");
         List<PrismObject<ShadowType>> accounts = modelService.searchObjects(
                 ShadowType.class,
-                Resource.of(RESOURCE_HR_2.object)
+                Resource.of(RESOURCE_HR_110.object)
                         .queryFor(RI_ACCOUNT_OBJECT_CLASS)
                         .build(),
                 null, task, result);
 
-        then("there are 5 accounts");
+        then("there are all accounts");
         displayCollection("accounts", accounts);
-        assertThat(accounts).as("accounts").hasSize(5);
+        assertThat(accounts).as("accounts").hasSize(INITIAL_HR_ACCOUNTS);
 
         and("they are classified as account/default");
         for (PrismObject<ShadowType> account : accounts) {
@@ -221,7 +228,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.remember(result);
 
         given("definition with simple `schemaHandling` is imported and tested");
-        reimportAndTestHrResource(RESOURCE_HR_3, task, result);
+        reimportAndTestHrResource(RESOURCE_HR_120, task, result);
 
         when("single account is imported (on foreground, real execution)");
         importHrAccountRequest("1")
@@ -261,7 +268,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.remember(result);
 
         given("definition with mapping for `empNo` is imported and tested");
-        reimportAndTestHrResource(RESOURCE_HR_4, task, result);
+        reimportAndTestHrResource(RESOURCE_HR_130, task, result);
 
         when("single account is imported (on foreground, real execution)");
         importHrAccountRequest("1")
@@ -309,7 +316,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
                     .objectToAdd()
                         .asFocus()
-                            .assertName("1")
+                            .assertName("empNo:1")
                             .assertLinks(1, 0)
                         .end()
                     .end()
@@ -330,7 +337,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.remember(result);
 
         given("definition with more mappings (one faulty) is imported and tested");
-        reimportAndTestHrResource(RESOURCE_HR_5, task, result);
+        reimportAndTestHrResource(RESOURCE_HR_140, task, result);
 
         when("single account is imported (on foreground, simulated development execution)");
         SimulationResult simResult1 = importHrAccountRequest("1")
@@ -352,12 +359,11 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .rootActivityState()
                     .progress()
                         .display()
-                        .assertCommitted(4, 1, 0)
+                        .assertCommitted(INITIAL_HR_ACCOUNTS - 1, 1, 0)
                     .end()
                     .itemProcessingStatistics()
                         .display()
-                        .assertTotalCounts(4, 1, 0)
-                        .assertLastSuccessObjectName("4")
+                        .assertTotalCounts(INITIAL_HR_ACCOUNTS - 1, 1, 0)
                         .assertLastFailureObjectName("5");
         // @formatter:on
 
@@ -366,7 +372,7 @@ public class TestFirstSteps extends AbstractStoryTest {
             Collection<ObjectDelta<?>> simulatedDeltas = getTaskSimDeltas(taskOid, result);
             assertDeltaCollection(simulatedDeltas, "simulated development execution (background)")
                     .display()
-                    .assertSize(8); // 4 user ADD, 4 shadow MODIFY
+                    .assertSize((INITIAL_HR_ACCOUNTS - 1) * 2); // N user ADD, N shadow MODIFY
             // TODO assert also some information on processed objects
         }
 
@@ -382,7 +388,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
                     .objectToAdd()
                         .asUser()
-                            .assertName("1")
+                            .assertName("empNo:1")
                             .assertGivenName("John")
                             .assertFamilyName("Smith")
                             .assertEmailAddress("jsmith1@evolveum.com")
@@ -407,7 +413,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.remember(result);
 
         given("production-mode definition (with a different bug) is imported and tested");
-        reimportAndTestHrResource(RESOURCE_HR_6, task, result);
+        reimportAndTestHrResource(RESOURCE_HR_150, task, result);
 
         when("Now it must work. Let the import run!");
         String taskOid = importAllHrAccountsRequest()
@@ -420,26 +426,25 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .rootActivityState()
                     .progress()
                         .display()
-                        .assertCommitted(4, 1, 0)
+                        .assertCommitted(INITIAL_HR_ACCOUNTS - 1, 1, 0)
                     .end()
                     .itemProcessingStatistics()
                         .display()
-                        .assertTotalCounts(4, 1, 0)
-                        .assertLastSuccessObjectName("5")
+                        .assertTotalCounts(INITIAL_HR_ACCOUNTS - 1, 1, 0)
                         .assertLastFailureObjectName("4");
         // @formatter:on
 
         and("four new focus objects are there");
-        focusCounter.assertUserOnlyIncrement(4, result);
-        assertUserByUsername("1", "after")
+        focusCounter.assertUserOnlyIncrement(INITIAL_HR_ACCOUNTS - 1, result);
+        assertUserByUsername("empNo:1", "after")
                 .display()
-                .assertName("1")
+                .assertName("empNo:1")
                 .assertGivenName("John")
                 .assertFamilyName("Smith")
                 .assertEmailAddress("jsmith1@evolveum.com")
                 .assertTelephoneNumber("+421-123-456-001")
                 .assertLinks(1, 0);
-        assertNoUserByUsername("4");
+        assertNoUserByUsername("empNo:4");
     }
 
     /**
@@ -453,7 +458,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.remember(result);
 
         given("definition with no bugs is imported and tested");
-        reimportAndTestHrResource(RESOURCE_HR_7, task, result);
+        reimportAndTestHrResource(RESOURCE_HR_160, task, result);
 
         when("single account is imported (on foreground, simulated production execution)");
         SimulationResult simResult1 = importHrAccountRequest("4")
@@ -466,7 +471,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
                     .objectToAdd()
                         .asUser()
-                            .assertName("4")
+                            .assertName("empNo:4")
                             .assertGivenName("Robert")
                             .assertFamilyName("Black")
                             .assertEmailAddress("rblack4@evolveum.com")
@@ -491,10 +496,10 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .progress()
                         .display()
                         // Even if there is no synchronization reaction, the processing is considered to be successful (for now)
-                        .assertCommitted(5, 0, 0)
+                        .assertCommitted(INITIAL_HR_ACCOUNTS, 0, 0)
                     .end()
                     .synchronizationStatistics()
-                        .assertTransition(LINKED, LINKED, LINKED, null, 4, 0, 0)
+                        .assertTransition(LINKED, LINKED, LINKED, null, INITIAL_HR_ACCOUNTS - 1, 0, 0)
                         .assertTransition(UNMATCHED, UNMATCHED, LINKED, null, 1, 0, 0)
                         .assertTransitions(2)
                     .end()
@@ -523,10 +528,10 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.remember(result);
 
         given("improved definition is imported and tested");
-        reimportAndTestHrResource(RESOURCE_HR_8, task, result);
+        reimportAndTestHrResource(RESOURCE_HR_170, task, result);
 
         and("a testing employee is added");
-        RESOURCE_HR_8.append("999,Alice,Test,atest999@evolveum.com,,testing employee");
+        RESOURCE_HR_170.append("999,Alice,Test,atest999@evolveum.com,,testing employee");
 
         when("the testing employee is imported (on foreground, simulated development execution)");
         SimulationResult simResult1 = importHrAccountRequest("999")
@@ -540,7 +545,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
                     .objectToAdd()
                         .asUser()
-                            .assertName("999")
+                            .assertName("empNo:999")
                             .assertEmployeeNumber("999")
                             .assertGivenName("Alice")
                             .assertFamilyName("Test")
@@ -570,18 +575,13 @@ public class TestFirstSteps extends AbstractStoryTest {
         assertDeltaCollection(simResult4.getSimulatedDeltas(), "simulated production execution")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertModifiedPaths(
+                    .assertModified(
                             UserType.F_EMPLOYEE_NUMBER, // the effect of the newly added mapping
-                            PATH_METADATA_MODIFY_CHANNEL,
-                            PATH_METADATA_MODIFY_TIMESTAMP,
-                            PATH_METADATA_MODIFIER_REF,
-                            PATH_METADATA_MODIFY_TASK_REF,
-                            PATH_METADATA_MODIFY_APPROVER_REF,
-                            PATH_METADATA_MODIFY_APPROVAL_COMMENT)
+                            UserType.F_METADATA)
                 .end();
         // @formatter:on
 
-        assertShadow(findShadowByPrismName("4", RESOURCE_HR_8.getObject(), result), "shadow 4 after")
+        assertShadow(findShadowByPrismName("4", RESOURCE_HR_170.getObject(), result), "shadow 4 after")
                 .display()
                 .assertSynchronizationSituation(LINKED);
                 // The correlation situation is still "NO_OWNER". It is not updated after the user is linked. Is that OK?
@@ -596,16 +596,16 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .rootActivityState()
                     .progress()
                         .display()
-                        .assertCommitted(6, 0, 0)
+                        .assertCommitted(INITIAL_HR_ACCOUNTS + 1, 0, 0)
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
+                        .assertTransition(LINKED, LINKED, LINKED, null, INITIAL_HR_ACCOUNTS, 0, 0)
                         .assertTransition(null, UNMATCHED, LINKED, null, 1, 0, 0)
                         .assertTransitions(2)
                     .end()
                 .end()
-                .assertClockworkRunCount(6); // All users went through the clockwork
+                .assertClockworkRunCount(INITIAL_HR_ACCOUNTS + 1); // All users went through the clockwork
         // @formatter:on
 
         and("no new focus object is there");
@@ -615,7 +615,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         putResourceIntoProduction(RESOURCE_HR_OID, result);
 
         and("testing account is deleted");
-        RESOURCE_HR_8.deleteLine("999,.*");
+        RESOURCE_HR_170.deleteLine("999,.*");
 
         when("running production import of all accounts");
         String realTaskOid = importAllHrAccountsRequest().execute(result);
@@ -626,19 +626,19 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .rootActivityState()
                     .progress()
                         .display()
-                        .assertCommitted(5, 0, 0)
+                        .assertCommitted(INITIAL_HR_ACCOUNTS, 0, 0)
                     .end()
                     .synchronizationStatistics()
                         .display()
-                        .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
+                        .assertTransition(LINKED, LINKED, LINKED, null, INITIAL_HR_ACCOUNTS, 0, 0)
                         .assertTransitions(1)
                     .end()
                 .end()
-                .assertClockworkRunCount(5); // All users went through the clockwork
+                .assertClockworkRunCount(INITIAL_HR_ACCOUNTS); // All users went through the clockwork
         // @formatter:on
 
         and("employeeNumber is set");
-        assertUserAfterByUsername("5")
+        assertUserAfterByUsername("empNo:5")
                 .assertEmployeeNumber("5");
     }
 
@@ -655,12 +655,12 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         and("template and the first version of the resource are imported");
         importObjectFromFile(RESOURCE_OPENDJ_TEMPLATE.file, task, result);
-        RESOURCE_OPENDJ_1.initializeAndTest(this, task, result);
+        RESOURCE_OPENDJ_200.initializeAndTest(this, task, result);
 
         when("OpenDJ content is listed");
         List<PrismObject<ShadowType>> accounts = modelService.searchObjects(
                 ShadowType.class,
-                Resource.of(RESOURCE_OPENDJ_1.object)
+                Resource.of(RESOURCE_OPENDJ_200.object)
                         .queryFor(OBJECT_CLASS_INETORGPERSON_QNAME)
                         .build(),
                 null, task, result);
@@ -691,7 +691,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.remember(result);
 
         given("improved definition is imported and tested");
-        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_2, task, result);
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_210, task, result);
 
         when("the import is run in simulated development mode"); // TODO later - reconciliation
         String taskOid = importAllOpenDjAccountsRequest()
@@ -740,7 +740,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.remember(result);
 
         given("improved definition is imported and tested");
-        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_3, task, result);
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_220, task, result);
 
         when("the import is run in simulated development mode"); // TODO later - reconciliation
         String taskOid = importAllOpenDjAccountsRequest()
@@ -768,7 +768,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertClockworkRunCount(0); // still no reactions
         // @formatter:on
 
-        String oidUser1 = assertUserByUsername("1", "after")
+        String oidUser1 = assertUserByUsername("empNo:1", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no execution)
                 .getOid();
         assertShadow(getJSmith1OpenDjShadow(result), "shadow after")
@@ -779,7 +779,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertResultingOwner(oidUser1)
                 .assertSynchronizationSituation(null);
 
-        String oidUser2 = assertUserByUsername("2", "after")
+        String oidUser2 = assertUserByUsername("empNo:2", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no execution)
                 .getOid();
         assertShadow(getJSmith2OpenDjShadow(result), "shadow after")
@@ -790,7 +790,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertResultingOwner(oidUser2)
                 .assertSynchronizationSituation(null);
 
-        String oidUser3 = assertUserByUsername("3", "after")
+        String oidUser3 = assertUserByUsername("empNo:3", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no correlation)
                 .getOid();
         assertShadow(getAGreenOpenDjShadow(result), "shadow after")
@@ -801,10 +801,10 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertResultingOwner(null)
                 .assertSynchronizationSituation(null);
 
-        String oidUser4 = assertUserByUsername("4", "after")
+        String oidUser4 = assertUserByUsername("empNo:4", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no correlation)
                 .getOid();
-        String oidUser5 = assertUserByUsername("5", "after")
+        String oidUser5 = assertUserByUsername("empNo:5", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no correlation)
                 .getOid();
         assertShadow(getRBlackOpenDjShadow(result), "shadow after")
@@ -930,7 +930,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.remember(result);
 
         given("improved definition is imported and tested");
-        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_4, task, result);
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_240, task, result);
 
         when("import task is run (real execution)");
         String taskOid = importAllOpenDjAccountsRequest().execute(result);
@@ -958,8 +958,8 @@ public class TestFirstSteps extends AbstractStoryTest {
         // @formatter:on
 
         when("Unmatched 'bob' and disputed 'agreen3' are linked manually");
-        linkOpenDjAccount(DN_BOB, "5", task, result);
-        linkOpenDjAccount(DN_AGREEN3, "3", task, result);
+        linkOpenDjAccount(DN_BOB, "empNo:5", task, result);
+        linkOpenDjAccount(DN_AGREEN3, "empNo:3", task, result);
 
         and("Disputed 'rblack' is linked by resolving the case");
         CaseType aCase = findCorrelationCase(DN_RBLACK, result);
@@ -967,18 +967,212 @@ public class TestFirstSteps extends AbstractStoryTest {
                 WorkItemId.of(aCase.getWorkItem().get(0)),
                 new AbstractWorkItemOutputType().outcome(
                         OwnerOptionIdentifier.forExistingOwner(
-                                        findUserRequired("4").getOid())
+                                        findUserRequired("empNo:4").getOid())
                                 .getStringValue()),
                 null, task, result);
 
         then("Users are correctly linked");
-        assertUserLinked("1", DN_JSMITH1, result);
-        assertUserLinked("2", DN_JSMITH2, result);
-        assertUserLinked("3", DN_AGREEN3, result);
-        assertUserLinked("4", DN_RBLACK, result);
-        assertUserLinked("5", DN_BOB, result);
+        assertUserLinked("empNo:1", DN_JSMITH1, result);
+        assertUserLinked("empNo:2", DN_JSMITH2, result);
+        assertUserLinked("empNo:3", DN_AGREEN3, result);
+        assertUserLinked("empNo:4", DN_RBLACK, result);
+        assertUserLinked("empNo:5", DN_BOB, result);
 
         focusCounter.assertNoNewObjects(result);
+    }
+
+    /**
+     * Ref: _Username import phase_
+     *
+     * We import usernames from OpenDJ to midPoint. (No outbound name mapping yet.)
+     *
+     * Missing feature: _Correlation: Candidate Identifier_ (empty usernames)
+     * https://docs.evolveum.com/midpoint/methodology/first-steps/solution/#correlation-candidate-identifier
+     *
+     * Workaround:
+     *
+     * . We use HR-provided identifiers as temporary user names
+     * . Inbound name mapping for OpenDJ has a condition that the existing name was temporary at the start (this is a ugly hack)
+     */
+    @Test
+    public void test250ImportUsernames() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        focusCounter.remember(result);
+
+        given("improved definition is imported and tested");
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_250, task, result);
+
+        when("previewing the inbound username mapping on single user before running import (foreground, prod sim)");
+        SimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
+                .simulatedProduction()
+                .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result);
+
+        then("the user name should change (simulated)");
+        assertDeltaCollection(simResult.getSimulatedDeltas(), "single account simulated import")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertNotModifiedExcept(UserType.F_NAME, UserType.F_METADATA)
+                    .assertPolyStringModification(UserType.F_NAME, "empNo:1", "jsmith1")
+                .end()
+                .assertSize(1);
+
+        when("import the single user before running the whole import");
+        importOpenDjAccountRequest(DN_JSMITH1).executeOnForeground(result);
+
+        then("user name should really change");
+        assertUserByUsername("jsmith1", "after")
+                .display();
+
+        when("previewing the all-accounts import");
+        String simTaskOid = importAllOpenDjAccountsRequest()
+                .simulatedProduction()
+                .execute(result);
+
+        then("task is OK");
+        // @formatter:off
+        assertTask(simTaskOid, "simulated task after")
+                .display()
+                .rootActivityState()
+                    .progress()
+                        .display()
+                        .assertCommitted(REGULAR_INITIAL_OPENDJ_ACCOUNTS - 4, 0, PROTECTED_OPENDJ_ACCOUNTS + 4)
+                    .end()
+                    .synchronizationStatistics()
+                        .display()
+                        .assertTransition(LINKED, LINKED, LINKED, null, 5, 0, 0)
+                        .assertTransition(null, null, null, PROTECTED, 0, 0, PROTECTED_OPENDJ_ACCOUNTS + 1)
+                        .assertTransition(null, null, null, POLICY_SITUATION, 0, 0, 3)
+                        .assertTransitions(3)
+                    .end()
+                .end()
+                .assertClockworkRunCount(5);
+        // @formatter:on
+
+        if (isNativeRepository()) {
+            and("there are no simulation deltas");
+            Collection<ObjectDelta<?>> simulatedDeltas = getTaskSimDeltas(simTaskOid, result);
+            assertDeltaCollection(simulatedDeltas, "simulation deltas")
+                    .display()
+                    .assertSize(4)
+                    .by().objectType(UserType.class).changeType(ChangeType.MODIFY).assertCount(4);
+                    // we assume the deltas are correct
+        }
+
+        when("executing the all-accounts import");
+        importAllOpenDjAccountsRequest().execute(result);
+
+        then("linked users now have correct names");
+        assertUserByUsername("jsmith2", "after").display();
+        assertUserByUsername("agreen3", "after").display();
+        assertUserByUsername("rblack", "after").display();
+        assertUserByUsername("bob", "after").display();
+        assertUserByUsername("empNo:6", "after").display(); // this one has no OpenDJ account
+    }
+
+    /**
+     * Ref: _Username import phase_
+     *
+     * Here we add the outbound "name" mapping for OpenDJ resource. (Development mode.)
+     * First attempt does not work - the mapping is wrong.
+     */
+    @Test
+    public void test260OutboundUsernamesWrong() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        focusCounter.remember(result);
+
+        given("resource definition is imported and tested");
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_260, task, result);
+
+        when("trying the import (development simulation)");
+        OperationResult result1 = result.createSubresult("import");
+        SimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
+                .simulatedDevelopment()
+                .withNotAssertingSuccess()
+                .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result1);
+        result1.close();
+
+        then("the operation should result in failure");
+        display("result", result1);
+        assertThatOperationResult(result1)
+                .isPartialError()
+                .hasMessageContaining("String 'jsmith1' is not a DN");
+
+        and("there should be no deltas");
+        assertDeltaCollection(simResult.getSimulatedDeltas(), "single account simulated import")
+                .display()
+                .assertSize(0);
+    }
+
+    /**
+     * Ref: _Username import phase_
+     *
+     * Here we fix the outbound "name" mapping for OpenDJ resource. (Still development mode.)
+     * We check that there are no changes for existing accounts and that the new account would be created with the correct DN.
+     */
+    @Test
+    public void test270OutboundUsernamesFixed() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        focusCounter.remember(result);
+
+        given("resource definition is imported and tested");
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_270, task, result);
+
+        when("trying the single-account import (development simulation)");
+        SimulationResult simResult = importOpenDjAccountRequest(DN_JSMITH1)
+                .simulatedDevelopment()
+                .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result);
+
+        and("there should be no deltas, as the DN matches");
+        assertDeltaCollection(simResult.getSimulatedDeltas(), "single account simulated import")
+                .display()
+                .assertSize(0);
+
+        when("trying the all-accounts import (development simulation)");
+        String simTaskOid = importAllOpenDjAccountsRequest()
+                .simulatedDevelopment()
+                .execute(result);
+
+        then("task is OK");
+        assertTask(simTaskOid, "simulated task after")
+                .display()
+                .assertClockworkRunCount(5);
+
+        and("there should be no deltas, as all the DN match");
+        assertDeltaCollection(getTaskSimDeltas(simTaskOid, result), "single account simulated import")
+                .display()
+                .assertSize(0);
+
+        when("trying to create the account for John Johnson");
+        SimulationResult simResult2 =
+                executeInDevelopmentSimulationMode(
+                        List.of(createOpenDjAssignmentDelta("empNo:6")),
+                        getDefaultSimulationConfiguration(),
+                        task, result);
+
+        then("deltas are OK");
+        // @formatter:off
+        assertDeltaCollection(simResult2.getSimulatedDeltas(), "account creation deltas")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertModified(
+                            UserType.F_ASSIGNMENT,
+                            UserType.F_LINK_REF,
+                            UserType.F_METADATA)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
+                    .objectToAdd()
+                        .asShadow()
+                            .attributes()
+                                .assertValue(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER, DN_EMPNO_6)
+                                .end()
+                            .end()
+                    .end()
+                .end()
+                .assertSize(2);
+        // @formatter:on
     }
 
     private void assertUserLinked(String username, String dn, OperationResult result) throws CommonException {
@@ -992,6 +1186,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertSynchronizationSituation(LINKED);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private @NotNull CaseType findCorrelationCase(String dn, OperationResult result) throws SchemaException {
         return MiscUtil.requireNonNull(
                 correlationCaseManager.findCorrelationCase(
@@ -999,20 +1194,38 @@ public class TestFirstSteps extends AbstractStoryTest {
                 () -> "No correlation case for " + dn);
     }
 
-    private void linkOpenDjAccount(String accountName, String userName, Task task, OperationResult result) throws CommonException {
+    private void linkOpenDjAccount(String accountName, String userName, Task task, OperationResult result)
+            throws CommonException {
+        executeChanges(
+                createOpenDjLinkDelta(userName, accountName, result),
+                null, task, result);
+    }
+
+    private ObjectDelta<ObjectType> createOpenDjLinkDelta(String userName, String accountName, OperationResult result)
+            throws CommonException {
         ObjectReferenceType linkRef =
                 ObjectTypeUtil.createObjectRef(
                         MiscUtil.requireNonNull(
                                 findShadowByPrismName(accountName, currentOpenDjResource.object, result),
                                 () -> "no shadow named " + accountName));
         String userOid = findUserRequired(userName).getOid();
+        return deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .add(linkRef)
+                .asObjectDelta(userOid);
+    }
 
-        executeChanges(
-                deltaFor(UserType.class)
-                        .item(UserType.F_LINK_REF)
-                        .add(linkRef)
-                        .asObjectDelta(userOid),
-                null, task, result);
+    @SuppressWarnings("SameParameterValue")
+    private ObjectDelta<ObjectType> createOpenDjAssignmentDelta(String userName)
+            throws CommonException {
+        String userOid = findUserRequired(userName).getOid();
+        return deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(new AssignmentType()
+                        .construction(
+                                new ConstructionType()
+                                        .resourceRef(RESOURCE_OPENDJ_OID, ResourceType.COMPLEX_TYPE)))
+                .asObjectDelta(userOid);
     }
 
     private PrismObject<UserType> findUserRequired(String userName) throws CommonException {
@@ -1047,6 +1260,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .withImportingAllAccounts();
     }
 
+    @SuppressWarnings("SameParameterValue")
+    private ImportAccountsRequestBuilder importOpenDjAccountRequest(String dn) {
+        return importAccountsRequest()
+                .withResourceOid(RESOURCE_OPENDJ_OID)
+                .withNamingAttribute(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER)
+                .withNameValue(dn);
+    }
+
     private ImportAccountsRequestBuilder importAllOpenDjAccountsRequest() {
         return importAccountsRequest()
                 .withResourceOid(RESOURCE_OPENDJ_OID)
@@ -1061,7 +1282,7 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     private ShadowType findOpenDjShadow(String dn, OperationResult result) throws SchemaException {
         return asObjectable(
-                findShadowByPrismName(dn, RESOURCE_OPENDJ_2.object, result));
+                findShadowByPrismName(dn, RESOURCE_OPENDJ_210.object, result));
     }
 
     private ShadowType getJSmith1OpenDjShadow(OperationResult result) throws SchemaException {

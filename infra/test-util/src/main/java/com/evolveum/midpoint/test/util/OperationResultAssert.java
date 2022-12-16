@@ -40,6 +40,15 @@ public class OperationResultAssert extends AbstractAssert<OperationResultAssert,
         return this;
     }
 
+    public OperationResultAssert isPartialError() {
+        isNotNull();
+        actual.computeStatusIfUnknown();
+        if (!actual.isPartialError()) {
+            failWithMessage("Expected operation result to be partial error: %s", actual);
+        }
+        return this;
+    }
+
     public OperationResultAssert isHandledError() {
         isNotNull();
         actual.computeStatusIfUnknown();

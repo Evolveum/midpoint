@@ -15,10 +15,13 @@
     <c:name>HR</c:name>
 
     <documentation>
-        Fixed one mapping, broken another one. Active lifecycle state.
+        Finalizing HR resource: mapping `empNo` to `employeeNumber` (keeping `name` mapping as weak),
+        creating the correlation rule, adding other synchronization reactions.
+
+        We temporarily switch the resource into the `proposed` state to check this and to avoid any potential damage.
     </documentation>
 
-    <lifecycleState>active</lifecycleState>
+    <lifecycleState>proposed</lifecycleState>
 
     <connectorRef type="ConnectorType">
         <filter>
@@ -50,10 +53,24 @@
             </delineation>
             <attribute>
                 <ref>ri:empNo</ref>
+                <correlator>
+                    <focusItem>employeeNumber</focusItem>
+                </correlator>
+                <inbound>
+                    <strength>weak</strength>
+                    <expression>
+                        <script>
+                            <code>"empNo:$input"</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
                 <inbound>
                     <strength>strong</strength>
                     <target>
-                        <path>name</path>
+                        <path>employeeNumber</path>
                     </target>
                 </inbound>
             </attribute>
@@ -88,17 +105,6 @@
                 <ref>ri:phone</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression>
-                        <script>
-                            <code>
-                                if (input?.startsWith('00')) {
-                                    throw new IllegalStateException('bug is here')
-                                } else {
-                                    input
-                                }
-                            </code>
-                        </script>
-                    </expression>
                     <target>
                         <path>telephoneNumber</path>
                     </target>
@@ -118,6 +124,24 @@
                     <situation>unmatched</situation>
                     <actions>
                         <addFocus/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>deleted</situation>
+                    <actions>
+                        <inactivateFocus/>
                     </actions>
                 </reaction>
             </synchronization>

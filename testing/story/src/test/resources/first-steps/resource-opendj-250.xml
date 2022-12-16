@@ -13,10 +13,12 @@
 
     <name>OpenDJ</name>
     <description>
-        Improving the correlation.
+        Ref: Import usernames
+
+        We create a mapping that would set the username from OpenDJ, if there's none yet. (Using a hack for now.)
     </description>
 
-    <lifecycleState>proposed</lifecycleState>
+    <lifecycleState>active</lifecycleState>
 
     <super>
         <resourceRef oid="bb554a60-3e83-40e5-be21-ca913ee58a43"/>
@@ -94,6 +96,17 @@
                     <target>
                         <path>name</path>
                     </target>
+                    <condition>
+                        <script>
+                            <code>
+                                // Workaround for missing "empty usernames" feature.
+                                // Note that we have to take old value to avoid 'true->false' condition state changes
+                                // that could result from the (repeated) execution of this mapping
+                                def userOld = midpoint.modelContext.focusContextRequired.objectOld
+                                userOld?.asObjectable()?.name?.orig?.startsWith('empNo:')
+                            </code>
+                        </script>
+                    </condition>
                 </inbound>
             </attribute>
             <correlation>
@@ -130,7 +143,26 @@
                     </items>
                 </correlators>
             </correlation>
-            <synchronization/> <!-- no reactions, just the correlation -->
+            <synchronization>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>disputed</situation>
+                    <actions>
+                        <createCorrelationCase/>
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
     </schemaHandling>
 </resource>
