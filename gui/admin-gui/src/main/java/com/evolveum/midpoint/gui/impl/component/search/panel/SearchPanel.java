@@ -34,7 +34,7 @@ import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 

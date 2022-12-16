@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.TenantSearchItemWrapper;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.web.component.search.ReferenceValueSearchPanel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -41,7 +40,7 @@ public class TenantSearchItemPanel extends SingleSearchItemPanel<TenantSearchIte
     }
 
     public PrismReferenceDefinition getTenantDefinition() {
-        return null; //this part is taken from ProjectSearchItem, it is not clear why we return null here
+        return null;
     }
 
 }

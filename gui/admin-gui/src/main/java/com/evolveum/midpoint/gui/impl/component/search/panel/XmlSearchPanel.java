@@ -6,7 +6,6 @@ import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.AdvancedQueryWrapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
@@ -18,7 +17,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
 
 public class XmlSearchPanel extends BasePanel<AdvancedQueryWrapper> {
 
@@ -38,7 +36,7 @@ public class XmlSearchPanel extends BasePanel<AdvancedQueryWrapper> {
         initAdvancedSearchLayout();
     }
 
-    private <S extends SearchItem, T extends Serializable> void initAdvancedSearchLayout() {
+    private void initAdvancedSearchLayout() {
         AjaxButton debug = new AjaxButton(ID_DEBUG, createStringResource("SearchPanel.debug")) {
 
             private static final long serialVersionUID = 1L;
@@ -56,7 +54,7 @@ public class XmlSearchPanel extends BasePanel<AdvancedQueryWrapper> {
 //        advancedGroup.setOutputMarkupId(true);
 //        add(advancedGroup);
 
-        TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_QUERY));
+        TextArea<?> advancedArea = new TextArea<>(ID_ADVANCED_AREA, new PropertyModel<>(getModel(), AdvancedQueryWrapper.F_ADVANCED_QUERY));
         advancedArea.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         advancedArea.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertFilterXml")));
 //        advancedArea.add(createVisibleBehaviour(SearchBoxModeType.ADVANCED));
@@ -64,22 +62,6 @@ public class XmlSearchPanel extends BasePanel<AdvancedQueryWrapper> {
         add(advancedArea);
 
 
-
-//        Label advancedError = new Label(ID_ADVANCED_ERROR,
-//                new PropertyModel<String>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_ADVANCED_ERROR));
-//        advancedError.setOutputMarkupId(true);
-//        advancedError.add(AttributeAppender.append("class",
-//                () -> StringUtils.isEmpty(getModelObject().getAdvancedError()) ? "valid-feedback" : "invalid-feedback"));
-//        advancedError.add(new VisibleBehaviour(() -> {
-//            Search search = getModelObject();
-//
-//            if (!isAdvancedMode()) {
-//                return false;
-//            }
-//
-//            return StringUtils.isNotEmpty(search.getAdvancedError());
-//        }));
-//        add(advancedError);
     }
 
 //    private boolean isAdvancedMode() {

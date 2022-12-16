@@ -49,27 +49,13 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
         return ResourceTypeUtil.isCountObjectsCapabilityEnabled(getResourceModel().getObject().asObjectable());
     }
 
-//    @Override
-//    protected Search createSearch() {
-//        //createSearchConfigWrapper()
-//        //TODO compiled object collection view
-//        return SearchFactory.createSearch(ShadowType.class, getPageBase());
-//    }
 
-    //TODO
+    //TODO//        //TODO compiled object collection view
 
     @Override
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration() {
         return null;
     }
-
-//    private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {
-//        SearchConfigurationWrapper<ShadowType> config = SearchFactory.createDefaultSearchBoxConfigurationWrapper(ShadowType.class, getPageBase());
-//        config.getItemsList().clear();
-//        config.getItemsList().addAll(createAttributeSearchItemWrappers());
-//        return config;
-//    }
-
 
     private <T extends ObjectType> List<FilterableSearchItemWrapper> createAttributeSearchItemWrappers() {
 

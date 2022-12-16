@@ -8,8 +8,7 @@ package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.ReferenceSearchItemWrapper;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.web.component.search.ReferenceValueSearchPanel;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;

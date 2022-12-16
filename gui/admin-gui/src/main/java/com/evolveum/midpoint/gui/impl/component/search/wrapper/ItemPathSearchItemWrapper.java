@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class ItemPathSearchItemWrapper extends PropertySearchItemWrapper<ItemPathType> {

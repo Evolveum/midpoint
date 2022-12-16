@@ -277,13 +277,6 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
         };
     }
 
-//    @Override
-//    protected Search createSearch(Class<C> type) {
-//        Search search = SearchFactory.createSearch(type, getObjectCollectionView(), getPageBase());
-//        //TODO default searchbox config
-//        return search;
-//    }
-
     @Override
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<C> type) {
         SearchBoxConfigurationType searchBoxConfiguration = new SearchBoxConfigurationType();

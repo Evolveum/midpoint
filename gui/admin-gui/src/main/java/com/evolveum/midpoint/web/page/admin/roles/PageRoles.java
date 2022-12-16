@@ -21,7 +21,6 @@ import com.evolveum.midpoint.web.application.*;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.util.FocusListInlineMenuHelper;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -63,7 +62,6 @@ public class PageRoles extends PageAdmin {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
 
-    private IModel<Search> searchModel;
 
     public PageRoles() {
         super();

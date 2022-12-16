@@ -49,19 +49,6 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
         return null;
     }
 
-//    @Override
-//    protected Search createSearch(Class<O> type) {
-//        Search search = SearchFactory.createMemberSearch(type, getSupportedTypes(), getSupportedRelations(), getAbstractRoleType(),  getObjectCollectionView(), getPageBase());
-//        search.getAllowedTypeList()
-//                .addAll(Arrays.asList(
-//                        AbstractRoleType.class,
-//                        OrgType.class,
-//                        ArchetypeType.class,
-//                        RoleType.class,
-//                        ServiceType.class));
-//        return search;
-//    }
-
     @Override
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<O> type) {
         SearchBoxConfigurationType searchBoxConfigurationType = super.getDefaultSearchBoxConfiguration(type);

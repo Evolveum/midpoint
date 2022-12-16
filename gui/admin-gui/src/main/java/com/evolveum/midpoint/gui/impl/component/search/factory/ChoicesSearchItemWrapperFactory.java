@@ -13,7 +13,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 
 import com.evolveum.midpoint.util.DisplayableValue;
 
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;

@@ -165,14 +165,7 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
         return true;
     }
 
-//    @Override
-//    protected Search createSearch() {
-//        //TODO compuled object coolection view
-//        //createSearchConfigWrapper()
-//        return SearchFactory.createSearch(ShadowType.class, getPageBase());
-//    }
-
-    //TODO
+    //TODO //        //TODO compuled object coolection view
     @Override
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration() {
         return null;

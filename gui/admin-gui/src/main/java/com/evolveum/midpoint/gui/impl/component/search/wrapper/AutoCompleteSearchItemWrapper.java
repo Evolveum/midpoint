@@ -9,8 +9,7 @@ package com.evolveum.midpoint.gui.impl.component.search.wrapper;
 import com.evolveum.midpoint.gui.impl.component.search.panel.AutoCompleteSearchItemPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.search.SearchValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 
 public class AutoCompleteSearchItemWrapper extends PropertySearchItemWrapper<String> {
 

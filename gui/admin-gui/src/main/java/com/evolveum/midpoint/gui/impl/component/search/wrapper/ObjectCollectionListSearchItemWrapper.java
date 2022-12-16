@@ -16,7 +16,7 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;

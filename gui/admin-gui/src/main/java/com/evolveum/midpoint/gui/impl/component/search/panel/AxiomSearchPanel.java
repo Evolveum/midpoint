@@ -27,7 +27,7 @@ public class AxiomSearchPanel<C extends Containerable> extends BasePanel<AxiomQu
 
     private void initLayout() {
         TextField<String> queryDslField = new TextField<>(ID_AXIOM_QUERY_FIELD,
-                new PropertyModel<>(getModel(), com.evolveum.midpoint.web.component.search.Search.F_DSL_QUERY));
+                new PropertyModel<>(getModel(), AxiomQueryWrapper.F_DSL_QUERY));
         queryDslField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         queryDslField.add(AttributeAppender.append("placeholder", getPageBase().createStringResource("SearchPanel.insertAxiomQuery")));
 //        queryDslField.add(createVisibleBehaviour(SearchBoxModeType.AXIOM_QUERY));

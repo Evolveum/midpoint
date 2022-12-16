@@ -16,7 +16,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.web.component.search.ReferenceValueSearchPanel;
 
 public class ProjectSearchItemPanel extends SingleSearchItemPanel<ProjectSearchItemWrapper> {
 

@@ -36,7 +36,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T> {

@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.impl.component.search.panel.OidSearchItemPanel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 
 import org.apache.commons.lang3.StringUtils;

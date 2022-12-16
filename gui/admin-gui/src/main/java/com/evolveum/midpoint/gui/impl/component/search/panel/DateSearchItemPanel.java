@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.DateSearchItemWrapper;
-import com.evolveum.midpoint.web.component.search.DateIntervalSearchPanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;

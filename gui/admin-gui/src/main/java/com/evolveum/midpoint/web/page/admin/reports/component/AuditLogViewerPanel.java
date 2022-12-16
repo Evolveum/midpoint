@@ -119,37 +119,6 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         return null;
     }
 
-//    @Override
-//    protected Search<AuditEventRecordType> createSearch(Class<AuditEventRecordType> type) {
-//        Search<AuditEventRecordType> search = SearchFactory.createSearch(type, getPageBase());
-//
-//        DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
-//        if (timestampItem != null && timestampItem.getSingleDate() == null && timestampItem.getIntervalSecondDate() == null
-//                && !isCollectionViewPanelForWidget() && !isPreview()) {
-//            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-//            timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
-//        }
-//        return search;
-//    }
-
-//    @Override
-//    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<AuditEventRecordType> type) {
-//
-//        SearchBoxConfigurationType defaultSearchBoxConfig = super.getDefaultSearchBoxConfiguration(type);
-//        SearchItemsType searchItemsType = defaultSearchBoxConfig.getSearchItems();
-//        if (searchItemsType == null) {
-//            return defaultSearchBoxConfig;
-//        }
-//        List<SearchItemType> predefinedSearchItems = searchItemsType.getSearchItem();
-//        predefinedSearchItems.iterator().next().get
-//
-//        if (timestampItem != null && timestampItem.getSingleDate() == null && timestampItem.getIntervalSecondDate() == null
-//                && !isCollectionViewPanelForWidget() && !isPreview()) {
-//            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-//            timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
-//        }
-//    }
-
     @Override
     protected UserProfileStorage.TableId getTableId() {
         return UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER;

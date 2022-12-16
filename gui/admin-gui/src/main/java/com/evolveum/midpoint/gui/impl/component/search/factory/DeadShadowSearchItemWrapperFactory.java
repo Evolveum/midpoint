@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.gui.impl.component.search.factory;
 
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.DeadShadowSearchItemWrapper;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.Arrays;

@@ -10,7 +10,7 @@ import com.evolveum.midpoint.gui.impl.component.search.panel.TextSearchItemPanel
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 
 import javax.xml.namespace.QName;
 

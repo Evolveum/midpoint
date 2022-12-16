@@ -13,6 +13,7 @@ import java.io.Serializable;
 
 public class AdvancedQueryWrapper implements Serializable {
 
+    public static final String F_ADVANCED_QUERY = "advancedQuery";
     private String advancedQuery;
     private Class<? extends Containerable> typeClass;
 

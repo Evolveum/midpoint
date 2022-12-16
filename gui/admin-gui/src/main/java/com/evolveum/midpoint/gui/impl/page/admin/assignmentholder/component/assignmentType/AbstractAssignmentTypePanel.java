@@ -585,13 +585,6 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     @Override
     protected abstract UserProfileStorage.TableId getTableId();
 
-//    @Override
-//    protected Search createSearch(Class<AssignmentType> type) {
-//        Search search =  SearchFactory.createAssignmnetSearch(getAssignmentType(), isRepositorySearchEnabled(), getObjectCollectionView(), getPageBase());
-//
-//        return search;
-//    }
-
     @Override
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<AssignmentType> type) {
         QName targetType = getAssignmentType();

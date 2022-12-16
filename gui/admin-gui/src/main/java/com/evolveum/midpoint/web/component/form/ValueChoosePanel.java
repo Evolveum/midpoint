@@ -203,11 +203,6 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
                 ValueChoosePanel.this.choosePerformed(target, object);
             }
 
-            @Override
-            protected Set<SearchItemType> getSpecialItems() {
-                return ValueChoosePanel.this.getSpecialSearchItem();
-            }
-
         };
 
         getPageBase().showMainPopup(objectBrowserPanel, target);

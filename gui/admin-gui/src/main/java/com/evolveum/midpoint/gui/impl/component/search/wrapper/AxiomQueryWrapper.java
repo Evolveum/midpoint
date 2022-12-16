@@ -13,6 +13,7 @@ import java.io.Serializable;
 
 public class AxiomQueryWrapper<C extends Containerable> implements Serializable {
 
+    public static final String F_DSL_QUERY = "dslQuery";
     private String dslQuery;
     private Class<C> typeClass;
     private PrismContainerDefinition<C> containerDefinitionOverride;

@@ -87,8 +87,7 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.ContainerTypeSearchItem;
-import com.evolveum.midpoint.web.component.search.SearchValue;
+import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
@@ -242,11 +241,6 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
                 return getDefaultMemberSearchBoxConfig(type);
             }
 
-//            @Override
-//            protected Search<AH> createSearch(Class<AH> type) {
-//                return createMemberSearch(type);
-//            }
-
             @Override
             protected SelectableBeanObjectDataProvider<AH> createProvider() {
                 SelectableBeanObjectDataProvider<AH> provider = createSelectableBeanObjectDataProvider(() -> getCustomizedQuery(getSearchModel().getObject()), null);
@@ -397,92 +391,13 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
         return ObjectTypes.getObjectTypeClass(objectTypeQname);
     }
 
-//    private <AH extends AssignmentHolderType> Search<AH> createMemberSearch(Class<AH> type) {
-//        MemberPanelStorage memberPanelStorage = getMemberPanelStorage();
-//        CompiledObjectCollectionView objectCollectionView = getCompiledCollectionViewFromPanelConfiguration();
-//        if (memberPanelStorage == null) { //normally, this should not happen
-//            //new SearchConfigurationWrapper<>(type, getPageBase())
-//            return SearchFactory.createMemberSearch(type, getDefaultSupportedObjectTypes(true), getSupportedRelations(), getAbstractRoleType(), objectCollectionView, getPageBase());
-//        }
-//
-//        if (memberPanelStorage.getSearch() != null && type.equals(memberPanelStorage.getSearch().getTypeClass())) {
-//            return memberPanelStorage.getSearch();
-//        }
-//
-//        //createSearchConfigWrapper(type)
-//        Search<AH> search = SearchFactory.createMemberSearch(type, getDefaultSupportedObjectTypes(true), getSupportedRelations(), getAbstractRoleType(), objectCollectionView, getPageBase());
-//        memberPanelStorage.setSearch(search);
-//        return search;
-//    }
-
     private QName getAbstractRoleType() {
         return getModelObject().asPrismObject().getDefinition().getTypeName();
     }
 
-//    private SearchBoxConfigurationType createSearchConfigWrapper(Class<? extends ObjectType> defaultObjectType) {
-//        SearchBoxConfigurationType searchConfig = getAdditionalPanelConfig();
-//        if (searchConfig == null) {
-//            searchConfig = new SearchBoxConfigurationType();
-//        }
-//        if (searchConfig.getObjectTypeConfiguration() == null) {
-//            ObjectTypeSearchItemConfigurationType objTypeConfig = new ObjectTypeSearchItemConfigurationType();
-//            objTypeConfig.getSupportedTypes().addAll(getDefaultSupportedObjectTypes(false));
-//            objTypeConfig.setDefaultValue(WebComponentUtil.classToQName(getPrismContext(), defaultObjectType));
-//            searchConfig.setObjectTypeConfiguration(objTypeConfig);
-//        }
-//
-//        if (searchConfig.getRelationConfiguration() == null) {
-//            RelationSearchItemConfigurationType relationConfig = new RelationSearchItemConfigurationType();
-//            relationConfig.getSupportedRelations().addAll(getSupportedRelations());
-//            relationConfig.setDefaultValue(PrismConstants.Q_ANY);
-//            searchConfig.setRelationConfiguration(relationConfig);
-//        }
-//
-//        if (isVisibleAdvanceSearchItem()) {
-//            SearchBoxConfigurationHelper searchBoxConfig = getSearchBoxConfiguration();
-//            if (searchConfig.getIndirectConfiguration() == null) {
-//                searchConfig.setIndirectConfiguration(searchBoxConfig.getDefaultIndirectConfiguration());
-//            }
-//
-//            if (searchConfig.getScopeConfiguration() == null && isOrg()) {
-//                searchConfig.setScopeConfiguration(searchBoxConfig.getDefaultSearchScopeConfiguration());
-//            }
-//            if (searchConfig.getProjectConfiguration() == null && !isNotRole()) {
-//                searchConfig.setProjectConfiguration(searchBoxConfig.getDefaultProjectConfiguration());
-//            }
-//            if (searchConfig.getTenantConfiguration() == null && !isNotRole()) {
-//                searchConfig.setTenantConfiguration(searchBoxConfig.getDefaultTenantConfiguration());
-//            }
-//        }
-//
-//        return searchConfig;
-
-//        SearchConfigurationWrapper<?> searchConfigWrapper = new SearchConfigurationWrapper<>(defaultObjectType, searchConfig, getPageBase());
-//        SearchFactory.createAbstractRoleSearchItemWrapperList(searchConfigWrapper, searchConfig);
-//        if (additionalPanelConfig != null) {
-//            searchConfigWrapper.setAllowToConfigureSearchItems(!Boolean.FALSE.equals(additionalPanelConfig.isAllowToConfigureSearchItems()));
-//        }
-//        searchConfigWrapper.getItemsList().forEach(item -> {
-//            if (item instanceof ObjectTypeSearchItemWrapper) {
-//                ((ObjectTypeSearchItemWrapper<?>) item).setAllowAllTypesSearch(true);
-//                ((ObjectTypeSearchItemWrapper<?>) item).setValueForNull(
-//                        WebComponentUtil.classToQName(getPageBase().getPrismContext(), getChoiceForAllTypes()));
-//            }
-//        });
-//        return searchConfigWrapper;
-//    }
-
     protected boolean isVisibleAdvanceSearchItem() {
         return true;
     }
-
-    private <AH extends AssignmentHolderType> ContainerTypeSearchItem<AH> createSearchTypeItem(SearchBoxConfigurationHelper searchBoxConfigurationHelper) {
-        ContainerTypeSearchItem<AH> searchTypeItem = new ContainerTypeSearchItem<>(createTypeSearchValue(searchBoxConfigurationHelper.getDefaultObjectTypeConfiguration().getDefaultValue()), getAllowedTypes());
-        searchTypeItem.setConfiguration(searchBoxConfigurationHelper.getDefaultObjectTypeConfiguration());
-        searchTypeItem.setVisible(true);
-        return searchTypeItem;
-    }
-
     protected  <AH extends AssignmentHolderType> ObjectQuery getCustomizedQuery(Search<AH> search) {
         if (noMemberSearchItemVisible(search)) {
             PrismContext prismContext = getPageBase().getPrismContext();

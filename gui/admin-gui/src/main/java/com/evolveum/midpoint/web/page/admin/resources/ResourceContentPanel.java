@@ -227,11 +227,6 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
                 return provider;
             }
 
-//            @Override
-//            protected Search createSearch(Class<ShadowType> type) {
-//                return ResourceContentPanel.this.createSearch();
-//            }
-
             @Override
             protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<ShadowType> type) {
                 return super.getDefaultSearchBoxConfiguration(type);
@@ -516,7 +511,7 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
     }
 
     protected abstract SearchBoxConfigurationType getDefaultSearchBoxConfiguration();
-//    protected abstract Search createSearch();
+
 
     private Collection<SelectorOptions<GetOperationOptions>> createSearchOptions() {
         GetOperationOptionsBuilder builder = getPageBase().getOperationOptionsBuilder()

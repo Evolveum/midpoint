@@ -4,11 +4,10 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.web.component.search;
+package com.evolveum.midpoint.gui.impl.component.search.panel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.gui.impl.component.search.panel.Popover;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 
 import org.apache.wicket.Component;
