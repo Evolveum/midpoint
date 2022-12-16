@@ -67,8 +67,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * General idea:
  *
- * . Gradually evolving HR CSV resource in development (`proposed`) mode - see `test1xx`
- * . TODO
+ * . Gradually evolving HR CSV resource in development (`proposed`) and then production (`active`) mode - see `test1xx`
+ * . Gradually connecting OpenDJ resource - see `test2xx`
  *
  * Planned improvements:
  *
@@ -112,9 +112,19 @@ public class TestFirstSteps extends AbstractStoryTest {
     private static final AnyResource RESOURCE_OPENDJ_250 = createOpenDjResource("resource-opendj-250.xml");
     private static final AnyResource RESOURCE_OPENDJ_260 = createOpenDjResource("resource-opendj-260.xml");
     private static final AnyResource RESOURCE_OPENDJ_270 = createOpenDjResource("resource-opendj-270.xml");
+    private static final AnyResource RESOURCE_OPENDJ_280 = createOpenDjResource("resource-opendj-280.xml");
+    private static final AnyResource RESOURCE_OPENDJ_290 = createOpenDjResource("resource-opendj-290.xml");
     private AnyResource currentOpenDjResource = RESOURCE_OPENDJ_200;
 
     private static final ObjectsCounter focusCounter = new ObjectsCounter(FocusType.class);
+
+    private static final String NAME_JSMITH1 = "jsmith1";
+    private static final String NAME_JSMITH2 = "jsmith2";
+    private static final String NAME_AGREEN3 = "agreen3";
+    private static final String NAME_RBLACK = "rblack";
+    private static final String NAME_BOB = "bob";
+    private static final String NAME_EMPNO_6 = "empNo:6";
+
     private static final String DN_JSMITH1 = "uid=jsmith1,ou=People,dc=example,dc=com";
     private static final String DN_JSMITH2 = "uid=jsmith2,ou=People,dc=example,dc=com";
     private static final String DN_AGREEN3 = "uid=agreen3,ou=People,dc=example,dc=com";
@@ -701,7 +711,6 @@ public class TestFirstSteps extends AbstractStoryTest {
         then("task is OK");
         // @formatter:off
         assertTask(taskOid, "simulated task after")
-                .display()
                 .rootActivityState()
                     .progress()
                         .display()
@@ -718,7 +727,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertClockworkRunCount(0); // no reactions are there
         // @formatter:on
 
-        assertShadow(getJSmith1OpenDjShadow(result), "shadow after")
+        assertShadow(getJSmith1OpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER)
                 .assertSynchronizationSituation(null); // no real execution was there
@@ -750,7 +759,6 @@ public class TestFirstSteps extends AbstractStoryTest {
         then("task is OK");
         // @formatter:off
         assertTask(taskOid, "simulated task after")
-                .display()
                 .rootActivityState()
                     .progress()
                         .display()
@@ -771,7 +779,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         String oidUser1 = assertUserByUsername("empNo:1", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no execution)
                 .getOid();
-        assertShadow(getJSmith1OpenDjShadow(result), "shadow after")
+        assertShadow(getJSmith1OpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER) // by empNo
                 .assertPotentialOwnerOptions(1)
@@ -782,7 +790,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         String oidUser2 = assertUserByUsername("empNo:2", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no execution)
                 .getOid();
-        assertShadow(getJSmith2OpenDjShadow(result), "shadow after")
+        assertShadow(getJSmith2OpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.EXISTING_OWNER) // by mail
                 .assertPotentialOwnerOptions(1)
@@ -793,7 +801,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         String oidUser3 = assertUserByUsername("empNo:3", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no correlation)
                 .getOid();
-        assertShadow(getAGreenOpenDjShadow(result), "shadow after")
+        assertShadow(getAGreenOpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN) // by name (1 candidate)
                 .assertPotentialOwnerOptions(2)
@@ -807,7 +815,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         String oidUser5 = assertUserByUsername("empNo:5", "after")
                 .assertLinks(1, 0) // No OpenDJ link (no correlation)
                 .getOid();
-        assertShadow(getRBlackOpenDjShadow(result), "shadow after")
+        assertShadow(getRBlackOpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN) // by name (2 candidates)
                 .assertPotentialOwnerOptions(3)
@@ -815,27 +823,27 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertResultingOwner(null)
                 .assertSynchronizationSituation(null);
 
-        assertShadow(getBobOpenDjShadow(result), "shadow after")
+        assertShadow(getBobOpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER) // alternate name -> no candidates found
                 .assertSynchronizationSituation(null);
 
-        assertShadow(getTeslaOpenDjShadow(result), "shadow after")
+        assertShadow(getTeslaOpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
                 .assertSynchronizationSituation(null);
 
-        assertShadow(getHackerOpenDjShadow(result), "shadow after")
+        assertShadow(getHackerOpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
                 .assertSynchronizationSituation(null);
 
-        assertShadow(getAdminOpenDjShadow(result), "shadow after")
+        assertShadow(getAdminOpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
                 .assertSynchronizationSituation(null);
 
-        assertShadow(getJunior1OpenDjShadow(result), "shadow after")
+        assertShadow(getJunior1OpenDjShadow(), "shadow after")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.NO_OWNER)
                 .assertSynchronizationSituation(null);
@@ -871,19 +879,19 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         when("marking shadows with respective policy situations");
         addShadowPolicySituation(
-                getTeslaOpenDjShadow(result).getOid(),
+                getTeslaOpenDjShadow().getOid(),
                 TEST_POLICY_SITUATION_LEGACY,
                 result);
         addShadowPolicySituation(
-                getHackerOpenDjShadow(result).getOid(),
+                getHackerOpenDjShadow().getOid(),
                 TEST_POLICY_SITUATION_ILLEGAL,
                 result);
         addShadowPolicySituation(
-                getAdminOpenDjShadow(result).getOid(),
+                getAdminOpenDjShadow().getOid(),
                 MODEL_POLICY_SITUATION_PROTECTED_SHADOW,
                 result);
         addShadowPolicySituation(
-                getJunior1OpenDjShadow(result).getOid(),
+                getJunior1OpenDjShadow().getOid(),
                 TEST_POLICY_SITUATION_PENDING,
                 result);
 
@@ -938,7 +946,6 @@ public class TestFirstSteps extends AbstractStoryTest {
         then("task is OK");
         // @formatter:off
         assertTask(taskOid, "simulated task after")
-                .display()
                 .rootActivityState()
                     .progress()
                         .display()
@@ -972,11 +979,11 @@ public class TestFirstSteps extends AbstractStoryTest {
                 null, task, result);
 
         then("Users are correctly linked");
-        assertUserLinked("empNo:1", DN_JSMITH1, result);
-        assertUserLinked("empNo:2", DN_JSMITH2, result);
-        assertUserLinked("empNo:3", DN_AGREEN3, result);
-        assertUserLinked("empNo:4", DN_RBLACK, result);
-        assertUserLinked("empNo:5", DN_BOB, result);
+        assertUserLinked("empNo:1", DN_JSMITH1);
+        assertUserLinked("empNo:2", DN_JSMITH2);
+        assertUserLinked("empNo:3", DN_AGREEN3);
+        assertUserLinked("empNo:4", DN_RBLACK);
+        assertUserLinked("empNo:5", DN_BOB);
 
         focusCounter.assertNoNewObjects(result);
     }
@@ -1013,7 +1020,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
                     .assertNotModifiedExcept(UserType.F_NAME, UserType.F_METADATA)
-                    .assertPolyStringModification(UserType.F_NAME, "empNo:1", "jsmith1")
+                    .assertPolyStringModification(UserType.F_NAME, "empNo:1", NAME_JSMITH1)
                 .end()
                 .assertSize(1);
 
@@ -1021,7 +1028,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         importOpenDjAccountRequest(DN_JSMITH1).executeOnForeground(result);
 
         then("user name should really change");
-        assertUserByUsername("jsmith1", "after")
+        assertUserByUsername(NAME_JSMITH1, "after")
                 .display();
 
         when("previewing the all-accounts import");
@@ -1032,7 +1039,6 @@ public class TestFirstSteps extends AbstractStoryTest {
         then("task is OK");
         // @formatter:off
         assertTask(simTaskOid, "simulated task after")
-                .display()
                 .rootActivityState()
                     .progress()
                         .display()
@@ -1063,11 +1069,11 @@ public class TestFirstSteps extends AbstractStoryTest {
         importAllOpenDjAccountsRequest().execute(result);
 
         then("linked users now have correct names");
-        assertUserByUsername("jsmith2", "after").display();
-        assertUserByUsername("agreen3", "after").display();
-        assertUserByUsername("rblack", "after").display();
-        assertUserByUsername("bob", "after").display();
-        assertUserByUsername("empNo:6", "after").display(); // this one has no OpenDJ account
+        assertUserByUsername(NAME_JSMITH2, "after").display();
+        assertUserByUsername(NAME_AGREEN3, "after").display();
+        assertUserByUsername(NAME_RBLACK, "after").display();
+        assertUserByUsername(NAME_BOB, "after").display();
+        assertUserByUsername(NAME_EMPNO_6, "after").display(); // this one has no OpenDJ account
     }
 
     /**
@@ -1137,7 +1143,6 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         then("task is OK");
         assertTask(simTaskOid, "simulated task after")
-                .display()
                 .assertClockworkRunCount(5);
 
         and("there should be no deltas, as all the DN match");
@@ -1148,7 +1153,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         when("trying to create the account for John Johnson");
         SimulationResult simResult2 =
                 executeInDevelopmentSimulationMode(
-                        List.of(createOpenDjAssignmentDelta("empNo:6")),
+                        List.of(createOpenDjAssignmentDelta(NAME_EMPNO_6)),
                         getDefaultSimulationConfiguration(),
                         task, result);
 
@@ -1173,11 +1178,179 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .end()
                 .assertSize(2);
         // @formatter:on
+
+        focusCounter.assertNoNewObjects(result);
     }
 
-    private void assertUserLinked(String username, String dn, OperationResult result) throws CommonException {
+    /**
+     * Ref: _Attribute correlation (?) phase_
+     *
+     * Here we analyze what would midPoint change in OpenDJ, should the outbound mappings be in production mode.
+     */
+    @Test
+    public void test280CorrelateOpenDjAttributes() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        focusCounter.remember(result);
+
+        given("resource definition is imported and tested");
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_280, task, result);
+
+        when("checking outbound mappings by creating the account for John Johnson");
+        SimulationResult simResult =
+                executeInDevelopmentSimulationMode(
+                        List.of(createOpenDjAssignmentDelta(NAME_EMPNO_6)),
+                        getDefaultSimulationConfiguration(),
+                        task, result);
+
+        then("deltas are OK");
+        // @formatter:off
+        assertDeltaCollection(simResult.getSimulatedDeltas(), "account creation deltas")
+                .display()
+                .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
+                    .assertModified(
+                            UserType.F_ASSIGNMENT,
+                            UserType.F_LINK_REF,
+                            UserType.F_METADATA)
+                .end()
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
+                    .objectToAdd()
+                        .asShadow()
+                            .attributes()
+                                .assertValue(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER, DN_EMPNO_6)
+                                .assertValue(QNAME_EMPLOYEE_NUMBER, "6")
+                                .assertNoAttribute(QNAME_MAIL)
+                                .assertValue(QNAME_GIVEN_NAME, "John")
+                                .assertValue(QNAME_SN, "Johnson")
+                                .assertValue(QNAME_CN, "John Johnson")
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .assertSize(2);
+        // @formatter:on
+
+        when("trying the all-accounts import (development simulation)");
+        String simTaskOid = importAllOpenDjAccountsRequest()
+                .simulatedDevelopment()
+                .execute(result);
+
+        then("task is OK");
+        assertTask(simTaskOid, "simulated task after")
+                .assertClockworkRunCount(5);
+
+        and("task deltas are OK");
+        // @formatter:off
+        assertDeltaCollection(getTaskSimDeltas(simTaskOid, result), "import deltas")
+                .display()
+                .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH1)).assertCount(0) // all is set
+                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH1)).assertCount(0)
+                .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH2)).find()
+                    .assertModifiedExclusive(UserType.F_METADATA)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH2)).find()
+                    .assertModification(PATH_EMPLOYEE_NUMBER, null, "2")
+                    .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, ShadowType.F_METADATA)
+                .end()
+                .by().objectType(UserType.class).objectOid(getUserOid(NAME_AGREEN3)).find()
+                    .assertModifiedExclusive(UserType.F_METADATA)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_AGREEN3)).find()
+                    .assertModification(PATH_EMPLOYEE_NUMBER, null, "3")
+                    .assertModification(PATH_MAIL, null, "agreen3@evolveum.com")
+                    .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                .end()
+                .by().objectType(UserType.class).objectOid(getUserOid(NAME_RBLACK)).find()
+                    .assertModifiedExclusive(UserType.F_METADATA)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_RBLACK)).find()
+                    .assertModification(PATH_EMPLOYEE_NUMBER, null, "4")
+                    .assertModification(PATH_MAIL, null, "rblack4@evolveum.com")
+                    .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                .end()
+                .by().objectType(UserType.class).objectOid(getUserOid(NAME_BOB)).find()
+                    .assertModifiedExclusive(UserType.F_METADATA)
+                .end()
+                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_BOB)).find()
+                    .assertModification(PATH_EMPLOYEE_NUMBER, null, "5")
+                    .assertModification(PATH_MAIL, null, "rblack5@evolveum.com")
+                    .assertModification(PATH_GIVEN_NAME, "Bob", "Robert")
+                    .assertModification(PATH_CN, "Bob Black", "Robert Black")
+                    .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, ShadowType.F_METADATA)
+                .end()
+                .assertSize(8);
+        // @formatter:on
+
+        // TODO report the following
+        //  - How many accounts would be created, changed, deleted -- can be seen from the deltas
+        //  - How many accounts are marked "decommissioned", "to be reviewed", "protected" etc. (outbounds are ignored for them)
+        //     -- can be seen from the policy situations; but note: these are not synchronized at all (i.e. not only outbounds are ignored)
+        //  - Which attributes will be changed and how many changes (e.g. attribute givenName will be changed in 200 accounts;
+        //    attribute dn will be changed in 20 accounts), sorted descending -- can be seen from the deltas
+        //  - Table of changes to be made
+    }
+
+    /**
+     * Ref: _Attribute correlation (?) phase_
+     *
+     * We are (almost) happy, so let us do the following:
+     *
+     * - mark shadow "bob" as "do not touch" (TODO not implemented yet)
+     * - put all mappings into production mode
+     * - run the synchronization task in the production execution mode
+     */
+    @Test
+    public void test290PutOpenDjOutboundsIntoProduction() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        given("resource definition is imported and tested");
+        reimportAndTestOpenDjResource(RESOURCE_OPENDJ_290, task, result);
+
+        when("running the all-accounts import (production)");
+        String taskOid = importAllOpenDjAccountsRequest().execute(result);
+
+        then("task is OK");
+        assertTask(taskOid, "simulated task after")
+                // TODO check some statistics
+                .assertClockworkRunCount(5);
+
+        and("shadows are updated correctly");
+        assertUserAndOpenDjShadow(
+                NAME_JSMITH1, DN_JSMITH1, "John", "Smith", "jsmith1@evolveum.com", "1");
+        assertUserAndOpenDjShadow(
+                NAME_JSMITH2, DN_JSMITH2, "John", "Smith", "jsmith2@evolveum.com", "2");
+        assertUserAndOpenDjShadow(
+                NAME_AGREEN3, DN_AGREEN3, "Alice", "Green", "agreen3@evolveum.com", "3");
+        assertUserAndOpenDjShadow(
+                NAME_RBLACK, DN_RBLACK, "Robert", "Black", "rblack4@evolveum.com", "4");
+        assertUserAndOpenDjShadow(
+                NAME_BOB, DN_BOB, "Robert", "Black", "rblack5@evolveum.com", "5");
+    }
+
+    private void assertUserAndOpenDjShadow(
+            String userName, String dn, String givenName, String familyName, String mail, String employeeNumber)
+            throws CommonException {
+        String shadowOid = assertUserByUsername(userName, "after")
+                .assertGivenName(givenName)
+                .assertFamilyName(familyName)
+                .assertEmailAddress(mail)
+                .assertEmployeeNumber(employeeNumber)
+                .links()
+                .by().resourceOid(RESOURCE_OPENDJ_OID).find().getOid();
+        assertShadow(getShadowModel(shadowOid), "after")
+                .attributes()
+                .assertValue(QNAME_DN, dn)
+                .assertValue(QNAME_GIVEN_NAME, givenName)
+                .assertValue(QNAME_SN, familyName)
+                .assertValue(QNAME_CN, givenName + " " + familyName)
+                .assertValue(QNAME_MAIL, mail)
+                .assertValue(QNAME_EMPLOYEE_NUMBER, employeeNumber);
+    }
+
+    private void assertUserLinked(String username, String dn) throws CommonException {
         UserType user = findUserRequired(username).asObjectable();
-        ShadowType shadow = findOpenDjShadow(dn, result);
+        ShadowType shadow = findOpenDjShadow(dn);
         assertUser(user, "")
                 .links()
                 .by().resourceOid(RESOURCE_OPENDJ_OID).dead(false).find()
@@ -1190,7 +1363,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     private @NotNull CaseType findCorrelationCase(String dn, OperationResult result) throws SchemaException {
         return MiscUtil.requireNonNull(
                 correlationCaseManager.findCorrelationCase(
-                        findOpenDjShadowRequired(dn, result), true, result),
+                        findOpenDjShadowRequired(dn), true, result),
                 () -> "No correlation case for " + dn);
     }
 
@@ -1226,6 +1399,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                                 new ConstructionType()
                                         .resourceRef(RESOURCE_OPENDJ_OID, ResourceType.COMPLEX_TYPE)))
                 .asObjectDelta(userOid);
+    }
+
+    private String getOpenDjShadowOid(String dn) throws CommonException {
+        return findOpenDjShadowRequired(dn).getOid();
+    }
+
+    private String getUserOid(String name) throws CommonException {
+        return findUserRequired(name).getOid();
     }
 
     private PrismObject<UserType> findUserRequired(String userName) throws CommonException {
@@ -1274,50 +1455,50 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .withImportingAllAccounts();
     }
 
-    private ShadowType findOpenDjShadowRequired(String dn, OperationResult result) throws SchemaException {
+    private ShadowType findOpenDjShadowRequired(String dn) throws SchemaException {
         return MiscUtil.requireNonNull(
-                findOpenDjShadow(dn, result),
+                findOpenDjShadow(dn),
                 () -> "No OpenDJ shadow " + dn);
     }
 
-    private ShadowType findOpenDjShadow(String dn, OperationResult result) throws SchemaException {
+    private ShadowType findOpenDjShadow(String dn) throws SchemaException {
         return asObjectable(
-                findShadowByPrismName(dn, RESOURCE_OPENDJ_210.object, result));
+                findShadowByPrismName(dn, RESOURCE_OPENDJ_210.object, getTestOperationResult()));
     }
 
-    private ShadowType getJSmith1OpenDjShadow(OperationResult result) throws SchemaException {
-        return findOpenDjShadow(DN_JSMITH1, result);
+    private ShadowType getJSmith1OpenDjShadow() throws SchemaException {
+        return findOpenDjShadow(DN_JSMITH1);
     }
 
-    private ShadowType getJSmith2OpenDjShadow(OperationResult result) throws SchemaException {
-        return findOpenDjShadow(DN_JSMITH2, result);
+    private ShadowType getJSmith2OpenDjShadow() throws SchemaException {
+        return findOpenDjShadow(DN_JSMITH2);
     }
 
-    private ShadowType getAGreenOpenDjShadow(OperationResult result) throws SchemaException {
-        return findOpenDjShadow(DN_AGREEN3, result);
+    private ShadowType getAGreenOpenDjShadow() throws SchemaException {
+        return findOpenDjShadow(DN_AGREEN3);
     }
 
-    private ShadowType getRBlackOpenDjShadow(OperationResult result) throws SchemaException {
-        return findOpenDjShadow(DN_RBLACK, result);
+    private ShadowType getRBlackOpenDjShadow() throws SchemaException {
+        return findOpenDjShadow(DN_RBLACK);
     }
 
-    private ShadowType getBobOpenDjShadow(OperationResult result) throws SchemaException {
-        return findOpenDjShadow(DN_BOB, result);
+    private ShadowType getBobOpenDjShadow() throws SchemaException {
+        return findOpenDjShadow(DN_BOB);
     }
 
-    private ShadowType getTeslaOpenDjShadow(OperationResult result) throws SchemaException {
-        return findOpenDjShadow(DN_TESLA, result);
+    private ShadowType getTeslaOpenDjShadow() throws SchemaException {
+        return findOpenDjShadow(DN_TESLA);
     }
 
-    private ShadowType getHackerOpenDjShadow(OperationResult result) throws SchemaException {
-        return findOpenDjShadow(DN_HACKER, result);
+    private ShadowType getHackerOpenDjShadow() throws SchemaException {
+        return findOpenDjShadow(DN_HACKER);
     }
 
-    private ShadowType getAdminOpenDjShadow(OperationResult result) throws SchemaException {
-        return findOpenDjShadow(DN_ADMIN, result);
+    private ShadowType getAdminOpenDjShadow() throws SchemaException {
+        return findOpenDjShadow(DN_ADMIN);
     }
 
-    private ShadowType getJunior1OpenDjShadow(OperationResult result) throws SchemaException {
-        return findOpenDjShadow(DN_JUNIOR1, result);
+    private ShadowType getJunior1OpenDjShadow() throws SchemaException {
+        return findOpenDjShadow(DN_JUNIOR1);
     }
 }

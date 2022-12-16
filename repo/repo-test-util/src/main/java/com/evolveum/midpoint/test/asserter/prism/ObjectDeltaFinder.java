@@ -22,6 +22,7 @@ public class ObjectDeltaFinder<RA> {
 
     private final DeltaCollectionAsserter<RA> deltaCollectionAsserter;
     private Class<? extends ObjectType> objectType;
+    private String objectOid;
     private ChangeType changeType;
     private Integer index;
 
@@ -31,6 +32,11 @@ public class ObjectDeltaFinder<RA> {
 
     public ObjectDeltaFinder<RA> objectType(Class<? extends ObjectType> objectType) {
         this.objectType = objectType;
+        return this;
+    }
+
+    public ObjectDeltaFinder<RA> objectOid(String objectOid) {
+        this.objectOid = objectOid;
         return this;
     }
 
@@ -44,9 +50,10 @@ public class ObjectDeltaFinder<RA> {
         return this;
     }
 
-    public ObjectDeltaFinder<RA> assertCount(int expected) {
+    /** Returns to the parent asserter. */
+    public DeltaCollectionAsserter<RA> assertCount(int expected) {
         assertThat(select()).as("matching deltas").hasSize(expected);
-        return this;
+        return deltaCollectionAsserter;
     }
 
     private List<ObjectDelta<?>> select() {
@@ -54,6 +61,9 @@ public class ObjectDeltaFinder<RA> {
         int currentIndex = -1;
         for (ObjectDelta<?> delta : deltaCollectionAsserter.getDeltaCollection()) {
             if (objectType != null && !Objects.equals(delta.getObjectTypeClass(), objectType)) {
+                continue;
+            }
+            if (objectOid != null && !Objects.equals(delta.getOid(), objectOid)) {
                 continue;
             }
             if (changeType != null && delta.getChangeType() != changeType) {
@@ -91,6 +101,7 @@ public class ObjectDeltaFinder<RA> {
     public String toString() {
         return "ObjectDeltaFinder{" +
                 "objectType=" + objectType +
+                ", objectOid=" + objectOid +
                 ", changeType=" + changeType +
                 ", index=" + index +
                 '}';

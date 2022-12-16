@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -108,6 +109,7 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
     /** Asserts that (something) in every specified path is modified. Supports prefixes. */
     @SuppressWarnings({ "UnusedReturnValue", "WeakerAccess" })
     public ObjectDeltaAsserter<O,RA> assertModified(ItemPath... pathsThatMustBeModified) {
+        assertModify();
         PathSet modifiedPaths = delta.getModifications().stream()
                 .map(ItemDelta::getPath)
                 .collect(Collectors.toCollection(() -> new PathSet()));
@@ -123,6 +125,7 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
     /** Asserts that _nothing_ in any specified path is modified. Supports prefixes. */
     @SuppressWarnings("WeakerAccess")
     public ObjectDeltaAsserter<O,RA> assertNotModified(ItemPath... pathsThatMustNotBeModified) {
+        assertModify();
         for (ItemDelta<?, ?> modification : delta.getModifications()) {
             ItemPath modifiedPath = modification.getPath();
             if (ItemPathCollectionsUtil.containsSubpathOrEquivalent(List.of(pathsThatMustNotBeModified), modifiedPath)) {
@@ -140,6 +143,7 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
 
     /** Asserts that nothing except for specified paths is modified. Supports prefixes. */
     public ObjectDeltaAsserter<O,RA> assertNotModifiedExcept(ItemPath... pathsThatCanBeModified) {
+        assertModify();
         for (ItemDelta<?, ?> modification : delta.getModifications()) {
             ItemPath modifiedPath = modification.getPath();
             if (!ItemPathCollectionsUtil.containsSubpathOrEquivalent(List.of(pathsThatCanBeModified), modifiedPath)) {
@@ -152,8 +156,8 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
 
     public ObjectDeltaAsserter<O,RA> assertPolyStringModification(
             ItemPath path, String expectedOldOrig, String expectedAddOrReplaceOrig) {
-        PropertyDelta<PolyString> propertyDelta = delta.findPropertyDelta(path);
-        assertThat(propertyDelta).as("delta for '" + path + "'").isNotNull();
+        assertModify();
+        PropertyDelta<PolyString> propertyDelta = getPropertyDeltaRequired(path);
         Set<String> realAddOrReplaceOrig =
                 Sets.union(
                         getOrig(propertyDelta.getRealValuesToAdd()),
@@ -164,10 +168,46 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
         Set<String> realOldOrig = getOrig(
                 PrismValueCollectionsUtil.getRealValuesOfCollection(
                         propertyDelta.getEstimatedOldValues()));
-        assertThat(realOldOrig)
-                .as("old values")
-                .containsExactlyInAnyOrder(expectedOldOrig);
+        assertExpectedOldValues(expectedOldOrig, realOldOrig);
         return this;
+    }
+
+    public <T> ObjectDeltaAsserter<O,RA> assertModification(
+            ItemPath path, T expectedOldOrig, T expectedAddOrReplaceOrig) {
+        assertModify();
+        PropertyDelta<T> propertyDelta = getPropertyDeltaRequired(path);
+        //noinspection unchecked
+        Collection<T> realAddOrReplaceOrig =
+                propertyDelta.isReplace() ?
+                        (Collection<T>) propertyDelta.getRealValuesToReplace() :
+                        (Collection<T>) propertyDelta.getRealValuesToAdd();
+        assertThat(realAddOrReplaceOrig)
+                .as("values added or replaced")
+                .containsExactlyInAnyOrder(expectedAddOrReplaceOrig);
+        Collection<T> realOldOrig =
+                PrismValueCollectionsUtil.getRealValuesOfCollection(
+                        propertyDelta.getEstimatedOldValues());
+        assertExpectedOldValues(expectedOldOrig, realOldOrig);
+        return this;
+    }
+
+    @NotNull
+    private <T> PropertyDelta<T> getPropertyDeltaRequired(ItemPath path) {
+        PropertyDelta<T> propertyDelta = delta.findPropertyDelta(path);
+        assertThat(propertyDelta).as("delta for '" + path + "'").isNotNull();
+        return propertyDelta;
+    }
+
+    private static <T> void assertExpectedOldValues(T expectedOldOrig, Collection<T> realOldOrig) {
+        if (expectedOldOrig != null) {
+            assertThat(realOldOrig)
+                    .as("old values")
+                    .containsExactlyInAnyOrder(expectedOldOrig);
+        } else {
+            assertThat(realOldOrig)
+                    .as("old values")
+                    .isEmpty();
+        }
     }
 
     private Set<String> getOrig(Collection<?> polyStrings) {
