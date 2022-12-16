@@ -55,24 +55,7 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
     private List<WizardStep> createBasicSteps() {
         List<WizardStep> steps = new ArrayList<>();
 
-        LoadableModel<PrismContainerValueWrapper<AssignmentType>> application = new LoadableModel<>() {
-            @Override
-            protected PrismContainerValueWrapper<AssignmentType> load() {
-
-                try {
-                    PrismContainerWrapper<AssignmentType> container =
-                            getHelper().getDetailsModel().getObjectWrapper().findContainer(RoleType.F_INDUCEMENT);
-                    PrismContainerValue<AssignmentType> newValue = container.getItem().createNewValue();
-                    return WebPrismUtil.createNewValueWrapper(
-                            container, newValue, getPageBase(), getHelper().getDetailsModel().createWrapperContext());
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't find inducement container in " + getHelper().getDetailsModel().getObjectWrapper());
-                }
-                return null;
-            }
-        };
-
-        steps.add(new AccessApplicationStepPanel(getHelper().getDetailsModel(), application));
+        steps.add(new AccessApplicationStepPanel(getHelper().getDetailsModel()));
 
         steps.add(new BasicInformationStepPanel(getHelper().getDetailsModel()) {
 

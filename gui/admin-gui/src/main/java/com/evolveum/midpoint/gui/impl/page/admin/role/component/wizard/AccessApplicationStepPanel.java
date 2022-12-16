@@ -1,15 +1,15 @@
 package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
-import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.component.tile.FocusTilePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.MemberTilePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.TileTablePanel;
 import com.evolveum.midpoint.gui.impl.component.tile.ViewToggle;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
@@ -17,47 +17,39 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsMo
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.TemplateTile;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.synchronization.ActionStepPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.IResource;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.Optional;
 
 @PanelType(name = "roleWizard-access-application")
 @PanelInstance(identifier = "roleWizard-access-application",
@@ -73,23 +65,40 @@ public class AccessApplicationStepPanel extends AbstractWizardStepPanel<RoleType
 
     private static final String ID_TABLE = "table";
 
-    private final IModel<PrismContainerValueWrapper<AssignmentType>> applicationModel;
-
+    private IModel<PrismContainerValueWrapper<AssignmentType>> applicationModel;
     private IModel<Search<ServiceType>> searchModel;
 
-    public AccessApplicationStepPanel(FocusDetailsModels<RoleType> model, IModel<PrismContainerValueWrapper<AssignmentType>> applicationModel) {
+    public AccessApplicationStepPanel(FocusDetailsModels<RoleType> model) {
         super(model);
-        this.applicationModel = applicationModel;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
-        initSearchModel();
+        initModels();
         initLayout();
     }
 
-    private void initSearchModel() {
+    private void initModels() {
+
+        applicationModel = new LoadableModel<>() {
+            @Override
+            protected PrismContainerValueWrapper<AssignmentType> load() {
+
+                try {
+                    PrismContainerWrapper<AssignmentType> container =
+                            getDetailsModel().getObjectWrapper().findContainer(RoleType.F_INDUCEMENT);
+                    PrismContainerValue<AssignmentType> newValue = container.getItem().createNewValue();
+                    PrismContainerValueWrapper<AssignmentType> valueWrapper = WebPrismUtil.createNewValueWrapper(
+                            container, newValue, getPageBase(), getDetailsModel().createWrapperContext());
+                    container.getValues().add(valueWrapper);
+                    return valueWrapper;
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't find inducement container in " + getDetailsModel().getObjectWrapper());
+                }
+                return null;
+            }
+        };
         searchModel = new LoadableModel<>(false) {
             @Override
             protected Search<ServiceType> load() {
@@ -149,16 +158,23 @@ public class AccessApplicationStepPanel extends AbstractWizardStepPanel<RoleType
                                     }
                                 });
 
-                                add(AttributeAppender.append("class", "card catalog-tile-panel d-flex flex-column align-items-center bordered p-3 h-100 mb-0"));
-                                add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active selectable" : null));
+                                add(AttributeAppender.append("class", "card catalog-tile-panel d-flex flex-column align-items-center bordered p-3 h-100 mb-0 selectable"));
+                                add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
                             }
 
                             @Override
                             protected void onClick(AjaxRequestTarget target) {
-                                super.onClick(target);
-                                provider.clearSelectedObjects();
+                                boolean oldState = getModelObject().getValue().isSelected();
+                                ((SelectableBeanObjectDataProvider) getProvider()).clearSelectedObjects();
+                                getTilesModel().getObject().forEach(tile -> {
+                                    tile.setSelected(false);
+                                    tile.getValue().setSelected(false);
+                                });
+
+                                getModelObject().setSelected(!oldState);
+                                getModelObject().getValue().setSelected(!oldState);
+
                                 target.add(getTable());
-                                getModelObject().getValue().setSelected(getModelObject().isSelected());
                             }
 
                             @Override
@@ -181,7 +197,7 @@ public class AccessApplicationStepPanel extends AbstractWizardStepPanel<RoleType
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-xs-4 col-sm-4 col-md-4 col-lg-3 col-xl-2 col-xxl-2 px-4 mb-3";
+                        return "col-xs-6 col-sm-6 col-md-4 col-lg-3 col-xl-5i col-xxl-5i p-2";
                     }
 
                     @Override
@@ -229,8 +245,8 @@ public class AccessApplicationStepPanel extends AbstractWizardStepPanel<RoleType
 
     }
 
-    private Component getTable() {
-        return get(ID_TABLE);
+    private TileTablePanel<TemplateTile<SelectableBean<ServiceType>>, SelectableBean<ServiceType>> getTable() {
+        return (TileTablePanel) get(ID_TABLE);
     }
 
     @Override
@@ -267,4 +283,29 @@ public class AccessApplicationStepPanel extends AbstractWizardStepPanel<RoleType
         return "mt-5 mx-auto col-11";
     }
 
+    @Override
+    public boolean onNextPerformed(AjaxRequestTarget target) {
+        Optional<TemplateTile<SelectableBean<ServiceType>>> selectedTile =
+                getTable().getTilesModel().getObject().stream().filter(tile -> tile.isSelected()).findFirst();
+        if (selectedTile.isPresent()) {
+            try {
+                PrismReferenceWrapper<Referencable> targetRef =
+                        applicationModel.getObject().findReference(AssignmentType.F_TARGET_REF);
+                targetRef.getValue().setRealValue(
+                        new ObjectReferenceType()
+                                .oid(selectedTile.get().getValue().getValue().getOid())
+                                .type(selectedTile.get().getValue().getValue().asPrismObject().getDefinition().getTypeName()));
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't find target reference.");
+            }
+        } else {
+            try {
+                applicationModel.getObject().getParent().remove(applicationModel.getObject(), getPageBase());
+                applicationModel.detach();
+            } catch (SchemaException e) {
+                LOGGER.error("Couldn't remove value from inducement container.");
+            }
+        }
+        return super.onNextPerformed(target);
+    }
 }
