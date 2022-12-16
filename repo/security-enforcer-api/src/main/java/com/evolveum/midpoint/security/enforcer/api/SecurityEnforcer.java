@@ -75,7 +75,18 @@ public interface SecurityEnforcer {
      */
     <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
             AuthorizationParameters<O,T> params, OwnerResolver ownerResolver,
-            Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+            Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+    /**
+     * Convenience variant of {@link #authorize(String, AuthorizationPhaseType, AuthorizationParameters, OwnerResolver, Task,
+     * OperationResult)} that is to be used when there is no object, target, nor other parameters.
+     */
+    default void authorize(String operationUrl, Task task, OperationResult result)
+            throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException {
+        authorize(operationUrl, null, AuthorizationParameters.EMPTY, null, task, result);
+    }
 
     @Experimental
     default void authorizeAll(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,

@@ -102,9 +102,13 @@ public class ProjectionMappingSetEvaluator {
                 LOGGER.trace("Mapping {} not applicable to channel, skipping {}", mappingName, params.getContext().getChannel());
                 continue;
             }
+            if (!task.canSee(mappingBean)) {
+                LOGGER.trace("Mapping {} not applicable to the execution mode, skipping", mappingName);
+                continue;
+            }
 
             mappingBuilder.now(params.getNow());
-            if (defaultTargetItemPath != null && targetObjectDefinition != null) {
+            if (defaultTargetItemPath != null) {
                 mappingBuilder.defaultTargetDefinition(
                         targetObjectDefinition.findItemDefinition(defaultTargetItemPath));
             } else {
@@ -307,7 +311,7 @@ public class ProjectionMappingSetEvaluator {
                     continue;
                 }
 
-                ItemDefinition targetItemDefinition;
+                D targetItemDefinition;
                 if (mappingOutputPath != null) {
                     targetItemDefinition = targetObjectDefinition.findItemDefinition(mappingOutputPath);
                     if (targetItemDefinition == null) {
@@ -317,7 +321,7 @@ public class ProjectionMappingSetEvaluator {
                     targetItemDefinition = params.getTargetItemDefinition();
                 }
                 //noinspection unchecked
-                ItemDelta<V, D> targetItemDelta = targetItemDefinition.createEmptyDelta(mappingOutputPath);
+                ItemDelta<V, D> targetItemDelta = (ItemDelta<V, D>) targetItemDefinition.createEmptyDelta(mappingOutputPath);
 
                 Item<V, D> aPrioriTargetItem;
                 if (aPrioriTargetObject != null) {
@@ -377,12 +381,12 @@ public class ProjectionMappingSetEvaluator {
                         }
                         targetItemDelta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(valuesToReplace));
 
-                        applyEstematedOldValueInReplaceCase(targetItemDelta, outputTriple);
+                        applyEstimatedOldValueInReplaceCase(targetItemDelta, outputTriple);
 
                     } else if (outputTriple.hasMinusSet()) {
                         LOGGER.trace("{} resulted in null or empty value for {} and there is a minus set, resetting it (replace with empty)", mappingDesc, targetContext);
                         targetItemDelta.setValueToReplace();
-                        applyEstematedOldValueInReplaceCase(targetItemDelta, outputTriple);
+                        applyEstimatedOldValueInReplaceCase(targetItemDelta, outputTriple);
 
                     } else {
                         LOGGER.trace("{} resulted in null or empty value for {}, skipping", mappingDesc, targetContext);
@@ -422,8 +426,8 @@ public class ProjectionMappingSetEvaluator {
     }
 
 
-    private <V extends PrismValue, D extends ItemDefinition> void applyEstematedOldValueInReplaceCase(ItemDelta<V, D> targetItemDelta,
-                                                                                                      PrismValueDeltaSetTriple<V> outputTriple) {
+    private <V extends PrismValue, D extends ItemDefinition<?>> void applyEstimatedOldValueInReplaceCase(
+            ItemDelta<V, D> targetItemDelta, PrismValueDeltaSetTriple<V> outputTriple) {
         Collection<V> nonPositiveValues = outputTriple.getNonPositiveValues();
         if (nonPositiveValues.isEmpty()) {
             return;
@@ -445,6 +449,7 @@ public class ProjectionMappingSetEvaluator {
             // This may be used e.g. to remove existing password.
             return true;
         }
+        //noinspection RedundantIfStatement
         if (hasNoOrHashedValuesOnly(mappingOutputTriple.getMinusSet()) && hasNoOrHashedValuesOnly(mappingOutputTriple.getZeroSet()) && hasNoOrHashedValuesOnly(mappingOutputTriple.getPlusSet())) {
             // Used to skip application of mapping that produces only hashed protected values.
             // Those values are useless, e.g. to set new password. If we would consider them as
@@ -474,7 +479,7 @@ public class ProjectionMappingSetEvaluator {
         return true;
     }
 
-    private boolean hasNoValue(Item aPrioriTargetItem) {
+    private boolean hasNoValue(Item<?, ?> aPrioriTargetItem) {
         return aPrioriTargetItem == null
                 || (aPrioriTargetItem.isEmpty() && !aPrioriTargetItem.isIncomplete());
     }

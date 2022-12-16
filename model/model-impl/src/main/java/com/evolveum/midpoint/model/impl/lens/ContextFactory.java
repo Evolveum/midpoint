@@ -78,7 +78,7 @@ public class ContextFactory {
 
         CategorizedDeltas<F> categorizedDeltas = new CategorizedDeltas<>(deltas);
 
-        LensContext<F> context = new LensContext<>(categorizedDeltas.focusContextClass);
+        LensContext<F> context = new LensContext<>(categorizedDeltas.focusContextClass, task.getExecutionMode());
         context.setChannel(task.getChannel());
         context.setOptions(options);
         context.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
@@ -170,7 +170,7 @@ public class ContextFactory {
         LensContext<F> context;
         if (AssignmentHolderType.class.isAssignableFrom(typeClass)) {
             //noinspection unchecked
-            context = createRecomputeFocusContext((Class<F>)typeClass, (PrismObject<F>) object, options);
+            context = createRecomputeFocusContext((Class<F>)typeClass, (PrismObject<F>) object, options, task);
         } else if (ShadowType.class.isAssignableFrom(typeClass)) {
             context = createRecomputeProjectionContext((ShadowType) object.asObjectable(), options, task, result);
         } else {
@@ -182,8 +182,8 @@ public class ContextFactory {
     }
 
     private <F extends ObjectType> LensContext<F> createRecomputeFocusContext(
-            Class<F> focusType, PrismObject<F> focus, ModelExecuteOptions options) {
-        LensContext<F> lensContext = new LensContext<>(focusType);
+            Class<F> focusType, PrismObject<F> focus, ModelExecuteOptions options, @NotNull Task task) {
+        LensContext<F> lensContext = new LensContext<>(focusType, task.getExecutionMode());
         LensFocusContext<F> focusContext = lensContext.createFocusContext();
         focusContext.setInitialObject(focus);
         focusContext.setOid(focus.getOid());
@@ -197,7 +197,7 @@ public class ContextFactory {
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
         provisioningService.applyDefinition(shadow.asPrismObject(), task, result);
-        LensContext<F> lensContext = new LensContext<>(null);
+        LensContext<F> lensContext = new LensContext<>(null, task.getExecutionMode());
         LensProjectionContext projectionContext =
                 lensContext.createProjectionContext(
                         projectionContextKeyFactory.createKey(shadow, task, result));
@@ -211,8 +211,9 @@ public class ContextFactory {
      /**
      * Creates empty lens context for synchronization purposes, filling in only the very basic metadata (such as channel).
      */
-    public <F extends ObjectType> LensContext<F> createSyncContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change) {
-        LensContext<F> context = new LensContext<>(focusClass);
+    public <F extends ObjectType> LensContext<F> createSyncContext(
+            Class<F> focusClass, ResourceObjectShadowChangeDescription change, Task task) {
+        LensContext<F> context = new LensContext<>(focusClass, task.getExecutionMode());
         context.setChannel(change.getSourceChannel());
         return context;
     }

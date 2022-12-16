@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 
-class TransformationalEvaluation<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType> {
+class TransformationalEvaluation<V extends PrismValue, D extends ItemDefinition<?>, E extends TransformExpressionEvaluatorType> {
 
     @NotNull final ExpressionEvaluationContext context;
     @NotNull final OperationResult parentResult;
@@ -41,7 +41,7 @@ class TransformationalEvaluation<V extends PrismValue, D extends ItemDefinition,
         this.evaluator = evaluator;
         this.prismContext = evaluator.getPrismContext();
         if (parentResult.isTraced() && parentResult.isTracingNormal(ValueTransformationExpressionEvaluationTraceType.class)) {
-            trace = new ValueTransformationExpressionEvaluationTraceType(prismContext);
+            trace = new ValueTransformationExpressionEvaluationTraceType();
             parentResult.addTrace(trace);
         } else {
             trace = null;

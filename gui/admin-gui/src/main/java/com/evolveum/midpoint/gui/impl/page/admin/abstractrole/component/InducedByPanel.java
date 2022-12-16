@@ -18,6 +18,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 @PanelType(name = "inducedBy")
 @PanelInstance(identifier = "inducedBy",
         applicableForType = AbstractRoleType.class,
+        applicableForOperation = OperationTypeType.MODIFY,
         display = @PanelDisplay(label = "InducedByPanel.label", order = 130))
 public class InducedByPanel<AR extends AbstractRoleType> extends AbstractObjectListPanel<AR> {
 

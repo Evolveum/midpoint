@@ -9,15 +9,12 @@ package com.evolveum.midpoint.gui.impl.page.admin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -47,13 +44,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extends ObjectDetailsModels<O>> extends PageBase {
 
@@ -79,6 +77,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private ODM objectDetailsModels;
     private final boolean isAdd;
+    private boolean isAddedByWizard = false;
 
     public AbstractPageObjectDetails() {
         this(null, null);
@@ -248,12 +247,44 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         LOGGER.trace("returning from saveOrPreviewPerformed");
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(deltas, previewOnly, options, task, result, target);
 
-        postProcessResult(result, executedDeltas, target);
+        if (isWizardNotUsedForCreating()) {
+            postProcessResult(result, executedDeltas, target);
+        } else {
+            reloadObject(result, executedDeltas, target);
+        }
 
         return executedDeltas;
     }
 
-    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
+    private void reloadObject(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
+        if (!result.isError()) {
+            if (executedDeltas != null) {
+                String resourceOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+                if (resourceOid != null) {
+                    Task task = createSimpleTask("load resource after save");
+                    @Nullable PrismObject<O> object = WebModelServiceUtils.loadObject(
+                            getType(),
+                            resourceOid,
+                            AbstractPageObjectDetails.this,
+                            task,
+                            task.getResult());
+                    if (object != null) {
+                        getObjectDetailsModels().reset();
+                        getObjectDetailsModels().reloadPrismObjectModel(object);
+                    }
+                }
+            }
+
+            result.computeStatusIfUnknown();
+        } else {
+            target.add(getFeedbackPanel());
+        }
+    }
+
+    protected void postProcessResult(
+            OperationResult result,
+            Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas,
+            AjaxRequestTarget target) {
         result.computeStatusIfUnknown();
         if (allowRedirectBack() && !result.isError()) {
             redirectBack();
@@ -264,9 +295,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     protected Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, boolean previewOnly, ExecuteChangeOptionsDto options, Task task, OperationResult result, AjaxRequestTarget target) {
         if (noChangesToExecute(deltas, options)) {
-            recordNoChangesWarning(result);
-
-            showResultNoChangesWarning(result);
+            if (isWizardNotUsedForCreating()) {
+                result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
+                showResult(result);
+            } else {
+                result.recordSuccess();
+            }
             return null;
         }
         //TODO force
@@ -279,7 +313,12 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
         //TODO this is just a quick hack.. for focus objects, feedback panel and results are processed by ProgressAware.finishProcessing()
 
-        ObjectChangeExecutor changeExecutor = getChangeExecutor();
+        ObjectChangeExecutor changeExecutor;
+        if (isWizardNotUsedForCreating()) {
+            changeExecutor = getChangeExecutor();
+        } else {
+            changeExecutor = getDefaultChangeExecutor();
+        }
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = changeExecutor.executeChanges(deltas, previewOnly, task, result, target);
 
         showResultAfterExecuteChanges(changeExecutor, result);
@@ -287,22 +326,23 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         return executedDeltas;
     }
 
-    protected void showResultNoChangesWarning(OperationResult result) {
-        showResult(result);
-    }
-
     protected void showResultAfterExecuteChanges(ObjectChangeExecutor changeExecutor, OperationResult result) {
-        if (changeExecutor instanceof ObjectChangesExecutorImpl) {
+        if (changeExecutor instanceof ObjectChangesExecutorImpl
+                && (isWizardNotUsedForCreating() || !result.isSuccess())) {
             showResult(result);
         }
     }
 
-    protected boolean noChangesToExecute(Collection<ObjectDelta<? extends ObjectType>> deltas, ExecuteChangeOptionsDto options) {
-        return deltas.isEmpty();
+    protected boolean isWizardNotUsedForCreating() {
+        return !isAddedByWizard;
     }
 
-    protected void recordNoChangesWarning(OperationResult result) {
-        result.recordWarning(getString("PageAdminObjectDetails.noChangesSave"));
+    protected void setUseWizardForCreating() {
+        isAddedByWizard = true;
+    }
+
+    protected boolean noChangesToExecute(Collection<ObjectDelta<? extends ObjectType>> deltas, ExecuteChangeOptionsDto options) {
+        return deltas.isEmpty();
     }
 
     protected boolean allowRedirectBack() {
@@ -318,6 +358,10 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
     }
 
     protected ObjectChangeExecutor getChangeExecutor() {
+        return getDefaultChangeExecutor();
+    }
+
+    private ObjectChangeExecutor getDefaultChangeExecutor() {
         return new ObjectChangesExecutorImpl();
     }
 
@@ -419,7 +463,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private void initMainPanel(ContainerPanelConfigurationType panelConfig, MidpointForm form) {
         if (panelConfig == null) {
-            addErrorPanel(false, form,  MessagePanel.MessagePanelType.WARN,"AbstractPageObjectDetails.noPanels");
+            addErrorPanel(false, form, MessagePanel.MessagePanelType.WARN, "AbstractPageObjectDetails.noPanels");
             return;
         }
 
@@ -436,7 +480,7 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
         Class<? extends Panel> panelClass = findObjectPanel(panelType);
         if (panelClass == null) {
             //panel type defined, but no class found. Something strange happened.
-            addErrorPanel(false, form,  MessagePanel.MessagePanelType.ERROR,"AbstractPageObjectDetails.panelTypeUndefined", panelConfig.getIdentifier());
+            addErrorPanel(false, form, MessagePanel.MessagePanelType.ERROR, "AbstractPageObjectDetails.panelTypeUndefined", panelConfig.getIdentifier());
             return;
         }
 

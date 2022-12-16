@@ -111,7 +111,7 @@ public interface ModelService {
      *            OID of the object to get
      * @param options
      *            options influencing the retrieval and processing of the object
-     * @param parentResult
+     * @param result
      *            parent OperationResult (in/out)
      * @param task
      *               Task instance. It gives context to the execution (e.g. security context)
@@ -137,8 +137,13 @@ public interface ModelService {
      *             state
      */
     @NotNull
-    <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-            Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException,
+    <T extends ObjectType> PrismObject<T> getObject(
+            @NotNull Class<T> type,
+            @NotNull String oid,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws ObjectNotFoundException, SchemaException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     /**
@@ -186,7 +191,7 @@ public interface ModelService {
      *            Collection of object deltas to execute
      * @param options
      *            options influencing processing of the deltas
-     * @param parentResult
+     * @param result
      *            parent OperationResult (in/out)
      * @param task
      *               Task instance. It gives context to the execution (e.g. security context)
@@ -216,11 +221,19 @@ public interface ModelService {
      * @throws SystemException
      *             unknown error from underlying layers or other unexpected state
      */
-    Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
+    default Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(
+            Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        return executeChanges(deltas, options, task, null, result);
+    }
 
-    Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, Collection<ProgressListener> listeners, OperationResult parentResult)
+    Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(
+            Collection<ObjectDelta<? extends ObjectType>> deltas,
+            ModelExecuteOptions options,
+            Task task,
+            Collection<ProgressListener> listeners,
+            OperationResult parentResult)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
 
@@ -236,8 +249,10 @@ public interface ModelService {
      * @param parentResult parent OperationResult (in/out)
      * @param task Task instance. It gives context to the execution (e.g. security context)
      */
-    <F extends ObjectType> void recompute(Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult)
-             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+    <F extends ObjectType> void recompute(
+            Class<F> type, String oid, ModelExecuteOptions options, Task task, OperationResult parentResult)
+             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * <p>
@@ -534,7 +549,7 @@ public interface ModelService {
      *
      * The results will be provided in the task.
      */
-    void importObject(PrismObject object, ImportOptionsType options, Task task, OperationResult parentResult);
+    <O extends ObjectType> void importObject(PrismObject<O> object, ImportOptionsType options, Task task, OperationResult result);
 
     /**
      * Import objects from stream.

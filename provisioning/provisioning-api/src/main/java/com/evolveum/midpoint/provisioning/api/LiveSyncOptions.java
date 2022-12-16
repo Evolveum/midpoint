@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.provisioning.api;
 
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.ResourceOperationCoordinates;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExecutionModeType;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Options for the {@link ProvisioningService#synchronize(ResourceShadowCoordinates, LiveSyncOptions, LiveSyncTokenStorage,
+ * Options for the {@link ProvisioningService#synchronize(ResourceOperationCoordinates, LiveSyncOptions, LiveSyncTokenStorage,
  * LiveSyncEventHandler, Task, OperationResult)} operation.
  */
 public class LiveSyncOptions {

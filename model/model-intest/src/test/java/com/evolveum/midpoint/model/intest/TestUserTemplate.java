@@ -3574,7 +3574,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).delete(new PolyString("jim"))
-                .asObjectDeltaCast(user.getOid());
+                .asObjectDelta(user.getOid());
         executeChanges(delta, null, task, result);
 
         // THEN

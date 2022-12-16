@@ -144,10 +144,10 @@ public class ContextLoader implements ProjectorProcessor {
      * This flag is set e.g. after inbounds. [Does not apply to externally set focus template. That one is never changed.]
      */
     public <F extends ObjectType> void updateArchetypePolicyAndRelatives(
-            @NotNull LensFocusContext<F> focusContext, boolean overwrite, @NotNull OperationResult result)
+            @NotNull LensFocusContext<F> focusContext, boolean overwrite, @NotNull Task task, @NotNull OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException, PolicyViolationException {
         updateArchetypesAndArchetypePolicy(focusContext, overwrite, result);
-        updateFocusTemplate(focusContext, overwrite, result);
+        updateFocusTemplate(focusContext, overwrite, task, result);
     }
 
     private void updateArchetypesAndArchetypePolicy(
@@ -277,6 +277,7 @@ public class ContextLoader implements ProjectorProcessor {
     private <F extends ObjectType> void updateFocusTemplate(
             @NotNull LensFocusContext<F> focusContext,
             boolean overwrite,
+            @NotNull Task task,
             @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
 
@@ -297,7 +298,7 @@ public class ContextLoader implements ProjectorProcessor {
 
         LOGGER.trace("current focus template OID = {}, new = {}", currentOid, newOid);
         if (!Objects.equals(currentOid, newOid)) {
-            resolveAndSetTemplate(focusContext, newOid, result);
+            resolveAndSetTemplate(focusContext, newOid, task, result);
         }
     }
 
@@ -324,7 +325,7 @@ public class ContextLoader implements ProjectorProcessor {
     }
 
     private <F extends ObjectType> void resolveAndSetTemplate(
-            @NotNull LensFocusContext<F> focusContext, String newOid, @NotNull OperationResult result)
+            @NotNull LensFocusContext<F> focusContext, String newOid, @NotNull Task task, @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         if (newOid != null) {
             focusContext.setFocusTemplate(
@@ -332,7 +333,7 @@ public class ContextLoader implements ProjectorProcessor {
                             .getObject(ObjectTemplateType.class, newOid, createReadOnlyCollection(), result)
                             .asObjectable());
             focusContext.setExpandedFocusTemplate(
-                    archetypeManager.getExpandedObjectTemplate(newOid, result));
+                    archetypeManager.getExpandedObjectTemplate(newOid, task.getExecutionMode(), result));
         } else {
             focusContext.setFocusTemplate(null);
             focusContext.setExpandedFocusTemplate(null);

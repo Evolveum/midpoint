@@ -10,9 +10,6 @@ import static java.util.Collections.emptyList;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -22,8 +19,9 @@ import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
@@ -113,7 +111,7 @@ public class ReindexActivityHandler
         @Override
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, ActivityRunException {
+                throws CommonException {
             reindexObject(object, result);
             return true;
         }
@@ -145,7 +143,7 @@ public class ReindexActivityHandler
 
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
-            DebugUtil.debugDumpWithLabelLn(sb, "objects", objects, indent+1);
+            DebugUtil.debugDumpWithLabel(sb, "objects", objects, indent+1);
         }
     }
 }

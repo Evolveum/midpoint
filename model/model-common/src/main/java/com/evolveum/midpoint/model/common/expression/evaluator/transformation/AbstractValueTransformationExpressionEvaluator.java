@@ -15,13 +15,13 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpr
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
+
 import org.apache.commons.lang3.BooleanUtils;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -49,8 +49,9 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Radovan Semancik
  */
-public abstract class AbstractValueTransformationExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E extends TransformExpressionEvaluatorType>
-                        extends AbstractExpressionEvaluator<V, D, E> {
+public abstract class AbstractValueTransformationExpressionEvaluator
+        <V extends PrismValue, D extends ItemDefinition<?>, E extends TransformExpressionEvaluatorType>
+        extends AbstractExpressionEvaluator<V, D, E> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
@@ -59,9 +60,14 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
     protected final SecurityContextManager securityContextManager;
     protected final LocalizationService localizationService;
 
-    protected AbstractValueTransformationExpressionEvaluator(QName elementName, E expressionEvaluatorType, D outputDefinition, Protector protector, PrismContext prismContext,
-            SecurityContextManager securityContextManager, LocalizationService localizationService) {
-        super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext);
+    protected AbstractValueTransformationExpressionEvaluator(
+            QName elementName,
+            E expressionEvaluatorType,
+            D outputDefinition,
+            Protector protector,
+            SecurityContextManager securityContextManager,
+            LocalizationService localizationService) {
+        super(elementName, expressionEvaluatorType, outputDefinition, protector);
         this.securityContextManager = securityContextManager;
         this.localizationService = localizationService;
     }
@@ -131,7 +137,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
      * @param variables Variables to be applied. Must not be relativistic! All deltas must be sorted out by now.
      * @param valueDestination Where we are going to put output value(s). Actually it's only supplementary information for
      *                         the transformer as the actual placement of output values is done in the caller.
-     * @param useNew Are we using "new" state of sources/input variables? Again, this is only a supplementary information,
+     * @param useNew Are we using "new" state of sources/input variables? Again, this is only supplementary information,
      *               because the variables should be already non-relativistic. Some scripts need to know the value of "useNew".
      * @param context Caller-specified context of the whole expression evaluation.
      */

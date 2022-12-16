@@ -28,6 +28,9 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents the tree of activities that comprise a logical task.
+ *
+ * Basically, binds together the root activity ({@link StandaloneActivity}) and the dynamic object representing
+ * the state of the whole tree ({@link ActivityTreeStateOverview}).
  */
 public class ActivityTree implements DebugDumpable {
 

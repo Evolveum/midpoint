@@ -338,8 +338,8 @@ public class PersonaProcessor {
         return evaluation.getItemDeltas();
     }
 
-
-    private <F extends FocusType>  void link(LensContext<F> context, FocusType persona, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    private <F extends FocusType>  void link(LensContext<F> context, FocusType persona, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         ObjectDelta<F> delta = context.getFocusContext().getObjectNew().createModifyDelta();
         PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue();
         refValue.setOid(persona.getOid());
@@ -349,7 +349,8 @@ public class PersonaProcessor {
         repositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), delta.getModifications(), result);
     }
 
-    private <F extends FocusType>  void unlink(LensContext<F> context, FocusType persona, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    private <F extends FocusType>  void unlink(LensContext<F> context, FocusType persona, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         ObjectDelta<F> delta = context.getFocusContext().getObjectNew().createModifyDelta();
         PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue();
         refValue.setOid(persona.getOid());

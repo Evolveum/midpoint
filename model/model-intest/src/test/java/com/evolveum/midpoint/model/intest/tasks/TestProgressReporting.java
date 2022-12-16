@@ -174,7 +174,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .end()
                     .child(RECONCILIATION_REMAINING_SHADOWS_ID)
                         .progress()
-                            .assertCommitted(0, 0, 1)
+                            .assertCommitted(1, 0, 0) // "pending" is processed because of death timestamp
                             .assertUncommitted(0, 0, 0)
                         .end()
                         .itemProcessingStatistics().display().end()

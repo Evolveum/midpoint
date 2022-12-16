@@ -37,9 +37,14 @@ public interface Tracer {
      */
     TracingProfileType resolve(TracingProfileType tracingProfile, OperationResult result) throws SchemaException;
 
-    TracingProfileType getDefaultProfile();
+    /** TODO */
+    @NotNull TracingProfileType getDefaultProfile();
 
-    CompiledTracingProfile compileProfile(TracingProfileType profile, OperationResult result) throws SchemaException;
+    /**
+     * Compiles the tracing profile; or a default one, if no profile is provided.
+     */
+    CompiledTracingProfile compileProfile(@Nullable TracingProfileType profile, @NotNull OperationResult result)
+            throws SchemaException;
 
     /**
      * Sets customizer of tracer template parameters, replacing any previous one.

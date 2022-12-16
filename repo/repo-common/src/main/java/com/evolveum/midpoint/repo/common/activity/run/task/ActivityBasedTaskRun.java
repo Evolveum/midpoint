@@ -60,7 +60,7 @@ public class ActivityBasedTaskRun implements TaskRun {
             localRootPath = ActivityStateUtil.getLocalRootPath(runningTask.getWorkState());
 
             localRootActivity = activityTree.getActivity(localRootPath);
-            localRootActivity.setLocalRoot(true);
+            localRootActivity.setLocalRoot();
         } catch (CommonException e) {
             throw new TaskException("Couldn't initialize activity tree", FATAL_ERROR, PERMANENT_ERROR, e);
         }

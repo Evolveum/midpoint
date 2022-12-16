@@ -6,8 +6,6 @@
   -->
 
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-
     <name>bob</name>
-
     <organization>parent:child</organization>
 </user>

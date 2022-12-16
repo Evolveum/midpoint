@@ -284,16 +284,6 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                             }
 
                             @Override
-                            protected DisplayType createDisplayType(IModel<TemplateTile<SelectableBean<FocusType>>> model) {
-                                ObjectType obj = model.getObject().getValue().getValue();
-                                String icon = WebComponentUtil.createDefaultIcon(obj.asPrismObject());
-
-                                return new DisplayType()
-                                        .icon(new IconType()
-                                                .cssClass(StringUtils.joinWith(" ", icon, "fa-2x")));
-                            }
-
-                            @Override
                             protected List<InlineMenuItem> createMenuItems() {
                                 List<InlineMenuItem> menu = new ArrayList<>();
                                 createRecomputeMemberRowAction(menu);

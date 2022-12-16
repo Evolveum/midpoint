@@ -184,8 +184,7 @@ public abstract class AbstractCachingScriptEvaluator<I, C> extends AbstractScrip
 
     private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException {
         try {
-            T convertedValue = ExpressionUtil.convertValue(expectedType, context.getAdditionalConvertor(), rawValue, getProtector(), getPrismContext());
-            return convertedValue;
+            return ExpressionUtil.convertValue(expectedType, context.getAdditionalConvertor(), rawValue, getProtector());
         } catch (IllegalArgumentException e) {
             throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
         }

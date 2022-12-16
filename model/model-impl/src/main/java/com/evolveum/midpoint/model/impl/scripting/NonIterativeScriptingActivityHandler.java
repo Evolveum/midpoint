@@ -154,7 +154,7 @@ public class NonIterativeScriptingActivityHandler
 
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
-            DebugUtil.debugDumpWithLabelLn(sb, "scriptExecutionRequest", String.valueOf(scriptExecutionRequest), indent+1);
+            DebugUtil.debugDumpWithLabel(sb, "scriptExecutionRequest", String.valueOf(scriptExecutionRequest), indent+1);
         }
     }
 }

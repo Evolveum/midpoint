@@ -40,6 +40,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+/**
+ * Represents the activity tree state overview that is stored in the root task.
+ *
+ * This class does _not_ hold the state itself. Instead, it contains methods that update the state in the task.
+ * See e.g. {@link #recordLocalRunStart(LocalActivityRun, OperationResult)} and its brethren.
+ */
 public class ActivityTreeStateOverview {
 
     private static final Trace LOGGER = TraceManager.getTrace(ActivityTreeStateOverview.class);
@@ -95,11 +101,11 @@ public class ActivityTreeStateOverview {
     }
 
     /**
-     * Records the start of distributing (coordinator) activity realization (NOT run).
+     * Records the start of distributed activity realization (NOT run).
      * It sets the fields that are not set by workers in their local runs.
      */
-    public void recordDistributingActivityRealizationStart(@NotNull DistributingActivityRun<?, ?, ?> run,
-            @NotNull OperationResult result) throws ActivityRunException {
+    public void recordDistributedActivityRealizationStart(
+            @NotNull DistributingActivityRun<?, ?, ?> run, @NotNull OperationResult result) throws ActivityRunException {
 
         modifyRootTask(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
@@ -119,8 +125,9 @@ public class ActivityTreeStateOverview {
      *
      * (Note: We only add records here. We assume that no children are ever deleted.)
      */
-    public void recordChildren(@NotNull LocalActivityRun<?, ?, ?> run, List<Activity<?, ?>> children,
-            @NotNull OperationResult result) throws ActivityRunException {
+    public void recordChildren(
+            @NotNull LocalActivityRun<?, ?, ?> run, List<Activity<?, ?>> children, @NotNull OperationResult result)
+            throws ActivityRunException {
 
         modifyRootTask(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
@@ -143,8 +150,8 @@ public class ActivityTreeStateOverview {
      *
      * Note that run result can be null only in the case of (very rare) uncaught exception.
      */
-    public void recordLocalRunFinish(@NotNull LocalActivityRun<?, ?, ?> run,
-            @Nullable ActivityRunResult runResult, @NotNull OperationResult result)
+    public void recordLocalRunFinish(
+            @NotNull LocalActivityRun<?, ?, ?> run, @Nullable ActivityRunResult runResult, @NotNull OperationResult result)
             throws ActivityRunException {
 
         modifyRootTask(taskBean -> {
@@ -173,11 +180,11 @@ public class ActivityTreeStateOverview {
     }
 
     /**
-     * Records the finish of distributing (coordinator) activity realization (NOT run).
+     * Records the finish of distributed activity realization (NOT run).
      * It sets the fields that are not set by workers in their local runs.
      */
-    public void recordDistributingActivityRealizationFinish(@NotNull DistributingActivityRun<?, ?, ?> run,
-            @NotNull ActivityRunResult runResult, @NotNull OperationResult result)
+    public void recordDistributedActivityRealizationFinish(
+            @NotNull DistributingActivityRun<?, ?, ?> run, @NotNull ActivityRunResult runResult, @NotNull OperationResult result)
             throws ActivityRunException {
         modifyRootTask(taskBean -> {
             ActivityStateOverviewType overview = getOrCreateStateOverview(taskBean);
@@ -212,14 +219,14 @@ public class ActivityTreeStateOverview {
         }
     }
 
-    private void updateActivityTreeOnTaskDead(@NotNull ActivityStateOverviewType activity, @NotNull Task task,
-            @NotNull Holder<Boolean> changed) {
+    private void updateActivityTreeOnTaskDead(
+            @NotNull ActivityStateOverviewType activity, @NotNull Task task, @NotNull Holder<Boolean> changed) {
         updateActivityForTaskDead(activity, task, changed);
         activity.getActivity().forEach(child -> updateActivityTreeOnTaskDead(child, task, changed));
     }
 
-    private void updateActivityForTaskDead(@NotNull ActivityStateOverviewType activity, @NotNull Task task,
-            @NotNull Holder<Boolean> changed) {
+    private void updateActivityForTaskDead(
+            @NotNull ActivityStateOverviewType activity, @NotNull Task task, @NotNull Holder<Boolean> changed) {
         activity.getTask().stream()
                 .filter(taskOverview -> task.getOid().equals(getOid(taskOverview.getTaskRef())))
                 .filter(taskOverview -> taskOverview.getExecutionState() == ActivityTaskExecutionStateType.RUNNING)
@@ -239,8 +246,10 @@ public class ActivityTreeStateOverview {
      * of completed buckets), incorrect results may be stored in the overview. Therefore we use a hack
      * with {@link #isBefore(BucketProgressOverviewType, BucketProgressOverviewType)} method.
      */
-    public void updateBucketAndItemProgress(@NotNull LocalActivityRun<?, ?, ?> run,
-            @NotNull BucketProgressOverviewType bucketProgress, @NotNull OperationResult result)
+    public void updateBucketAndItemProgress(
+            @NotNull LocalActivityRun<?, ?, ?> run,
+            @NotNull BucketProgressOverviewType bucketProgress,
+            @NotNull OperationResult result)
             throws ActivityRunException {
 
         if (!run.shouldUpdateProgressInStateOverview()) {
@@ -276,8 +285,9 @@ public class ActivityTreeStateOverview {
     }
 
     /** Assumes that the activity run is still in progress. (I.e. also clear the "stalled since" flag.) */
-    public void updateItemProgressIfTimePassed(@NotNull LocalActivityRun<?, ?, ?> run, long interval,
-            OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public void updateItemProgressIfTimePassed(
+            @NotNull LocalActivityRun<?, ?, ?> run, long interval, OperationResult result)
+            throws SchemaException, ObjectNotFoundException {
 
         if (!run.shouldUpdateProgressInStateOverview() || !run.isProgressSupported()) {
             LOGGER.trace("Item progress update skipped in {}", run);
@@ -334,7 +344,7 @@ public class ActivityTreeStateOverview {
     /**
      * Updates the realization state (including writing to the repository).
      */
-    public void updateRealizationState(ActivityTreeRealizationStateType value, OperationResult result)
+    void updateRealizationState(ActivityTreeRealizationStateType value, OperationResult result)
             throws ActivityRunException {
         try {
             rootTask.setItemRealValues(PATH_REALIZATION_STATE, value);
@@ -344,11 +354,11 @@ public class ActivityTreeStateOverview {
         }
     }
 
-    public ActivityStateOverviewType getActivityStateTree() {
+    private ActivityStateOverviewType getActivityStateTree() {
         return rootTask.getPropertyRealValueOrClone(PATH_ACTIVITY_STATE_TREE, ActivityStateOverviewType.class);
     }
 
-    public void purge(OperationResult result) throws ActivityRunException {
+    void purge(OperationResult result) throws ActivityRunException {
         updateActivityStateTree(
                 purgeStateRecursively(
                         getActivityStateTree()

@@ -100,7 +100,16 @@ public class TestResource<T extends ObjectType> {
                 .getObject(getType(), oid, null, result);
     }
 
-    public static void read(TestResource... resources) {
+    /**
+     * Imports the resource (using appropriate importer e.g. model importer) and reloads it - to have all the metadata.
+     */
+    public void initialize(Task task, OperationResult result)
+            throws IOException, CommonException {
+        importObject(task, result);
+        reload(result);
+    }
+
+    public static void read(TestResource<?>... resources) {
         Arrays.asList(resources).forEach(r -> {
             try {
                 r.read();

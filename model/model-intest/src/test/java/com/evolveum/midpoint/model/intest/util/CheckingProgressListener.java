@@ -19,7 +19,7 @@ import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 public class CheckingProgressListener implements ProgressListener {
 
     @Override
-    public void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation) {
+    public void onProgressAchieved(ModelContext<?> modelContext, ProgressInformation progressInformation) {
         LensContext<?> lensContext = (LensContext<?>)modelContext;
         lensContext.checkConsistence();
         for (LensProjectionContext projectionContext: lensContext.getProjectionContexts()) {

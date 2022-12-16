@@ -13,7 +13,10 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import com.evolveum.midpoint.schema.util.SimulationUtil;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -339,6 +342,10 @@ public abstract class AbstractMappingBuilder<
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isApplicableToChannel(String channel) {
         return MappingImpl.isApplicableToChannel(mappingBean, channel);
+    }
+
+    public boolean isApplicableToExecutionMode(TaskExecutionMode executionMode) {
+        return SimulationUtil.isVisible(mappingBean, executionMode);
     }
 
     public RT additionalSource(Source<?, ?> source) {

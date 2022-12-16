@@ -18,7 +18,6 @@ import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
@@ -66,17 +65,22 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchRead
  * @author Radovan Semancik
  */
 public class AssociationFromLinkExpressionEvaluator
-    extends AbstractExpressionEvaluator<PrismContainerValue<ShadowAssociationType>,
-                                        PrismContainerDefinition<ShadowAssociationType>,
-                                        AssociationFromLinkExpressionEvaluatorType> {
+    extends AbstractExpressionEvaluator<
+        PrismContainerValue<ShadowAssociationType>,
+        PrismContainerDefinition<ShadowAssociationType>,
+        AssociationFromLinkExpressionEvaluatorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationFromLinkExpressionEvaluator.class);
 
     private final ObjectResolver objectResolver;
 
-    AssociationFromLinkExpressionEvaluator(QName elementName, AssociationFromLinkExpressionEvaluatorType evaluatorType,
-            PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, PrismContext prismContext, ObjectResolver objectResolver) {
-        super(elementName, evaluatorType, outputDefinition, protector, prismContext);
+    AssociationFromLinkExpressionEvaluator(
+            QName elementName,
+            AssociationFromLinkExpressionEvaluatorType evaluatorType,
+            PrismContainerDefinition<ShadowAssociationType> outputDefinition,
+            Protector protector,
+            ObjectResolver objectResolver) {
+        super(elementName, evaluatorType, outputDefinition, protector);
         this.objectResolver = objectResolver;
     }
 
@@ -221,6 +225,7 @@ public class AssociationFromLinkExpressionEvaluator
             ResourceAttributeContainer shadowAttributesContainer = ShadowUtil.getAttributesContainer(shadow);
             ResourceAttributeContainer identifiersContainer = ObjectFactory.createResourceAttributeContainer(
                     ShadowAssociationType.F_IDENTIFIERS, shadowAttributesContainer.getDefinition());
+            //noinspection unchecked
             shadowAssociationType.asPrismContainerValue().add(identifiersContainer);
             Collection<ResourceAttribute<?>> shadowIdentifiers =
                     Objects.requireNonNull(ShadowUtil.getAllIdentifiers(shadow), "no shadow identifiers");

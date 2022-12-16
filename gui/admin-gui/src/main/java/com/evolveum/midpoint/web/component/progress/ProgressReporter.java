@@ -151,7 +151,7 @@ public class ProgressReporter implements ProgressListener {
     }
 
     @Override
-    public void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation) {
+    public void onProgressAchieved(ModelContext<?> modelContext, ProgressInformation progressInformation) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("onProgressAchieved: {}\n, modelContext = \n{}", progressInformation.debugDump(),
                     modelContext.debugDump(2));

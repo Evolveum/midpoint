@@ -42,13 +42,14 @@ class ClassicReportImportWorkDefinition extends AbstractReportWorkDefinition {
         reportDataRef = MiscUtil.requireNonNull(rawReportDataRef, () -> "No report data object specified");
     }
 
-    public @NotNull ObjectReferenceType getReportDataRef() {
+    @NotNull ObjectReferenceType getReportDataRef() {
         return reportDataRef;
     }
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
         super.debugDumpContent(sb, indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "reportDataRef", String.valueOf(reportDataRef), indent + 1);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "reportDataRef", String.valueOf(reportDataRef), indent + 1);
     }
 }

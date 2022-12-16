@@ -66,12 +66,10 @@ public class DashboardServiceImpl implements DashboardService {
     @Autowired private TaskManager taskManager;
     @Autowired private ModelAuditService modelAuditService;
     @Autowired private PrismContext prismContext;
-    @Autowired private Clock clock;
     @Autowired private ModelInteractionService modelInteractionService;
     @Autowired private ModelService modelService;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private ModelObjectResolver objectResolver;
-    @Autowired private CollectionProcessor collectionProcessor;
     @Autowired private SchemaService schemaService;
 
     @Override
@@ -173,7 +171,8 @@ public class DashboardServiceImpl implements DashboardService {
         return widget.getData().getSourceType();
     }
 
-    private String getNumberMessage(DashboardWidgetType widget, DashboardWidget data, boolean useDisplaySource, Task task, OperationResult result)
+    private String getNumberMessage(
+            DashboardWidgetType widget, DashboardWidget data, boolean useDisplaySource, Task task, OperationResult result)
             throws CommonException {
         DashboardWidgetSourceTypeType sourceType = getSourceTypeForNumberMessage(widget, useDisplaySource);
         DashboardWidgetPresentationType presentation = widget.getPresentation();

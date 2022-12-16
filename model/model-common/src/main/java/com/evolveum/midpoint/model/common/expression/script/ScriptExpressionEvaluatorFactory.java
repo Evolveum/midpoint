@@ -43,18 +43,16 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private LocalizationService localizationService;
     @Autowired private Protector protector;
-    @Autowired private PrismContext prismContext;
 
     @SuppressWarnings("unused") // Used by Spring
     public ScriptExpressionEvaluatorFactory() {
     }
 
     @VisibleForTesting
-    public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory,
-            SecurityContextManager securityContextManager, PrismContext prismContext) {
+    public ScriptExpressionEvaluatorFactory(
+            ScriptExpressionFactory scriptExpressionFactory, SecurityContextManager securityContextManager) {
         this.scriptExpressionFactory = scriptExpressionFactory;
         this.securityContextManager = securityContextManager;
-        this.prismContext = prismContext;
     }
 
     @Override
@@ -63,8 +61,14 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
     }
 
     @Override
-    public <V extends PrismValue, D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-            D outputDefinition, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String contextDescription, Task task, OperationResult result) throws SchemaException, SecurityViolationException {
+    public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
+            Collection<JAXBElement<?>> evaluatorElements,
+            D outputDefinition,
+            ExpressionProfile expressionProfile,
+            ExpressionFactory expressionFactory,
+            String contextDescription,
+            Task task,
+            OperationResult result) throws SchemaException, SecurityViolationException {
 
         // TODO is output definition required to be non-null here, or it can be null?
 
@@ -73,8 +77,14 @@ public class ScriptExpressionEvaluatorFactory extends AbstractAutowiredExpressio
         ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(evaluatorBean, outputDefinition,
                 expressionProfile, expressionFactory, contextDescription, result);
 
-        return new ScriptExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector, prismContext,
-                scriptExpression, securityContextManager, localizationService);
+        return new ScriptExpressionEvaluator<>(
+                ELEMENT_NAME,
+                evaluatorBean,
+                outputDefinition,
+                protector,
+                scriptExpression,
+                securityContextManager,
+                localizationService);
     }
 
     public ScriptExpressionFactory getScriptExpressionFactory() {

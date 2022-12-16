@@ -70,9 +70,8 @@ public class ExpressionUtil {
      * Slightly more powerful version of "convert" as compared to
      * JavaTypeConverter. This version can also encrypt/decrypt and also handles poly-strings.
      */
-    public static <I, O> O convertValue(Class<O> finalExpectedJavaType, Function<Object, Object> additionalConvertor, I inputVal,
-            Protector protector,
-            PrismContext prismContext) {
+    public static <I, O> O convertValue(
+            Class<O> finalExpectedJavaType, Function<Object, Object> additionalConvertor, I inputVal, Protector protector) {
         if (inputVal == null) {
             return null;
         }
@@ -85,7 +84,7 @@ public class ExpressionUtil {
         intermediateInputVal = treatAdditionalConvertor(additionalConvertor, intermediateInputVal);
 
         O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateInputVal);
-        PrismUtil.recomputeRealValue(convertedVal, prismContext);
+        PrismUtil.recomputeRealValue(convertedVal, PrismContext.get());
         return convertedVal;
     }
 
@@ -936,7 +935,7 @@ public class ExpressionUtil {
             ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ItemDefinition<?> outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
+        ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
         outputDefinition.freeze();
         return evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,

@@ -106,8 +106,6 @@
             class="com.evolveum.midpoint.model.common.expression.evaluator.FunctionExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>
         <constructor-arg ref="protector"/>
-        <constructor-arg name="prismContext" ref="prismContext"/>
-        <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
@@ -116,68 +114,46 @@
         <constructor-arg ref="expressionFactory"/>
         <constructor-arg ref="protector"/>
         <constructor-arg ref="valuePolicyProcessor"/>
-        <constructor-arg name="prismContext" ref="prismContext"/>
-        <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="pathExpressionEvaluatorFactory"
             class="com.evolveum.midpoint.model.common.expression.evaluator.path.PathExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>
-        <constructor-arg name="prismContext" ref="prismContext"/>
-        <constructor-arg name="protector" ref="protector"/>
-        <constructor-arg ref="cacheConfigurationManager"/>
+        <constructor-arg ref="protector"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="assignmentTargetSearchExpressionEvaluatorFactory"
             class="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentTargetSearchExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>
-        <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
-        <constructor-arg ref="modelController"/>
-        <constructor-arg ref="modelInteractionService"/>
-        <constructor-arg ref="securityContextManager"/>
-        <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="referenceSearchExpressionEvaluatorFactory"
             class="com.evolveum.midpoint.model.common.expression.evaluator.ReferenceSearchExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>
-        <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
-        <constructor-arg ref="modelController"/>
-        <constructor-arg ref="modelInteractionService"/>
-        <constructor-arg ref="securityContextManager"/>
-        <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="associationTargetSearchExpressionEvaluatorFactory"
             class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationTargetSearchExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>
-        <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
-        <constructor-arg ref="modelController"/>
-        <constructor-arg ref="modelInteractionService"/>
-        <constructor-arg ref="securityContextManager"/>
-        <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="associationFromLinkExpressionEvaluatorFactory"
             class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationFromLinkExpressionEvaluatorFactory">
         <constructor-arg ref="expressionFactory"/>
-        <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
-        <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
     <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory">
         <constructor-arg ref="securityContextManager"/>
-        <constructor-arg ref="prismContext"/>
         <constructor-arg ref="localizationService"/>
         <property name="defaultEvaluatorFactory" ref="asIsExpressionEvaluatorFactory"/>
         <property name="objectResolver" ref="modelObjectResolver"/>

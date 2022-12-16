@@ -87,7 +87,7 @@ public class TestBucketingLive extends AbstractRepoCommonTest {
 
         then();
         try {
-            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT);
 
             root.refresh(result);
             assertWorkerAfter("after 1st run", root, result);
@@ -97,7 +97,7 @@ public class TestBucketingLive extends AbstractRepoCommonTest {
             taskManager.scheduleTasksNow(List.of(root.getOid()), result);
 
             when("second run");
-            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+            waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, DEFAULT_TIMEOUT);
 
             root.refresh(result);
             assertWorkerAfter("after 2nd run", root, result);

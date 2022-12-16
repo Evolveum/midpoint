@@ -17,6 +17,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.evolveum.midpoint.model.test.SimulationResult;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -76,6 +78,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     private static final TestResource<RoleType> ROLE_META_ASSIGNMENT_SEARCH =
             new TestResource<>(TEST_DIR, "role-meta-assignment-search.xml", "1ac00214-ffd0-49db-a1b9-51b46a0e9ae1");
 
+    @SuppressWarnings("unchecked")
     private static final Class<? extends ObjectType>[] COLLECT_COUNT_TYPES = new Class[] { FocusType.class, ShadowType.class };
 
     @Override
@@ -107,8 +110,15 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
                 DummyGroup.ATTR_MEMBERS_NAME, String.class, false, true);
     }
 
+    /**
+     * The simplest "create on demand" scenario:
+     *
+     * - `ORG_CHILD` has `parentIdentifier` of "parentOfChild-1".
+     * - There is no such org in repo, so normally we should create it on demand.
+     * - But we are in a preview mode, so no org should be really created in the repository.
+     */
     @Test
-    public void test100OrgNotProvisioned() throws Exception {
+    public void test100SimpleCreateOnDemand() throws Exception {
         given();
 
         Task task = getTestTask();
@@ -121,78 +131,152 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         PrismObject<OrgType> orgChild = ORG_CHILD.getObject().clone();
         ObjectDelta<OrgType> delta = orgChild.createAddDelta();
 
-        ModelContext<OrgType> context = modelInteractionService.previewChanges(Collections.singletonList(delta), ModelExecuteOptions.create(), task, result);
+        ModelContext<OrgType> context = modelInteractionService.previewChanges(List.of(delta), null, task, result);
 
-        then();
-
-        AssertJUnit.assertNotNull(context);
+        then("No extra object should be created");
         assertCollectedCounts(counts, task, result);
+
+        and("there should be some secondary deltas");
+        AssertJUnit.assertNotNull(context);
+        displayDumpable("context", context); // TODO assert the deltas
     }
 
+    /**
+     * As {@link #test100SimpleCreateOnDemand()} but using `executeChanges` with "no persistent effects" execution mode.
+     */
     @Test
-    public void test150OrgNotProvisionedWithMetarole() throws Exception {
-        given();
-
+    public void test110SimpleCreateOnDemandSimulation() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
 
-        when("preview for create org, that should search/createOnDemand parent org. Also role should be searched/createOnDemand for this new org via metarole");
+        given("simple orphan ADD delta");
+        ObjectDelta<OrgType> delta = ORG_CHILD.getObject().clone().createAddDelta();
 
+        when("executeChanges is called in simulation mode");
+        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
+
+        then("No extra objects should be created");
+        assertCollectedCounts(counts, task, result);
+
+        and("there are simulation deltas");
+        simResult.assertNoExecutedNorAuditedDeltas();
+        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
+        displayCollection("simulated deltas", simulatedDeltas);
+        // TODO some asserts here
+
+        and("there should be some secondary deltas in model context");
+        ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one
+        AssertJUnit.assertNotNull(context);
+        displayDumpable("context", context); // TODO assert the deltas
+    }
+
+    /**
+     * More advanced "create on demand" scenario for `ORG_CHILD`:
+     *
+     * - `parentIdentifier` is "parentOfChild-1" -> a parent organization with this name should be created (and assigned)
+     * - metarole `role-meta-assignment-search` is present -> a role "Role: child org-Read" should be created (and assigned)
+     */
+    @Test
+    public void test150CreateOnDemandForOrgAndRole() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
+
+        given("org ADD delta");
+        ObjectDelta<OrgType> delta = createAddDeltaForOrgWithRoleAssignment();
+
+        when("previewChanges is invoked");
+        ModelContext<OrgType> context =
+                modelInteractionService.previewChanges(
+                        List.of(delta), ModelExecuteOptions.create(), task, result);
+
+        then("no new objects are created");
+        AssertJUnit.assertNotNull(context);
+        assertCollectedCounts(counts, task, result);
+
+        // TODO some asserts here
+    }
+
+    private ObjectDelta<OrgType> createAddDeltaForOrgWithRoleAssignment() {
         PrismObject<OrgType> orgChild = ORG_CHILD.getObject().clone();
-        // we'll add assignment to meta role
-        orgChild.asObjectable().getAssignment().add(new AssignmentType().targetRef(ROLE_META_ASSIGNMENT_SEARCH.oid, RoleType.COMPLEX_TYPE));
-        ObjectDelta<OrgType> delta = orgChild.createAddDelta();
-
-        ModelContext<OrgType> context = modelInteractionService.previewChanges(Collections.singletonList(delta), ModelExecuteOptions.create(), task, result);
-
-        then();
-
-        AssertJUnit.assertNotNull(context);
-        assertCollectedCounts(counts, task, result);
+        addMetaroleAssignment(orgChild);
+        return orgChild.createAddDelta();
     }
 
-    @Test(enabled = false,
-            description = "Test currently fails since previewChanges doesn't handle associationTargetSearch properly (projector instead of whole clockwork is running)")
-    public void test200ComplexCase() throws Exception {
-        given();
+    private void addMetaroleAssignment(PrismObject<OrgType> orgChild) {
+        orgChild.asObjectable().getAssignment().add(
+                new AssignmentType()
+                        .targetRef(ROLE_META_ASSIGNMENT_SEARCH.oid, RoleType.COMPLEX_TYPE));
+    }
 
+    /**
+     * As {@link #test150CreateOnDemandForOrgAndRole()} but using `executeChanges` with "no persistent effects" execution mode.
+     */
+    @Test
+    public void test160CreateOnDemandForOrgAndRoleSimulated() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
         Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
 
-        when("preview for add user bob, org and parent org should be created as well as groups on resource + bob'account should be added to group on resource");
+        given("org ADD delta");
+        ObjectDelta<OrgType> delta = createAddDeltaForOrgWithRoleAssignment();
 
-        PrismObject<UserType> orgChild = USER_BOB.getObject().clone();
-        ObjectDelta<UserType> delta = orgChild.createAddDelta();
+        when("executeChanges is called in simulation mode");
+        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
 
-        ModelContext<UserType> context = modelInteractionService.previewChanges(Collections.singletonList(delta), ModelExecuteOptions.create(), task, result);
-
-        then();
-
-        AssertJUnit.assertNotNull(context);
+        then("No extra objects should be created");
         assertCollectedCounts(counts, task, result);
+
+        and("there are simulation deltas");
+        simResult.assertNoExecutedNorAuditedDeltas();
+        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
+        displayCollection("simulated deltas", simulatedDeltas);
+        // TODO some asserts here
+
+        and("there should be some secondary deltas in model context");
+        ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one
+        AssertJUnit.assertNotNull(context);
+        displayDumpable("context", context); // TODO assert the deltas
     }
 
-//    @Test
-//    public void test300ReferenceTargetSearch() throws Exception {
-//        // todo find example
-//        given();
-//
-//        Task task = getTestTask();
-//        OperationResult result = task.getResult();
-//
-//        Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
-//
-//        when();
-//
-//        then();
-//
-//        AssertJUnit.assertNotNull(context);
-//        assertCollectedCounts(counts, task, result);
-//    }
+    /**
+     * User `bob` has `organization` of "parent:child" which means that he should be in `child` org (CoD)
+     * that should be in `parent` org (CoD again).
+     *
+     * The "no-provisioning" flag is not set, so (simulated) groups and group memberships should be created for the orgs
+     * and for bob.
+     */
+    @Test
+    public void test200CreateOnDemandWithProvisioning() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
+
+        given("user bob ADD delta");
+        ObjectDelta<UserType> delta = USER_BOB.getObject().clone().createAddDelta();
+
+        when("executeChanges is called in simulation mode");
+        SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
+
+        then("No extra objects should be created");
+        assertCollectedCounts(counts, task, result);
+
+        and("there are simulation deltas");
+        simResult.assertNoExecutedNorAuditedDeltas();
+        List<ObjectDelta<?>> simulatedDeltas = simResult.getSimulatedDeltas();
+        displayCollection("simulated deltas", simulatedDeltas);
+        // TODO some asserts here
+
+        and("there should be some secondary deltas in model context");
+        ModelContext<?> context = simResult.getLastModelContext(); // TODO - which one is this? the original or the embedded one
+        AssertJUnit.assertNotNull(context);
+        displayDumpable("context", context); // TODO assert the deltas
+    }
 
     /**
      * MID-6166
@@ -242,7 +326,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         then();
 
-        exceptions.forEach(ex -> LOGGER.error("Error occured ", ex));
+        exceptions.forEach(ex -> LOGGER.error("Error occurred ", ex));
 
         int orgCount = repositoryService.countObjects(OrgType.class, null, null, result);
         AssertJUnit.assertEquals("Two org should be present", 2, orgCount);
@@ -269,14 +353,13 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
                 ObjectDelta<UserType> delta = bob.createAddDelta();
 
-                modelService.executeChanges(Collections.singletonList(delta), ModelExecuteOptions.create(), task, result);
+                modelService.executeChanges(List.of(delta), ModelExecuteOptions.create(), task, result);
+                return null;
             } catch (Exception ex) {
                 return ex;
             } finally {
                 result.computeStatusIfUnknown();
             }
-
-            return null;
         };
     }
 
@@ -310,7 +393,8 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
             int real = repositoryService.countObjects(clazz, null, null, result);
             if (expected != real) {
                 fail = true;
-                msg.append(clazz.getSimpleName() + " were created, expected: " + expected + ", real: " + real + "\n");
+                msg.append(
+                        String.format("%s were created, expected: %d, real: %d\n", clazz.getSimpleName(), expected, real));
 
                 if (ShadowType.class.equals(clazz)) {
                     ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(RESOURCE_DUMMY.oid, SchemaConstants.RI_GROUP_OBJECT_CLASS);

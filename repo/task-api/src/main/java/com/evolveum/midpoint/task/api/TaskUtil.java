@@ -45,14 +45,12 @@ public class TaskUtil {
         }
     }
 
+    @Deprecated // Should be replaced by new "4.7" task execution mode
     public static boolean isDryRun(Task task) {
         return getExecutionMode(task) == ExecutionModeType.DRY_RUN;
     }
 
-    public static boolean isPreview(Task task) {
-        return getExecutionMode(task) == ExecutionModeType.PREVIEW;
-    }
-
+    @Deprecated // Should be replaced by new "4.7" task execution mode
     public static boolean isExecute(Task task) {
         return getExecutionMode(task) == ExecutionModeType.FULL;
     }

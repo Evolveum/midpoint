@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
@@ -29,6 +30,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
+
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -101,8 +104,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         super.initSystem(initTask, initResult);
         InternalMonitor.reset();
         InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
-
-//        setGlobalTracingOverride(addNotificationsLogging(createModelLoggingTracingProfile()));
     }
 
     @Test
@@ -145,6 +146,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 
+    /** Creates an account, but the resource is set to be failing. */
     @Test
     public void test099ModifyUserAddAccountFailing() throws Exception {
         given();
@@ -154,23 +156,20 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 
-        ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
-                .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
-        PrismReferenceValue accountRefVal = itemFactory().createReferenceValue();
-        accountRefVal.setObject(account);
-        ReferenceDelta accountDelta = prismContext.deltaFactory().reference()
-                .createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
-        userDelta.addModification(accountDelta);
-        // the following modifies nothing but it is used to produce a user-level notification (LINK_REF by itself causes no such notification)
-        PropertyDelta<String> attributeDelta = prismContext.deltaFactory().property().createReplaceDeltaOrEmptyDelta(getUserDefinition(), UserType.F_TELEPHONE_NUMBER, "555-1234");
-        userDelta.addModification(attributeDelta);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+        ObjectDelta<UserType> userDelta = deltaFor(UserType.class)
+                .item(UserType.F_LINK_REF)
+                .add(ObjectTypeUtil.createObjectRefWithFullObject(account))
+                // the following modifies nothing but it is used to produce a user-level notification
+                // (LINK_REF by itself causes no such notification)
+                .item(UserType.F_TELEPHONE_NUMBER)
+                .replace("555-1234")
+                .asObjectDelta(USER_JACK_OID);
 
-        getDummyResource().setAddBreakMode(BreakMode.UNSUPPORTED);       // hopefully this does not kick consistency mechanism
+        getDummyResource().setAddBreakMode(BreakMode.UNSUPPORTED); // hopefully this does not kick consistency mechanism
 
         try {
             when();
-            modelService.executeChanges(deltas, null, task, result);
+            modelService.executeChanges(List.of(userDelta), null, task, result);
 
             assertNotReached();
 
@@ -182,11 +181,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertFailure(result);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
-        // Check accountRef
+        and("there is no linkRef");
         PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
         assertUserJack(userJack);
-        UserType userJackType = userJack.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
+        assertEquals("Unexpected number of linkRefs", 0, userJack.asObjectable().getLinkRef().size());
 
         notificationManager.setDisabled(true);
         getDummyResource().resetBreakMode();
@@ -195,7 +193,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages(NOTIFIER_ACCOUNT_PASSWORD_NAME, 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
-        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);        // actually I don't know why provisioning does not report unsupported operation as a failure...
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0); // actually I don't know why provisioning does not report unsupported operation as a failure...
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
@@ -431,12 +429,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // get weapon attribute definition
         PrismObject<ResourceType> dummyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
-        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchema(dummyResource);
+        ResourceSchema resourceSchema = ResourceSchemaFactory.getRawSchemaRequired(dummyResource.asObjectable());
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 
         QName accountObjectClassQName = dummyResourceCtl.getAccountObjectClassQName();
         ResourceObjectClassDefinition accountObjectClassDefinition =
-                resourceSchema.findObjectClassDefinition(accountObjectClassQName);
+                resourceSchema.findObjectClassDefinitionRequired(accountObjectClassQName);
         QName weaponQName = dummyResourceCtl.getAttributeWeaponQName();
         ResourceAttributeDefinition<?> weaponDefinition = accountObjectClassDefinition.findAttributeDefinition(weaponQName);
 
@@ -2348,9 +2346,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ResourceObjectTypeDefinition accountDefinition =
                 findObjectTypeDefinitionRequired(refinedSchema, ShadowKindType.ACCOUNT, null);
-        PrismPropertyDefinition gossipDefinition = accountDefinition.findPropertyDefinition(new ItemName(
-                "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3",
-                DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));
+        PrismPropertyDefinition<String> gossipDefinition =
+                accountDefinition.findPropertyDefinition(
+                        new ItemName(NS_RI, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME));
         assertNotNull("gossip attribute definition not found", gossipDefinition);
 
         ConstructionType accountConstruction = createAccountConstruction(RESOURCE_DUMMY_OID, null);
@@ -2364,15 +2362,13 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         MappingType value = new MappingType();
 
-        //noinspection unchecked
         PrismProperty<String> property = gossipDefinition.instantiate();
         property.addRealValue("q");
 
-        List evaluators = expression.getExpressionEvaluator();
+        List<JAXBElement<?>> evaluators = expression.getExpressionEvaluator();
         Collection<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property);
         ObjectFactory of = new ObjectFactory();
         for (JAXBElement<RawType> obj : collection) {
-            //noinspection unchecked
             evaluators.add(of.createValue(obj.getValue()));
         }
 
@@ -3273,7 +3269,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
         ProtectedStringType protectedValue = protector.encryptString("hi");
-        UserType joe = new UserType(prismContext)
+        UserType joe = new UserType()
                 .name("joe");
         PrismPropertyDefinition<ProtectedStringType> definition = joe.asPrismObject().getDefinition()
                 .findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, "locker"));
@@ -3352,7 +3348,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
     }
 
     private String addTestRole(Task task, OperationResult result) throws CommonException {
-        RoleType role = new RoleType(prismContext)
+        RoleType role = new RoleType()
                 .name("test410");
         PrismPropertyDefinition<String> costCenterDef = role.asPrismObject().getDefinition()
                 .findPropertyDefinition(ItemPath.create(RoleType.F_EXTENSION, "costCenter"));
@@ -3425,7 +3421,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         IntegrationTestTools.assertScripts(getDummyResource().getScriptHistory(), script);
     }
 
-    private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    private void preTestCleanup(AssignmentPolicyEnforcementType enforcementPolicy)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         assumeAssignmentPolicy(enforcementPolicy);
         dummyAuditService.clear();
         prepareNotifications();

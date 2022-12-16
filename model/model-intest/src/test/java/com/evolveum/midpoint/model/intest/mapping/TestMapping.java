@@ -3169,7 +3169,7 @@ public class TestMapping extends AbstractMappingTest {
         orgAssignmentPcv.setId(orgAssignment.getId());
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).delete(orgAssignmentPcv)
-                .asObjectDeltaCast(jim.getOid());
+                .asObjectDelta(jim.getOid());
         executeChanges(delta, null, task, result);
 
         then();
@@ -3222,7 +3222,7 @@ public class TestMapping extends AbstractMappingTest {
         roleAssignmentIdOnlyPcv.setId(roleAssignment.getId());
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).delete(roleAssignmentIdOnlyPcv)
-                .asObjectDeltaCast(oid);
+                .asObjectDelta(oid);
 
         rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         executeChanges(delta, null, task, result);

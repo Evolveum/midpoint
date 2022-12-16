@@ -443,7 +443,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT, id, AssignmentType.F_DESCRIPTION)
                         .replace("hi")
-                        .asObjectDeltaCast(jack.getOid()), null, task, result);
+                        .asObjectDelta(jack.getOid()), null, task, result);
 
         then();
         result.computeStatus();
@@ -501,7 +501,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 prismContext.deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
                         .delete(new AssignmentType().id(id))
-                        .asObjectDeltaCast(jack.getOid()), null, task, result);
+                        .asObjectDelta(jack.getOid()), null, task, result);
 
         then();
         result.computeStatus();

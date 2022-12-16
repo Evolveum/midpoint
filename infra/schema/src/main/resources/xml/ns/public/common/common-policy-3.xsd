@@ -2398,7 +2398,7 @@
                             for activation in these hardcoded states ("undefined" for active and deprecated
                             states, "disabled" for all other states). To turn off this default behaviour
                             those hardcoded lifecycle states need to be explicitly defined in the state model
-                            and the forcedActivationStatus property shoule be left undefined.
+                            and the forcedActivationStatus property should be left undefined.
                         </p>
                         <!-- TODO: should be replaced by assignmentSelector later -->
                     </xsd:documentation>

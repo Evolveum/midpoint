@@ -295,6 +295,6 @@ public class TestPreview extends AbstractWfTestPolicy {
                 deltaFor(UserType.class)
                         .item(UserType.F_ASSIGNMENT)
                         .add(ObjectTypeUtil.createAssignmentTo(ROLE_LAB_MANAGER.oid, ObjectTypes.ROLE, prismContext))
-                        .asObjectDeltaCast(USER_ALICE.oid));
+                        .asObjectDelta(USER_ALICE.oid));
     }
 }

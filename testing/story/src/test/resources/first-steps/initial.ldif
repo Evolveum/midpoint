@@ -1,0 +1,47 @@
+# Correlating right on employeeNumber
+dn: uid=jsmith1,ou=People,dc=example,dc=com
+uid: jsmith1
+cn: John Smith
+sn: Smith
+givenname: John
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+mail: jsmith1@evolveum.com
+employeeNumber: 1
+
+# Correlating on mail (no employeeNumber here)
+dn: uid=jsmith2,ou=People,dc=example,dc=com
+uid: jsmith2
+cn: John Smith
+sn: Smith
+givenname: John
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+mail: jsmith2@evolveum.com
+
+# Correlating on name (exact match)
+dn: uid=agreen3,ou=People,dc=example,dc=com
+uid: agreen3
+cn: Alice Green
+sn: Green
+givenname: Alice
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+
+# Correlating on name (disputed)
+dn: uid=rblack,ou=People,dc=example,dc=com
+uid: rblack
+cn: Robert Black
+sn: Black
+givenname: Robert
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+description: This is rblack4 but only experts know it.

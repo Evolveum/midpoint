@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
+import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
 import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -62,7 +63,7 @@ import static com.evolveum.midpoint.schema.util.task.ActivityStateOverviewUtil.A
  *
  * @author Radovan Semancik
  */
-public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener {
+public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperationsListener, AggregatedObjectProcessingListener {
 
     String DOT_INTERFACE = Task.class.getName() + ".";
 
@@ -469,8 +470,10 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
 
     <T> T getItemRealValueOrClone(ItemPath path, Class<T> expectedType);
 
+    /** TODO what about thread safety? */
     ObjectReferenceType getReferenceRealValue(ItemPath path);
 
+    /** TODO what about thread safety? */
     Collection<ObjectReferenceType> getReferenceRealValues(ItemPath path);
 
     /**
@@ -999,7 +1002,34 @@ public interface Task extends DebugDumpable, StatisticsCollector, ConnIdOperatio
     /** Returns the execution mode of this task. */
     @NotNull TaskExecutionMode getExecutionMode();
 
-    /** Sets the execution mode of this task. Use with care - preferably only for new tasks. */
-    void setExecutionMode(@NotNull TaskExecutionMode mode);
+    default boolean isPersistentExecution() {
+        return getExecutionMode().isPersistent();
+    }
+
+    default boolean isProductionConfiguration() {
+        return getExecutionMode().isProductionConfiguration();
+    }
+
+    /** Just a convenience method. */
+    default boolean canSee(AbstractMappingType mapping) {
+        return SimulationUtil.isVisible(mapping, getExecutionMode());
+    }
+
+    /**
+     * Sets the execution mode of this task. Use with care - preferably only for new tasks.
+     * Returns the original value.
+     */
+    @NotNull TaskExecutionMode setExecutionMode(@NotNull TaskExecutionMode mode);
+
+    default void assertPersistentExecution(String message) {
+        TaskExecutionMode executionMode = getExecutionMode();
+        if (!executionMode.isPersistent()) {
+            throw new UnsupportedOperationException(message + " (mode: " + executionMode + ")");
+        }
+    }
+
+    void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener);
+
+    void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener);
     //endregion
 }

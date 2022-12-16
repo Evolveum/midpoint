@@ -117,7 +117,7 @@ public class PreInboundsProcessing<F extends FocusType> extends AbstractInbounds
         if (templateOid == null) {
             return null;
         }
-        return beans.archetypeManager.getExpandedObjectTemplate(templateOid, result);
+        return beans.archetypeManager.getExpandedObjectTemplate(templateOid, env.task.getExecutionMode(), result);
     }
 
     @Override

@@ -96,10 +96,10 @@ public class TestSyncStoryUsingLiveSync extends AbstractSynchronizationStoryTest
         getGreenResource().addAccount(accountJack);
         runSyncTasks(GREEN, GREEN, GREEN); // To stabilize the situation, and eat all secondary changes related to jack's account
 
-        when("sleeping 10 seconds to make jack's account rot");
+        and("sleeping 10 seconds to make jack's account rot");
         TimeUnit.SECONDS.sleep(10);
 
-        when("carol account is added and sync is run");
+        and("carol account is added and sync is run");
         DummyAccount accountCarol = new DummyAccount(ACCOUNT_CAROL_DUMMY_USERNAME);
         accountCarol.setEnabled(true);
         accountCarol.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Carol Seepgood");
@@ -107,7 +107,11 @@ public class TestSyncStoryUsingLiveSync extends AbstractSynchronizationStoryTest
         getGreenResource().addAccount(accountCarol);
         runSyncTasks(GREEN);
 
-        when("cleanup task is run");
+        and("jack's account is deleted from the resource");
+        // This is to check that shadows for existing accounts will not be removed by the cleanup task
+        getGreenResource().deleteAccountByName(accountJack.getName());
+
+        and("cleanup task is run");
         TASK_SHADOW_CLEANUP_GREEN.rerun(result);
         TASK_SHADOW_CLEANUP_GREEN.assertAfter();
 
@@ -116,10 +120,15 @@ public class TestSyncStoryUsingLiveSync extends AbstractSynchronizationStoryTest
         display("User carol", userCarol);
         assertNotNull("No carol user", userCarol);
 
-        and("jack should be gone, as the shadow is too old");
+        and("jack should be gone, as the shadow is too old and no longer on the resource");
         PrismObject<UserType> userJack = findUserByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
         display("User jack", userJack);
-        assertNull("User jack is not null", userJack);
+        assertNull("User jack is still there!", userJack);
+
+        and("jojo should be still there, as the Xjojo account was not deleted on the resource");
+        PrismObject<UserType> userJojo = findUserByUsername("jojo");
+        display("User jojo", userJojo);
+        assertNotNull("No jojo user", userJojo);
 
         displayAllNotifications();
         notificationManager.setDisabled(true);

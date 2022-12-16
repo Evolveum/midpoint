@@ -348,7 +348,27 @@
     </globalPolicyRule>
 
     <internals>
-        <maxModelClicks>30</maxModelClicks>     <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
+        <!-- especially for TestIteration.test235 to prevent long test run in case of failure -->
+        <maxModelClicks>30</maxModelClicks>
+        <tracing>
+            <profile>
+                <name>functional-model-logging</name>
+                <default>true</default>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>false</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
+                <loggingOverride>
+                    <levelOverride>
+                        <logger>com.evolveum.midpoint.model</logger>
+                        <level>TRACE</level>
+                    </levelOverride>
+                </loggingOverride>
+                <tracingTypeProfile>
+                    <level>normal</level>
+                </tracingTypeProfile>
+            </profile>
+        </tracing>
     </internals>
 
     <adminGuiConfiguration>

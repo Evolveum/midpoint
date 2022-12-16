@@ -51,11 +51,11 @@ public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition impl
         return objects;
     }
 
-    public @NotNull ValidityScanQueryStyleType getQueryStyle() {
+    @NotNull ValidityScanQueryStyleType getQueryStyle() {
         return queryStyle;
     }
 
-    public TimeValidityPolicyConstraintType getValidityConstraint() {
+    TimeValidityPolicyConstraintType getValidityConstraint() {
         return validityConstraint;
     }
 
@@ -73,6 +73,6 @@ public class FocusValidityScanWorkDefinition extends AbstractWorkDefinition impl
     protected void debugDumpContent(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "objects", objects, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "queryStyle", queryStyle, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "validityConstraint", validityConstraint, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "validityConstraint", validityConstraint, indent+1);
     }
 }

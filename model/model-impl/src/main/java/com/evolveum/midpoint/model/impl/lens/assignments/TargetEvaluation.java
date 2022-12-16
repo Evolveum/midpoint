@@ -229,7 +229,8 @@ public class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractE
         // FIXME Target state model does not reflect its archetype!
         LifecycleStateModelType targetStateModel =
                 ArchetypeManager.determineLifecycleModel(target.asPrismObject(), ctx.ae.systemConfiguration);
-        boolean targetActive = LensUtil.isFocusValid(target, ctx.ae.now, ctx.ae.activationComputer, targetStateModel);
+        boolean targetActive = LensUtil.isFocusValid(
+                target, ctx.ae.now, ctx.ae.activationComputer, targetStateModel, ctx.task.getExecutionMode());
         boolean pathAndTargetActive = segment.isFullPathActive() && targetActive;
         targetActivity = new TargetActivity(targetActive, pathAndTargetActive);
     }

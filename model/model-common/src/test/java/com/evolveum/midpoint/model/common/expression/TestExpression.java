@@ -14,23 +14,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.expression.*;
 import org.testng.AssertJUnit;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.common.AbstractModelCommonTest;
-import com.evolveum.midpoint.model.common.ConstantsManager;
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -43,7 +39,6 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PrismValueDeltaSetTripleAsserter;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
@@ -88,11 +83,10 @@ public class TestExpression extends AbstractModelCommonTest {
     private static final Trace logger = TraceManager.getTrace(TestExpression.class);
 
     protected PrismContext prismContext;
-    protected ExpressionFactory expressionFactory;
-    protected ConstantsManager constantsManager;
+    private ExpressionFactory expressionFactory;
 
     // Default "null" expression profile, no restrictions.
-    protected ExpressionProfile expressionProfile = null;
+    private ExpressionProfile expressionProfile = null;
 
     private long lastScriptExecutionCount;
 
@@ -101,14 +95,9 @@ public class TestExpression extends AbstractModelCommonTest {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
-        prismContext = PrismTestUtil.createInitializedPrismContext();
-
-        ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
-        Protector protector = ExpressionTestUtil.createInitializedProtector(prismContext);
-        Clock clock = new Clock();
-        constantsManager = new ConstantsManager();
-        expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock);
-
+        ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans();
+        prismContext = beans.prismContext;
+        expressionFactory = beans.expressionFactory;
         expressionProfile = compileExpressionProfile(getExpressionProfileName());
         System.out.println("Using expression profile: " + expressionProfile);
         logger.info("EXPRESSION PROFILE: {}", expressionProfile);
@@ -204,7 +193,8 @@ public class TestExpression extends AbstractModelCommonTest {
         ExpressionType expressionType = parseExpression(EXPRESSION_CONST_FILE);
         Collection<Source<?, ?>> sources = prepareStringSources();
         VariablesMap variables = prepareBasicVariables();
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
+        ExpressionEvaluationContext expressionContext =
+                new ExpressionEvaluationContext(sources, variables, getTestNameShort(), null);
 
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =

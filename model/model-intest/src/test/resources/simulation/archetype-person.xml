@@ -1,0 +1,39 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="f8d69091-02b3-436e-81fd-0f695f9045db">
+    <name>person</name>
+    <assignment>
+        <lifecycleState>proposed</lifecycleState>
+        <targetRef oid="23c615ae-e0e0-4d81-86a0-712d7164b4d2" type="RoleType"/>
+    </assignment>
+    <inducement>
+        <lifecycleState>proposed</lifecycleState>
+        <focusMappings>
+            <mapping>
+                <strength>strong</strength>
+                <expression>
+                    <value>archetype:person</value>
+                </expression>
+                <target>
+                    <path>organization</path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <lifecycleState>proposed</lifecycleState>
+        <targetRef oid="ba88cf08-06bc-470f-aeaa-511e86d5ea7f" type="RoleType"/>
+    </inducement>
+    <inducement> <!-- induced role is in proposed state -->
+        <targetRef oid="5049daa8-5af8-4036-88af-5f374daf1340" type="RoleType"/>
+    </inducement>
+    <archetypePolicy>
+        <objectTemplateRef oid="fec07d55-5bdd-4d9a-87f1-5f814303a4f5"/>
+    </archetypePolicy>
+</archetype>

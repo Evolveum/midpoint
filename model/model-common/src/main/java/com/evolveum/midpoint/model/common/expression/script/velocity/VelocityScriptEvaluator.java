@@ -83,7 +83,8 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 
         T evalResult;
         try {
-            evalResult = ExpressionUtil.convertValue(javaReturnType, context.getAdditionalConvertor(), resultWriter.toString(), getProtector(), getPrismContext());
+            evalResult = ExpressionUtil.convertValue(
+                    javaReturnType, context.getAdditionalConvertor(), resultWriter.toString(), getProtector());
         } catch (IllegalArgumentException e) {
             throw new ExpressionEvaluationException(e.getMessage() + " in " + context.getContextDescription(), e);
         }

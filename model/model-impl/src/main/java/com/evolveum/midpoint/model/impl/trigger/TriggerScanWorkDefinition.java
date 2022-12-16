@@ -41,6 +41,6 @@ public class TriggerScanWorkDefinition extends AbstractWorkDefinition implements
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "objects", objects, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "objects", objects, indent+1);
     }
 }

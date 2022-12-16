@@ -209,12 +209,12 @@ public abstract class AbstractReport {
     @NotNull
     private ReportDataType createReportDataObject(String bareFileName, File filePath, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
-        ReportDataType reportDataObject = new ReportDataType(PrismContext.get())
+        ReportDataType reportDataObject = new ReportDataType()
                 .name(bareFileName)
                 .fileFormat(FileFormatTypeType.CSV)
                 //.archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE) // TODO archetype
                 .filePath(filePath.getAbsolutePath())
-                .nodeRef(ObjectTypeUtil.createObjectRef(beans.taskManager.getLocalNode(), PrismContext.get()));
+                .nodeRef(ObjectTypeUtil.createObjectRef(beans.taskManager.getLocalNode()));
         beans.repositoryService.addObject(reportDataObject.asPrismObject(), null, result);
         return reportDataObject;
     }

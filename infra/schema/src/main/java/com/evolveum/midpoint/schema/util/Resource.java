@@ -14,10 +14,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.ItemDefinitionResolver;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -90,6 +87,11 @@ public class Resource {
             throws SchemaException, ConfigurationException {
         ResourceSchema schema = getCompleteSchema();
         return schema != null ? schema.getObjectTypeDefinitions() : List.of();
+    }
+
+    public @NotNull S_MatchingRuleEntry queryFor(@NotNull ResourceObjectTypeIdentification typeIdentification)
+            throws SchemaException, ConfigurationException {
+        return queryFor(typeIdentification.getKind(), typeIdentification.getIntent());
     }
 
     public @NotNull S_MatchingRuleEntry queryFor(@NotNull ShadowKindType kind, @NotNull String intent)

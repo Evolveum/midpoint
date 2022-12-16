@@ -115,7 +115,7 @@ public class ActivityReportingCharacteristics implements ActivityReportingDefini
         return itemCompletionLoggingDefault;
     }
 
-    public boolean areStatisticsSupported() {
+    boolean areStatisticsSupported() {
         return statisticsSupported;
     }
 
@@ -124,7 +124,7 @@ public class ActivityReportingCharacteristics implements ActivityReportingDefini
         return this;
     }
 
-    public boolean isProgressSupported() {
+    boolean isProgressSupported() {
         return progressSupported;
     }
 
