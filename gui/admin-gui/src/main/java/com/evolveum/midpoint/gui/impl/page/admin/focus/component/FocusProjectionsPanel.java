@@ -341,15 +341,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return dead;
     }
 
-    private void addDeadSearchItem(Search search) {
-        SearchItemDefinition def = new SearchItemDefinition(ShadowType.F_DEAD,
-                getShadowDefinition().findPropertyDefinition(ShadowType.F_DEAD),
-                Arrays.asList(new SearchValue<>(true), new SearchValue<>(false)));
-        //todo create dead search item for refactored search
-//        DeadShadowSearchItem deadShadowSearchItem = new DeadShadowSearchItem(search, def);
-//        search.addSpecialItem(deadShadowSearchItem);
-    }
-
     private void loadShadowIfNeeded(IModel<PrismContainerValueWrapper<ShadowType>> rowModel, AjaxRequestTarget target) {
         if (rowModel == null) {
             return;

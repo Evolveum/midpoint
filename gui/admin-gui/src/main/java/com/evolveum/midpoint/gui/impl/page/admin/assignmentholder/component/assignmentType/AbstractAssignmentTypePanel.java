@@ -610,70 +610,11 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
                 Arrays.asList(ObjectType.F_EXTENSION, targetExtensionPath), getPageBase());
     }
 
-    //    @Deprecated
-//    protected List<SearchItemDefinition> createSearchableItems(PrismContainerDefinition<AssignmentType> containerDef) {
-//        List<SearchItemDefinition> defs = new ArrayList<>();
-//
-//        addSpecificSearchableItems(containerDef, defs);
-//        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), defs);
-//        SearchFactory.addSearchPropertyDef(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), defs);
-//
-//        defs.addAll(SearchFactory.createExtensionDefinitionList(containerDef));
-//
-//        return defs;
-//
-//    }
-
-//    protected List<? super FilterableSearchItemWrapper> createSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
-//        List<? super FilterableSearchItemWrapper> defs = new ArrayList<>();
-//
-////        addSpecificSearchableItemWrappers(containerDef, defs);
-////        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
-////                defs, getPageBase());
-////        SearchFactory.addSearchPropertyWrapper(containerDef, ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS),
-////                defs, getPageBase());
-////
-////        defs.addAll(SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase()));
-////
-////        if (getAssignmentType() != null) {
-////            var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(getAssignmentType()), ObjectType.F_EXTENSION);
-////            var objectExt =  SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase(), targetExtensionPath);
-////            LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
-////            defs.addAll(objectExt);
-////        }
-//        return defs;
-//
-//    }
-
-
-//    @Override
-//    protected PrismContainerDefinition<AssignmentType> getTypeDefinitionForSearch() {
-//        if (searchDefinition != null) {
-//            return searchDefinition;
-//        }
-//        PrismContainerDefinition<AssignmentType> orig = super.getTypeDefinitionForSearch();
-//        if (getAssignmentType() == null) {
-//            searchDefinition = orig;
-//        } else {
-//            // We have more concrete assignment type, we should replace targetRef definition
-//            // with one with concrete assignment type.
-//            searchDefinition = getPageBase().getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, getAssignmentType());
-//        }
-//
-//        return searchDefinition;
-//    }
-
-
     @Override
     protected PrismContainerDefinition<AssignmentType> getContainerDefinitionForColumns() {
         // In columns model we can benefit for same targetType expansion as in container model.
         return getTypeDefinitionForSearch();
     }
-
-
-
-    @Deprecated
-//    protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs);
 
     protected abstract void addSpecificSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef, List<? super FilterableSearchItemWrapper> defs);
 

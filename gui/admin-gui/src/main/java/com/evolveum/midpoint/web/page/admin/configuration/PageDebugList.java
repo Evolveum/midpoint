@@ -507,24 +507,6 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private <C extends Containerable> void listObjectsPerformed(AjaxRequestTarget target) {
         Table table = getListTable();
-//        if (searchModel.getObject().isTypeChanged()) {
-//            ObjectTypeSearchItemWrapper<C> objectType = searchModel.getObject().getObjectTypeSearchItemWrapper();
-//            Class<? extends Containerable> type =
-//                    (Class<? extends Containerable>) WebComponentUtil.qnameToClass(PrismContext.get(), objectType.getValue().getValue());
-//            // createSearchConfigWrapper(type, objectType.getValue().getValue()),
-//            SearchBoxConfigurationType defaultSearchConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, Arrays.asList(ObjectType.F_EXTENSION), null, this);
-//            Search search = SearchFactory.createSearch(getSchemaService().findContainerDefinitionByCompileTimeClass(type), defaultSearchConfig, null, this);
-//
-//            //TODO axiom?
-//            search.setAllowedTypeList(Arrays.asList(SearchBoxModeType.BASIC, SearchBoxModeType.ADVANCED, SearchBoxModeType.OID));
-////            Search search = SearchFactory.createSearch(getTypeItem(), PageDebugList.this, true);
-//            searchModel.setObject(search);//TODO: this is veeery ugly, available definitions should refresh when the type changed
-////            configureSearch(search);
-//            table.getDataTable().getColumns().clear();
-//            //noinspection unchecked
-//            table.getDataTable().getColumns().addAll(createColumns());
-//        }
-
         // save object type category to session storage, used by back button
         GenericPageStorage storage = getSessionStorage().getConfiguration();
         storage.setSearch(searchModel.getObject());
@@ -532,55 +514,6 @@ public class PageDebugList extends PageAdminConfiguration {
         target.add((Component) table);
         target.add(getFeedbackPanel());
     }
-
-//    private void configureSearch(@NotNull Search search) {
-//        if (search.isTypeChanged() && !search.isOidSearchMode()) {
-//            search.setCanConfigure(true);
-//            if (ShadowType.class.equals(getType())) {
-//                search.addSpecialItem(createObjectClassSearchItem(search));
-//                search.addSpecialItem(createResourceRefSearchItem(search));
-//            }
-//            search.searchWasReload();
-//        }
-//    }
-//
-//    private PropertySearchItem createObjectClassSearchItem(Search search) {
-//        PrismPropertyDefinition objectClassDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
-//                .findPropertyDefinition(ShadowType.F_OBJECT_CLASS);
-//        return new ObjectClassSearchItem(search, new SearchItemDefinition(ShadowType.F_OBJECT_CLASS, objectClassDef, null),
-//                new PropertyModel(searchModel, Search.F_SPECIAL_ITEMS)) {
-//
-//            @Override
-//            protected boolean canRemoveSearchItem() {
-//                return false;
-//            }
-//
-//            @Override
-//            public boolean isEnabled() {
-//                return resourceReferenceIsNotEmpty();
-//            }
-//
-//            @Override
-//            public boolean isApplyFilter() {
-//                return isEnabled();
-//            }
-//        };
-//    }
-//
-//    private PropertySearchItem createResourceRefSearchItem(Search search) {
-//        PrismReferenceDefinition resourceRefDef = getPrismContext().getSchemaRegistry().findComplexTypeDefinitionByCompileTimeClass(ShadowType.class)
-//                .findReferenceDefinition(ShadowType.F_RESOURCE_REF);
-//        PropertySearchItem<ObjectReferenceType> item = new PropertySearchItem<>(search, new SearchItemDefinition(ShadowType.F_RESOURCE_REF, resourceRefDef, null)) {
-//            @Override
-//            protected boolean canRemoveSearchItem() {
-//                return false;
-//            }
-//        };
-//        ObjectReferenceType ref = new ObjectReferenceType();
-//        ref.setType(ResourceType.COMPLEX_TYPE);
-//        item.setValue(new SearchValue<>(ref));
-//        return item;
-//    }
 
     private void objectEditPerformed(String oid, Class<? extends ObjectType> type) {
         PageParameters parameters = new PageParameters();
