@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEv
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -38,10 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -527,5 +525,15 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     @Override
     public void setCount(int value) {
         count = value;
+    }
+
+    @NotNull Collection<String> getEventTags() {
+        if (isTriggered()) {
+            return policyRuleBean.getTagRef().stream()
+                    .map(AbstractReferencable::getOid)
+                    .collect(Collectors.toSet());
+        } else {
+            return Set.of();
+        }
     }
 }

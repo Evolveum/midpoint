@@ -875,5 +875,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             temporaryContainerIdStore = null;
         }
     }
+
+    /** TODO */
+    abstract @NotNull Collection<String> getEventTags();
     //endregion
 }

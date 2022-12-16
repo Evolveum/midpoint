@@ -10,10 +10,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.test.TestResource;
 
 import org.testng.SkipException;
 import org.testng.annotations.Test;
@@ -89,6 +92,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             Collection<ObjectDelta<?>> simulatedDeltas = simResult.getStoredDeltas(result);
             assertTest100UserDeltas(simulatedDeltas, "simulated deltas in persistent storage");
         }
+
+        and("there are appropriate event tags");
+        assertUserTags(simResult, TAG_USER_ADD);
 
         and("the model context is OK");
         ModelContext<?> modelContext = simResult.getLastModelContext();
@@ -769,6 +775,16 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         } else {
             assertThat(orgs).as("user orgs").containsExactlyInAnyOrder("template:person (active)");
         }
+    }
+
+    // TEMPORARY
+    @SafeVarargs
+    private void assertUserTags(SimulationResult simResult, TestResource<TagType>... expectedTags) {
+        Collection<String> realTagsOids = simResult.getTagsForObjectType(UserType.class);
+        Set<String> expectedTagsOids = Arrays.stream(expectedTags)
+                .map(r -> r.oid)
+                .collect(Collectors.toSet());
+        assertThat(realTagsOids).as("event tags").containsExactlyInAnyOrderElementsOf(expectedTagsOids);
     }
 
     private boolean isDevelopmentConfiguration() {

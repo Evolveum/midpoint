@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>SystemConfiguration</name>
+    <globalPolicyRule>
+        <policyConstraints>
+            <modification>
+                <operation>add</operation>
+            </modification>
+        </policyConstraints>
+        <tagRef oid="0c31f3a1-a7b1-4fad-8cea-eaafdc15daaf"/>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+    </globalPolicyRule>
+    <globalPolicyRule>
+        <policyConstraints>
+            <modification>
+                <operation>delete</operation>
+            </modification>
+        </policyConstraints>
+        <tagRef oid="caa2921a-6cf4-4e70-ad2b-bfed278e29cf"/>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+    </globalPolicyRule>
+</systemConfiguration>

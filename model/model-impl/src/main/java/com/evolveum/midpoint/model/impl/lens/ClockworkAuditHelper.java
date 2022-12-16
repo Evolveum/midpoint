@@ -399,7 +399,7 @@ public class ClockworkAuditHelper {
                 asObjectable(elementContext.getObjectOld()),
                 null, // maybe will be filled-in later
                 getSummaryExecutedDelta(elementContext),
-                result);
+                elementContext.getEventTags(), result);
     }
 
     private static <E extends ObjectType> ObjectDelta<E> getSummaryExecutedDelta(LensElementContext<E> elementContext)

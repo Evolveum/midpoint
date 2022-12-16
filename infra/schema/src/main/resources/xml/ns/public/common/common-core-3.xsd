@@ -758,6 +758,21 @@
     </xsd:complexType>
     <xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
 
+    <xsd:complexType name="TagType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:FocusType">
+                <xsd:sequence>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="tag" type="tns:TagType" substitutionGroup="tns:object"/>
+
     <xsd:complexType name="TriggerType">
            <xsd:annotation>
             <xsd:documentation>
@@ -14589,6 +14604,20 @@
                     <xsd:appinfo>
                         <a:displayName>PolicyRuleType.policyConstraints</a:displayName>
                         <a:help>PolicyRuleType.policyConstraints.help</a:help>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Tag(s) that are the result when this policy rule is triggered.
+                        TODO
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
+                        <a:displayName>PolicyRuleType.tag</a:displayName>
+                        <a:help>PolicyRuleType.tag.help</a:help>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
