@@ -48,13 +48,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public static final String F_MODE = "defaultSearchBoxMode";
     public static final String F_ALLOWED_MODES = "allowedModeList";
     public static final String F_ALLOWED_TYPES = "allowedTypeList";
-//
-//
-//    public enum PanelType {
-//        DEFAULT,
-//        MEMBER_PANEL,
-//    }
-//
 
     private Class<C> typeClass;
 

@@ -92,10 +92,6 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_FORM = "form";
     private static final String ID_SEARCH_ITEMS_PANEL = "searchItemsPanel";
     private static final String ID_SEARCH_BUTTON_PANEL = "searchButtonPanel";
-    private static final String ID_SUBMIT_SEARCH_BUTTON = "submitSearchButton";
-    private static final String ID_SEARCH_TYPES_MENU = "searchTypesMenu";
-    private static final String ID_SEARCH_TYPE_ITEMS = "searchTypeItems";
-    private static final String ID_SEARCH_TYPE = "searchType";
     private static final String ID_SAVE_SEARCH_CONTAINER = "saveSearchContainer";
     private static final String ID_SAVE_SEARCH_BUTTON = "saveSearchButton";
     private static final String ID_SAVED_SEARCH_MENU = "savedSearchMenu";
@@ -103,29 +99,14 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
     private static final String ID_SAVED_FILTER_ITEM = "savedFilterItem";
     private static final String ID_SAVED_FILTER_NAME = "savedFilterName";
     private static final String ID_SAVED_FILTER_NAME_LABEL = "savedFilterNameLabel";
-    private static final String ID_SAVED_FILTER_REMOVE_BUTTON = "savedFilterRemoveButton";
-    private static final String ID_BASIC_SEARCH_FRAGMENT = "basicSearchFragment";
-    private static final String ID_ADVANCED_SEARCH_FRAGMENT = "advancedSearchFragment";
-    private static final String ID_FULLTEXT_SEARCH_FRAGMENT = "fulltextSearchFragment";
+    private static final String ID_SAVED_FILTER_REMOVE_BUTTON = "savedFilterRemoveButton";private static final String ID_FULLTEXT_SEARCH_FRAGMENT = "fulltextSearchFragment";
     private static final String ID_OID_SEARCH_FRAGMENT = "oidSearchFragment";
-//    private static final String ID_ITEMS = "items";
-//    private static final String ID_ITEM = "item";
-//    private static final String ID_MORE = "more";
-//    private static final String ID_MORE_PROPERTIES_POPOVER = "morePropertiesPopover";
     private static final String ID_SAVED_FILTERS_POPOVER = "savedFiltersPopover";
-//    private static final String ID_DEBUG = "debug";
-//    private static final String ID_ADVANCED_GROUP = "advancedGroup";
-//    private static final String ID_ADVANCED_AREA = "advancedArea";
-//    private static final String ID_AXIOM_QUERY_FIELD = "axiomQueryField";
-//    private static final String ID_ADVANCED_ERROR = "advancedError";
     private static final String ID_FULL_TEXT_CONTAINER = "fullTextContainer";
     private static final String ID_FULL_TEXT_FIELD = "fullTextField";
     private static final String ID_OID_ITEM = "oidItem";
 
     private static final String ID_TYPE_SEARCH = "typeSelector";
-
-//    private LoadableDetachableModel<List<FilterableSearchItemWrapper>> basicSearchItemsModel;
-//    private LoadableDetachableModel<List<FilterableSearchItemWrapper>> morePopupModel;
     private LoadableDetachableModel<List<InlineMenuItem>> savedSearchListModel;
     private static final Trace LOG = TraceManager.getTrace(SearchPanel.class);
 
@@ -193,14 +174,11 @@ public abstract class SearchPanel<C extends Containerable> extends BasePanel<Sea
         };
         choices.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
 
-            private static final long serialVersionUID = 1L;
-
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 Search<C> search = getModelObject();
                 search.setForceReload(true);
-                SearchPanel.this.refreshSearchForm(target);
-//                SearchPanel.this.searchPerformed(target);
+                SearchPanel.this.searchPerformed(target);
             }
         });
         choices.add(new VisibleBehaviour(() -> getModelObject().getAllowedTypeList().size() > 1));
