@@ -19,13 +19,22 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.NS_MODEL;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.util.QNameUtil.qNameToUri;
 
 public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
 
     private static final File SIM_TEST_DIR = new File("src/test/resources/simulation");
+
+    // TEMPORARY
+    private static final String NS_MODEL_EVENT = NS_MODEL + "/event";
+    static final String TAG_USER_ADD = qNameToUri(new QName(NS_MODEL_EVENT, "userAdd"));
+    @SuppressWarnings("unused")
+    static final String TAG_USER_DELETE = qNameToUri(new QName(NS_MODEL_EVENT, "userDelete"));
 
     private static final TestResource<RoleType> ROLE_PERSON = new TestResource<>(
             SIM_TEST_DIR, "role-person.xml", "ba88cf08-06bc-470f-aeaa-511e86d5ea7f");
@@ -91,6 +100,11 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         RESOURCE_SIMPLE_DEVELOPMENT_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_SOURCE.initAndTest(this, initTask, initResult);
+    }
+
+    @Override
+    protected File getSystemConfigurationFile() {
+        return new File(SIM_TEST_DIR, "system-configuration.xml");
     }
 
     private ShadowType createAccount(DummyTestResource target) {

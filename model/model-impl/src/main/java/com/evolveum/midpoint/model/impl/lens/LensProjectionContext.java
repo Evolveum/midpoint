@@ -6,14 +6,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
@@ -1869,5 +1863,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public boolean hasResource() {
         return resource != null;
+    }
+
+    @Override
+    @NotNull Collection<String> getEventTags() {
+        return Set.of();
     }
 }

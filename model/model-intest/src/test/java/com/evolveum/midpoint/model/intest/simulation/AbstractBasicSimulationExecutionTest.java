@@ -90,6 +90,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             assertTest100UserDeltas(simulatedDeltas, "simulated deltas in persistent storage");
         }
 
+        and("there are appropriate event tags");
+        assertUserTags(simResult, TAG_USER_ADD);
+
         and("the model context is OK");
         ModelContext<?> modelContext = simResult.getLastModelContext();
         displayDumpable("model context", modelContext);
@@ -769,6 +772,13 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         } else {
             assertThat(orgs).as("user orgs").containsExactlyInAnyOrder("template:person (active)");
         }
+    }
+
+    // TEMPORARY
+    @SafeVarargs
+    private void assertUserTags(SimulationResult simResult, String... expectedTags) {
+        Collection<String> realTagsOids = simResult.getTagsForObjectType(UserType.class);
+        assertThat(realTagsOids).as("event tags").containsExactlyInAnyOrder(expectedTags);
     }
 
     private boolean isDevelopmentConfiguration() {

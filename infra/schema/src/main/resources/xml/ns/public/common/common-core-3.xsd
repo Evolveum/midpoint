@@ -14592,6 +14592,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="tag" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Tag(s) that are the result when this policy rule is triggered.
+                        TODO if this is an URI, what is the default namespace?
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>PolicyRuleType.tag</a:displayName>
+                        <a:help>PolicyRuleType.tag.help</a:help>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
