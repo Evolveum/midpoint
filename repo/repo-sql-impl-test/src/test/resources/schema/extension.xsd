@@ -106,34 +106,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="stringType" type="xsd:string"/>
-            <xsd:element name="floatType" type="xsd:float"/>
-            <xsd:element name="doubleType" type="xsd:double"/>
             <xsd:element name="intType" type="xsd:int"/>
-            <xsd:element name="shortType" type="xsd:short"/>
             <xsd:element name="longType" type="xsd:long"/>
-            <xsd:element name="dateType" type="xsd:dateTime"/>
-            <xsd:element name="decimalType" type="xsd:decimal"/>
-            <xsd:element name="locations" type="tns:LocationsType"/>
-            <xsd:element name="referenceType" type="c:ObjectReferenceType"/>
-            <xsd:element name="polyType" type="t:PolyStringType"/>
-            <xsd:element name="enumType" type="c:BeforeAfterType"/>
-            <xsd:element name="skipAutogeneration" type="xsd:boolean" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:indexed>true</a:indexed>
-                        <a:displayName>Do not generate</a:displayName>
-                        <a:displayOrder>10</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="multivalued" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <a:indexed>true</a:indexed>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

@@ -34,6 +34,7 @@ import javax.persistence.*;
 public class RTag extends RObject {
 
     private RPolyString nameCopy;
+    private String uri;
 
     @JaxbName(localPart = "name")
     @AttributeOverrides({
@@ -50,6 +51,14 @@ public class RTag extends RObject {
         this.nameCopy = nameCopy;
     }
 
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
     // dynamically called
     public static void copyFromJAXB(
             TagType jaxb, RTag repo, RepositoryContext repositoryContext,
@@ -57,5 +66,6 @@ public class RTag extends RObject {
         copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setUri(jaxb.getUri());
     }
 }
