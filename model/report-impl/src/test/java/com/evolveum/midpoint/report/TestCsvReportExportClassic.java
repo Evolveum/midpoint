@@ -55,6 +55,9 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         repoAdd(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW, initResult);
         repoAdd(REPORT_OBJECT_COLLECTION_WITH_PARAM, initResult);
         repoAdd(REPORT_OBJECT_COLLECTION_WITH_SUBREPORT_PARAM, initResult);
+        repoAdd(REPORT_SUBREPORT_AS_ROW_USERS, initResult);
+        repoAdd(REPORT_SUBREPORT_AUDIT, initResult);
+        repoAdd(REPORT_SUBREPORT_SIMULATION, initResult);
         repoAdd(REPORT_USER_LIST, initResult);
         repoAdd(REPORT_USER_LIST_SCRIPT, initResult);
         repoAdd(REPORT_DASHBOARD_WITH_DEFAULT_COLUMN, initResult);
@@ -179,6 +182,27 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         runTest(REPORT_USER_LIST_SCRIPT, 54, 6, null);
         File targetFile = new File(MidPointTestConstants.TARGET_DIR_PATH, "report-users");
         assertTrue("Target file is not there", targetFile.exists());
+    }
+
+    @Test
+    public void test130ExportUsersWithAssignments() throws Exception {
+        UserType user = new UserType()
+                .name("moreassignments")
+                .assignment(new AssignmentType().targetRef(SystemObjectsType.ROLE_END_USER.value(), RoleType.COMPLEX_TYPE))
+                .assignment(new AssignmentType().targetRef(SystemObjectsType.ROLE_APPROVER.value(), RoleType.COMPLEX_TYPE));
+        addObject(user.asPrismObject(), getTestTask(), getTestTask().getResult());
+
+        runTest(REPORT_SUBREPORT_AS_ROW_USERS, 56, 3, null);
+    }
+
+    @Test
+    public void test140ExportAuditRecords() throws Exception {
+        runTest(REPORT_SUBREPORT_AUDIT, 56, 3, null);
+    }
+
+    @Test
+    public void test140ExportSimulation() throws Exception {
+        runTest(REPORT_SUBREPORT_SIMULATION, 56, 3, null);
     }
 
     private void runTest(TestResource<ReportType> reportResource, int expectedRows, int expectedColumns,

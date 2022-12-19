@@ -44,4 +44,9 @@ public class TestCsvReportExportClassicSafe extends TestCsvReportExportClassic {
     public void test102AuditCollectionReportWithDoubleView() throws Exception {
         super.test102AuditCollectionReportWithDoubleView();
     }
+//
+//    @Override
+//    public void test130ExportUsersWithAssignments() throws Exception {
+//        super.test130ExportUsersWithAssignments();
+//    }
 }
