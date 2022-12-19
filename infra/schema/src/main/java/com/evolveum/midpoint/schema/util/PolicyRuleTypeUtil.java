@@ -487,14 +487,11 @@ public class PolicyRuleTypeUtil {
         // (in this class)
         @NotNull private final List<Supplier<List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>>>> constraintsSuppliers;
         @NotNull private final Map<String, JAXBElement<? extends AbstractPolicyConstraintType>> constraintsMap = new HashMap<>();
-        @NotNull private final PrismContext prismContext;
         private int usedSuppliers = 0;
 
         @SafeVarargs
         private LazyMapConstraintsResolver(
-                @NotNull PrismContext prismContext,
                 @NotNull Supplier<List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>>>... constraintsSuppliers) {
-            this.prismContext = prismContext;
             this.constraintsSuppliers = Arrays.asList(constraintsSuppliers);
         }
 
@@ -524,8 +521,8 @@ public class PolicyRuleTypeUtil {
                                 || !existingElement.getValue().equals(newElement.getValue())) {
                             LOGGER.error("Conflicting definitions of '{}' found:\n>>> new:\n{}\n>>> existing:\n{}",
                                     newEntry.getKey(),
-                                    prismContext.xmlSerializer().serialize(newElement),
-                                    prismContext.xmlSerializer().serialize(existingElement));
+                                    PrismContext.get().xmlSerializer().serialize(newElement),
+                                    PrismContext.get().xmlSerializer().serialize(existingElement));
                             throw new SchemaException("Conflicting definitions of '" + newEntry.getKey() + "' found.");
                         }
                     } else {
@@ -536,7 +533,7 @@ public class PolicyRuleTypeUtil {
         }
     }
 
-    private static void resolveReferences(PolicyConstraintsType pc, ConstraintResolver resolver) {
+    private static void resolveConstraintReferences(PolicyConstraintsType pc, ConstraintResolver resolver) {
         // This works even on chained rules because on any PolicyConstraintsType the visitor is called on a root
         // (thus resolving the references) before it is called on children. And those children are already resolved;
         // so, any references contained within them get also resolved.
@@ -595,12 +592,11 @@ public class PolicyRuleTypeUtil {
         }
     }
 
-    public static void resolveReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules,
-            PrismContext prismContext) {
-        LazyMapConstraintsResolver resolver = new LazyMapConstraintsResolver(prismContext, createConstraintsSupplier(rules),
-                createConstraintsSupplier(otherRules));
+    public static void resolveConstraintReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules) {
+        LazyMapConstraintsResolver resolver =
+                new LazyMapConstraintsResolver(createConstraintsSupplier(rules), createConstraintsSupplier(otherRules));
         for (PolicyRuleType rule : rules) {
-            resolveReferences(rule.getPolicyConstraints(), resolver);
+            resolveConstraintReferences(rule.getPolicyConstraints(), resolver);
         }
     }
 

@@ -1704,7 +1704,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             ConfigurationException, SecurityViolationException {
         VariablesMap vars = new VariablesMap();
         vars.putAll(variables);
-        return LensUtil.interpretLocalizableMessageTemplate(template, vars, expressionFactory, prismContext, task, result);
+        return LensUtil.interpretLocalizableMessageTemplate(template, vars, expressionFactory, task, result);
     }
 
     @Override

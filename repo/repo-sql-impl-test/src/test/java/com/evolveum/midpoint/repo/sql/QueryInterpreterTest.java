@@ -546,6 +546,29 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test021QueryTagUri() throws Exception {
+        Session session = open();
+        try {
+
+            ObjectQuery query = prismContext.queryFor(TagType.class)
+                    .item(TagType.F_URI).eq(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION)
+                    .build();
+            String real = getInterpretedQuery(session, TagType.class, query);
+
+            assertThat(real).isEqualToIgnoringWhitespace(""
+                    + "select\n"
+                    + "  _t.oid,\n"
+                    + "  _t.fullObject\n"
+                    + "from\n"
+                    + "  RTag _t\n"
+                    + "where\n"
+                    + "  _t.uri = :uri");
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
     public void test029QueryAccountByNonExistingAttribute() throws Exception {
         Session session = open();
         try {

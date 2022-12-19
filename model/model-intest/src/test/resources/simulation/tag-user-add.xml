@@ -8,4 +8,14 @@
 <tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     oid="0c31f3a1-a7b1-4fad-8cea-eaafdc15daaf">
     <name>user-add</name>
+    <policyRule>
+        <policyConstraints>
+            <modification>
+                <operation>add</operation>
+            </modification>
+        </policyConstraints>
+        <focusSelector>
+            <type>UserType</type>
+        </focusSelector>
+    </policyRule>
 </tag>

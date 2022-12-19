@@ -17,6 +17,7 @@
         <objectTypeSettings>
             <objectType>SystemConfigurationType</objectType>
             <objectType>ArchetypeType</objectType>
+            <objectType>TagType</objectType>
             <objectType>ObjectTemplateType</objectType>
             <objectType>ResourceType</objectType>
             <objectType>ConnectorType</objectType>

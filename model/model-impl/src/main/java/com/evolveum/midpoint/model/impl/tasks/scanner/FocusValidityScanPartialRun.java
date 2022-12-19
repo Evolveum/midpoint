@@ -208,7 +208,7 @@ public final class FocusValidityScanPartialRun
 
         EvaluatedPolicyRuleImpl policyRule =
                 new EvaluatedPolicyRuleImpl(workerTask.getPolicyRule(), ruleId, null, null);
-        policyRule.computeEnabledActions(null, focus.asPrismObject(), getModelBeans().expressionFactory, PrismContext.get(), workerTask, result);
+        policyRule.computeEnabledActions(null, focus.asPrismObject(), getModelBeans().expressionFactory, workerTask, result);
         EvaluatedPolicyRuleTrigger<TimeValidityPolicyConstraintType> evaluatedTrigger = new EvaluatedTimeValidityTrigger(
                 Boolean.TRUE.equals(constraint.isAssignment()) ?
                         PolicyConstraintKindType.ASSIGNMENT_TIME_VALIDITY :

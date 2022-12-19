@@ -95,29 +95,31 @@ public class ConstraintEvaluatorHelper {
 
     public boolean evaluateBoolean(ExpressionType expressionBean, VariablesMap VariablesMap,
             String contextDescription, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return LensUtil.evaluateBoolean(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
-                task, result);
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return LensUtil.evaluateBoolean(expressionBean, VariablesMap, contextDescription, expressionFactory, task, result);
     }
 
     public LocalizableMessageType evaluateLocalizableMessageType(ExpressionType expressionBean, VariablesMap VariablesMap,
             String contextDescription, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return LensUtil.evaluateLocalizableMessageType(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
+        return LensUtil.evaluateLocalizableMessageType(expressionBean, VariablesMap, contextDescription, expressionFactory,
                 task, result);
     }
 
-    public String evaluateString(ExpressionType expressionBean, VariablesMap VariablesMap,
+    public String evaluateString(
+            ExpressionType expressionBean, VariablesMap VariablesMap,
             String contextDescription, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return LensUtil.evaluateString(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return LensUtil.evaluateString(expressionBean, VariablesMap, contextDescription, expressionFactory,
                 task, result);
     }
 
     public <AH extends AssignmentHolderType> SingleLocalizableMessageType interpretLocalizableMessageTemplate(LocalizableMessageTemplateType template,
             PolicyRuleEvaluationContext<AH> rctx, JAXBElement<? extends AbstractPolicyConstraintType> constraintElement, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return LensUtil.interpretLocalizableMessageTemplate(template, createVariablesMap(rctx, constraintElement), expressionFactory, prismContext, rctx.task, result);
+        return LensUtil.interpretLocalizableMessageTemplate(template, createVariablesMap(rctx, constraintElement), expressionFactory, rctx.task, result);
     }
 
     public <AH extends AssignmentHolderType> LocalizableMessage createLocalizableMessage(

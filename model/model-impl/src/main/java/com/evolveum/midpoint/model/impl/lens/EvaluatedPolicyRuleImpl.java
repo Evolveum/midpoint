@@ -82,6 +82,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
      */
     private final EvaluatedAssignmentImpl<?> evaluatedAssignment;
 
+    /** Tries to uniquely identify the policy rule. Used e.g. for threshold counters. */
     @NotNull private final String ruleId;
 
     private int count;
@@ -91,7 +92,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     // computed only when necessary (typically when triggered)
     @NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>();
 
-    public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleBean,
+    public EvaluatedPolicyRuleImpl(
+            @NotNull PolicyRuleType policyRuleBean,
             @NotNull String ruleId,
             @Nullable AssignmentPath assignmentPath,
             @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment) {
@@ -489,16 +491,24 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         }
     }
 
-    public <AH extends AssignmentHolderType> void computeEnabledActions(@Nullable PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object,
-            ExpressionFactory expressionFactory, PrismContext prismContext, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <AH extends AssignmentHolderType> void computeEnabledActions(
+            @Nullable PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object,
+            ExpressionFactory expressionFactory, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         LOGGER.trace("Computation of enabled actions starting");
         List<PolicyActionType> allActions = PolicyRuleTypeUtil.getAllActions(policyRuleBean.getPolicyActions());
         LOGGER.trace("Actions defined for policy rule: {}", allActions);
         for (PolicyActionType action : allActions) {
             if (action.getCondition() != null) {
                 VariablesMap variables = createVariablesMap(rctx, object);
-                if (!LensUtil.evaluateBoolean(action.getCondition(), variables, "condition in action " + action.getName() + " (" + action.getClass().getSimpleName() + ")", expressionFactory, prismContext, task, result)) {
+                if (!LensUtil.evaluateBoolean(
+                        action.getCondition(),
+                        variables,
+                        "condition in action " + action.getName() + " (" + action.getClass().getSimpleName() + ")",
+                        expressionFactory,
+                        task,
+                        result)) {
                     LOGGER.trace("Skipping action {} ({}) because the condition evaluated to false", action.getName(), action.getClass().getSimpleName());
                     continue;
                 } else {
