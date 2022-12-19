@@ -355,7 +355,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             public String getObject() {
                 return getPageTitleModel().getObject();
             }
-        }, this.getClass(), getPageParameters());
+        }, this.getClass(), pageParameters);
 
         addBreadcrumb(bc);
     }
