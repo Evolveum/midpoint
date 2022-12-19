@@ -1184,7 +1184,7 @@ ALTER TABLE m_function_library
 ALTER TABLE m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_tag
-  ADD CONSTRAINT fk_tag FOREIGN KEY (oid) REFERENCES m_focus;
+  ADD CONSTRAINT fk_tag FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_lookup_table
   ADD CONSTRAINT fk_lookup_table FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_lookup_table_row

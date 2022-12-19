@@ -40,6 +40,7 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-gui-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-provisioning-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-correlation-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-simulations-3" />
 
     <!-- ################################## -->
     <!-- ##      Common Schema Layer     ## -->
@@ -761,12 +762,52 @@
     <xsd:complexType name="TagType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                A tag is a "mark" given to an object - currently a prism object, an assignment, or audited/simulation event.
+                Tags are used in various contexts, for example as policy situations or event tags. (More uses are expected
+                in the future.) This object serves as a point of definition of such tags.
+
+                Well-known archetypes: policy situation, event tag.
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:FocusType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
+                    <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Optional URI assigned to this tag. For example, policy situations had traditionally such URIs.
+                                It should be globally unique.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TagType.uri</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Display properties of the tag. It is used to display the tag in drop-down lists, buttons, etc..
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TagType.display</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="policyRule" type="tns:GlobalPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Global policy rules that can yield this tag (policy situation or event tag).
+                                By including them here they are evaluated automatically, just like if they would be included
+                                in the system configuration. (Provided that this tag is in appropriate lifecycle state.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TagType.uri</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -14611,23 +14652,10 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Tag(s) that are the result when this policy rule is triggered.
-                        TODO
+                        These may be implicit if the policy rule is defined as part of tag definition.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
-                        <a:displayName>PolicyRuleType.tag</a:displayName>
-                        <a:help>PolicyRuleType.tag.help</a:help>
-                        <a:since>4.7</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="tag" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Tag(s) that are the result when this policy rule is triggered.
-                        TODO if this is an URI, what is the default namespace?
-                    </xsd:documentation>
-                    <xsd:appinfo>
                         <a:displayName>PolicyRuleType.tag</a:displayName>
                         <a:help>PolicyRuleType.tag.help</a:help>
                         <a:since>4.7</a:since>
@@ -14641,10 +14669,15 @@
                         triggered. If the situation is not explicitly stated then
                         default situation will be selected instead. The situation
                         is determined by the constraint that triggered the rule.
+                        DEPRECATED. Use tagRef instead.
+
+                        TODO specify the time of planned removal
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>PolicyRuleType.policySituation</a:displayName>
                         <a:help>PolicyRuleType.policySituation.help</a:help>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

@@ -31,7 +31,7 @@ import javax.persistence.*;
 )
 @Persister(impl = MidPointJoinedPersister.class)
 @DynamicUpdate
-public class RTag extends RFocus {
+public class RTag extends RObject {
 
     private RPolyString nameCopy;
 
@@ -54,7 +54,7 @@ public class RTag extends RFocus {
     public static void copyFromJAXB(
             TagType jaxb, RTag repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
-        copyFocusInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
+        copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
     }
