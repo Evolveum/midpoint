@@ -10,14 +10,27 @@
     <objectCollection>
         <collection>
             <filter>
-                <q:and>
-                    <q:equal>
-                        <q:path>eventStage</q:path>
-                        <q:value>EXECUTION</q:value>
-                    </q:equal>
-                </q:and>
+                <!-- eventStage = "execution" and targetRef/@/name = `targetName` -->
+                <q:text>
+                    eventStage = "execution"
+                </q:text>
             </filter>
         </collection>
+        <condition>
+            <script>
+                <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType
+
+                    def object = object as AuditEventRecordType
+
+                    return object.targetRef?.targetName == 'test140ExportAuditRecords'
+                </code>
+            </script>
+        </condition>
+        <parameter>
+            <name>targetName</name>
+            <type>string</type>
+        </parameter>
         <view>
             <column>
                 <name>timestamp</name>

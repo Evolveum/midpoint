@@ -11,6 +11,10 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -184,7 +188,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         assertTrue("Target file is not there", targetFile.exists());
     }
 
-    @Test
+    @Test(enabled = false)
     public void test130ExportUsersWithAssignments() throws Exception {
         UserType user = new UserType()
                 .name("moreassignments")
@@ -195,12 +199,42 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         runTest(REPORT_SUBREPORT_AS_ROW_USERS, 56, 3, null);
     }
 
-    @Test
+    @Test(enabled = false)
     public void test140ExportAuditRecords() throws Exception {
-        runTest(REPORT_SUBREPORT_AUDIT, 56, 3, null);
+        final Task task = getTestTask();
+        final OperationResult result = task.getResult();
+
+        final String name = "test140ExportAuditRecords";
+        final UserType user = new UserType()
+                .name(name)
+                .assignment(new AssignmentType().targetRef(SystemObjectsType.ROLE_END_USER.value(), RoleType.COMPLEX_TYPE));
+        final String oid = addObject(user.asPrismObject(), task, result);
+
+        final PrismObject<UserType> testedUserObject = getObject(UserType.class, oid);
+        final UserType testedUser = testedUserObject.asObjectable();
+
+        ObjectDelta delta = prismContext.deltaFactory().object().create(UserType.class, ChangeType.MODIFY);
+        delta.setOid(oid);
+        delta.setObjectTypeClass(UserType.class);
+        delta.addModification(
+                createAssignmentModification(
+                        new AssignmentType().targetRef(SystemObjectsType.ROLE_APPROVER.value(), RoleType.COMPLEX_TYPE), true));
+        delta.addModification(
+                createAssignmentModification(
+                        testedUser.getAssignment().stream()
+                                .filter(a -> SystemObjectsType.ROLE_END_USER.value().equals(a.getTargetRef().getOid()))
+                                .map(a -> a.clone())
+                                .findFirst().orElseThrow(), false)
+        );
+
+        executeChanges(delta, ModelExecuteOptions.create(), task, result);
+
+        ReportParameterType parameters = getParameters("targetName", String.class, name);
+
+        runTest(REPORT_SUBREPORT_AUDIT, 3, 4, null, parameters);
     }
 
-    @Test
+    @Test(enabled = false)
     public void test140ExportSimulation() throws Exception {
         runTest(REPORT_SUBREPORT_SIMULATION, 56, 3, null);
     }
