@@ -511,7 +511,42 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test019QueryAccountByNonExistingAttribute() throws Exception {
+    public void test020QueryTagLong() throws Exception {
+        Session session = open();
+        try {
+
+            ObjectQuery query = prismContext.queryFor(TagType.class)
+                    .item(F_NAME).eqPoly("tag1")
+                    .and().item(F_EXTENSION, new QName(NS_EXT, "intType")).eq(123)
+                    .build();
+            String real = getInterpretedQuery(session, TagType.class, query);
+
+            assertThat(real).isEqualToIgnoringWhitespace(""
+                    + "select\n"
+                    + "  _t.oid,\n"
+                    + "  _t.fullObject\n"
+                    + "from\n"
+                    + "  RTag _t\n"
+                    + "    left join _t.longs _l with (\n"
+                    + "_l.ownerType = :ownerType and\n"
+                    + "_l.itemId = :itemId\n"
+                    + ")\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    (\n"
+                    + "      _t.nameCopy.orig = :orig and\n"
+                    + "      _t.nameCopy.norm = :norm\n"
+                    + "    ) and\n"
+                    + "    _l.value = :value\n"
+                    + "  )");
+
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test029QueryAccountByNonExistingAttribute() throws Exception {
         Session session = open();
         try {
             String real = getInterpretedQuery(session, ShadowType.class,

@@ -38,6 +38,7 @@ public final class ClassMapper {
         TYPES.put(ObjectTypes.CONNECTOR, RObjectType.CONNECTOR);
         TYPES.put(ObjectTypes.CONNECTOR_HOST, RObjectType.CONNECTOR_HOST);
         TYPES.put(ObjectTypes.GENERIC_OBJECT, RObjectType.GENERIC_OBJECT);
+        TYPES.put(ObjectTypes.TAG, RObjectType.TAG);
         TYPES.put(ObjectTypes.OBJECT, RObjectType.OBJECT);
         // Also matches RObject, but we want it later to avoid unexpected definitions Ent:RObject (jaxb=AssignmentHolderType).
         TYPES.put(ObjectTypes.ASSIGNMENT_HOLDER_TYPE, RObjectType.ASSIGNMENT_HOLDER);

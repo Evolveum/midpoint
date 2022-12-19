@@ -20,6 +20,7 @@ public enum RObjectType {
     CONNECTOR(RConnector.class, ConnectorType.class),
     CONNECTOR_HOST(RConnectorHost.class, ConnectorHostType.class),
     GENERIC_OBJECT(RGenericObject.class, GenericObjectType.class),
+    TAG(RTag.class, TagType.class),
     OBJECT(RObject.class, ObjectType.class),
     VALUE_POLICY(RValuePolicy.class, ValuePolicyType.class),
     RESOURCE(RResource.class, ResourceType.class),

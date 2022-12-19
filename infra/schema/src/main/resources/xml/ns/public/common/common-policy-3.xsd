@@ -1469,7 +1469,7 @@
             <xsd:element name="record" type="tns:RecordPolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Record action. The operation will proceed. Policy situation will be recorded for
+                        Record action. The operation will proceed. Policy situation(s) will be recorded for
                         given object or assignment. It can be reported on or certified later on.
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2171,6 +2171,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <!-- TODO we may select what situation(s) we want to record. The default is all applicable ones. -->
                     <!--<xsd:element name="situationConstraints" type="tns:SituationConstraintsStorageStrategyType" minOccurs="0">-->
                         <!--<xsd:annotation>-->
                             <!--<xsd:documentation>-->
@@ -2179,7 +2180,6 @@
                             <!--</xsd:documentation>-->
                         <!--</xsd:annotation>-->
                     <!--</xsd:element>-->
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
