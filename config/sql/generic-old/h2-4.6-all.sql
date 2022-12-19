@@ -609,6 +609,13 @@ CREATE TABLE m_generic_object (
   oid        VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
+CREATE TABLE m_tag (
+  name_norm  VARCHAR(255),
+  name_orig  VARCHAR(255),
+  objectType VARCHAR(255),
+  oid        VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
 CREATE TABLE m_global_metadata (
   name  VARCHAR(255) NOT NULL,
   value VARCHAR(255),
@@ -952,6 +959,10 @@ CREATE INDEX iGenericObjectNameOrig
   ON m_generic_object (name_orig);
 ALTER TABLE m_generic_object
   ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
+CREATE INDEX iTagNameOrig
+  ON m_tag (name_orig);
+ALTER TABLE m_tag
+  ADD CONSTRAINT uc_tag_name UNIQUE (name_norm);
 CREATE INDEX iLookupTableNameOrig
   ON m_lookup_table (name_orig);
 ALTER TABLE m_lookup_table
@@ -1172,6 +1183,8 @@ ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
+ALTER TABLE m_tag
+  ADD CONSTRAINT fk_tag FOREIGN KEY (oid) REFERENCES m_focus;
 ALTER TABLE m_lookup_table
   ADD CONSTRAINT fk_lookup_table FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_lookup_table_row
