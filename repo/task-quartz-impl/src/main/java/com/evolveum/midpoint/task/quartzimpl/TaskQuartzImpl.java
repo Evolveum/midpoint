@@ -2331,9 +2331,10 @@ public class TaskQuartzImpl implements Task {
             @Nullable O stateBefore,
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,
-            @NotNull OperationResult result) {
+            @NotNull Collection<String> eventTags,
+            @NotNull OperationResult result) throws SchemaException {
         for (AggregatedObjectProcessingListener objectProcessingListener : objectProcessingListeners) {
-            objectProcessingListener.onItemProcessed(stateBefore, executedDelta, simulatedDelta, result);
+            objectProcessingListener.onItemProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, result);
         }
     }
     //endregion

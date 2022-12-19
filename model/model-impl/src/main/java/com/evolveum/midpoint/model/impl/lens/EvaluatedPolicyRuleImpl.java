@@ -38,10 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -527,5 +524,13 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     @Override
     public void setCount(int value) {
         count = value;
+    }
+
+    @NotNull Collection<String> getEventTags() {
+        if (isTriggered()) {
+            return policyRuleBean.getTag();
+        } else {
+            return Set.of();
+        }
     }
 }

@@ -13,10 +13,12 @@
 
     <name>OpenDJ</name>
     <description>
-        Improving the correlation.
+        Ref: Attribute correlation phase
+
+        Here we add outbound mappings with the goal of checking what would midPoint change in OpenDJ.
     </description>
 
-    <lifecycleState>proposed</lifecycleState>
+    <lifecycleState>active</lifecycleState>
 
     <super>
         <resourceRef oid="bb554a60-3e83-40e5-be21-ca913ee58a43"/>
@@ -36,7 +38,14 @@
             <intent>default</intent>
             <attribute>
                 <ref>ri:employeeNumber</ref>
-                <!-- the simple correlator was moved to the complex correlation configuration -->
+                <outbound>
+                    <!-- TODO we need a general switch for all outbound mappings -->
+                    <lifecycleState>proposed</lifecycleState>
+                    <strength>strong</strength>
+                    <source>
+                        <path>employeeNumber</path>
+                    </source>
+                </outbound>
                 <inbound>
                     <target>
                         <path>employeeNumber</path>
@@ -50,9 +59,15 @@
                     </evaluationPhases>
                 </inbound>
             </attribute>
-            <!-- TODO We want to make sure this information is (eventually) consistent with the one in midPoint and HR. -->
             <attribute>
                 <ref>ri:mail</ref>
+                <outbound>
+                    <lifecycleState>proposed</lifecycleState>
+                    <strength>strong</strength>
+                    <source>
+                        <path>emailAddress</path>
+                    </source>
+                </outbound>
                 <inbound>
                     <target>
                         <path>emailAddress</path>
@@ -65,6 +80,13 @@
             </attribute>
             <attribute>
                 <ref>ri:givenName</ref>
+                <outbound>
+                    <lifecycleState>proposed</lifecycleState>
+                    <strength>strong</strength>
+                    <source>
+                        <path>givenName</path>
+                    </source>
+                </outbound>
                 <inbound>
                     <target>
                         <path>givenName</path>
@@ -77,6 +99,13 @@
             </attribute>
             <attribute>
                 <ref>ri:sn</ref>
+                <outbound>
+                    <lifecycleState>proposed</lifecycleState>
+                    <strength>strong</strength>
+                    <source>
+                        <path>familyName</path>
+                    </source>
+                </outbound>
                 <inbound>
                     <target>
                         <path>familyName</path>
@@ -88,13 +117,58 @@
                 </inbound>
             </attribute>
             <attribute>
+                <ref>ri:cn</ref>
+                <outbound>
+                    <lifecycleState>proposed</lifecycleState>
+                    <strength>strong</strength>
+                    <source>
+                        <path>givenName</path>
+                    </source>
+                    <source>
+                        <path>familyName</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>basic.concatName(givenName, familyName)</code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
                 <ref>ri:uid</ref>
+                <!-- No outbound here. The mapping is via DN. -->
                 <inbound>
                     <strength>strong</strength>
                     <target>
                         <path>name</path>
                     </target>
+                    <condition>
+                        <script>
+                            <code>
+                                // Workaround for missing "empty usernames" feature.
+                                // Note that we have to take old value to avoid 'true->false' condition state changes
+                                // that could result from the (repeated) execution of this mapping
+                                def userOld = midpoint.modelContext.focusContextRequired.objectOld
+                                userOld?.asObjectable()?.name?.orig?.startsWith('empNo:')
+                            </code>
+                        </script>
+                    </condition>
                 </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:dn</ref>
+                <outbound>
+                    <lifecycleState>proposed</lifecycleState>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <code>"uid=$name,ou=People,dc=example,dc=com"</code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
             <correlation>
                 <correlators>
@@ -130,7 +204,26 @@
                     </items>
                 </correlators>
             </correlation>
-            <synchronization/> <!-- no reactions, just the correlation -->
+            <synchronization>
+                <reaction>
+                    <situation>unlinked</situation>
+                    <actions>
+                        <link/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>linked</situation>
+                    <actions>
+                        <synchronize/>
+                    </actions>
+                </reaction>
+                <reaction>
+                    <situation>disputed</situation>
+                    <actions>
+                        <createCorrelationCase/>
+                    </actions>
+                </reaction>
+            </synchronization>
         </objectType>
     </schemaHandling>
 </resource>

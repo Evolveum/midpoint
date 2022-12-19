@@ -13,7 +13,7 @@
 
     <name>OpenDJ</name>
     <description>
-        Correlating on `employeeNumber`, updating `name` of the users.
+        Correlating on `employeeNumber`.
     </description>
 
     <lifecycleState>proposed</lifecycleState>
@@ -48,15 +48,6 @@
                         <include>beforeCorrelation</include>
                         <exclude>clockwork</exclude>
                     </evaluationPhases>
-                </inbound>
-            </attribute>
-            <attribute>
-                <ref>ri:uid</ref>
-                <inbound>
-                    <strength>strong</strength>
-                    <target>
-                        <path>name</path>
-                    </target>
                 </inbound>
             </attribute>
             <synchronization/> <!-- no reactions, just the correlation -->

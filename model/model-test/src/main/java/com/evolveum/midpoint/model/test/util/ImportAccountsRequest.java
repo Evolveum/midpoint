@@ -186,7 +186,7 @@ public class ImportAccountsRequest {
     @SuppressWarnings("WeakerAccess")
     public SimulationResult executeOnForegroundSimulated(
             SimulationResultType simulationConfiguration, Task task, OperationResult result) throws CommonException {
-        stateCheck(!taskExecutionMode.isPersistent(), "No simulation? %s", taskExecutionMode);
+        stateCheck(!taskExecutionMode.isPersistent(), "No simulation? Mode = %s", taskExecutionMode);
         return test.executeInSimulationMode(
                 taskExecutionMode,
                 simulationConfiguration,
@@ -292,6 +292,7 @@ public class ImportAccountsRequest {
             return withAssertSuccess(false);
         }
 
+        /** Note: this is the default */
         public ImportAccountsRequestBuilder withAssertingSuccess() {
             return withAssertSuccess(true);
         }

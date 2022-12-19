@@ -46,6 +46,8 @@ public class MidPointTestConstants {
     public static final ItemPath PATH_ENTRY_UUID = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_ENTRY_UUID);
     public static final ItemName QNAME_CAR_LICENSE = new ItemName(MidPointConstants.NS_RI, "carLicense");
     public static final ItemName QNAME_EMPLOYEE_TYPE = new ItemName(MidPointConstants.NS_RI, "employeeType");
+    public static final ItemName QNAME_MAIL = new ItemName(NS_RI, "mail");
+    public static final ItemPath PATH_MAIL = ItemPath.create(ShadowType.F_ATTRIBUTES, QNAME_MAIL);
 
     public static final String TEST_POLICY_SITUATION_LEGACY = qNameToUri(new QName(NS_MIDPOINT_TEST_PREFIX, "legacy"));
     public static final String TEST_POLICY_SITUATION_ILLEGAL = qNameToUri(new QName(NS_MIDPOINT_TEST_PREFIX, "illegal"));

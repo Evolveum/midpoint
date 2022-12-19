@@ -6,16 +6,20 @@
  */
 package com.evolveum.midpoint.test.asserter.prism;
 
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.path.PathSet;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ContainerDeltaAsserter;
@@ -23,8 +27,10 @@ import com.evolveum.midpoint.test.asserter.PropertyDeltaAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import java.util.Arrays;
-import java.util.List;
+import com.google.common.collect.Sets;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -32,7 +38,7 @@ import java.util.stream.Collectors;
  */
 public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAsserter<RA> {
 
-    private ObjectDelta<O> delta;
+    private final ObjectDelta<O> delta;
 
     public ObjectDeltaAsserter(ObjectDelta<O> delta) {
         super();
@@ -93,34 +99,136 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
-    /** Asserts that the specified paths are modified (among other ones - optionally). */
-    public ObjectDeltaAsserter<O,RA> assertModifiedPaths(ItemPath... expectedPaths) {
-        return assertModifiedPaths(false, expectedPaths);
+    /** Asserts that the specified paths are modified, and nothing else. Supports prefixes. */
+    public ObjectDeltaAsserter<O,RA> assertModifiedExclusive(ItemPath... expectedPaths) {
+        assertModified(expectedPaths);
+        assertNotModifiedExcept(expectedPaths);
+        return this;
     }
 
-    /** Asserts that _nothing_ residing in the specified paths is modified. */
-    public ObjectDeltaAsserter<O,RA> assertNotModifiedPaths(ItemPath... expectedToBeUnmodified) {
+    /** Asserts that (something) in every specified path is modified. Supports prefixes. */
+    @SuppressWarnings({ "UnusedReturnValue", "WeakerAccess" })
+    public ObjectDeltaAsserter<O,RA> assertModified(ItemPath... pathsThatMustBeModified) {
+        assertModify();
+        PathSet modifiedPaths = delta.getModifications().stream()
+                .map(ItemDelta::getPath)
+                .collect(Collectors.toCollection(() -> new PathSet()));
+        for (ItemPath pathThatMustBeModified : pathsThatMustBeModified) {
+            if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(modifiedPaths, pathThatMustBeModified)) {
+                fail(String.format("Assumed that path %s should be modified but it is not. Modified paths: %s",
+                        pathThatMustBeModified, modifiedPaths));
+            }
+        }
+        return this;
+    }
+
+    /** Asserts that _nothing_ in any specified path is modified. Supports prefixes. */
+    @SuppressWarnings("WeakerAccess")
+    public ObjectDeltaAsserter<O,RA> assertNotModified(ItemPath... pathsThatMustNotBeModified) {
+        assertModify();
         for (ItemDelta<?, ?> modification : delta.getModifications()) {
-            ItemPath modificationPath = modification.getPath();
-            if (ItemPathCollectionsUtil.containsSubpathOrEquivalent(List.of(expectedToBeUnmodified), modificationPath)) {
-                fail(String.format("Assumed that paths %s should not be modified by there is: %s",
-                        Arrays.toString(expectedToBeUnmodified), modification));
+            ItemPath modifiedPath = modification.getPath();
+            if (ItemPathCollectionsUtil.containsSubpathOrEquivalent(List.of(pathsThatMustNotBeModified), modifiedPath)) {
+                fail(String.format("Assumed that paths %s should not be modified but there is: %s",
+                        Arrays.toString(pathsThatMustNotBeModified), modification));
             }
         }
         return this;
     }
 
     public ObjectDeltaAsserter<O,RA> assertNoRealResourceObjectModifications() {
-        return assertNotModifiedPaths(
+        return assertNotModified(
                 ShadowType.F_ATTRIBUTES, ShadowType.F_CREDENTIALS, ShadowType.F_AUXILIARY_OBJECT_CLASS);
     }
 
-    /** Asserts that the set of modified paths is exactly the same as expected. */
-    public ObjectDeltaAsserter<O,RA> assertModifiedPathsStrict(ItemPath... expectedPaths) {
-        return assertModifiedPaths(true, expectedPaths);
+    /** Asserts that nothing except for specified paths is modified. Supports prefixes. */
+    public ObjectDeltaAsserter<O,RA> assertNotModifiedExcept(ItemPath... pathsThatCanBeModified) {
+        assertModify();
+        for (ItemDelta<?, ?> modification : delta.getModifications()) {
+            ItemPath modifiedPath = modification.getPath();
+            if (!ItemPathCollectionsUtil.containsSubpathOrEquivalent(List.of(pathsThatCanBeModified), modifiedPath)) {
+                fail(String.format("Assumed that nothing except %s should be modified but there is: %s",
+                        Arrays.toString(pathsThatCanBeModified), modification));
+            }
+        }
+        return this;
     }
 
-    private ObjectDeltaAsserter<O,RA> assertModifiedPaths(boolean strict, ItemPath... expectedPaths) {
+    public ObjectDeltaAsserter<O,RA> assertPolyStringModification(
+            ItemPath path, String expectedOldOrig, String expectedAddOrReplaceOrig) {
+        assertModify();
+        PropertyDelta<PolyString> propertyDelta = getPropertyDeltaRequired(path);
+        Set<String> realAddOrReplaceOrig =
+                Sets.union(
+                        getOrig(propertyDelta.getRealValuesToAdd()),
+                        getOrig(propertyDelta.getRealValuesToReplace()));
+        assertThat(realAddOrReplaceOrig)
+                .as("values added or replaced")
+                .containsExactlyInAnyOrder(expectedAddOrReplaceOrig);
+        Set<String> realOldOrig = getOrig(
+                PrismValueCollectionsUtil.getRealValuesOfCollection(
+                        propertyDelta.getEstimatedOldValues()));
+        assertExpectedOldValues(expectedOldOrig, realOldOrig);
+        return this;
+    }
+
+    public <T> ObjectDeltaAsserter<O,RA> assertModification(
+            ItemPath path, T expectedOldOrig, T expectedAddOrReplaceOrig) {
+        assertModify();
+        PropertyDelta<T> propertyDelta = getPropertyDeltaRequired(path);
+        //noinspection unchecked
+        Collection<T> realAddOrReplaceOrig =
+                propertyDelta.isReplace() ?
+                        (Collection<T>) propertyDelta.getRealValuesToReplace() :
+                        (Collection<T>) propertyDelta.getRealValuesToAdd();
+        assertThat(realAddOrReplaceOrig)
+                .as("values added or replaced")
+                .containsExactlyInAnyOrder(expectedAddOrReplaceOrig);
+        Collection<T> realOldOrig =
+                PrismValueCollectionsUtil.getRealValuesOfCollection(
+                        propertyDelta.getEstimatedOldValues());
+        assertExpectedOldValues(expectedOldOrig, realOldOrig);
+        return this;
+    }
+
+    @NotNull
+    private <T> PropertyDelta<T> getPropertyDeltaRequired(ItemPath path) {
+        PropertyDelta<T> propertyDelta = delta.findPropertyDelta(path);
+        assertThat(propertyDelta).as("delta for '" + path + "'").isNotNull();
+        return propertyDelta;
+    }
+
+    private static <T> void assertExpectedOldValues(T expectedOldOrig, Collection<T> realOldOrig) {
+        if (expectedOldOrig != null) {
+            assertThat(realOldOrig)
+                    .as("old values")
+                    .containsExactlyInAnyOrder(expectedOldOrig);
+        } else {
+            assertThat(realOldOrig)
+                    .as("old values")
+                    .isEmpty();
+        }
+    }
+
+    private Set<String> getOrig(Collection<?> polyStrings) {
+        return emptyIfNull(polyStrings).stream()
+                .filter(val -> val instanceof PolyString)
+                .map(ps -> ((PolyString) ps).getOrig())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    /** Asserts that the specified paths are modified (among other ones - optionally). Checks the equivalence of paths. */
+    public ObjectDeltaAsserter<O,RA> assertModificationPathsNonExclusive(ItemPath... expectedPaths) {
+        return assertModificationPaths(false, expectedPaths);
+    }
+
+    /** Asserts that the set of modified paths is exactly the same as expected. Checks the equivalence of paths. */
+    public ObjectDeltaAsserter<O,RA> assertModifiedPathsExclusive(ItemPath... expectedPaths) {
+        return assertModificationPaths(true, expectedPaths);
+    }
+
+    private ObjectDeltaAsserter<O,RA> assertModificationPaths(boolean strict, ItemPath... expectedPaths) {
         assertModify();
         PathSet actualPathSet = delta.getModifications().stream()
                 .map(modification -> modification.getPath())

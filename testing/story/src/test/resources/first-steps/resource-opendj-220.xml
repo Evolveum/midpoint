@@ -13,12 +13,10 @@
 
     <name>OpenDJ</name>
     <description>
-        Linking the accounts. There should be no active clockwork-time inbound mapping.
-        <!-- TODO This should be somehow switchable globally. Currently it requires inspecting the mappings one by one. -->
-        There is no outbound mapping defined, either.
+        Improving the correlation.
     </description>
 
-    <lifecycleState>active</lifecycleState>
+    <lifecycleState>proposed</lifecycleState>
 
     <super>
         <resourceRef oid="bb554a60-3e83-40e5-be21-ca913ee58a43"/>
@@ -89,16 +87,6 @@
                     </evaluationPhases>
                 </inbound>
             </attribute>
-            <attribute>
-                <ref>ri:uid</ref>
-                <inbound>
-                    <lifecycleState>proposed</lifecycleState>
-                    <strength>strong</strength>
-                    <target>
-                        <path>name</path>
-                    </target>
-                </inbound>
-            </attribute>
             <correlation>
                 <correlators>
                     <items>
@@ -133,26 +121,7 @@
                     </items>
                 </correlators>
             </correlation>
-            <synchronization>
-                <reaction>
-                    <situation>unlinked</situation>
-                    <actions>
-                        <link/>
-                    </actions>
-                </reaction>
-                <reaction>
-                    <situation>linked</situation>
-                    <actions>
-                        <synchronize/>
-                    </actions>
-                </reaction>
-                <reaction>
-                    <situation>disputed</situation>
-                    <actions>
-                        <createCorrelationCase/>
-                    </actions>
-                </reaction>
-            </synchronization>
+            <synchronization/> <!-- no reactions, just the correlation -->
         </objectType>
     </schemaHandling>
 </resource>

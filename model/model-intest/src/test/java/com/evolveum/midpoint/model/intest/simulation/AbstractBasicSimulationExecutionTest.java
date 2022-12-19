@@ -90,6 +90,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             assertTest100UserDeltas(simulatedDeltas, "simulated deltas in persistent storage");
         }
 
+        and("there are appropriate event tags");
+        assertUserTags(simResult, TAG_USER_ADD);
+
         and("the model context is OK");
         ModelContext<?> modelContext = simResult.getLastModelContext();
         displayDumpable("model context", modelContext);
@@ -129,7 +132,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         assertDelta(focusContext.getSummarySecondaryDelta(), "summary secondary delta")
                 .display()
                 .assertModify()
-                .assertModifiedPathsStrict( // This list may change if projector internals change
+                .assertModifiedExclusive( // This list may change if projector internals change
                         PATH_ACTIVATION_EFFECTIVE_STATUS,
                         PATH_ACTIVATION_ENABLE_TIMESTAMP,
                         FocusType.F_ITERATION,
@@ -218,7 +221,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             assertDelta(projectionContext.getSummarySecondaryDelta(), "summary secondary delta")
                     .display()
                     .assertModify()
-                    .assertModifiedPathsStrict( // This list may change if projector internals change
+                    .assertModifiedExclusive( // This list may change if projector internals change
                             ICFS_NAME_PATH, // by a mapping
                             ShadowType.F_ITERATION,
                             ShadowType.F_ITERATION_TOKEN,
@@ -437,15 +440,9 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
             assertDeltaCollection(simulatedDeltas, message)
                     .display()
                     .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
-                        .assertModifiedPathsStrict(
-                                PATH_METADATA_LAST_PROVISIONING_TIMESTAMP,
-                                PATH_METADATA_MODIFY_CHANNEL,
-                                PATH_METADATA_MODIFY_TIMESTAMP,
-                                PATH_METADATA_MODIFIER_REF,
-                                PATH_METADATA_MODIFY_TASK_REF,
-                                PATH_METADATA_MODIFY_APPROVER_REF,
-                                PATH_METADATA_MODIFY_APPROVAL_COMMENT,
-                                UserType.F_LINK_REF)
+                        .assertModifiedExclusive(
+                                UserType.F_LINK_REF,
+                                UserType.F_METADATA)
                     .end();
             assertAccountAddDelta(name, target, simulatedDeltas, message);
         } else {
@@ -523,21 +520,16 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         assertDeltaCollection(simulatedDeltas, message)
                 .display()
                 .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
-                    .assertModifiedPaths(
+                    .assertModified(
                             UserType.F_ASSIGNMENT,
-                            PATH_METADATA_MODIFY_CHANNEL,
-                            PATH_METADATA_MODIFY_TIMESTAMP,
-                            PATH_METADATA_MODIFIER_REF,
-                            PATH_METADATA_MODIFY_TASK_REF,
-                            PATH_METADATA_MODIFY_APPROVER_REF,
-                            PATH_METADATA_MODIFY_APPROVAL_COMMENT)
+                            UserType.F_METADATA)
                 .assertModifications(7 + (accountShouldExist ? 2 : 0));
 
         if (accountShouldExist) {
             assertDeltaCollection(simulatedDeltas, message)
                     .display()
                     .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
-                        .assertModifiedPaths(
+                        .assertModified(
                                 PATH_METADATA_LAST_PROVISIONING_TIMESTAMP,
                                 UserType.F_LINK_REF)
                     .end();
@@ -634,15 +626,10 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .end()
                 .end()
                 .by().changeType(ChangeType.MODIFY).objectType(ShadowType.class).index(0).find()
-                    .assertModifiedPathsStrict( // fragile, may change when projector changes
+                    .assertModifiedExclusive(
                             ShadowType.F_ITERATION,
                             ShadowType.F_ITERATION_TOKEN,
-                            PATH_METADATA_MODIFY_CHANNEL,
-                            PATH_METADATA_MODIFY_TIMESTAMP,
-                            PATH_METADATA_MODIFIER_REF,
-                            PATH_METADATA_MODIFY_TASK_REF,
-                            PATH_METADATA_MODIFY_APPROVER_REF,
-                            PATH_METADATA_MODIFY_APPROVAL_COMMENT)
+                            ShadowType.F_METADATA)
                 .end();
         // @formatter:on
     }
@@ -785,6 +772,13 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         } else {
             assertThat(orgs).as("user orgs").containsExactlyInAnyOrder("template:person (active)");
         }
+    }
+
+    // TEMPORARY
+    @SafeVarargs
+    private void assertUserTags(SimulationResult simResult, String... expectedTags) {
+        Collection<String> realTagsOids = simResult.getTagsForObjectType(UserType.class);
+        assertThat(realTagsOids).as("event tags").containsExactlyInAnyOrder(expectedTags);
     }
 
     private boolean isDevelopmentConfiguration() {

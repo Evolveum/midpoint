@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.test;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -27,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,7 +42,7 @@ public class SimulationResult {
     @Nullable private final SimulationResultContext simulationResultContext;
     private final List<ObjectDelta<?>> executedDeltas = new ArrayList<>();
     private final List<ObjectDeltaOperation<?>> auditedDeltas = new ArrayList<>();
-    private final List<ObjectDelta<?>> simulatedDeltas = new ArrayList<>();
+    private final List<ProcessedObject<?>> simulatedObjects = new ArrayList<>();
     private ModelContext<?> lastModelContext;
 
     SimulationResult(@Nullable SimulationResultContext simulationResultContext) {
@@ -51,7 +54,17 @@ public class SimulationResult {
     }
 
     public List<ObjectDelta<?>> getSimulatedDeltas() {
-        return simulatedDeltas;
+        return simulatedObjects.stream()
+                .map(ProcessedObject::getDelta)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    public Collection<String> getTagsForObjectType(@NotNull Class<? extends ObjectType> type) {
+        return simulatedObjects.stream()
+                .filter(o -> type.equals(o.getType()))
+                .flatMap(o -> o.getEventTags().stream())
+                .collect(Collectors.toSet());
     }
 
     public ModelContext<?> getLastModelContext() {
@@ -84,12 +97,14 @@ public class SimulationResult {
             @Nullable O stateBefore,
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,
-            @NotNull OperationResult result) {
+            @NotNull Collection<String> eventTags,
+            @NotNull OperationResult ignored) throws SchemaException {
         if (executedDelta != null) {
             executedDeltas.add(executedDelta);
         }
-        if (simulatedDelta != null) {
-            simulatedDeltas.add(simulatedDelta);
+        ProcessedObject<?> processedObject = ProcessedObject.create(stateBefore, simulatedDelta, eventTags);
+        if (processedObject != null) {
+            simulatedObjects.add(processedObject);
         }
     }
 
