@@ -30,8 +30,6 @@ import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
 import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.TransparentWebMarkupContainer;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
@@ -41,7 +39,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.protocol.http.WebSession;
@@ -349,6 +346,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected void createBreadcrumb() {
+        PageParameters pageParameters = getPageParameters();
+        clearPageParametersForBreadcrumbIfNeeded(pageParameters);
         BreadcrumbPageClass bc = new BreadcrumbPageClass(new IModel<>() {
             private static final long serialVersionUID = 1L;
 
@@ -359,6 +358,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }, this.getClass(), getPageParameters());
 
         addBreadcrumb(bc);
+    }
+
+    private void clearPageParametersForBreadcrumbIfNeeded(PageParameters parameters) {
+        pageParametersToBeRemovedFromBreadcrumb().forEach(parameters::remove);
+    }
+
+    protected List<String> pageParametersToBeRemovedFromBreadcrumb() {
+        return new ArrayList<>();
     }
 
     protected void createInstanceBreadcrumb() {

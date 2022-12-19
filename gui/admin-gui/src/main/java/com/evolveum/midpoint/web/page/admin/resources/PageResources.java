@@ -498,4 +498,10 @@ public class PageResources extends PageAdmin {
     private void clearSessionStorageForResourcePage() {
         ((PageBase) getPage()).getSessionStorage().clearResourceContentStorage();
     }
+
+    @Override
+    protected List<String> pageParametersToBeRemovedFromBreadcrumb() {
+        return List.of(PageBase.PARAMETER_SEARCH_BY_NAME);
+    }
+
 }

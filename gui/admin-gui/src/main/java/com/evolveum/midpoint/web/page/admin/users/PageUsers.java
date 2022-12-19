@@ -12,6 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -480,5 +482,10 @@ public class PageUsers extends PageAdmin {
         }
 
         return users;
+    }
+
+    @Override
+    protected List<String> pageParametersToBeRemovedFromBreadcrumb() {
+        return List.of(PageBase.PARAMETER_SEARCH_BY_NAME);
     }
 }
