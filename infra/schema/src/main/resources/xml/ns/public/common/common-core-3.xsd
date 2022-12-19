@@ -17559,6 +17559,16 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="asRow" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <!-- todo documentation -->
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SubreportParameterType.asRow</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
