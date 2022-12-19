@@ -628,20 +628,20 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             if (((DateSearchItem) item).getFromDate() != null && ((DateSearchItem) item).getToDate() != null) {
                 return ctx.queryFor(ObjectType.class)
                         .item(path, propDef)
-                        .gt(((DateSearchItem) item).getFromDate())
+                        .ge(((DateSearchItem) item).getFromDate())
                         .and()
                         .item(path, propDef)
-                        .lt(((DateSearchItem) item).getToDate())
+                        .le(((DateSearchItem) item).getToDate())
                         .buildFilter();
             } else if (((DateSearchItem) item).getFromDate() != null) {
                 return ctx.queryFor(ObjectType.class)
                         .item(path, propDef)
-                        .gt(((DateSearchItem) item).getFromDate())
+                        .ge(((DateSearchItem) item).getFromDate())
                         .buildFilter();
             } else if (((DateSearchItem) item).getToDate() != null) {
                 return ctx.queryFor(ObjectType.class)
                         .item(path, propDef)
-                        .lt(((DateSearchItem) item).getToDate())
+                        .le(((DateSearchItem) item).getToDate())
                         .buildFilter();
             } else {
                 return null;
