@@ -6,17 +6,34 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.assignmentType.assignment;
 
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.AssignmentValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.AssignmentHolderAssignmentPanel;
@@ -42,27 +59,9 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  * @author lskublik
@@ -88,27 +87,26 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
 
     @Override
     protected IModel<List<PrismContainerValueWrapper<AssignmentType>>> loadValuesModel() {
-            if (allAssignmentModel == null) {
-                allAssignmentModel = new LoadableModel<>() {
+        if (allAssignmentModel == null) {
+            allAssignmentModel = new LoadableModel<>() {
 
-                    @Override
-                    protected List<PrismContainerValueWrapper<AssignmentType>> load() {
-                        try {
-                            return loadEvaluatedAssignments(getContainerModel());
-                        } catch (CommonException e) {
-                            LOGGER.error("Couldn't load all assignments", e);
-                        }
-                        return getContainerModel().getObject().getValues();
+                @Override
+                protected List<PrismContainerValueWrapper<AssignmentType>> load() {
+                    try {
+                        return loadEvaluatedAssignments(getContainerModel());
+                    } catch (CommonException e) {
+                        LOGGER.error("Couldn't load all assignments", e);
                     }
-                };
-            }
-            return allAssignmentModel;
+                    return getContainerModel().getObject().getValues();
+                }
+            };
+        }
+        return allAssignmentModel;
     }
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createDefaultColumns() {
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-
 
         columns.add(new AbstractColumn<>(createStringResource("DirectAndIndirectAssignmentPanel.column.type")) {
             @Override
@@ -130,7 +128,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
                 return "mp-w-md-1";
             }
         });
-        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getContainerModel(), AssignmentType.F_DESCRIPTION, ColumnType.STRING, getPageBase()){
+        columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getContainerModel(), AssignmentType.F_DESCRIPTION, ColumnType.STRING, getPageBase()) {
             @Override
             protected boolean isHelpTextVisible(boolean helpTextVisible) {
                 return false;
@@ -198,7 +196,7 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
     }
 
     @Override
-    protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+    protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
         return new AjaxLinkColumn<>(createStringResource("DirectAndIndirectAssignmentPanel.column.name")) {
             private static final long serialVersionUID = 1L;
 
@@ -293,16 +291,16 @@ public class DirectAndIndirectAssignmentPanel<AH extends AssignmentHolderType> e
                 Collections.singleton(delta), createPreviewAssignmentsOptions(), task, result);
         Collection<? extends EvaluatedAssignment> evaluatedAssignments = modelContext.getNonNegativeEvaluatedAssignments();
 
-            for (EvaluatedAssignment evaluatedAssignment : evaluatedAssignments) {
-                if (!evaluatedAssignment.isValid()) {
-                    continue;
-                }
-
-                collectRoleAndOrgs(evaluatedAssignment, parent, assignmentValueWrapperSet);
-                collectResources(evaluatedAssignment, parent, assignmentValueWrapperSet, task, result);
+        for (EvaluatedAssignment evaluatedAssignment : evaluatedAssignments) {
+            if (!evaluatedAssignment.isValid()) {
+                continue;
             }
 
-            return new ArrayList<>(assignmentValueWrapperSet);
+            collectRoleAndOrgs(evaluatedAssignment, parent, assignmentValueWrapperSet);
+            collectResources(evaluatedAssignment, parent, assignmentValueWrapperSet, task, result);
+        }
+
+        return new ArrayList<>(assignmentValueWrapperSet);
 
     }
 

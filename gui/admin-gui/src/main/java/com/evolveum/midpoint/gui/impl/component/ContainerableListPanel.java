@@ -11,20 +11,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
-import com.evolveum.midpoint.web.component.data.*;
-
-import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
@@ -33,9 +25,6 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -51,6 +40,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.component.search.*;
 import com.evolveum.midpoint.gui.impl.component.table.WidgetTableHeader;
 import com.evolveum.midpoint.gui.impl.page.admin.report.PageReport;
@@ -79,11 +69,14 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
+import com.evolveum.midpoint.web.component.data.*;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ContainerableNameColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.input.validator.NotNullValidator;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.SelectableRow;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
@@ -541,7 +534,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             if (nothingToTransform(customColumn)) {
                 continue;
             }
-            ItemPath columnPath = customColumn.getPath() == null ? null : customColumn.getPath().getItemPath();
+            ItemPath columnPath = getPath(customColumn);
             // TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
             ExpressionType expression = customColumn.getExport() != null ? customColumn.getExport().getExpression() : null;
             if (expression == null && noItemDefinitionFor(columnPath, customColumn)) {
@@ -551,10 +544,11 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             if (WebComponentUtil.getElementVisibility(customColumn.getVisibility())) {
                 IModel<String> columnDisplayModel = createColumnDisplayModel(customColumn);
                 if (customColumns.indexOf(customColumn) == 0 && shouldCheckForNameColumn) {
-                    column = createNameColumn(columnDisplayModel, customColumn, columnPath, expression);
+                    column = createNameColumn(columnDisplayModel, customColumn, expression);
                 } else {
-                    column = createCustomExportableColumn(columnDisplayModel, customColumn, columnPath, expression);
+                    column = createCustomExportableColumn(columnDisplayModel, customColumn, expression);
                 }
+
                 if (column != null) {
                     columns.add(column);
                 }
@@ -594,8 +588,22 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                         Model.of(customColumn.getName())));
     }
 
-    protected IColumn<PO, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
-        return new AbstractExportableColumn<>(columnDisplayModel, getSortProperty(customColumn, columnPath, expression)) {
+    protected ItemPath getPath(GuiObjectColumnType column) {
+        if (column == null) {
+            return null;
+        }
+
+        return column.getPath().getItemPath();
+    }
+
+    /**
+     * @param columnDisplayModel
+     * @param customColumn
+     * @param expression
+     * @return
+     */
+    protected IColumn<PO, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+        return new AbstractExportableColumn<>(columnDisplayModel, getSortProperty(customColumn, expression)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -615,6 +623,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             public IModel<?> getDataModel(IModel<PO> rowModel) {
+                ItemPath columnPath = getPath(customColumn);
+
                 return getExportableColumnDataModel(rowModel, customColumn, columnPath, expression);
             }
 
@@ -625,7 +635,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         };
     }
 
-    private String getSortProperty(GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expressionType) {
+    private String getSortProperty(GuiObjectColumnType customColumn, ExpressionType expressionType) {
         String sortProperty = customColumn.getSortProperty();
         if (sortProperty != null) {
             return sortProperty;
@@ -634,19 +644,29 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         // if there is an expression, it doesn't have a meaning to sort columns
         // because such sort will work according to data in repo and if the expression
         // somehow modify the data, it could be confusing
-        if (pathNotEmpty(columnPath) && expressionType == null) {
-            List<ItemPath> searchablePaths = getSearchablePaths(getType(), getPageBase());
+        if (expressionType != null) {
+            return null;
+        }
 
-            for (ItemPath searchablePath : searchablePaths) {
-                if (searchablePath.size() > 1) {
-                    //TODO: do we support such orderings in repo?
-                    continue; //eg. activation/administrative status.. sortParam (BaseSortableDataProvider) should be changes to ItemPath..
-                }
-                if (searchablePath.equivalent(columnPath)) {
-                    return columnPath.toString();
-                }
+        ItemPath path = getPath(customColumn);
+        if (path == null || path.isEmpty()) {
+            return null;
+        }
+
+        List<ItemPath> searchablePaths = getSearchablePaths(getType(), getPageBase());
+
+        ItemPath columnPath = getPath(customColumn);
+        for (ItemPath searchablePath : searchablePaths) {
+            if (searchablePath.size() > 1) {
+                //TODO: do we support such orderings in repo?
+                continue; //eg. activation/administrative status.. sortParam (BaseSortableDataProvider) should be changes to ItemPath..
+            }
+
+            if (searchablePath.equivalent(columnPath)) {
+                return columnPath.toString();
             }
         }
+
         return null;
     }
 
@@ -671,10 +691,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         }
 
         return addSuperSearchablePaths(superClass, typePaths);
-    }
-
-    private boolean pathNotEmpty(ItemPath columnPath) {
-        return columnPath != null && !columnPath.isEmpty();
     }
 
     protected IModel<?> getExportableColumnDataModel(IModel<PO> rowModel, GuiObjectColumnType customColumn, ItemPath columnPath, ExpressionType expression) {
@@ -867,7 +883,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         if (others == null) {
             return columns;
         } else if (notContainsNameColumn(others)) {
-            IColumn<PO, String> nameColumn = createNameColumn(null, null, null, null);
+            IColumn<PO, String> nameColumn = createNameColumn(null, null, null);
             if (nameColumn != null) {
                 columns.add(nameColumn);
             }
@@ -880,8 +896,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
         return columns;
     }
 
-    protected boolean notContainsNameColumn(List<IColumn<PO, String>> columns) {
-        return true;
+    protected boolean notContainsNameColumn(@NotNull List<IColumn<PO, String>> columns) {
+        return columns.stream().noneMatch(c -> c instanceof ContainerableNameColumn);
     }
 
     protected IColumn<PO, String> createCheckboxColumn() {
@@ -890,11 +906,17 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     protected abstract IColumn<PO, String> createIconColumn();
 
-    protected IColumn<PO, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+    protected IColumn<PO, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
         return null;
     }
 
-    protected abstract List<IColumn<PO, String>> createDefaultColumns();
+    protected List<IColumn<PO, String>> createDefaultColumns() {
+        GuiObjectListViewType defaultView = DefaultColumnUtils.getDefaultView(getType());
+        if (defaultView == null) {
+            return null;
+        }
+        return getViewColumnsTransformed(defaultView.getColumn());
+    }
 
     protected List<InlineMenuItem> createInlineMenu() {
         return null;
@@ -1114,8 +1136,9 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     protected boolean isCollectionViewPanelForCompiledView() {
-        return WebComponentUtil.getCollectionNameParameterValue(getPageBase()) != null
-                && WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() != null;
+        StringValue param = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
+
+        return param != null && param.toString() != null;
     }
 
     protected boolean isCollectionViewPanel() {
@@ -1353,7 +1376,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                                     && ((ValidatorAdapter) behaviour).getValidator() instanceof NotNullValidator)
                             .map(adapter -> ((ValidatorAdapter) adapter).getValidator())
                             .forEach(validator -> ((NotNullValidator) validator).setUseModel(true));
-                    ((FormComponent)baseFormComponent).validate();
+                    ((FormComponent) baseFormComponent).validate();
                 }
                 if (baseFormComponent.hasErrorMessage()) {
                     valid.set(false);

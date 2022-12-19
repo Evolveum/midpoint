@@ -10,17 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import org.apache.commons.collections4.CollectionUtils;
-
-import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
-
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -58,6 +48,9 @@ import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapper
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractObjectMainPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.ShadowPanel;
@@ -65,11 +58,17 @@ import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.schema.processor.ResourceSchemaFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -80,12 +79,13 @@ import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.component.search.SearchValue;
 import com.evolveum.midpoint.web.component.util.ProjectionsListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -133,7 +133,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         MultivalueContainerListPanelWithDetailsPanel<ShadowType> multivalueContainerListPanel =
                 new MultivalueContainerListPanelWithDetailsPanel<ShadowType>(ID_SHADOW_TABLE, ShadowType.class, getPanelConfiguration()) {
 
-            private static final long serialVersionUID = 1L;
+                    private static final long serialVersionUID = 1L;
 
                     @Override
                     protected ISelectableDataProvider<PrismContainerValueWrapper<ShadowType>> createProvider() {
@@ -161,7 +161,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
                             @Override
                             protected void addPerformed(AjaxRequestTarget target, QName type,
-                                                        List<ResourceType> selected) {
+                                    List<ResourceType> selected) {
                                 FocusProjectionsPanel.this.addSelectedAccountPerformed(target,
                                         selected);
                                 target.add(getPageBase().getFeedbackPanel());
@@ -184,7 +184,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                         return null;
                     }
 
-
                     @Override
                     protected TableId getTableId() {
                         return TableId.FOCUS_PROJECTION_TABLE;
@@ -196,8 +195,8 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     }
 
                     @Override
-                    protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
-                        return createProjectionNameColumn(displayModel, customColumn, itemPath, expression);
+                    protected IColumn<PrismContainerValueWrapper<ShadowType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+                        return createProjectionNameColumn(displayModel, customColumn, expression);
                     }
 
                     @Override
@@ -268,7 +267,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     }
 
                     @Override
-                    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<ShadowType> containerDef){
+                    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<ShadowType> containerDef) {
                         List<? super AbstractSearchItemWrapper> defs = new ArrayList<>();
 
                         SearchFactory.addSearchRefWrapper(containerDef, ShadowType.F_RESOURCE_REF, defs, AreaCategoryType.ADMINISTRATION, getPageBase());
@@ -289,13 +288,15 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         setOutputMarkupId(true);
     }
 
-    private IColumn<PrismContainerValueWrapper<ShadowType>, String> createProjectionNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+    private IColumn<PrismContainerValueWrapper<ShadowType>, String> createProjectionNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
         if (expression != null) {
             return new AjaxLinkColumn<>(displayModel) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+                    ItemPath itemPath = customColumn.getPath() != null ? customColumn.getPath().getItemPath() : null;
+
                     return new LoadableModel<>() {
                         @Override
                         protected String load() {
@@ -310,7 +311,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                         }
                     };
                 }
-
 
                 @Override
                 public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
@@ -335,11 +335,11 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
     private IModel<List<PrismContainerValueWrapper<ShadowType>>> loadShadowModel() {
         return () -> {
-                List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
-                for (ShadowWrapper projection : getProjectionsModel().getObject()) {
-                    items.add(projection.getValue());
-                }
-                return items;
+            List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<>();
+            for (ShadowWrapper projection : getProjectionsModel().getObject()) {
+                items.add(projection.getValue());
+            }
+            return items;
         };
     }
 
@@ -395,7 +395,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         }
 
         if (shadowWrapper.isLoadWithNoFetch()) {
-            loadFullShadow((PrismObjectValueWrapper)rowModel.getObject(), target);
+            loadFullShadow((PrismObjectValueWrapper) rowModel.getObject(), target);
         }
     }
 
@@ -491,7 +491,6 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
     private IModel<ShadowWrapper> getParentModel(IModel<PrismContainerValueWrapper<ShadowType>> model) {
         return new PropertyModel<>(model, "parent");
     }
-
 
     private List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> initBasicColumns() {
 
@@ -818,7 +817,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
         return true;
     }
 
-//TODO this is probably whole wrong .. we should not rely that the activation will be available. it is available only after full load..
+    //TODO this is probably whole wrong .. we should not rely that the activation will be available. it is available only after full load..
     private void updateShadowActivation(AjaxRequestTarget target,
             List<PrismContainerValueWrapper<ShadowType>> accounts, boolean enabled) {
 
