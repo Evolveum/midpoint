@@ -39,8 +39,7 @@ public class TilePanel<T extends Serializable> extends BasePanel<Tile<T>> {
         add(AttributeAppender.append("class", () -> getModelObject().isSelected() ? "active" : null));
         setOutputMarkupId(true);
 
-        WebMarkupContainer icon = new WebMarkupContainer(ID_ICON);
-        icon.add(AttributeAppender.append("class", () -> getModelObject().getIcon()));
+        WebMarkupContainer icon = createIconPanel(ID_ICON);
         add(icon);
 
         add(new Label(ID_TITLE, () -> {
@@ -55,6 +54,12 @@ public class TilePanel<T extends Serializable> extends BasePanel<Tile<T>> {
                 TilePanel.this.onClick(target);
             }
         });
+    }
+
+    protected WebMarkupContainer createIconPanel(String idIcon) {
+        WebMarkupContainer icon = new WebMarkupContainer(idIcon);
+        icon.add(AttributeAppender.append("class", () -> getModelObject().getIcon()));
+        return icon;
     }
 
     protected void onClick(AjaxRequestTarget target) {

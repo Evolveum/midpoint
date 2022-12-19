@@ -1774,3 +1774,13 @@ th.debug-list-buttons {
     }
   }
 }
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+  $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+  @include media-breakpoint-up($breakpoint, $grid-breakpoints) {
+
+    .col#{$infix}-2\.4 {
+      @include make-col(2.4, $grid-columns);
+    }
+  }
+}

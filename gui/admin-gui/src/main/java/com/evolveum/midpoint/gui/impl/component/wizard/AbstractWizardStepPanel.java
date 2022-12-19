@@ -4,14 +4,18 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
+package com.evolveum.midpoint.gui.impl.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.wizard.BasicWizardStepPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -20,14 +24,15 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPanel {
+public abstract class AbstractWizardStepPanel<O extends ObjectType, ODM extends ObjectDetailsModels<O>>
+        extends BasicWizardStepPanel {
 
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
 
-    private final ResourceDetailsModel resourceModel;
-    public AbstractResourceWizardStepPanel(ResourceDetailsModel model){
-        this.resourceModel = model;
+    private final ODM detailsModel;
+    public AbstractWizardStepPanel(ODM model){
+        this.detailsModel = model;
     }
 
     @Override
@@ -48,8 +53,8 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPan
         feedbackContainer.add(feedbackList);
     }
 
-    public ResourceDetailsModel getResourceModel() {
-        return resourceModel;
+    public ODM getDetailsModel() {
+        return detailsModel;
     }
 
 //    @Override
@@ -88,5 +93,9 @@ public abstract class AbstractResourceWizardStepPanel extends BasicWizardStepPan
             return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
         }
         return super.getStepsBehaviour();
+    }
+
+    protected ContainerPanelConfigurationType getContainerConfiguration(String panelType) {
+        return WebComponentUtil.getContainerConfiguration(getDetailsModel().getObjectDetailsPageConfiguration().getObject(), panelType);
     }
 }

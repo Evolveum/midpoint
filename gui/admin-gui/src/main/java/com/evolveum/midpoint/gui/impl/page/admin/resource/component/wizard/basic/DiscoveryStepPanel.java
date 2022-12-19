@@ -8,10 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -57,12 +55,12 @@ public class DiscoveryStepPanel extends AbstractConfigurationStepPanel {
 
         try {
             DiscoveredConfiguration discoverProperties = pageBase.getModelService().discoverResourceConnectorConfiguration(
-                    getResourceModel().getObjectWrapper().getObjectApplyDelta(), result);
+                    getDetailsModel().getObjectWrapper().getObjectApplyDelta(), result);
 
             for (PrismProperty<?> suggestion : discoverProperties.getDiscoveredProperties()) {
                 PrismPropertyDefinition<?> suggestionDef = suggestion.getDefinition();
 
-                PrismPropertyWrapper<Object> item = getResourceModel().getObjectWrapper().findProperty(
+                PrismPropertyWrapper<Object> item = getDetailsModel().getObjectWrapper().findProperty(
                         ItemPath.create(
                                 "connectorConfiguration",
                                 "configurationProperties",

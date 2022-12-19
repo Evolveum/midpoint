@@ -4,20 +4,21 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
+package com.evolveum.midpoint.gui.impl.component.wizard;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismPropertyValuePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -25,25 +26,19 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-public abstract class AbstractFormResourceWizardStepPanel extends AbstractResourceWizardStepPanel {
+public abstract class AbstractFormWizardStepPanel<O extends ObjectType, ODM extends ObjectDetailsModels<O>>
+        extends AbstractWizardStepPanel<O, ODM> {
 
     private static final String ID_FORM = "form";
 
-    private final ResourceDetailsModel resourceModel;
-
-    public AbstractFormResourceWizardStepPanel(ResourceDetailsModel model) {
+    public AbstractFormWizardStepPanel(ODM model) {
         super(model);
-        this.resourceModel = model;
     }
 
     @Override
     protected void onInitialize() {
         super.onInitialize();
         initLayout();
-    }
-
-    public ResourceDetailsModel getResourceModel() {
-        return resourceModel;
     }
 
     protected void initLayout() {
@@ -54,7 +49,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
         VerticalFormPanel panel = new VerticalFormPanel(ID_FORM, getContainerFormModel(), settings, getContainerConfiguration()) {
             @Override
             protected String getIcon() {
-                return AbstractFormResourceWizardStepPanel.this.getIcon();
+                return AbstractFormWizardStepPanel.this.getIcon();
             }
 
             @Override
@@ -64,7 +59,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
 
             @Override
             protected WrapperContext createWrapperContext() {
-                return resourceModel.createWrapperContext();
+                return getDetailsModel().createWrapperContext();
             }
         };
         panel.setOutputMarkupId(true);
@@ -72,7 +67,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
     }
 
     protected IModel<? extends PrismContainerWrapper> getContainerFormModel() {
-        return this.resourceModel.getObjectWrapperModel();
+        return this.getDetailsModel().getObjectWrapperModel();
     }
 
     protected ItemVisibilityHandler getVisibilityHandler() {
@@ -82,7 +77,7 @@ public abstract class AbstractFormResourceWizardStepPanel extends AbstractResour
     protected abstract String getIcon();
 
     protected ContainerPanelConfigurationType getContainerConfiguration() {
-        return WebComponentUtil.getContainerConfiguration(resourceModel.getObjectDetailsPageConfiguration().getObject(), getPanelType());
+        return getContainerConfiguration(getPanelType());
     }
 
     protected abstract String getPanelType();

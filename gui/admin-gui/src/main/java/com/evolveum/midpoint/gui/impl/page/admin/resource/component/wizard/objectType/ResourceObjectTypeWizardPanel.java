@@ -10,7 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -21,7 +25,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.ActivationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations.AssociationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.attributeMapping.AttributeMappingWizardPanel;
@@ -40,13 +44,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 /**
  * @author lskublik
  */
-public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
+public class ResourceObjectTypeWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectTypeWizardPanel.class);
 
     public ResourceObjectTypeWizardPanel(
             String id,
-            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> helper) {
+            WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
     }
 
@@ -61,21 +65,21 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
     private List<WizardStep> createNewObjectTypeSteps() {
         List<WizardStep> steps = new ArrayList<>();
 
-        steps.add(new BasicSettingResourceObjectTypeStepPanel(getResourceModel(), getValueModel()) {
+        steps.add(new BasicSettingResourceObjectTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 ResourceObjectTypeWizardPanel.this.onExitPerformed(target);
             }
         });
 
-        steps.add(new DelineationResourceObjectTypeStepPanel(getResourceModel(), getValueModel()) {
+        steps.add(new DelineationResourceObjectTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 ResourceObjectTypeWizardPanel.this.onExitPerformed(target);
             }
         });
 
-        steps.add(new FocusResourceObjectTypeStepPanel(getResourceModel(), getValueModel()) {
+        steps.add(new FocusResourceObjectTypeStepPanel(getAssignmentHolderModel(), getValueModel()) {
 
             @Override
             protected IModel<?> getSubmitLabelModel() {
@@ -90,7 +94,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                 if (isSavedAfterDetailsWizard()) {
                     OperationResult result = onSaveResourcePerformed(target);
                     if (result != null && !result.isError()) {
-                        WebComponentUtil.createToastForUpdateResource(target, this);
+                        WebComponentUtil.createToastForUpdateObject(target, this, ResourceType.COMPLEX_TYPE);
 
                         getHelper().setValueModel(refreshValueModel(ResourceObjectTypeWizardPanel.this.getValueModel()));
                         showObjectTypePreviewFragment(ResourceObjectTypeWizardPanel.this.getValueModel(), target);
@@ -117,9 +121,9 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
 
     private void showObjectTypePreviewFragment(
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> model, AjaxRequestTarget target) {
-        showChoiceFragment(target, new ResourceObjectTypeWizardPreviewPanel(getIdOfChoicePanel(), getResourceModel(), model) {
+        showChoiceFragment(target, new ResourceObjectTypeWizardPreviewPanel(getIdOfChoicePanel(), getAssignmentHolderModel(), model) {
             @Override
-            protected void onResourceTileClick(ResourceObjectTypePreviewTileType value, AjaxRequestTarget target) {
+            protected void onTileClickPerformed(ResourceObjectTypePreviewTileType value, AjaxRequestTarget target) {
                 switch (value) {
                     case PREVIEW_DATA:
                         showTableForDataOfCurrentlyObjectType(target, getValueModel());
@@ -215,9 +219,9 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
         );
     }
 
-    private ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> createHelper(
+    private WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> createHelper(
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        return new ResourceWizardPanelHelper<>(getResourceModel(), valueModel) {
+        return new WizardPanelHelper<>(getAssignmentHolderModel(), valueModel) {
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
                 showObjectTypePreviewFragment(getValueModel(), target);
@@ -243,7 +247,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
             AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         showChoiceFragment(target, new PreviewResourceObjectTypeDataWizardPanel(
                 getIdOfChoicePanel(),
-                getResourceModel(),
+                getAssignmentHolderModel(),
                 valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
@@ -262,10 +266,10 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                 @Override
                 protected PrismContainerValueWrapper<C> load() {
                     try {
-                        return getResourceModel().getObjectWrapper().findContainerValue(path);
+                        return getAssignmentHolderModel().getObjectWrapper().findContainerValue(path);
                     } catch (SchemaException e) {
                         LOGGER.error("Cannot find container value wrapper, \nparent: {}, \npath: {}",
-                                getResourceModel().getObjectWrapper(), path);
+                                getAssignmentHolderModel().getObjectWrapper(), path);
                     }
                     return null;
                 }
@@ -289,9 +293,9 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
 
                 try {
                     if (pathWithId != null) {
-                        return getResourceModel().getObjectWrapper().findContainerValue(pathWithId);
+                        return getAssignmentHolderModel().getObjectWrapper().findContainerValue(pathWithId);
                     }
-                    PrismContainerWrapper<C> container = getResourceModel().getObjectWrapper().findContainer(itemPath);
+                    PrismContainerWrapper<C> container = getAssignmentHolderModel().getObjectWrapper().findContainer(itemPath);
                     PrismContainerValueWrapper<C> ret = null;
                     for (PrismContainerValueWrapper<C> value : container.getValues()) {
                         if (ret == null || ret.getNewValue().getId() == null
@@ -305,7 +309,7 @@ public class ResourceObjectTypeWizardPanel extends AbstractResourceWizardPanel<R
                     return ret;
                 } catch (SchemaException e) {
                     LOGGER.error("Cannot find container value wrapper, \nparent: {}, \npath: {}",
-                            getResourceModel().getObjectWrapper(), pathWithId);
+                            getAssignmentHolderModel().getObjectWrapper(), pathWithId);
                 }
                 return null;
             }

@@ -149,7 +149,17 @@ public abstract class PageBase extends PageAdminLTE {
     }
 
     protected void createBreadcrumb() {
-        addBreadcrumb(new Breadcrumb(getPageTitleModel(), this.getClass(), getPageParameters()));
+        PageParameters pageParameters = getPageParameters();
+        removePageParametersIfNeeded(pageParameters);
+        addBreadcrumb(new Breadcrumb(getPageTitleModel(), this.getClass(), pageParameters));
+    }
+
+    private void removePageParametersIfNeeded(PageParameters parameters) {
+        pageParametersToBeRemoved().forEach(parameters::remove);
+    }
+
+    protected List<String> pageParametersToBeRemoved() {
+        return new ArrayList<>();
     }
 
     public void updateBreadcrumbParameters(String key, Object value) {

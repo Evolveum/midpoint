@@ -4,36 +4,37 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basic;
+package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import org.apache.wicket.model.IModel;
 
 /**
  * @author lskublik
  */
-@PanelType(name = "rw-basic")
-@PanelInstance(identifier = "rw-basic",
-        applicableForType = ResourceType.class,
+@PanelType(name = "roleWizard-basic")
+@PanelInstance(identifier = "roleWizard-basic",
+        applicableForType = RoleType.class,
         applicableForOperation = OperationTypeType.ADD,
-        display = @PanelDisplay(label = "PageResource.wizard.step.basicInformation", icon = "fa fa-wrench"),
+        display = @PanelDisplay(label = "PageRole.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<ResourceType, ResourceDetailsModel> {
+public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<RoleType, FocusDetailsModels<RoleType>> {
 
-    private static final String PANEL_TYPE = "rw-basic";
+    private static final String PANEL_TYPE = "roleWizard-basic";
 
-    public BasicInformationStepPanel(ResourceDetailsModel model) {
+    public BasicInformationStepPanel(FocusDetailsModels<RoleType> model) {
         super(model);
     }
 
@@ -55,17 +56,17 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Resou
 
     @Override
     public IModel<String> getTitle() {
-        return createStringResource("PageResource.wizard.step.basicInformation");
+        return createStringResource("PageRole.wizard.step.basicInformation");
     }
 
     @Override
     protected IModel<?> getTextModel() {
-        return createStringResource("PageResource.wizard.step.basicInformation.text");
+        return createStringResource("PageRole.wizard.step.basicInformation.text");
     }
 
     @Override
     protected IModel<?> getSubTextModel() {
-        return createStringResource("PageResource.wizard.step.basicInformation.subText");
+        return createStringResource("PageRole.wizard.step.basicInformation.subText");
     }
 
     protected boolean checkMandatory(ItemWrapper itemWrapper) {
@@ -75,13 +76,13 @@ public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<Resou
         return itemWrapper.isMandatory();
     }
 
-    @Override
-    protected ItemVisibilityHandler getVisibilityHandler() {
-        return wrapper -> {
-            if (wrapper.getItemName().equals(ResourceType.F_CONNECTOR_REF)) {
-                return ItemVisibility.HIDDEN;
-            }
-            return ItemVisibility.AUTO;
-        };
-    }
+    //    @Override
+//    protected ItemVisibilityHandler getVisibilityHandler() {
+//        return wrapper -> {
+//            if (wrapper.getItemName().equals(ResourceType.F_CONNECTOR_REF)) {
+//                return ItemVisibility.HIDDEN;
+//            }
+//            return ItemVisibility.AUTO;
+//        };
+//    }
 }

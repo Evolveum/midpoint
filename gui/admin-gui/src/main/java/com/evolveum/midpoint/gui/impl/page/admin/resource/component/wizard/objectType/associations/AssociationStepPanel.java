@@ -30,7 +30,8 @@ import org.apache.wicket.model.IModel;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.associations", icon = "fa fa-shield"),
         expanded = true)
-public class AssociationStepPanel extends AbstractValueFormResourceWizardStepPanel<ResourceObjectAssociationType> {
+public class AssociationStepPanel
+        extends AbstractValueFormResourceWizardStepPanel<ResourceObjectAssociationType, ResourceType, ResourceDetailsModel> {
 
     public static final String PANEL_TYPE = "rw-association";
 

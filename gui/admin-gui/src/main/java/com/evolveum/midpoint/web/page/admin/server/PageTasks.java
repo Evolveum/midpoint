@@ -233,4 +233,9 @@ public class PageTasks extends PageAdmin {
     private Long xgc2long(XMLGregorianCalendar gc) {
         return gc != null ? XmlTypeConverter.toMillis(gc) : null;
     }
+
+    @Override
+    protected List<String> pageParametersToBeRemoved() {
+        return List.of(PageBase.PARAMETER_SEARCH_BY_NAME);
+    }
 }

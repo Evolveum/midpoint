@@ -25,7 +25,8 @@ import org.apache.wicket.model.IModel;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.synchronization.reaction.mainSettings", icon = "fa fa-wrench"),
         expanded = true)
-public class ReactionMainSettingStepPanel extends AbstractValueFormResourceWizardStepPanel<SynchronizationReactionType> {
+public class ReactionMainSettingStepPanel
+        extends AbstractValueFormResourceWizardStepPanel<SynchronizationReactionType, ResourceType, ResourceDetailsModel> {
 
     public static final String PANEL_TYPE = "rw-synchronization-reaction-main";
 
