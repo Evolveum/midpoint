@@ -81,20 +81,20 @@ public class DateSearchItemWrapper extends PropertySearchItemWrapper<XMLGregoria
         if (singleDate != null && intervalSecondDate != null) {
             return ctx.queryFor(type)
                     .item(path)
-                    .gt(singleDate)
+                    .ge(singleDate)
                     .and()
                     .item(path)
-                    .lt(intervalSecondDate)
+                    .le(intervalSecondDate)
                     .buildFilter();
         } else if (singleDate != null) {
             return ctx.queryFor(type)
                     .item(path)
-                    .gt(singleDate)
+                    .ge(singleDate)
                     .buildFilter();
         } else if (intervalSecondDate != null) {
             return ctx.queryFor(type)
                     .item(path)
-                    .lt(intervalSecondDate)
+                    .le(intervalSecondDate)
                     .buildFilter();
         }
         return null;
