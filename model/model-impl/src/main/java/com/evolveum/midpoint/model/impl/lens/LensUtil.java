@@ -838,28 +838,33 @@ public class LensUtil {
                 ResourceTypeUtil.getEnabledCapability(projCtx.getResource(), CredentialsCapabilityType.class));
     }
 
-    public static boolean evaluateBoolean(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
+    public static boolean evaluateBoolean(
+            ExpressionType expressionBean,
+            VariablesMap VariablesMap,
+            String contextDescription,
+            ExpressionFactory expressionFactory,
+            Task task,
             OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return evaluateExpressionSingle(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
-                task, result,
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return evaluateExpressionSingle(
+                expressionBean, VariablesMap, contextDescription, expressionFactory, task, result,
                 DOMUtil.XSD_BOOLEAN, false, null);
     }
 
     public static String evaluateString(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return evaluateExpressionSingle(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
-                task, result,
+            String contextDescription, ExpressionFactory expressionFactory, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return evaluateExpressionSingle(
+                expressionBean, VariablesMap, contextDescription, expressionFactory, task, result,
                 DOMUtil.XSD_STRING, null, null);
     }
 
     public static LocalizableMessageType evaluateLocalizableMessageType(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            String contextDescription, ExpressionFactory expressionFactory, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         Function<Object, Object> additionalConvertor = (o) -> {
             if (o == null || o instanceof LocalizableMessageType) {
                 return o;
@@ -869,16 +874,16 @@ public class LensUtil {
                 return new SingleLocalizableMessageType().fallbackMessage(String.valueOf(o));
             }
         };
-        return evaluateExpressionSingle(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
-                task, result, LocalizableMessageType.COMPLEX_TYPE, null, additionalConvertor);
+        return evaluateExpressionSingle(
+                expressionBean, VariablesMap, contextDescription, expressionFactory, task, result,
+                LocalizableMessageType.COMPLEX_TYPE, null, additionalConvertor);
     }
 
-    public static <T> T evaluateExpressionSingle(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
-            OperationResult result, QName typeName,
+    private static <T> T evaluateExpressionSingle(ExpressionType expressionBean, VariablesMap VariablesMap,
+            String contextDescription, ExpressionFactory expressionFactory, Task task, OperationResult result, QName typeName,
             T defaultValue, Function<Object, Object> additionalConvertor)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().createPropertyDefinition(
+        PrismPropertyDefinition<T> resultDef = PrismContext.get().definitionFactory().createPropertyDefinition(
                 new QName(SchemaConstants.NS_C, "result"), typeName);
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
                 expressionFactory.makeExpression(expressionBean, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
@@ -893,8 +898,8 @@ public class LensUtil {
     }
 
     @NotNull
-    public static SingleLocalizableMessageType interpretLocalizableMessageTemplate(LocalizableMessageTemplateType template,
-            VariablesMap var, ExpressionFactory expressionFactory, PrismContext prismContext,
+    public static SingleLocalizableMessageType interpretLocalizableMessageTemplate(
+            LocalizableMessageTemplateType template, VariablesMap var, ExpressionFactory expressionFactory,
             Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
@@ -902,14 +907,17 @@ public class LensUtil {
         if (template.getKey() != null) {
             rv.setKey(template.getKey());
         } else if (template.getKeyExpression() != null) {
-            rv.setKey(evaluateString(template.getKeyExpression(), var, "localizable message key expression", expressionFactory, prismContext, task, result));
+            rv.setKey(
+                    evaluateString(
+                            template.getKeyExpression(), var, "localizable message key expression", expressionFactory,
+                            task, result));
         }
         if (!template.getArgument().isEmpty() && !template.getArgumentExpression().isEmpty()) {
             throw new IllegalArgumentException("Both argument and argumentExpression items are non empty");
         } else if (!template.getArgumentExpression().isEmpty()) {
             for (ExpressionType argumentExpression : template.getArgumentExpression()) {
                 LocalizableMessageType argument = evaluateLocalizableMessageType(argumentExpression, var,
-                        "localizable message argument expression", expressionFactory, prismContext, task, result);
+                        "localizable message argument expression", expressionFactory, task, result);
                 rv.getArgument().add(new LocalizableMessageArgumentType().localizable(argument));
             }
         } else {
@@ -920,12 +928,14 @@ public class LensUtil {
             rv.setFallbackMessage(template.getFallbackMessage());
         } else if (template.getFallbackMessageExpression() != null) {
             rv.setFallbackMessage(evaluateString(template.getFallbackMessageExpression(), var,
-                    "localizable message fallback expression", expressionFactory, prismContext, task, result));
+                    "localizable message fallback expression", expressionFactory, task, result));
         }
         return rv;
     }
 
-    public static <F extends ObjectType> void reclaimSequences(LensContext<F> context, RepositoryService repositoryService, Task task, OperationResult result) throws SchemaException {
+    public static <F extends ObjectType> void reclaimSequences(
+            LensContext<F> context, RepositoryService repositoryService, Task task, OperationResult result)
+            throws SchemaException {
         if (context == null) {
             return;
         }
