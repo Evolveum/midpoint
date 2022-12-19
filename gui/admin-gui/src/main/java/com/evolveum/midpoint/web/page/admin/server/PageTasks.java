@@ -235,7 +235,7 @@ public class PageTasks extends PageAdmin {
     }
 
     @Override
-    protected List<String> pageParametersToBeRemovedFromBreadcrumb() {
+    protected List<String> pageParametersToBeRemoved() {
         return List.of(PageBase.PARAMETER_SEARCH_BY_NAME);
     }
 }
