@@ -11,6 +11,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.evolveum.midpoint.authentication.api.AuthModule;
+import com.evolveum.midpoint.authentication.impl.factory.module.AuthModuleRegistryImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.ModuleAuthenticationImpl;
 import com.evolveum.midpoint.authentication.impl.util.AuthSequenceUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
@@ -24,7 +26,9 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -39,6 +43,8 @@ import com.evolveum.midpoint.authentication.impl.module.configuration.ModuleWebS
  */
 public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
 
+    @Autowired
+    private AuthModuleRegistryImpl authModuleRegistry;
     private String defaultTargetUrl;
 
     public MidPointAuthenticationSuccessHandler() {
@@ -70,7 +76,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
             if (mpAuthentication.getAuthenticationChannel() != null) {
                 authenticatedChannel = mpAuthentication.getAuthenticationChannel().getChannelId();
                 boolean continueSequence = false;
-                if (mpAuthentication.getPrincipal() instanceof MidPointPrincipal) {
+                if (mpAuthentication.getPrincipal() instanceof MidPointPrincipal) {         //todo refactor, move to methods
                     MidPointPrincipal principal = (MidPointPrincipal) mpAuthentication.getPrincipal();
                     SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
                     if (securityPolicy != null) {
@@ -78,6 +84,15 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                         AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, processingSequence.getIdentifier());
                         if (processingSequence.getModule().size() != sequence.getModule().size()) {
                             continueSequence = true;
+                            mpAuthentication.setSequence(sequence);
+                            mpAuthentication.setAuthModules(AuthSequenceUtil.buildModuleFilters(
+                                    authModuleRegistry, sequence, request, securityPolicy.getAuthentication().getModules(),
+                                    securityPolicy.getCredentials(), mpAuthentication.getSharedObjects(), mpAuthentication.getAuthenticationChannel()));
+                            mpAuthentication.setMerged(true);
+                            AuthModule module = getUnauthenticatedModule(mpAuthentication);
+//                            if (module != null) {
+//                                mpAuthentication.addAuthentications(module.getBaseModuleAuthentication());
+//                            }
                         }
                     }
                 }
@@ -118,6 +133,25 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         }
 
         super.onAuthenticationSuccess(request, response, authentication);
+    }
+
+    private AuthModule getUnauthenticatedModule(MidpointAuthentication mpAuthentication) {
+        if (CollectionUtils.isEmpty(mpAuthentication.getAuthModules())) {
+            return null;
+        }
+        return mpAuthentication.getAuthModules().stream()
+                .filter(module -> !authModuleAlreadyProcessed(mpAuthentication, module.getModuleIdentifier()))
+                .findFirst()
+                .orElse(null);
+    }
+
+
+    private boolean authModuleAlreadyProcessed(MidpointAuthentication mpAuthentication, String moduleIdentifier) {
+        if (CollectionUtils.isEmpty(mpAuthentication.getAuthentications())) {
+            return false;
+        }
+        return mpAuthentication.getAuthentications().stream().anyMatch(auth -> auth.getModuleIdentifier().equals(moduleIdentifier)
+                && AuthenticationModuleState.SUCCESSFULLY.equals(auth.getState()));
     }
 
     @Override

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.authentication.api.config;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import com.evolveum.midpoint.authentication.api.AuthModule;
@@ -17,6 +18,8 @@ import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 import org.apache.commons.lang3.Validate;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -38,7 +41,9 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     /**
      * Configuration of sequence from xml
      */
-    private final AuthenticationSequenceType sequence;
+    private AuthenticationSequenceType sequence;
+    private Map<Class<?>, Object> sharedObjects;
+
 
     /**
      * Authentications for modules of sequence
@@ -64,8 +69,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
     private Object credential;
     private String sessionId;
     private Collection<? extends GrantedAuthority> authorities = AuthorityUtils.NO_AUTHORITIES;
-    public static int NO_PROCESSING_MODULE_INDEX = -2;
-    public static int NO_MODULE_FOUND_INDEX = -1;
+    public static final int NO_PROCESSING_MODULE_INDEX = -2;
+    public static final int NO_MODULE_FOUND_INDEX = -1;
     private boolean merged = false;
 
 
@@ -85,6 +90,18 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     public AuthenticationSequenceType getSequence() {
         return sequence;
+    }
+
+    public void setSequence(AuthenticationSequenceType sequence) {
+        this.sequence = sequence;
+    }
+
+    public Map<Class<?>, Object> getSharedObjects() {
+        return sharedObjects;
+    }
+
+    public void setSharedObjects(Map<Class<?>, Object> sharedObjects) {
+        this.sharedObjects = sharedObjects;
     }
 
     public AuthenticationChannel getAuthenticationChannel() {
@@ -150,24 +167,15 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     @Override
     public boolean isAuthenticated() {
-        List<AuthModule> modules = getAuthModules();
+        List<AuthenticationSequenceModuleType> modules = sequence.getModule();
         if (modules.isEmpty()) {
             return false;
         }
-        for (AuthModule module : modules) {
-            ModuleAuthentication authentication = getAuthenticationByIdentifier(module.getModuleIdentifier());
-            if (authentication == null) {
-                continue;
-            }
-            //TODO we will complete after supporting of full "necessity"
-//            if (AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(authentication.getNecessity())) {
-                if (!AuthenticationModuleState.SUCCESSFULLY.equals(authentication.getState())) {
-                    return false;
-                }
-//            }
-
-        }
-        return true;
+        //todo
+        boolean isAuth = modules.stream().filter(m -> getAuthenticationByIdentifier(m.getIdentifier()) == null).findAny().isEmpty() &&
+                modules.stream().filter(m ->
+                        !AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState())).findAny().isEmpty();
+        return isAuth;
     }
 
     public ModuleAuthentication getAuthenticationByIdentifier(String moduleIdentifier) {
