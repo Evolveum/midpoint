@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.abstractrole.component;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -21,7 +22,10 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelType;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -35,25 +39,25 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.IResource;
-import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.util.MiscUtil.sleepWatchfully;
 
 @PanelType(name = "governanceCards")
 @PanelDisplay(label = "GovernanceCardsPanel.label", icon = GuiStyleConstants.CLASS_GROUP_ICON, order = 91)
@@ -169,11 +173,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                         unassignButton.showTitleAsLabel(true);
                         repView.add(unassignButton);
 
-                        List<InlineMenuItem> actions = new ArrayList<>();
-                        createRecomputeMemberRowAction(actions);
-                        createAddMemberRowAction(actions);
-                        createDeleteMemberRowAction(actions);
-                        createUnselectAllAction(actions);
+                        List<InlineMenuItem> actions = createToolbarMenuActions();
 
                         DropdownButtonPanel menu = new DropdownButtonPanel(
                                 repView.newChildId(),
@@ -224,55 +224,12 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
                     @Override
                     protected Component createTile(String id, IModel<TemplateTile<SelectableBean<FocusType>>> model) {
-                        return new MemberTilePanel<>(id, model) {
-
-                            @Override
-                            protected void onUnassign(AjaxRequestTarget target) {
-                                unassignMembersPerformed(new PropertyModel<>(model, "value"), target);
-                            }
-
-                            @Override
-                            protected void onDetails(AjaxRequestTarget target) {
-                                SelectableBean<FocusType> bean = model.getObject().getValue();
-                                if (WebComponentUtil.hasDetailsPage(bean.getValue().getClass())) {
-                                    WebComponentUtil.dispatchToObjectDetailsPage(
-                                            bean.getValue().getClass(), bean.getValue().getOid(), this, true);
-                                } else {
-                                    error("Could not find proper response page");
-                                    throw new RestartResponseException(getPageBase());
-                                }
-                            }
-
-                            @Override
-                            protected void onClick(AjaxRequestTarget target) {
-                                super.onClick(target);
-                                getModelObject().getValue().setSelected(getModelObject().isSelected());
-                            }
-
-                            @Override
-                            protected IModel<IResource> createPreferredImage(IModel<TemplateTile<SelectableBean<FocusType>>> model) {
-                                return new LoadableModel<>(false) {
-                                    @Override
-                                    protected IResource load() {
-                                        FocusType object = model.getObject().getValue().getValue();
-                                        return WebComponentUtil.createJpegPhotoResource(object);
-                                    }
-                                };
-                            }
-
-                            @Override
-                            protected List<InlineMenuItem> createMenuItems() {
-                                List<InlineMenuItem> menu = new ArrayList<>();
-                                createRecomputeMemberRowAction(menu);
-                                createDeleteMemberRowAction(menu);
-                                return menu;
-                            }
-                        };
+                        return createTilePanel(id, model);
                     }
 
                     @Override
                     protected String getTileCssClasses() {
-                        return "col-xs-6 col-sm-6 col-md-6 col-lg-4 col-xl-3 col-xxl-3 px-4 mb-3";
+                        return GovernanceCardsPanel.this.getTileCssClasses();
                     }
 
                     @Override
@@ -293,7 +250,89 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         memberContainer.add(tilesTable);
     }
 
-    private void createUnselectAllAction(List<InlineMenuItem> menu) {
+    protected String getTileCssClasses() {
+        return "col-xs-6 col-sm-6 col-md-6 col-lg-4 col-xl-3 col-xxl-3 px-4 mb-3";
+    }
+
+    protected List<InlineMenuItem> createToolbarMenuActions() {
+        List<InlineMenuItem> actions = new ArrayList<>();
+        createRecomputeMemberRowAction(actions);
+        createAddMemberRowAction(actions);
+        createDeleteMemberRowAction(actions);
+        createUnselectAllAction(actions);
+        return actions;
+    }
+
+    protected Component createTilePanel(String id, IModel<TemplateTile<SelectableBean<FocusType>>> model) {
+        return new MemberTilePanel<>(id, model) {
+
+            @Override
+            protected void onUnassign(AjaxRequestTarget target) {
+                unassignMembersPerformed(new PropertyModel<>(model, "value"), target);
+            }
+
+            @Override
+            protected void onDetails(AjaxRequestTarget target) {
+                SelectableBean<FocusType> bean = model.getObject().getValue();
+                if (WebComponentUtil.hasDetailsPage(bean.getValue().getClass())) {
+                    WebComponentUtil.dispatchToObjectDetailsPage(
+                            bean.getValue().getClass(), bean.getValue().getOid(), this, true);
+                } else {
+                    error("Could not find proper response page");
+                    throw new RestartResponseException(getPageBase());
+                }
+            }
+
+            @Override
+            protected void onClick(AjaxRequestTarget target) {
+                super.onClick(target);
+                getModelObject().getValue().setSelected(getModelObject().isSelected());
+            }
+
+            @Override
+            protected IModel<IResource> createPreferredImage(IModel<TemplateTile<SelectableBean<FocusType>>> model) {
+                return new LoadableModel<>(false) {
+                    @Override
+                    protected IResource load() {
+                        FocusType object = model.getObject().getValue().getValue();
+                        return WebComponentUtil.createJpegPhotoResource(object);
+                    }
+                };
+            }
+
+            @Override
+            protected List<InlineMenuItem> createMenuItems() {
+                return createCardHeaderMenuActions();
+            }
+
+            @Override
+            protected Behavior createDetailsBehaviour() {
+                return createCardDetailsButtonBehaviour();
+            }
+
+            @Override
+            protected String getCssForUnassignButton() {
+                return getCssForCardUnassignButton(super.getCssForUnassignButton());
+            }
+        };
+    }
+
+    protected String getCssForCardUnassignButton(String defaultCss) {
+        return defaultCss;
+    }
+
+    protected List<InlineMenuItem> createCardHeaderMenuActions() {
+        List<InlineMenuItem> menu = new ArrayList<>();
+        createRecomputeMemberRowAction(menu);
+        createDeleteMemberRowAction(menu);
+        return menu;
+    }
+
+    protected Behavior createCardDetailsButtonBehaviour() {
+        return VisibleBehaviour.ALWAYS_VISIBLE_ENABLED;
+    }
+
+    protected void createUnselectAllAction(List<InlineMenuItem> menu) {
         menu.add(new InlineMenuItem(createStringResource("GovernanceCardsPanel.menu.unselect")) {
             private static final long serialVersionUID = 1L;
 
@@ -304,13 +343,17 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        ((SelectableBeanObjectDataProvider)getMemberTileTable().getProvider()).clearSelectedObjects();
-                        target.add(getMemberTileTable());
+                        unselectAllPerformed(target);
                     }
                 };
             }
 
         });
+    }
+
+    private void unselectAllPerformed(AjaxRequestTarget target) {
+        ((SelectableBeanObjectDataProvider)getMemberTileTable().getProvider()).clearSelectedObjects();
+        target.add(getMemberTileTable());
     }
 
     @Override
@@ -341,5 +384,39 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         getMemberTileTable().getProvider().detach();
         getMemberTileTable().getTilesModel().detach();
         getMemberTileTable().refresh(target);
+    }
+
+    @Override
+    protected void processTaskAfterOperation(Task task, AjaxRequestTarget target) {
+        getSession().getFeedbackMessages().clear(message -> message.getMessage() instanceof OpResult
+                && OperationResultStatus.IN_PROGRESS.equals(((OpResult) message.getMessage()).getStatus()));
+
+        AtomicReference<OperationResult> result = new AtomicReference<>();
+        long until = System.currentTimeMillis() + Duration.ofSeconds(3).toMillis();
+        sleepWatchfully( until, 100, () -> {
+            try {
+                result.set(getPageBase().getTaskManager().getTaskWithResult(
+                        task.getOid(), new OperationResult("reload task")).getResult());
+            } catch (Throwable e) {
+                //ignore exception
+            }
+            return result.get() == null ? false : result.get().isInProgress();
+        });
+        if (!result.get().isSuccess()) {
+            getPageBase().showResult(result.get());
+        }
+        refreshTable(target);
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    @Override
+    protected void unassignMembersPerformed(IModel<?> rowModel, AjaxRequestTarget target) {
+        super.unassignMembersPerformed(rowModel, target);
+    }
+
+    @Override
+    protected void executeSimpleUnassignedOperation(IModel<?> rowModel, StringResourceModel confirmModel, AjaxRequestTarget target) {
+        super.executeSimpleUnassignedOperation(rowModel, confirmModel, target);
+        unselectAllPerformed(target);
     }
 }

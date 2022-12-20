@@ -171,11 +171,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     @Override
-    public String appendCssToWizard() {
-        return "w-100";
-    }
-
-    @Override
     public IModel<String> getTitle() {
         return createStringResource("RoleCatalogPanel.title");
     }
