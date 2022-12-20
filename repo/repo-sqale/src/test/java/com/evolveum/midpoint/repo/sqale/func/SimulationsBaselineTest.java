@@ -16,6 +16,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
 public class SimulationsBaselineTest extends SqaleRepoBaseTest {
 
@@ -44,5 +45,16 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
 
         SearchResultList<SimulationResultProcessedObjectType> ret = repositoryService.searchContainers(SimulationResultProcessedObjectType.class, null, null, result);
         assertNotNull(ret);
+    }
+
+    @Test
+    public void test110createTag() throws Exception {
+        OperationResult result = createOperationResult();
+        TagType obj = new TagType().name("testOfTest");
+        String oid = repositoryService.addObject(obj.asPrismObject(), null, result);
+
+        @NotNull
+        PrismObject<TagType> readed = repositoryService.getObject(TagType.class, oid, null, result);
+        assertNotNull(readed);
     }
 }

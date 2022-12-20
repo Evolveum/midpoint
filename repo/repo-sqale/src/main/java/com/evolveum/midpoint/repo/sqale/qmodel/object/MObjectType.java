@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadow;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSecurityPolicy;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfiguration;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QValuePolicy;
+import com.evolveum.midpoint.repo.sqale.qmodel.tag.QTag;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTask;
 import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QSimulationResult;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -83,6 +84,7 @@ public enum MObjectType {
     SHADOW(QShadow.class, ShadowType.class),
     SIMULATION_RESULT(QSimulationResult.class, SimulationResultType.class),
     SYSTEM_CONFIGURATION(QSystemConfiguration.class, SystemConfigurationType.class),
+    TAG(QTag.class, TagType.class),
     TASK(QTask.class, TaskType.class),
     USER(QUser.class, UserType.class),
     VALUE_POLICY(QValuePolicy.class, ValuePolicyType.class);
