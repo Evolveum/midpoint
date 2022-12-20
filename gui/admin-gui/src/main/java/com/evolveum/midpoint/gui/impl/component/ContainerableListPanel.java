@@ -347,10 +347,8 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     private int getDefaultPageSize() {
         if (isPreview()) {
             Integer previewSize = ((PreviewContainerPanelConfigurationType) config).getPreviewSize();
-            if (previewSize == null) {
-                return UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE;
-            }
-            return previewSize;
+
+            return Objects.requireNonNullElse(previewSize, UserProfileStorage.DEFAULT_DASHBOARD_PAGING_SIZE);
         }
 
         Integer collectionViewPagingSize = getViewPagingMaxSize();
@@ -534,7 +532,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             if (nothingToTransform(customColumn)) {
                 continue;
             }
-            ItemPath columnPath = getPath(customColumn);
+            ItemPath columnPath = WebComponentUtil.getPath(customColumn);
             // TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
             ExpressionType expression = customColumn.getExport() != null ? customColumn.getExport().getExpression() : null;
             if (expression == null && noItemDefinitionFor(columnPath, customColumn)) {
@@ -588,20 +586,6 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                         Model.of(customColumn.getName())));
     }
 
-    protected ItemPath getPath(GuiObjectColumnType column) {
-        if (column == null) {
-            return null;
-        }
-
-        return column.getPath().getItemPath();
-    }
-
-    /**
-     * @param columnDisplayModel
-     * @param customColumn
-     * @param expression
-     * @return
-     */
     protected IColumn<PO, String> createCustomExportableColumn(IModel<String> columnDisplayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
         return new AbstractExportableColumn<>(columnDisplayModel, getSortProperty(customColumn, expression)) {
             private static final long serialVersionUID = 1L;
@@ -613,7 +597,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 if (model.getObject() instanceof Collection) {
                     RepeatingView listItems = new RepeatingView(componentId);
                     for (Object object : (Collection) model.getObject()) {
-                        listItems.add(new Label(listItems.newChildId(), (IModel) () -> object));
+                        listItems.add(new Label(listItems.newChildId(), () -> object));
                     }
                     item.add(listItems);
                 } else {
@@ -623,7 +607,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
             @Override
             public IModel<?> getDataModel(IModel<PO> rowModel) {
-                ItemPath columnPath = getPath(customColumn);
+                ItemPath columnPath = WebComponentUtil.getPath(customColumn);
 
                 return getExportableColumnDataModel(rowModel, customColumn, columnPath, expression);
             }
@@ -648,22 +632,21 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return null;
         }
 
-        ItemPath path = getPath(customColumn);
+        ItemPath path = WebComponentUtil.getPath(customColumn);
         if (path == null || path.isEmpty()) {
             return null;
         }
 
         List<ItemPath> searchablePaths = getSearchablePaths(getType(), getPageBase());
 
-        ItemPath columnPath = getPath(customColumn);
         for (ItemPath searchablePath : searchablePaths) {
             if (searchablePath.size() > 1) {
                 //TODO: do we support such orderings in repo?
                 continue; //eg. activation/administrative status.. sortParam (BaseSortableDataProvider) should be changes to ItemPath..
             }
 
-            if (searchablePath.equivalent(columnPath)) {
-                return columnPath.toString();
+            if (searchablePath.equivalent(path)) {
+                return path.toString();
             }
         }
 

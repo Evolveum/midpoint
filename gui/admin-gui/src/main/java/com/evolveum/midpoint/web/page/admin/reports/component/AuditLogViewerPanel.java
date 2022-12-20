@@ -6,33 +6,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
-
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
-import org.jetbrains.annotations.NotNull;
-
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -77,6 +50,33 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.namespace.QName;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
+
 /**
  * Created by honchar
  */
@@ -103,7 +103,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
         if (displayModel == null || customColumn == null) {
             return null;
         }
-        return new ContainerableNameColumn<>(displayModel, getPath(customColumn), expression, getPageBase()) {
+        return new ContainerableNameColumn<>(displayModel, WebComponentUtil.getPath(customColumn), expression, getPageBase()) {
             @Override
             protected IModel<String> getContainerName(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                 return () -> {
@@ -276,7 +276,7 @@ public class AuditLogViewerPanel extends ContainerableListPanel<AuditEventRecord
 
     @Override
     protected IColumn<SelectableBean<AuditEventRecordType>, String> createCustomExportableColumn(IModel<String> displayModel, GuiObjectColumnType guiObjectColumn, ExpressionType expression) {
-        ItemPath path = guiObjectColumn.getPath() != null ? guiObjectColumn.getPath().getItemPath() : null;
+        ItemPath path = WebComponentUtil.getPath(guiObjectColumn);
 
         if (AuditEventRecordType.F_INITIATOR_REF.equivalent(path)) {
             return new LinkColumn<>(createStringResource("AuditEventRecordType.initiatorRef"),

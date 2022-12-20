@@ -157,7 +157,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
             @Override
             public IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
-                ItemPath itemPath = customColumn.getPath() != null ? customColumn.getPath().getItemPath() : null;
+                ItemPath itemPath = WebComponentUtil.getPath(customColumn);
 
                 return new LoadableModel<>() {
                     @Override

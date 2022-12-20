@@ -295,7 +295,7 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
 
                 @Override
                 public IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-                    ItemPath itemPath = customColumn.getPath() != null ? customColumn.getPath().getItemPath() : null;
+                    ItemPath itemPath = WebComponentUtil.getPath(customColumn);
 
                     return new LoadableModel<>() {
                         @Override
