@@ -1698,13 +1698,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     @NotNull
-    public LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
-            VariablesMap variables, Task task, OperationResult result)
+    public LocalizableMessageType createLocalizableMessageType(
+            LocalizableMessageTemplateType template, VariablesMap variables, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         VariablesMap vars = new VariablesMap();
         vars.putAll(variables);
-        return LensUtil.interpretLocalizableMessageTemplate(template, vars, expressionFactory, task, result);
+        return LensExpressionUtil.interpretLocalizableMessageTemplate(template, vars, null, task, result);
     }
 
     @Override

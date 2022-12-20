@@ -56,8 +56,7 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
             //noinspection unchecked
             source = (Source<V,D>) context.getSources().iterator().next();
         }
-        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(source.getItemOld(), source.getDelta(),
-                prismContext);
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(source.getItemOld(), source.getDelta());
 
         applyValueMetadata(outputTriple, context, result);
         return finishOutputTriple(outputTriple, context.getAdditionalConvertor(), source.getResidualPath());

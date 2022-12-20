@@ -24,12 +24,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author semancik
  */
-public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition> {
+public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition<?>> {
 
     private final ValueSetDefinitionType setDefinitionBean;
     private final D itemDefinition;
     private final PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition;
     private final ExpressionProfile expressionProfile;
+    private final ExpressionFactory expressionFactory;
     private final String additionalVariableName;
     private final MappingSpecificationType mappingSpecification;
     private final String localContextDescription;
@@ -43,15 +44,16 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
 
     public ValueSetDefinition(ValueSetDefinitionType setDefinitionBean, D itemDefinition,
             PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition,
-            ExpressionProfile expressionProfile, String additionalVariableName,
+            ExpressionProfile expressionProfile, ExpressionFactory expressionFactory,
+            String additionalVariableName,
             MappingSpecificationType mappingSpecification,
             String localContextDescription, String shortDesc, Task task, OperationResult result) {
-        super();
         this.setDefinitionBean = setDefinitionBean;
         Validate.notNull(itemDefinition, "No item definition for value set in %s", shortDesc);
         this.itemDefinition = itemDefinition;
         this.valueMetadataDefinition = valueMetadataDefinition;
         this.expressionProfile = expressionProfile;
+        this.expressionFactory = expressionFactory;
         this.additionalVariableName = additionalVariableName;
         this.mappingSpecification = mappingSpecification;
         this.localContextDescription = localContextDescription;
@@ -60,7 +62,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
         this.result = result;
     }
 
-    public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+    public void init() throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         predefinedRange = setDefinitionBean.getPredefined();
         ExpressionType conditionBean = setDefinitionBean.getCondition();
         if (conditionBean != null) {
@@ -140,6 +142,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
             variables.addVariableDefinitions(additionalVariables, variables.keySet());
         }
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        context.setExpressionFactory(expressionFactory);
         context.setLocalContextDescription(localContextDescription);
         context.setSkipEvaluationMinus(true);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = condition.evaluate(context, result);
@@ -166,6 +169,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
             variables.addVariableDefinitions(additionalVariables, variables.keySet());
         }
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        context.setExpressionFactory(expressionFactory);
         context.setLocalContextDescription(localContextDescription);
         context.setSkipEvaluationMinus(true);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = yieldCondition.evaluate(context, result);

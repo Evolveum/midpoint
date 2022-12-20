@@ -226,10 +226,11 @@ class ScriptExecutor<O extends ObjectType> {
                 b.expressionFactory.makeExpression(argument, scriptArgumentDefinition,
                         MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        eeContext.setExpressionFactory(b.expressionFactory);
         ModelExpressionEnvironment<?, ?, ?> env = new ModelExpressionEnvironment<>(context, projCtx, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, params, env, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, env, result);
 
         Collection<PrismPropertyValue<String>> nonNegativeValues =
                 outputTriple != null ? outputTriple.getNonNegativeValues() : emptySet();

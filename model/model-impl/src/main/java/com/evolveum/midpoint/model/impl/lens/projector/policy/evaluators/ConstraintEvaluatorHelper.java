@@ -7,45 +7,42 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
 
 import javax.xml.bind.JAXBElement;
 
-import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
+import com.evolveum.midpoint.model.impl.lens.LensExpressionUtil;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.AssignmentPolicyRuleEvaluationContext;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageBuilder;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Component
 public class ConstraintEvaluatorHelper {
 
-    public static final String VAR_EVALUATOR_HELPER = "evaluatorHelper";
-    public static final String VAR_CONSTRAINT_ELEMENT = "constraintElement";
-    public static final String VAR_CONSTRAINT = "constraint";
+    private static final String VAR_EVALUATOR_HELPER = "evaluatorHelper";
+    private static final String VAR_CONSTRAINT_ELEMENT = "constraintElement";
+    private static final String VAR_CONSTRAINT = "constraint";
 
-    @Autowired private PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
 
     // corresponds with PolicyRuleBasedAspect.processNameFromApprovalActions
@@ -93,33 +90,33 @@ public class ConstraintEvaluatorHelper {
         return PrismContext.get().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
     }
 
-    public boolean evaluateBoolean(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, Task task, OperationResult result)
+    boolean evaluateBoolean(
+            ExpressionType expressionBean, VariablesMap variablesMap,
+            String contextDescription, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return LensUtil.evaluateBoolean(expressionBean, VariablesMap, contextDescription, expressionFactory, task, result);
+        return LensExpressionUtil.evaluateBoolean(
+                expressionBean, variablesMap, ctx.lensContext, contextDescription, ctx.task, result);
     }
 
-    public LocalizableMessageType evaluateLocalizableMessageType(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return LensUtil.evaluateLocalizableMessageType(expressionBean, VariablesMap, contextDescription, expressionFactory,
-                task, result);
-    }
-
-    public String evaluateString(
-            ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, Task task, OperationResult result)
+    LocalizableMessageType evaluateLocalizableMessageType(
+            ExpressionType expressionBean, VariablesMap variablesMap,
+            String contextDescription, PolicyRuleEvaluationContext<?> ctx, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
-        return LensUtil.evaluateString(expressionBean, VariablesMap, contextDescription, expressionFactory,
-                task, result);
+        return LensExpressionUtil.evaluateLocalizableMessageType(
+                expressionBean, variablesMap, ctx.lensContext, contextDescription, ctx.task, result);
     }
 
-    public <AH extends AssignmentHolderType> SingleLocalizableMessageType interpretLocalizableMessageTemplate(LocalizableMessageTemplateType template,
-            PolicyRuleEvaluationContext<AH> rctx, JAXBElement<? extends AbstractPolicyConstraintType> constraintElement, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return LensUtil.interpretLocalizableMessageTemplate(template, createVariablesMap(rctx, constraintElement), expressionFactory, rctx.task, result);
+    private <AH extends AssignmentHolderType> SingleLocalizableMessageType interpretLocalizableMessageTemplate(
+            LocalizableMessageTemplateType template,
+            PolicyRuleEvaluationContext<AH> rctx,
+            JAXBElement<? extends AbstractPolicyConstraintType> constraintElement,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        return LensExpressionUtil.interpretLocalizableMessageTemplate(
+                template, createVariablesMap(rctx, constraintElement), rctx.lensContext, rctx.task, result);
     }
 
     public <AH extends AssignmentHolderType> LocalizableMessage createLocalizableMessage(
@@ -160,7 +157,7 @@ public class ConstraintEvaluatorHelper {
         }
     }
 
-    public LocalizableMessage createBeforeAfterMessage(PolicyRuleEvaluationContext<?> ctx) {
+    LocalizableMessage createBeforeAfterMessage(PolicyRuleEvaluationContext<?> ctx) {
         return LocalizableMessageBuilder.buildKey(ctx.state == ObjectState.AFTER ?
                 SchemaConstants.POLICY_CONSTRAINTS_AFTER_KEY : SchemaConstants.POLICY_CONSTRAINTS_BEFORE_KEY);
     }

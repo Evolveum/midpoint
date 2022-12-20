@@ -82,6 +82,7 @@ public class CaseExpressionEvaluationHelper {
         }
         Expression<?,?> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDescription, task);
+        context.setExpressionFactory(expressionFactory);
         context.setAdditionalConvertor(additionalConvertor);
         PrismValueDeltaSetTriple<?> exprResultTriple =
                 ExpressionUtil.evaluateAnyExpressionInContext(expression, context, task, result);

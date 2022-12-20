@@ -6,15 +6,10 @@
  */
 package com.evolveum.midpoint.model.common;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectables;
 
-import com.evolveum.midpoint.prism.Referencable;
-
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-
-import com.evolveum.midpoint.util.exception.SystemException;
+import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,18 +18,21 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
-
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.*;
 
 /**
  * Manages {@link TagType} objects.
@@ -55,9 +53,28 @@ public class TagManager {
     /** Gets a tag by OID. */
     public @NotNull TagType getTag(String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
+        var options = GetOperationOptionsBuilder.create()
+                .readOnly()
+                .build();
         return cacheRepositoryService
-                .getObject(TagType.class, oid, null, result)
+                .getObject(TagType.class, oid, options, result)
                 .asObjectable();
+    }
+
+    /** Gets a tag by OID (if exists). */
+    public @Nullable TagType getTagIfExists(String oid, OperationResult result)
+            throws SchemaException {
+        var options = GetOperationOptionsBuilder.create()
+                .allowNotFound()
+                .readOnly()
+                .build();
+        try {
+            return cacheRepositoryService
+                    .getObject(TagType.class, oid, options, result)
+                    .asObjectable();
+        } catch (ObjectNotFoundException e) {
+            return null;
+        }
     }
 
     /**
@@ -107,5 +124,20 @@ public class TagManager {
             }
         }
         return rules;
+    }
+
+    /** Temporary */
+    public Map<String, TagType> resolveTagNames(Collection<String> tagOids, OperationResult result) {
+        Map<String, TagType> map = new HashMap<>();
+        for (String tagOid : tagOids) {
+            TagType tag = null;
+            try {
+                tag = getTagIfExists(tagOid, result);
+            } catch (SchemaException e) {
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve tag {} (ignoring)", e, tagOid);
+            }
+            map.put(tagOid, tag);
+        }
+        return map;
     }
 }

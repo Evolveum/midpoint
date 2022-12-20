@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
@@ -3957,7 +3958,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return oid;
     }
 
-    public <O extends ObjectType> String addObject(PrismObject<O> object, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    public <O extends ObjectType> String addObject(PrismObject<O> object, Task task, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         return addObject(object, null, task, result);
     }
 
@@ -3967,7 +3970,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return addObject(object.asPrismObject(), task, result);
     }
 
-    protected <O extends ObjectType> String addObject(PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected <O extends ObjectType> String addObject(
+            PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         ObjectDelta<O> addDelta = object.createAddDelta();
         assertFalse("Immutable object provided?", addDelta.getObjectToAdd().isImmutable());
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = executeChanges(addDelta, options, task, result);
@@ -7031,5 +7037,56 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return simulationResultManager
                 .newSimulationContext(simResultRef.getOid())
                 .getStoredDeltas(result);
+    }
+
+    protected @NotNull SimulationResult getTaskSimResult(String taskOid, OperationResult result)
+            throws CommonException {
+        return SimulationResult.fromProcessedObjects(
+                getTaskProcessedObjects(taskOid, result));
+    }
+
+    protected @NotNull Collection<ProcessedObject<?>> getTaskProcessedObjects(String taskOid, OperationResult result)
+            throws CommonException {
+        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
+        ActivitySimulationStateType simState =
+                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
+                        .getSimulation();
+        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
+        ObjectReferenceType simResultRef = simState.getResultRef();
+        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
+        return simulationResultManager
+                .newSimulationContext(simResultRef.getOid())
+                .getStoredProcessedObjects(result);
+    }
+
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, boolean persistent)
+            throws SchemaException {
+        return assertProcessedObjects(
+                getProcessedObjects(simResult, persistent),
+                getProcessedObjectsDesc(persistent));
+    }
+
+    protected Collection<ProcessedObject<?>> getProcessedObjects(SimulationResult simResult, boolean persistent)
+            throws SchemaException {
+        if (persistent) {
+            return simResult.getProcessedObjectsFromRepository(getTestOperationResult());
+        } else {
+            return simResult.getObjectsProcessedBySimulation(getTestOperationResult());
+        }
+    }
+
+    // FIXME fix all this mess related to fetching processed objects
+    protected String getProcessedObjectsDesc(boolean persistent) {
+        if (persistent) {
+            return "processed objects in persistent storage";
+        } else {
+            return "processed objects";
+        }
+    }
+
+
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(Collection<ProcessedObject<?>> objects, String message) {
+        return initializeAsserter(
+                ProcessedObjectsAsserter.forObjects(objects, message));
     }
 }

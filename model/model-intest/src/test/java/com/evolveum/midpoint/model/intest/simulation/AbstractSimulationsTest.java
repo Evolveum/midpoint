@@ -95,6 +95,8 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         repoAdd(ARCHETYPE_PERSON_DEV_ARCHETYPE, initResult);
         repoAdd(ARCHETYPE_PERSON_DEV_TEMPLATE, initResult);
 
+        importTags(initResult);
+
         RESOURCE_SIMPLE_PRODUCTION_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.initAndTest(this, initTask, initResult);

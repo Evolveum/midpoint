@@ -12,6 +12,8 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,6 +144,7 @@ public class VariablesUtil {
         Expression<PrismValue, ItemDefinition<?>> expression = ctx.expressionFactory
                 .makeExpression(definition.getExpression(), outputDefinition, ctx.expressionProfile, shortDesc, ctx.task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, createVariables(resultingVariables), shortDesc, ctx.task);
+        context.setExpressionFactory(ctx.expressionFactory);
         PrismValueDeltaSetTriple<?> triple =
                 ExpressionUtil.evaluateAnyExpressionInContext(expression, context, ctx.task, result);
         Collection<?> resultingValues = triple.getNonNegativeValues();

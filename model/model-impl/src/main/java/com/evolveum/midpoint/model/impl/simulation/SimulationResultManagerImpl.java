@@ -3,17 +3,9 @@ package com.evolveum.midpoint.model.impl.simulation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import java.util.Objects;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.SearchResultList;
-
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,11 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
@@ -119,20 +113,19 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
-    @NotNull Collection<ObjectDelta<?>> getStoredDeltas(@NotNull String oid, OperationResult result) throws SchemaException {
+    @NotNull Collection<ProcessedObject<?>> getStoredProcessedObjects(@NotNull String oid, OperationResult result)
+            throws SchemaException {
         ObjectQuery query = PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
                 .ownerId(oid)
                 .build();
-        SearchResultList<SimulationResultProcessedObjectType> processedObjects =
+        List<SimulationResultProcessedObjectType> processedObjectBeans =
                 repository.searchContainers(SimulationResultProcessedObjectType.class, query, null, result);
-        Collection<ObjectDelta<?>> deltas = new ArrayList<>();
-        for (SimulationResultProcessedObjectType processedObject : processedObjects) {
-            ObjectDeltaType deltaBean = processedObject.getDelta();
-            if (deltaBean != null) {
-                deltas.add(DeltaConvertor.createObjectDelta(deltaBean));
-            }
+        Collection<ProcessedObject<?>> processedObjects = new ArrayList<>();
+        for (SimulationResultProcessedObjectType processedObjectBean : processedObjectBeans) {
+            processedObjects.add(
+                    ProcessedObject.parse(processedObjectBean));
         }
-        return deltas;
+        return processedObjects;
     }
 
     @Override

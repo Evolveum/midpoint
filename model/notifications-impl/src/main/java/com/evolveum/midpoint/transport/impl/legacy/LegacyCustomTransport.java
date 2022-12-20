@@ -167,8 +167,9 @@ public class LegacyCustomTransport implements Transport<GeneralTransportConfigur
         PrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
-        ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
+        eeContext.setExpressionFactory(expressionFactory);
+        ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
     }
 
     protected VariablesMap getDefaultVariables(Message message, Event event) throws UnsupportedEncodingException {

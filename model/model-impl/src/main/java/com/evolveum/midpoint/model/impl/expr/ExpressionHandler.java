@@ -71,9 +71,10 @@ public class ExpressionHandler {
         Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType,
                 outputDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
         if (outputTriple == null) {
             return null;
         }
@@ -105,9 +106,10 @@ public class ExpressionHandler {
         Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(expressionType,
                 outputDefinition, expressionProfile, shortDesc, task, result);
 
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
         Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
         if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
             throw new ExpressionEvaluationException("Expression returned no value ("+nonNegativeValues.size()+") in "+shortDesc);

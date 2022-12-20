@@ -1146,10 +1146,12 @@ public class TestFirstSteps extends AbstractStoryTest {
         assertTask(simTaskOid, "simulated task after")
                 .assertClockworkRunCount(5);
 
-        and("there should be no deltas, as all the DN match");
-        assertDeltaCollection(getTaskSimDeltas(simTaskOid, result), "single account simulated import")
-                .display()
-                .assertSize(0);
+        if (isNativeRepository()) {
+            and("there should be no deltas, as all the DN match");
+            assertDeltaCollection(getTaskSimDeltas(simTaskOid, result), "single account simulated import")
+                    .display()
+                    .assertSize(0);
+        }
 
         when("trying to create the account for John Johnson");
         SimulationResult simResult2 =
@@ -1240,47 +1242,49 @@ public class TestFirstSteps extends AbstractStoryTest {
         assertTask(simTaskOid, "simulated task after")
                 .assertClockworkRunCount(5);
 
-        and("task deltas are OK");
-        // @formatter:off
-        assertDeltaCollection(getTaskSimDeltas(simTaskOid, result), "import deltas")
-                .display()
-                .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH1)).assertCount(0) // all is set
-                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH1)).assertCount(0)
-                .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH2)).find()
-                    .assertModifiedExclusive(UserType.F_METADATA)
-                .end()
-                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH2)).find()
-                    .assertModification(PATH_EMPLOYEE_NUMBER, null, "2")
-                    .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, ShadowType.F_METADATA)
-                .end()
-                .by().objectType(UserType.class).objectOid(getUserOid(NAME_AGREEN3)).find()
-                    .assertModifiedExclusive(UserType.F_METADATA)
-                .end()
-                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_AGREEN3)).find()
-                    .assertModification(PATH_EMPLOYEE_NUMBER, null, "3")
-                    .assertModification(PATH_MAIL, null, "agreen3@evolveum.com")
-                    .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
-                .end()
-                .by().objectType(UserType.class).objectOid(getUserOid(NAME_RBLACK)).find()
-                    .assertModifiedExclusive(UserType.F_METADATA)
-                .end()
-                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_RBLACK)).find()
-                    .assertModification(PATH_EMPLOYEE_NUMBER, null, "4")
-                    .assertModification(PATH_MAIL, null, "rblack4@evolveum.com")
-                    .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
-                .end()
-                .by().objectType(UserType.class).objectOid(getUserOid(NAME_BOB)).find()
-                    .assertModifiedExclusive(UserType.F_METADATA)
-                .end()
-                .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_BOB)).find()
-                    .assertModification(PATH_EMPLOYEE_NUMBER, null, "5")
-                    .assertModification(PATH_MAIL, null, "rblack5@evolveum.com")
-                    .assertModification(PATH_GIVEN_NAME, "Bob", "Robert")
-                    .assertModification(PATH_CN, "Bob Black", "Robert Black")
-                    .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, ShadowType.F_METADATA)
-                .end()
-                .assertSize(8);
-        // @formatter:on
+        if (isNativeRepository()) {
+            and("task deltas are OK");
+            // @formatter:off
+            assertDeltaCollection(getTaskSimDeltas(simTaskOid, result), "import deltas")
+                    .display()
+                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH1)).assertCount(0) // all is set
+                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH1)).assertCount(0)
+                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH2)).find()
+                        .assertModifiedExclusive(UserType.F_METADATA)
+                    .end()
+                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH2)).find()
+                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "2")
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, ShadowType.F_METADATA)
+                    .end()
+                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_AGREEN3)).find()
+                        .assertModifiedExclusive(UserType.F_METADATA)
+                    .end()
+                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_AGREEN3)).find()
+                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "3")
+                        .assertModification(PATH_MAIL, null, "agreen3@evolveum.com")
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                    .end()
+                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_RBLACK)).find()
+                        .assertModifiedExclusive(UserType.F_METADATA)
+                    .end()
+                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_RBLACK)).find()
+                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "4")
+                        .assertModification(PATH_MAIL, null, "rblack4@evolveum.com")
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                    .end()
+                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_BOB)).find()
+                        .assertModifiedExclusive(UserType.F_METADATA)
+                    .end()
+                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_BOB)).find()
+                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "5")
+                        .assertModification(PATH_MAIL, null, "rblack5@evolveum.com")
+                        .assertModification(PATH_GIVEN_NAME, "Bob", "Robert")
+                        .assertModification(PATH_CN, "Bob Black", "Robert Black")
+                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, ShadowType.F_METADATA)
+                    .end()
+                    .assertSize(8);
+            // @formatter:on
+        }
 
         // TODO report the following
         //  - How many accounts would be created, changed, deleted -- can be seen from the deltas

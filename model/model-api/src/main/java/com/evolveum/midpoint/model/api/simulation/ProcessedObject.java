@@ -7,10 +7,18 @@
 
 package com.evolveum.midpoint.model.api.simulation;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.util.DebugDumpable;
+
+import com.evolveum.midpoint.util.DebugUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +41,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  *
  * TEMPORARY
  */
-public class ProcessedObject<O extends ObjectType> {
+public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
 
     private static final Map<ChangeType, ObjectProcessingStateType> DELTA_TO_PROCESSING_STATE =
             new ImmutableMap.Builder<ChangeType, ObjectProcessingStateType>()
@@ -47,6 +55,8 @@ public class ProcessedObject<O extends ObjectType> {
     private final PolyStringType name;
     @NotNull private final ObjectProcessingStateType state;
     @NotNull private final Collection<String> eventTags;
+    /** Complete information on the tags (optional) */
+    private Map<String, TagType> eventTagsMap;
     @Nullable private final O before;
     @Nullable private final O after;
     @Nullable private final ObjectDelta<O> delta;
@@ -125,12 +135,24 @@ public class ProcessedObject<O extends ObjectType> {
         return type;
     }
 
+    public @Nullable PolyStringType getName() {
+        return name;
+    }
+
     public @NotNull ObjectProcessingStateType getState() {
         return state;
     }
 
     public @NotNull Collection<String> getEventTags() {
         return eventTags;
+    }
+
+    public @Nullable Map<String, TagType> getEventTagsMap() {
+        return eventTagsMap;
+    }
+
+    public void setEventTagsMap(Map<String, TagType> eventTagsMap) {
+        this.eventTagsMap = eventTagsMap;
     }
 
     @Nullable
@@ -193,5 +215,53 @@ public class ProcessedObject<O extends ObjectType> {
                 .delta(DeltaConvertor.toObjectDeltaType(delta));
         processedObject.getMetricIdentifier().addAll(eventTags);
         return processedObject;
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = DebugUtil.createTitleStringBuilder(getClass(), indent);
+        sb.append(" of ").append(type.getSimpleName());
+        sb.append(" ").append(oid);
+        sb.append(" (").append(name).append("): ");
+        sb.append(state);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabelLn(sb, "tags", getEventTagsInfo(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "before", before, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent + 1);
+        return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return "ProcessedObject{" +
+                "oid='" + oid + '\'' +
+                ", type=" + type +
+                ", name=" + name +
+                ", state=" + state +
+                ", eventTags=" + getEventTagsInfo() +
+                ", before=" + before +
+                ", after=" + after +
+                ", delta=" + delta +
+                '}';
+    }
+
+    private Collection<String> getEventTagsInfo() {
+        if (eventTagsMap != null) {
+            return eventTagsMap.entrySet().stream()
+                    .map(e -> getTagInfo(e))
+                    .collect(Collectors.toList());
+        } else {
+            return eventTags;
+        }
+    }
+
+    private String getTagInfo(Map.Entry<String, TagType> tagEntry) {
+        String tagOid = tagEntry.getKey();
+        TagType tag = tagEntry.getValue();
+        if (tag != null) {
+            return getOrig(tag.getName()) + " (" + tagOid + ")";
+        } else {
+            return tagOid;
+        }
     }
 }

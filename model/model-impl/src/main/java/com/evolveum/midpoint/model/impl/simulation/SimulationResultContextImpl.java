@@ -57,7 +57,7 @@ public class SimulationResultContextImpl implements SimulationResultContext, Agg
     }
 
     @Override
-    public @NotNull Collection<ObjectDelta<?>> getStoredDeltas(OperationResult result) throws SchemaException {
-        return manager.getStoredDeltas(oid, result);
+    public @NotNull Collection<ProcessedObject<?>> getStoredProcessedObjects(OperationResult result) throws SchemaException {
+        return manager.getStoredProcessedObjects(oid, result);
     }
 }

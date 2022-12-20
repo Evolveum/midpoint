@@ -297,8 +297,9 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
         if (combinatorialEvaluation.conditionExpression != null) {
             ExpressionEvaluationContext conditionCtx = new ExpressionEvaluationContext(null, staticVariables,
                     "condition in " + context.getContextDescription(), context.getTask());
-            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> triple = combinatorialEvaluation.conditionExpression
-                    .evaluate(conditionCtx, result);
+            conditionCtx.setExpressionFactory(context.getExpressionFactory());
+            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> triple =
+                    combinatorialEvaluation.conditionExpression.evaluate(conditionCtx, result);
             return ExpressionUtil.computeConditionResult(triple.getNonNegativeValues());
         } else {
             return true;

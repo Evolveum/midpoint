@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -84,12 +83,11 @@ public class EvaluatedExclusionTrigger extends EvaluatedPolicyRuleTrigger<Exclus
     }
 
     @Override
-    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
-            PrismContext prismContext) {
+    public EvaluatedExclusionTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
         EvaluatedExclusionTriggerType rv = new EvaluatedExclusionTriggerType();
         fillCommonContent(rv);
         if (options.getTriggeredRulesStorageStrategy() == FULL) {
-            rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget, prismContext));
+            rv.setConflictingObjectRef(ObjectTypeUtil.createObjectRef(conflictingTarget));
             rv.setConflictingObjectDisplayName(ObjectTypeUtil.getDisplayName(conflictingTarget));
             if (conflictingPath != null) {
                 rv.setConflictingObjectPath(conflictingPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));

@@ -9,11 +9,9 @@ package com.evolveum.midpoint.model.impl.lens;
 import static java.util.Collections.emptySet;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -317,10 +315,12 @@ public class LensUtil {
         Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource = new Source<>(idi, ExpressionConstants.VAR_ITERATION_QNAME);
         sources.add(iterationSource);
 
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables,
-                "iteration token expression in "+accountContext.getHumanReadableName(), task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(
+                sources , variables, "iteration token expression in "+accountContext.getHumanReadableName(), task);
+        eeContext.setExpressionFactory(expressionFactory);
+
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, expressionContext, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
         Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
         if (outputValues.isEmpty()) {
             return "";
@@ -377,10 +377,11 @@ public class LensUtil {
         variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
 
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null , variables, desc, task);
+        eeContext.setExpressionFactory(expressionFactory);
         ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(context, null, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, expressionContext, env, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, env, result);
         Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
         if (outputValues.isEmpty()) {
             return false;
@@ -836,101 +837,6 @@ public class LensUtil {
     public static boolean isPasswordReturnedByDefault(LensProjectionContext projCtx) {
         return CapabilityUtil.isPasswordReturnedByDefault(
                 ResourceTypeUtil.getEnabledCapability(projCtx.getResource(), CredentialsCapabilityType.class));
-    }
-
-    public static boolean evaluateBoolean(
-            ExpressionType expressionBean,
-            VariablesMap VariablesMap,
-            String contextDescription,
-            ExpressionFactory expressionFactory,
-            Task task,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        return evaluateExpressionSingle(
-                expressionBean, VariablesMap, contextDescription, expressionFactory, task, result,
-                DOMUtil.XSD_BOOLEAN, false, null);
-    }
-
-    public static String evaluateString(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        return evaluateExpressionSingle(
-                expressionBean, VariablesMap, contextDescription, expressionFactory, task, result,
-                DOMUtil.XSD_STRING, null, null);
-    }
-
-    public static LocalizableMessageType evaluateLocalizableMessageType(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        Function<Object, Object> additionalConvertor = (o) -> {
-            if (o == null || o instanceof LocalizableMessageType) {
-                return o;
-            } else if (o instanceof LocalizableMessage) {
-                return LocalizationUtil.createLocalizableMessageType((LocalizableMessage) o);
-            } else {
-                return new SingleLocalizableMessageType().fallbackMessage(String.valueOf(o));
-            }
-        };
-        return evaluateExpressionSingle(
-                expressionBean, VariablesMap, contextDescription, expressionFactory, task, result,
-                LocalizableMessageType.COMPLEX_TYPE, null, additionalConvertor);
-    }
-
-    private static <T> T evaluateExpressionSingle(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, Task task, OperationResult result, QName typeName,
-            T defaultValue, Function<Object, Object> additionalConvertor)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        PrismPropertyDefinition<T> resultDef = PrismContext.get().definitionFactory().createPropertyDefinition(
-                new QName(SchemaConstants.NS_C, "result"), typeName);
-        Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
-                expressionFactory.makeExpression(expressionBean, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
-        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, contextDescription, task);
-        eeContext.setAdditionalConvertor(additionalConvertor);
-        PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
-        List<T> results = exprResultTriple.getZeroSet().stream()
-                .map(ppv -> (T) ppv.getRealValue())
-                .collect(Collectors.toList());
-        return getSingleValue(results, defaultValue, contextDescription);
-    }
-
-    @NotNull
-    public static SingleLocalizableMessageType interpretLocalizableMessageTemplate(
-            LocalizableMessageTemplateType template, VariablesMap var, ExpressionFactory expressionFactory,
-            Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        SingleLocalizableMessageType rv = new SingleLocalizableMessageType();
-        if (template.getKey() != null) {
-            rv.setKey(template.getKey());
-        } else if (template.getKeyExpression() != null) {
-            rv.setKey(
-                    evaluateString(
-                            template.getKeyExpression(), var, "localizable message key expression", expressionFactory,
-                            task, result));
-        }
-        if (!template.getArgument().isEmpty() && !template.getArgumentExpression().isEmpty()) {
-            throw new IllegalArgumentException("Both argument and argumentExpression items are non empty");
-        } else if (!template.getArgumentExpression().isEmpty()) {
-            for (ExpressionType argumentExpression : template.getArgumentExpression()) {
-                LocalizableMessageType argument = evaluateLocalizableMessageType(argumentExpression, var,
-                        "localizable message argument expression", expressionFactory, task, result);
-                rv.getArgument().add(new LocalizableMessageArgumentType().localizable(argument));
-            }
-        } else {
-            // TODO allow localizable messages templates here
-            rv.getArgument().addAll(template.getArgument());
-        }
-        if (template.getFallbackMessage() != null) {
-            rv.setFallbackMessage(template.getFallbackMessage());
-        } else if (template.getFallbackMessageExpression() != null) {
-            rv.setFallbackMessage(evaluateString(template.getFallbackMessageExpression(), var,
-                    "localizable message fallback expression", expressionFactory, task, result));
-        }
-        return rv;
     }
 
     public static <F extends ObjectType> void reclaimSequences(

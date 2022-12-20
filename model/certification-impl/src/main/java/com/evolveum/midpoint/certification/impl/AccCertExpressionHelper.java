@@ -48,10 +48,11 @@ public class AccCertExpressionHelper {
         PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, xsdType);
 
         Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
+        eeContext.setExpressionFactory(expressionFactory);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResult =
-                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
 
         List<T> retval = new ArrayList<>();
         for (PrismPropertyValue<T> item : exprResult.getZeroSet()) {
@@ -80,6 +81,7 @@ public class AccCertExpressionHelper {
 
         Expression<PrismReferenceValue,PrismReferenceDefinition> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
+        context.setExpressionFactory(expressionFactory);
         context.setAdditionalConvertor(ExpressionUtil.createRefConvertor(UserType.COMPLEX_TYPE));
         PrismValueDeltaSetTriple<PrismReferenceValue> exprResult =
                 ExpressionUtil.evaluateRefExpressionInContext(expression, context, task, result);

@@ -291,7 +291,6 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                         variables,
                         beans.mappingFactory.getObjectResolver(),
                         contextDesc,
-                        prismContext,
                         task,
                         result);
 

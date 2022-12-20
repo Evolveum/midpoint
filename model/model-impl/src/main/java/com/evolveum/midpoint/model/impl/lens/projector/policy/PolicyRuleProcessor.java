@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.common.GlobalRuleWithId;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +24,7 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedCompositeTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
+import com.evolveum.midpoint.model.common.GlobalRuleWithId;
 import com.evolveum.midpoint.model.common.TagManager;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -47,7 +46,6 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -92,13 +90,13 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     @Autowired private ExclusionConstraintEvaluator exclusionConstraintEvaluator;
     @Autowired private MultiplicityConstraintEvaluator multiplicityConstraintEvaluator;
     @Autowired private PolicySituationConstraintEvaluator policySituationConstraintEvaluator;
+    @Autowired private CustomConstraintEvaluator customConstraintEvaluator;
     @Autowired private ObjectModificationConstraintEvaluator modificationConstraintEvaluator;
     @Autowired private StateConstraintEvaluator stateConstraintEvaluator;
     @Autowired private AlwaysTrueConstraintEvaluator alwaysTrueConstraintEvaluator;
     @Autowired private OrphanedConstraintEvaluator orphanedConstraintEvaluator;
     @Autowired private CompositeConstraintEvaluator compositeConstraintEvaluator;
     @Autowired private TransitionConstraintEvaluator transitionConstraintEvaluator;
-    @Autowired private ExpressionFactory expressionFactory;
 
     //region ------------------------------------------------------------------ Assignment policy rules
     /**
@@ -335,7 +333,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         String ruleShortString = ctx.policyRule.toShortString();
         String ctxShortDescription = ctx.getShortDescription();
         OperationResult result = parentResult.subresult(OP_EVALUATE_RULE)
-                .addParam("policyRule", ruleShortString)
+                .addParam(OperationResult.PARAM_POLICY_RULE, ruleShortString)
                 .addContext("context", ctxShortDescription)
                 .build();
         try {
@@ -360,7 +358,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             if (triggered) {
                 LOGGER.trace("Start to compute actions");
                 ((EvaluatedPolicyRuleImpl) ctx.policyRule)
-                        .computeEnabledActions(ctx, ctx.getObject(), expressionFactory, ctx.task, result);
+                        .computeEnabledActions(ctx, ctx.getObject(), ctx.task, result);
                 if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
                     ctx.record(); // TODO postpone this (e.g. because of thresholds and also MID-7123)
                 }
@@ -459,6 +457,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             return multiplicityConstraintEvaluator;
         } else if (constraint.getValue() instanceof PolicySituationPolicyConstraintType) {
             return policySituationConstraintEvaluator;
+        } else if (constraint.getValue() instanceof CustomPolicyConstraintType) {
+            return customConstraintEvaluator;
         } else if (constraint.getValue() instanceof ModificationPolicyConstraintType) {
             return modificationConstraintEvaluator;
         } else if (constraint.getValue() instanceof StatePolicyConstraintType) {
@@ -472,7 +472,9 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         } else if (constraint.getValue() instanceof OrphanedPolicyConstraintType) {
             return orphanedConstraintEvaluator;
         } else {
-            throw new IllegalArgumentException("Unknown policy constraint: " + constraint.getName() + "/" + constraint.getValue().getClass());
+            throw new IllegalArgumentException(
+                    String.format("Unknown policy constraint: '%s' having value of %s",
+                            constraint.getName(), constraint.getValue().getClass()));
         }
     }
     //endregion

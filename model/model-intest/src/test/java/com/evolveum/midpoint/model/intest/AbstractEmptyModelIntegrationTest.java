@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION;
 import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION;
+import static com.evolveum.midpoint.model.intest.CommonInitialObjects.*;
 import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND;
 
 import java.io.File;
@@ -81,6 +82,8 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
             relationRegistry.applyRelationsConfiguration(configuration.asObjectable());
         }
 
+        repoAdd(STANDARD_FUNCTIONS, initResult);
+
         // Users
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
@@ -102,6 +105,23 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
             ObjectAlreadyExistsException, EncryptionException, IOException {
         repoAdd(ARCHETYPE_TASK_ITERATIVE_BULK_ACTION, initResult);
         repoAdd(ARCHETYPE_TASK_SINGLE_BULK_ACTION, initResult);
+    }
+
+    // To be used when needed
+    protected void importTags(OperationResult initResult) throws SchemaException,
+            ObjectAlreadyExistsException, EncryptionException, IOException {
+        // assuming that standard functions are loaded
+        repoAdd(ARCHETYPE_EVENT_TAG, initResult);
+        repoAdd(ARCHETYPE_POLICY_SITUATION, initResult);
+        repoAdd(TAG_FOCUS_ENABLED, initResult);
+        repoAdd(TAG_FOCUS_DISABLED, initResult);
+        repoAdd(TAG_FOCUS_NAME_CHANGED, initResult);
+        repoAdd(TAG_FOCUS_ASSIGNMENT_CHANGED, initResult);
+        repoAdd(TAG_FOCUS_ARCHETYPE_CHANGED, initResult);
+        repoAdd(TAG_FOCUS_PARENT_ORG_REFERENCE_CHANGED, initResult);
+        repoAdd(TAG_FOCUS_ROLE_MEMBERSHIP_CHANGED, initResult);
+        repoAdd(TAG_PROJECTION_ENABLED, initResult);
+        repoAdd(TAG_PROJECTION_DISABLED, initResult);
     }
 
     /**

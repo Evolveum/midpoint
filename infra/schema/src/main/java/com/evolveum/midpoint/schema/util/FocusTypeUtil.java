@@ -220,4 +220,15 @@ public class FocusTypeUtil {
         }
         return recipientLocale;
     }
+
+    public static ActivationStatusType getEffectiveStatus(@Nullable FocusType focus) {
+        if (focus == null) {
+            return null;
+        }
+        ActivationType activation = focus.getActivation();
+        if (activation == null) {
+            return null;
+        }
+        return activation.getEffectiveStatus();
+    }
 }

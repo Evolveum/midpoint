@@ -213,7 +213,6 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
                                 builder.getVariables(),
                                 beans.mappingFactory.getObjectResolver(),
                                 "resolving target values",
-                                beans.prismContext,
                                 context.env.task,
                                 context.result));
             }
