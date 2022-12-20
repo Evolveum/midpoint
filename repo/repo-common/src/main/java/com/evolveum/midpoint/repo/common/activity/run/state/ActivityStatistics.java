@@ -22,10 +22,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 
 public class ActivityStatistics {
 
-    @NotNull private static final ItemPath ITEM_PROCESSING_STATISTICS_PATH = ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_ITEM_PROCESSING);
-    @NotNull private static final ItemPath SYNCHRONIZATION_STATISTICS_PATH = ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_SYNCHRONIZATION);
-    @NotNull private static final ItemPath ACTIONS_EXECUTED_PATH = ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_ACTIONS_EXECUTED);
-    @NotNull private static final ItemPath BUCKET_MANAGEMENT_STATISTICS_PATH = ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_BUCKET_MANAGEMENT);
+    @NotNull private static final ItemPath ITEM_PROCESSING_STATISTICS_PATH =
+            ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_ITEM_PROCESSING);
+    @NotNull private static final ItemPath SYNCHRONIZATION_STATISTICS_PATH =
+            ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_SYNCHRONIZATION);
+    @NotNull private static final ItemPath ACTIONS_EXECUTED_PATH =
+            ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_ACTIONS_EXECUTED);
+    @NotNull private static final ItemPath BUCKET_MANAGEMENT_STATISTICS_PATH =
+            ItemPath.create(ActivityStateType.F_STATISTICS, ActivityStatisticsType.F_BUCKET_MANAGEMENT);
 
     @NotNull private final CurrentActivityState<?> activityState;
 
@@ -57,24 +61,24 @@ public class ActivityStatistics {
         return bucketManagement;
     }
 
-    public ActivityItemProcessingStatisticsType getStoredItemProcessing() {
-        return activityState.getItemRealValueClone(ITEM_PROCESSING_STATISTICS_PATH,
-                ActivityItemProcessingStatisticsType.class);
+    private ActivityItemProcessingStatisticsType getStoredItemProcessing() {
+        return activityState.getItemRealValueClone(
+                ITEM_PROCESSING_STATISTICS_PATH, ActivityItemProcessingStatisticsType.class);
     }
 
-    public ActivitySynchronizationStatisticsType getStoredSynchronizationStatistics() {
-        return activityState.getItemRealValueClone(SYNCHRONIZATION_STATISTICS_PATH,
-                ActivitySynchronizationStatisticsType.class);
+    private ActivitySynchronizationStatisticsType getStoredSynchronizationStatistics() {
+        return activityState.getItemRealValueClone(
+                SYNCHRONIZATION_STATISTICS_PATH, ActivitySynchronizationStatisticsType.class);
     }
 
-    public ActivityActionsExecutedType getStoredActionsExecuted() {
-        return activityState.getItemRealValueClone(ACTIONS_EXECUTED_PATH,
-                ActivityActionsExecutedType.class);
+    private ActivityActionsExecutedType getStoredActionsExecuted() {
+        return activityState.getItemRealValueClone(
+                ACTIONS_EXECUTED_PATH, ActivityActionsExecutedType.class);
     }
 
-    public ActivityBucketManagementStatisticsType getStoredBucketManagement() {
-        return activityState.getItemRealValueClone(BUCKET_MANAGEMENT_STATISTICS_PATH,
-                ActivityBucketManagementStatisticsType.class);
+    private ActivityBucketManagementStatisticsType getStoredBucketManagement() {
+        return activityState.getItemRealValueClone(
+                BUCKET_MANAGEMENT_STATISTICS_PATH, ActivityBucketManagementStatisticsType.class);
     }
 
     /**
@@ -99,14 +103,13 @@ public class ActivityStatistics {
         return activityState;
     }
 
-    public void startCollectingSynchronizationStatistics(@NotNull Task task, @NotNull String processingIdentifier,
-            SynchronizationSituationType situationOnStart) {
+    public void startCollectingSynchronizationStatistics(
+            @NotNull Task task, @NotNull String processingIdentifier, SynchronizationSituationType situationOnStart) {
         task.startCollectingSynchronizationStatistics(
                 new SynchronizationStatisticsCollectorImpl(synchronizationStatistics, processingIdentifier, situationOnStart));
     }
 
-    public void stopCollectingSynchronizationStatistics(@NotNull Task task,
-            @NotNull QualifiedItemProcessingOutcomeType outcome) {
+    public void stopCollectingSynchronizationStatistics(@NotNull Task task, @NotNull QualifiedItemProcessingOutcomeType outcome) {
         task.stopCollectingSynchronizationStatistics(outcome);
     }
 

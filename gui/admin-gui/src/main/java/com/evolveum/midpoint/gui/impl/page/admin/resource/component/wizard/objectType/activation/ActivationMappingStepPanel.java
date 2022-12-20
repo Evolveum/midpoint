@@ -13,7 +13,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -23,7 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  */
 
 @Experimental
-public abstract class ActivationMappingStepPanel extends AbstractResourceWizardStepPanel {
+public abstract class ActivationMappingStepPanel extends AbstractWizardStepPanel {
 
     protected static final String ID_PANEL = "panel";
 

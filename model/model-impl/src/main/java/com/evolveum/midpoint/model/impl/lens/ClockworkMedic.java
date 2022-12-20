@@ -98,7 +98,7 @@ public class ClockworkMedic {
     // Maybe we need to find a better place for this
     private DiagnosticContextManager diagnosticContextManager = null;
 
-    public DiagnosticContextManager getDiagnosticContextManager() {
+    private DiagnosticContextManager getDiagnosticContextManager() {
         return diagnosticContextManager;
     }
 

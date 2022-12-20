@@ -178,7 +178,6 @@ public class CsvResource extends TestResource<ResourceType> {
      * Returns the current content of the file as a mutable list of lines.
      */
     public List<String> getContent() throws IOException {
-        //noinspection UnstableApiUsage
         return Files.readLines(dataFile, charset);
     }
 
@@ -207,19 +206,25 @@ public class CsvResource extends TestResource<ResourceType> {
     }
 
     /**
-     * Replaces first line that matches given regular expression with the new content.
+     * Replaces first line that matches given regular expression with the new content. (Or deletes it if `newLine` is `null`.)
      * Throws an exception if there was no matching line.
      *
      * The new line should NOT contain line separators.
      */
-    public void replaceLine(@Language("RegExp") String regex, String newLine) throws IOException {
-        checkNoSeparator(newLine);
+    public void replaceLine(@Language("RegExp") String regex, @Nullable String newLine) throws IOException {
+        if (newLine != null) {
+            checkNoSeparator(newLine);
+        }
         List<String> content = getContent();
         boolean found = false;
         for (int i = 0; i < content.size(); i++) {
             String existingLine = content.get(i);
             if (existingLine.matches(regex)) {
-                content.set(i, newLine);
+                if (newLine != null) {
+                    content.set(i, newLine);
+                } else {
+                    content.remove(i);
+                }
                 found = true;
                 break;
             }
@@ -228,5 +233,10 @@ public class CsvResource extends TestResource<ResourceType> {
             throw new IllegalArgumentException("No line matched '" + regex + "'");
         }
         setContent(content);
+    }
+
+    /** A convenience variant of {@link #replaceLine(String, String)}. */
+    public void deleteLine(@Language("RegExp") String regex) throws IOException {
+        replaceLine(regex, null);
     }
 }

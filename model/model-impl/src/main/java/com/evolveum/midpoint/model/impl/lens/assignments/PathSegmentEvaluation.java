@@ -125,8 +125,9 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
             // Validity of segment that is sourced at focus (either directly or indirectly i.e. through inducements)
             // is determined using focus lifecycle state model.
             AH focusNewOrCurrent = ctx.ae.lensContext.getFocusContextRequired().getObjectNewOrCurrentRequired().asObjectable();
-            active = LensUtil.isAssignmentValid(focusNewOrCurrent, segment.assignment,
-                    ctx.ae.now, ctx.ae.activationComputer, ctx.ae.focusStateModel);
+            active = LensUtil.isAssignmentValid(
+                    focusNewOrCurrent, segment.assignment,
+                    ctx.ae.now, ctx.ae.activationComputer, ctx.ae.focusStateModel, ctx.task.getExecutionMode());
         } else {
             // But for other assignments/inducements we consider their validity by regarding their actual source.
             // So, even if (e.g.) focus is in "draft" state, only validity of direct assignments should be influenced by this fact.
@@ -134,7 +135,9 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
             // in active lifecycle states. See also MID-6113.
             //
             // TODO We should consider the assignment source's state model! But we are ignoring it for now.
-            active = LensUtil.isAssignmentValid(segment.source, segment.assignment, ctx.ae.now, ctx.ae.activationComputer, null);
+            active = LensUtil.isAssignmentValid(
+                    segment.source, segment.assignment,
+                    ctx.ae.now, ctx.ae.activationComputer, null, ctx.task.getExecutionMode());
         }
         segment.setAssignmentActive(active);
         LOGGER.trace("Determined activity of assignment in {} to be {}", segment, active);

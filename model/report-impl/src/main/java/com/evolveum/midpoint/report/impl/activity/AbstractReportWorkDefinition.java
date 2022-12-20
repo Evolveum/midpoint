@@ -53,12 +53,12 @@ public class AbstractReportWorkDefinition extends AbstractWorkDefinition {
         return reportRef;
     }
 
-    public ReportParameterType getReportParams() {
+    ReportParameterType getReportParams() {
         return reportParams;
     }
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "reportRef", String.valueOf(reportRef), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "reportRef", String.valueOf(reportRef), indent+1);
     }
 }

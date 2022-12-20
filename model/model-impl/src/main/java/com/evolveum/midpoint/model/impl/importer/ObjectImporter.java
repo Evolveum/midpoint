@@ -205,7 +205,7 @@ public class ObjectImporter {
 
         ModelImplUtils.resolveReferences(object, repository,
                 options != null && options.isReferentialIntegrity() != null && options.isReferentialIntegrity(),
-                false, EvaluationTimeType.IMPORT, false, prismContext, objectResult);
+                false, EvaluationTimeType.IMPORT, false, objectResult);
 
         objectResult.computeStatus();
         if (!objectResult.isAcceptable()) {

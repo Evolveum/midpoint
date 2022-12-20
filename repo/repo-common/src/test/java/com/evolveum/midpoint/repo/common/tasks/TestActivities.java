@@ -64,7 +64,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  *
  * 1. running simple mock activity ({@link #test100RunSimpleLegacyTask()}, {@link #test120RunSimpleTask()}),
  * 2. running mock semi-composite activity ({@link #test110RunCompositeLegacyTask()}, {@link #test130RunCompositeTask()}),
- * 3. running pure composite activity ({@link #test140RunPureCompositeTask()}),
+ * 3. running custom composite activity ({@link #test140RunCustomCompositeTask()}),
  * 4. running mock iterative activity, including bucketing ({@link #test150RunMockIterativeTask()}, {@link #test155RunBucketedMockIterativeTask()}),
  * 5. running mock search-based activity, including bucketing ({@link #test160RunMockSearchBasedTask()}, {@link #test170RunBucketedTask()}),
  * 6. running tree of bucketed activities ({@link #test180RunBucketedTree()}),
@@ -96,7 +96,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     private static final TestResource<TaskType> TASK_120_MOCK_SIMPLE = new TestResource<>(TEST_DIR, "task-120-mock-simple.xml", "6a1a58fa-ce09-495d-893f-3093cdcc00b6");
     private static final TestResource<TaskType> TASK_130_MOCK_COMPOSITE = new TestResource<>(TEST_DIR, "task-130-mock-composite.xml", "14a41fca-a664-450c-bc5d-d4ce35045346");
     private static final TestResource<TaskType> TASK_135_NO_OP = new TestResource<>(TEST_DIR, "task-135-no-op.xml", "d1c750b0-eddc-445f-b907-d19c8ed754b5");
-    private static final TestResource<TaskType> TASK_140_PURE_COMPOSITE = new TestResource<>(TEST_DIR, "task-140-pure-composite.xml", "65866e01-73cd-4249-9b7b-03ebc4413bd0");
+    private static final TestResource<TaskType> TASK_140_CUSTOM_COMPOSITE = new TestResource<>(TEST_DIR, "task-140-custom-composite.xml", "65866e01-73cd-4249-9b7b-03ebc4413bd0");
     private static final TestResource<TaskType> TASK_150_MOCK_ITERATIVE = new TestResource<>(TEST_DIR, "task-150-mock-iterative.xml", "c21785e9-1c67-492f-bc79-0c51f74561a1");
     private static final TestResource<TaskType> TASK_155_MOCK_ITERATIVE_BUCKETED = new TestResource<>(TEST_DIR, "task-155-mock-iterative-bucketed.xml", "02a94071-2eff-4ca0-aa63-3fdf9d540064");
     private static final TestResource<TaskType> TASK_160_MOCK_SEARCH_ITERATIVE = new TestResource<>(TEST_DIR, "task-160-mock-search-iterative.xml", "9d8384b3-a007-44e2-a9f7-084a64bdc285");
@@ -169,7 +169,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -223,7 +223,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -305,7 +305,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -379,7 +379,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 1");
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then("run 1");
 
@@ -404,7 +404,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 2");
 
         restartTask(task1.getOid(), result);
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then("run 2");
 
@@ -442,7 +442,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -477,7 +477,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -486,13 +486,13 @@ public class TestActivities extends AbstractRepoCommonTest {
     }
 
     /**
-     * Pure composite activity.
+     * Custom composite activity.
      *
      * This test runs the task twice to check the activity state purger
      * (it cleans up the state before second run).
      */
     @Test
-    public void test140RunPureCompositeTask() throws Exception {
+    public void test140RunCustomCompositeTask() throws Exception {
 
         given();
 
@@ -500,17 +500,17 @@ public class TestActivities extends AbstractRepoCommonTest {
         OperationResult result = task.getResult();
 
         recorder.reset();
-        Task root = taskAdd(TASK_140_PURE_COMPOSITE, result);
+        Task root = taskAdd(TASK_140_CUSTOM_COMPOSITE, result);
         List<String> expectedExecutions1 = List.of("A:opening", "A:closing", "Hello", "B:opening", "B:closing", "C:closing");
         List<String> expectedExecutions2 = ListUtils.union(expectedExecutions1, expectedExecutions1);
 
-        execute140RunPureCompositeTaskOnce(root, "run 1", 1, expectedExecutions1);
+        execute140RunCustomCompositeTaskOnce(root, "run 1", 1, expectedExecutions1);
         restartTask(root.getOid(), result);
 
-        execute140RunPureCompositeTaskOnce(root, "run 2", 2, expectedExecutions2);
+        execute140RunCustomCompositeTaskOnce(root, "run 2", 2, expectedExecutions2);
     }
 
-    private void execute140RunPureCompositeTaskOnce(Task root, String label, int runNumber,
+    private void execute140RunCustomCompositeTaskOnce(Task root, String label, int runNumber,
             List<String> expectedExecutions) throws CommonException {
 
         Task task = getTestTask();
@@ -518,7 +518,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when(label);
 
-        waitForTaskClose(root.getOid(), result, 10000, 200);
+        waitForTaskClose(root.getOid(), result, 10000);
 
         then(label);
 
@@ -672,7 +672,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -753,7 +753,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -836,7 +836,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -915,7 +915,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -1851,7 +1851,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(task1.getOid(), result, 10000, 200);
+        waitForTaskClose(task1.getOid(), result, 10000);
 
         then();
 
@@ -1930,7 +1930,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when("run 1");
 
-        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
 
         then("run 1");
 
@@ -2048,7 +2048,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 2");
 
         taskManager.resumeTask(oidOfSubtask1, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
 
         then("run 2");
 
@@ -2155,7 +2155,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 3");
 
         taskManager.resumeTask(oidOfSubtask1, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
 
         then("run 3");
 
@@ -2324,7 +2324,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 4");
 
         taskManager.resumeTask(oidOfSubtask22, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
 
         then("run 4");
 
@@ -2352,7 +2352,7 @@ public class TestActivities extends AbstractRepoCommonTest {
         when("run 5");
 
         taskManager.resumeTask(oidOfSubtask3, result);
-        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000, 500);
+        waitForTaskTreeCloseCheckingSuspensionWithError(root.getOid(), result, 10000);
 
         then("run 5");
 
@@ -2476,7 +2476,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(root.getOid(), result, 10000000, 200);
+        waitForTaskClose(root.getOid(), result, 10000000);
 
         then();
 
@@ -2599,7 +2599,7 @@ public class TestActivities extends AbstractRepoCommonTest {
 
         when();
 
-        waitForTaskClose(root.getOid(), result, 10000, 200);
+        waitForTaskClose(root.getOid(), result, 10000);
 
         then();
 

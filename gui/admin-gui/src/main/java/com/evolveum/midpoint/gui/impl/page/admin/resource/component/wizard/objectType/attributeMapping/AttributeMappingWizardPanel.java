@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
@@ -17,8 +19,8 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -26,11 +28,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 /**
  * @author lskublik
  */
-public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
+public class AttributeMappingWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
     public AttributeMappingWizardPanel(
             String id,
-            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> helper) {
+            WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
     }
 
@@ -86,7 +88,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
 
     private List<WizardStep> createInboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new AttributeInboundStepPanel(getResourceModel(), valueModel) {
+        steps.add(new AttributeInboundStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target, WrapperContext.AttributeMappingType.INBOUND);
@@ -105,7 +107,7 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
 
     private List<WizardStep> createOutboundAttributeMappingSteps(IModel<PrismContainerValueWrapper<MappingType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new AttributeOutboundStepPanel(getResourceModel(), valueModel) {
+        steps.add(new AttributeOutboundStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showTableFragment(target, WrapperContext.AttributeMappingType.OUTBOUND);
@@ -117,14 +119,14 @@ public class AttributeMappingWizardPanel extends AbstractResourceWizardPanel<Res
     private List<WizardStep> createNewAttributeOverrideSteps(
             IModel<PrismContainerValueWrapper<ResourceAttributeDefinitionType>> valueModel, WrapperContext.AttributeMappingType selectedTable) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new MainConfigurationStepPanel(getResourceModel(), valueModel) {
+        steps.add(new MainConfigurationStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showAttributeOverrides(target, selectedTable);
             }
         });
 
-        steps.add(new LimitationsStepPanel(getResourceModel(), valueModel) {
+        steps.add(new LimitationsStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showAttributeOverrides(target, selectedTable);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Evolveum and contributors
+ * Copyright (C) 2018-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,7 +16,8 @@ import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
-public class ValueMetadataValueAsserter<RA extends AbstractAsserter> extends PrismContainerValueAsserter<ValueMetadataType, RA> {
+public class ValueMetadataValueAsserter<RA extends AbstractAsserter<?>>
+        extends PrismContainerValueAsserter<ValueMetadataType, RA> {
 
     public ValueMetadataValueAsserter(PrismContainerValue<ValueMetadataType> valueMetadataValue, RA parentAsserter, String details) {
         super(valueMetadataValue, parentAsserter, details);
@@ -48,7 +49,7 @@ public class ValueMetadataValueAsserter<RA extends AbstractAsserter> extends Pri
     }
 
     @Override
-    public <T> ValueMetadataValueAsserter<RA> assertNoItem(ItemPath itemName) {
+    public ValueMetadataValueAsserter<RA> assertNoItem(ItemPath itemName) {
         return (ValueMetadataValueAsserter<RA>) super.assertNoItem(itemName);
     }
 

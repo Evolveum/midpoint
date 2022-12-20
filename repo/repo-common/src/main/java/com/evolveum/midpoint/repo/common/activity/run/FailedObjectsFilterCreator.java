@@ -33,13 +33,11 @@ class FailedObjectsFilterCreator {
 
     @NotNull private final FailedObjectsSelectorType selector;
     @NotNull private final RunningTask task;
-    @NotNull private final PrismContext prismContext;
+    @NotNull private final PrismContext prismContext = PrismContext.get();
 
-    FailedObjectsFilterCreator(@NotNull FailedObjectsSelectorType selector, @NotNull RunningTask task,
-            @NotNull PrismContext prismContext) {
+    FailedObjectsFilterCreator(@NotNull FailedObjectsSelectorType selector, @NotNull RunningTask task) {
         this.selector = selector;
         this.task = task;
-        this.prismContext = prismContext;
     }
 
     public ObjectFilter createFilter() {

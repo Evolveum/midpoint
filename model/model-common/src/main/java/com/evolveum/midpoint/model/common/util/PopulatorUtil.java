@@ -50,10 +50,17 @@ public class PopulatorUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(PopulatorUtil.class);
 
-    public static <V extends PrismValue, D extends ItemDefinition, C extends Containerable>
-        List<ItemDelta<V,D>> computePopulateItemDeltas(PopulateType fromPopulate, PrismContainerDefinition<C> targetContainerDefinition, VariablesMap variables,
-                ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
-                throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public static <V extends PrismValue, D extends ItemDefinition<?>, C extends Containerable>
+        List<ItemDelta<V,D>> computePopulateItemDeltas(
+            PopulateType fromPopulate,
+            PrismContainerDefinition<C> targetContainerDefinition,
+            VariablesMap variables,
+            ExpressionEvaluationContext params,
+            String contextDescription,
+            Task task,
+            OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
 
         if (targetContainerDefinition == null) {
             return null;

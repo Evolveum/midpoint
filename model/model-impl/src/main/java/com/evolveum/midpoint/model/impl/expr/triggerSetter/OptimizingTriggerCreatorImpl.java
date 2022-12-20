@@ -154,11 +154,10 @@ public class OptimizingTriggerCreatorImpl implements OptimizingTriggerCreator {
     private void addTrigger(TriggerHolderSpecification key, long triggerTimestamp, OperationResult result, String oid)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         RepositoryService repositoryService = midpointFunctions.getRepositoryService();
-        PrismContext prismContext = midpointFunctions.getPrismContext();
-        TriggerType trigger = new TriggerType(prismContext)
+        TriggerType trigger = new TriggerType()
                 .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
                 .timestamp(XmlTypeConverter.createXMLGregorianCalendar(triggerTimestamp));
-        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(key.getType())
+        List<ItemDelta<?, ?>> itemDeltas = PrismContext.get().deltaFor(key.getType())
                 .item(ObjectType.F_TRIGGER).add(trigger)
                 .asItemDeltas();
         repositoryService.modifyObject(key.getType(), oid, itemDeltas, result);

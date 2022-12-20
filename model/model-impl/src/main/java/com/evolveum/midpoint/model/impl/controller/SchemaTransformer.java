@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
@@ -229,7 +230,7 @@ public class SchemaTransformer {
                 result.recordFatalError(e);
                 throw e;
             }
-            applyObjectTemplateToObject(object, objectTemplateType, result);
+            applyObjectTemplateToObject(object, objectTemplateType, task, result);
         }
 
         if (CollectionUtils.isNotEmpty(options)) {
@@ -701,55 +702,67 @@ public class SchemaTransformer {
         return template.asObjectable();
     }
 
-    public <O extends ObjectType> void applyObjectTemplateToDefinition(PrismObjectDefinition<O> objectDefinition, ObjectTemplateType objectTemplateType, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        if (objectTemplateType == null) {
+    <O extends ObjectType> void applyObjectTemplateToDefinition(
+            PrismObjectDefinition<O> objectDefinition, ObjectTemplateType objectTemplate, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        if (objectTemplate == null) {
             return;
         }
-        for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
+        if (!SimulationUtil.isVisible(objectTemplate, task.getExecutionMode())) {
+            LOGGER.trace("Ignoring template {} as it is not visible for the current task", objectTemplate);
+            return;
+        }
+        for (ObjectReferenceType includeRef: objectTemplate.getIncludeRef()) {
             PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class,
                     includeRef.getOid(), createReadOnlyCollection(), result);
-            applyObjectTemplateToDefinition(objectDefinition, subTemplate.asObjectable(), result);
+            applyObjectTemplateToDefinition(objectDefinition, subTemplate.asObjectable(), task, result);
         }
-        for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
+        for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplate.getItem()) {
                 ItemPathType ref = templateItemDefType.getRef();
                 if (ref == null) {
-                    throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
+                    throw new SchemaException("No 'ref' in item definition in "+objectTemplate);
                 }
                 ItemPath itemPath = prismContext.toPath(ref);
                 ItemDefinition itemDef = objectDefinition.findItemDefinition(itemPath);
                 if (itemDef != null) {
-                    applyObjectTemplateItem(itemDef, templateItemDefType, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplateType);
+                    applyObjectTemplateItem(itemDef, templateItemDefType, "item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplate);
                 } else {
                     OperationResult subResult = result.createMinorSubresult(SchemaTransformer.class.getName() + ".applyObjectTemplateToDefinition");
-                    subResult.recordPartialError("No definition for item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplateType);
+                    subResult.recordPartialError("No definition for item " + itemPath + " in object type " + objectDefinition.getTypeName() + " as specified in item definition in " + objectTemplate);
                     continue;
                 }
         }
     }
 
-    private <O extends ObjectType> void applyObjectTemplateToObject(PrismObject<O> object, ObjectTemplateType objectTemplateType, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        if (objectTemplateType == null) {
+    private <O extends ObjectType> void applyObjectTemplateToObject(
+            PrismObject<O> object, ObjectTemplateType objectTemplate, Task task, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        if (objectTemplate == null) {
             return;
         }
-        for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
+        if (!SimulationUtil.isVisible(objectTemplate, task.getExecutionMode())) {
+            LOGGER.trace("Ignoring template {} as it is not visible for the current task", objectTemplate);
+            return;
+        }
+        for (ObjectReferenceType includeRef: objectTemplate.getIncludeRef()) {
             PrismObject<ObjectTemplateType> subTemplate = cacheRepositoryService.getObject(
                     ObjectTemplateType.class, includeRef.getOid(), createReadOnlyCollection(), result);
-            applyObjectTemplateToObject(object, subTemplate.asObjectable(), result);
+            applyObjectTemplateToObject(object, subTemplate.asObjectable(), task, result);
         }
-        for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplateType.getItem()) {
+        for (ObjectTemplateItemDefinitionType templateItemDefType: objectTemplate.getItem()) {
             ItemPathType ref = templateItemDefType.getRef();
             if (ref == null) {
-                throw new SchemaException("No 'ref' in item definition in "+objectTemplateType);
+                throw new SchemaException("No 'ref' in item definition in "+objectTemplate);
             }
             ItemPath itemPath = prismContext.toPath(ref);
             ItemDefinition itemDefFromObject = object.getDefinition().findItemDefinition(itemPath);
             if (itemDefFromObject != null) {
                 applyObjectTemplateItem(itemDefFromObject, templateItemDefType, "item " + itemPath + " in " + object
-                        + " as specified in item definition in " + objectTemplateType);
+                        + " as specified in item definition in " + objectTemplate);
             } else {
                 OperationResult subResult = result.createMinorSubresult(SchemaTransformer.class.getName() + ".applyObjectTemplateToObject");
                 subResult.recordPartialError("No definition for item " + itemPath + " in " + object
-                        + " as specified in item definition in " + objectTemplateType);
+                        + " as specified in item definition in " + objectTemplate);
                 continue;
             }
             Collection<Item<?, ?>> items = object.getAllItems(itemPath);
@@ -757,7 +770,7 @@ public class SchemaTransformer {
                 ItemDefinition itemDef = item.getDefinition();
                 if (itemDef != itemDefFromObject) {
                     applyObjectTemplateItem(itemDef, templateItemDefType, "item "+itemPath+" in " + object
-                            + " as specified in item definition in "+objectTemplateType);
+                            + " as specified in item definition in "+objectTemplate);
                 }
             }
         }

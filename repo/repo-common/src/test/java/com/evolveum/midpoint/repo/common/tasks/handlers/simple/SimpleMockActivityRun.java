@@ -72,13 +72,13 @@ final class SimpleMockActivityRun
         try {
             helper.failIfNeeded(this, activity.getWorkDefinition().getInitialFailures());
             QualifiedItemProcessingOutcomeType qualifiedOutcome =
-                    new QualifiedItemProcessingOutcomeType(getPrismContext())
+                    new QualifiedItemProcessingOutcomeType()
                             .outcome(ItemProcessingOutcomeType.SUCCESS);
             operation.done(qualifiedOutcome, null);
             incrementProgress(qualifiedOutcome);
         } catch (Exception e) {
             QualifiedItemProcessingOutcomeType qualifiedOutcome =
-                    new QualifiedItemProcessingOutcomeType(getPrismContext())
+                    new QualifiedItemProcessingOutcomeType()
                             .outcome(ItemProcessingOutcomeType.FAILURE);
             operation.done(qualifiedOutcome, e);
             incrementProgress(qualifiedOutcome);

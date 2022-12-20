@@ -24,8 +24,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.prism.show.SceneDto;
-import com.evolveum.midpoint.web.component.prism.show.WrapperScene;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
+import com.evolveum.midpoint.web.component.prism.show.WrapperVisualization;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public class ModelOperationStatusDto implements Serializable {
@@ -39,7 +39,7 @@ public class ModelOperationStatusDto implements Serializable {
 
     private String focusType;
     private String focusName;
-    private SceneDto primarySceneDto;
+    private VisualizationDto primaryVisualizationDto;
 
     public ModelOperationStatusDto(ModelContext<?> modelContext, ModelInteractionService modelInteractionService, Task opTask, OperationResult result) {
 
@@ -59,23 +59,19 @@ public class ModelOperationStatusDto implements Serializable {
 
             // primaryDelta
             final List<ObjectDelta<? extends ObjectType>> primaryDeltas = new ArrayList<>();
-//            final List<ObjectDelta<? extends ObjectType>> secondaryDeltas = new ArrayList<>();
-            final List<? extends Visualization> primaryScenes;
-//            final List<? extends Scene> secondaryScenes;
+            final List<? extends Visualization> primary;
             try {
                 addIgnoreNull(primaryDeltas, modelContext.getFocusContext().getPrimaryDelta());
-//                addIgnoreNull(secondaryDeltas, modelContext.getFocusContext().getSecondaryDelta());
                 for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
                     addIgnoreNull(primaryDeltas, projCtx.getPrimaryDelta());
-//                    addIgnoreNull(secondaryDeltas, projCtx.getExecutableDelta());
                 }
-                primaryScenes = modelInteractionService.visualizeDeltas(primaryDeltas, opTask, result);
-//                secondaryScenes = modelInteractionService.visualizeDeltas(secondaryDeltas, opTask, result);
+                primary = modelInteractionService.visualizeDeltas(primaryDeltas, opTask, result);
             } catch (SchemaException | ExpressionEvaluationException e) {
                 throw new SystemException(e);        // TODO
             }
-            final WrapperScene primaryWrapperScene = new WrapperScene(primaryScenes, primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryDeltas.size());
-            primarySceneDto = new SceneDto(primaryWrapperScene);
+            final WrapperVisualization primaryWrapper = new WrapperVisualization(primary,
+                    primaryDeltas.size() != 1 ? "PagePreviewChanges.primaryChangesMore" : "PagePreviewChanges.primaryChangesOne", primaryDeltas.size());
+            primaryVisualizationDto = new VisualizationDto(primaryWrapper);
         }
     }
 
@@ -91,7 +87,7 @@ public class ModelOperationStatusDto implements Serializable {
         return focusName;
     }
 
-    public SceneDto getPrimaryDelta() {
-        return primarySceneDto;
+    public VisualizationDto getPrimaryDelta() {
+        return primaryVisualizationDto;
     }
 }

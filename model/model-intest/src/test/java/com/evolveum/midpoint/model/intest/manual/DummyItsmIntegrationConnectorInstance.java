@@ -197,7 +197,7 @@ public class DummyItsmIntegrationConnectorInstance extends AbstractManualConnect
     }
 
     @Override
-    public CapabilityCollectionType getNativeCapabilities(OperationResult result) throws CommunicationException, GenericFrameworkException, ConfigurationException {
+    public @NotNull CapabilityCollectionType getNativeCapabilities(OperationResult result) throws CommunicationException, GenericFrameworkException, ConfigurationException {
         return fetchCapabilities(result);
     }
 

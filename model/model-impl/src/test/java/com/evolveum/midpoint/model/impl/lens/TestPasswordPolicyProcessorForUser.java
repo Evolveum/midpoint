@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -13,7 +12,7 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
- *  Testing password policy processor for user Jack.
+ * Testing password policy processor for user Jack.
  */
 public class TestPasswordPolicyProcessorForUser extends TestPasswordPolicyProcessor<UserType> {
 
@@ -30,7 +29,7 @@ public class TestPasswordPolicyProcessorForUser extends TestPasswordPolicyProces
     }
 
     @Override
-    TestResource getTestResource() {
+    TestResource<?> getTestResource() {
         return USER_JACK;
     }
 }

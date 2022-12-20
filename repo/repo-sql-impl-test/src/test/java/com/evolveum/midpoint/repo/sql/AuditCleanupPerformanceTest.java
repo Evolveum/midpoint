@@ -78,7 +78,7 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
     private ObjectDeltaOperation<UserType> createObjectDeltaOperation(int i) throws Exception {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("d" + i)
-                .asObjectDeltaCast("oid-" + i);
+                .asObjectDelta("oid-" + i);
         ObjectDeltaOperation<UserType> odo = new ObjectDeltaOperation<>();
         odo.setObjectDelta(delta);
         odo.setExecutionResult(new OperationResult("asdf"));

@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -54,7 +54,7 @@ import java.util.*;
 /**
  * @author lskublik
  */
-public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPanel {
+public class SelectObjectClassesStepPanel extends AbstractWizardStepPanel<ResourceType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectObjectClassesStepPanel.class);
 
@@ -76,7 +76,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
             protected Map<QName, Boolean> load() {
                 Map<QName, Boolean> map = new HashMap<>();
                 try {
-                    PrismPropertyWrapper<QName> generationConstraints = getResourceModel().getObjectWrapper().findProperty(
+                    PrismPropertyWrapper<QName> generationConstraints = getDetailsModel().getObjectWrapper().findProperty(
                             ItemPath.create(
                                     ResourceType.F_SCHEMA,
                                     XmlSchemaType.F_GENERATION_CONSTRAINTS,
@@ -88,7 +88,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
                                             v.getRealValue(),
                                             !WebPrismUtil.isValueFromResourceTemplate(
                                                     v.getNewValue(),
-                                                    getResourceModel().getObjectType().asPrismObject())
+                                                    getDetailsModel().getObjectType().asPrismObject())
                                     );
                                 }
                         });
@@ -97,8 +97,8 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
                 } catch (SchemaException e) {
                     LOGGER.error("Couldn't find property for schema generation constraints", e);
                 }
-                if (map.isEmpty() && getResourceModel().getObjectClassesModel().getObject().size() == 1) {
-                    ObjectClassWrapper value = getResourceModel().getObjectClassesModel().getObject().iterator().next();
+                if (map.isEmpty() && getDetailsModel().getObjectClassesModel().getObject().size() == 1) {
+                    ObjectClassWrapper value = getDetailsModel().getObjectClassesModel().getObject().iterator().next();
                     map.put(value.getObjectClassName(), true);
                 }
                 return map;
@@ -215,7 +215,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
             @Override
             public Component getHeader(String componentId) {
                 IsolatedCheckBoxPanel header = (IsolatedCheckBoxPanel) super.getHeader(componentId);
-                if (selectedItems.getObject().size() == getResourceModel().getObjectClassesModel().getObject().size()) {
+                if (selectedItems.getObject().size() == getDetailsModel().getObjectClassesModel().getObject().size()) {
                     header.getPanelComponent().setModelObject(true);
                 }
                 return header;
@@ -254,7 +254,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
             @Override
             protected IModel<Boolean> getEnabled(IModel<SelectableBean<ObjectClassWrapper>> rowModel) {
                 if (rowModel == null) {
-                    if (selectedItems.getObject().size() == getResourceModel().getObjectClassesModel().getObject().size()) {
+                    if (selectedItems.getObject().size() == getDetailsModel().getObjectClassesModel().getObject().size()) {
                        return Model.of(selectedItems.getObject().values().stream().anyMatch(enabled -> enabled));
                     }
                     return super.getEnabled(rowModel);
@@ -302,7 +302,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
     }
 
     private ObjectClassDataProvider createProvider() {
-        return new ObjectClassDataProvider(SelectObjectClassesStepPanel.this, getResourceModel().getObjectClassesModel()) {
+        return new ObjectClassDataProvider(SelectObjectClassesStepPanel.this, getDetailsModel().getObjectClassesModel()) {
             @Override
             protected SelectableBean<ObjectClassWrapper> createObjectWrapper(ObjectClassWrapper object) {
                 SelectableBean<ObjectClassWrapper> wrapper = super.createObjectWrapper(object);
@@ -329,7 +329,7 @@ public class SelectObjectClassesStepPanel extends AbstractResourceWizardStepPane
             return;
         }
 
-        @NotNull ResourceType resource = getResourceModel().getObjectType();
+        @NotNull ResourceType resource = getDetailsModel().getObjectType();
         if (resource.getSchema() == null) {
             resource.beginSchema();
         }

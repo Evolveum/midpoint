@@ -1623,7 +1623,7 @@ public class TestAssignmentValidity extends AbstractRbacTest {
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(assignment)
-                .asObjectDeltaCast(USER_JACK_OID);
+                .asObjectDelta(USER_JACK_OID);
         executeChanges(delta, null, task, result);
 
         // THEN

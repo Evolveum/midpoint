@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.result.Toast;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
@@ -17,6 +17,8 @@ import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objec
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -61,7 +63,7 @@ public class ResourceWizardPanel extends BasePanel {
     protected ResourceObjectTypeWizardPanel createObjectTypeWizard(
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
 
-        ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> helper = new ResourceWizardPanelHelper<>(getResourceModel(), valueModel) {
+        WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper = new WizardPanelHelper<>(getResourceModel(), valueModel) {
 
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
@@ -100,7 +102,7 @@ public class ResourceWizardPanel extends BasePanel {
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSaveResourcePerformed(target);
         if (!result.isError()) {
-            WebComponentUtil.createToastForCreateResource(target, this);
+            WebComponentUtil.createToastForCreateObject(target, this, ResourceType.COMPLEX_TYPE);
             exitToPreview(target);
         }
     }
@@ -118,7 +120,7 @@ public class ResourceWizardPanel extends BasePanel {
     private void exitToPreview(AjaxRequestTarget target) {
         ResourceWizardPreviewPanel preview = new ResourceWizardPreviewPanel(ID_WIZARD_PANEL, getResourceModel()) {
             @Override
-            protected void onResourceTileClick(ResourceWizardPreviewPanel.PreviewTileType value, AjaxRequestTarget target) {
+            protected void onTileClickPerformed(ResourceWizardPreviewPanel.PreviewTileType value, AjaxRequestTarget target) {
                 switch (value) {
                     case PREVIEW_DATA:
                         showWizardPanel(createPreviewResourceDataWizardPanel(), target);

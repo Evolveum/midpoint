@@ -29,7 +29,11 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
+
+import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -79,7 +83,7 @@ import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.*;
-import com.evolveum.midpoint.model.test.util.ImportSingleAccountRequest.ImportSingleAccountRequestBuilder;
+import com.evolveum.midpoint.model.test.util.ImportAccountsRequest.ImportAccountsRequestBuilder;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.TransportService;
@@ -214,6 +218,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Autowired protected SecurityContextManager securityContextManager;
     @Autowired protected MidpointFunctions libraryMidpointFunctions;
     @Autowired protected ValuePolicyProcessor valuePolicyProcessor;
+    @Autowired protected SimulationResultManager simulationResultManager;
 
     @Autowired(required = false)
     @Qualifier("modelObjectResolver")
@@ -308,6 +313,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return resource.controller;
     }
 
+    @Override
     public void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
             throws Exception {
         resource.controller = dummyResourceCollection.initDummyResource(
@@ -943,7 +949,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ObjectDelta<? extends FocusType> delta = prismContext.deltaFor(focus.getCompileTimeClass())
                 .item(FocusType.F_ASSIGNMENT)
                 .delete(assignment.clone())
-                .asObjectDeltaCast(focus.getOid());
+                .asObjectDelta(focus.getOid());
         modelService.executeChanges(singleton(delta), null, task, result);
     }
 
@@ -3355,7 +3361,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             public void timeout() {
                 assert false : "Timeouted while waiting for task " + taskOid + " activity to complete.";
             }
-        }, timeout, 0);
+        }, timeout);
         return taskResultHolder.getValue();
     }
 
@@ -3434,7 +3440,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             }
         };
 
-        waitForTaskStatusUpdated(origTask.getOid(), "Waiting for task " + origTask + " next run", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+        waitForTaskStatusUpdated(origTask.getOid(), "Waiting for task " + origTask + " next run", checker, timeout);
 
         Task freshTask = taskManager.getTaskWithResult(origTask.getOid(), waitResult);
         logger.debug("Final task:\n{}", freshTask.debugDump());
@@ -3736,11 +3742,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Unexpected modifications in " + desc + ": " + focusDelta, expectedModifications, focusDelta.getModifications().size());
     }
 
-    protected <F extends FocusType> void assertSideEffectiveDeltasOnly(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
+    protected <F extends FocusType> void assertSideEffectiveDeltasOnly(
+            ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
         assertEffectualDeltas(focusDelta, desc, expectedEfficientActivation, 0);
     }
 
-    protected <F extends FocusType> void assertEffectualDeltas(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation, int expectedEffectualModifications) {
+    protected <F extends FocusType> void assertEffectualDeltas(
+            ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation, int expectedEffectualModifications) {
         if (focusDelta == null) {
             return;
         }
@@ -4050,7 +4058,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .collect(Collectors.toList());
         ObjectDelta<ObjectType> delta = prismContext.deltaFor(ObjectType.class)
                 .item(ObjectType.F_TRIGGER).addRealValues(triggers)
-                .asObjectDeltaCast(oid);
+                .asObjectDelta(oid);
         executeChanges(delta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -4079,7 +4087,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .collect(Collectors.toList());
         ObjectDelta<ObjectType> delta = prismContext.deltaFor(ObjectType.class)
                 .item(ObjectType.F_TRIGGER).replaceRealValues(triggers)
-                .asObjectDeltaCast(oid);
+                .asObjectDelta(oid);
         executeChanges(delta, null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -5681,7 +5689,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                         rules.asObjectable().getGlobalPolicyRule().stream()
                                 .map(r -> r.clone().asPrismContainerValue())
                                 .collect(Collectors.toList()))
-                .asObjectDeltaCast(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+                .asObjectDelta(SystemObjectsType.SYSTEM_CONFIGURATION.value());
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, parentResult);
     }
 
@@ -6013,6 +6021,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         UserAsserter<Void> asserter = UserAsserter.forUser(user, message);
         initializeAsserter(asserter);
         return asserter;
+    }
+
+    protected void assertNoUserByUsername(String username)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException, ObjectNotFoundException {
+        assertThat(findUserByUsername(username)).as("user named '" + username + "'").isNull();
     }
 
     protected UserAsserter<Void> assertUserByUsername(String username, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -6786,26 +6800,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return roleOid + ":" + id;
     }
 
-    public interface TracedFunctionCall<X> {
-        X execute() throws CommonException, PreconditionViolationException, IOException;
+    public interface FunctionCall<X> {
+        X execute() throws CommonException, IOException;
     }
 
-    public interface TracedProcedureCall {
-        void execute() throws CommonException, PreconditionViolationException;
+    public interface ProcedureCall {
+        void execute() throws CommonException;
     }
 
-    protected <X> X traced(TracedFunctionCall<X> tracedCall)
+    protected <X> X traced(FunctionCall<X> tracedCall)
             throws CommonException, PreconditionViolationException, IOException {
         return traced(createModelLoggingTracingProfile(), tracedCall);
     }
 
-    protected void traced(TracedProcedureCall tracedCall)
-            throws CommonException, PreconditionViolationException {
+    protected void traced(ProcedureCall tracedCall) throws CommonException {
         traced(createModelLoggingTracingProfile(), tracedCall);
     }
 
-    public void traced(TracingProfileType profile, TracedProcedureCall tracedCall)
-            throws CommonException, PreconditionViolationException {
+    public void traced(TracingProfileType profile, ProcedureCall tracedCall) throws CommonException {
         setGlobalTracingOverride(profile);
         try {
             tracedCall.execute();
@@ -6814,7 +6826,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    public <X> X traced(TracingProfileType profile, TracedFunctionCall<X> tracedCall)
+    public <X> X traced(TracingProfileType profile, FunctionCall<X> tracedCall)
             throws CommonException, PreconditionViolationException, IOException {
         setGlobalTracingOverride(profile);
         try {
@@ -6885,10 +6897,139 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return modelService.testResource(oid, task, result);
     }
 
+    /** Import a single or multiple accounts (or other kind of object) by creating a specialized task - or on foreground. */
+    protected ImportAccountsRequestBuilder importAccountsRequest() {
+        return new ImportAccountsRequestBuilder(this);
+    }
+
     /**
-     * Imports a single account (or other kind of object) by creating a specialized task.
+     * Executes a set of deltas in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
+     *
+     * Simulation deltas are stored in returned {@link SimulationResult} and optionally also in the storage provided by the
+     * {@link SimulationResultManager} - if `simulationConfiguration` is present. (To be implemented.)
      */
-    public ImportSingleAccountRequestBuilder importSingleAccountRequest() {
-        return new ImportSingleAccountRequestBuilder(this);
+    private SimulationResult executeInProductionSimulationMode(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @Nullable SimulationResultType simulationConfiguration,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+        return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_PRODUCTION, simulationConfiguration, task, result);
+    }
+
+    /**
+     * As {@link #executeInProductionSimulationMode(Collection, SimulationResultType, Task, OperationResult)} but
+     * in development simulation mode.
+     */
+    protected SimulationResult executeInDevelopmentSimulationMode(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @Nullable SimulationResultType simulationConfiguration,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+        return executeInSimulationMode(deltas, TaskExecutionMode.SIMULATED_DEVELOPMENT, simulationConfiguration, task, result);
+    }
+
+    protected SimulationResult executeInSimulationMode(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @NotNull TaskExecutionMode mode,
+            @Nullable SimulationResultType simulationConfiguration,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+        return executeInSimulationMode(
+                mode,
+                simulationConfiguration,
+                task,
+                result,
+                (simResult) ->
+                        modelService.executeChanges(
+                                deltas, null, task, List.of(simResult.contextRecordingListener()), result));
+    }
+
+    /** Convenience method */
+    protected SimulationResult executeInProductionSimulationMode(
+            @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
+            @NotNull Task task,
+            @NotNull OperationResult result)
+            throws CommonException {
+        return executeInProductionSimulationMode(deltas, null, task, result);
+    }
+
+    /**
+     * Executes a {@link ProcedureCall} in {@link TaskExecutionMode#SIMULATED_PRODUCTION} mode.
+     */
+    protected SimulationResult executeInProductionSimulationMode(
+            SimulationResultType simulationConfiguration, Task task, OperationResult result, ProcedureCall simulatedCall)
+            throws CommonException {
+        return executeInSimulationMode(
+                TaskExecutionMode.SIMULATED_PRODUCTION,
+                simulationConfiguration,
+                task,
+                result,
+                (simResult) -> simulatedCall.execute());
+    }
+
+    /** As {@link ProcedureCall} but has {@link SimulationResult} as a parameter. Currently for internal purposes. */
+    public interface SimulatedProcedureCall {
+        void execute(SimulationResult simResult) throws CommonException;
+    }
+
+    public SimulationResult executeInSimulationMode(
+            TaskExecutionMode mode,
+            SimulationResultType simulationConfiguration,
+            Task task,
+            OperationResult result,
+            SimulatedProcedureCall simulatedCall)
+            throws CommonException {
+
+        SimulationResultContext simulationResultContext =
+                simulationConfiguration != null ?
+                        simulationResultManager.newSimulationResult(simulationConfiguration, result) : null;
+        AggregatedObjectProcessingListener simulationObjectProcessingListener =
+                simulationResultContext != null ? simulationResultContext.aggregatedObjectProcessingListener() : null;
+
+        SimulationResult simulationResult = new SimulationResult(simulationResultContext);
+        AggregatedObjectProcessingListener testObjectProcessingListener = simulationResult.aggregatedObjectProcessingListener();
+        DummyAuditEventListener auditEventListener = simulationResult.auditEventListener();
+        TaskExecutionMode oldMode = task.setExecutionMode(mode);
+        try {
+            dummyAuditService.addEventListener(auditEventListener);
+            task.addObjectProcessingListener(testObjectProcessingListener);
+            if (simulationObjectProcessingListener != null) {
+                task.addObjectProcessingListener(simulationObjectProcessingListener);
+            }
+            simulatedCall.execute(simulationResult);
+        } finally {
+            task.removeObjectProcessingListener(testObjectProcessingListener);
+            if (simulationObjectProcessingListener != null) {
+                task.removeObjectProcessingListener(simulationObjectProcessingListener);
+            }
+            dummyAuditService.removeEventListener(auditEventListener);
+            task.setExecutionMode(oldMode);
+        }
+        return simulationResult;
+    }
+
+    protected SimulationResultType getDefaultSimulationConfiguration() {
+        if (isNativeRepository()) {
+            return simulationResultManager.newConfiguration();
+        } else {
+            return null; // No simulation storage in old repo
+        }
+    }
+
+    protected @NotNull Collection<ObjectDelta<?>> getTaskSimDeltas(String taskOid, OperationResult result)
+            throws CommonException {
+        Task taskAfter = taskManager.getTaskPlain(taskOid, result);
+        ActivitySimulationStateType simState =
+                Objects.requireNonNull(taskAfter.getActivityStateOrClone(ActivityPath.empty()))
+                        .getSimulation();
+        assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
+        ObjectReferenceType simResultRef = simState.getResultRef();
+        assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
+        return simulationResultManager
+                .newSimulationContext(simResultRef.getOid())
+                .getStoredDeltas(result);
     }
 }

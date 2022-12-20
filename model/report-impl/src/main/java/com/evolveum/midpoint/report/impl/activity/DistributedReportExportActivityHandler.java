@@ -128,7 +128,7 @@ public class DistributedReportExportActivityHandler
                 "resolve report ref",
                 runningTask,
                 result);
-        ReportDataType reportData = new ReportDataType(commonTaskBeans.prismContext)
+        ReportDataType reportData = new ReportDataType()
                 .name(SaveReportFileSupport.getNameOfExportedReportData(report, getType(report)));
         String oid = commonTaskBeans.repositoryService.addObject(reportData.asPrismObject(), null, result);
 

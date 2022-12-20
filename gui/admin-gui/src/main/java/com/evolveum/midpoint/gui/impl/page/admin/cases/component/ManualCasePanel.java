@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -16,13 +18,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.prism.show.SceneDto;
-import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
-import org.apache.wicket.model.IModel;
 
 /**
  * Created by honchar
@@ -38,22 +37,22 @@ public class ManualCasePanel extends AbstractObjectMainPanel<CaseType, Assignmen
     private static final String OPERATION_PREPARE_DELTA_VISUALIZATION = DOT_CLASS + "prepareDeltaVisualization";
 
     private static final String ID_MANUAL_CASE_DETAILS_PANEL = "manualCaseDetailsPanel";
-    private IModel<SceneDto> sceneModel;
+    private IModel<VisualizationDto> visualizationModel;
 
     public ManualCasePanel(String id, AssignmentHolderDetailsModel<CaseType> objectWrapperModel, ContainerPanelConfigurationType config) {
         super(id, objectWrapperModel, config);
         initModels();
     }
 
-    private void initModels(){
-        sceneModel = new LoadableModel<SceneDto>(false) {
+    private void initModels() {
+        visualizationModel = new LoadableModel<>(false) {
             @Override
-            protected SceneDto load() {
+            protected VisualizationDto load() {
                 PageBase pageBase = ManualCasePanel.this.getPageBase();
                 try {
-                    return WebComponentUtil.createSceneDtoForManualCase(ManualCasePanel.this.getObjectWrapperModel().getObject().getObject().asObjectable(),
-                            pageBase,  OPERATION_PREPARE_DELTA_VISUALIZATION);
-                } catch (Exception ex){
+                    return WebComponentUtil.createVisualizationDtoForManualCase(ManualCasePanel.this.getObjectWrapperModel().getObject().getObject().asObjectable(),
+                            pageBase, OPERATION_PREPARE_DELTA_VISUALIZATION);
+                } catch (Exception ex) {
                     LOGGER.error("Couldn't prepare delta visualization: {}", ex.getLocalizedMessage());
                 }
                 return null;
@@ -62,9 +61,9 @@ public class ManualCasePanel extends AbstractObjectMainPanel<CaseType, Assignmen
     }
 
     protected void initLayout() {
-        ScenePanel scenePanel = new ScenePanel(ID_MANUAL_CASE_DETAILS_PANEL, sceneModel);
-        scenePanel.setOutputMarkupId(true);
-        add(scenePanel);
+        VisualizationPanel visualization = new VisualizationPanel(ID_MANUAL_CASE_DETAILS_PANEL, visualizationModel);
+        visualization.setOutputMarkupId(true);
+        add(visualization);
     }
 
 }

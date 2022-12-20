@@ -25,7 +25,8 @@ import org.apache.wicket.model.IModel;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.limitation", icon = "fa fa-circle"),
         expanded = true)
-public class LimitationsStepPanel extends AbstractValueFormResourceWizardStepPanel<PropertyLimitationsType> {
+public class LimitationsStepPanel extends
+        AbstractValueFormResourceWizardStepPanel<PropertyLimitationsType, ResourceType, ResourceDetailsModel> {
 
     public static final String PANEL_TYPE = "rw-attribute-limitations";
 

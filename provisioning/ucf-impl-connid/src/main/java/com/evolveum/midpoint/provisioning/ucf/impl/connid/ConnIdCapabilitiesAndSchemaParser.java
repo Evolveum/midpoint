@@ -135,7 +135,7 @@ class ConnIdCapabilitiesAndSchemaParser {
     /**
      * Returns parsed capabilities or null if they were not available.
      */
-    public CapabilityCollectionType getCapabilities() {
+    public @NotNull CapabilityCollectionType getCapabilities() {
         return capabilities;
     }
 

@@ -1716,7 +1716,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     /**
-     * @return True if the projection is "current" i.e. it was not completed and its wave is
+     * Returns true if the projection is "current" i.e. it was not completed and its wave is
      * either not yet determined or equal to the current projection wave.
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -1854,5 +1854,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public boolean isInMaintenance() {
         return ResourceTypeUtil.isInMaintenance(resource);
+    }
+
+    /** Is the resource or object class/type visible for the current task execution mode? */
+    public boolean isVisible() throws SchemaException, ConfigurationException {
+        if (!lensContext.isProductionConfigurationTask()) {
+            return true; // temporary (in the future, not all the elements will be visible in non-production configuration)
+        }
+        if (resource == null) {
+            throw new IllegalStateException("No resource"); // temporary
+        }
+        return SimulationUtil.isInProduction(resource, getStructuralObjectDefinition());
+    }
+
+    public boolean hasResource() {
+        return resource != null;
     }
 }

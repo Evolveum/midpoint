@@ -4008,10 +4008,26 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="deathTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When we learned about the fact that the shadow is dead?
+
+                                The reason behind this property is to be able to distinguish "freshly dead" shadows so that
+                                full synchronization may be invoked if this timestamp is after fullSynchronizationTimestamp.
+
+                                (In the future, though, we should make synchronization reactions more "declarative" so that
+                                all dead shadows could be synchronized. But that is a longer-term plan.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ShadowType.deathTimestamp</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="pendingOperation" type="tns:PendingOperationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Description of an operation which which execution is pending for this shadow.
+                                Description of an operation which execution is pending for this shadow.
                                 This may be asynchronous operation in progress. E.g. operation that has to be
                                 manually completed by human operator. It may also be operation that could not
                                 be completed because there was a temporary error while communicating with the

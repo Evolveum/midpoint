@@ -4705,6 +4705,19 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element ref="tns:documentation" minOccurs="0"/>
+            <xsd:element ref="tns:lifecycleState" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Lifecycle state of the mapping. Production configuration consists (by default) of `active`
+                        and `deprecated` ones. Development configuration consists (by default) of `active` and
+                        `proposed` ones. (The role of `deprecated` mappings in development configuration is unclear.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ObjectType.lifecycleState</a:displayName>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element ref="tns:extension" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -8931,11 +8944,11 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
-                                    Definition of archetype policies, such as object template, lifecycle, type display properties and so on.
+                                    Type of the archetype determining how it can be assigned and used.
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:displayName>ArchetypeType.archetypePolicy</a:displayName>
+                                <a:displayName>ArchetypeType.archetypeType</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -9131,7 +9144,7 @@
     <xsd:simpleType name="ArchetypeTypeType">
         <xsd:annotation>
             <xsd:documentation>
-                Overall assignmentRelation approach for archetypes objects.
+                Type of the archetype determining how it can be assigned and used.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
@@ -9142,8 +9155,7 @@
             <xsd:enumeration value="structural">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Open assignmentRelation approach. Assignments with any target and relation (generic assignments)
-                        are allowed.
+                        Only one can be assigned to the object directly, can be extended, can extend other structural archetypes.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="STRUCTURAL"/>
@@ -9153,8 +9165,7 @@
             <xsd:enumeration value="auxiliary">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Closed assignmentRelation approach. Assignments with any target and relation (generic assignments)
-                        are not allowed.
+                        Can be assigned to the object with structural archetype assigned, object can have more than one auxiliary archetypes assigned.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="AUXILIARY"/>

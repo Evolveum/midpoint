@@ -47,7 +47,8 @@ public class InboundProcessor implements ProjectorProcessor {
     @Autowired private ModelBeans beans;
 
     @ProcessorMethod
-    <F extends FocusType> void processInbounds(LensContext<F> context, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
+    <F extends FocusType> void processInbounds(
+            LensContext<F> context, String activityDescription, XMLGregorianCalendar now, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException,
             CommunicationException, SecurityViolationException, PolicyViolationException {
 
@@ -63,9 +64,7 @@ public class InboundProcessor implements ProjectorProcessor {
         // It's actually a bit questionable if such cross-components interactions should be treated like this
         // or in some higher-level component. But let's try this approach until something nicer is found.
         contextLoader.updateArchetypePolicyAndRelatives(
-                context.getFocusContextRequired(),
-                true,
-                result);
+                context.getFocusContextRequired(), true, task, result);
         context.checkConsistenceIfNeeded();
     }
 }

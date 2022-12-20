@@ -46,20 +46,26 @@ public class SequentialValueExpressionEvaluatorFactory extends AbstractAutowired
     }
 
     @Override
-    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(
+    public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
             Collection<JAXBElement<?>> evaluatorElements,
             D outputDefinition,
             ExpressionProfile expressionProfile,
             ExpressionFactory expressionFactory,
-            String contextDescription, Task task, OperationResult result)
-                    throws SchemaException {
+            String contextDescription,
+            Task task,
+            OperationResult result) throws SchemaException {
 
         SequentialValueExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBeanRequired(evaluatorElements,
                 SequentialValueExpressionEvaluatorType.class, contextDescription);
 
         if (evaluatorBean.getSequenceRef() != null && evaluatorBean.getSequenceRef().getOid() != null) {
-            return new SequentialValueExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean.getSequenceRef().getOid(), evaluatorBean,
-                    outputDefinition, protector, repositoryService, prismContext);
+            return new SequentialValueExpressionEvaluator<>(
+                    ELEMENT_NAME,
+                    evaluatorBean.getSequenceRef().getOid(),
+                    evaluatorBean,
+                    outputDefinition,
+                    protector,
+                    repositoryService);
         } else {
             throw new SchemaException("Missing sequence reference in sequentialValue expression evaluator in "+contextDescription);
         }

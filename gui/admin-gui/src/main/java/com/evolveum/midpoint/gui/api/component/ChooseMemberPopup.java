@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -425,9 +426,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return false;
     }
 
-    private void executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query,
+    protected Task executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query,
             @NotNull QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
-        MemberOperationsHelper.createAndSubmitAssignMembersTask(targetObject, type, query,
+        return MemberOperationsHelper.createAndSubmitAssignMembersTask(targetObject, type, query,
                 relation, target, pageBase);
     }
 

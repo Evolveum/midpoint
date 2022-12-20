@@ -14,6 +14,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -24,7 +28,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
@@ -50,7 +53,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 
 /**
  * @author katka
@@ -156,7 +158,7 @@ public class AssignmentCollector {
 
     private <AH extends AssignmentHolderType> LensContext<AH> createAuthenticationLensContext(
             PrismObject<AH> user, OperationResult result) throws SchemaException {
-        LensContext<AH> lensContext = new LensContextPlaceholder<>(user);
+        LensContext<AH> lensContext = new LensContextPlaceholder<>(user, TaskExecutionMode.PRODUCTION);
         ArchetypePolicyType policyConfigurationType = determineObjectPolicyConfiguration(user, result);
         lensContext.getFocusContext().setArchetypePolicy(policyConfigurationType);
         return lensContext;

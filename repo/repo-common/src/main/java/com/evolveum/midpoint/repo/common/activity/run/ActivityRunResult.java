@@ -110,19 +110,19 @@ public class ActivityRunResult implements ShortDumpable {
         return runResult;
     }
 
-    public TaskRunResultStatus getRunResultStatus() {
+    TaskRunResultStatus getRunResultStatus() {
         return runResultStatus;
     }
 
-    public void setRunResultStatus(TaskRunResultStatus runResultStatus) {
+    void setRunResultStatus(TaskRunResultStatus runResultStatus) {
         this.runResultStatus = runResultStatus;
     }
 
-    public OperationResultStatus getOperationResultStatus() {
+    OperationResultStatus getOperationResultStatus() {
         return operationResultStatus;
     }
 
-    public void setOperationResultStatus(OperationResultStatus operationResultStatus) {
+    void setOperationResultStatus(OperationResultStatus operationResultStatus) {
         this.operationResultStatus = operationResultStatus;
     }
 
@@ -190,7 +190,7 @@ public class ActivityRunResult implements ShortDumpable {
         return runResultStatus == PERMANENT_ERROR || runResultStatus == TEMPORARY_ERROR;
     }
 
-    public boolean isPermanentError() {
+    boolean isPermanentError() {
         return runResultStatus == PERMANENT_ERROR;
     }
 
@@ -216,5 +216,21 @@ public class ActivityRunResult implements ShortDumpable {
 
     public OperationResultStatusType getOperationResultStatusBean() {
         return createStatusType(operationResultStatus);
+    }
+
+    /**
+     * "Closes" the result by converting null or "in progress" values into finished/interrupted/success/default ones.
+     */
+    public void close(boolean canRun, OperationResultStatus status) {
+        if (runResultStatus == null) {
+            runResultStatus = canRun ? TaskRunResultStatus.FINISHED : TaskRunResultStatus.INTERRUPTED;
+        }
+        if (operationResultStatus == null) {
+            operationResultStatus = status;
+        }
+        if (isFinished()
+                && (operationResultStatus == null || operationResultStatus == OperationResultStatus.IN_PROGRESS)) {
+            operationResultStatus = OperationResultStatus.SUCCESS;
+        }
     }
 }

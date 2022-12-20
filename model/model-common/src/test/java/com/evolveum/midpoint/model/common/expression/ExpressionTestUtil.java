@@ -6,8 +6,17 @@
  */
 package com.evolveum.midpoint.model.common.expression;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.prism.impl.PrismContextImpl;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.common.DirectoryFileObjectResolver;
+
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.apache.commons.configuration2.BaseConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -34,6 +43,8 @@ import com.evolveum.midpoint.repo.common.expression.evaluator.AsIsExpressionEval
 import com.evolveum.midpoint.repo.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 
+import org.xml.sax.SAXException;
+
 /**
  * @author Radovan Semancik
  */
@@ -42,51 +53,46 @@ public class ExpressionTestUtil {
     private static final String CONST_FOO_NAME = "foo";
     public static final String CONST_FOO_VALUE = "foobar";
 
-    public static Protector createInitializedProtector(PrismContext prismContext) {
+    private static Protector createInitializedProtector(PrismContext prismContext) {
         return KeyStoreBasedProtectorBuilder.create(prismContext)
                 .keyStorePath(MidPointTestConstants.KEYSTORE_PATH)
                 .keyStorePassword(MidPointTestConstants.KEYSTORE_PASSWORD)
                 .initialize();
     }
 
-    public static ExpressionFactory createInitializedExpressionFactory(
+    private static ExpressionFactory createInitializedExpressionFactory(
             ObjectResolver resolver, Protector protector, PrismContext prismContext, Clock clock) {
-        ExpressionFactory expressionFactory = new ExpressionFactory(
-                null, prismContext, LocalizationTestUtil.getLocalizationService());
+
+        ExpressionFactory expressionFactory =
+                new ExpressionFactory(null, LocalizationTestUtil.getLocalizationService());
         expressionFactory.setObjectResolver(resolver);
 
         // NOTE: we need to register the evaluator factories to expressionFactory manually here
         // this is not spring-wired test. PostConstruct methods are not invoked here
 
         // asIs
-        AsIsExpressionEvaluatorFactory asIsFactory =
-                new AsIsExpressionEvaluatorFactory(prismContext, protector);
+        AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(protector);
         expressionFactory.registerEvaluatorFactory(asIsFactory);
         expressionFactory.setDefaultEvaluatorFactory(asIsFactory);
 
         // value
-        LiteralExpressionEvaluatorFactory valueFactory =
-                new LiteralExpressionEvaluatorFactory(prismContext);
-        expressionFactory.registerEvaluatorFactory(valueFactory);
+        expressionFactory.registerEvaluatorFactory(
+                new LiteralExpressionEvaluatorFactory(protector));
 
         // const
         ConstantsManager constManager = new ConstantsManager(createConfiguration());
-        ConstExpressionEvaluatorFactory constFactory =
-                new ConstExpressionEvaluatorFactory(protector, constManager, prismContext);
-        expressionFactory.registerEvaluatorFactory(constFactory);
+        expressionFactory.registerEvaluatorFactory(
+                new ConstExpressionEvaluatorFactory(protector, constManager));
 
         // path
-        PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(
-                expressionFactory, prismContext, protector, null);
+        PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(expressionFactory, protector);
         pathFactory.setObjectResolver(resolver);
         expressionFactory.registerEvaluatorFactory(pathFactory);
 
         // generate
-        ValuePolicyProcessor valuePolicyGenerator = new ValuePolicyProcessor();
-        valuePolicyGenerator.setExpressionFactory(expressionFactory);
+        ValuePolicyProcessor valuePolicyProcessor = new ValuePolicyProcessor(expressionFactory);
         GenerateExpressionEvaluatorFactory generateFactory =
-                new GenerateExpressionEvaluatorFactory(
-                        expressionFactory, protector, valuePolicyGenerator, prismContext, null);
+                new GenerateExpressionEvaluatorFactory(expressionFactory, protector, valuePolicyProcessor);
         generateFactory.setObjectResolver(resolver);
         expressionFactory.registerEvaluatorFactory(generateFactory);
 
@@ -107,8 +113,7 @@ public class ExpressionTestUtil {
         }
 
         ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory =
-                new ScriptExpressionEvaluatorFactory(
-                        scriptExpressionFactory, null, prismContext);
+                new ScriptExpressionEvaluatorFactory(scriptExpressionFactory, null);
         expressionFactory.registerEvaluatorFactory(scriptExpressionEvaluatorFactory);
 
         return expressionFactory;
@@ -118,5 +123,27 @@ public class ExpressionTestUtil {
         BaseConfiguration config = new BaseConfiguration();
         config.addProperty(CONST_FOO_NAME, CONST_FOO_VALUE);
         return config;
+    }
+
+    public static ModelCommonBeans initializeModelCommonBeans() throws SchemaException, IOException, SAXException {
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+        PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+
+        ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
+        Protector protector = ExpressionTestUtil.createInitializedProtector(prismContext);
+        Clock clock = new Clock();
+
+        ((PrismContextImpl) prismContext).setDefaultProtector(protector);
+        ExpressionFactory expressionFactory =
+                ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock);
+
+        ModelCommonBeans modelCommonBeans = new ModelCommonBeans();
+        modelCommonBeans.expressionFactory = expressionFactory;
+        modelCommonBeans.objectResolver = resolver;
+        modelCommonBeans.protector = protector;
+        modelCommonBeans.prismContext = prismContext;
+        modelCommonBeans.init();
+
+        return modelCommonBeans;
     }
 }

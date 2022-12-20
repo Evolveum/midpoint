@@ -53,7 +53,7 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
         return resourceObjects;
     }
 
-    public Integer getBatchSize() {
+    Integer getBatchSize() {
         return batchSize;
     }
 
@@ -65,6 +65,6 @@ public class LiveSyncWorkDefinition extends AbstractWorkDefinition implements Re
     protected void debugDumpContent(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "resourceObjects", resourceObjects, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "batchSize", batchSize, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "updateLiveSyncTokenInDryRun", updateLiveSyncTokenInDryRun, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "updateLiveSyncTokenInDryRun", updateLiveSyncTokenInDryRun, indent+1);
     }
 }

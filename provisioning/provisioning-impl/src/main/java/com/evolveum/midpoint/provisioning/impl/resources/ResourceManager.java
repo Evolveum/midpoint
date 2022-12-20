@@ -256,19 +256,15 @@ public class ResourceManager {
                 connector.discoverConfiguration(result));
     }
 
-    //    @Override
-    public CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
+    public @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
         try {
-            ConnectorInstance connInstance = connectorManager.getConnectorInstanceByConnectorOid(connOid, result);
-            return connInstance.getNativeCapabilities(result);
+            return connectorManager
+                    .getConnectorInstanceByConnectorOid(connOid, result)
+                    .getNativeCapabilities(result);
         } catch (GenericFrameworkException e) {
             // Not expected. Transform to system exception
-            result.recordFatalError("Generic provisioning framework error", e);
             throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
-        } catch (CommunicationException | ConfigurationException e) {
-            result.recordFatalError(e);
-            throw e;
         }
     }
 

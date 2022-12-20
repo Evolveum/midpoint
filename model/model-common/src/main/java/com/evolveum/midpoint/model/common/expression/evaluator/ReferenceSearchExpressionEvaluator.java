@@ -7,22 +7,22 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
 
@@ -44,41 +44,36 @@ public class ReferenceSearchExpressionEvaluator
             ReferenceSearchExpressionEvaluatorType expressionEvaluatorType,
             PrismReferenceDefinition outputDefinition,
             Protector protector,
-            PrismContext prismContext,
             ObjectResolver objectResolver,
-            ModelService modelService,
-            ModelInteractionService modelInteractionService,
             SecurityContextManager securityContextManager,
-            LocalizationService localizationService,
-            CacheConfigurationManager cacheConfigurationManager) {
-        super(
-                elementName,
-                expressionEvaluatorType,
-                outputDefinition,
-                protector,
-                prismContext,
-                objectResolver,
-                modelService,
-                modelInteractionService,
-                securityContextManager,
-                localizationService,
-                cacheConfigurationManager);
+            LocalizationService localizationService) {
+        super(elementName, expressionEvaluatorType, outputDefinition, protector, objectResolver, securityContextManager, localizationService);
     }
 
-    protected PrismReferenceValue createPrismValue(
-            String oid,
-            PrismObject object,
-            QName targetTypeQName,
-            List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> additionalAttributeValues,
-            ExpressionEvaluationContext params) {
-        PrismReferenceValue refVal = prismContext.itemFactory().createReferenceValue();
-
-        refVal.setOid(oid);
-        refVal.setTargetType(targetTypeQName);
-        refVal.setRelation(expressionEvaluatorBean.getRelation());
-        refVal.setObject(object);
-
-        return refVal;
+    @Override
+    Evaluation createEvaluation(
+            VariablesMap variables,
+            PlusMinusZero valueDestination,
+            boolean useNew,
+            ExpressionEvaluationContext context,
+            String contextDescription,
+            Task task,
+            OperationResult result) throws SchemaException {
+        return new Evaluation(variables, valueDestination, useNew, context, contextDescription, task, result) {
+            @Override
+            protected PrismReferenceValue createResultValue(
+                    String oid,
+                    PrismObject<ObjectType> object,
+                    List<ItemDelta<PrismReferenceValue, PrismReferenceDefinition>> newValueDeltas) {
+                // Value deltas are ignored here (they cannot be applied to a reference, anyway).
+                PrismReferenceValue refVal = prismContext.itemFactory().createReferenceValue();
+                refVal.setOid(oid);
+                refVal.setTargetType(targetTypeQName);
+                refVal.setRelation(expressionEvaluatorBean.getRelation());
+                refVal.setObject(object);
+                return refVal;
+            }
+        };
     }
 
     @Override

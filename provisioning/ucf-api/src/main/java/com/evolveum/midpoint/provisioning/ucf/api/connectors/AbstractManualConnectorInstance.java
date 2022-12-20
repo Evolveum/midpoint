@@ -176,7 +176,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
     }
 
     @Override
-    public CapabilityCollectionType fetchCapabilities(OperationResult parentResult) {
+    public @NotNull CapabilityCollectionType fetchCapabilities(OperationResult parentResult) {
         InternalMonitor.recordConnectorOperation("capabilities");
         return new CapabilityCollectionType()
                 .read(new ReadCapabilityType()

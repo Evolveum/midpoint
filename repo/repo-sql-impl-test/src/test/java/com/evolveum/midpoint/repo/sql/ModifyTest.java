@@ -569,8 +569,9 @@ public class ModifyTest extends BaseSQLRepoTest {
         // GIVEN
         XMLGregorianCalendar now = XmlTypeConverter
                 .createXMLGregorianCalendar(System.currentTimeMillis());
-        List<ItemDelta<?, ?>> syncSituationDeltas = SynchronizationUtils
-                .createSynchronizationSituationAndDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, null, false, now);
+        List<ItemDelta<?, ?>> syncSituationDeltas =
+                SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
+                        repoShadow.asObjectable(), SynchronizationSituationType.LINKED, null, false, now);
 
         // WHEN
         when();
@@ -629,8 +630,9 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.addObject(account, null, result);
 
         XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        List<ItemDelta<?, ?>> syncSituationDeltas = SynchronizationUtils.
-                createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null, false, timestamp);
+        List<ItemDelta<?, ?>> syncSituationDeltas =
+                SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
+                        account.asObjectable(), SynchronizationSituationType.LINKED, null, false, timestamp);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);
 
@@ -642,7 +644,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals(SynchronizationSituationType.LINKED, description.getSituation());
 
         timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false, timestamp);
+        syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
+                afterFirstModify.asObjectable(), null, null, false, timestamp);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);
 

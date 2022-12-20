@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema.metadata;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -14,10 +17,6 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Used to compare metadata from the provenance point of view.
@@ -42,16 +41,16 @@ public class MidpointProvenanceEquivalenceStrategy implements EquivalenceStrateg
 
     @Override
     public boolean equals(PrismValue first, PrismValue second) {
-        ValueMetadataType metadata1 = (ValueMetadataType) ((PrismContainerValue) first).asContainerable();
-        ValueMetadataType metadata2 = (ValueMetadataType) ((PrismContainerValue) second).asContainerable();
+        ValueMetadataType metadata1 = (ValueMetadataType) ((PrismContainerValue<?>) first).asContainerable();
+        ValueMetadataType metadata2 = (ValueMetadataType) ((PrismContainerValue<?>) second).asContainerable();
         return equals(metadata1, metadata2);
     }
 
     public boolean equals(ValueMetadataType metadata1, ValueMetadataType metadata2) {
         ProvenanceMetadataType provenance1 = metadata1.getProvenance();
         ProvenanceMetadataType provenance2 = metadata2.getProvenance();
-        MappingSpecificationType mappingSpec1 = provenance1 != null ? provenance1.getMappingSpec() : null;
-        MappingSpecificationType mappingSpec2 = provenance2 != null ? provenance2.getMappingSpec() : null;
+        MappingSpecificationType mappingSpec1 = provenance1 != null ? provenance1.getMappingSpecification() : null;
+        MappingSpecificationType mappingSpec2 = provenance2 != null ? provenance2.getMappingSpecification() : null;
         if (!equals(mappingSpec1, mappingSpec2)) {
             return false;
         }
@@ -75,8 +74,8 @@ public class MidpointProvenanceEquivalenceStrategy implements EquivalenceStrateg
 
     public boolean equals(ProvenanceAcquisitionType acq1, ProvenanceAcquisitionType acq2) {
         return // Objects.equals(acq1.getChannel(), acq2.getChannel()) &&
-                refsEqual(acq1.getOriginRef(), acq2.getOriginRef()) &&
-                refsEqual(acq1.getResourceRef(), acq2.getResourceRef());
+                refsEqual(acq1.getOriginRef(), acq2.getOriginRef())
+                        && refsEqual(acq1.getResourceRef(), acq2.getResourceRef());
     }
 
     private boolean refsEqual(ObjectReferenceType ref1, ObjectReferenceType ref2) {

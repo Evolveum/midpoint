@@ -7,14 +7,10 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -22,10 +18,8 @@ import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpr
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReferenceSearchExpressionEvaluatorType;
@@ -37,21 +31,11 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
 
     private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_REFERENCE_SEARCH;
 
-    private final PrismContext prismContext;
     private final Protector protector;
-    private final ModelService modelService;
-    private final ModelInteractionService modelInteractionService;
-    private final SecurityContextManager securityContextManager;
 
-    public ReferenceSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext,
-            Protector protector, ModelService modelService, ModelInteractionService modelInteractionService, SecurityContextManager securityContextManager,
-            CacheConfigurationManager cacheConfigurationManager) {
-        super(expressionFactory, cacheConfigurationManager);
-        this.prismContext = prismContext;
+    public ReferenceSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector) {
+        super(expressionFactory);
         this.protector = protector;
-        this.modelService = modelService;
-        this.modelInteractionService = modelInteractionService;
-        this.securityContextManager = securityContextManager;
     }
 
     @Override
@@ -60,7 +44,7 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
     }
 
     @Override
-    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(
+    public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
             Collection<JAXBElement<?>> evaluatorElements,
             D outputDefinition,
             ExpressionProfile expressionProfile,
@@ -71,8 +55,13 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
                 ReferenceSearchExpressionEvaluatorType.class, contextDescription);
         //noinspection unchecked
         return (ExpressionEvaluator<V>)
-                new ReferenceSearchExpressionEvaluator(ELEMENT_NAME, evaluatorBean,
-                        (PrismReferenceDefinition) outputDefinition, protector, prismContext, getObjectResolver(), modelService,
-                        modelInteractionService, securityContextManager, getLocalizationService(), cacheConfigurationManager);
+                new ReferenceSearchExpressionEvaluator(
+                        ELEMENT_NAME,
+                        evaluatorBean,
+                        (PrismReferenceDefinition) outputDefinition,
+                        protector,
+                        getObjectResolver(),
+                        expressionFactory.getSecurityContextManager(),
+                        expressionFactory.getLocalizationService());
     }
 }

@@ -7,11 +7,8 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,12 +16,12 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractAutowiredExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -41,17 +38,15 @@ public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpression
 
     @Autowired private Protector protector;
     @Autowired private ConstantsManager constantsManager;
-    @Autowired private PrismContext prismContext;
 
     @SuppressWarnings("unused") // Used by Spring
     public ConstExpressionEvaluatorFactory() {
     }
 
     @VisibleForTesting
-    public ConstExpressionEvaluatorFactory(Protector protector, ConstantsManager constantsManager, PrismContext prismContext) {
+    public ConstExpressionEvaluatorFactory(Protector protector, ConstantsManager constantsManager) {
         this.protector = protector;
         this.constantsManager = constantsManager;
-        this.prismContext = prismContext;
     }
 
     @Override
@@ -60,7 +55,7 @@ public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpression
     }
 
     @Override
-    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(
+    public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
             Collection<JAXBElement<?>> evaluatorElements,
             D outputDefinition,
             ExpressionProfile expressionProfile,
@@ -70,7 +65,6 @@ public class ConstExpressionEvaluatorFactory extends AbstractAutowiredExpression
 
         ConstExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBeanRequired(evaluatorElements,
                 ConstExpressionEvaluatorType.class, contextDescription);
-        return new ConstExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector,
-                constantsManager, prismContext);
+        return new ConstExpressionEvaluator<>(ELEMENT_NAME, evaluatorBean, outputDefinition, protector, constantsManager);
     }
 }

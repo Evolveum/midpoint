@@ -84,7 +84,7 @@ public final class DistributingActivityRun<
                 return ActivityRunResult.waiting();
             case COMPLETE:
                 ActivityRunResult runResult = ActivityRunResult.finished(computeFinalStatus(result));
-                getTreeStateOverview().recordDistributingActivityRealizationFinish(this, runResult, result);
+                getTreeStateOverview().recordDistributedActivityRealizationFinish(this, runResult, result);
                 return runResult;
             default:
                 throw new AssertionError(distributionState);
@@ -142,11 +142,13 @@ public final class DistributingActivityRun<
             // so we assume there are no workers left at this point.
             helper.checkNoRelevantSubtasksDoExist(result);
 
+            onActivityRealizationStart(result);
+
             List<Task> children = createSuspendedChildren(result);
             helper.switchExecutionToChildren(children, result);
 
             activityState.setRealizationState(IN_PROGRESS_DISTRIBUTED); // We want to set this only after workers are created
-            getTreeStateOverview().recordDistributingActivityRealizationStart(this, result);
+            getTreeStateOverview().recordDistributedActivityRealizationStart(this, result);
         } finally {
             noteEndTimestampIfNone();
             activityState.recordRunEnd(endTimestamp);

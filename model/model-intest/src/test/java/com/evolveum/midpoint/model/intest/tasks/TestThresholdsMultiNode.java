@@ -58,11 +58,6 @@ public class TestThresholdsMultiNode extends TestThresholds {
     }
 
     @Override
-    long getSleep() {
-        return 1000;
-    }
-
-    @Override
     int getWorkerThreads() {
         return 2;
     }

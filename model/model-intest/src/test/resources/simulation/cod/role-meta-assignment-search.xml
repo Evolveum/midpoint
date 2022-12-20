@@ -10,8 +10,10 @@
         oid="1ac00214-ffd0-49db-a1b9-51b46a0e9ae1">
 
     <name>meta role</name>
+    <documentation>Creates a role assignment for the org. This metarole is assigned manually.</documentation>
 
     <inducement>
+        <documentation>Creates an assignment to the role named `Role: NAME-Read` (the role is created on demand)</documentation>
         <focusMappings>
             <mapping>
                 <name>Create new read role</name>

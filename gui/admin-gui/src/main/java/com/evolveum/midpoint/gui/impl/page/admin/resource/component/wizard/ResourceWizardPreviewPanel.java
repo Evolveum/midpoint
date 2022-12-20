@@ -43,7 +43,7 @@ public abstract class ResourceWizardPreviewPanel extends ResourceWizardChoicePan
 
     @Override
     protected @NotNull IModel<String> getBreadcrumbLabel() {
-        String name = WebComponentUtil.getDisplayNameOrName(getResourceModel().getObjectWrapper().getObject());
+        String name = WebComponentUtil.getDisplayNameOrName(getAssignmentHolderDetailsModel().getObjectWrapper().getObject());
         if (StringUtils.isEmpty(name)) {
             return getPageBase().createStringResource("ResourceWizardPreviewPanel.title");
         }

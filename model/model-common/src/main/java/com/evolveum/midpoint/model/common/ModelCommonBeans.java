@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.model.common;
 
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.mapping.metadata.MetadataMappingEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -14,6 +16,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
@@ -53,4 +56,7 @@ public class ModelCommonBeans {
     @Autowired public MetadataMappingEvaluator metadataMappingEvaluator; // FIXME
     @Autowired public SecurityContextManager securityContextManager; // in order to get c:actor variable
     @Autowired public Protector protector;
+    @Autowired public CacheConfigurationManager cacheConfigurationManager;
+    @Autowired public ModelService modelService;
+    @Autowired public ModelInteractionService modelInteractionService;
 }

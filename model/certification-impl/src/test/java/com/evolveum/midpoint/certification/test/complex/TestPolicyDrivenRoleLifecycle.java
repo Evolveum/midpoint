@@ -339,7 +339,7 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
         ObjectDelta<RoleType> delta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_LIFECYCLE_STATE)
                 .replace(SchemaConstants.LIFECYCLE_ACTIVE)
-                .asObjectDeltaCast(oid);
+                .asObjectDelta(oid);
         RecordingProgressListener listener = new RecordingProgressListener();
         try {
             modelService.executeChanges(singleton(delta), null, task, singleton(listener), result);

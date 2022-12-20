@@ -13,6 +13,7 @@ import org.springframework.test.context.ContextConfiguration;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.LINKED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.UNMATCHED;
 
 /**
@@ -22,7 +23,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.Synchronizati
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestThresholdsStoryLiveSyncSimulate extends TestThresholdsStoryLiveSync {
 
-    static final TestResource<TaskType> TASK_LIVESYNC_OPENDJ_SIMULATE = new TestResource<>(TEST_DIR, "task-opendj-livesync-simulate.xml", "02e134e0-a740-4730-be6d-6521e63198e7");
+    private static final TestResource<TaskType> TASK_LIVESYNC_OPENDJ_SIMULATE = new TestResource<>(
+            TEST_DIR, "task-opendj-livesync-simulate.xml", "02e134e0-a740-4730-be6d-6521e63198e7");
 
     @Override
     protected TestResource<TaskType> getTaskTestResource() {
@@ -55,6 +57,7 @@ public class TestThresholdsStoryLiveSyncSimulate extends TestThresholdsStoryLive
     protected void assertAfterFirstImport(TaskType taskAfter) {
         assertSyncToken(taskAfter, 3);
 
+        // @formatter:off
         assertTask(taskAfter, "after")
                 .rootActivityState()
                     .itemProcessingStatistics()
@@ -63,8 +66,12 @@ public class TestThresholdsStoryLiveSyncSimulate extends TestThresholdsStoryLive
                         .assertLastFailureObjectName("uid=user8,ou=people,dc=example,dc=com")
                     .end()
                     .synchronizationStatistics()
-                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 4, 1, 0)
-                        .assertTransitions(1);
+                        // the transition is recorded as to LINKED because we know it's simulated
+                        // TODO decide about how it should be
+                        .assertTransition(null, UNMATCHED, LINKED, null, 4, 0, 0)
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 0, 1, 0)
+                        .assertTransitions(2);
+        // @formatter:on
     }
 
     /**
@@ -90,6 +97,7 @@ public class TestThresholdsStoryLiveSyncSimulate extends TestThresholdsStoryLive
     protected void assertAfterSecondImport(TaskType taskAfter) {
         assertSyncToken(taskAfter, 3);
 
+        // @formatter:off
         assertTask(taskAfter, "after")
                 .rootActivityState()
                     .itemProcessingStatistics()
@@ -98,8 +106,11 @@ public class TestThresholdsStoryLiveSyncSimulate extends TestThresholdsStoryLive
                         .assertLastFailureObjectName("uid=user8,ou=people,dc=example,dc=com")
                     .end()
                     .synchronizationStatistics()
-                        .assertTransition(UNMATCHED, UNMATCHED, UNMATCHED, null, 4, 1, 0)
-                        .assertTransitions(1);
+                        // See the above method
+                        .assertTransition(null, UNMATCHED, LINKED, null, 4, 0, 0)
+                        .assertTransition(null, UNMATCHED, UNMATCHED, null, 0, 1, 0)
+                        .assertTransitions(2);
+        // @formatter:on
     }
 
     /**

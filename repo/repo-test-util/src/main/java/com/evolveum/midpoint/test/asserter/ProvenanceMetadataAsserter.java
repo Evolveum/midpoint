@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019 Evolveum and contributors
+ * Copyright (C) 2018-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,14 +13,15 @@ import static com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil.hasOrigin
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
 
-import org.jetbrains.annotations.NotNull;
-
-public class ProvenanceMetadataAsserter<RA extends AbstractAsserter> extends PrismContainerValueAsserter<ProvenanceMetadataType, RA> {
+public class ProvenanceMetadataAsserter<RA extends AbstractAsserter<?>>
+        extends PrismContainerValueAsserter<ProvenanceMetadataType, RA> {
 
     ProvenanceMetadataAsserter(ProvenanceMetadataType metadata, RA returnAsserter, String detail) {
         //noinspection unchecked
@@ -62,19 +63,19 @@ public class ProvenanceMetadataAsserter<RA extends AbstractAsserter> extends Pri
     }
 
     public ProvenanceMetadataAsserter<RA> assertNoMappingSpec() {
-        assertThat(getProvenance().getMappingSpec()).as("mapping spec").isNull();
+        assertThat(getProvenance().getMappingSpecification()).as("mapping spec").isNull();
         return this;
     }
 
     public ProvenanceMetadataAsserter<RA> assertMappingSpec(String definitionObjectOid) {
-        MappingSpecificationType mappingSpec = getMappingSpec();
+        MappingSpecificationType mappingSpec = getMappingSpecification();
         assertThat(mappingSpec).as("mapping spec").isNotNull();
         assertThat(mappingSpec.getDefinitionObjectRef()).as("mapping spec definition object ref").isNotNull();
         assertThat(mappingSpec.getDefinitionObjectRef().getOid()).as("mapping spec definition object ref OID").isEqualTo(definitionObjectOid);
         return this;
     }
 
-    private MappingSpecificationType getMappingSpec() {
-        return getProvenance().getMappingSpec();
+    private MappingSpecificationType getMappingSpecification() {
+        return getProvenance().getMappingSpecification();
     }
 }

@@ -13,6 +13,7 @@
     <name>Org object template</name>
 
     <mapping>
+        <documentation>Creates a name from identifier</documentation>
         <strength>weak</strength>
         <source>
             <path>identifier</path>
@@ -37,6 +38,9 @@
     </mapping>
 
     <mapping>
+        <documentation>
+            Assigns a parent org based on a path in `extension/pc:parentIdentifier` (create on demand, recursively).
+        </documentation>
         <source>
             <path>extension/pc:parentIdentifier</path>
         </source>
@@ -114,6 +118,7 @@
     </mapping>
 
     <mapping>
+        <documentation>Creates a description from identifier</documentation>
         <strength>weak</strength>
         <source>
             <path>identifier</path>
@@ -131,10 +136,11 @@
     </mapping>
 
     <mapping>
+        <documentation>Assigns a metarole</documentation>
         <expression>
             <assignmentTargetSearch>
                 <targetType>RoleType</targetType>
-                <oid>3d82a1af-0380-4368-b80a-b28a8c87b5bb</oid>
+                <oid>3d82a1af-0380-4368-b80a-b28a8c87b5bb</oid> <!-- metarole for orgs -->
             </assignmentTargetSearch>
         </expression>
         <target>

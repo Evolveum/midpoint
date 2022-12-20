@@ -17,6 +17,7 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -62,11 +63,11 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
     }
 
     protected <O extends ObjectType> LensContext<O> createLensContext(Class<O> focusType) {
-        return new LensContext<>(focusType);
+        return new LensContext<>(focusType, TaskExecutionMode.PRODUCTION);
     }
 
     protected LensContext<UserType> createUserLensContext() {
-        return new LensContext<>(UserType.class);
+        return new LensContext<>(UserType.class, TaskExecutionMode.PRODUCTION);
     }
 
     protected <O extends ObjectType> LensFocusContext<O> fillContextWithFocus(

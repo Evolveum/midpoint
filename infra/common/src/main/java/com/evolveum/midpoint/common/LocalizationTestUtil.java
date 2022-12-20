@@ -12,9 +12,9 @@ package com.evolveum.midpoint.common;
  */
 public class LocalizationTestUtil {
 
-    private static LocalizationService localizationService = new LocalizationServiceImpl();
+    private static final LocalizationService SERVICE_INSTANCE = new LocalizationServiceImpl();
 
     public static LocalizationService getLocalizationService() {
-        return localizationService;
+        return SERVICE_INSTANCE;
     }
 }

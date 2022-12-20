@@ -23,6 +23,26 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
+/**
+ * Object identifying an activity in the (logical) activity tree.
+ *
+ * For example, if we have a composite activity of two reconciliations (`recon-A` and `recon-B`), there are the following
+ * activity paths present:
+ *
+ * - `reconA/operationCompletion`
+ * - `reconA/resourceObjects`
+ * - `reconA/remainingShadows`
+ * - `reconB/operationCompletion`
+ * - `reconB/resourceObjects`
+ * - `reconB/remainingShadows`
+ *
+ * These paths denote the activities _regardless_ of whether they are distributed (into worker tasks), delegated (into subtasks),
+ * or both.
+ *
+ * Empty path denotes the root activity.
+ *
+ * Externalized form is {@link ActivityPathType}.
+ */
 public class ActivityPath implements Serializable {
 
     /** Unmodifiable list of activity identifiers. */

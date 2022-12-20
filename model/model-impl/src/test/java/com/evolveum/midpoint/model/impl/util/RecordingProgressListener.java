@@ -12,10 +12,10 @@ import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 
 public class RecordingProgressListener implements ProgressListener {
-    private ModelContext modelContext;
+    private ModelContext<?> modelContext;
 
     @Override
-    public void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation) {
+    public void onProgressAchieved(ModelContext<?> modelContext, ProgressInformation progressInformation) {
         this.modelContext = modelContext;
     }
 
@@ -24,7 +24,7 @@ public class RecordingProgressListener implements ProgressListener {
         return false;
     }
 
-    public ModelContext getModelContext() {
+    public ModelContext<?> getModelContext() {
         return modelContext;
     }
 }

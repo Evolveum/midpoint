@@ -45,9 +45,6 @@ public class ClockworkInboundsProcessing<F extends FocusType> extends AbstractIn
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkInboundsProcessing.class);
 
-    private static final String OP_NORMALIZE_CHANGED_FOCUS_IDENTITY_DATA =
-            ClockworkInboundsProcessing.class.getName() + ".normalizeChangedFocusIdentityData";
-
     @NotNull private final LensContext<F> context;
 
     public ClockworkInboundsProcessing(

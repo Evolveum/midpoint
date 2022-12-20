@@ -125,8 +125,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        modelService.postInit(initResult);
-
         // System Configuration
         try {
             repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
@@ -134,6 +132,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
                     "looks like the previous test haven't cleaned it up", e);
         }
+        modelService.postInit(initResult);
 
         repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 

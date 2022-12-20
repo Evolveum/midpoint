@@ -10,8 +10,9 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 
@@ -26,9 +27,9 @@ import java.util.List;
 /**
  * @author lskublik
  */
-public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
+public class SynchronizationWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
-    public SynchronizationWizardPanel(String id, ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> helper) {
+    public SynchronizationWizardPanel(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
     }
 
@@ -49,7 +50,7 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
 
     private List<WizardStep> createSynchronizationConfigSteps(IModel<PrismContainerValueWrapper<SynchronizationReactionType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
-        steps.add(new ReactionMainSettingStepPanel(getResourceModel(), valueModel) {
+        steps.add(new ReactionMainSettingStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTablePanel());
@@ -57,7 +58,7 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
         });
 
         steps.add(new ActionStepPanel(
-                getResourceModel(),
+                getAssignmentHolderModel(),
                 PrismContainerWrapperModel.fromContainerValueWrapper(valueModel, SynchronizationReactionType.F_ACTIONS)) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
@@ -65,7 +66,7 @@ public class SynchronizationWizardPanel extends AbstractResourceWizardPanel<Reso
             }
         });
 
-        steps.add(new ReactionOptionalSettingStepPanel(getResourceModel(), valueModel) {
+        steps.add(new ReactionOptionalSettingStepPanel(getAssignmentHolderModel(), valueModel) {
             @Override
             protected void onExitPerformed(AjaxRequestTarget target) {
                 showChoiceFragment(target, createTablePanel());

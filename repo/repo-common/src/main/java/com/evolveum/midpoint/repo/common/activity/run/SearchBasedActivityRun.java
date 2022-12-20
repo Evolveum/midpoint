@@ -296,7 +296,7 @@ public abstract class SearchBasedActivityRun<
             return query;
         } else {
             ObjectFilter failedObjectsFilter =
-                    new FailedObjectsFilterCreator(selector, getRunningTask(), getPrismContext())
+                    new FailedObjectsFilterCreator(selector, getRunningTask())
                             .createFilter();
 
             FailedObjectsSelectionMethodType selectionMethod = getFailedObjectsSelectionMethod(selector);
@@ -450,7 +450,7 @@ public abstract class SearchBasedActivityRun<
             // We assume that if there's a fetch result, then the corresponding item (most probably shadow)
             // was not retrieved successfully. So instead of regular processing we process it as an error.
             // (Maybe we could check if the result is really an error. Will do that some day.)
-            return processError(item, originalFetchResult, workerTask, result);
+            return processError(originalFetchResult, result);
         }
 
         // The item was retrieved OK. Let's process it.
@@ -482,10 +482,7 @@ public abstract class SearchBasedActivityRun<
         }
     }
 
-    @SuppressWarnings({ "WeakerAccess", "unused" })
-    protected final boolean processError(C item, @NotNull OperationResultType errorFetchResult, RunningTask workerTask,
-            OperationResult result)
-            throws CommonException, ActivityRunException {
+    private boolean processError(@NotNull OperationResultType errorFetchResult, OperationResult result) {
         result.recordFatalError("Error in preprocessing: " + errorFetchResult.getMessage());
         // We can return true here, as the "can continue" flag is updated by item processing gatekeeper
         // based on the error severity. Unfortunately, the exception as such is lost when the operation
@@ -527,7 +524,7 @@ public abstract class SearchBasedActivityRun<
         return requireNonNull(searchSpecification, "no search specification");
     }
 
-    public final Class<C> getItemType() {
+    protected final Class<C> getItemType() {
         return getSearchSpecificationRequired().getType();
     }
 

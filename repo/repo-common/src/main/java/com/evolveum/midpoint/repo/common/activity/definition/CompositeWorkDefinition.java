@@ -29,6 +29,6 @@ public class CompositeWorkDefinition extends AbstractWorkDefinition {
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "composition", composition, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "composition", composition, indent+1);
     }
 }

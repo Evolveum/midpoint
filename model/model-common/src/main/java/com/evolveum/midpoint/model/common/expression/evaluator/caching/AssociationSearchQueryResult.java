@@ -19,10 +19,11 @@ import java.util.List;
 
 public class AssociationSearchQueryResult extends QueryResult<PrismContainerValue<ShadowAssociationType>> {
 
-    private String resourceOid;
-    private ShadowKindType kind;
+    private final String resourceOid;
+    private final ShadowKindType kind;
 
-    public AssociationSearchQueryResult(List<PrismContainerValue<ShadowAssociationType>> resultingList, List<PrismObject<ShadowType>> rawResultsList) {
+    AssociationSearchQueryResult(
+            List<PrismContainerValue<ShadowAssociationType>> resultingList, List<PrismObject<ShadowType>> rawResultsList) {
         super(resultingList);
 
         Validate.isTrue(rawResultsList != null && !rawResultsList.isEmpty());

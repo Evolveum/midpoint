@@ -45,6 +45,7 @@ CREATE TYPE ContainerType AS ENUM (
     'INDUCEMENT',
     'LOOKUP_TABLE_ROW',
     'OPERATION_EXECUTION',
+    'SIMULATION_RESULT_PROCESSED_OBJECT',
     'TRIGGER');
 
 -- NOTE: Keep in sync with the same enum in postgres-new-audit.sql!
@@ -77,6 +78,7 @@ CREATE TYPE ObjectType AS ENUM (
     'SEQUENCE',
     'SERVICE',
     'SHADOW',
+    'SIMULATION_RESULT',
     'SYSTEM_CONFIGURATION',
     'TASK',
     'USER',
@@ -1863,6 +1865,94 @@ CREATE INDEX m_operation_execution_taskRefTargetOid_idx
 CREATE INDEX m_operation_execution_timestamp_idx ON m_operation_execution (timestamp);
 -- index for ownerOid is part of PK
 -- TODO: index for status is questionable, don't we want WHERE status = ... to another index instead?
+-- endregion
+
+
+-- region Simulations Support
+
+CREATE TABLE m_simulation_result (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('SIMULATION_RESULT') STORED
+        CHECK (objectType = 'SIMULATION_RESULT'),
+    partitioned boolean
+)
+    INHERITS (m_object);
+
+CREATE TRIGGER m_simulation_result_oid_insert_tr BEFORE INSERT ON m_simulation_result
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_simulation_result_update_tr BEFORE UPDATE ON m_simulation_result
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_simulation_result_oid_delete_tr AFTER DELETE ON m_simulation_result
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+CREATE TYPE ObjectProcessingStateType AS ENUM ('UNMODIFIED', 'ADDED', 'MODIFIED', 'DELETED');
+
+CREATE TABLE m_simulation_result_processed_object (
+    -- Default OID value is covered by INSERT triggers. No PK defined on abstract tables.
+    -- Owner does not have to be the direct parent of the container.
+    -- use like this on the concrete table:
+    -- ownerOid UUID NOT NULL REFERENCES m_object_oid(oid),
+    ownerOid UUID NOT NULL REFERENCES m_simulation_result(oid) ON DELETE CASCADE,
+
+    -- Container ID, unique in the scope of the whole object (owner).
+    -- While this provides it for sub-tables we will repeat this for clarity, it's part of PK.
+    cid BIGINT NOT NULL,
+    containerType ContainerType GENERATED ALWAYS AS ('SIMULATION_RESULT_PROCESSED_OBJECT') STORED
+        CHECK (containerType = 'SIMULATION_RESULT_PROCESSED_OBJECT'),
+    oid UUID,
+    objectType ObjectType,
+    nameOrig TEXT,
+    nameNorm TEXT,
+    state ObjectProcessingStateType,
+    metricIdentifiers TEXT[],
+    fullObject BYTEA,
+    objectBefore BYTEA,
+    objectAfter BYTEA,
+
+   PRIMARY KEY (ownerOid, cid)
+) PARTITION BY LIST(ownerOid);
+
+CREATE TABLE m_simulation_result_processed_object_default PARTITION OF m_simulation_result_processed_object DEFAULT;
+
+CREATE OR REPLACE FUNCTION m_simulation_result_create_partition() RETURNS trigger AS
+  $BODY$
+    DECLARE
+      partition TEXT;
+    BEGIN
+      partition := 'm_sr_processed_object_' || REPLACE(new.oid::text,'-','_');
+      IF new.partitioned AND NOT EXISTS(SELECT relname FROM pg_class WHERE relname=partition) THEN
+        RAISE NOTICE 'A partition has been created %',partition;
+        EXECUTE 'CREATE TABLE ' || partition || ' partition of ' || 'm_simulation_result_processed_object' || ' for values in (''' || new.oid|| ''');';
+      END IF;
+      RETURN NULL;
+    END;
+  $BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER m_simulation_result_create_partition AFTER INSERT ON m_simulation_result
+ FOR EACH ROW EXECUTE FUNCTION m_simulation_result_create_partition();
+
+--- Trigger which deletes processed objects partition when whole simulation is deleted
+
+CREATE OR REPLACE FUNCTION m_simulation_result_delete_partition() RETURNS trigger AS
+  $BODY$
+    DECLARE
+      partition TEXT;
+    BEGIN
+      partition := 'm_sr_processed_object_' || REPLACE(OLD.oid::text,'-','_');
+      IF OLD.partitioned AND EXISTS(SELECT relname FROM pg_class WHERE relname=partition) THEN
+        RAISE NOTICE 'A partition has been deleted %',partition;
+        EXECUTE 'DROP TABLE IF EXISTS ' || partition || ';';
+      END IF;
+      RETURN OLD;
+    END;
+  $BODY$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER m_simulation_result_delete_partition BEFORE DELETE ON m_simulation_result
+  FOR EACH ROW EXECUTE FUNCTION m_simulation_result_delete_partition();
+
+
 -- endregion
 
 -- region Extension support

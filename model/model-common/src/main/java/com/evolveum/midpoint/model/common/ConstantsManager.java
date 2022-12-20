@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.model.common;
 
 import org.apache.commons.configuration2.Configuration;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,6 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 
 /**
  * @author semancik
- *
  */
 @Component
 public class ConstantsManager {
@@ -27,9 +27,7 @@ public class ConstantsManager {
     public ConstantsManager() {
     }
 
-    /**
-     * For testing.
-     */
+    @VisibleForTesting
     public ConstantsManager(Configuration config) {
         this.constConfig = config;
     }
@@ -42,8 +40,6 @@ public class ConstantsManager {
     }
 
     public String getConstantValue(String constName) {
-        String val = getConstConfig().getString(constName);
-        return val;
+        return getConstConfig().getString(constName);
     }
-
 }
