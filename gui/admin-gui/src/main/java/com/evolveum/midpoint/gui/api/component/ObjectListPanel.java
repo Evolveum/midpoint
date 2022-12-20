@@ -77,7 +77,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     @Override
     protected Search createSearch(Class<O> type) {
-//        ContainerTypeSearchItem<O> typeSearchItem = new ContainerTypeSearchItem<>(new SearchValue<>(type, ""));
         String collectionName = isCollectionViewPanelForCompiledView() ?
                 WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
         return SearchFactory.createSearch(type, collectionName, getPageBase());
@@ -148,7 +147,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     @Override
     protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
-        ItemPath itemPath = getPath(customColumn);
+        ItemPath itemPath = WebComponentUtil.getPath(customColumn);
 
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                 itemPath, expression, getPageBase(), itemPath == null) {
@@ -165,15 +164,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
                 return ObjectListPanel.this.isObjectDetailsEnabled(rowModel);
             }
         };
-    }
-
-    // TEMPORARY (fixing compilation error) FIXME @Vilo
-    private ItemPath getPath(GuiObjectColumnType column) {
-        if (column == null) {
-            return null;
-        }
-
-        return column.getPath().getItemPath();
     }
 
     protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
