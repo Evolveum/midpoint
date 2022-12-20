@@ -579,7 +579,9 @@
             </xsd:element>
             <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType" minOccurs="0" maxOccurs="1">
             </xsd:element>
-            <!-- TODO here new type, will consolidated it later -->
+            <!-- TODO WIP accesses experiment, working name -->
+            <xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0" maxOccurs="unbounded">
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="provenanceMetadata" type="tns:ProvenanceMetadataType"/>
