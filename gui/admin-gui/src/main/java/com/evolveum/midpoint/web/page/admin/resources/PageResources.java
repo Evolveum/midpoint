@@ -489,4 +489,10 @@ public class PageResources extends PageAdmin {
     private void clearSessionStorageForResourcePage() {
         ((PageBase) getPage()).getSessionStorage().clearResourceContentStorage();
     }
+
+    @Override
+    protected List<String> pageParametersToBeRemoved() {
+        return List.of(PageBase.PARAMETER_SEARCH_BY_NAME);
+    }
+
 }

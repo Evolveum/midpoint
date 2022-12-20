@@ -168,13 +168,13 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
             throws CommonException, EncryptionException, IOException {
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RepoAddOptions.createOverwrite(), false, initResult);
 
-        modelService.postInit(initResult);
         try {
             repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, RepoAddOptions.createOverwrite(), false, initResult);
         } catch (ObjectAlreadyExistsException e) {
             throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
                     "looks like the previous test haven't cleaned it up", e);
         }
+        modelService.postInit(initResult);
 
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, RepoAddOptions.createOverwrite(), false, initResult);
         login(userAdministrator);
