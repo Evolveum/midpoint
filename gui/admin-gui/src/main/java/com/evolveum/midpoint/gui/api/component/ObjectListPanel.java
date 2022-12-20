@@ -167,6 +167,15 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         };
     }
 
+    // TEMPORARY (fixing compilation error) FIXME @Vilo
+    private ItemPath getPath(GuiObjectColumnType column) {
+        if (column == null) {
+            return null;
+        }
+
+        return column.getPath().getItemPath();
+    }
+
     protected boolean isObjectDetailsEnabled(IModel<SelectableBean<O>> rowModel) {
         return true;
     }
