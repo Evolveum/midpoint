@@ -1479,9 +1479,7 @@ td .prism-property-value {
 }
 .compositedButton > .compositedButtonIcon {
   //background-color: #f1f1f1;
-  margin: 10px;
   text-align: center;
-  line-height: 75px;
   font-size: 50px;
   width: 115px;
 }
@@ -1771,6 +1769,16 @@ th.debug-list-buttons {
       cursor: not-allowed;
       opacity: 0.65;
       background-color: #f8f9fa;
+    }
+  }
+}
+
+@each $breakpoint in map-keys($grid-breakpoints) {
+  $infix: breakpoint-infix($breakpoint, $grid-breakpoints);
+  @include media-breakpoint-up($breakpoint, $grid-breakpoints) {
+
+    .col#{$infix}-2\.4 {
+      @include make-col(2.4, $grid-columns);
     }
   }
 }

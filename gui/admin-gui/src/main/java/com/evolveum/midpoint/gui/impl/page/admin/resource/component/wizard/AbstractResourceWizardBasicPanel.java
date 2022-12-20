@@ -6,29 +6,31 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.result.Toast;
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
-import org.apache.wicket.Component;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
 /**
  * @author lskublik
  */
-public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> extends AbstractWizardBasicPanel {
+public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> extends AbstractWizardBasicPanel<ResourceDetailsModel> {
 
     private static final String DEFAULT_SAVE_KEY = "WizardPanel.submit";
-    private final  ResourceWizardPanelHelper<C> superHelper;
+    private final WizardPanelHelper<C, ResourceDetailsModel> superHelper;
 
     public AbstractResourceWizardBasicPanel(
             String id,
-            ResourceWizardPanelHelper<C> superHelper) {
-        super(id, superHelper.getResourceModel());
+            WizardPanelHelper<C, ResourceDetailsModel> superHelper) {
+        super(id, superHelper.getDetailsModel());
         this.superHelper = superHelper;
     }
 
@@ -39,7 +41,7 @@ public abstract class AbstractResourceWizardBasicPanel<C extends Containerable> 
         }
         OperationResult result = superHelper.onSaveResourcePerformed(target);
         if (result != null && !result.isError()) {
-            WebComponentUtil.createToastForUpdateResource(target, this);
+            WebComponentUtil.createToastForUpdateObject(target, this, ResourceType.COMPLEX_TYPE);
             onExitPerformedAfterValidate(target);
         } else {
             target.add(getFeedback());

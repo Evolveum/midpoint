@@ -6,47 +6,26 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.EnumWizardChoicePanel;
 import com.evolveum.midpoint.gui.api.component.wizard.TileEnum;
-import com.evolveum.midpoint.gui.api.component.wizard.WizardChoicePanel;
-import com.evolveum.midpoint.gui.impl.component.tile.Tile;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.List;
+import javax.xml.namespace.QName;
 
-public abstract class ResourceWizardChoicePanel<T extends TileEnum> extends WizardChoicePanel<T> {
+public abstract class ResourceWizardChoicePanel<T extends TileEnum> extends EnumWizardChoicePanel<T, ResourceDetailsModel> {
 
     public ResourceWizardChoicePanel(String id, ResourceDetailsModel resourceModel, Class<T> tileTypeClass) {
         super(id, resourceModel, tileTypeClass);
     }
 
-    @Override
-    protected void addDefaultTile(List<Tile<T>> list) {
-        Tile<T> tile = new Tile<>(
-                "fa fa-server",
-                getPageBase().createStringResource("ResourceWizardChoicePanel.toResource").getString());
-        list.add(tile);
-    }
+    protected abstract void onTileClickPerformed(T value, AjaxRequestTarget target);
 
     @Override
-    protected void onTileClick(T value, AjaxRequestTarget target) {
-        if (value == null) {
-            goToResourcePerformed();
-            return;
-        }
-        onResourceTileClick(value, target);
-    }
-
-    protected abstract void onResourceTileClick(T value, AjaxRequestTarget target);
-
-    private void goToResourcePerformed() {
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, getResourceModel().getObjectType().getOid());
-        getPageBase().navigateToNext(PageResource.class, parameters);
+    protected QName getObjectType() {
+        return ResourceType.COMPLEX_TYPE;
     }
 }

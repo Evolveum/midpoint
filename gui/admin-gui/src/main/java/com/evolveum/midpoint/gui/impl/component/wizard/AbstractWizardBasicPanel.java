@@ -4,11 +4,12 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.gui.api.component.wizard;
+package com.evolveum.midpoint.gui.impl.component.wizard;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.PageResource;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHolderDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public abstract class AbstractWizardBasicPanel extends BasePanel {
+public abstract class AbstractWizardBasicPanel<AHD extends AssignmentHolderDetailsModel> extends BasePanel {
 
 
     private static final String ID_BREADCRUMB = "breadcrumb";
@@ -41,14 +42,14 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
     private static final String ID_BUTTONS = "buttons";
     private static final String ID_BUTTONS_CONTAINER = "buttonsContainer";
 
-    private final ResourceDetailsModel resourceModel;
-    public AbstractWizardBasicPanel(String id, ResourceDetailsModel resourceModel) {
+    private final AHD detailsModel;
+    public AbstractWizardBasicPanel(String id, AHD detailsModel) {
         super(id);
-        this.resourceModel = resourceModel;
+        this.detailsModel = detailsModel;
     }
 
-    public ResourceDetailsModel getResourceModel() {
-        return resourceModel;
+    public AHD getAssignmentHolderDetailsModel() {
+        return detailsModel;
     }
 
     @Override
@@ -62,6 +63,9 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
         List<Breadcrumb> breadcrumbs = getBreadcrumb();
         IModel<String> breadcrumbLabelModel = getBreadcrumbLabel();
         String breadcrumbLabel = breadcrumbLabelModel.getObject();
+        if (StringUtils.isEmpty(breadcrumbLabel)) {
+            return;
+        }
 
         if (breadcrumbs.isEmpty() && StringUtils.isNotEmpty(breadcrumbLabel)) {
             breadcrumbs.add(new Breadcrumb(breadcrumbLabelModel));
@@ -107,11 +111,11 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
         breadcrumbs.add(new VisibleBehaviour(() -> getBreadcrumb().size() > 1));
 
         Label mainText = new Label(ID_TEXT, getTextModel());
-        mainText.add(new VisibleBehaviour(() -> getTextModel().getObject() != null));
+        mainText.add(new VisibleBehaviour(() -> getTextModel() != null && getTextModel().getObject() != null));
         add(mainText);
 
         Label secondaryText = new Label(ID_SUBTEXT, getSubTextModel());
-        secondaryText.add(new VisibleBehaviour(() -> getSubTextModel().getObject() != null));
+        secondaryText.add(new VisibleBehaviour(() -> getSubTextModel() != null && getSubTextModel().getObject() != null));
         add(secondaryText);
 
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
@@ -187,8 +191,8 @@ public abstract class AbstractWizardBasicPanel extends BasePanel {
 
     private List<Breadcrumb> getBreadcrumb() {
         PageBase page = getPageBase();
-        if (page instanceof PageResource) {
-            return ((PageResource)page).getWizardBreadcrumbs();
+        if (page instanceof PageAssignmentHolderDetails) {
+            return ((PageAssignmentHolderDetails)page).getWizardBreadcrumbs();
         }
         return List.of();
     }

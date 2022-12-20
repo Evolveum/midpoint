@@ -5421,22 +5421,24 @@ public final class WebComponentUtil {
         return AdminLTESkin.create(skin);
     }
 
-    public static void createToastForUpdateResource(AjaxRequestTarget target, Component panel) {
-        createToastForResource(target, panel, "ResourceWizardPanel.updateResource");
+    public static void createToastForUpdateObject(AjaxRequestTarget target, Component panel, QName type) {
+        createToastForResource("AbstractWizardPanel.updateObject", ResourceType.COMPLEX_TYPE, target);
     }
 
-    public static void createToastForCreateResource(AjaxRequestTarget target, Component panel) {
-        createToastForResource(target, panel, "ResourceWizardPanel.createResource");
+    public static void createToastForCreateObject(AjaxRequestTarget target, Component panel, QName type) {
+        createToastForResource("AbstractWizardPanel.createObject", ResourceType.COMPLEX_TYPE, target);
     }
 
-    private static void createToastForResource(AjaxRequestTarget target, Component panel, String key) {
+    private static void createToastForResource(String key, QName type, AjaxRequestTarget target) {
+        String typeLabel = translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false));
         new Toast()
                 .success()
-                .title(panel.getString(key))
+                .title(PageBase.createStringResourceStatic(key, typeLabel).getString())
                 .icon("fas fa-circle-check")
                 .autohide(true)
                 .delay(5_000)
-                .body(panel.getString(key + ".text")).show(target);
+                .body(PageBase.createStringResourceStatic(key + ".text", typeLabel).getString())
+                .show(target);
     }
 
     public static String translateMessage(LocalizableMessage msg) {
@@ -5450,5 +5452,13 @@ public final class WebComponentUtil {
         }
 
         return application.getLocalizationService().translate(msg, getCurrentLocale());
+    }
+
+    public static ItemPath getPath(GuiObjectColumnType column) {
+        if (column == null) {
+            return null;
+        }
+
+        return column.getPath().getItemPath();
     }
 }

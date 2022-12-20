@@ -172,6 +172,7 @@ $aa$);
 -- Simulations
 call apply_change(12, $aa$
    ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT' AFTER 'SHADOW';
+   ALTER TYPE ObjectType ADD VALUE IF NOT EXISTS 'TAG' AFTER 'SYSTEM_CONFIGURATION';
    ALTER TYPE ContainerType ADD VALUE IF NOT EXISTS 'SIMULATION_RESULT_PROCESSED_OBJECT' AFTER 'OPERATION_EXECUTION';
 $aa$);
 
@@ -180,6 +181,7 @@ call apply_change(13, $aa$
 DROP TABLE IF EXISTS m_simulation_result CASCADE;
 DROP TABLE IF EXISTS m_simulation_result_processed_object_default CASCADE;
 DROP TABLE IF EXISTS m_simulation_result_processed_object CASCADE;
+DROP TABLE IF EXISTS m_tag CASCADE;
 DROP TYPE IF EXISTS ObjectProcessingStateType;
 -- TODO end of the block
 
@@ -264,6 +266,23 @@ LANGUAGE plpgsql;
 
 CREATE TRIGGER m_simulation_result_delete_partition BEFORE DELETE ON m_simulation_result
   FOR EACH ROW EXECUTE FUNCTION m_simulation_result_delete_partition();
+
+
+CREATE TABLE m_tag (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('TAG') STORED
+        CHECK (objectType = 'TAG')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_tag_oid_insert_tr BEFORE INSERT ON m_tag
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_tag_update_tr BEFORE UPDATE ON m_tag
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_tag_oid_delete_tr AFTER DELETE ON m_tag
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
+
+
 
 $aa$, true); -- TODO remove `true` before M2 or before RC1! (Also, the first 3 table drops)
 

@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.correlation;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -13,7 +15,7 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.util.GuiDisplayNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemsSubCorrelatorType;
 
@@ -26,7 +28,7 @@ public class CorrelationItemRefsTableWizardPanel extends AbstractResourceWizardB
 
     public CorrelationItemRefsTableWizardPanel(
             String id,
-            ResourceWizardPanelHelper<ItemsSubCorrelatorType> superHelper) {
+            WizardPanelHelper<ItemsSubCorrelatorType, ResourceDetailsModel> superHelper) {
         super(id, superHelper);
     }
 

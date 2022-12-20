@@ -1,22 +1,18 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
+
 import java.io.File;
 import java.util.List;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.test.TestResource;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -27,12 +23,15 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
@@ -54,7 +53,7 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
 
     abstract Class<F> getType();
 
-    abstract TestResource getTestResource();
+    abstract TestResource<?> getTestResource();
 
     private String getOid() {
         return getTestResource().oid;
@@ -235,7 +234,7 @@ public abstract class TestPasswordPolicyProcessor<F extends FocusType> extends A
         modifyPasswordNoHistory();
     }
 
-    private void modifyPasswordNoHistory() throws Exception{
+    private void modifyPasswordNoHistory() throws Exception {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 

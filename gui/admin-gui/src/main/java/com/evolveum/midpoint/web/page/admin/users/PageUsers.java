@@ -35,6 +35,8 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -417,5 +419,10 @@ public class PageUsers extends PageAdmin {
         }
 
         return users;
+    }
+
+    @Override
+    protected List<String> pageParametersToBeRemoved() {
+        return List.of(PageBase.PARAMETER_SEARCH_BY_NAME);
     }
 }

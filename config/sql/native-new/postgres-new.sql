@@ -80,6 +80,7 @@ CREATE TYPE ObjectType AS ENUM (
     'SHADOW',
     'SIMULATION_RESULT',
     'SYSTEM_CONFIGURATION',
+    'TAG',
     'TASK',
     'USER',
     'VALUE_POLICY');
@@ -1951,6 +1952,25 @@ LANGUAGE plpgsql;
 
 CREATE TRIGGER m_simulation_result_delete_partition BEFORE DELETE ON m_simulation_result
   FOR EACH ROW EXECUTE FUNCTION m_simulation_result_delete_partition();
+
+
+-- endregion
+
+-- region Tag
+
+CREATE TABLE m_tag (
+    oid UUID NOT NULL PRIMARY KEY REFERENCES m_object_oid(oid),
+    objectType ObjectType GENERATED ALWAYS AS ('TAG') STORED
+        CHECK (objectType = 'TAG')
+)
+    INHERITS (m_assignment_holder);
+
+CREATE TRIGGER m_tag_oid_insert_tr BEFORE INSERT ON m_tag
+    FOR EACH ROW EXECUTE FUNCTION insert_object_oid();
+CREATE TRIGGER m_tag_update_tr BEFORE UPDATE ON m_tag
+    FOR EACH ROW EXECUTE FUNCTION before_update_object();
+CREATE TRIGGER m_tag_oid_delete_tr AFTER DELETE ON m_tag
+    FOR EACH ROW EXECUTE FUNCTION delete_object_oid();
 
 
 -- endregion

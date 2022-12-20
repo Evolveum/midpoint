@@ -85,8 +85,8 @@ public class FocusHistoryPanel<F extends FocusType> extends AbstractObjectMainPa
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createColumns() {
-                List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = super.createColumns();
+            protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createDefaultColumns() {
+                List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = super.createDefaultColumns();
                 if (isPreview()) {
                     return columns;
                 }

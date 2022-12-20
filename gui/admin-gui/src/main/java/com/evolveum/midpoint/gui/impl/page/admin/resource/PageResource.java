@@ -8,22 +8,19 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangeExecutor;
 import com.evolveum.midpoint.gui.impl.page.admin.ObjectChangesExecutorImpl;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.PageAssignmentHolderDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.component.ResourceOperationalButtonsPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.ResourceObjectTypeWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.activation.ActivationsWizardPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.associations.AssociationsWizardPanel;
@@ -43,7 +40,6 @@ import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.session.ObjectDetailsStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -79,7 +75,6 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
 
     private static final String ID_WIZARD_FRAGMENT = "wizardFragment";
     private static final String ID_WIZARD = "wizard";
-    private List<Breadcrumb> wizardBreadcrumbs = new ArrayList<>();
 
 
     public PageResource(PageParameters pageParameters) {
@@ -100,6 +95,7 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     }
 
     protected WebMarkupContainer createTemplatePanel(String id) {
+        setUseWizardForCreating();
         return new ResourceWizardPanel(id, getObjectDetailsModels()) {
 
             @Override
@@ -111,43 +107,43 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         };
     }
 
-    @Override
-    protected void showResultAfterExecuteChanges(ObjectChangeExecutor changeExecutor, OperationResult result) {
-        if (changeExecutor instanceof ObjectChangesExecutorImpl
-                && (isEditObject() || !result.isSuccess())) {
-            showResult(result);
-        }
-    }
-
-    @Override
-    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
-        if (isEditObject()) {
-            super.postProcessResult(result, executedDeltas, target);
-            return;
-        }
-        if (!result.isError()) {
-            if (executedDeltas != null) {
-                String resourceOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
-                if (resourceOid != null) {
-                    Task task = createSimpleTask("load resource after save");
-                    @Nullable PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(
-                            ResourceType.class,
-                            resourceOid,
-                            PageResource.this,
-                            task,
-                            task.getResult());
-                    if (resource != null) {
-                        getObjectDetailsModels().reset();
-                        getObjectDetailsModels().reloadPrismObjectModel(resource);
-                    }
-                }
-            }
-
-            result.computeStatusIfUnknown();
-        } else {
-            target.add(getFeedbackPanel());
-        }
-    }
+//    @Override
+//    protected void showResultAfterExecuteChanges(ObjectChangeExecutor changeExecutor, OperationResult result) {
+//        if (changeExecutor instanceof ObjectChangesExecutorImpl
+//                && (isEditObject() || !result.isSuccess())) {
+//            showResult(result);
+//        }
+//    }
+//
+//    @Override
+//    protected void postProcessResult(OperationResult result, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, AjaxRequestTarget target) {
+//        if (isEditObject()) {
+//            super.postProcessResult(result, executedDeltas, target);
+//            return;
+//        }
+//        if (!result.isError()) {
+//            if (executedDeltas != null) {
+//                String resourceOid = ObjectDeltaOperation.findFocusDeltaOidInCollection(executedDeltas);
+//                if (resourceOid != null) {
+//                    Task task = createSimpleTask("load resource after save");
+//                    @Nullable PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(
+//                            ResourceType.class,
+//                            resourceOid,
+//                            PageResource.this,
+//                            task,
+//                            task.getResult());
+//                    if (resource != null) {
+//                        getObjectDetailsModels().reset();
+//                        getObjectDetailsModels().reloadPrismObjectModel(resource);
+//                    }
+//                }
+//            }
+//
+//            result.computeStatusIfUnknown();
+//        } else {
+//            target.add(getFeedbackPanel());
+//        }
+//    }
 
     @Override
     protected Panel createSummaryPanel(String id, IModel<ResourceType> summaryModel) {
@@ -225,14 +221,14 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
     private void showResourceWizard(
             AjaxRequestTarget target,
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel,
-            Class<? extends AbstractResourceWizardPanel> clazz) {
+            Class<? extends AbstractWizardPanel> clazz) {
         Fragment fragment = new Fragment(ID_DETAILS_VIEW, ID_WIZARD_FRAGMENT, PageResource.this);
         fragment.setOutputMarkupId(true);
         addOrReplace(fragment);
 
         try {
-            Constructor<? extends AbstractResourceWizardPanel> constructor = clazz.getConstructor(String.class, ResourceWizardPanelHelper.class);
-            AbstractResourceWizardPanel wizard = constructor.newInstance(ID_WIZARD, createResourceWizardPanelHelper(valueModel));
+            Constructor<? extends AbstractWizardPanel> constructor = clazz.getConstructor(String.class, WizardPanelHelper.class);
+            AbstractWizardPanel wizard = constructor.newInstance(ID_WIZARD, createResourceWizardPanelHelper(valueModel));
             wizard.setOutputMarkupId(true);
             fragment.add(wizard);
             target.add(fragment);
@@ -242,9 +238,9 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         }
     }
 
-    private ResourceWizardPanelHelper createResourceWizardPanelHelper(
+    private WizardPanelHelper createResourceWizardPanelHelper(
             IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-        return new ResourceWizardPanelHelper(getObjectDetailsModels(), valueModel) {
+        return new WizardPanelHelper(getObjectDetailsModels(), valueModel) {
 
             @Override
             public void onExitPerformed(AjaxRequestTarget target) {
@@ -274,23 +270,19 @@ public class PageResource extends PageAssignmentHolderDetails<ResourceType, Reso
         target.add(detailsFragment);
     }
 
-    public List<Breadcrumb> getWizardBreadcrumbs() {
-        return wizardBreadcrumbs;
-    }
-
-    @Override
-    protected void recordNoChangesWarning(OperationResult result) {
-        if (isEditObject()) {
-            super.recordNoChangesWarning(result);
-        } else {
-            result.recordSuccess();
-        }
-    }
-
-    @Override
-    protected void showResultNoChangesWarning(OperationResult result) {
-        if (isEditObject()) {
-            super.showResultNoChangesWarning(result);
-        }
-    }
+//    @Override
+//    protected void recordNoChangesWarning(OperationResult result) {
+//        if (isEditObject()) {
+//            super.recordNoChangesWarning(result);
+//        } else {
+//            result.recordSuccess();
+//        }
+//    }
+//
+//    @Override
+//    protected void showResultNoChangesWarning(OperationResult result) {
+//        if (isEditObject()) {
+//            super.showResultNoChangesWarning(result);
+//        }
+//    }
 }

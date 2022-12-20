@@ -80,10 +80,11 @@ public class MemberOperationsHelper {
      * @param memberQuery Query selecting members that are to be processed
      * @param relations Relations to unassign. Not null, not empty.
      */
-    public static void createAndSubmitUnassignMembersTask(AbstractRoleType targetObject, QueryScope scope, QName memberType,
+    public static Task createAndSubmitUnassignMembersTask(AbstractRoleType targetObject, QueryScope scope, QName memberType,
             ObjectQuery memberQuery, Collection<QName> relations, AjaxRequestTarget target, PageBase pageBase) {
         Task task = createUnassignMembersTask(targetObject, scope, memberType, memberQuery, relations, target, pageBase);
         submitTaskIfPossible(task, target, pageBase);
+        return task;
     }
 
     /**
@@ -150,7 +151,7 @@ public class MemberOperationsHelper {
     //endregion
 
     //region Assigning members
-    public static void createAndSubmitAssignMembersTask(AbstractRoleType targetObject, QName memberType, ObjectQuery memberQuery,
+    public static Task createAndSubmitAssignMembersTask(AbstractRoleType targetObject, QName memberType, ObjectQuery memberQuery,
             @NotNull QName relation, AjaxRequestTarget target, PageBase pageBase) {
 
         String targetOid = targetObject.getOid();
@@ -172,6 +173,7 @@ public class MemberOperationsHelper {
                 pageBase, target);
 
         submitTaskIfPossible(task, target, pageBase);
+        return task;
     }
 
     /** Creates a bulk action (script) that assigns given role with given relation to an input object. */

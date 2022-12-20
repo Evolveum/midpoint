@@ -10,9 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -44,7 +45,7 @@ public abstract class AttributeMappingsTableWizardPanel extends AbstractResource
 
     public AttributeMappingsTableWizardPanel(
             String id,
-            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> superHelper,
+            WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> superHelper,
             WrapperContext.AttributeMappingType initialTab) {
         super(id, superHelper);
         this.initialTab = initialTab;

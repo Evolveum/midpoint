@@ -194,15 +194,6 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
     }
 
     @Override
-    protected void recordNoChangesWarning(OperationResult result) {
-        if (previewRequested) {
-            result.recordWarning(getString("PageAdminObjectDetails.noChangesPreview"));
-        } else {
-            super.recordNoChangesWarning(result);
-        }
-    }
-
-    @Override
     protected boolean allowRedirectBack() {
         return !previewRequested;
     }
@@ -280,6 +271,10 @@ public abstract class PageFocusDetails<F extends FocusType, FDM extends FocusDet
 
     @Override
     protected ExecuteChangeOptionsDto getExecuteChangesOptionsDto() {
+        FocusOperationalButtonsPanel<F> panel = getOperationalButtonsPanel();
+        if (panel == null) {
+            return super.getExecuteChangesOptionsDto();
+        }
         return getOperationalButtonsPanel().getExecuteChangeOptions();
     }
 
