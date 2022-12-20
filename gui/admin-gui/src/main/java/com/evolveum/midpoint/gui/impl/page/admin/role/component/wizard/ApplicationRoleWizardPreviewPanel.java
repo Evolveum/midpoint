@@ -36,6 +36,8 @@ public abstract class ApplicationRoleWizardPreviewPanel
 
     enum PreviewTileType implements TileEnum {
 
+        CONFIGURE_GOVERNANCE_MEMBERS("fa fa-users"),
+        CONFIGURE_MEMBERS("fa fa-users"),
         CONFIGURE_CONSTRUCTION("fa fa-retweet");
 
         private final String icon;

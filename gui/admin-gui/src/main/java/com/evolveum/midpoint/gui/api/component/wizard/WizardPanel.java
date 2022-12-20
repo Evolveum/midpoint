@@ -96,6 +96,7 @@ public class WizardPanel extends BasePanel implements WizardListener {
     @Override
     public void onStepChanged(WizardStep newStep) {
         WizardStep step = getActiveStep();
+        ((Component)step).add(AttributeAppender.append("class", () -> getActiveStep().appendCssToWizard()));
 
         addOrReplace((Component) step);
     }
@@ -106,10 +107,11 @@ public class WizardPanel extends BasePanel implements WizardListener {
 
     private void initLayout() {
         add(AttributeAppender.prepend("class", "bs-stepper"));
-        add(AttributeAppender.append("class", () -> getActiveStep().appendCssToWizard()));
+        add(AttributeAppender.append("class", () -> "w-100"));
 
         WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
         header.add(new BehaviourDelegator(() -> getActiveStep().getStepsBehaviour()));
+        header.add(AttributeAppender.append("class", getCssForStepsHeader()));
         header.setOutputMarkupId(true);
         add(header);
 
@@ -175,6 +177,27 @@ public class WizardPanel extends BasePanel implements WizardListener {
         add(contentHeader);
 
         add(new WebMarkupContainer(ID_CONTENT_BODY));
+    }
+
+    private String getCssForStepsHeader() {
+        int steps = wizardModel.getSteps().size();
+        if (steps == 2) {
+            return "col-xxl-5 col-xl-7 col-lg-9 col-md-9 col-sm-12 m-auto";
+        }
+
+        if (steps == 3) {
+            return "col-xxl-7 col-xl-10 col-12 m-auto";
+        }
+
+        if (steps == 4) {
+            return "col-xxl-10 col-12 m-auto";
+        }
+
+        if (steps >= 5) {
+            return "col-12 m-auto";
+        }
+
+        return "";
     }
 
     public WizardStep getActiveStep() {

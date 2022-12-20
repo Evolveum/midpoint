@@ -17,6 +17,7 @@ import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.PreviewResourceObjectTypeDataWizardPanel;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
@@ -33,6 +35,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+
+import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -132,9 +136,39 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
                             case CONFIGURE_CONSTRUCTION:
 //                        showWizardPanel(createPreviewResourceDataWizardPanel(), target);
                                 break;
+                            case CONFIGURE_MEMBERS:
+                                showMembersPanel(target);
+                                break;
+                            case CONFIGURE_GOVERNANCE_MEMBERS:
+                                showGovernanceMembersPanel(target);
+                                break;
                         }
                     }
                 });
+    }
+
+    private void showGovernanceMembersPanel(AjaxRequestTarget target) {
+        showChoiceFragment(target, new GovernanceMembersWizardPanel(
+                getIdOfChoicePanel(),
+                getAssignmentHolderModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
+                exitToPreview(target);
+            }
+        });
+    }
+
+    private void showMembersPanel(AjaxRequestTarget target) {
+        showChoiceFragment(target, new MembersWizardPanel(
+                getIdOfChoicePanel(),
+                getAssignmentHolderModel()) {
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
+                exitToPreview(target);
+            }
+        });
     }
 
     protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {

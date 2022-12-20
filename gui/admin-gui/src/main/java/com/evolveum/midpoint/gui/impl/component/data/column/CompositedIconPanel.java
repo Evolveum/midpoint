@@ -6,28 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.password.StringLimitationPanel;
-import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
-
-import com.evolveum.midpoint.model.api.validator.StringLimitationResult;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebComponent;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.RepeatingView;
-
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.gui.impl.component.icon.LayerIcon;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 /**
  * @author skublik
@@ -41,7 +33,6 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
     private static final String ID_LAYER_ICONS = "layerIcons";
     private static final String ID_LAYER_ICON = "layerIcon";
 
-
     public CompositedIconPanel(String id, IModel<CompositedIcon> compositedIcon) {
         super(id, compositedIcon);
     }
@@ -54,22 +45,22 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
 
     private void initLayout() {
         WebMarkupContainer layeredIcon = new WebMarkupContainer(ID_LAYERED_ICON);
-        layeredIcon.add(AttributeAppender.append("title", (IModel<String>) () -> {
-            if (getModelObject() != null && org.apache.commons.lang3.StringUtils.isNotBlank(getModelObject().getTitle())) {
+        layeredIcon.add(AttributeAppender.append("title", () -> {
+            if (getModelObject() != null && StringUtils.isNotBlank(getModelObject().getTitle())) {
                 return getModelObject().getTitle();
             }
             return null;
         }));
-
         add(layeredIcon);
+
         WebComponent basicIcon = new WebComponent(ID_BASIC_ICON);
-        basicIcon.add(AttributeAppender.append("class", (IModel<String>) () -> {
+        basicIcon.add(AttributeAppender.append("class", () -> {
             if (getModelObject() != null && getModelObject().hasBasicIcon()) {
                 return getModelObject().getBasicIcon();
             }
             return null;
         }));
-        basicIcon.add(AttributeAppender.append("style", (IModel<String>) () -> {
+        basicIcon.add(AttributeAppender.append("style", () -> {
             if (getModelObject() != null && getModelObject().hasBasicIcon() && getModelObject().hasBasicIconHtmlColor()) {
                 return "color:" + getModelObject().getBasicIconHtmlColor();
             }
@@ -83,26 +74,26 @@ public class CompositedIconPanel extends BasePanel<CompositedIcon> {
 
             @Override
             protected void populateItem(ListItem<LayerIcon> item) {
-                if (item.getModelObject() == null) {
+                LayerIcon layerIcon = item.getModelObject();
+                if (layerIcon == null) {
                     return;
                 }
-                if (StringUtils.isNotEmpty(item.getModelObject().getIconType().getCssClass())) {
-                    WebComponent icon = new WebComponent(ID_LAYER_ICON);
-                    icon.add(AttributeAppender.append("class", item.getModelObject().getIconType().getCssClass()));
-                    if (StringUtils.isNotEmpty(item.getModelObject().getIconType().getColor())) {
-                        icon.add(AttributeAppender.append("style", "color: " + item.getModelObject().getIconType().getColor()));
-                    }
-                    item.add(icon);
+
+                IconType iconType = layerIcon.getIconType();
+                if (StringUtils.isEmpty(iconType.getCssClass())) {
+                    return;
                 }
+
+                WebComponent icon = new WebComponent(ID_LAYER_ICON);
+                icon.add(AttributeAppender.append("class", iconType.getCssClass()));
+                if (StringUtils.isNotEmpty(iconType.getColor())) {
+                    icon.add(AttributeAppender.append("style", "color: " + iconType.getColor()));
+                }
+                item.add(icon);
             }
         };
         layeredIcon.add(validationItems);
 
-        add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return getModelObject() != null;
-            }
-        });
+        add(new VisibleBehaviour(() -> getModelObject() != null));
     }
 }

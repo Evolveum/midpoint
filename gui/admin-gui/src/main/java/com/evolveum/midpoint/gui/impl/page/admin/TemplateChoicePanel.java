@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.AssignmentHold
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.Component;
@@ -56,6 +57,7 @@ public abstract class TemplateChoicePanel extends WizardChoicePanel<CompiledObje
                             null,
                             WebComponentUtil.getTranslatedPolyString(
                                     GuiDisplayTypeUtil.getLabel(collection.getDisplay())));
+                    tile.setDescription(GuiDisplayTypeUtil.getHelp(collection.getDisplay()));
                     tile.setValue(collection);
                     tiles.add(tile);
                 });
@@ -75,6 +77,10 @@ public abstract class TemplateChoicePanel extends WizardChoicePanel<CompiledObje
                     return createCompositedIcon(view);
                 };
                 return new CompositedIconPanel(idIcon, iconModel);
+            }
+
+            protected VisibleEnableBehaviour getDescriptionBehaviour() {
+                return VisibleEnableBehaviour.ALWAYS_VISIBLE_ENABLED;
             }
 
             @Override
