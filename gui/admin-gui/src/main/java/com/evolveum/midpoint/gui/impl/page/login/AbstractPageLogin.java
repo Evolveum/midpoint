@@ -10,6 +10,8 @@ package com.evolveum.midpoint.gui.impl.page.login;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
+import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.gui.api.page.PageAdminLTE;
 
 import com.evolveum.midpoint.web.component.menu.top.LocaleTextPanel;
@@ -152,7 +154,7 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
     @Override
     protected void onBeforeRender() {
         super.onBeforeRender();
-        confirmUserPrincipal();
+        confirmAuthentication();
     }
 
     @Override
@@ -160,8 +162,21 @@ public abstract class AbstractPageLogin extends PageAdminLTE {
         super.onAfterRender();
     }
 
-    protected void confirmUserPrincipal() {
-        if (AuthUtil.getPrincipalUser() != null) {
+    protected void confirmAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean loginPageForAnotherModule = false;
+        if (authentication instanceof MidpointAuthentication) {
+            PageDescriptor descriptor = getClass().getAnnotation(PageDescriptor.class);
+            if (descriptor != null && !descriptor.authModule().isEmpty()) {
+                ModuleAuthentication module = ((MidpointAuthentication) authentication).getProcessingModuleAuthentication();
+                if (module != null) {
+                    loginPageForAnotherModule = !module.getModuleTypeName().equals(descriptor.authModule());
+                }
+            }
+        }
+
+        if (authentication.isAuthenticated() || loginPageForAnotherModule) {
             MidPointApplication app = getMidpointApplication();
             throw new RestartResponseException(app.getHomePage());
         }

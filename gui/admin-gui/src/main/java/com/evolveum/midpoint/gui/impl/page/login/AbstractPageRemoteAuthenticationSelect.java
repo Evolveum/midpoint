@@ -110,6 +110,6 @@ public abstract class AbstractPageRemoteAuthenticationSelect extends AbstractPag
     protected abstract String getErrorKeyEmptyProviders();
 
     @Override
-    protected void confirmUserPrincipal() {
+    protected void confirmAuthentication() {
     }
 }
