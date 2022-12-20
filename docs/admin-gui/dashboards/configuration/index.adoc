@@ -9,18 +9,19 @@
 :page-since: "4.2"
 :page-toc: top
 
+Documentation about dashboards can be found at multiple places in docs. To avoid confusion, please see
 
-For basic information about this feature please see xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards] and xref:/midpoint/devel/design/dashboards-widgets-and-reports-design-notes/['Dashboards, Widgets and Reports Design Notes'].
+- xref:/midpoint/reference/admin-gui/dashboards/[Customizable Dashboards] page provides basic information about this feature.
+- Guide for initial configuration, together with example, is provided in xref:/midpoint/guides/dashboards-howto[Dashboards HOWTO].
+- Samples are at link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[samples/dashboard] on Github.
+- Design notes for development of dashboards and reports can be found xref:/midpoint/devel/design/dashboards-widgets-and-reports-design-notes/[here].
 
-Here we describe configurable dashboard and report, which is generated from a dashboard.
-
-For whole sample please see link:https://github.com/Evolveum/midpoint-samples/tree/master/samples/dashboard[dashboard-system-status].
-
+This document describes details of configuration of dashboard and report that is generated from the dashboard.
 
 == Dashboard
 
-Dashboard is new configurable object in midpoint, which show basic information about state of Midpoint.
-Dashboard contains name, display with label and widgets.
+Dashboard is configurable object in midpoint, providing basic information about state of Midpoint.
+Dashboard contains name, display with label and widget elements.
 
 [source,xml]
 ----
@@ -39,8 +40,8 @@ Dashboard contains name, display with label and widgets.
 </dashboard>
 ----
 
-In 4.2 dashboards are shown automatically when defined.
-Since 4.3 there is a need for configuration to define which dashboards should be shown in the left (sidebar) menu.
+In 4.2 dashboards were shown automatically when defined.
+Since 4.3 there you have to define which dashboards should be shown in the left (sidebar) menu in system configuration.
 The configuration is show below:
 
 ++++
@@ -63,7 +64,7 @@ The configuration is show below:
 </adminGuiConfiguration>
 ----
 
-The example above show how to configure dashboards to be shown in the left (sidebar) menu.
+The example above shows how to configure dashboards to be shown in the left (sidebar) menu.
 Property _display_ defines the name of the link which is shown in the menu.
 If it isn't defined, the display property of referenced DashboardType is used.
 Property _configurableDashboardRef_ is used to reference specific DashboardType.
@@ -75,12 +76,12 @@ We have two kinds of widgets, widget for _objectCollection_ and widget for _obje
 
 === Widget
 
-Widget contains three basic cofiguration attributes `display`,`data` and `presentation`.
+Widget contains three basic configuration attributes `display`,`data` and `presentation`.
 
 
 ==== `display`
 
-Attribute `display` contains the configuration of the widget's visual side in the GUI.
+Attribute `display` contains configuration of the widget's visual side in the GUI.
 Possible configuration attributes of `display`:
 
 [%autowidth]
@@ -153,7 +154,7 @@ Contains variable _collectionRef,_ which is reference to object collection is di
 
 ===== Using `sourceType` and `displaySourceType`
 
-When we want use basic widget, so using directly `sourceType` as `objectCollection`, `auditSearch` and `object`.
+When we want to use basic widget, so using directly `sourceType` as `objectCollection`, `auditSearch` and `object`.
 
 The `displaySourceType` is important for asynchronous widget. We set `widgetData` as `displaySourceType` and we can set `objectCollection` as `sourceType`, this mean that widget show stored data from attribute `storedData`, but for link of details use `sourceType`. We can't forget, that `sourceType` will also use by Export report task for generation `storedData`.
 
