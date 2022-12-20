@@ -45,8 +45,6 @@ public class AbstractUninitializedCertificationTest extends AbstractModelIntegra
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
-        modelService.postInit(initResult);
-
         // System Configuration
         try {
             repoAddObjectFromFile(getSystemConfigurationFile(), initResult);
@@ -54,6 +52,7 @@ public class AbstractUninitializedCertificationTest extends AbstractModelIntegra
             throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
                     "looks like the previous test haven't cleaned it up", e);
         }
+        modelService.postInit(initResult);
 
         // Administrator
         roleSuperuser = repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult).asObjectable();

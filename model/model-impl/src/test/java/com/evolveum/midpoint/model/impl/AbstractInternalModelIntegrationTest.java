@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import java.io.File;
 import javax.xml.namespace.QName;
@@ -22,10 +24,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 /**
  * @author semancik
@@ -34,13 +33,11 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_
 public class AbstractInternalModelIntegrationTest extends AbstractModelImplementationIntegrationTest {
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-    public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
     public static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "security-policy.xml");
     public static final String SECURITY_POLICY_OID = "28bf845a-b107-11e3-85bc-001e8c717e5b";
 
     public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-    protected static final String USER_ADMINISTRATOR_NAME = "administrator";
     protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 
     protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
@@ -48,7 +45,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
     protected static final String USER_JACK_USERNAME = "jack";
     protected static final String USER_JACK_PASSWORD = "deadmentellnotales";
 
-    protected static final TestResource USER_JACK = new TestResource(COMMON_DIR, "user-jack.xml", USER_JACK_OID);
+    protected static final TestResource<?> USER_JACK = new TestResource<>(COMMON_DIR, "user-jack.xml", USER_JACK_OID);
 
     protected static final File USER_BARBOSSA_FILE = new File(COMMON_DIR, "user-barbossa.xml");
     protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
@@ -59,7 +56,6 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 
     static final File USER_ELAINE_FILE = new File(COMMON_DIR, "user-elaine.xml");
     protected static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-11111111111e";
-    protected static final String USER_ELAINE_USERNAME = "elaine";
 
     // Largo does not have a full name set, employeeType=PIRATE
     protected static final File USER_LARGO_FILE = new File(COMMON_DIR, "user-largo.xml");
@@ -76,7 +72,6 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
     public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
 
     public static final File ACCOUNT_HERMAN_DUMMY_FILE = new File(COMMON_DIR, "account-herman-dummy.xml");
-    public static final String ACCOUNT_HERMAN_DUMMY_OID = "22220000-2200-0000-0000-444400004444";
     public static final String ACCOUNT_HERMAN_DUMMY_USERNAME = "ht";
 
     public static final File ACCOUNT_SHADOW_GUYBRUSH_DUMMY_FILE = new File(COMMON_DIR, "account-shadow-guybrush-dummy.xml");
@@ -87,10 +82,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 
     public static final File ACCOUNT_SHADOW_ELAINE_DUMMY_FILE = new File(COMMON_DIR, "account-elaine-dummy.xml");
     public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
-    public static final String ACCOUNT_ELAINE_DUMMY_USERNAME = USER_ELAINE_USERNAME;
 
     public static final File ENTITLEMENT_SHADOW_PIRATE_DUMMY_FILE = new File(COMMON_DIR, "entitlement-shadow-pirate-dummy.xml");
-    public static final String ENTITLEMENT_PIRATE_DUMMY_NAME = "pirate";
 
     public static final File ACCOUNT_SHADOW_CALYPSO_DUMMY_FILE = new File(COMMON_DIR, "account-shadow-calypso-dummy.xml");
     public static final String ACCOUNT_CALYPSO_DUMMY_USERNAME = "calypso";
@@ -128,8 +121,6 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
         mockClockworkHook = new MockClockworkHook();
         hookRegistry.registerChangeHook(MOCK_CLOCKWORK_HOOK_URL, mockClockworkHook);
 
-        modelService.postInit(initResult);
-
         // System Configuration
         try {
             repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
@@ -137,6 +128,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
             throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
                     "looks like the previous test haven't cleaned it up", e);
         }
+        modelService.postInit(initResult);
 
         repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 

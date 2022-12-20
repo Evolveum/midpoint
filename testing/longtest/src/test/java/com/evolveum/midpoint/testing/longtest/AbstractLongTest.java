@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -25,7 +25,6 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -33,9 +32,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * Mix of various tests for issues that are difficult to replicate using dummy resources.
  *
  * @author Radovan Semancik
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
 
@@ -59,7 +57,7 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
     protected static final String USER_BARBOSSA_USERNAME = "barbossa";
     protected static final String USER_BARBOSSA_FULL_NAME = "Hector Barbossa";
 
-    protected static final File USER_GUYBRUSH_FILE = new File (COMMON_DIR, "user-guybrush.xml");
+    protected static final File USER_GUYBRUSH_FILE = new File(COMMON_DIR, "user-guybrush.xml");
     protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
     protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
     protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
@@ -71,27 +69,19 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        modelService.postInit(initResult);
 
-        // System Configuration
-        PrismObject<SystemConfigurationType> config;
         try {
-            config = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+            repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
         } catch (ObjectAlreadyExistsException e) {
             throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
                     "looks like the previous test haven't cleaned it up", e);
         }
-
-        // to get profiling facilities (until better API is available)
-//        LoggingConfigurationManager.configure(
-//                ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
-//                config.asObjectable().getVersion(), initResult);
+        modelService.postInit(initResult);
 
         // administrator
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
-
     }
 
     @Override
@@ -101,7 +91,7 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
 
     protected Entry createLdapEntry(String uid, String name) throws IOException, LDIFException {
         StringBuilder sb = new StringBuilder();
-        String dn = "uid="+uid+","+openDJController.getSuffixPeople();
+        String dn = "uid=" + uid + "," + openDJController.getSuffixPeople();
         sb.append("dn: ").append(dn).append("\n");
         sb.append("objectClass: inetOrgPerson\n");
         sb.append("uid: ").append(uid).append("\n");
@@ -116,15 +106,15 @@ public abstract class AbstractLongTest extends AbstractModelIntegrationTest {
     protected void loadLdapEntries(String prefix, int numEntries) throws LDIFException, IOException {
         long ldapPopStart = System.currentTimeMillis();
 
-        for(int i=0; i < numEntries; i++) {
-            String name = "user"+i;
-            Entry entry = createLdapEntry(prefix+i, name);
+        for (int i = 0; i < numEntries; i++) {
+            String name = "user" + i;
+            Entry entry = createLdapEntry(prefix + i, name);
             openDJController.addEntry(entry);
         }
 
         long ldapPopEnd = System.currentTimeMillis();
 
-        display("Loaded "+numEntries+" LDAP entries in "+((ldapPopEnd-ldapPopStart)/1000)+" seconds");
+        display("Loaded " + numEntries + " LDAP entries in " + ((ldapPopEnd - ldapPopStart) / 1000) + " seconds");
     }
 
 }
