@@ -1,7 +1,10 @@
 package com.evolveum.midpoint.repo.sqale.func;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.testng.annotations.Test;
@@ -13,10 +16,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
 public class SimulationsBaselineTest extends SqaleRepoBaseTest {
 
@@ -24,6 +23,12 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
     @Test
     public void test100CreateSimulation() throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
         OperationResult result = createOperationResult();
+
+        given("simulation result with a dummy system configuration object");
+        SystemConfigurationType systemConfiguration = new SystemConfigurationType()
+                .name("System Configuration")
+                .description("dummy one");
+
         SimulationResultType obj = new SimulationResultType()
                 .name("Test Simulation Result")
                 .processedObject(new SimulationResultProcessedObjectType()
@@ -32,19 +37,32 @@ public class SimulationsBaselineTest extends SqaleRepoBaseTest {
                     .state(ObjectProcessingStateType.UNMODIFIED)
                     .metricIdentifier("disabled")
                     .metricIdentifier("business")
+                    .before(systemConfiguration.clone())
                  );
-        @NotNull
-        String oid = repositoryService.addObject(obj.asPrismObject(), null, result);
 
-        @NotNull
-        PrismObject<SimulationResultType> readed = repositoryService.getObject(SimulationResultType.class, oid, null, result);
-        assertNotNull(readed);
+        when("result is added to the repository");
+        @NotNull String oid = repositoryService.addObject(obj.asPrismObject(), null, result);
 
-        // Processed objects should not be fetched from repository (available only via search)
-        assertTrue(readed.asObjectable().getProcessedObject().isEmpty());
+        and("result is read back (as an object)");
+        @NotNull PrismObject<SimulationResultType> resultReadBack =
+                repositoryService.getObject(SimulationResultType.class, oid, null, result);
 
-        SearchResultList<SimulationResultProcessedObjectType> ret = repositoryService.searchContainers(SimulationResultProcessedObjectType.class, null, null, result);
-        assertNotNull(ret);
+        then("result is OK but empty - processed objects should are available only via search");
+        assertNotNull(resultReadBack);
+        assertTrue(resultReadBack.asObjectable().getProcessedObject().isEmpty());
+
+        when("processed objects are retrieved explicitly");
+        SearchResultList<SimulationResultProcessedObjectType> processedObjects =
+                repositoryService.searchContainers(SimulationResultProcessedObjectType.class, null, null, result);
+
+        then("they are present");
+        assertNotNull(processedObjects);
+        assertThat(processedObjects).as("processed objects").hasSize(1);
+
+        and("can be parsed");
+        // TODO this should work, shouldn't it?
+        //ObjectType objectBefore = processedObjects.get(0).getBefore();
+        //assertThat(objectBefore).as("'object before' from result").isEqualTo(systemConfiguration);
     }
 
     @Test

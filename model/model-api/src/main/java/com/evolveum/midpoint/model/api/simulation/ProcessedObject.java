@@ -80,7 +80,7 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
         this.delta = delta;
     }
 
-    public static <O extends ObjectType>  ProcessedObject<O> parse(@NotNull SimulationResultProcessedObjectType bean)
+    public static <O extends ObjectType> ProcessedObject<O> parse(@NotNull SimulationResultProcessedObjectType bean)
             throws SchemaException {
         Class<?> type = PrismContext.get().getSchemaRegistry().determineClassForTypeRequired(bean.getType());
         argCheck(ObjectType.class.isAssignableFrom(type), "Type is not an ObjectType: %s", type);
@@ -91,9 +91,9 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
                 bean.getName(),
                 MiscUtil.argNonNull(bean.getState(), () -> "No processing state in " + bean),
                 bean.getMetricIdentifier(),
-                (O) bean.getBefore(),
-                (O) bean.getAfter(),
-                DeltaConvertor.createObjectDelta(bean.getDelta()));
+                null, // (O) bean.getBefore(), // temporarily disabled
+                null, // (O) bean.getAfter(), // temporarily disabled
+                DeltaConvertor.createObjectDeltaNullable(bean.getDelta()));
     }
 
     public static <O extends ObjectType> ProcessedObject<?> create(
