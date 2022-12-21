@@ -54,6 +54,10 @@ public class StartupConfiguration implements MidpointConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(StartupConfiguration.class);
 
+    /**
+     * List of configuration keys or JVM override keys that should hide their values.
+     * Short keys are used for dumps to the log, qualified JVM argument keys are for About page.
+     */
     public static final List<String> SENSITIVE_CONFIGURATION_VARIABLES = Arrays.asList(
             "jdbcPassword",
             "keyStorePassword",
@@ -63,11 +67,12 @@ public class StartupConfiguration implements MidpointConfiguration {
             "midpoint.repository.jdbcPassword"
     );
     public static final String SENSITIVE_VALUE_OUTPUT = "[*****]";
-    // For troubleshooting, enables like this: -Dmidpoint.printSensitiveValues
-    private static final boolean PRINT_SENSITIVE_VALUES =
-            System.getProperty("midpoint.printSensitiveValues") != null
-                    // TODO: remove in 4.6, legacy property name
-                    || System.getProperty("midpointPrintSensitiveValues") != null;
+
+    /**
+     * For troubleshooting, enable it via JVM argument: -Dmidpoint.printSensitiveValues
+     * This only allows the printing in the log, About page always hides sensitive values.
+     */
+    private static final boolean PRINT_SENSITIVE_VALUES = System.getProperty("midpoint.printSensitiveValues") != null;
 
     private boolean silent = false;
 
