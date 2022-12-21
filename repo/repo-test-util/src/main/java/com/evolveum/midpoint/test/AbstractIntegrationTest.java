@@ -170,8 +170,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     // Values used to check if something is unchanged or changed properly
 
-    protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
-
     private final Map<InternalCounters, Long> lastCountMap = new HashMap<>();
 
     private CachingStatistics lastResourceCacheStats;

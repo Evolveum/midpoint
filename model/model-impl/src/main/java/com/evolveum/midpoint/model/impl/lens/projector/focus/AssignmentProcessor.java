@@ -1038,10 +1038,24 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 continue;
             }
 
-            roleRef.setValueMetadata(new ValueMetadataType()
-                    .provenance(new ProvenanceMetadataType()
-                            .assignmentPath(
-                                    evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false))));
+            AssignmentPathType assignmentPath = evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false);
+            // There can be some value metadata already created by previous assignment evaluation
+            PrismContainer<ValueMetadataType> valueMetadataContainer = roleRef.getValueMetadataAsContainer();
+            if (valueMetadataContainer.hasAnyValue()) {
+                ValueMetadataType valueMetadata = valueMetadataContainer.getAnyValue().asContainerable();
+                ProvenanceMetadataType provenance = valueMetadata.getProvenance();
+                if (provenance == null) {
+                    // unlikely, but let's handle this case as well
+                    valueMetadata.provenance(new ProvenanceMetadataType()
+                            .assignmentPath(assignmentPath));
+                } else {
+                    provenance.assignmentPath(assignmentPath);
+                }
+            } else {
+                roleRef.setValueMetadata(new ValueMetadataType()
+                        .provenance(new ProvenanceMetadataType()
+                                .assignmentPath(assignmentPath)));
+            }
         }
     }
 

@@ -225,7 +225,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         then("user is created in raw mode");
         assertUserAfterByUsername("user-legacy")
                 .assertAssignments(1)
-                .assertRoleMemberhipRefs(0); // to check the raw mode
+                .assertRoleMembershipRefs(0); // to check the raw mode
 
         and("task is OK");
         // @formatter:off
@@ -252,7 +252,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         then("user is created in raw mode");
         assertUserAfterByUsername("user-single")
                 .assertAssignments(1)
-                .assertRoleMemberhipRefs(0); // to check the raw mode
+                .assertRoleMembershipRefs(0); // to check the raw mode
 
         and("task is OK");
         // @formatter:off
@@ -280,12 +280,12 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         then("user 1 is created in raw mode");
         assertUserAfterByUsername("user-multi-1")
                 .assertAssignments(1)
-                .assertRoleMemberhipRefs(0); // to check the raw mode
+                .assertRoleMembershipRefs(0); // to check the raw mode
 
         and("user 2 is created in non-raw mode");
         assertUserAfterByUsername("user-multi-2")
                 .assertAssignments(1)
-                .assertRoleMemberhipRefs(1);
+                .assertRoleMembershipRefs(1);
 
         and("task is OK");
         // @formatter:off
