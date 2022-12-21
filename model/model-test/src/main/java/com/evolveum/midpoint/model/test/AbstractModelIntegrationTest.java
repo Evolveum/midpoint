@@ -3907,7 +3907,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     // Returns the object as originally parsed, to avoid race conditions regarding last start timestamp.
     protected PrismObject<TaskType> addTask(TestResource<TaskType> resource, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, IOException {
-        PrismObject<TaskType> taskBefore = resource.get();
+        PrismObject<TaskType> taskBefore = resource.getFresh();
         taskManager.addTask(taskBefore, result);
         return taskBefore;
     }
@@ -3938,7 +3938,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             TestResource<O> testResource, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
-        PrismObject<O> object = testResource.parse();
+        PrismObject<O> object = testResource.getFresh();
         if (customizer != null) {
             customizer.accept(object);
         }
@@ -6973,13 +6973,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             SimulatedProcedureCall simulatedCall)
             throws CommonException {
 
-        SimulationResultContext simulationResultContext =
-                simulationConfiguration != null ?
-                        simulationResultManager.newSimulationResult(simulationConfiguration, result) : null;
-        AggregatedObjectProcessingListener simulationObjectProcessingListener =
-                simulationResultContext != null ? simulationResultContext.aggregatedObjectProcessingListener() : null;
+        String simulationResultOid;
+        AggregatedObjectProcessingListener simulationObjectProcessingListener;
+        if (simulationConfiguration != null) {
+            SimulationResultContext simulationResultContext =
+                    simulationResultManager.newSimulationResult(simulationConfiguration, result);
+            simulationResultOid = simulationResultContext.getResultOid();
+            simulationObjectProcessingListener = simulationResultContext.aggregatedObjectProcessingListener();
+        } else {
+            simulationResultOid = null;
+            simulationObjectProcessingListener = null;
+        }
 
-        SimulationResult simulationResult = new SimulationResult(simulationResultContext);
+        SimulationResult simulationResult = new SimulationResult(simulationResultOid);
         AggregatedObjectProcessingListener testObjectProcessingListener = simulationResult.aggregatedObjectProcessingListener();
         DummyAuditEventListener auditEventListener = simulationResult.auditEventListener();
         TaskExecutionMode oldMode = task.setExecutionMode(mode);
@@ -7025,11 +7031,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected @NotNull SimulationResult getTaskSimResult(String taskOid, OperationResult result)
             throws CommonException {
-        return SimulationResult.fromProcessedObjects(
-                getTaskProcessedObjects(taskOid, result));
+        return SimulationResult.fromSimulationResultOid(
+                getTaskSimulationResultOid(taskOid, result));
     }
 
-    protected @NotNull Collection<ProcessedObject<?>> getTaskProcessedObjects(String taskOid, OperationResult result)
+    protected @NotNull String getTaskSimulationResultOid(String taskOid, OperationResult result)
             throws CommonException {
         Task taskAfter = taskManager.getTaskPlain(taskOid, result);
         ActivitySimulationStateType simState =
@@ -7038,33 +7044,53 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertThat(simState).as("simulation state in " + taskAfter).isNotNull();
         ObjectReferenceType simResultRef = simState.getResultRef();
         assertThat(simResultRef).as("simulation result ref in " + taskAfter).isNotNull();
-        return simulationResultManager
-                .newSimulationContext(simResultRef.getOid())
-                .getStoredProcessedObjects(result);
+        return Objects.requireNonNull(simResultRef.getOid(), "no OID in simulation result ref");
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, boolean persistent)
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult) throws SchemaException {
+        return assertProcessedObjects(simResult, (Boolean) null);
+    }
+
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, String desc) throws SchemaException {
+        return assertProcessedObjects(simResult, null, desc);
+    }
+
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
             throws SchemaException {
         return assertProcessedObjects(
-                getProcessedObjects(simResult, persistent),
-                getProcessedObjectsDesc(persistent));
+                simResult,
+                persistentOverride,
+                getProcessedObjectsDesc(simResult, persistentOverride));
     }
 
-    protected Collection<ProcessedObject<?>> getProcessedObjects(SimulationResult simResult, boolean persistent)
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(
+            SimulationResult simResult, Boolean persistentOverride, String desc)
             throws SchemaException {
-        if (persistent) {
-            return simResult.getProcessedObjectsFromRepository(getTestOperationResult());
-        } else {
-            return simResult.getObjectsProcessedBySimulation(getTestOperationResult());
-        }
+        return assertProcessedObjects(
+                getProcessedObjects(simResult, persistentOverride),
+                desc);
     }
 
-    // FIXME fix all this mess related to fetching processed objects
-    protected String getProcessedObjectsDesc(boolean persistent) {
+    protected Collection<ProcessedObject<?>> getProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
+            throws SchemaException {
+        OperationResult result = getTestOperationResult();
+        if (persistentOverride == null) {
+            return simResult.getProcessedObjects(result);
+        }
+        return simResult.getProcessedObjects(getTestOperationResult());
+    }
+
+    protected String getProcessedObjectsDesc(SimulationResult simResult, Boolean persistentOverride) {
+        boolean persistent;
+        if (persistentOverride != null) {
+            persistent = persistentOverride;
+        } else {
+            persistent = simResult.isPersistent();
+        }
         if (persistent) {
             return "processed objects in persistent storage";
         } else {
-            return "processed objects";
+            return "processed objects in transient storage";
         }
     }
 

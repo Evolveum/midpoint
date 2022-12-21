@@ -233,6 +233,7 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     /**
      * Adding a reaction for `UNMATCHED` situation. Trying to import an account.
+     * It should fail (in development simulation mode), because there are no mappings yet.
      */
     @Test
     public void test120AddUnmatchedReaction() throws Exception {
@@ -245,12 +246,12 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         when("single account is imported (on foreground, real execution)");
         importHrAccountRequest("1")
-                .withAssertingSuccess() // The model does not "see" the sync configuration
+                .withAssertingSuccess() // The model does not "see" the sync configuration -> hence no failure
                 .executeOnForeground(result);
 
         when("single account is imported (on foreground, simulated production execution)");
         importHrAccountRequest("1")
-                .withAssertingSuccess() // The model does not "see" the sync configuration
+                .withAssertingSuccess() // The model does not "see" the sync configuration -> hence no failure
                 .simulatedProduction()
                 .executeOnForeground(result);
 
@@ -293,49 +294,52 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result);
 
         then("no deltas as the configuration is not visible");
-        assertDeltaCollection(simResult.getSimulatedDeltas(), "simulated production execution")
-                .assertSize(0);
+        assertProcessedObjects(simResult, "simulated production")
+                .assertSize(0); // no clockwork
 
         when("single account is imported (on foreground, simulated development execution)");
         SimulationResult simResult2 = importHrAccountRequest("1")
                 .simulatedDevelopment()
                 .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result);
 
-        then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
-        assertTest130SimulatedDeltas(simResult2.getSimulatedDeltas(), "(foreground)");
+        then("simulation result contains a single user ADD delta plus not substantial shadow MODIFY delta");
+        assertTest130SimulationResult(simResult2, false);
 
         when("single account is imported (on background, simulated development execution)");
         String taskOid = importHrAccountRequest("1")
                 .simulatedDevelopment()
                 .execute(result);
 
-        assertTask(taskOid, "simulated production")
+        assertTask(taskOid, "simulated development")
                 .display();
 
         if (isNativeRepository()) {
-            then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
-            Collection<ObjectDelta<?>> simulatedDeltas = getTaskSimDeltas(taskOid, result);
-            assertTest130SimulatedDeltas(simulatedDeltas, "(background)");
+            then("simulation result contains a single user ADD delta plus not substantial shadow MODIFY delta");
+            assertTest130SimulationResult(
+                    getTaskSimResult(taskOid, result), true);
         }
 
         and("no new focus objects are there");
         focusCounter.assertNoNewObjects(result);
     }
 
-    private void assertTest130SimulatedDeltas(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
+    private void assertTest130SimulationResult(SimulationResult simResult, boolean persistentOverride) throws SchemaException {
         // @formatter:off
-        assertDeltaCollection(simulatedDeltas, "simulated development execution: " + message)
+        assertProcessedObjects(simResult, persistentOverride)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
-                    .objectToAdd()
-                        .asFocus()
-                            .assertName("empNo:1")
-                            .assertLinks(1, 0)
+                    .delta()
+                        .objectToAdd()
+                            .asFocus()
+                                .assertName("empNo:1")
+                                .assertLinks(1, 0)
+                            .end()
                         .end()
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                .assertNoRealResourceObjectModifications();
+                    .delta()
+                        .assertNoRealResourceObjectModifications();
         // @formatter:on
     }
 

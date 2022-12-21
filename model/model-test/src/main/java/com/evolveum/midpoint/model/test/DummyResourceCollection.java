@@ -84,7 +84,7 @@ public class DummyResourceCollection {
             LOGGER.debug("File {} imported: {}", resourceFile, importResult);
         } else if (testResource != null) {
             LOGGER.info("Importing {}", testResource);
-            modelService.importObject(testResource.get(), null, task, result);
+            modelService.importObject(testResource.getFresh(), null, task, result);
             OperationResult importResult = result.getLastSubresult();
             if (importResult.isError()) {
                 throw new RuntimeException("Error importing " + testResource + ": " + importResult.getMessage());

@@ -162,7 +162,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
     private void createUsers(String namePattern, int count, Task task, OperationResult result, TestResource<?>... targets)
             throws CommonException {
         for (int i = 0; i < count; i++) {
-            UserType user = new UserType(prismContext)
+            UserType user = new UserType()
                     .name(String.format(namePattern, i));
             for (TestResource<?> target : targets) {
                 user.getAssignment().add(ObjectTypeUtil.createAssignmentTo(target.get(), SchemaConstants.ORG_DEFAULT));

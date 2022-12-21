@@ -229,11 +229,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     }
 
     private void assertTest11xSimulationResult(
-            String name, DummyTestResource target, boolean accountShouldExist, SimulationResult simResult, boolean persistent)
+            String name, DummyTestResource target, boolean accountShouldExist,
+            SimulationResult simResult, boolean persistentOverride)
             throws SchemaException {
-        Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistent);
+        Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
         // @formatter:off
-        assertProcessedObjects(processedObjects, getProcessedObjectsDesc(persistent))
+        assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
                 .display()
                 .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
                     .assertEventTags(TAG_USER_ADD)
@@ -326,11 +327,12 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     }
 
     private void assertTest12xUserAndAccountDeltas(
-            String name, DummyTestResource target, boolean accountShouldExist, SimulationResult simResult, boolean persistent)
+            String name, DummyTestResource target, boolean accountShouldExist,
+            SimulationResult simResult, boolean persistentOverride)
             throws SchemaException {
-        Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistent);
+        Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
         // @formatter:off
-        assertProcessedObjects(processedObjects, getProcessedObjectsDesc(persistent))
+        assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
                 .display()
                 .by().changeType(ChangeType.ADD).objectType(UserType.class).find()
                     .delta()
@@ -418,13 +420,14 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     }
 
     private void assertTest13xUserAndAccountDeltas(
-            String name, DummyTestResource target, boolean accountShouldExist, SimulationResult simResult, boolean persistent)
+            String name, DummyTestResource target, boolean accountShouldExist,
+            SimulationResult simResult, boolean persistentOverride)
             throws SchemaException {
 
         // @formatter:off
         if (accountShouldExist) {
-            Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistent);
-            assertProcessedObjects(processedObjects, "objects")
+            Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
+            assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
                     .display()
                     .by().changeType(ChangeType.MODIFY).objectType(UserType.class).find()
                         .assertEventTags()
@@ -435,7 +438,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                     .end();
             assertAccountAdded(name, target, processedObjects);
         } else {
-            assertProcessedObjects(simResult, persistent)
+            assertProcessedObjects(simResult, persistentOverride)
                     .display()
                     .by().objectType(UserType.class).find()
                         .assertState(ObjectProcessingStateType.UNMODIFIED)
@@ -499,10 +502,11 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     }
 
     private void assertTest14xUserAndAccountDeltas(
-            String name, DummyTestResource target, boolean accountShouldExist, SimulationResult simResult, boolean persistent)
+            String name, DummyTestResource target, boolean accountShouldExist,
+            SimulationResult simResult, boolean persistentOverride)
             throws SchemaException {
 
-        Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistent);
+        Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
         // @formatter:off
         assertProcessedObjects(processedObjects, "objects")
                 .display()
@@ -704,7 +708,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         objectsCounter.assertShadowOnlyIncrement(1, result);
 
         and("processed objects are OK");
-        assertTest20xSimulationResult("test205", getTaskSimResult(taskOid, result), false);
+        assertTest20xSimulationResult("test205", getTaskSimResult(taskOid, result), true);
 
         and("shadow should not have full sync info set");
         assertTest20xShadow("test205", task, result);

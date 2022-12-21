@@ -43,18 +43,20 @@ public abstract class AbstractTestResource<T extends ObjectType> {
 
     public final String oid;
 
+    private final Lazy.Supplier<PrismObject<T>> originalSupplier = this::parse;
+
     /**
      * The object - either literally as it is defined in the resource, or replaced by a processed form: for example,
      * a {@link ResourceType} may be imported into the repository, tested (the schema and capabilities being filled in),
      * and then fetched and stored here.
      */
-    @NotNull private final Lazy<PrismObject<T>> object = Lazy.from(this::parse);
+    @NotNull private final Lazy<PrismObject<T>> object = Lazy.from(originalSupplier);
 
     AbstractTestResource(String oid) {
         this.oid = oid;
     }
 
-    public PrismObject<T> parse() {
+    public @NotNull PrismObject<T> parse() {
         try (InputStream inputStream = getInputStream()) {
             PrismObject<T> parsed = PrismContext.get()
                     .parserFor(inputStream)
@@ -67,6 +69,20 @@ public abstract class AbstractTestResource<T extends ObjectType> {
         }
     }
 
+    /**
+     * Forgets any value that could be changed using {@link #set(PrismObject)} method call, e.g. resource definition after
+     * being tested and re-fetched from the repo.
+     *
+     * Necessary e.g. because `connectorRef` should be resolved anew during new test class execution.
+     * (Some test resources are shared among more specific test classes.)
+     *
+     * The recommended way is to use {@link #getFresh()} when we need to be sure to get the freshly parsed version.
+     * (An alternative is to call {@link #parse()} directly - but that does not invalidate the cached content.)
+     */
+    public void reset() {
+        object.set(originalSupplier);
+    }
+
     /** Does dynamic changes after parsing. Used in subclasses. */
     protected void customizeParsed(PrismObject<T> parsed) {
     }
@@ -77,6 +93,11 @@ public abstract class AbstractTestResource<T extends ObjectType> {
 
     public void set(@NotNull PrismObject<T> value) {
         object.set(value);
+    }
+
+    public @NotNull PrismObject<T> getFresh() {
+        reset();
+        return object.get();
     }
 
     @Deprecated // use get()
@@ -102,7 +123,7 @@ public abstract class AbstractTestResource<T extends ObjectType> {
      */
     public void importObject(Task task, OperationResult result) throws CommonException {
         TestSpringBeans.getObjectImporter()
-                .importObject(get(), task, result);
+                .importObject(getFresh(), task, result);
     }
 
     /** As {@link #reload(SimpleObjectResolver, OperationResult)} but uses default repo-based object resolver. */

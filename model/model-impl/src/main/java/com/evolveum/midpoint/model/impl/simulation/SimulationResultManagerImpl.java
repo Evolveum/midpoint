@@ -55,7 +55,7 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     @Override
-    public SimulationResultContext newSimulationResult(@Nullable SimulationResultType configuration, @NotNull OperationResult parentResult) {
+    public @NotNull SimulationResultContext newSimulationResult(@Nullable SimulationResultType configuration, @NotNull OperationResult parentResult) {
         // TODO: Check if this is configuration
         configuration = mergeDefaults(configuration);
 
@@ -113,14 +113,15 @@ public class SimulationResultManagerImpl implements SimulationResultManager, Sys
     }
 
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
-    @NotNull Collection<ProcessedObject<?>> getStoredProcessedObjects(@NotNull String oid, OperationResult result)
+    @Override
+    public @NotNull List<ProcessedObject<?>> getStoredProcessedObjects(@NotNull String oid, OperationResult result)
             throws SchemaException {
         ObjectQuery query = PrismContext.get().queryFor(SimulationResultProcessedObjectType.class)
                 .ownerId(oid)
                 .build();
         List<SimulationResultProcessedObjectType> processedObjectBeans =
                 repository.searchContainers(SimulationResultProcessedObjectType.class, query, null, result);
-        Collection<ProcessedObject<?>> processedObjects = new ArrayList<>();
+        List<ProcessedObject<?>> processedObjects = new ArrayList<>();
         for (SimulationResultProcessedObjectType processedObjectBean : processedObjectBeans) {
             processedObjects.add(
                     ProcessedObject.parse(processedObjectBean));
