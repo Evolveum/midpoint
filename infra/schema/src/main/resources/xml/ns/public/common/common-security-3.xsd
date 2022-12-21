@@ -1696,7 +1696,7 @@
                         The result of the sequence is a failure only if this is the only module in the sequence and it fails.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="SUFFICIENT"/>
+                        <jaxb:typesafeEnumMember name="OPTIONAL"/>
                         <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>

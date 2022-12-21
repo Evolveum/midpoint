@@ -19,6 +19,7 @@ import com.evolveum.midpoint.security.api.AuthenticationAnonymousChecker;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.authentication.api.AuthenticationModuleState;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleNecessityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceModuleType;
 
 import org.apache.commons.lang3.Validate;
@@ -171,11 +172,61 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         if (modules.isEmpty()) {
             return false;
         }
-        //todo
-        boolean isAuth = modules.stream().filter(m -> getAuthenticationByIdentifier(m.getIdentifier()) == null).findAny().isEmpty() &&
-                modules.stream().filter(m ->
-                        !AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState())).findAny().isEmpty();
-        return isAuth;
+        return allAuthenticationModulesExist() && (allModulesAreSuccessful() || getAuthenticationModuleNecessityDecision());
+    }
+
+    private boolean getAuthenticationModuleNecessityDecision() {
+        return ((allModulesAreOptional() || allModulesAreSufficient()) && atLeastOneSuccessfulModuleExists())
+                || allRequiredModulesAreSuccessful() && allRequisiteModulesAreSuccessful();
+    }
+
+    private boolean allAuthenticationModulesExist() {
+        return sequence.getModule()
+                .stream()
+                .allMatch(m -> getAuthenticationByIdentifier(m.getIdentifier()) != null);
+    }
+
+    private boolean allModulesAreSufficient() {
+        return allModulesNecessityEquals(AuthenticationSequenceModuleNecessityType.SUFFICIENT);
+    }
+
+   private boolean allModulesAreOptional() {
+        return allModulesNecessityEquals(AuthenticationSequenceModuleNecessityType.OPTIONAL);
+    }
+
+    private boolean allModulesNecessityEquals(AuthenticationSequenceModuleNecessityType moduleNecessity) {
+        return sequence.getModule()
+                .stream()
+                .allMatch(m -> moduleNecessity.equals(m.getNecessity()));
+    }
+
+    private boolean atLeastOneSuccessfulModuleExists() {
+        return sequence.getModule()
+                .stream()
+                .anyMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState()));
+    }
+
+    private boolean allModulesAreSuccessful() {
+        return sequence.getModule()
+                .stream()
+                .allMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState()));
+    }
+
+
+    private boolean allRequisiteModulesAreSuccessful() {
+        return !nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType.REQUISITE);
+    }
+
+    private boolean allRequiredModulesAreSuccessful() {
+        return nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType.REQUIRED);
+    }
+
+    private boolean nonSuccessfulModuleExists(AuthenticationSequenceModuleNecessityType moduleNecessity) {
+        List<AuthenticationSequenceModuleType> modules = sequence.getModule();
+        return modules.stream()
+                .anyMatch(m -> moduleNecessity.equals(m.getNecessity())
+                        && (getAuthenticationByIdentifier(m.getIdentifier()) == null
+                        || !AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState())));
     }
 
     public ModuleAuthentication getAuthenticationByIdentifier(String moduleIdentifier) {
