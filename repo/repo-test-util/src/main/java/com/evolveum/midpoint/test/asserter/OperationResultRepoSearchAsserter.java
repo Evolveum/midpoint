@@ -99,7 +99,7 @@ public class OperationResultRepoSearchAsserter<RA> extends AbstractAsserter<RA> 
             @Override
             public boolean test(OperationResult operationResult) {
                 String queryParam = operationResult.getParamSingle(OperationResult.PARAM_QUERY);
-                return queryParam.contains(expectedSubstring);
+                return queryParam != null && queryParam.contains(expectedSubstring);
             }
 
             @Override
