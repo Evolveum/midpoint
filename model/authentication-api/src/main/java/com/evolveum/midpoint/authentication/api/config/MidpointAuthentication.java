@@ -177,7 +177,8 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
     private boolean getAuthenticationModuleNecessityDecision() {
         return ((allModulesAreOptional() || allModulesAreSufficient()) && atLeastOneSuccessfulModuleExists())
-                || allRequiredModulesAreSuccessful() && allRequisiteModulesAreSuccessful();
+                || getSufficientModulesDecision() && getRequisiteModulesDecision()
+                && getRequiredModulesDecision() && getOptionalModulesDecision();
     }
 
     private boolean allAuthenticationModulesExist() {
@@ -204,6 +205,40 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
         return sequence.getModule()
                 .stream()
                 .anyMatch(m -> AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState()));
+    }
+
+    private boolean getRequiredModulesDecision() {
+        return sequence.getModule()
+                        .stream()
+                                .noneMatch(m -> AuthenticationSequenceModuleNecessityType.REQUIRED.equals(m.getNecessity()))
+                || allRequiredModulesAreSuccessful();
+    }
+
+    private boolean getRequisiteModulesDecision() {
+        return sequence.getModule()
+                        .stream()
+                                .noneMatch(m -> AuthenticationSequenceModuleNecessityType.REQUISITE.equals(m.getNecessity()))
+                || allRequisiteModulesAreSuccessful();
+    }
+
+    private boolean getSufficientModulesDecision() {
+        return sequence.getModule()
+                        .stream()
+                                .noneMatch(m -> AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(m.getNecessity()))
+                || sequence.getModule()
+                .stream()
+                .anyMatch(m -> AuthenticationSequenceModuleNecessityType.SUFFICIENT.equals(m.getNecessity())
+                        && AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState()));
+    }
+
+    private boolean getOptionalModulesDecision() {
+        return sequence.getModule()
+                        .stream()
+                                .noneMatch(m -> AuthenticationSequenceModuleNecessityType.OPTIONAL.equals(m.getNecessity()))
+                || sequence.getModule()
+                .stream()
+                .anyMatch(m -> AuthenticationSequenceModuleNecessityType.OPTIONAL.equals(m.getNecessity())
+                        && AuthenticationModuleState.SUCCESSFULLY.equals(getAuthenticationByIdentifier(m.getIdentifier()).getState()));
     }
 
     private boolean allModulesAreSuccessful() {
