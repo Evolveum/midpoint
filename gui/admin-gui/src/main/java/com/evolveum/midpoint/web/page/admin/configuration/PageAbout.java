@@ -7,25 +7,47 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import java.io.Serializable;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
-import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.page.login.PageLogin;
+import com.evolveum.midpoint.init.InitialDataImport;
+import com.evolveum.midpoint.init.StartupConfiguration;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.LabeledString;
+import com.evolveum.midpoint.schema.ProvisioningDiag;
+import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
+import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.catalina.util.ServerInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -38,36 +60,13 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.init.InitialDataImport;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.QueryFactory;
-import com.evolveum.midpoint.prism.query.TypeFilter;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.schema.LabeledString;
-import com.evolveum.midpoint.schema.ProvisioningDiag;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author lazyman
@@ -77,10 +76,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
                 @Url(mountUrl = "/admin/config/about", matchUrlForSecurity = "/admin/config/about")
         },
         action = {
-        @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
-                label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL, description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
-                label = "PageAbout.auth.configAbout.label", description = "PageAbout.auth.configAbout.description") })
+                @AuthorizationAction(actionUri = AuthConstants.AUTH_CONFIGURATION_ALL,
+                        label = AuthConstants.AUTH_CONFIGURATION_ALL_LABEL, description = AuthConstants.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_ABOUT_URL,
+                        label = "PageAbout.auth.configAbout.label", description = "PageAbout.auth.configAbout.description") })
 public class PageAbout extends PageAdminConfiguration {
     private static final long serialVersionUID = 1L;
 
@@ -277,9 +276,11 @@ public class PageAbout extends PageAdminConfiguration {
             protected String load() {
                 try {
                     RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-                    List<String> arguments = runtimeMxBean.getInputArguments();
+                    final List<String> arguments = runtimeMxBean.getInputArguments();
 
-                    return StringUtils.join(arguments, "<br/>");
+                    final List<String> updatedArguments = arguments.stream().map(a -> escapeJVMArgument(a)).collect(Collectors.toList());
+
+                    return StringUtils.join(updatedArguments, "<br/>");
                 } catch (Exception ex) {
                     return PageAbout.this.getString("PageAbout.message.couldntObtainJvmParams");
                 }
@@ -289,6 +290,20 @@ public class PageAbout extends PageAdminConfiguration {
         add(jvmProperties);
 
         initButtons();
+    }
+
+    private String escapeJVMArgument(String argument) {
+            boolean matches = StartupConfiguration.SENSITIVE_CONFIGURATION_VARIABLES.stream().anyMatch(p -> argument.startsWith("-D" + p));
+            if (!matches || StartupConfiguration.isPrintSensitiveValues()) {
+                return argument;
+            }
+
+            int index = argument.indexOf("=");
+            if (index < 0) {
+                return argument;
+            }
+
+            return argument.substring(0, index) + "=" + StartupConfiguration.SENSITIVE_VALUE_OUTPUT;
     }
 
     private void addLabel(String id, String propertyName) {
@@ -550,7 +565,7 @@ public class PageAbout extends PageAdminConfiguration {
         try {
             QName type = ObjectType.COMPLEX_TYPE;
             taskOid = deleteObjectsAsync(type, factory.createQuery(
-                    factory.createAnd(notTaskFilter, notNodeFilter)),
+                            factory.createAnd(notTaskFilter, notNodeFilter)),
                     taskName, result);
 
         } catch (Exception ex) {
