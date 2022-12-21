@@ -1656,7 +1656,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <!-- We support only "sufficient" modules in 4.1. Full support for "necessity" is planned for later.
             <xsd:enumeration value="required">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1667,6 +1666,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="REQUIRED"/>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -1680,6 +1680,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="REQUISITE"/>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -1696,10 +1697,10 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SUFFICIENT"/>
+                        <a:since>4.7</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            -->
         </xsd:restriction>
     </xsd:simpleType>
 
