@@ -2536,7 +2536,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        provisioningService.addObject(ACCOUNT_TAUGUSTUS.get(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_TAUGUSTUS.getFresh(), null, null, task, result);
 
         // Preconditions
         assertUsers(getNumberOfUsers() + 5);
@@ -2600,7 +2600,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAugustusBefore = findUserByUsername(USER_AUGUSTUS_NAME);
         display("User augustus before", userAugustusBefore);
 
-        PrismObject<ShadowType> account = ACCOUNT_AUGUSTUS.get();
+        PrismObject<ShadowType> account = ACCOUNT_AUGUSTUS.getFresh();
         provisioningService.addObject(account, null, null, task, result);
         display("Account augustus before", account);
 
@@ -2662,14 +2662,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        provisioningService.addObject(ACCOUNT_KENNY.get(), null, null, task, result);
-        provisioningService.addObject(ACCOUNT_TPALIDO.get(), null, null, task, result);
-        provisioningService.addObject(ACCOUNT_LECHIMP.get(), null, null, task, result);
-        provisioningService.addObject(ACCOUNT_TLECHIMP.get(), null, null, task, result);
-        provisioningService.addObject(ACCOUNT_ANDRE.get(), null, null, task, result);
-        provisioningService.addObject(ACCOUNT_TANDRE.get(), null, null, task, result);
-        provisioningService.addObject(ACCOUNT_TLAFOOT.get(), null, null, task, result);
-        provisioningService.addObject(ACCOUNT_CRUFF.get(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_KENNY.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_TPALIDO.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_LECHIMP.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_TLECHIMP.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_ANDRE.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_TANDRE.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_TLAFOOT.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_CRUFF.getFresh(), null, null, task, result);
 
         // Preconditions
         assertUsers(getNumberOfUsers() + 6);
