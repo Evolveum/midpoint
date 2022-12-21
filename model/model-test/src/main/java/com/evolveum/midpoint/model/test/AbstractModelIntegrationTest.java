@@ -26,13 +26,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
-import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +70,7 @@ import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
 import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
