@@ -14070,6 +14070,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO fix names, consult - experimental? -->
+            <xsd:element name="accessesMetadataEnabled" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Global switch that enables accesses metadata processing for assignment holders.
+                        That stores not only indirect assignments but also the details how it appeared on the object.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                        <a:displayName>RoleManagementConfigurationType.accessesMetadataEnabled</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="relations" type="tns:RelationsDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
