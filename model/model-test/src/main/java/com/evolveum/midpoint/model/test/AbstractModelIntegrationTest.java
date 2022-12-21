@@ -29,12 +29,6 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
-import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
-import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -79,7 +73,10 @@ import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultContext;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
 import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
 import com.evolveum.midpoint.model.test.asserter.*;
@@ -133,6 +130,7 @@ import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
@@ -169,10 +167,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected static final ItemPath ACTIVATION_VALID_FROM_PATH = SchemaConstants.PATH_ACTIVATION_VALID_FROM;
     protected static final ItemPath ACTIVATION_VALID_TO_PATH = SchemaConstants.PATH_ACTIVATION_VALID_TO;
     protected static final ItemPath PASSWORD_VALUE_PATH = SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
-
-    protected static final ItemPath PATH_ADMINISTRATIVE_AVAILABILITY_STATUS_PATH = ItemPath.create(
-            ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE,
-            AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS);
 
     private static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
 
@@ -4512,35 +4506,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertPassword(PrismObject<UserType> user, String expectedPassword) throws EncryptionException {
         String decryptedUserPassword = getPassword(user);
         assertEquals("Wrong password in " + user, expectedPassword, decryptedUserPassword);
-    }
-
-    protected void assertUserLdapPassword(PrismObject<UserType> user, String expectedPassword) throws EncryptionException {
-        CredentialsType credentialsType = user.asObjectable().getCredentials();
-        assertNotNull("No credentials in " + user, credentialsType);
-        PasswordType passwordType = credentialsType.getPassword();
-        assertNotNull("No password in " + user, passwordType);
-        ProtectedStringType protectedStringType = passwordType.getValue();
-        assertLdapPassword(protectedStringType, expectedPassword, user);
-    }
-
-    protected void assertShadowLdapPassword(PrismObject<ShadowType> shadow, String expectedPassword) throws EncryptionException {
-        CredentialsType credentialsType = shadow.asObjectable().getCredentials();
-        assertNotNull("No credentials in " + shadow, credentialsType);
-        PasswordType passwordType = credentialsType.getPassword();
-        assertNotNull("No password in " + shadow, passwordType);
-        ProtectedStringType protectedStringType = passwordType.getValue();
-        assertLdapPassword(protectedStringType, expectedPassword, shadow);
-    }
-
-    protected <O extends ObjectType> void assertLdapPassword(ProtectedStringType protectedStringType, String expectedPassword, PrismObject<O> source) throws EncryptionException {
-        assertNotNull("No password value in " + source, protectedStringType);
-        String decryptedUserPassword = protector.decryptString(protectedStringType);
-        assertNotNull("Null password in " + source, decryptedUserPassword);
-        if (decryptedUserPassword.startsWith("{") || decryptedUserPassword.contains("}")) {
-            assertTrue("Wrong password hash in " + source + ": " + decryptedUserPassword + ", expected " + expectedPassword, ldapShaPasswordEncoder.matches(decryptedUserPassword, expectedPassword));
-        } else {
-            assertEquals("Wrong password in " + source, expectedPassword, decryptedUserPassword);
-        }
     }
 
     protected void assertGroupMember(DummyGroup group, String accountId) {
