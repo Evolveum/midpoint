@@ -8,8 +8,8 @@ package com.evolveum.midpoint.model.intest.simulation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static com.evolveum.midpoint.model.intest.CommonInitialObjects.TAG_FOCUS_ASSIGNMENT_CHANGED;
-import static com.evolveum.midpoint.model.intest.CommonInitialObjects.TAG_FOCUS_ENABLED;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.TAG_FOCUS_ASSIGNMENT_CHANGED;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.TAG_FOCUS_ENABLED;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 
 import java.util.Collection;
@@ -712,7 +712,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
 
     private void assertTest20xShadow(String name, Task task, OperationResult result) throws CommonException {
         assertShadowAfter(
-                findAccountByUsername(name, RESOURCE_SIMPLE_PRODUCTION_SOURCE.getResource(), task, result))
+                findAccountByUsername(name, RESOURCE_SIMPLE_PRODUCTION_SOURCE.get(), task, result))
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent("default")
                 .assertIsExists()

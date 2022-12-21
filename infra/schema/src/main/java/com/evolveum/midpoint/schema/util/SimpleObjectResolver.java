@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface SimpleObjectResolver {
 
-    <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult parentResult)
+    <O extends ObjectType> PrismObject<O> getObject(
+            Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException;
 }

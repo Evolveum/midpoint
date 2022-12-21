@@ -476,16 +476,22 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return repoAddObjectFromFile(file, false, parentResult);
     }
 
-    protected <T extends ObjectType> PrismObject<T> repoAdd(com.evolveum.midpoint.test.TestResource<T> resource, OperationResult parentResult)
+    public <T extends ObjectType> PrismObject<T> repoAdd(AbstractTestResource<T> resource, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
-        PrismObject<T> object = repoAddObjectFromFile(resource.file, parentResult);
-        resource.object = object;
+        return repoAdd(resource, null, result);
+    }
+
+    public <T extends ObjectType> PrismObject<T> repoAdd(
+            AbstractTestResource<T> resource, RepoAddOptions options, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
+        PrismObject<T> object = resource.get();
+        repoAddObject(object, "from " + resource, options, result);
         return object;
     }
 
-    protected Task taskAdd(com.evolveum.midpoint.test.TestResource<TaskType> resource, OperationResult parentResult)
-            throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException, ObjectNotFoundException {
-        PrismObject<TaskType> task = prismContext.parseObject(resource.file);
+    protected Task taskAdd(AbstractTestResource<TaskType> resource, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        PrismObject<TaskType> task = resource.get();
         String oid = taskManager.addTask(task, parentResult);
         return taskManager.getTaskPlain(oid, parentResult);
     }
@@ -717,10 +723,22 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return addResourceFromFile(file, connectorType, false, result);
     }
 
+    protected PrismObject<ResourceType> addResource(
+            TestResource<ResourceType> testResource, String connectorType, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+        return addResource(testResource, connectorType, false, result);
+    }
+
     protected PrismObject<ResourceType> addResourceFromFile(
             File file, String connectorType, boolean overwrite, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         return addResourceFromFile(file, Collections.singletonList(connectorType), overwrite, result);
+    }
+
+    protected PrismObject<ResourceType> addResource(
+            TestResource<ResourceType> testResource, String connectorType, boolean overwrite, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+        return addResource(testResource, List.of(connectorType), overwrite, result);
     }
 
     protected PrismObject<ResourceType> addResourceFromFile(
@@ -731,8 +749,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return addResourceFromObject(resource, connectorTypes, overwrite, result);
     }
 
+    protected PrismObject<ResourceType> addResource(
+            TestResource<ResourceType> testResource, List<String> connectorTypes, boolean overwrite, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+        logger.trace("addObjectFromFile: {}, connector types {}", testResource, connectorTypes);
+        return addResourceFromObject(testResource.get(), connectorTypes, overwrite, result);
+    }
+
     @NotNull
-    private PrismObject<ResourceType> addResourceFromObject(PrismObject<ResourceType> resource, List<String> connectorTypes,
+    private PrismObject<ResourceType> addResourceFromObject(
+            PrismObject<ResourceType> resource, List<String> connectorTypes,
             boolean overwrite, OperationResult result)
             throws SchemaException, EncryptionException,
             ObjectAlreadyExistsException {

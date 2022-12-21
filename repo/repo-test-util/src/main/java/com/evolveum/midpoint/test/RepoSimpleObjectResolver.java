@@ -8,6 +8,7 @@ package com.evolveum.midpoint.test;
 
 import java.util.Collection;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -34,9 +35,9 @@ public class RepoSimpleObjectResolver implements SimpleObjectResolver {
 
     @Override
     public <O extends ObjectType> PrismObject<O> getObject(Class<O> expectedType, String oid,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        return cacheRepositoryService.getObject(expectedType, oid, options, parentResult);
+        return cacheRepositoryService.getObject(expectedType, oid, options, result);
     }
 
     public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
@@ -44,5 +45,9 @@ public class RepoSimpleObjectResolver implements SimpleObjectResolver {
             OperationResult parentResult)
             throws SchemaException {
         cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);
+    }
+
+    public static @NotNull RepoSimpleObjectResolver get() {
+        return TestSpringBeans.getRepoSimpleObjectResolver();
     }
 }

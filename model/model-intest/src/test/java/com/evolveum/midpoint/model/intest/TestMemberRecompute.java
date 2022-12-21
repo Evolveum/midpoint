@@ -165,7 +165,7 @@ public class TestMemberRecompute extends AbstractEmptyModelIntegrationTest imple
             UserType user = new UserType(prismContext)
                     .name(String.format(namePattern, i));
             for (TestResource<?> target : targets) {
-                user.getAssignment().add(ObjectTypeUtil.createAssignmentTo(target.object, SchemaConstants.ORG_DEFAULT));
+                user.getAssignment().add(ObjectTypeUtil.createAssignmentTo(target.get(), SchemaConstants.ORG_DEFAULT));
             }
             addObject(user, task, result);
         }

@@ -359,14 +359,13 @@ public class TestClockwork extends AbstractLensTest {
         OperationResult result = task.getResult();
 
         given("there is a resource template");
-        importObjectFromFile(RESOURCE_TEMPLATE.file, task, result);
+        importObject(RESOURCE_TEMPLATE, task, result);
 
         when("adding a specific resource");
-        RESOURCE_SPECIFIC_1.read();
         modelService.executeChanges(
                 List.of(
                         DeltaFactory.Object.createAddDelta(
-                                RESOURCE_SPECIFIC_1.getObject())),
+                                RESOURCE_SPECIFIC_1.get())),
                 null,
                 task,
                 result);

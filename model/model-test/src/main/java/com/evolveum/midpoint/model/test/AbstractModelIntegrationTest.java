@@ -17,10 +17,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_TIMESTAMP;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -103,7 +100,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -307,9 +303,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return dummyResourceCollection.initDummyResource(name, resourceFile, resourceOid, controllerInitLambda, task, result);
     }
 
-    public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception {
-        resource.controller = dummyResourceCollection.initDummyResource(resource.name, resource.file, resource.oid,
-                resource.controllerInitLambda, task, result);
+    @Override
+    public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result)
+            throws Exception {
+        resource.controller = dummyResourceCollection.initDummyResource(resource, task, result);
         resource.reload(result); // To have schema, etc
         return resource.controller;
     }
@@ -317,8 +314,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     @Override
     public void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result)
             throws Exception {
-        resource.controller = dummyResourceCollection.initDummyResource(
-                resource.name, resource.file, resource.oid, resource.controllerInitLambda, task, result);
+        resource.controller = dummyResourceCollection.initDummyResource(resource, task, result);
         assertSuccess(
                 modelService.testResource(resource.controller.getResource().getOid(), task, result));
         resource.reload(result); // To have schema, etc
@@ -388,6 +384,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void importObjectFromFile(String filename) throws FileNotFoundException {
         importObjectFromFile(new File(filename));
+    }
+
+    // TODO reconcile with TestResource.importObject method (they use similar but distinct model APIs)
+    protected void importObject(TestResource<?> testResource, Task task, OperationResult result) throws IOException {
+        OperationResult subresult = result.createSubresult("importObject");
+        try (InputStream stream = testResource.getInputStream()) {
+            modelService.importObjectsFromStream(
+                    stream, PrismContext.LANG_XML, MiscSchemaUtil.getDefaultImportOptions(), task, subresult);
+        }
+        subresult.close();
+        TestUtil.assertSuccess(subresult);
     }
 
     protected void importObjectFromFile(File file) throws FileNotFoundException {
@@ -1748,9 +1755,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assign(TestResource<?> assignee, TestResource<?> assigned, QName relation, ModelExecuteOptions options,
             Task task, OperationResult result) throws SchemaException, CommunicationException, ObjectAlreadyExistsException,
             ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
-        ObjectDelta<UserType> delta = deltaFor(assignee.getObjectClass())
+        ObjectDelta<UserType> delta = deltaFor(assignee.getType())
                 .item(UserType.F_ASSIGNMENT)
-                .add(ObjectTypeUtil.createAssignmentTo(assigned.object, relation))
+                .add(ObjectTypeUtil.createAssignmentTo(assigned.get(), relation))
                 .asObjectDelta(assignee.oid);
         executeChanges(delta, options, task, result);
     }
@@ -1764,7 +1771,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .collect(Collectors.toList());
         assertThat(assignments).size().as("# of assignments of " + assigned).isEqualTo(1);
         AssignmentType assignment = MiscUtil.extractSingleton(assignments);
-        ObjectDelta<UserType> delta = deltaFor(assignee.getObjectClass())
+        ObjectDelta<UserType> delta = deltaFor(assignee.getType())
                 .item(UserType.F_ASSIGNMENT)
                 .delete(assignment.clone())
                 .asObjectDelta(assignee.oid);
@@ -3891,24 +3898,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <T extends ObjectType> PrismObject<T> addObject(TestResource<T> resource, Task task, OperationResult result,
-            Consumer<PrismObject<T>> customizer) throws CommonException, IOException {
-        return addObject(resource.file, task, result, customizer);
-    }
-
     protected <T extends ObjectType> PrismObject<T> addObject(TestResource<T> resource, Task task, OperationResult result)
             throws IOException, ObjectNotFoundException, ConfigurationException, SecurityViolationException,
             PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException,
             SchemaException {
-        PrismObject<T> parsedObject = addObject(resource.file, task, result);
-        PrismObject<T> storedObject = modelService.getObject(parsedObject.getCompileTimeClass(), resource.oid, null, task, result);
-        resource.object = storedObject;
-        return storedObject;
-    }
-
-    protected <T extends ObjectType> PrismObject<T> repoAddObject(TestResource resource, OperationResult result)
-            throws IOException, ObjectAlreadyExistsException, SchemaException, EncryptionException {
-        return repoAddObjectFromFile(resource.file, result);
+        return addObject(resource, task, result, null);
     }
 
     // not going through model to avoid conflicts (because the task starts execution during the clockwork operation)
@@ -3919,7 +3913,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     // Returns the object as originally parsed, to avoid race conditions regarding last start timestamp.
     protected PrismObject<TaskType> addTask(TestResource<TaskType> resource, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException, IOException {
-        PrismObject<TaskType> taskBefore = parseObject(resource.file);
+        PrismObject<TaskType> taskBefore = resource.get();
         taskManager.addTask(taskBefore, result);
         return taskBefore;
     }
@@ -3944,6 +3938,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
         addObject(object, task, result);
         return object;
+    }
+
+    protected <O extends ObjectType> PrismObject<O> addObject(
+            TestResource<O> testResource, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+        PrismObject<O> object = testResource.parse();
+        if (customizer != null) {
+            customizer.accept(object);
+        }
+        addObject(object, task, result);
+        testResource.reload(createSimpleModelObjectResolver(), result); // via model to e.g. complete the resource
+        return testResource.get();
     }
 
     protected <O extends ObjectType> String addObject(PrismObject<O> object)
@@ -5582,13 +5589,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return object.getOid();
     }
 
-    protected String addAndRecompute(TestResource testResource, Task task, OperationResult result) throws Exception {
-        PrismObject<ObjectType> object = repoAddObjectFromFile(testResource.file, result);
+    protected <O extends ObjectType> String addAndRecompute(TestResource<O> testResource, Task task, OperationResult result)
+            throws Exception {
+        PrismObject<O> object = repoAdd(testResource, result);
         modelService.recompute(object.asObjectable().getClass(), object.getOid(), null, task, result);
-        PrismObject<? extends ObjectType> after = getObject(object.asObjectable().getClass(), object.getOid());
-        display("Object: " + testResource.file, after);
-        testResource.object = after;
-        return after.getOid();
+        testResource.reload(createSimpleModelObjectResolver(), result);
+        return testResource.get().getOid();
     }
 
     protected void assertAuditReferenceValue(AuditEventRecord event, String refName, String oid, QName type, String name) {
@@ -6435,6 +6441,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertAddDeny(file, executeOptions().raw());
     }
 
+    protected <O extends ObjectType> void assertAddDeny(TestResource<O> testResource, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
+        assertAddDeny(
+                testResource.get(),
+                options);
+    }
+
     protected <O extends ObjectType> void assertAddDeny(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
         PrismObject<O> object = PrismTestUtil.parseObject(file);
         assertAddDeny(object, options);
@@ -6468,6 +6480,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = PrismTestUtil.parseObject(file);
         assertAddAllow(object, options);
+    }
+
+    protected <O extends ObjectType> void assertAddAllow(TestResource<O> testResource, ModelExecuteOptions options)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+        assertAddAllow(
+                testResource.get(),
+                options);
     }
 
     protected <O extends ObjectType> OperationResult assertAddAllowTracing(File file, ModelExecuteOptions options)
@@ -6784,10 +6803,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <T extends ObjectType> void refresh(TestResource<T> resource, Task task, OperationResult result)
+    protected <T extends ObjectType> void refresh(TestResource<T> resource, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        resource.object = modelService.getObject(resource.object.getCompileTimeClass(), resource.oid, null, task, result);
+        resource.reload(createSimpleModelObjectResolver(), result);
     }
 
     protected ModelExecuteOptions executeOptions() {
@@ -7084,9 +7103,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-
     protected ProcessedObjectsAsserter<Void> assertProcessedObjects(Collection<ProcessedObject<?>> objects, String message) {
         return initializeAsserter(
                 ProcessedObjectsAsserter.forObjects(objects, message));
+    }
+
+    @Override
+    public <O extends ObjectType> PrismObject<O> getObject(
+            Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+            throws ObjectNotFoundException, SchemaException {
+        return createSimpleModelObjectResolver().getObject(type, oid, options, result);
     }
 }

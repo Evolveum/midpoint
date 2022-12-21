@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.intest.simulation;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -95,7 +96,7 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         repoAdd(ARCHETYPE_PERSON_DEV_ARCHETYPE, initResult);
         repoAdd(ARCHETYPE_PERSON_DEV_TEMPLATE, initResult);
 
-        importTags(initResult);
+        CommonInitialObjects.addTags(this, initResult);
 
         RESOURCE_SIMPLE_PRODUCTION_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_TARGET.initAndTest(this, initTask, initResult);

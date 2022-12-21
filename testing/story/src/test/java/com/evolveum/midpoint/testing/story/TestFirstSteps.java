@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.cases.api.CaseManager;
 import com.evolveum.midpoint.model.impl.correlation.CorrelationCaseManager;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.schema.util.cases.OwnerOptionIdentifier;
@@ -165,6 +166,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
+        CommonInitialObjects.addTags(this, initResult);
     }
 
     /**
@@ -176,12 +178,12 @@ public class TestFirstSteps extends AbstractStoryTest {
         OperationResult result = task.getResult();
 
         given("first definition is imported and tested");
-        RESOURCE_HR_100.initializeAndTest(this, task, result);
+        RESOURCE_HR_100.initAndTest(this, task, result);
 
         when("accounts are retrieved");
         List<PrismObject<ShadowType>> accounts = modelService.searchObjects(
                 ShadowType.class,
-                Resource.of(RESOURCE_HR_100.object)
+                Resource.of(RESOURCE_HR_100.get())
                         .queryFor(RI_ACCOUNT_OBJECT_CLASS)
                         .build(),
                 null, task, result);
@@ -212,7 +214,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         when("accounts are retrieved");
         List<PrismObject<ShadowType>> accounts = modelService.searchObjects(
                 ShadowType.class,
-                Resource.of(RESOURCE_HR_110.object)
+                Resource.of(RESOURCE_HR_110.get())
                         .queryFor(RI_ACCOUNT_OBJECT_CLASS)
                         .build(),
                 null, task, result);
@@ -592,7 +594,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .end();
         // @formatter:on
 
-        assertShadow(findShadowByPrismName("4", RESOURCE_HR_170.getObject(), result), "shadow 4 after")
+        assertShadow(findShadowByPrismName("4", RESOURCE_HR_170.get(), result), "shadow 4 after")
                 .display()
                 .assertSynchronizationSituation(LINKED);
                 // The correlation situation is still "NO_OWNER". It is not updated after the user is linked. Is that OK?
@@ -665,13 +667,13 @@ public class TestFirstSteps extends AbstractStoryTest {
         openDJController.addEntriesFromLdifFile(INITIAL_LDIF_FILE);
 
         and("template and the first version of the resource are imported");
-        importObjectFromFile(RESOURCE_OPENDJ_TEMPLATE.file, task, result);
-        RESOURCE_OPENDJ_200.initializeAndTest(this, task, result);
+        importObject(RESOURCE_OPENDJ_TEMPLATE, task, result);
+        RESOURCE_OPENDJ_200.initAndTest(this, task, result);
 
         when("OpenDJ content is listed");
         List<PrismObject<ShadowType>> accounts = modelService.searchObjects(
                 ShadowType.class,
-                Resource.of(RESOURCE_OPENDJ_200.object)
+                Resource.of(RESOURCE_OPENDJ_200.get())
                         .queryFor(OBJECT_CLASS_INETORGPERSON_QNAME)
                         .build(),
                 null, task, result);
@@ -1384,7 +1386,7 @@ public class TestFirstSteps extends AbstractStoryTest {
         ObjectReferenceType linkRef =
                 ObjectTypeUtil.createObjectRef(
                         MiscUtil.requireNonNull(
-                                findShadowByPrismName(accountName, currentOpenDjResource.object, result),
+                                findShadowByPrismName(accountName, currentOpenDjResource.get(), result),
                                 () -> "no shadow named " + accountName));
         String userOid = findUserRequired(userName).getOid();
         return deltaFor(UserType.class)
@@ -1423,13 +1425,13 @@ public class TestFirstSteps extends AbstractStoryTest {
     private void reimportAndTestHrResource(CsvResource resource, Task task, OperationResult result)
             throws CommonException, IOException {
         deleteObject(ResourceType.class, RESOURCE_HR_OID, task, result);
-        resource.initializeAndTest(this, task, result);
+        resource.initAndTest(this, task, result);
     }
 
     private void reimportAndTestOpenDjResource(AnyResource resource, Task task, OperationResult result)
             throws CommonException, IOException {
         deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, task, result);
-        resource.initializeAndTest(this, task, result);
+        resource.initAndTest(this, task, result);
         currentOpenDjResource = resource;
     }
 
@@ -1468,7 +1470,7 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     private ShadowType findOpenDjShadow(String dn) throws SchemaException {
         return asObjectable(
-                findShadowByPrismName(dn, RESOURCE_OPENDJ_210.object, getTestOperationResult()));
+                findShadowByPrismName(dn, RESOURCE_OPENDJ_210.get(), getTestOperationResult()));
     }
 
     private ShadowType getJSmith1OpenDjShadow() throws SchemaException {

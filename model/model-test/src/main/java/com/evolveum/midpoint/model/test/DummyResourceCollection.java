@@ -16,7 +16,9 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.AbstractTestResource;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,7 +39,29 @@ public class DummyResourceCollection {
         this.modelService = modelService;
     }
 
-    public DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
+    public DummyResourceContoller initDummyResource(
+            String name, File resourceFile, String resourceOid,
+            FailableProcessor<DummyResourceContoller> controllerInitLambda,
+            Task task, OperationResult result) throws Exception {
+        return initDummyResourceInternal(name, resourceFile, null, resourceOid, controllerInitLambda, task, result);
+    }
+
+    public DummyResourceContoller initDummyResource(
+            DummyTestResource dummyTestResource, Task task, OperationResult result) throws Exception {
+        dummyTestResource.controller = initDummyResourceInternal(
+                dummyTestResource.name,
+                null,
+                dummyTestResource,
+                dummyTestResource.oid,
+                dummyTestResource.controllerInitLambda,
+                task,
+                result);
+        dummyTestResource.reload(result); // May be reloaded also after the test
+        return dummyTestResource.controller;
+    }
+
+    private DummyResourceContoller initDummyResourceInternal(
+            String name, File resourceFile, AbstractTestResource<ResourceType> testResource, String resourceOid,
             FailableProcessor<DummyResourceContoller> controllerInitLambda,
             Task task, OperationResult result) throws Exception {
         if (map.containsKey(name)) {
@@ -49,6 +73,7 @@ public class DummyResourceCollection {
         } else {
             controller.populateWithDefaultSchema();
         }
+        // deduplicate, clean up this code (eventually)
         if (resourceFile != null) {
             LOGGER.info("Importing {}", resourceFile);
             modelService.importObjectsFromFile(resourceFile, null, task, result);
@@ -57,6 +82,14 @@ public class DummyResourceCollection {
                 throw new RuntimeException("Error importing " + resourceFile + ": " + importResult.getMessage());
             }
             LOGGER.debug("File {} imported: {}", resourceFile, importResult);
+        } else if (testResource != null) {
+            LOGGER.info("Importing {}", testResource);
+            modelService.importObject(testResource.get(), null, task, result);
+            OperationResult importResult = result.getLastSubresult();
+            if (importResult.isError()) {
+                throw new RuntimeException("Error importing " + testResource + ": " + importResult.getMessage());
+            }
+            LOGGER.debug("{} imported: {}", testResource, importResult);
         }
         if (resourceOid != null) {
             PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, resourceOid, null, task, result);

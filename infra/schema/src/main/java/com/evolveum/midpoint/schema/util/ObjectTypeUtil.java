@@ -248,11 +248,11 @@ public class ObjectTypeUtil {
     }
 
     @NotNull
-    public static AssignmentType createAssignmentWithConstruction(@NotNull PrismObject<ResourceType> object, ShadowKindType kind,
-            String intent, PrismContext prismContext) {
-        AssignmentType assignment = new AssignmentType(prismContext);
-        ConstructionType construction = new ConstructionType(prismContext);
-        construction.setResourceRef(createObjectRef(object, prismContext));
+    public static AssignmentType createAssignmentWithConstruction(
+            @NotNull PrismObject<ResourceType> object, ShadowKindType kind, String intent) {
+        AssignmentType assignment = new AssignmentType();
+        ConstructionType construction = new ConstructionType();
+        construction.setResourceRef(createObjectRef(object));
         construction.setKind(kind);
         construction.setIntent(intent);
         assignment.setConstruction(construction);

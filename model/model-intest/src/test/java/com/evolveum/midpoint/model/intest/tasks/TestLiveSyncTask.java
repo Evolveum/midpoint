@@ -160,7 +160,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
         initLiveSyncTask(TASK_SLOW_MODEL_IMPRECISE, initTask, initResult);
         initLiveSyncTask(TASK_BATCHED, initTask, initResult);
 
-        addObject(applyLegacyFlag(TASK_BATCHED_IMPRECISE.file), initTask, initResult,
+        addObject(applyLegacyFlag(TASK_BATCHED_IMPRECISE.getFile()), initTask, initResult,
                 workerThreadsCustomizer(getWorkerThreads()));
         // Starting this task results in (expected) exception
 
@@ -195,7 +195,7 @@ public class TestLiveSyncTask extends AbstractInitializedModelIntegrationTest {
 
     private void initLiveSyncTask(TestResource<TaskType> testResource, Task initTask, OperationResult initResult)
             throws java.io.IOException, CommonException {
-        File taskFile = applyLegacyFlag(testResource.file);
+        File taskFile = applyLegacyFlag(testResource.getFile());
         PrismObject<TaskType> task = addObject(taskFile, initTask, initResult, workerThreadsCustomizer(getWorkerThreads()));
         if (!TaskTypeUtil.isTaskRecurring(task.asObjectable())) {
             waitForTaskFinish(testResource.oid, false);

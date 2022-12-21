@@ -68,14 +68,13 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     private static final String MAPPING_VALUE_FULLNAME_METADATA_XML = "mapping-value-fullname-metadata.xml";
     private MappingTestEvaluator evaluator;
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_PROVENANCE = new TestResource<>(TEST_DIR, "template-provenance.xml", "0ca5cef4-6df3-42c3-82b6-daae691e960d");
+    private static final TestResource<ObjectTemplateType> TEMPLATE_PROVENANCE =
+            new TestResource<>(TEST_DIR, "template-provenance.xml", "0ca5cef4-6df3-42c3-82b6-daae691e960d");
 
     @BeforeClass
     public void setupFactory() throws SAXException, IOException, SchemaException {
         evaluator = new MappingTestEvaluator();
         evaluator.initWithMetadata();
-
-        TEMPLATE_PROVENANCE.read();
     }
 
     /**

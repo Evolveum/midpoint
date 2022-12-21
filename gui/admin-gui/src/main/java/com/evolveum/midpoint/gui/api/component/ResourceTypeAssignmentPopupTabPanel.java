@@ -236,7 +236,7 @@ public class ResourceTypeAssignmentPopupTabPanel extends AbstractAssignmentPopup
         String intent = getIntentValue();
         selectedObjects.forEach(selectedObject -> {
             AssignmentType newConstructionAssignment = ObjectTypeUtil.createAssignmentWithConstruction(
-                    selectedObject.asPrismObject(), kind, intent, getPageBase().getPrismContext());
+                    selectedObject.asPrismObject(), kind, intent);
             if (isEntitlementAssignment()) {
                 NameItemPathSegment segment = getAssociationValue() != null ? new NameItemPathSegment(getAssociationValue().getName()) : null;
 

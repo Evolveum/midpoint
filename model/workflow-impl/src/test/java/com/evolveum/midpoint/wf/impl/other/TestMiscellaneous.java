@@ -484,7 +484,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                     .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
             caseService.completeWorkItem(CaseTypeUtil.getId(workItem), output, task, result);
             return null;
-        }, USER_SCROOGE.object, task, result);
+        }, USER_SCROOGE.get(), task, result);
 
         then();
 
@@ -555,14 +555,14 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
         when();
 
-        login(USER_GIZMODUCK.object);
+        login(USER_GIZMODUCK.get());
 
         modelInteractionService.runUnderPowerOfAttorneyChecked(() -> {
             AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
                     .outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT);
             caseService.completeWorkItem(CaseTypeUtil.getId(workItem), output, task, result);
             return null;
-        }, USER_SCROOGE.object, task, result);
+        }, USER_SCROOGE.get(), task, result);
 
         then();
 

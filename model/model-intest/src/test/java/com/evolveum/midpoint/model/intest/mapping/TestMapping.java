@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.test.DummyTestResource;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -80,25 +82,24 @@ public class TestMapping extends AbstractMappingTest {
     private static final String RESOURCE_DUMMY_COBALT_OID = "7f8a927c-cac4-11e7-9733-9f90849f6d4a";
     private static final String RESOURCE_DUMMY_COBALT_NAME = "cobalt";
 
-    private static final TestResource<ResourceType> RESOURCE_DUMMY_SERVICES_OUTBOUND =
-            new TestResource<>(TEST_DIR, "resource-dummy-services-outbound.xml", "00cff96b-f283-4814-a024-4c1361e6a40d");
-    private static final String RESOURCE_DUMMY_SERVICES_OUTBOUND_NAME = "services-outbound";
+    private static final DummyTestResource RESOURCE_DUMMY_SERVICES_OUTBOUND = new DummyTestResource(TEST_DIR,
+            "resource-dummy-services-outbound.xml", "00cff96b-f283-4814-a024-4c1361e6a40d",
+            "services-outbound");
 
-    private static final TestResource<ResourceType> RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY = new TestResource<>(TEST_DIR,
-            "resource-dummy-services-inbound-pwd-copy.xml", "81c080f2-dce5-43b9-b748-a2a5fdb48c51");
-    private static final String RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY_NAME = "services-inbound-pwd-copy";
+    private static final DummyTestResource RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY = new DummyTestResource(TEST_DIR,
+            "resource-dummy-services-inbound-pwd-copy.xml", "81c080f2-dce5-43b9-b748-a2a5fdb48c51",
+            "services-inbound-pwd-copy");
 
-    private static final TestResource<ResourceType> RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE = new TestResource<>(TEST_DIR,
-            "resource-dummy-services-inbound-pwd-generate.xml", "ae149e1e-5992-4557-829e-8dfc069276b3");
-    private static final String RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE_NAME = "services-inbound-pwd-generate";
+    private static final DummyTestResource RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE = new DummyTestResource(TEST_DIR,
+            "resource-dummy-services-inbound-pwd-generate.xml", "ae149e1e-5992-4557-829e-8dfc069276b3",
+            "services-inbound-pwd-generate");
 
-    private static final TestResource<ResourceType> RESOURCE_DUMMY_TIMED = new TestResource<>(TEST_DIR,
-            "resource-dummy-timed.xml", "567d9834-4f2c-4e5b-89a6-ebd804c7d469");
-    private static final String RESOURCE_DUMMY_TIMED_NAME = "timed";
+    private static final DummyTestResource RESOURCE_DUMMY_TIMED = new DummyTestResource(TEST_DIR,
+            "resource-dummy-timed.xml", "567d9834-4f2c-4e5b-89a6-ebd804c7d469", "timed");
 
-    private static final TestResource RESOURCE_DUMMY_MEGA_OUTBOUND = new TestResource(TEST_DIR,
-            "resource-dummy-mega-outbound.xml", "2b1c05f1-8b70-43e6-ac46-3e5ee621ee36");
-    private static final String RESOURCE_DUMMY_MEGA_OUTBOUND_NAME = "mega-outbound";
+    private static final DummyTestResource RESOURCE_DUMMY_MEGA_OUTBOUND = new DummyTestResource(TEST_DIR,
+            "resource-dummy-mega-outbound.xml", "2b1c05f1-8b70-43e6-ac46-3e5ee621ee36",
+            "mega-outbound", TestMapping::initMegaResource);
     private static final int MEGA_ATTRIBUTES = 1000;
 
     private static final File ROLE_ANTINIHILIST_FILE = new File(TEST_DIR, "role-antinihilist.xml");
@@ -164,22 +165,20 @@ public class TestMapping extends AbstractMappingTest {
                 RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_FILE, RESOURCE_DUMMY_CUSTOM_FUNCTION_CRIMSON_OID, initTask, initResult);
         initDummyResourcePirate(RESOURCE_DUMMY_COBALT_NAME,
                 RESOURCE_DUMMY_COBALT_FILE, RESOURCE_DUMMY_COBALT_OID, initTask, initResult);
-        initDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND_NAME,
-                RESOURCE_DUMMY_SERVICES_OUTBOUND.file, RESOURCE_DUMMY_SERVICES_OUTBOUND.oid, initTask, initResult);
-        initDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY_NAME,
-                RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY.file, RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY.oid, initTask, initResult);
-        initDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE_NAME,
-                RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.file, RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.oid, initTask, initResult);
-        initDummyResource(RESOURCE_DUMMY_TIMED_NAME, RESOURCE_DUMMY_TIMED.file, RESOURCE_DUMMY_TIMED.oid, initTask, initResult);
-        dummyResourceCollection.initDummyResource(RESOURCE_DUMMY_MEGA_OUTBOUND_NAME, RESOURCE_DUMMY_MEGA_OUTBOUND.file,
-                RESOURCE_DUMMY_MEGA_OUTBOUND.oid, this::initMegaResource, initTask, initResult);
+
+        // Do not we also want to test these resources?
+        RESOURCE_DUMMY_SERVICES_OUTBOUND.init(this, initTask, initResult);
+        RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY.init(this, initTask, initResult);
+        RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.init(this, initTask, initResult);
+        RESOURCE_DUMMY_TIMED.init(this, initTask, initResult);
+        RESOURCE_DUMMY_MEGA_OUTBOUND.init(this, initTask, initResult);
 
         repoAddObjectFromFile(ROLE_ANTINIHILIST_FILE, initResult);
         repoAddObjectFromFile(ROLE_BLUE_TITANIC_FILE, initResult);
         repoAddObjectFromFile(ROLE_BLUE_POETRY_FILE, initResult);
         repoAddObjectFromFile(ROLE_COBALT_NEVERLAND_FILE, initResult);
-        repoAddObjectFromFile(ROLE_TIMED.file, initResult);
-        repoAddObjectFromFile(ROLE_DISABLED_MAPPING.file, initResult);
+        repoAdd(ROLE_TIMED, initResult);
+        repoAdd(ROLE_DISABLED_MAPPING, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
@@ -188,7 +187,7 @@ public class TestMapping extends AbstractMappingTest {
 //        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
-    private void initMegaResource(DummyResourceContoller controller) throws ConflictException,
+    private static void initMegaResource(DummyResourceContoller controller) throws ConflictException,
             FileNotFoundException, SchemaViolationException, InterruptedException, ConnectException {
         DummyObjectClass objectClass = controller.getDummyResource().getAccountObjectClass();
         for (int i = 0; i < MEGA_ATTRIBUTES; i++) {
@@ -3194,7 +3193,7 @@ public class TestMapping extends AbstractMappingTest {
         InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
 
         final String userName = "test530";
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name(userName)
                 .beginAssignment()
                     .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
@@ -3211,7 +3210,7 @@ public class TestMapping extends AbstractMappingTest {
                 .assertAssignments(2)
                 .assertLinks(1, 0)
                 .getObject();
-        DummyAccount account = assertDummyAccount(RESOURCE_DUMMY_MEGA_OUTBOUND_NAME, userName);
+        DummyAccount account = assertDummyAccount(RESOURCE_DUMMY_MEGA_OUTBOUND.name, userName);
         assertThat(account.getAttributeValue("a-single-0555")).as("attribute value").isEqualTo(userName);
 
         when();
@@ -3260,9 +3259,9 @@ public class TestMapping extends AbstractMappingTest {
                 .assertLiveLinks(1)
                 .assertPassword(PASSWORD);
 
-        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND_NAME);
+        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND.name);
         DummyAccount account = resource.getAccountByUsername(SERVICE_ROUTER_NAME);
-        new DummyAccountAsserter<>(account, RESOURCE_DUMMY_SERVICES_OUTBOUND_NAME)
+        new DummyAccountAsserter<>(account, RESOURCE_DUMMY_SERVICES_OUTBOUND.name)
                 .display()
                 .assertPassword(PASSWORD);
     }
@@ -3295,9 +3294,9 @@ public class TestMapping extends AbstractMappingTest {
                 .assertLiveLinks(1)
                 .assertPassword(NEW_PASSWORD);
 
-        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND_NAME);
+        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_OUTBOUND.name);
         DummyAccount account = resource.getAccountByUsername(SERVICE_ROUTER_NAME);
-        new DummyAccountAsserter<>(account, RESOURCE_DUMMY_SERVICES_OUTBOUND_NAME)
+        new DummyAccountAsserter<>(account, RESOURCE_DUMMY_SERVICES_OUTBOUND.name)
                 .display()
                 .assertPassword(NEW_PASSWORD);
     }
@@ -3313,7 +3312,7 @@ public class TestMapping extends AbstractMappingTest {
 
         final String PASSWORD = "secret";
 
-        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY_NAME);
+        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY.name);
         DummyAccount bridge = new DummyAccount(SERVICE_BRIDGE_NAME);
         bridge.setPassword(PASSWORD);
         resource.addAccount(bridge);
@@ -3337,7 +3336,7 @@ public class TestMapping extends AbstractMappingTest {
         given();
         final String NEW_PASSWORD = "SeCrEt123";
 
-        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY_NAME);
+        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_COPY.name);
         resource.getAccountByUsername(SERVICE_BRIDGE_NAME).setPassword(NEW_PASSWORD);
 
         when();
@@ -3361,7 +3360,7 @@ public class TestMapping extends AbstractMappingTest {
 
         final String PASSWORD = "secret-gw";
 
-        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE_NAME);
+        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.name);
         DummyAccount gateway = new DummyAccount(SERVICE_GATEWAY_NAME);
         gateway.setPassword(PASSWORD);
         resource.addAccount(gateway);
@@ -3390,7 +3389,7 @@ public class TestMapping extends AbstractMappingTest {
         String clearValueBefore = protector.decryptString(passwordBefore);
         System.out.println("Generated password = " + clearValueBefore);
 
-        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE_NAME);
+        DummyResource resource = getDummyResource(RESOURCE_DUMMY_SERVICES_INBOUND_PWD_GENERATE.name);
         resource.getAccountByUsername(SERVICE_GATEWAY_NAME).setPassword(NEW_PASSWORD);
 
         when();
@@ -3412,7 +3411,7 @@ public class TestMapping extends AbstractMappingTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test700")
                 .beginAssignment()
                     .targetRef(ROLE_TIMED.oid, RoleType.COMPLEX_TYPE)
@@ -3443,7 +3442,7 @@ public class TestMapping extends AbstractMappingTest {
         OperationResult result = getTestOperationResult();
 
         when();
-        UserType user = new UserType(prismContext)
+        UserType user = new UserType()
                 .name("test750")
                     .beginAssignment()
                         .targetRef(ROLE_DISABLED_MAPPING.oid, RoleType.COMPLEX_TYPE)

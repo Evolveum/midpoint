@@ -15,13 +15,14 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.test.AbstractTestResource;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
@@ -63,7 +64,7 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
     }
 
     @SafeVarargs
-    public final ProcessedObjectAsserter<O, RA> assertEventTags(TestResource<TagType>... expectedTags) {
+    public final ProcessedObjectAsserter<O, RA> assertEventTags(AbstractTestResource<TagType>... expectedTags) {
         Set<String> expectedTagsOids = Arrays.stream(expectedTags)
                 .map(r -> r.oid)
                 .collect(Collectors.toSet());

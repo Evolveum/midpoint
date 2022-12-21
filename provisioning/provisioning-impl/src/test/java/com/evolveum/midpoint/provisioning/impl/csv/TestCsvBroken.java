@@ -65,7 +65,7 @@ public class TestCsvBroken extends AbstractProvisioningIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        addResourceFromFile(RESOURCE_CSV_BROKEN.file, CSV_CONNECTOR_TYPE, initResult);
+        addResource(RESOURCE_CSV_BROKEN, CSV_CONNECTOR_TYPE, initResult);
 
         FileUtils.copyFile(CSV_SOURCE_FILE, CSV_FILE_OK);
     }

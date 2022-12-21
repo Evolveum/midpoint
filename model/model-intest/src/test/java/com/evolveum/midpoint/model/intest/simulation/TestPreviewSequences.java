@@ -58,7 +58,7 @@ public class TestPreviewSequences extends AbstractConfiguredModelIntegrationTest
         addObject(OBJECT_TEMPLATE_SIMULATION, initTask, initResult);
         addObject(SEQUENCE_EXAMPLE, initTask, initResult);
 
-        TestResource.read(USER_CHAD);
+        TestResource.getAll(USER_CHAD);
     }
 
     @Test
@@ -72,7 +72,7 @@ public class TestPreviewSequences extends AbstractConfiguredModelIntegrationTest
 
         when("preview for add user chad, one sequence, counter shouldn't change after preview");
 
-        PrismObject<UserType> orgChild = USER_CHAD.getObject().clone();
+        PrismObject<UserType> orgChild = USER_CHAD.get().clone();
         ObjectDelta<UserType> delta = orgChild.createAddDelta();
 
         ModelExecuteOptions options = ModelExecuteOptions.create();

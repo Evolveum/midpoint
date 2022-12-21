@@ -219,7 +219,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when("task is run");
-        TASK_EXECUTE_CHANGES_LEGACY.initialize(this, task, result);
+        TASK_EXECUTE_CHANGES_LEGACY.init(this, task, result);
         TASK_EXECUTE_CHANGES_LEGACY.rerun(result);
 
         then("user is created in raw mode");
@@ -246,7 +246,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when("task is run");
-        TASK_EXECUTE_CHANGES_SINGLE.initialize(this, task, result);
+        TASK_EXECUTE_CHANGES_SINGLE.init(this, task, result);
         TASK_EXECUTE_CHANGES_SINGLE.rerun(result);
 
         then("user is created in raw mode");
@@ -274,7 +274,7 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when("task is run");
-        TASK_EXECUTE_CHANGES_MULTI.initialize(this, task, result);
+        TASK_EXECUTE_CHANGES_MULTI.init(this, task, result);
         TASK_EXECUTE_CHANGES_MULTI.rerun(result);
 
         then("user 1 is created in raw mode");

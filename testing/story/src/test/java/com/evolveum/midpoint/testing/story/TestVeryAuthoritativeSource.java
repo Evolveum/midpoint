@@ -60,7 +60,7 @@ public class TestVeryAuthoritativeSource extends AbstractStoryTest {
         addObject(TEMPLATE_DELETE_DESCRIPTION, initTask, initResult);
         addObject(TEMPLATE_GLOBAL, initTask, initResult);
 
-        TASK_RECONCILIATION_SOURCE.initialize(this, initTask, initResult);
+        TASK_RECONCILIATION_SOURCE.init(this, initTask, initResult);
 
         initAndTestDummyResource(RESOURCE_SOURCE, initTask, initResult);
         initAndTestDummyResource(RESOURCE_TARGET, initTask, initResult);

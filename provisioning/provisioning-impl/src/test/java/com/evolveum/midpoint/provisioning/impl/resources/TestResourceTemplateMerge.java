@@ -99,8 +99,8 @@ public class TestResourceTemplateMerge extends AbstractProvisioningIntegrationTe
 
     /** Adds a resource to repository, fills-in connector OID externally. */
     private void addResourceObject(TestResource<ResourceType> resource, List<String> connectorTypes, OperationResult result)
-            throws CommonException, EncryptionException, IOException {
-        addResourceFromFile(resource.file, connectorTypes, false, result);
+            throws CommonException, EncryptionException {
+        addResource(resource, connectorTypes, false, result);
         resource.reload(result);
     }
 
