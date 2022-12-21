@@ -460,7 +460,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractAuthenticationModuleType">
+            <xsd:extension base="tns:AbstractCredentialAuthenticationModuleType">
                 <xsd:sequence>
                     <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>

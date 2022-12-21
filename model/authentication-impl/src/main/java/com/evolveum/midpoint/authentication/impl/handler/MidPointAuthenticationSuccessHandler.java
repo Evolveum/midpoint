@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.authentication.impl.handler;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -85,9 +87,11 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
                         if (processingSequence.getModule().size() != sequence.getModule().size()) {
                             continueSequence = true;
                             mpAuthentication.setSequence(sequence);
-                            mpAuthentication.setAuthModules(AuthSequenceUtil.buildModuleFilters(
+                            List<AuthModule> modules = AuthSequenceUtil.buildModuleFilters(
                                     authModuleRegistry, sequence, request, securityPolicy.getAuthentication().getModules(),
-                                    securityPolicy.getCredentials(), mpAuthentication.getSharedObjects(), mpAuthentication.getAuthenticationChannel()));
+                                    securityPolicy.getCredentials(), mpAuthentication.getSharedObjects(), mpAuthentication.getAuthenticationChannel());
+                            modules.removeIf(Objects::isNull);
+                            mpAuthentication.setAuthModules(modules);
                             mpAuthentication.setMerged(true);
                             AuthModule module = getUnauthenticatedModule(mpAuthentication);
 //                            if (module != null) {

@@ -85,12 +85,12 @@ public abstract class AbstractCredentialModuleFactory<C extends ModuleWebSecurit
                     if (credentialName.equals(processedPolicy.getName())) {
                         usedPolicy = processedPolicy;
                     }
-                } else if (processedPolicy.getClass().isAssignableFrom(supportedClass())) {
+                } else if (supportedClass() != null && processedPolicy.getClass().isAssignableFrom(supportedClass())) {
                     usedPolicy = processedPolicy;
                 }
             }
         }
-        if (usedPolicy == null && PasswordCredentialsPolicyType.class.equals(supportedClass())) {
+        if (usedPolicy == null && (PasswordCredentialsPolicyType.class.equals(supportedClass()) || supportedClass() == null)) {
             return getObjectObjectPostProcessor().postProcess(createProvider(null));
         }
         if (usedPolicy == null) {

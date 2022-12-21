@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.authentication.impl.provider;
 
 import com.evolveum.midpoint.authentication.api.AuthenticationChannel;
-import com.evolveum.midpoint.authentication.api.config.AuthenticationEvaluator;
+import com.evolveum.midpoint.authentication.impl.evaluator.AttributeVerificationEvaluatorImpl;
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.AttributeVerificationToken;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.AttributeVerificationAuthenticationContext;
@@ -28,11 +28,10 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
 
     private static final Trace LOGGER = TraceManager.getTrace(AttributeVerificationProvider.class);
 
-    @Autowired
-    private AuthenticationEvaluator<AttributeVerificationAuthenticationContext> authenticationEvaluator;
+    @Autowired public AttributeVerificationEvaluatorImpl authenticationEvaluator;
 
     @Override
-    protected AuthenticationEvaluator<AttributeVerificationAuthenticationContext> getEvaluator() {
+    protected AttributeVerificationEvaluatorImpl getEvaluator() {
         return authenticationEvaluator;
     }
 
