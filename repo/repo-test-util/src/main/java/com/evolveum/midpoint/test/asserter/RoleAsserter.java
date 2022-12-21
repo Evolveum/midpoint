@@ -219,8 +219,8 @@ public class RoleAsserter<RA> extends AbstractRoleAsserter<RoleType,RA> {
     }
 
     @Override
-    public RoleAsserter<RA> assertRoleMemberhipRefs(int expected) {
-        super.assertRoleMemberhipRefs(expected);
+    public RoleAsserter<RA> assertRoleMembershipRefs(int expected) {
+        super.assertRoleMembershipRefs(expected);
         return this;
     }
 

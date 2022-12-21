@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,7 +17,6 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
-import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -28,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 /**
  * @author semancik
  */
-public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
+public class UserAsserter<RA> extends FocusAsserter<UserType, RA> {
 
     public UserAsserter(PrismObject<UserType> focus) {
         super(focus);
@@ -143,10 +142,10 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
             if (expected == null) {
                 return this;
             } else {
-                fail("No activation in "+desc());
+                fail("No activation in " + desc());
             }
         }
-        assertEquals("Wrong activation administrativeStatus in "+desc(), expected, activation.getAdministrativeStatus());
+        assertEquals("Wrong activation administrativeStatus in " + desc(), expected, activation.getAdministrativeStatus());
         return this;
     }
 
@@ -230,7 +229,7 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     }
 
     public PolyStringAsserter<UserAsserter<RA>> fullName() {
-        PolyStringAsserter<UserAsserter<RA>> asserter = new PolyStringAsserter<>(getPolyStringPropertyValue(UserType.F_FULL_NAME), this, "fullName in "+desc());
+        PolyStringAsserter<UserAsserter<RA>> asserter = new PolyStringAsserter<>(getPolyStringPropertyValue(UserType.F_FULL_NAME), this, "fullName in " + desc());
         copySetupTo(asserter);
         return asserter;
     }
@@ -286,34 +285,34 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     }
 
     public UserAsserter<RA> assertEmployeeNumber(String expected) {
-        assertEquals("Wrong employeeNumber in "+desc(), expected, getObject().asObjectable().getEmployeeNumber());
+        assertEquals("Wrong employeeNumber in " + desc(), expected, getObject().asObjectable().getEmployeeNumber());
         return this;
     }
 
     public UserAsserter<RA> assertEmployeeNumber() {
-        assertNotNull("Missing employeeNumber in "+desc(), getObject().asObjectable().getEmployeeNumber());
+        assertNotNull("Missing employeeNumber in " + desc(), getObject().asObjectable().getEmployeeNumber());
         return this;
     }
 
     public UserAsserter<RA> assertEmailAddress(String expected) {
-        assertEquals("Wrong emailAddress in "+desc(), expected, getObject().asObjectable().getEmailAddress());
+        assertEquals("Wrong emailAddress in " + desc(), expected, getObject().asObjectable().getEmailAddress());
         return this;
     }
 
     public UserAsserter<RA> assertTelephoneNumber(String expected) {
-        assertEquals("Wrong telephoneNumber in "+desc(), expected, getObject().asObjectable().getTelephoneNumber());
+        assertEquals("Wrong telephoneNumber in " + desc(), expected, getObject().asObjectable().getTelephoneNumber());
         return this;
     }
 
     public UserAsserter<RA> assertJpegPhoto() {
         PrismProperty<Object> photoProperty = getObject().findProperty(UserType.F_JPEG_PHOTO);
-        assertTrue("Missing jpegPhoto in "+desc(), photoProperty != null &&
-                        (photoProperty.isIncomplete() || photoProperty.size() == 1 && photoProperty.getRealValue() != null));
+        assertTrue("Missing jpegPhoto in " + desc(), photoProperty != null &&
+                (photoProperty.isIncomplete() || photoProperty.size() == 1 && photoProperty.getRealValue() != null));
         return this;
     }
 
     public UserAsserter<RA> assertJpegPhoto(byte[] expected) {
-        assertEquals("Wrong jpegPhoto in "+desc(), expected, getObject().asObjectable().getJpegPhoto());
+        assertEquals("Wrong jpegPhoto in " + desc(), expected, getObject().asObjectable().getJpegPhoto());
         return this;
     }
 
@@ -392,14 +391,14 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 
     @Override
     public RoleMembershipRefsAsserter<UserType, ? extends UserAsserter<RA>, RA> roleMembershipRefs() {
-        RoleMembershipRefsAsserter<UserType,UserAsserter<RA>,RA> asserter = new RoleMembershipRefsAsserter<>(this, getDetails());
+        RoleMembershipRefsAsserter<UserType, UserAsserter<RA>, RA> asserter = new RoleMembershipRefsAsserter<>(this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
     @Override
-    public UserAsserter<RA> assertRoleMemberhipRefs(int expected) {
-        super.assertRoleMemberhipRefs(expected);
+    public UserAsserter<RA> assertRoleMembershipRefs(int expected) {
+        super.assertRoleMembershipRefs(expected);
         return this;
     }
 

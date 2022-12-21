@@ -126,7 +126,7 @@ public class TestRoleMembers extends AbstractStoryTest {
         assertUser(userMancomb, "mancomb")
                 .assertName(USER_MANCOMB_USERNAME)
                 .assertAssignments(0)
-                .assertRoleMemberhipRefs(0);
+                .assertRoleMembershipRefs(0);
 
         assertCanSearchPirateMembers(false);
 
@@ -140,7 +140,7 @@ public class TestRoleMembers extends AbstractStoryTest {
                 .assertName(USER_MANCOMB_USERNAME)
                 .assertFullName(USER_MANCOMB_FULL_NAME)
                 .assertNoGivenName()
-                .assertRoleMemberhipRefs(0);
+                .assertRoleMembershipRefs(0);
 
         ModelContext<UserType> previewContext = previewUser(USER_MANCOMB_OID);
 
