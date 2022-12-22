@@ -166,7 +166,9 @@ public class TestFirstSteps extends AbstractStoryTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        CommonInitialObjects.addTags(this, initResult);
+        if (repositoryService.supportsTags()) {
+            CommonInitialObjects.addTags(this, initResult);
+        }
     }
 
     /**

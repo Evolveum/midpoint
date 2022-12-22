@@ -47,12 +47,10 @@ public abstract class DataImport {
     protected static final String OPERATION_INITIAL_OBJECTS_IMPORT = DOT_CLASS + "initialObjectsImport";
     protected static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
 
-    @Autowired
-    protected PrismContext prismContext;
+    @Autowired protected PrismContext prismContext;
     protected ModelService model;
     protected TaskManager taskManager;
-    @Autowired
-    protected MidpointConfiguration configuration;
+    @Autowired protected MidpointConfiguration configuration;
 
     public void setModel(ModelService model) {
         Validate.notNull(model, "Model service must not be null.");

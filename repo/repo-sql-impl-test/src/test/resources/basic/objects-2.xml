@@ -81,15 +81,4 @@
         <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></ownerRef>
     </accessCertificationDefinition>
 
-    <tag>
-        <name>exclusion-violation</name>
-        <uri>http://midpoint.evolveum.com/xml/ns/public/model/policy/situation#exclusionViolation</uri>
-    </tag>
-    <tag>
-        <name>custom1</name>
-        <uri>http://test.com/tags#custom1</uri>
-    </tag>
-    <tag>
-        <name>custom2</name>
-    </tag>
 </objects>
