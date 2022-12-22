@@ -187,7 +187,7 @@ public class TestCsvReportExportClassic extends TestCsvReport {
         assertTrue("Target file is not there", targetFile.exists());
     }
 
-    @Test(enabled = false)
+    @Test
     public void test130ExportUsersWithAssignments() throws Exception {
         UserType user = new UserType()
                 .name("moreassignments")
