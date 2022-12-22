@@ -78,27 +78,10 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
             if (mpAuthentication.getAuthenticationChannel() != null) {
                 authenticatedChannel = mpAuthentication.getAuthenticationChannel().getChannelId();
                 boolean continueSequence = false;
-                if (mpAuthentication.getPrincipal() instanceof MidPointPrincipal) {         //todo refactor, move to methods
-                    MidPointPrincipal principal = (MidPointPrincipal) mpAuthentication.getPrincipal();
-                    SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
-                    if (securityPolicy != null) {
-                        AuthenticationSequenceType processingSequence = mpAuthentication.getSequence();
-                        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, processingSequence.getIdentifier());
-                        if (processingSequence.getModule().size() != sequence.getModule().size()) {
-                            continueSequence = true;
-                            mpAuthentication.setSequence(sequence);
-                            List<AuthModule> modules = AuthSequenceUtil.buildModuleFilters(
-                                    authModuleRegistry, sequence, request, securityPolicy.getAuthentication().getModules(),
-                                    securityPolicy.getCredentials(), mpAuthentication.getSharedObjects(), mpAuthentication.getAuthenticationChannel());
-                            modules.removeIf(Objects::isNull);
-                            mpAuthentication.setAuthModules(modules);
-                            mpAuthentication.setMerged(true);
-                            AuthModule module = getUnauthenticatedModule(mpAuthentication);
-//                            if (module != null) {
-//                                mpAuthentication.addAuthentications(module.getBaseModuleAuthentication());
-//                            }
-                        }
-                    }
+                if (isNewSecurityPolicyFound(mpAuthentication)) {
+                    continueSequence = true;
+                    SecurityPolicyType securityPolicy = ((MidPointPrincipal) mpAuthentication.getPrincipal()).getApplicableSecurityPolicy();
+                    updateMidpointAuthentication(request, mpAuthentication, securityPolicy);
                 }
                 if (mpAuthentication.isAuthenticated() && !continueSequence) {
                     urlSuffix = mpAuthentication.getAuthenticationChannel().getPathAfterSuccessfulAuthentication();
@@ -139,23 +122,33 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         super.onAuthenticationSuccess(request, response, authentication);
     }
 
-    private AuthModule getUnauthenticatedModule(MidpointAuthentication mpAuthentication) {
-        if (CollectionUtils.isEmpty(mpAuthentication.getAuthModules())) {
-            return null;
-        }
-        return mpAuthentication.getAuthModules().stream()
-                .filter(module -> !authModuleAlreadyProcessed(mpAuthentication, module.getModuleIdentifier()))
-                .findFirst()
-                .orElse(null);
-    }
-
-
-    private boolean authModuleAlreadyProcessed(MidpointAuthentication mpAuthentication, String moduleIdentifier) {
-        if (CollectionUtils.isEmpty(mpAuthentication.getAuthentications())) {
+    private boolean isNewSecurityPolicyFound(MidpointAuthentication mpAuthentication) {
+        if (mpAuthentication.getPrincipal() == null || !(mpAuthentication.getPrincipal() instanceof MidPointPrincipal)) {
             return false;
         }
-        return mpAuthentication.getAuthentications().stream().anyMatch(auth -> auth.getModuleIdentifier().equals(moduleIdentifier)
-                && AuthenticationModuleState.SUCCESSFULLY.equals(auth.getState()));
+        if (mpAuthentication.isMerged()) {
+            return false;
+        }
+        MidPointPrincipal principal = (MidPointPrincipal) mpAuthentication.getPrincipal();
+        SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
+        if (securityPolicy == null) {
+            return false;
+        }
+        AuthenticationSequenceType processingSequence = mpAuthentication.getSequence();
+        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(securityPolicy, processingSequence.getIdentifier());
+        return processingSequence.getModule().size() != sequence.getModule().size();
+    }
+
+    private void updateMidpointAuthentication(HttpServletRequest request, MidpointAuthentication mpAuthentication, SecurityPolicyType newSecurityPolicy) {
+        AuthenticationSequenceType processingSequence = mpAuthentication.getSequence();
+        AuthenticationSequenceType sequence = SecurityPolicyUtil.findSequenceByIdentifier(newSecurityPolicy, processingSequence.getIdentifier());
+        mpAuthentication.setSequence(sequence);
+        List<AuthModule> modules = AuthSequenceUtil.buildModuleFilters(
+                authModuleRegistry, sequence, request, newSecurityPolicy.getAuthentication().getModules(),
+                newSecurityPolicy.getCredentials(), mpAuthentication.getSharedObjects(), mpAuthentication.getAuthenticationChannel());
+        modules.removeIf(Objects::isNull);
+        mpAuthentication.setAuthModules(modules);
+        mpAuthentication.setMerged(true);
     }
 
     @Override

@@ -43,7 +43,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
      * Configuration of sequence from xml
      */
     private AuthenticationSequenceType sequence;
-    private Map<Class<?>, Object> sharedObjects;
+    private Map<Class<?>, Object> sharedObjects;    //todo may be wrong place
 
 
     /**
@@ -320,9 +320,7 @@ public class MidpointAuthentication extends AbstractAuthenticationToken implemen
 
         for (int i = 0; i < getAuthModules().size(); i++) {
             if (getAuthModules().get(i).getModuleIdentifier().equals(authentication.getModuleIdentifier())) {
-                int indexOfModule = i;
-                //TODO presumption that necessity is sufficient
-                return indexOfModule;
+                return i;
             }
         }
         return NO_MODULE_FOUND_INDEX;

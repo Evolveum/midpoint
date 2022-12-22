@@ -152,16 +152,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
         authWrapper.authenticationChannel = AuthSequenceUtil.buildAuthChannel(authChannelRegistry, authWrapper.sequence);
         try {
             initAuthenticationModule(mpAuthentication, authWrapper, httpRequest);
-//            if (mpAuthentication != null && authWrapper.switchSecurityPolicy && !mpAuthentication.isMerged()) {
-//                mpAuthentication.getAuthModules().clear();
-//                mpAuthentication.setAuthModules(authWrapper.authModules);
-//                AuthModule module = getUnauthenticatedModule(authWrapper.authModules, mpAuthentication);
-//                if (module != null) {
-//                    mpAuthentication.addAuthentications(module.getBaseModuleAuthentication());
-//                }
-//                mpAuthentication.setMerged(true);
-//            }
-
             if (isRequestAuthenticated(mpAuthentication, authWrapper)) {
                 processingOfAuthenticatedRequest(mpAuthentication, httpRequest, response, chain);
                 return;
@@ -177,14 +167,13 @@ public class MidpointAuthFilter extends GenericFilterBean {
             resolveErrorWithMoreModules(mpAuthentication, httpRequest);
 
             int indexOfProcessingModule;
-            if (needCreateNewAuthenticationToken(mpAuthentication, authWrapper, httpRequest)) {
+            if (needCreateNewAuthenticationToken(mpAuthentication, httpRequest)) {
                 indexOfProcessingModule = initNewAuthenticationToken(authWrapper, httpRequest);
                 mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
             } else {
                 indexOfProcessingModule = getIndexOfActualProcessingModule(mpAuthentication, httpRequest);
             }
             setAuthenticationChanel(mpAuthentication, authWrapper);
-//            authWrapper.switchSecurityPolicy = false;
             runFilters(authWrapper, indexOfProcessingModule, chain, httpRequest, response);
         } finally {
             removingFiltersAfterProcessing(mpAuthentication, httpRequest);
@@ -227,9 +216,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
         }
     }
 
-    private boolean needCreateNewAuthenticationToken(MidpointAuthentication mpAuthentication, AuthenticationWrapper authWrapper, HttpServletRequest httpRequest) {
+    private boolean needCreateNewAuthenticationToken(MidpointAuthentication mpAuthentication, HttpServletRequest httpRequest) {
         return AuthSequenceUtil.isSpecificSequence(httpRequest)
-                || needRestartAuthFlow(getIndexOfActualProcessingModule(mpAuthentication, httpRequest), authWrapper, mpAuthentication);
+                || needRestartAuthFlow(getIndexOfActualProcessingModule(mpAuthentication, httpRequest), mpAuthentication);
     }
 
     private void setLogoutPath(ServletRequest request, ServletResponse response) {
@@ -312,9 +301,9 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return AuthSequenceUtil.isPermitAll(request) && !AuthSequenceUtil.isLoginPage(request);
     }
 
-    private boolean needRestartAuthFlow(int indexOfProcessingModule, AuthenticationWrapper authWrapper, MidpointAuthentication mpAuthentication) {
+    private boolean needRestartAuthFlow(int indexOfProcessingModule, MidpointAuthentication mpAuthentication) {
         // if index == -1 indicate restart authentication flow
-        return (mpAuthentication == null || !mpAuthentication.isMerged()) && indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX;
+        return mpAuthentication == null || !mpAuthentication.isMerged() || indexOfProcessingModule == MidpointAuthentication.NO_MODULE_FOUND_INDEX;
     }
 
     private int restartAuthFlow(HttpServletRequest httpRequest, AuthenticationWrapper authWrapper) {
@@ -373,16 +362,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
                     authModuleRegistry, authWrapper.sequence, httpRequest, authWrapper.authenticationsPolicy.getModules(),
                     authWrapper.credentialsPolicy, sharedObjects, authWrapper.authenticationChannel);
         } else {
-//            AuthenticationSequenceType sequence =
-//                    AuthSequenceUtil.getSequenceByIdentifier(mpAuthentication.getSequence().getIdentifier(), authWrapper.authenticationsPolicy);
-//            authWrapper.switchSecurityPolicy = sequence != null && CollectionUtils.size(mpAuthentication.getSequence().getModule()) != CollectionUtils.size(sequence.getModule());
-//            if (authWrapper.switchSecurityPolicy) {
-//                authModules = AuthSequenceUtil.buildModuleFilters(
-//                        authModuleRegistry, authWrapper.sequence, httpRequest, authWrapper.authenticationsPolicy.getModules(),
-//                        authWrapper.credentialsPolicy, sharedObjects, authWrapper.authenticationChannel);
-//            } else {
-                authModules = mpAuthentication.getAuthModules();
-//            }
+            authModules = mpAuthentication.getAuthModules();
         }
         return authModules;
     }
@@ -529,8 +509,6 @@ public class MidpointAuthFilter extends GenericFilterBean {
         List<AuthModule> authModules;   //vsetky module
         AuthenticationSequenceType sequence = null;
         AuthenticationChannel authenticationChannel;
-
-        boolean switchSecurityPolicy;
     }
 }
 
