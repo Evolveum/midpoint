@@ -36,17 +36,19 @@ public class TestCsvReportExportClassicSafe extends TestCsvReportExportClassic {
 
     // TODO check for specific error message like
     //  "Access to Groovy method java.lang.System#setProperty denied (applied expression profile 'safe')"
-    @Test( expectedExceptions = { AssertionError.class })
+    @Test(expectedExceptions = { AssertionError.class })
     public void test101AuditCollectionReportWithView() throws Exception {
         super.test101AuditCollectionReportWithView();
     }
-    @Test( expectedExceptions = { AssertionError.class })
+
+    @Test(expectedExceptions = { AssertionError.class })
     public void test102AuditCollectionReportWithDoubleView() throws Exception {
         super.test102AuditCollectionReportWithDoubleView();
     }
-//
-//    @Override
-//    public void test130ExportUsersWithAssignments() throws Exception {
-//        super.test130ExportUsersWithAssignments();
-//    }
+
+    @Test(expectedExceptions = { AssertionError.class })
+    @Override
+    public void test140ExportAuditRecords() throws Exception {
+        super.test140ExportAuditRecords();
+    }
 }

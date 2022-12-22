@@ -12,10 +12,7 @@ import static java.util.Objects.requireNonNull;
 import static com.evolveum.midpoint.report.impl.controller.GenericSupport.evaluateCondition;
 import static com.evolveum.midpoint.report.impl.controller.GenericSupport.getHeaderColumns;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.BooleanUtils;
@@ -261,47 +258,80 @@ public class CollectionExportController<C extends Containerable> implements Expo
             return;
         }
 
-        boolean rowsCreated = false;
-        for (SubreportParameterType param : paramsAsRow) {
-            VariablesMap map = reportService.evaluateSubreportParameter(report.asPrismObject(), variables, param, workerTask, result);
-            if (map.isEmpty()) {
-                continue;
-            }
-
-            TypedValue value = map.get(param.getName());
-            if (value == null || value.getValue() == null) {
-                continue;
-            }
-
-            Object obj = value.getValue();
-
-            VariablesMap vars = new VariablesMap();
-            vars.putAll(variables);
-            vars.putAll(evaluateSimpleSubreportParameters(vars, workerTask, result));
-
-            List rows = new ArrayList();
-            if (obj instanceof Collection) {
-                rows.addAll((Collection) obj);
-            } else {
-                rows.add(obj);
-            }
-
-            if (rows.isEmpty()) {
-                continue;
-            }
-
-            rowsCreated = true;
-
-            for (Object row : rows) {
-                vars.put(param.getName(), row, row.getClass());
-
-                convertAndWriteRow(sequentialNumber, record, vars, workerTask, result);
-            }
-        }
+        boolean rowsCreated = handleSubreportParameters(sequentialNumber, record, paramsAsRow, variables, workerTask, result);
 
         if (!rowsCreated) {
             processSingleDataRecord(sequentialNumber, record, variables, workerTask, result);
         }
+    }
+
+    private <T> List<T> tail(List<T> list) {
+        if (list == null) {
+            return null;
+        }
+
+        if (list.size() == 1) {
+            return Collections.emptyList();
+        }
+
+        return new ArrayList<>(list.subList(1, list.size()));
+    }
+
+    private boolean handleSubreportParameters(int sequentialNumber, C record, List<SubreportParameterType> params, VariablesMap variables, RunningTask task, OperationResult result) {
+        SubreportParameterType param = params.stream().findFirst().orElse(null);
+        if (param == null) {
+            return false;
+        }
+
+        VariablesMap map = reportService.evaluateSubreportParameter(report.asPrismObject(), variables, param, task, result);
+        if (map.isEmpty()) {
+            return false;
+        }
+
+        TypedValue value = map.get(param.getName());
+        if (value == null || value.getValue() == null) {
+            return false;
+        }
+
+        Object obj = value.getValue();
+
+        VariablesMap vars = new VariablesMap();
+        vars.putAll(variables);
+
+        List rows = new ArrayList();
+        if (obj instanceof Collection) {
+            rows.addAll((Collection) obj);
+        } else {
+            rows.add(obj);
+        }
+
+        if (rows.isEmpty()) {
+            return false;
+        }
+
+        boolean rowsCreated = false;
+
+        for (Object row : rows) {
+            if (row instanceof Item) {
+                row = ((Item<?, ?>) row).getRealValue();
+            } else if (row instanceof PrismValue) {
+                row = ((PrismValue) row).getRealValue();
+            }
+
+            vars.put(param.getName(), row, row.getClass());
+
+            if (params.size() == 1) {
+                vars.putAll(evaluateSimpleSubreportParameters(vars, task, result));
+
+                convertAndWriteRow(sequentialNumber, record, vars, task, result);
+
+                rowsCreated = rowsCreated | true;
+            } else {
+                rowsCreated = rowsCreated | handleSubreportParameters(sequentialNumber, record, tail(params), vars, task, result);
+            }
+        }
+
+        return rowsCreated;
     }
 
     private VariablesMap evaluateSimpleSubreportParameters(VariablesMap variables, RunningTask task, OperationResult result) {
