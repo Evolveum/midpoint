@@ -24,7 +24,6 @@ import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -38,6 +37,7 @@ public class GenerateDataPanel extends BasePanel<String> implements Popupable {
     private static final String ID_USER_COUNT = "userCount";
     private static final String ID_ROLE_COUNT = "roleCount";
     private static final String ID_ASSIGN = "assign";
+    private static final String ID_ASSIGN_AUTH = "assign_auth";
     private static final String ID_UNASSIGN = "unassign";
     private static final String ID_WARNING = "warning";
     private static final String ID_FORM = "form";
@@ -82,10 +82,10 @@ public class GenerateDataPanel extends BasePanel<String> implements Popupable {
         warningMessage.setVisible(false);
         form.add(warningMessage);
 
-        AjaxLinkPanel ajaxLinkAssign = new AjaxLinkPanel(ID_ASSIGN, Model.of("Random assign roles")) {
+        AjaxButton ajaxLinkAssign = new AjaxButton(ID_ASSIGN, Model.of("Random assign roles")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (users.size() < 5 && roles.size() < 10) {
+                if (users.size() < 8 && roles.size() < 10) {
                     stringResourceModel = new StringResourceModel("RoleMining.generateDataPanel.warning");
                     target.add(getMessagePanel().replaceWith(getMessagePanel().setVisible(true)));
                 } else {
@@ -97,7 +97,23 @@ public class GenerateDataPanel extends BasePanel<String> implements Popupable {
         ajaxLinkAssign.setOutputMarkupId(true);
         form.add(ajaxLinkAssign);
 
-        AjaxLinkPanel ajaxLinkUnassign = new AjaxLinkPanel(ID_UNASSIGN, Model.of("Unassign roles")) {
+        AjaxButton ajaxLinkAssignAuth = new AjaxButton(ID_ASSIGN_AUTH, Model.of("Random add authorization (TODO)")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                if (users.size() < 8 && roles.size() < 10) {
+                    stringResourceModel = new StringResourceModel("RoleMining.generateDataPanel.warning");
+                    target.add(getMessagePanel().replaceWith(getMessagePanel().setVisible(true)));
+                } else {
+                    new RoleMiningDataGenerator().assignAuthorization(roles, getPageBase());
+                    getPage().setResponsePage(PageRoleMiningSimple.class);
+                }
+            }
+        };
+        ajaxLinkAssignAuth.setOutputMarkupId(true);
+        form.add(ajaxLinkAssignAuth);
+
+
+        AjaxButton ajaxLinkUnassign = new AjaxButton(ID_UNASSIGN, Model.of("Unassign roles")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 new RoleMiningDataGenerator().unassignRoles(getPageBase(), users);

@@ -15,10 +15,81 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class RoleAnalyseHelper implements Serializable {
 
+    //indicates the number of users who have all permissions corresponding to the selected role
+    public List<PrismObject<UserType>> authUserR(RoleType role, List<UPStructure> upStructures) {
+
+        List<AuthorizationType> rolePermission = new RoleMiningFilter().getAuthorization(role);
+
+        if (rolePermission == null || upStructures == null) {
+            return null;
+        }
+
+        List<PrismObject<UserType>> authUserList;
+
+        authUserList = upStructures.stream().filter(upStructure -> upStructure.getAssignPermission()
+                .containsAll(rolePermission)).map(UPStructure::getUserObject).collect(Collectors.toList());
+
+        return authUserList;
+    }
+
+    //indicates the percentage of users who have all permissions corresponding to the selected role
+    public double supportR(RoleType role, List<UPStructure> upStructures,
+            int userCount) {
+
+        List<AuthorizationType> rolePermission = new RoleMiningFilter().getAuthorization(role);
+        if (rolePermission == null || upStructures == null || userCount == 0) {
+            return 0;
+        }
+
+        List<PrismObject<UserType>> authUserList = authUserR(role, upStructures);
+        if (authUserList == null) {
+            return 0;
+        }
+
+        int authUserR = authUserList.size();
+        double supportR =(double) authUserR / userCount;
+
+        return (Math.round(supportR * 100.0) / 100.0);
+
+    }
+
+    //indicates the number of permissions of the selected role (?) \\TODO
+    public List<AuthorizationType> authPermsR(RoleType role) {
+        return new RoleMiningFilter().getAuthorization(role);
+    }
+
+    //indicates the number of permissions of the selected role (?) \\TODO
+    public int degreeR(RoleType role) {
+        return authPermsR(role).size();
+    }
+
+    public double confidenceR2R1(RoleType parent, RoleType child, List<UPStructure> upStructures,
+            int userCount) {
+
+        double confidenceR2R1 =  supportR(parent, upStructures, userCount) / supportR(child, upStructures, userCount);
+        return (Math.round(confidenceR2R1 * 100.0) / 100.0);
+    }
+
+
+    public boolean logicParentCheck(RoleType parent, RoleType child, List<UPStructure> upStructures) {
+
+        List<PrismObject<UserType>> authUserParent = authUserR(parent, upStructures);
+        List<PrismObject<UserType>> authUserChild = authUserR(child, upStructures);
+        List<AuthorizationType> permParent = authPermsR(parent);
+        List<AuthorizationType> permChild = authPermsR(child);
+
+        //r1 -> parent
+        //r2 -> child
+        //r1 ≽ r2 = auth_users(r1) ⊆ auth_users(r2) ∧ auth_perms(r1) ⊇ auth_perms(r2).
+        return authUserChild.containsAll(authUserParent) && permParent.containsAll(permChild);
+    }
 
     public List<PrismObject<RoleType>> jaccardGetRolesGroup(RoleMiningStructureList selectedData,
             List<PrismObject<UserType>> jaccardUsersAnalysed,
@@ -26,7 +97,6 @@ public class RoleAnalyseHelper implements Serializable {
 
         List<PrismObject<RoleType>> jaccardResultRoles = new ArrayList<>();
         if (selectedData != null) {
-
 
             List<ObjectReferenceType> rolesForCompare = new RoleMiningFilter().getRoleObjectReferenceTypes(selectedData.getUserObject().asObjectable());
             for (PrismObject<UserType> userTypePrismObject : jaccardUsersAnalysed) {
@@ -45,7 +115,6 @@ public class RoleAnalyseHelper implements Serializable {
         return jaccardResultRoles;
     }
 
-
     public List<PrismObject<UserType>> jaccardGetUserGroup(RoleMiningStructureList selectedData,
             double jaccardThreshold,
             List<PrismObject<UserType>> users) {
@@ -55,17 +124,13 @@ public class RoleAnalyseHelper implements Serializable {
         if (selectedData != null) {
 
             for (int j = 0; j < selectedData.getObjectPartialResult().size(); j++) {
-                if (selectedData.getObjectPartialResult().get(j) > jaccardThreshold) {
+                if (selectedData.getObjectPartialResult().get(j) >= jaccardThreshold) {
                     jaccardUsersAnalysed.add(users.get(j));
                 }
             }
         }
         return jaccardUsersAnalysed;
     }
-
-
-
-
 
     public double jaccardIndex(List<String> membersRoleA, List<String> membersRoleB, int minRolesCount) {
         if (membersRoleA == null || membersRoleB == null) {

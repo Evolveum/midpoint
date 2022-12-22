@@ -20,14 +20,12 @@ public class RoleMiningStructureList extends Selectable<RoleMiningStructureList>
     public static final String F_NAME = "userObject";
     public static final String F_ROLES_OID_LIST = "roleObjectRef";
     public static final String F_SUM_RESULT = "objectTotalResult";
-    public static final String F_USER_NAME = "userName";
     public static final String F_RESULT_ARRAY = "objectPartialResult";
 
     PrismObject<UserType> userObject;
     List<String> roleObjectRef;
     double objectTotalResult;
     ArrayList<Double> objectPartialResult;
-    String userName;
     int staticIndex;
 
 
@@ -36,7 +34,6 @@ public class RoleMiningStructureList extends Selectable<RoleMiningStructureList>
         this.objectPartialResult = objectPartialResult;
         this.roleObjectRef = roleObjectRef;
         this.objectTotalResult = objectTotalResult;
-        this.userName = userObject.getDisplayName();
         this.staticIndex = staticIndex;
         setSelected(false);
     }
@@ -71,14 +68,6 @@ public class RoleMiningStructureList extends Selectable<RoleMiningStructureList>
 
     public void setStaticIndex(int staticIndex) {
         this.staticIndex = staticIndex;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
     }
 
     public PrismObject<UserType> getUserObject() {

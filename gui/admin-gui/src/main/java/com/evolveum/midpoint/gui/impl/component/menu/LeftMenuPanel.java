@@ -13,10 +13,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMining;
-
-import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMiningSimple;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +39,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
 import com.evolveum.midpoint.gui.impl.page.admin.cases.PageCase;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMiningOld;
+import com.evolveum.midpoint.gui.impl.page.admin.role.PageRoleMiningSimple;
 import com.evolveum.midpoint.gui.impl.page.admin.systemconfiguration.page.PageBaseSystemConfiguration;
 import com.evolveum.midpoint.gui.impl.page.self.PageRequestAccess;
 import com.evolveum.midpoint.gui.impl.page.self.dashboard.PageSelfDashboard;
@@ -393,7 +391,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         MainMenuItem roleMenu = createMainMenuItem("PageAdmin.menu.top.roles", GuiStyleConstants.CLASS_OBJECT_ROLE_ICON_COLORED
         );
         createBasicAssignmentHolderMenuItems(roleMenu, PageTypes.ROLE);
-        roleMenu.addMenuItem(new MenuItem("Role mining (old)", PageRoleMining.class));
+        roleMenu.addMenuItem(new MenuItem("Role mining (old)", PageRoleMiningOld.class));
         roleMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.roles.mining", PageRoleMiningSimple.class));
 
         return roleMenu;

@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -27,17 +28,14 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class RoleMiningDataGenerator {
 
     int generateRolesGroupSize(int size) {
         ProbabilityGenerator probabilityGenerator = new ProbabilityGenerator();
-        if (size > 5) {
+        if (size >= 8) {
             probabilityGenerator.addGroupProbability(7, 0.2d);
             probabilityGenerator.addGroupProbability(8, 0.3d);
             probabilityGenerator.addGroupProbability(3, 0.4d);
@@ -164,13 +162,15 @@ public class RoleMiningDataGenerator {
 
                 if (getRoleObjectReferenceTypes(userTypePrismObject.asObjectable(), pageBase).size() == 0) {
                     int groupSize = generateRolesGroupSize(rolesList.size());
-                    int startIndex = new Random().nextInt(rolesList.size() - 1 - groupSize);
+
+                    int startIndex = new Random().nextInt(((rolesList.size() - groupSize)) + 1);
 
                     for (int i = 0; i < groupSize; i++) {
                         RoleType roleType = rolesList.get(startIndex + i).asObjectable();
                         UserType userType = userTypePrismObject.asObjectable();
 
                         try {
+
                             Task task = pageBase.createSimpleTask("Assign RoleType object");
 
                             ObjectDelta<UserType> objectDelta = pageBase.getPrismContext().deltaFor(UserType.class)
@@ -194,6 +194,59 @@ public class RoleMiningDataGenerator {
         result.computeStatusComposite();
         pageBase.showResult(result);
     }
+
+    public void assignAuthorization(List<PrismObject<RoleType>> rolesList, PageBase pageBase) {
+        ArrayList<String> authorizationTemp = new ArrayList<>();
+        authorizationTemp.add("A");
+        authorizationTemp.add("B");
+        authorizationTemp.add("C");
+        authorizationTemp.add("D");
+        authorizationTemp.add("E");
+        authorizationTemp.add("F");
+        authorizationTemp.add("G");
+        authorizationTemp.add("H");
+        authorizationTemp.add("I");
+
+        OperationResult result = new OperationResult("Add authorization");
+
+        for (PrismObject<RoleType> role : rolesList) {
+            if (!role.getName().toString().equals("Superuser")) {
+                int authorizationCount = new RoleMiningFilter().getAuthorization(role.asObjectable()).size();
+
+
+                if (authorizationCount == 0) {
+                    int groupSize = generateRolesGroupSize(authorizationTemp.size());
+
+
+                    for (int i = 0; i < groupSize; i++) {
+                        RoleType roleType = role.asObjectable();
+                        AuthorizationType authorizationType = new AuthorizationType();
+                        authorizationType.setName(authorizationTemp.get(i));
+
+                        try {
+                            Task task = pageBase.createSimpleTask("Add authorization");
+
+                            ObjectDelta<RoleType> objectDelta = pageBase.getPrismContext().deltaFor(RoleType.class)
+                                    .item(RoleType.F_AUTHORIZATION).add(Containerable.asPrismContainerValue(authorizationType))
+                                    .asObjectDelta(roleType.getOid());
+
+                            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+                            pageBase.getModelService().executeChanges(deltas, null, task, result);
+
+                        } catch (Throwable e) {
+                            System.out.println("something is wrong");
+                            LOGGER.error("Error while adding authorization object {}, {}", roleType, e.getMessage(), e);
+                        }
+
+                    }
+                }
+            }
+        }
+
+        result.computeStatusComposite();
+        pageBase.showResult(result);
+    }
+
 
     public void unassignRoles(PageBase pageBase, List<PrismObject<UserType>> userList) {
         OperationResult result = new OperationResult("Unassign objects");

@@ -18,11 +18,11 @@ import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.mining.RoleMiningStructureList;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class RoleMiningProvider<T extends Serializable> extends BaseSortableDataProvider<T> {
@@ -30,6 +30,8 @@ public class RoleMiningProvider<T extends Serializable> extends BaseSortableData
     private final IModel<List<T>> model;
     private final boolean sortable;
 
+    public static final String F_NAME_ROLE = "roleObject";
+    public static final String F_NAME_USER = "userObject";
 
     public RoleMiningProvider(Component component, IModel<List<T>> model, boolean sortable) {
         super(component);
@@ -66,7 +68,7 @@ public class RoleMiningProvider<T extends Serializable> extends BaseSortableData
             SortParam<String> sortParam = getSort();
             String propertyName = sortParam.getProperty();
 
-            if (propertyName.equals(RoleMiningStructureList.F_NAME)) {
+            if (propertyName.equals(F_NAME_USER)) {
                 String prop3, prop4;
                 try {
                     PrismObject<UserType> object1 = (PrismObject<UserType>) PropertyUtils.getProperty(o1, propertyName);
@@ -74,6 +76,18 @@ public class RoleMiningProvider<T extends Serializable> extends BaseSortableData
                     PrismObject<UserType> object2 = (PrismObject<UserType>) PropertyUtils.getProperty(o2, propertyName);
                     prop4 = String.valueOf(object2.getName());
 
+                } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
+                }
+                int comparison = ObjectUtils.compare(prop3, prop4, true);
+                return sortParam.isAscending() ? comparison : -comparison;
+            } else if (propertyName.equals(F_NAME_ROLE)) {
+                String prop3, prop4;
+                try {
+                    PrismObject<RoleType> object1 = (PrismObject<RoleType>) PropertyUtils.getProperty(o1, propertyName);
+                    prop3 = String.valueOf(object1.getName());
+                    PrismObject<RoleType> object2 = (PrismObject<RoleType>) PropertyUtils.getProperty(o2, propertyName);
+                    prop4 = String.valueOf(object2.getName());
                 } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
                 }

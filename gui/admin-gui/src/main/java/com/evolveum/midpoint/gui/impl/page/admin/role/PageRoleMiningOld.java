@@ -73,8 +73,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL, label = "PageAdminRoles.auth.roleAll.label", description = "PageAdminRoles.auth.roleAll.description"),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ROLE_URL, label = "PageRole.auth.role.label", description = "PageRole.auth.role.description") })
 
-public class PageRoleMining extends PageAdmin {
-    private static final String DOT_CLASS = PageRoleMining.class.getName() + ".";
+public class PageRoleMiningOld extends PageAdmin {
+    private static final String DOT_CLASS = PageRoleMiningOld.class.getName() + ".";
     private static final String ID_MAIN_FORM = "main_form";
     private static final String ID_SECONDARY_FORM = "secondary_form";
     private static final String ID_TABLE_BASIC = "table_basic";
@@ -119,7 +119,7 @@ public class PageRoleMining extends PageAdmin {
 
     boolean searchMode = true;  //false: user   true: role
 
-    public PageRoleMining() {
+    public PageRoleMiningOld() {
         super();
     }
 
@@ -128,18 +128,15 @@ public class PageRoleMining extends PageAdmin {
         super.renderHead(response);
 
         response.render(JavaScriptHeaderItem.forReference(
-                new PackageResourceReference(PageRoleMining.class, "js/jaccard_chart.js")));
+                new PackageResourceReference(PageRoleMiningOld.class, "js/jaccard_chart.js")));
 
         List<String> objectName = new ArrayList<>();
         List<Double> totalJaccard = new ArrayList<>();
         List<List<Double>> partialJaccardMap = new ArrayList<>();
         for (JaccardDataStructure jaccardDataStructure : jaccardDataStructureList) {
             objectName.add(jaccardDataStructure.getUserObject().getName().toString());
-            System.out.println(jaccardDataStructure.getUserObject().getName().toString());
             totalJaccard.add(jaccardDataStructure.getObjectTotalResult());
-            System.out.println(jaccardDataStructure.getObjectTotalResult());
             partialJaccardMap.add(jaccardDataStructure.getObjectPartialResult());
-            System.out.println(jaccardDataStructure.getObjectPartialResult());
         }
 
         String javaScript = "jaccard_chart('"
@@ -796,7 +793,7 @@ public class PageRoleMining extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
                         UserType object = rowModel.getObject().getValue();
-                        PageRoleMining.this.detailsPerformed(PageUser.class, object.getOid());
+                        PageRoleMiningOld.this.detailsPerformed(PageUser.class, object.getOid());
                     }
                 };
 
@@ -917,7 +914,7 @@ public class PageRoleMining extends PageAdmin {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     RoleType object = roles.get(finalI).asObjectable();
-                                    PageRoleMining.this.detailsPerformed(PageRole.class, object.getOid());
+                                    PageRoleMiningOld.this.detailsPerformed(PageRole.class, object.getOid());
                                 }
                             };
                         }
@@ -990,7 +987,7 @@ public class PageRoleMining extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
                         RoleType object = rowModel.getObject().getValue();
-                        PageRoleMining.this.detailsPerformed(PageRole.class, object.getOid());
+                        PageRoleMiningOld.this.detailsPerformed(PageRole.class, object.getOid());
                     }
                 };
 
@@ -1082,7 +1079,7 @@ public class PageRoleMining extends PageAdmin {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     UserType object = users.get(finalI).asObjectable();
-                                    PageRoleMining.this.detailsPerformed(PageUser.class, object.getOid());
+                                    PageRoleMiningOld.this.detailsPerformed(PageUser.class, object.getOid());
                                 }
                             };
                         }
@@ -1152,7 +1149,7 @@ public class PageRoleMining extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
                         RoleType object = rowModel.getObject().getValue();
-                        PageRoleMining.this.detailsPerformed(PageRole.class, object.getOid());
+                        PageRoleMiningOld.this.detailsPerformed(PageRole.class, object.getOid());
                     }
                 };
 
@@ -1202,7 +1199,7 @@ public class PageRoleMining extends PageAdmin {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     RoleType object = roleMembersListList.get(finalI).getRole().asObjectable();
-                                    PageRoleMining.this.detailsPerformed(PageRole.class, object.getOid());
+                                    PageRoleMiningOld.this.detailsPerformed(PageRole.class, object.getOid());
                                 }
                             };
                         }
@@ -1276,7 +1273,7 @@ public class PageRoleMining extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
                         RoleType object = rowModel.getObject().getValue();
-                        PageRoleMining.this.detailsPerformed(PageRole.class, object.getOid());
+                        PageRoleMiningOld.this.detailsPerformed(PageRole.class, object.getOid());
                     }
                 };
 
@@ -1329,7 +1326,7 @@ public class PageRoleMining extends PageAdmin {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     RoleType object = roleMembersListList.get(finalI).getRole().asObjectable();
-                                    PageRoleMining.this.detailsPerformed(PageRole.class, object.getOid());
+                                    PageRoleMiningOld.this.detailsPerformed(PageRole.class, object.getOid());
                                 }
                             };
                         }
@@ -1394,7 +1391,7 @@ public class PageRoleMining extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
                         RoleType object = rowModel.getObject().getValue();
-                        PageRoleMining.this.detailsPerformed(PageRole.class, object.getOid());
+                        PageRoleMiningOld.this.detailsPerformed(PageRole.class, object.getOid());
                     }
                 };
 
@@ -1449,7 +1446,7 @@ public class PageRoleMining extends PageAdmin {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     RoleType object = roleMembersListList.get(finalI).getRole().asObjectable();
-                                    PageRoleMining.this.detailsPerformed(PageRole.class, object.getOid());
+                                    PageRoleMiningOld.this.detailsPerformed(PageRole.class, object.getOid());
                                 }
                             };
                         }
@@ -1523,7 +1520,7 @@ public class PageRoleMining extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
                         RoleType object = rowModel.getObject().getValue();
-                        PageRoleMining.this.detailsPerformed(PageRole.class, object.getOid());
+                        PageRoleMiningOld.this.detailsPerformed(PageRole.class, object.getOid());
                     }
                 };
 
@@ -1603,7 +1600,7 @@ public class PageRoleMining extends PageAdmin {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     RoleType object = roleMembersListList.get(finalI).getRole().asObjectable();
-                                    PageRoleMining.this.detailsPerformed(PageRole.class, object.getOid());
+                                    PageRoleMiningOld.this.detailsPerformed(PageRole.class, object.getOid());
                                 }
                             };
                         }
@@ -1682,7 +1679,7 @@ public class PageRoleMining extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
                         UserType object = rowModel.getObject().getValue();
-                        PageRoleMining.this.detailsPerformed(PageUser.class, object.getOid());
+                        PageRoleMiningOld.this.detailsPerformed(PageUser.class, object.getOid());
                     }
                 };
 
@@ -1738,7 +1735,7 @@ public class PageRoleMining extends PageAdmin {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     UserType object = roleMiningData.get(finalI).getUserObject().asObjectable();
-                                    PageRoleMining.this.detailsPerformed(PageUser.class, object.getOid());
+                                    PageRoleMiningOld.this.detailsPerformed(PageUser.class, object.getOid());
                                 }
                             };
                         }
@@ -1835,7 +1832,7 @@ public class PageRoleMining extends PageAdmin {
                     @Override
                     public void onClick(AjaxRequestTarget target, IModel<SelectableBean<UserType>> rowModel) {
                         UserType object = rowModel.getObject().getValue();
-                        PageRoleMining.this.detailsPerformed(PageUser.class, object.getOid());
+                        PageRoleMiningOld.this.detailsPerformed(PageUser.class, object.getOid());
                     }
                 };
 
@@ -1901,7 +1898,7 @@ public class PageRoleMining extends PageAdmin {
                                 @Override
                                 public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                                     UserType object = roleMiningData.get(finalI).getUserObject().asObjectable();
-                                    PageRoleMining.this.detailsPerformed(PageUser.class, object.getOid());
+                                    PageRoleMiningOld.this.detailsPerformed(PageUser.class, object.getOid());
                                 }
                             };
                         }

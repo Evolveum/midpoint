@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.gui.api.component.mining;
 
+import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,8 +25,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import static com.evolveum.midpoint.security.api.MidPointPrincipalManager.DOT_CLASS;
 
 public class RoleMiningFilter implements Serializable {
 
@@ -76,10 +76,26 @@ public class RoleMiningFilter implements Serializable {
 
     private List<PrismObject<UserType>> getMembers(ModelService modelService,
             Task task, OperationResult result, String objectId) throws CommonException {
-        ObjectQuery query = PrismContext.get().queryFor(UserType.class)
+            ObjectQuery query = PrismContext.get().queryFor(UserType.class)
                 .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(objectId).build();
 
         return modelService.searchObjects(UserType.class, query, null, task, result);
+    }
+
+
+    public List<PrismObject<UserType>> getRoleMembers(PageBase pageBase, String objectId) {
+        String getMembers = DOT_CLASS + "getRolesMembers";
+        OperationResult result = new OperationResult(getMembers);
+        Task task = pageBase.createSimpleTask(getMembers);
+
+        ObjectQuery query = pageBase.getPrismContext().queryFor(UserType.class)
+                .item(FocusType.F_ROLE_MEMBERSHIP_REF).ref(objectId).build();
+
+        try {
+            return pageBase.getModelService().searchObjects(UserType.class, query, null, task, result);
+        } catch (CommonException e) {
+            throw new RuntimeException("Failed to search role member objects: " + e);
+        }
     }
 
     public List<AuthorizationType> getAuthorization(RoleType roleTypePrismObject) {

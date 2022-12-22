@@ -15,16 +15,21 @@
     <wicket:child/>
 
 
+    <div class="border-top my-3 row justify-content-center">
+        <h2 class="col-xl-7 text-center"> <wicket:message key="Role.mining.ua.table.caption"/></h2>
+        <h2 class="col-xl-5 text-center"> <wicket:message key="Role.mining.basic.table.caption"/></h2>
+    </div>
+
     <div class="col-xl-12">
         <form wicket:id="main_form" class="clearfix form-horizontal">
 
-            <div class="row col-xl-12" style="display:-webkit-box; display:-webkit-flex; display:-ms-flexbox; display:flex;">
 
+            <div class="row col-xl-12" style="display:-webkit-box; display:-webkit-flex; display:-ms-flexbox; display:flex;">
                 <div class="col-xl-7">
                     <div class="row">
                         <div class="row col justify-content-start">
-                            <button class="btn btn-warning" wicket:id="generate_data_panel">
-                            </button>
+                            <span class="btn btn-warning" wicket:id="generate_data_panel">
+                            </span>
                             <button class="btn btn-default" wicket:id="reset_table">
                             </button>
                         </div>
@@ -133,28 +138,35 @@
                 <div class="border-top my-3"></div>
             </div>
 
-            <div class="col-xl-12">
-                <div class="row">
-                    <div class="row col">
-                    <button wicket:id="jaccard_execute_search" type="button" class="btn btn-outline-primary">
+
+            <div class="border-top my-3 row justify-content-center"></div>
+
+            <div class="row col-xl-12">
+
+                <div class="row col-auto me-auto">
+                    <button wicket:id="jaccard_execute_search" type="button" class="btn btn-primary">
                     </button>
                     <div>
                         <i wicket:id="jaccard_execute_search_info" wicket:message="title:Role.jaccard.execute.search.tooltip"></i>
                     </div>
-                    </div>
-
-                    <div class="row col justify-content-end">
-                    <button wicket:id="calculator" type="button" class="btn btn-outline-primary"></button>
-                    </div>
                 </div>
+                <br/>
+            <div class="col-auto me-auto">
+                <form wicket:id="form_dropdown">
+                    <div class="row">
+
+                        <select class="btn btn-default dropdown-toggle" wicket:id="dropdown_choice" style="width: 200px"></select>
+                        <input class="btn btn-default" wicket:id="ajax_submit_link_dropdown" type="submit" value="Display"/>
+
+                    </div>
+                </form>
+            </div>
+
             </div>
 
             <div>
-                <div wicket:id="datatable_jaccard" class="col overflow-auto"></div>
+                <div wicket:id="datatable_extra" class="col overflow-auto"></div>
             </div>
-
-            <div class="border-top my-3"></div>
-
 
         </form>
     </div>
