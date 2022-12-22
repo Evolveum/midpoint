@@ -87,8 +87,12 @@ public abstract class AbstractTestResource<T extends ObjectType> {
     protected void customizeParsed(PrismObject<T> parsed) {
     }
 
+    /**
+     * Returns cloned value of the object (to avoid unintentional modifications).
+     * (Probably it is not necessary to optimize this e.g. by distinguishing read-only from read/write use.)
+     */
     public @NotNull PrismObject<T> get() {
-        return object.get();
+        return object.get().clone();
     }
 
     public void set(@NotNull PrismObject<T> value) {
@@ -97,7 +101,7 @@ public abstract class AbstractTestResource<T extends ObjectType> {
 
     public @NotNull PrismObject<T> getFresh() {
         reset();
-        return object.get();
+        return get();
     }
 
     @Deprecated // use get()

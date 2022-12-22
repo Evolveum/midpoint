@@ -8,6 +8,7 @@ package com.evolveum.midpoint.testing.story;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType.UNMODIFIED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.POLICY_SITUATION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.PROTECTED;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType.*;
@@ -21,7 +22,6 @@ import static com.evolveum.midpoint.test.ldap.OpenDJController.OBJECT_CLASS_INET
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -166,7 +166,9 @@ public class TestFirstSteps extends AbstractStoryTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        CommonInitialObjects.addTags(this, initResult);
+        if (repositoryService.supportsTags()) {
+            CommonInitialObjects.addTags(this, initResult);
+        }
     }
 
     /**
@@ -323,11 +325,12 @@ public class TestFirstSteps extends AbstractStoryTest {
         focusCounter.assertNoNewObjects(result);
     }
 
-    private void assertTest130SimulationResult(SimulationResult simResult, boolean persistentOverride) throws SchemaException {
+    private void assertTest130SimulationResult(SimulationResult simResult, boolean persistentOverride) throws CommonException {
         // @formatter:off
         assertProcessedObjects(simResult, persistentOverride)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
+                    .assertState(ObjectProcessingStateType.ADDED)
                     .delta()
                         .objectToAdd()
                             .asFocus()
@@ -338,6 +341,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
+                    .assertState(ObjectProcessingStateType.MODIFIED)
                     .delta()
                         .assertNoRealResourceObjectModifications();
         // @formatter:on
@@ -362,7 +366,7 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result);
 
         then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
-        assertTest140SimulatedDeltasSingleAccount(simResult1.getSimulatedDeltas(), "(foreground)");
+        assertTest140SimulatedDeltasSingleAccount(simResult1, "(foreground)");
 
         when("Whoa! Let us run the full import!");
         String taskOid = importAllHrAccountsRequest()
@@ -385,12 +389,14 @@ public class TestFirstSteps extends AbstractStoryTest {
         // @formatter:on
 
         if (isNativeRepository()) {
-            then("there should be some deltas there");
-            Collection<ObjectDelta<?>> simulatedDeltas = getTaskSimDeltas(taskOid, result);
-            assertDeltaCollection(simulatedDeltas, "simulated development execution (background)")
+            then("processed objects info is OK");
+            // @formatter:off
+            assertProcessedObjects(taskOid, "")
                     .display()
-                    .assertSize((INITIAL_HR_ACCOUNTS - 1) * 2); // N user ADD, N shadow MODIFY
-            // TODO assert also some information on processed objects
+                    .assertSize((INITIAL_HR_ACCOUNTS - 1) * 2 + 1) // N user ADD, N shadow MODIFY, 1 shadow unmodified
+                    .by().state(UNMODIFIED).find()
+                        .assertName("5"); // User does not exist, shadow is not modified because of the exception
+            // @formatter:on
         }
 
         and("no new focus objects are there");
@@ -398,24 +404,27 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void assertTest140SimulatedDeltasSingleAccount(Collection<ObjectDelta<?>> simulatedDeltas, String message) {
+    private void assertTest140SimulatedDeltasSingleAccount(SimulationResult simResult, String message) throws CommonException {
         // @formatter:off
-        assertDeltaCollection(simulatedDeltas, "simulated development execution: " + message)
+        assertProcessedObjects(simResult, "simulated development execution: " + message)
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
-                    .objectToAdd()
-                        .asUser()
-                            .assertName("empNo:1")
-                            .assertGivenName("John")
-                            .assertFamilyName("Smith")
-                            .assertEmailAddress("jsmith1@evolveum.com")
-                            .assertTelephoneNumber("+421-123-456-001")
-                            .assertLinks(1, 0)
+                    .delta()
+                        .objectToAdd()
+                            .asUser()
+                                .assertName("empNo:1")
+                                .assertGivenName("John")
+                                .assertFamilyName("Smith")
+                                .assertEmailAddress("jsmith1@evolveum.com")
+                                .assertTelephoneNumber("+421-123-456-001")
+                                .assertLinks(1, 0)
+                            .end()
                         .end()
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                .assertNoRealResourceObjectModifications();
+                    .delta()
+                        .assertNoRealResourceObjectModifications();
         // @formatter:on
     }
 
@@ -483,22 +492,27 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result);
 
         then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
-        assertDeltaCollection(simResult1.getSimulatedDeltas(), "simulated production execution")
+        // @formatter:off
+        assertProcessedObjects(simResult1, "simulated production execution")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
-                    .objectToAdd()
-                        .asUser()
-                            .assertName("empNo:4")
-                            .assertGivenName("Robert")
-                            .assertFamilyName("Black")
-                            .assertEmailAddress("rblack4@evolveum.com")
-                            .assertTelephoneNumber("00421-123-456-004")
-                            .assertLinks(1, 0)
+                    .delta()
+                        .objectToAdd()
+                            .asUser()
+                                .assertName("empNo:4")
+                                .assertGivenName("Robert")
+                                .assertFamilyName("Black")
+                                .assertEmailAddress("rblack4@evolveum.com")
+                                .assertTelephoneNumber("00421-123-456-004")
+                                .assertLinks(1, 0)
+                            .end()
                         .end()
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                .assertNoRealResourceObjectModifications();
+                    .delta()
+                        .assertNoRealResourceObjectModifications();
+        // @formatter:on
 
         when("Will the full import run this time?");
         String taskOid = importAllHrAccountsRequest()
@@ -557,24 +571,27 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
         // @formatter:off
-        var shadowOid999 = assertDeltaCollection(simResult1.getSimulatedDeltas(), "simulated production execution")
+        var shadowOid999 = assertProcessedObjects(simResult1, "simulated production execution")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.ADD).find()
-                    .objectToAdd()
-                        .asUser()
-                            .assertName("empNo:999")
-                            .assertEmployeeNumber("999")
-                            .assertGivenName("Alice")
-                            .assertFamilyName("Test")
-                            .assertEmailAddress("atest999@evolveum.com")
-                            .assertTelephoneNumber(null)
-                            .assertLinks(1, 0)
+                    .delta()
+                        .objectToAdd()
+                            .asUser()
+                                .assertName("empNo:999")
+                                .assertEmployeeNumber("999")
+                                .assertGivenName("Alice")
+                                .assertFamilyName("Test")
+                                .assertEmailAddress("atest999@evolveum.com")
+                                .assertTelephoneNumber(null)
+                                .assertLinks(1, 0)
+                            .end()
                         .end()
                     .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.MODIFY).find()
-                .assertNoRealResourceObjectModifications()
-                .getOid();
+                    .delta()
+                        .assertNoRealResourceObjectModifications()
+                        .getOid();
         // @formatter:on
 
         assertRepoShadow(shadowOid999, "test account after")
@@ -589,13 +606,14 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         then("there is a single user ADD delta plus not substantial shadow MODIFY delta");
         // @formatter:off
-        assertDeltaCollection(simResult4.getSimulatedDeltas(), "simulated production execution")
+        assertProcessedObjects(simResult4, "simulated production execution")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertModified(
-                            UserType.F_EMPLOYEE_NUMBER, // the effect of the newly added mapping
-                            UserType.F_METADATA)
-                .end();
+                    .delta()
+                        .assertModified(
+                                UserType.F_EMPLOYEE_NUMBER, // the effect of the newly added mapping
+                                UserType.F_METADATA)
+                    .end();
         // @formatter:on
 
         assertShadow(findShadowByPrismName("4", RESOURCE_HR_170.get(), result), "shadow 4 after")
@@ -741,8 +759,7 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         if (isNativeRepository()) {
             and("there are no simulation deltas");
-            Collection<ObjectDelta<?>> simulatedDeltas = getTaskSimDeltas(taskOid, result);
-            assertDeltaCollection(simulatedDeltas, "simulation deltas")
+            assertProcessedObjects(taskOid, "")
                     .display()
                     .assertSize(0);
         }
@@ -859,8 +876,7 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         if (isNativeRepository()) {
             and("there are no simulation deltas");
-            Collection<ObjectDelta<?>> simulatedDeltas = getTaskSimDeltas(taskOid, result);
-            assertDeltaCollection(simulatedDeltas, "simulation deltas")
+            assertProcessedObjects(taskOid, "")
                     .display()
                     .assertSize(0);
         }
@@ -1023,13 +1039,21 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result);
 
         then("the user name should change (simulated)");
-        assertDeltaCollection(simResult.getSimulatedDeltas(), "single account simulated import")
+        // @formatter:off
+        assertProcessedObjects(simResult, "single account simulated import")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertNotModifiedExcept(UserType.F_NAME, UserType.F_METADATA)
-                    .assertPolyStringModification(UserType.F_NAME, "empNo:1", NAME_JSMITH1)
+                    .delta()
+                        .assertNotModifiedExcept(UserType.F_NAME, UserType.F_METADATA)
+                        .assertPolyStringModification(UserType.F_NAME, "empNo:1", NAME_JSMITH1)
+                    .end()
                 .end()
-                .assertSize(1);
+                .by().objectType(ShadowType.class).state(UNMODIFIED)
+                    .assertCount(2)
+                    .assertNames("1", DN_JSMITH1) // these shadows were processed but not modified
+                .end()
+                .assertSize(3);
+        // @formatter:on
 
         when("import the single user before running the whole import");
         importOpenDjAccountRequest(DN_JSMITH1).executeOnForeground(result);
@@ -1064,12 +1088,14 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         if (isNativeRepository()) {
             and("there are no simulation deltas");
-            Collection<ObjectDelta<?>> simulatedDeltas = getTaskSimDeltas(simTaskOid, result);
-            assertDeltaCollection(simulatedDeltas, "simulation deltas")
+            // @formatter:off
+            assertProcessedObjects(simTaskOid, "simulation deltas")
                     .display()
-                    .assertSize(4)
-                    .by().objectType(UserType.class).changeType(ChangeType.MODIFY).assertCount(4);
-                    // we assume the deltas are correct
+                    //.assertSize(5) // TODO
+                    .by().objectType(UserType.class).changeType(ChangeType.MODIFY).assertCount(4).end()
+                    .by().objectType(UserType.class).state(UNMODIFIED).find()
+                        .assertName("jsmith1");
+            // @formatter:on
         }
 
         when("executing the all-accounts import");
@@ -1087,7 +1113,7 @@ public class TestFirstSteps extends AbstractStoryTest {
      * Ref: _Username import phase_
      *
      * Here we add the outbound "name" mapping for OpenDJ resource. (Development mode.)
-     * First attempt does not work - the mapping is wrong.
+     * The first attempt is faulty - the mapping is wrong.
      */
     @Test
     public void test260OutboundUsernamesWrong() throws CommonException, IOException {
@@ -1112,10 +1138,14 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .isPartialError()
                 .hasMessageContaining("String 'jsmith1' is not a DN");
 
-        and("there should be no deltas");
-        assertDeltaCollection(simResult.getSimulatedDeltas(), "single account simulated import")
+        and("there should be no processed objects");
+        assertProcessedObjects(simResult, "single account simulated import")
                 .display()
-                .assertSize(0);
+                .by().state(UNMODIFIED)
+                    // These are not modified, because there is a failure
+                    .assertNames(NAME_JSMITH1, "1", DN_JSMITH1)
+                .end()
+                .assertSize(3);
     }
 
     /**
@@ -1139,9 +1169,12 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .executeOnForegroundSimulated(getDefaultSimulationConfiguration(), task, result);
 
         and("there should be no deltas, as the DN matches");
-        assertDeltaCollection(simResult.getSimulatedDeltas(), "single account simulated import")
+        assertProcessedObjects(simResult, "single account simulated import")
                 .display()
-                .assertSize(0);
+                .by().state(UNMODIFIED)
+                    .assertNames(NAME_JSMITH1, "1", DN_JSMITH1) // not modified because the DN matches
+                .end()
+                .assertSize(3);
 
         when("trying the all-accounts import (development simulation)");
         String simTaskOid = importAllOpenDjAccountsRequest()
@@ -1153,39 +1186,46 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertClockworkRunCount(5);
 
         if (isNativeRepository()) {
-            and("there should be no deltas, as all the DN match");
-            assertDeltaCollection(getTaskSimDeltas(simTaskOid, result), "single account simulated import")
+            and("there should be no processed objects, as all the DN match");
+            assertProcessedObjects(simTaskOid, "")
                     .display()
-                    .assertSize(0);
+                    .assertSize(3 * 5); // TODO
         }
 
         when("trying to create the account for John Johnson");
         SimulationResult simResult2 =
-                executeInDevelopmentSimulationMode(
+                executeDeltasInDevelopmentSimulationMode(
                         List.of(createOpenDjAssignmentDelta(NAME_EMPNO_6)),
                         getDefaultSimulationConfiguration(),
                         task, result);
 
         then("deltas are OK");
         // @formatter:off
-        assertDeltaCollection(simResult2.getSimulatedDeltas(), "account creation deltas")
+        assertProcessedObjects(simResult2, "account creation")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertModified(
-                            UserType.F_ASSIGNMENT,
-                            UserType.F_LINK_REF,
-                            UserType.F_METADATA)
-                .end()
-                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
-                    .objectToAdd()
-                        .asShadow()
-                            .attributes()
-                                .assertValue(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER, DN_EMPNO_6)
-                                .end()
-                            .end()
+                    .delta()
+                        .assertModified(
+                                UserType.F_ASSIGNMENT,
+                                UserType.F_LINK_REF,
+                                UserType.F_METADATA)
                     .end()
                 .end()
-                .assertSize(2);
+                .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
+                    .delta()
+                        .objectToAdd()
+                            .asShadow()
+                                .attributes()
+                                    .assertValue(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER, DN_EMPNO_6)
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .by().objectType(ShadowType.class).state(UNMODIFIED).find()
+                    .assertName("6")
+                .end()
+                .assertSize(3);
         // @formatter:on
 
         focusCounter.assertNoNewObjects(result);
@@ -1207,36 +1247,43 @@ public class TestFirstSteps extends AbstractStoryTest {
 
         when("checking outbound mappings by creating the account for John Johnson");
         SimulationResult simResult =
-                executeInDevelopmentSimulationMode(
+                executeDeltasInDevelopmentSimulationMode(
                         List.of(createOpenDjAssignmentDelta(NAME_EMPNO_6)),
                         getDefaultSimulationConfiguration(),
                         task, result);
 
         then("deltas are OK");
         // @formatter:off
-        assertDeltaCollection(simResult.getSimulatedDeltas(), "account creation deltas")
+        assertProcessedObjects(simResult, "account creation")
                 .display()
                 .by().objectType(UserType.class).changeType(ChangeType.MODIFY).find()
-                    .assertModified(
-                            UserType.F_ASSIGNMENT,
-                            UserType.F_LINK_REF,
-                            UserType.F_METADATA)
+                    .delta()
+                        .assertModified(
+                                UserType.F_ASSIGNMENT,
+                                UserType.F_LINK_REF,
+                                UserType.F_METADATA)
+                    .end()
                 .end()
                 .by().objectType(ShadowType.class).changeType(ChangeType.ADD).find()
-                    .objectToAdd()
-                        .asShadow()
-                            .attributes()
-                                .assertValue(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER, DN_EMPNO_6)
-                                .assertValue(QNAME_EMPLOYEE_NUMBER, "6")
-                                .assertNoAttribute(QNAME_MAIL)
-                                .assertValue(QNAME_GIVEN_NAME, "John")
-                                .assertValue(QNAME_SN, "Johnson")
-                                .assertValue(QNAME_CN, "John Johnson")
+                    .delta()
+                        .objectToAdd()
+                            .asShadow()
+                                .attributes()
+                                    .assertValue(OpenDJController.RESOURCE_OPENDJ_SECONDARY_IDENTIFIER, DN_EMPNO_6)
+                                    .assertValue(QNAME_EMPLOYEE_NUMBER, "6")
+                                    .assertNoAttribute(QNAME_MAIL)
+                                    .assertValue(QNAME_GIVEN_NAME, "John")
+                                    .assertValue(QNAME_SN, "Johnson")
+                                    .assertValue(QNAME_CN, "John Johnson")
+                                .end()
                             .end()
                         .end()
                     .end()
                 .end()
-                .assertSize(2);
+                .by().objectType(ShadowType.class).state(UNMODIFIED).find()
+                    .assertName("6")
+                .end()
+                .assertSize(3);
         // @formatter:on
 
         when("trying the all-accounts import (development simulation)");
@@ -1249,46 +1296,101 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .assertClockworkRunCount(5);
 
         if (isNativeRepository()) {
-            and("task deltas are OK");
+            and("task processed objects are OK");
             // @formatter:off
-            assertDeltaCollection(getTaskSimDeltas(simTaskOid, result), "import deltas")
+            assertProcessedObjects(simTaskOid, "import")
                     .display()
-                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH1)).assertCount(0) // all is set
-                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH1)).assertCount(0)
+                    .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH1)).find()
+                        .assertName(NAME_JSMITH1)
+                        .assertState(UNMODIFIED) // all is set
+                    .end()
+                    .by().objectType(ShadowType.class).objectOid(getHrShadowOid("1")).find()
+                        .assertName("1")
+                        .assertState(UNMODIFIED)
+                    .end()
+                    .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH1)).find()
+                        .assertName(DN_JSMITH1)
+                        .assertState(UNMODIFIED) // all is set
+                    .end()
+
                     .by().objectType(UserType.class).objectOid(getUserOid(NAME_JSMITH2)).find()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertName(NAME_JSMITH2)
+                        .delta()
+                            .assertModifiedExclusive(UserType.F_METADATA)
+                        .end()
+                    .end()
+                    .by().objectType(ShadowType.class).objectOid(getHrShadowOid("2")).find()
+                        .assertName("2")
+                        .assertState(UNMODIFIED)
                     .end()
                     .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_JSMITH2)).find()
-                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "2")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, ShadowType.F_METADATA)
+                        .assertName(DN_JSMITH2)
+                        .delta()
+                            .assertModification(PATH_EMPLOYEE_NUMBER, null, "2")
+                            .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, ShadowType.F_METADATA)
+                        .end()
                     .end()
+
                     .by().objectType(UserType.class).objectOid(getUserOid(NAME_AGREEN3)).find()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertName(NAME_AGREEN3)
+                        .delta()
+                            .assertModifiedExclusive(UserType.F_METADATA)
+                        .end()
+                    .end()
+                    .by().objectType(ShadowType.class).objectOid(getHrShadowOid("3")).find()
+                        .assertName("3")
+                        .assertState(UNMODIFIED)
                     .end()
                     .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_AGREEN3)).find()
-                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "3")
-                        .assertModification(PATH_MAIL, null, "agreen3@evolveum.com")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                        .assertName(DN_AGREEN3)
+                        .delta()
+                            .assertModification(PATH_EMPLOYEE_NUMBER, null, "3")
+                            .assertModification(PATH_MAIL, null, "agreen3@evolveum.com")
+                            .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                        .end()
                     .end()
+
                     .by().objectType(UserType.class).objectOid(getUserOid(NAME_RBLACK)).find()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertName(NAME_RBLACK)
+                        .delta()
+                            .assertModifiedExclusive(UserType.F_METADATA)
+                        .end()
+                    .end()
+                    .by().objectType(ShadowType.class).objectOid(getHrShadowOid("4")).find()
+                        .assertName("4")
+                        .assertState(UNMODIFIED)
                     .end()
                     .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_RBLACK)).find()
-                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "4")
-                        .assertModification(PATH_MAIL, null, "rblack4@evolveum.com")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                        .assertName(DN_RBLACK)
+                        .delta()
+                            .assertModification(PATH_EMPLOYEE_NUMBER, null, "4")
+                            .assertModification(PATH_MAIL, null, "rblack4@evolveum.com")
+                            .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, ShadowType.F_METADATA)
+                        .end()
                     .end()
+
                     .by().objectType(UserType.class).objectOid(getUserOid(NAME_BOB)).find()
-                        .assertModifiedExclusive(UserType.F_METADATA)
+                        .assertName(NAME_BOB)
+                        .delta()
+                            .assertModifiedExclusive(UserType.F_METADATA)
+                        .end()
+                    .end()
+                    .by().objectType(ShadowType.class).objectOid(getHrShadowOid("5")).find()
+                        .assertName("5")
+                        .assertState(UNMODIFIED)
                     .end()
                     .by().objectType(ShadowType.class).objectOid(getOpenDjShadowOid(DN_BOB)).find()
-                        .assertModification(PATH_EMPLOYEE_NUMBER, null, "5")
-                        .assertModification(PATH_MAIL, null, "rblack5@evolveum.com")
-                        .assertModification(PATH_GIVEN_NAME, "Bob", "Robert")
-                        .assertModification(PATH_CN, "Bob Black", "Robert Black")
-                        .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, ShadowType.F_METADATA)
+                        .assertName(DN_BOB)
+                        .delta()
+                            .assertModification(PATH_EMPLOYEE_NUMBER, null, "5")
+                            .assertModification(PATH_MAIL, null, "rblack5@evolveum.com")
+                            .assertModification(PATH_GIVEN_NAME, "Bob", "Robert")
+                            .assertModification(PATH_CN, "Bob Black", "Robert Black")
+                            .assertModifiedExclusive(PATH_EMPLOYEE_NUMBER, PATH_MAIL, PATH_GIVEN_NAME, PATH_CN, ShadowType.F_METADATA)
+                        .end()
                     .end()
-                    .assertSize(8);
+
+                    .assertSize(15);
             // @formatter:on
         }
 
@@ -1412,6 +1514,10 @@ public class TestFirstSteps extends AbstractStoryTest {
                 .asObjectDelta(userOid);
     }
 
+    private String getHrShadowOid(String name) throws CommonException {
+        return findHrShadowRequired(name).getOid();
+    }
+
     private String getOpenDjShadowOid(String dn) throws CommonException {
         return findOpenDjShadowRequired(dn).getOid();
     }
@@ -1464,6 +1570,17 @@ public class TestFirstSteps extends AbstractStoryTest {
         return importAccountsRequest()
                 .withResourceOid(RESOURCE_OPENDJ_OID)
                 .withImportingAllAccounts();
+    }
+
+    private ShadowType findHrShadowRequired(String name) throws SchemaException {
+        return MiscUtil.requireNonNull(
+                findHrShadow(name),
+                () -> "No HR shadow " + name);
+    }
+
+    private ShadowType findHrShadow(String name) throws SchemaException {
+        return asObjectable(
+                findShadowByPrismName(name, RESOURCE_HR_100.get(), getTestOperationResult()));
     }
 
     private ShadowType findOpenDjShadowRequired(String dn) throws SchemaException {

@@ -742,30 +742,6 @@ public class SearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test670TagByName() throws SchemaException {
-        ObjectQuery query = prismContext.queryFor(TagType.class)
-                .item(F_NAME).eqPoly("custom2").matchingOrig()
-                .build();
-        OperationResult result = new OperationResult("search");
-        List<PrismObject<TagType>> tags = repositoryService.searchObjects(TagType.class, query, null, result);
-        assertThatOperationResult(result).isSuccess();
-        assertThat(tags).as("tags found").hasSize(1);
-        assertThat(tags.get(0).getName().getOrig()).as("tag name").isEqualTo("custom2");
-    }
-
-    @Test
-    public void test675TagByUri() throws SchemaException {
-        ObjectQuery query = prismContext.queryFor(TagType.class)
-                .item(TagType.F_URI).eq(SchemaConstants.MODEL_POLICY_SITUATION_EXCLUSION_VIOLATION)
-                .build();
-        OperationResult result = new OperationResult("search");
-        List<PrismObject<TagType>> tags = repositoryService.searchObjects(TagType.class, query, null, result);
-        assertThatOperationResult(result).isSuccess();
-        assertThat(tags).as("tags found").hasSize(1);
-        assertThat(tags.get(0).getName().getOrig()).as("tag name").isEqualTo("exclusion-violation");
-    }
-
-    @Test
     public void test710FulltextSearchNestedInOwnedBy() throws Exception {
         given("query for assignments owned by role matching given fulltext search");
         ObjectQuery query = prismContext.queryFor(AssignmentType.class)

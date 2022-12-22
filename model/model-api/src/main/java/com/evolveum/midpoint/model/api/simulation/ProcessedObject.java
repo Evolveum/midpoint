@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
@@ -31,9 +31,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -91,8 +88,8 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
                 bean.getName(),
                 MiscUtil.argNonNull(bean.getState(), () -> "No processing state in " + bean),
                 bean.getMetricIdentifier(),
-                null, // (O) bean.getBefore(), // temporarily disabled
-                null, // (O) bean.getAfter(), // temporarily disabled
+                (O) bean.getBefore(),
+                (O) bean.getAfter(),
                 DeltaConvertor.createObjectDeltaNullable(bean.getDelta()));
     }
 
@@ -210,11 +207,23 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
                         PrismContext.get().getSchemaRegistry().determineTypeForClass(type))
                 .name(name)
                 .state(state)
-                .before(before != null ? before.clone() : null)
-                .after(after != null ? after.clone() : null)
+                .before(prepareObjectForStorage(before))
+                .after(prepareObjectForStorage(after))
                 .delta(DeltaConvertor.toObjectDeltaType(delta));
         processedObject.getMetricIdentifier().addAll(eventTags);
         return processedObject;
+    }
+
+    private ObjectType prepareObjectForStorage(@Nullable O original) {
+        if (original != null) {
+            ObjectType clone = original.clone();
+            clone.setOid(null); // this is currently not parseable
+            clone.setVersion(null); // this is currently not parseable
+            clone.setFetchResult(null); // can contain a lot of garbage
+            return clone;
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -263,5 +272,9 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
         } else {
             return tagOid;
         }
+    }
+
+    public @Nullable O getAfterOrBefore() {
+        return MiscUtil.getFirstNonNull(after, before);
     }
 }

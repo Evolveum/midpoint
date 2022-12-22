@@ -1952,4 +1952,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             return true;
         }
     }
+
+    @Override
+    public boolean supports(@NotNull Class<? extends ObjectType> type) {
+        return true;
+    }
 }

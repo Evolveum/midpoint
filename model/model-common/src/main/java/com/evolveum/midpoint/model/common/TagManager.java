@@ -53,6 +53,9 @@ public class TagManager {
     /** Gets a tag by OID. */
     public @NotNull TagType getTag(String oid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
+        if (!cacheRepositoryService.supportsTags()) {
+            throw new UnsupportedOperationException("The repository does not support tag objects");
+        }
         var options = GetOperationOptionsBuilder.create()
                 .readOnly()
                 .build();
@@ -64,6 +67,9 @@ public class TagManager {
     /** Gets a tag by OID (if exists). */
     public @Nullable TagType getTagIfExists(String oid, OperationResult result)
             throws SchemaException {
+        if (!cacheRepositoryService.supportsTags()) {
+            return null;
+        }
         var options = GetOperationOptionsBuilder.create()
                 .allowNotFound()
                 .readOnly()
@@ -83,6 +89,9 @@ public class TagManager {
      */
     public @Nullable TagType getTagByUri(@NotNull String uri, OperationResult result)
             throws SchemaException, ConfigurationException {
+        if (!cacheRepositoryService.supportsTags()) {
+            return null;
+        }
         var tags = cacheRepositoryService.searchObjects(
                 TagType.class,
                 prismContext.queryFor(TagType.class)
@@ -98,6 +107,9 @@ public class TagManager {
     }
 
     public @NotNull Collection<TagType> getAllTags(OperationResult result) {
+        if (!cacheRepositoryService.supportsTags()) {
+            return List.of();
+        }
         try {
             return asObjectables(
                     cacheRepositoryService.searchObjects(TagType.class, null, null, result));

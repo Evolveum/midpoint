@@ -2364,4 +2364,9 @@ public class ModelController implements ModelService, TaskService, CaseService, 
             }
         }
     }
+
+    @Override
+    public boolean isSupportedByRepository(@NotNull Class<? extends ObjectType> type) {
+        return cacheRepositoryService.supports(type);
+    }
 }

@@ -1417,4 +1417,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         super.destroy();
         LOGGER.info("Shutdown complete.");
     }
+
+    @Override
+    public boolean supports(@NotNull Class<? extends ObjectType> type) {
+        return !SimulationResultType.class.equals(type)
+                && !TagType.class.equals(type);
+    }
 }

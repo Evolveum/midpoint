@@ -6911,7 +6911,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
      * As {@link #executeInProductionSimulationMode(Collection, SimulationResultType, Task, OperationResult)} but
      * in development simulation mode.
      */
-    protected SimulationResult executeInDevelopmentSimulationMode(
+    protected SimulationResult executeDeltasInDevelopmentSimulationMode(
             @NotNull Collection<ObjectDelta<? extends ObjectType>> deltas,
             @Nullable SimulationResultType simulationConfiguration,
             @NotNull Task task,
@@ -7029,12 +7029,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
                 .getStoredDeltas(result);
     }
 
+    /** Returns {@link SimulationResult} based on the information stored in the task (activity state containing result ref) */
     protected @NotNull SimulationResult getTaskSimResult(String taskOid, OperationResult result)
             throws CommonException {
         return SimulationResult.fromSimulationResultOid(
                 getTaskSimulationResultOid(taskOid, result));
     }
 
+    @SuppressWarnings("WeakerAccess")
     protected @NotNull String getTaskSimulationResultOid(String taskOid, OperationResult result)
             throws CommonException {
         Task taskAfter = taskManager.getTaskPlain(taskOid, result);
@@ -7047,16 +7049,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return Objects.requireNonNull(simResultRef.getOid(), "no OID in simulation result ref");
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult) throws SchemaException {
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(String taskOid, String desc) throws CommonException {
+        return assertProcessedObjects(
+                getTaskSimResult(taskOid, getTestOperationResult()),
+                desc);
+    }
+
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult) throws CommonException {
         return assertProcessedObjects(simResult, (Boolean) null);
     }
 
-    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, String desc) throws SchemaException {
+    protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, String desc) throws CommonException {
         return assertProcessedObjects(simResult, null, desc);
     }
 
     protected ProcessedObjectsAsserter<Void> assertProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
-            throws SchemaException {
+            throws CommonException {
         return assertProcessedObjects(
                 simResult,
                 persistentOverride,
@@ -7065,19 +7073,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected ProcessedObjectsAsserter<Void> assertProcessedObjects(
             SimulationResult simResult, Boolean persistentOverride, String desc)
-            throws SchemaException {
+            throws CommonException {
         return assertProcessedObjects(
                 getProcessedObjects(simResult, persistentOverride),
                 desc);
     }
 
     protected Collection<ProcessedObject<?>> getProcessedObjects(SimulationResult simResult, Boolean persistentOverride)
-            throws SchemaException {
+            throws CommonException {
         OperationResult result = getTestOperationResult();
         if (persistentOverride == null) {
             return simResult.getProcessedObjects(result);
+        } else if (persistentOverride) {
+            return simResult.getPersistentProcessedObjects(result);
+        } else {
+            return simResult.getTransientProcessedObjects(result);
         }
-        return simResult.getProcessedObjects(getTestOperationResult());
     }
 
     protected String getProcessedObjectsDesc(SimulationResult simResult, Boolean persistentOverride) {

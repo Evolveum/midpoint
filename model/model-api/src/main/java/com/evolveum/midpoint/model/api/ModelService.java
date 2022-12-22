@@ -625,4 +625,7 @@ public interface ModelService {
 
     @NotNull
     PrismContext getPrismContext();
+
+    /** Returns `true` if the particular object type is supported by the current repository. */
+    boolean isSupportedByRepository(@NotNull Class<? extends ObjectType> type);
 }

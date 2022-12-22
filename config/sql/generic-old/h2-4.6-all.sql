@@ -722,13 +722,6 @@ CREATE TABLE m_system_configuration (
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
-CREATE TABLE m_tag (
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    uri       VARCHAR(255),
-    oid       VARCHAR(36) NOT NULL,
-    PRIMARY KEY (oid)
-);
 CREATE TABLE m_trigger (
   id             INTEGER     NOT NULL,
   owner_oid      VARCHAR(36) NOT NULL,
@@ -1019,10 +1012,6 @@ CREATE INDEX iSystemConfigurationNameOrig
   ON m_system_configuration (name_orig);
 ALTER TABLE m_system_configuration
   ADD CONSTRAINT uc_system_configuration_name UNIQUE (name_norm);
-CREATE INDEX iTagNameOrig
-    ON m_tag (name_orig);
-ALTER TABLE m_tag
-    ADD CONSTRAINT uc_tag_name UNIQUE (name_norm);
 CREATE INDEX iTriggerTimestamp
   ON m_trigger (timestampValue);
 CREATE INDEX iFullName
@@ -1211,8 +1200,6 @@ ALTER TABLE m_service
   ADD CONSTRAINT fk_service FOREIGN KEY (oid) REFERENCES m_abstract_role;
 ALTER TABLE m_system_configuration
   ADD CONSTRAINT fk_system_configuration FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE m_tag
-    ADD CONSTRAINT fk_tag FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_trigger
   ADD CONSTRAINT fk_trigger_owner FOREIGN KEY (owner_oid) REFERENCES m_object;
 ALTER TABLE m_user

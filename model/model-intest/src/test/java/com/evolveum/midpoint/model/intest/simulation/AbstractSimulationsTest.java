@@ -83,8 +83,11 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        repoAdd(TAG_USER_ADD, initResult);
-        repoAdd(TAG_USER_DELETE, initResult);
+        if (repositoryService.supportsTags()) {
+            CommonInitialObjects.addTags(this, initResult);
+            repoAdd(TAG_USER_ADD, initResult);
+            repoAdd(TAG_USER_DELETE, initResult);
+        }
 
         repoAdd(ROLE_PERSON, initResult);
         repoAdd(ROLE_PERSON_DEV, initResult);
@@ -95,8 +98,6 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         repoAdd(ARCHETYPE_PERSON, initResult);
         repoAdd(ARCHETYPE_PERSON_DEV_ARCHETYPE, initResult);
         repoAdd(ARCHETYPE_PERSON_DEV_TEMPLATE, initResult);
-
-        CommonInitialObjects.addTags(this, initResult);
 
         RESOURCE_SIMPLE_PRODUCTION_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_TARGET.initAndTest(this, initTask, initResult);

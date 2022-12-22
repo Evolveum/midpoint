@@ -6,11 +6,17 @@
  */
 package com.evolveum.midpoint.model.test.asserter;
 
+import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectProcessingStateType;
 
 import org.testng.AssertJUnit;
 
@@ -24,6 +30,7 @@ public class ProcessedObjectFinder<RA> {
     private final ProcessedObjectsAsserter<RA> processedObjectsAsserter;
     private Class<? extends ObjectType> objectType;
     private String objectOid;
+    private ObjectProcessingStateType state;
     private ChangeType changeType;
     private Integer index;
 
@@ -41,6 +48,11 @@ public class ProcessedObjectFinder<RA> {
         return this;
     }
 
+    public ProcessedObjectFinder<RA> state(ObjectProcessingStateType state) {
+        this.state = state;
+        return this;
+    }
+
     public ProcessedObjectFinder<RA> changeType(ChangeType changeType) {
         this.changeType = changeType;
         return this;
@@ -51,9 +63,20 @@ public class ProcessedObjectFinder<RA> {
         return this;
     }
 
-    /** Returns to the parent asserter. */
-    public ProcessedObjectsAsserter<RA> assertCount(int expected) {
+    public ProcessedObjectFinder<RA> assertCount(int expected) {
         assertThat(select()).as("matching objects").hasSize(expected);
+        return this;
+    }
+
+    public ProcessedObjectFinder<RA> assertNames(String... expectedOrig) {
+        Set<String> names = select().stream()
+                .map(po -> getOrig(po.getName()))
+                .collect(Collectors.toSet());
+        assertThat(names).as("matching objects names").containsExactlyInAnyOrder(expectedOrig);
+        return this;
+    }
+
+    public ProcessedObjectsAsserter<RA> end() {
         return processedObjectsAsserter;
     }
 
@@ -67,8 +90,11 @@ public class ProcessedObjectFinder<RA> {
             if (objectOid != null && !Objects.equals(processedObject.getOid(), objectOid)) {
                 continue;
             }
+            if (state != null && processedObject.getState() != state) {
+                continue;
+            }
             ObjectDelta<?> delta = processedObject.getDelta();
-            if (changeType != null && delta != null && delta.getChangeType() != changeType) {
+            if (changeType != null && (delta == null || delta.getChangeType() != changeType)) {
                 continue;
             }
             if (index != null) {
@@ -101,11 +127,22 @@ public class ProcessedObjectFinder<RA> {
 
     @Override
     public String toString() {
-        return "ProcessedObjectFinder{" +
-                "objectType=" + objectType +
-                ", objectOid='" + objectOid + '\'' +
-                ", changeType=" + changeType +
-                ", index=" + index +
-                '}';
+        List<String> components = new ArrayList<>();
+        if (objectType != null) {
+            components.add("objectType=" + objectType);
+        }
+        if (objectOid != null) {
+            components.add("objectOid='" + objectOid + "'");
+        }
+        if (state != null) {
+            components.add("state=" + state);
+        }
+        if (changeType != null) {
+            components.add("changeType=" + changeType);
+        }
+        if (index != null) {
+            components.add("index=" + index);
+        }
+        return "ProcessedObjectFinder{" + String.join(", ", components) + "}";
     }
 }
