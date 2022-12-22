@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.repo.sqale.qmodel.simulation;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -34,7 +36,11 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
     }
 
     public QProcessedObjectMapping(@NotNull SqaleRepoContext repositoryContext) {
-        super(QProcessedObject.TABLE_NAME, DEFAULT_ALIAS_NAME,SimulationResultProcessedObjectType.class, QProcessedObject.class, repositoryContext);
+        super(QProcessedObject.TABLE_NAME,
+                DEFAULT_ALIAS_NAME,
+                SimulationResultProcessedObjectType.class,
+                QProcessedObject.class,
+                repositoryContext);
 
         addRelationResolver(PrismConstants.T_PARENT,
                 // mapping supplier is used to avoid cycles in the initialization code
@@ -63,7 +69,11 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
 
     @Override
     public SimulationResultProcessedObjectType toSchemaObject(MProcessedObject row) throws SchemaException {
-        return parseSchemaObject(row.fullObject, row.ownerOid + "," + row.cid);
+        var object = parseSchemaObject(row.fullObject, row.ownerOid + "," + row.cid);
+        if (ShadowType.COMPLEX_TYPE.equals(object.getType())) {
+            System.out.println("before = " + object.getBefore() + ", after = " + object.getAfter());
+        }
+        return object;
     }
 
     @Override
@@ -85,8 +95,9 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
 
     @Override
     protected PathSet fullObjectItemsToSkip() {
-        // Do not store full objects
-        return PathSet.of(F_BEFORE, F_AFTER);
+        // Do not store full objects (TEMPORARILY DISABLED because of the need to apply definitions in shadow deltas)
+        // return PathSet.of(F_BEFORE, F_AFTER);
+        return PathSet.empty();
     }
 
     @Override

@@ -7,25 +7,9 @@
 
 package com.evolveum.midpoint.model.test;
 
-import com.evolveum.midpoint.model.api.ProgressInformation;
-import com.evolveum.midpoint.model.api.ProgressListener;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
-import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
-import com.evolveum.midpoint.model.common.TagManager;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
-import com.evolveum.midpoint.test.DummyAuditEventListener;
-import com.evolveum.midpoint.test.TestSpringBeans;
-import com.evolveum.midpoint.util.annotation.Experimental;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,9 +17,28 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.evolveum.midpoint.model.api.ProgressInformation;
+import com.evolveum.midpoint.model.api.ProgressListener;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
+import com.evolveum.midpoint.model.common.TagManager;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
+import com.evolveum.midpoint.test.DummyAuditEventListener;
+import com.evolveum.midpoint.test.MidpointTestContextWithTask;
+import com.evolveum.midpoint.test.TestSpringBeans;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * TODO
@@ -127,12 +130,7 @@ public class SimulationResult {
         assertThat(auditedDeltas).as("audited deltas").isEmpty();
     }
 
-    public @NotNull List<ProcessedObject<?>> getObjectsProcessedBySimulation(OperationResult result) {
-        resolveTagNames(objectsProcessedBySimulation, result);
-        return objectsProcessedBySimulation;
-    }
-
-    public Collection<ProcessedObject<?>> getProcessedObjects(OperationResult result) throws SchemaException {
+    public Collection<ProcessedObject<?>> getProcessedObjects(OperationResult result) throws CommonException {
         if (simulationResultOid != null) {
             return getPersistentProcessedObjects(result);
         } else {
@@ -140,18 +138,19 @@ public class SimulationResult {
         }
     }
 
-    private List<ProcessedObject<?>> getTransientProcessedObjects(OperationResult result) {
+    public List<ProcessedObject<?>> getTransientProcessedObjects(OperationResult result) {
         resolveTagNames(objectsProcessedBySimulation, result);
         return objectsProcessedBySimulation;
     }
 
-    private @NotNull List<ProcessedObject<?>> getPersistentProcessedObjects(OperationResult result) throws SchemaException {
+    public @NotNull List<ProcessedObject<?>> getPersistentProcessedObjects(OperationResult result) throws CommonException {
         stateCheck(
                 simulationResultOid != null,
                 "Asking for persistent processed objects but there is no simulation result OID");
         List<ProcessedObject<?>> objects = TestSpringBeans.getBean(SimulationResultManager.class)
                 .getStoredProcessedObjects(simulationResultOid, result);
         resolveTagNames(objects, result);
+        applyAttributesDefinitions(objects, result);
         return objects;
     }
 
@@ -162,6 +161,24 @@ public class SimulationResult {
                 processedObject.setEventTagsMap(
                         tagManager.resolveTagNames(processedObject.getEventTags(), result));
             }
+        }
+    }
+
+    /**
+     * Shadow deltas stored in the repository have no definitions. These will be found and applied now.
+     */
+    private void applyAttributesDefinitions(List<ProcessedObject<?>> objects, OperationResult result) throws CommonException {
+        for (ProcessedObject<?> object : objects) {
+            if (object.getDelta() == null
+                    || !ShadowType.class.equals(object.getType())) {
+                continue;
+            }
+            ShadowType shadow = (ShadowType) object.getAfterOrBefore();
+            if (shadow == null) {
+                throw new IllegalStateException("No object? In: " + object);
+            }
+            TestSpringBeans.getBean(ProvisioningService.class)
+                    .applyDefinition(object.getDelta(), MidpointTestContextWithTask.get().getTask(), result);
         }
     }
 

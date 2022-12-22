@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType.*;
 
-public class QSimulationResultMapping extends QObjectMapping<SimulationResultType, QSimulationResult, MSimulationResult>{
+public class QSimulationResultMapping extends QObjectMapping<SimulationResultType, QSimulationResult, MSimulationResult> {
 
     public static final String DEFAULT_ALIAS_NAME = "sr";
 

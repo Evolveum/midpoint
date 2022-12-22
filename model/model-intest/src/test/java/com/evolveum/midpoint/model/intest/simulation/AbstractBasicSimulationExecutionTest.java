@@ -98,7 +98,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         assertUserPrimaryAndSecondaryDeltas(modelContext);
     }
 
-    private void assertTest100SimulationResult(SimulationResult simResult, boolean persistent) throws SchemaException {
+    private void assertTest100SimulationResult(SimulationResult simResult, boolean persistent) throws CommonException {
         // @formatter:off
         assertProcessedObjects(simResult, persistent)
                 .display()
@@ -231,7 +231,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     private void assertTest11xSimulationResult(
             String name, DummyTestResource target, boolean accountShouldExist,
             SimulationResult simResult, boolean persistentOverride)
-            throws SchemaException {
+            throws CommonException {
         Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
         // @formatter:off
         assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
@@ -329,7 +329,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     private void assertTest12xUserAndAccountDeltas(
             String name, DummyTestResource target, boolean accountShouldExist,
             SimulationResult simResult, boolean persistentOverride)
-            throws SchemaException {
+            throws CommonException {
         Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
         // @formatter:off
         assertProcessedObjects(processedObjects, getProcessedObjectsDesc(simResult, persistentOverride))
@@ -422,7 +422,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     private void assertTest13xUserAndAccountDeltas(
             String name, DummyTestResource target, boolean accountShouldExist,
             SimulationResult simResult, boolean persistentOverride)
-            throws SchemaException {
+            throws CommonException {
 
         // @formatter:off
         if (accountShouldExist) {
@@ -504,7 +504,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     private void assertTest14xUserAndAccountDeltas(
             String name, DummyTestResource target, boolean accountShouldExist,
             SimulationResult simResult, boolean persistentOverride)
-            throws SchemaException {
+            throws CommonException {
 
         Collection<ProcessedObject<?>> processedObjects = getProcessedObjects(simResult, persistentOverride);
         // @formatter:off
@@ -598,7 +598,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         }
     }
 
-    private void assertTest150UserDeltas(SimulationResult simResult, boolean persistent) throws SchemaException {
+    private void assertTest150UserDeltas(SimulationResult simResult, boolean persistent) throws CommonException {
         // @formatter:off
         assertProcessedObjects(simResult, persistent)
                 .display()
@@ -648,7 +648,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
     }
 
     private void assertTest20xSimulationResult(String name, SimulationResult simResult, boolean persistent)
-            throws SchemaException {
+            throws CommonException {
         // @formatter:off
         assertProcessedObjects(simResult, persistent)
                 .display()
@@ -782,7 +782,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
         }
     }
 
-    private void assertTest300UserDeltas(SimulationResult simResult, boolean persistent) throws SchemaException {
+    private void assertTest300UserDeltas(SimulationResult simResult, boolean persistent) throws CommonException {
         // @formatter:off
         FocusType user = assertProcessedObjects(simResult, persistent)
                 .display()
