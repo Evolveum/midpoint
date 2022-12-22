@@ -1,0 +1,56 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<resource oid="0934922f-0f63-4768-b1b1-eab4275b31d1"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+
+    <name>OpenDJ</name>
+    <description>
+        Correlating on `employeeNumber`.
+    </description>
+
+    <lifecycleState>proposed</lifecycleState>
+
+    <super>
+        <resourceRef oid="bb554a60-3e83-40e5-be21-ca913ee58a43"/>
+    </super>
+
+    <connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.LdapConnector">
+        <icfc:configurationProperties>
+            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:baseContext>dc=example,dc=com</icfcldap:baseContext>
+            <icfcldap:bindPassword><t:clearValue>secret</t:clearValue></icfcldap:bindPassword>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <intent>default</intent>
+            <attribute>
+                <ref>ri:employeeNumber</ref>
+                <correlator/>
+                <inbound>
+                    <target>
+                        <path>employeeNumber</path>
+                    </target>
+                    <!-- This is a kind of hack. We want to correlate on this attribute by a simple mapping but do not want
+                         to use it to really modify the focus. This may happen for correlation attributes on non-authoritative
+                         resources (e.g. target ones, or "auxiliary" source ones). -->
+                    <evaluationPhases>
+                        <include>beforeCorrelation</include>
+                        <exclude>clockwork</exclude>
+                    </evaluationPhases>
+                </inbound>
+            </attribute>
+            <synchronization/> <!-- no reactions, just the correlation -->
+        </objectType>
+    </schemaHandling>
+</resource>

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Co
 import com.evolveum.midpoint.model.api.correlation.CorrelationCaseDescription.Match;
 import com.evolveum.midpoint.model.impl.correlation.TemplateCorrelationConfigurationImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -383,10 +384,12 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
         TestResource<ObjectTemplateType> userTemplateResource = correlator.userTemplateResource;
         String userTemplateOid = userTemplateResource != null ? userTemplateResource.oid : null;
         if (!Objects.equals(userTemplateOid, currentlyUsedTemplateOid)) {
-            if (userTemplateResource != null && userTemplateResource.getObject() == null) {
+            if (userTemplateResource != null) {
                 repoAdd(userTemplateResource, result);
-                ObjectTemplateType expanded = archetypeManager.getExpandedObjectTemplate(userTemplateResource.oid, result);
-                userTemplateResource.object = expanded.asPrismObject();
+                ObjectTemplateType expanded =
+                        archetypeManager.getExpandedObjectTemplate(
+                                userTemplateResource.oid, TaskExecutionMode.PRODUCTION, result);
+                userTemplateResource.set(expanded.asPrismObject());
             }
             System.out.println("Setting user template OID (in system config) to be " + userTemplateOid);
             setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid, result);
@@ -479,7 +482,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
     private CorrelationContext createCorrelationContext(
             CorrelationTestingAccount account, TestCorrelator correlator, Task task, OperationResult result)
             throws CommonException {
-        ResourceType resource = RESOURCE_DUMMY_CORRELATION.getResource().asObjectable();
+        ResourceType resource = RESOURCE_DUMMY_CORRELATION.getObjectable();
 
         SynchronizationPolicy synchronizationPolicy = getSynchronizationPolicy();
 
@@ -506,7 +509,7 @@ public class TestCorrelators extends AbstractInternalModelIntegrationTest {
                 SynchronizationPolicyFactory.forKindAndIntent(
                         ShadowKindType.ACCOUNT,
                         SchemaConstants.INTENT_DEFAULT,
-                        RESOURCE_DUMMY_CORRELATION.getResource().asObjectable()),
+                        RESOURCE_DUMMY_CORRELATION.getObjectable()),
                 "no synchronization policy");
     }
 

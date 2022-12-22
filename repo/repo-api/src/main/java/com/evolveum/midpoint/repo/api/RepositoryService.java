@@ -8,6 +8,12 @@ package com.evolveum.midpoint.repo.api;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+
+import com.evolveum.midpoint.prism.PrismContext;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -156,6 +162,8 @@ public interface RepositoryService {
 
     String KEY_DIAG_DATA = "repositoryDiagData"; // see GetOperationOptions.attachDiagData
     String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";
+
+    Trace LOGGER = TraceManager.getTrace(RepositoryService.class);
 
     /**
      * Returns object for provided OID.
@@ -519,7 +527,27 @@ public interface RepositoryService {
      * @throws IllegalArgumentException wrong OID format
      * @deprecated TODO: we want to remove this in midScale
      */
-    <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult);
+    default <F extends FocusType> PrismObject<F> searchShadowOwner(
+            String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+        ObjectQuery query = PrismContext.get()
+                .queryFor(FocusType.class)
+                .item(FocusType.F_LINK_REF).ref(shadowOid, null, PrismConstants.Q_ANY)
+                .build();
+        SearchResultList<PrismObject<FocusType>> searchResult;
+        try {
+            searchResult = searchObjects(FocusType.class, query, options, parentResult);
+        } catch (SchemaException e) {
+            throw SystemException.unexpected(e, "when searching for shadow owner");
+        }
+
+        if (searchResult.isEmpty()) {
+            return null; // account shadow owner was not found
+        } else if (searchResult.size() > 1) {
+            LOGGER.warn("Found {} owners for shadow oid {}, returning first owner.", searchResult.size(), shadowOid);
+        }
+        //noinspection unchecked
+        return (PrismObject<F>) searchResult.get(0);
+    }
 
     /**
      * This operation is guaranteed to be atomic. If two threads or even two nodes request a value from
@@ -558,6 +586,13 @@ public interface RepositoryService {
     // Temporary, as always...
     default boolean isNative() {
         return getRepositoryType().equals("Native");
+    }
+
+    /** Returns `true` if the given object type is supported. */
+    boolean supports(@NotNull Class<? extends ObjectType> type);
+
+    default boolean supportsTags() {
+        return supports(TagType.class);
     }
 
     /**

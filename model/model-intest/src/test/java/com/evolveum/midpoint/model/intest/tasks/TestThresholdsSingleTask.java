@@ -56,11 +56,6 @@ public abstract class TestThresholdsSingleTask extends TestThresholds {
     }
 
     @Override
-    long getSleep() {
-        return 200;
-    }
-
-    @Override
     void assertTest100Task(TestResource<TaskType> importTask) throws SchemaException, ObjectNotFoundException {
         // @formatter:off
         var asserter = assertTaskTree(importTask.oid, "after")

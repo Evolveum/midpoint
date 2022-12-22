@@ -80,11 +80,11 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
         return shadows;
     }
 
-    public @NotNull String getDuplicateShadowsResolver() {
+    @NotNull String getDuplicateShadowsResolver() {
         return duplicateShadowsResolver;
     }
 
-    public boolean isCheckDuplicatesOnPrimaryIdentifiersOnly() {
+    boolean isCheckDuplicatesOnPrimaryIdentifiersOnly() {
         return checkDuplicatesOnPrimaryIdentifiersOnly;
     }
 
@@ -94,14 +94,14 @@ public class ShadowIntegrityCheckWorkDefinition extends AbstractWorkDefinition i
         DebugUtil.debugDumpWithLabelLn(sb, "aspectsToDiagnose", aspectsToDiagnose, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "aspectsToFix", aspectsToFix, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "duplicateShadowsResolver", duplicateShadowsResolver, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "checkDuplicatesOnPrimaryIdentifiersOnly", checkDuplicatesOnPrimaryIdentifiersOnly, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "checkDuplicatesOnPrimaryIdentifiersOnly", checkDuplicatesOnPrimaryIdentifiersOnly, indent+1);
     }
 
     boolean diagnoses(ShadowIntegrityAspectType aspect) {
         return aspectsToDiagnose.isEmpty() || aspectsToDiagnose.contains(aspect) || aspectsToFix.contains(aspect);
     }
 
-    public boolean fixes(ShadowIntegrityAspectType aspect) {
+    boolean fixes(ShadowIntegrityAspectType aspect) {
         return aspectsToFix.contains(aspect);
     }
 

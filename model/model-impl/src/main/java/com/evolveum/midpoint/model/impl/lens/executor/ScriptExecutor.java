@@ -63,7 +63,11 @@ class ScriptExecutor<O extends ObjectType> {
     @NotNull private final Task task;
     @NotNull private final ModelBeans b;
 
-    ScriptExecutor(@NotNull LensContext<O> context, @NotNull LensProjectionContext projCtx, @NotNull Task task, @NotNull ModelBeans beans) {
+    ScriptExecutor(
+            @NotNull LensContext<O> context,
+            @NotNull LensProjectionContext projCtx,
+            @NotNull Task task,
+            @NotNull ModelBeans beans) {
         this.context = context;
         this.projCtx = projCtx;
         this.task = task;
@@ -80,6 +84,16 @@ class ScriptExecutor<O extends ObjectType> {
 
         if (projCtx.getResource() == null) {
             LOGGER.warn("Resource does not exist. Skipping processing reconciliation scripts.");
+            return;
+        }
+
+        if (!projCtx.isVisible()) {
+            LOGGER.trace("Resource object definition is not visible. Skipping processing reconciliation scripts.");
+            return;
+        }
+
+        if (!task.isPersistentExecution()) {
+            LOGGER.trace("Not a persistent execution. Skipping processing reconciliation scripts.");
             return;
         }
 
@@ -212,10 +226,11 @@ class ScriptExecutor<O extends ObjectType> {
                 b.expressionFactory.makeExpression(argument, scriptArgumentDefinition,
                         MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
 
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        eeContext.setExpressionFactory(b.expressionFactory);
         ModelExpressionEnvironment<?, ?, ?> env = new ModelExpressionEnvironment<>(context, projCtx, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, params, env, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, env, result);
 
         Collection<PrismPropertyValue<String>> nonNegativeValues =
                 outputTriple != null ? outputTriple.getNonNegativeValues() : emptySet();

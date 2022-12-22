@@ -42,11 +42,7 @@ public class ActivityRunException extends Exception {
         return opResultStatus;
     }
 
-    public @NotNull TaskRunResult.TaskRunResultStatus getRunResultStatus() {
-        return runResultStatus;
-    }
-
-    public String getFullMessage() {
+    String getFullMessage() {
         Throwable cause = getCause();
         return getMessage() + (cause != null ? ": " + cause.getMessage() : "");
     }

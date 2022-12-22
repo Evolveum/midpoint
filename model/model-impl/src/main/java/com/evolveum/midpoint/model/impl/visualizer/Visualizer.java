@@ -15,7 +15,6 @@ import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
 
 import java.util.*;
 
-import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +24,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.visualizer.Visualization;
 import com.evolveum.midpoint.model.impl.visualizer.output.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -74,11 +74,11 @@ public class Visualizer {
                 ShadowType.F_INTENT));
     }
 
-    public SceneImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+    public VisualizationImpl visualize(PrismObject<? extends ObjectType> object, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         return visualize(object, new VisualizationContext(), task, parentResult);
     }
 
-    public SceneImpl visualize(PrismObject<? extends ObjectType> object, VisualizationContext context, Task task, OperationResult parentResult)
+    public VisualizationImpl visualize(PrismObject<? extends ObjectType> object, VisualizationContext context, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualize");
         try {
@@ -92,39 +92,39 @@ public class Visualizer {
         }
     }
 
-    private SceneImpl visualize(PrismObject<? extends ObjectType> object, SceneImpl owner, VisualizationContext context, Task task, OperationResult result) {
-        SceneImpl scene = new SceneImpl(owner);
-        scene.setChangeType(null);
-        scene.setName(createSceneName(object));
-        scene.setSourceRelPath(EMPTY_PATH);
-        scene.setSourceAbsPath(EMPTY_PATH);
-        scene.setSourceDefinition(object.getDefinition());
-        scene.setSourceValue(object.getValue());
-        scene.setSourceDelta(null);
-        visualizeItems(scene, object.getValue().getItems(), false, context, task, result);
-        return scene;
+    private VisualizationImpl visualize(PrismObject<? extends ObjectType> object, VisualizationImpl owner, VisualizationContext context, Task task, OperationResult result) {
+        VisualizationImpl visualization = new VisualizationImpl(owner);
+        visualization.setChangeType(null);
+        visualization.setName(createVisualizationName(object));
+        visualization.setSourceRelPath(EMPTY_PATH);
+        visualization.setSourceAbsPath(EMPTY_PATH);
+        visualization.setSourceDefinition(object.getDefinition());
+        visualization.setSourceValue(object.getValue());
+        visualization.setSourceDelta(null);
+        visualizeItems(visualization, object.getValue().getItems(), false, context, task, result);
+        return visualization;
     }
 
     @SuppressWarnings("unused")
-    private SceneImpl visualize(PrismContainerValue<?> containerValue, SceneImpl owner, VisualizationContext context, Task task, OperationResult result) {
-        SceneImpl scene = new SceneImpl(owner);
-        scene.setChangeType(null);
+    private VisualizationImpl visualize(PrismContainerValue<?> containerValue, VisualizationImpl owner, VisualizationContext context, Task task, OperationResult result) {
+        VisualizationImpl visualization = new VisualizationImpl(owner);
+        visualization.setChangeType(null);
         NameImpl name = new NameImpl("id " + containerValue.getId());        // TODO
         name.setNamesAreResourceKeys(false);
-        scene.setName(name);
-        scene.setSourceRelPath(EMPTY_PATH);
-        scene.setSourceAbsPath(EMPTY_PATH);
+        visualization.setName(name);
+        visualization.setSourceRelPath(EMPTY_PATH);
+        visualization.setSourceAbsPath(EMPTY_PATH);
         if (containerValue.getComplexTypeDefinition() != null) {
             // TEMPORARY!!!
             PrismContainerDefinition<?> pcd = prismContext.getSchemaRegistry().findContainerDefinitionByType(containerValue.getComplexTypeDefinition().getTypeName());
-            scene.setSourceDefinition(pcd);
+            visualization.setSourceDefinition(pcd);
         } else if (containerValue.getParent() != null && containerValue.getParent().getDefinition() != null) {
-            scene.setSourceDefinition(containerValue.getParent().getDefinition());
+            visualization.setSourceDefinition(containerValue.getParent().getDefinition());
         }
-        scene.setSourceValue(containerValue);
-        scene.setSourceDelta(null);
-        visualizeItems(scene, containerValue.getItems(), false, context, task, result);
-        return scene;
+        visualization.setSourceValue(containerValue);
+        visualization.setSourceDelta(null);
+        visualizeItems(visualization, containerValue.getItems(), false, context, task, result);
+        return visualization;
     }
 
     public List<Visualization> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
@@ -143,14 +143,14 @@ public class Visualizer {
     public List<Visualization> visualizeProjectionContexts(List<? extends ModelProjectionContext> projectionContexts, Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
-        final List<Visualization> scenes = new ArrayList<>();
+        final List<Visualization> visualizations = new ArrayList<>();
         final OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeProjectionContexts");
 
         try {
             for (ModelProjectionContext ctx : projectionContexts) {
-                Visualization scene = visualizeProjectionContext(ctx, task, result);
-                if (!scene.isEmpty()) {
-                    scenes.add(scene);
+                Visualization visualization = visualizeProjectionContext(ctx, task, result);
+                if (!visualization.isEmpty()) {
+                    visualizations.add(visualization);
                 }
             }
         } catch (RuntimeException | Error | SchemaException | ExpressionEvaluationException e) {
@@ -160,11 +160,11 @@ public class Visualizer {
             result.computeStatusIfUnknown();
         }
 
-        return scenes;
+        return visualizations;
     }
 
     @NotNull
-    public SceneImpl visualizeProjectionContext(ModelProjectionContext context, Task task, OperationResult result)
+    public VisualizationImpl visualizeProjectionContext(ModelProjectionContext context, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ConfigurationException {
 
         ObjectDelta<ShadowType> executable = context.getExecutableDelta();
@@ -206,10 +206,10 @@ public class Visualizer {
             addDelta.merge(executable);
         }
 
-        SceneImpl scene = visualizeDelta(addDelta, task, result);
-        scene.setBroken(context.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN);
+        VisualizationImpl visualization = visualizeDelta(addDelta, task, result);
+        visualization.setBroken(context.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN);
 
-        return scene;
+        return visualization;
     }
 
     private List<Visualization> visualizeDeltas(List<ObjectDelta<? extends ObjectType>> deltas, VisualizationContext context, Task task, OperationResult result)
@@ -220,26 +220,26 @@ public class Visualizer {
                 continue;
             }
 
-            final SceneImpl scene = visualizeDelta(delta, null, null, context, task, result);
-            if (!scene.isEmpty()) {
-                rv.add(scene);
+            final VisualizationImpl visualization = visualizeDelta(delta, null, null, context, task, result);
+            if (!visualization.isEmpty()) {
+                rv.add(visualization);
             }
         }
         return rv;
     }
 
     @NotNull
-    public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+    public VisualizationImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         return visualizeDelta(objectDelta, null, task, parentResult);
     }
 
     @NotNull
-    public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+    public VisualizationImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         return visualizeDelta(objectDelta, objectRef, false, true, task, parentResult);
     }
 
     @NotNull
-    public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef,
+    public VisualizationImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef,
             boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDelta");
         try {
@@ -257,14 +257,14 @@ public class Visualizer {
         }
     }
 
-    private SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, SceneImpl owner, ObjectReferenceType objectRef,
+    private VisualizationImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, VisualizationImpl owner, ObjectReferenceType objectRef,
             VisualizationContext context, Task task, OperationResult result)
             throws SchemaException {
-        SceneImpl scene = new SceneImpl(owner);
-        scene.setChangeType(objectDelta.getChangeType());
-        scene.setSourceDelta(objectDelta);
-        scene.setSourceRelPath(ItemPath.EMPTY_PATH);
-        scene.setSourceAbsPath(ItemPath.EMPTY_PATH);
+        VisualizationImpl visualization = new VisualizationImpl(owner);
+        visualization.setChangeType(objectDelta.getChangeType());
+        visualization.setSourceDelta(objectDelta);
+        visualization.setSourceRelPath(ItemPath.EMPTY_PATH);
+        visualization.setSourceAbsPath(ItemPath.EMPTY_PATH);
         PrismObject<? extends ObjectType> object;
         if (objectDelta.isAdd()) {
             object = objectDelta.getObjectToAdd();
@@ -275,30 +275,30 @@ public class Visualizer {
             object = null;
         }
         if (object != null) {
-            scene.setName(createSceneName(object));
-            scene.setSourceValue(object.getValue());
-            scene.setSourceDefinition(object.getDefinition());
+            visualization.setName(createVisualizationName(object));
+            visualization.setSourceValue(object.getValue());
+            visualization.setSourceDefinition(object.getDefinition());
         } else {
-            scene.setName(createSceneName(objectDelta.getOid(), objectRef));
+            visualization.setName(createVisualizationName(objectDelta.getOid(), objectRef));
         }
         if (objectDelta.isAdd()) {
             if (object == null) {
                 throw new IllegalStateException("ADD object delta with no object to add: " + objectDelta);
             }
-            visualizeItems(scene, object.getValue().getItems(), false, context, task, result);
+            visualizeItems(visualization, object.getValue().getItems(), false, context, task, result);
         } else if (objectDelta.isModify()) {
             if (object != null) {
-                addDescriptiveItems(scene, object.getValue(), context, task, result);
+                addDescriptiveItems(visualization, object.getValue(), context, task, result);
             }
-            visualizeItemDeltas(scene, objectDelta.getModifications(), context, task, result);
+            visualizeItemDeltas(visualization, objectDelta.getModifications(), context, task, result);
         } else if (objectDelta.isDelete()) {
             if (object != null) {
-                addDescriptiveItems(scene, object.getValue(), context, task, result);
+                addDescriptiveItems(visualization, object.getValue(), context, task, result);
             }
         } else {
             throw new IllegalStateException("Object delta that is neither ADD, nor MODIFY nor DELETE: " + objectDelta);
         }
-        return scene;
+        return visualization;
     }
 
     private PrismObject<? extends ObjectType> getOldObject(String oid, Class<? extends ObjectType> objectTypeClass, VisualizationContext context, Task task, OperationResult result) {
@@ -335,7 +335,7 @@ public class Visualizer {
         }
     }
 
-    private void visualizeItems(SceneImpl scene, Collection<Item<?, ?>> items, boolean descriptive, VisualizationContext context, Task task, OperationResult result) {
+    private void visualizeItems(VisualizationImpl visualization, Collection<Item<?, ?>> items, boolean descriptive, VisualizationContext context, Task task, OperationResult result) {
         if (items == null) {
             return;
         }
@@ -345,23 +345,23 @@ public class Visualizer {
 
         for (Item<?, ?> item : itemsToShow) {
             if (item instanceof PrismProperty) {
-                final SceneItemImpl sceneItem = createSceneItem((PrismProperty) item, descriptive);
-                if (!sceneItem.isOperational() || context.isIncludeOperationalItems()) {
-                    scene.addItem(sceneItem);
+                final VisualizationItemImpl visualizationItem = createVisualizationItem((PrismProperty) item, descriptive);
+                if (!visualizationItem.isOperational() || context.isIncludeOperationalItems()) {
+                    visualization.addItem(visualizationItem);
                 }
             } else if (item instanceof PrismReference) {
-                final SceneItemImpl sceneItem = createSceneItem((PrismReference) item, descriptive, context, task, result);
-                if (!sceneItem.isOperational() || context.isIncludeOperationalItems()) {
-                    scene.addItem(sceneItem);
+                final VisualizationItemImpl visualizationItem = createVisualizationItem((PrismReference) item, descriptive, context, task, result);
+                if (!visualizationItem.isOperational() || context.isIncludeOperationalItems()) {
+                    visualization.addItem(visualizationItem);
                 }
             } else if (item instanceof PrismContainer) {
                 PrismContainer<?> pc = (PrismContainer<?>) item;
                 PrismContainerDefinition<?> def = pc.getDefinition();
                 boolean separate = isContainerSingleValued(def, pc) ? context.isSeparateSinglevaluedContainers() : context.isSeparateMultivaluedContainers();
-                SceneImpl currentScene = scene;
+                VisualizationImpl currentVisualization = visualization;
                 for (PrismContainerValue<?> pcv : pc.getValues()) {
                     if (separate) {
-                        SceneImpl si = new SceneImpl(scene);
+                        VisualizationImpl si = new VisualizationImpl(visualization);
                         NameImpl name = new NameImpl(item.getElementName().getLocalPart());
                         name.setId(name.getSimpleName());
                         if (def != null) {
@@ -377,12 +377,12 @@ public class Visualizer {
                             }
                         }
                         si.setSourceRelPath(ItemPath.create(item.getElementName()));
-                        si.setSourceAbsPath(scene.getSourceAbsPath().append(item.getElementName()));
+                        si.setSourceAbsPath(visualization.getSourceAbsPath().append(item.getElementName()));
                         si.setSourceDelta(null);
-                        scene.addPartialScene(si);
-                        currentScene = si;
+                        visualization.addPartialVisualization(si);
+                        currentVisualization = si;
                     }
-                    visualizeItems(currentScene, pcv.getItems(), descriptive, context, task, result);
+                    visualizeItems(currentVisualization, pcv.getItems(), descriptive, context, task, result);
                 }
             } else {
                 throw new IllegalStateException("Not a property nor reference nor container: " + item);
@@ -398,7 +398,7 @@ public class Visualizer {
         }
     }
 
-    private void visualizeItemDeltas(SceneImpl scene, Collection<? extends ItemDelta<?, ?>> deltas, VisualizationContext context, Task task,
+    private void visualizeItemDeltas(VisualizationImpl visualization, Collection<? extends ItemDelta<?, ?>> deltas, VisualizationContext context, Task task,
             OperationResult result) throws SchemaException {
         if (deltas == null) {
             return;
@@ -406,21 +406,21 @@ public class Visualizer {
         List<ItemDelta<?, ?>> deltasToShow = new ArrayList<>(deltas);
         for (ItemDelta<?, ?> delta : deltasToShow) {
             if (delta instanceof ContainerDelta) {
-                visualizeContainerDelta((ContainerDelta) delta, scene, context, task, result);
+                visualizeContainerDelta((ContainerDelta) delta, visualization, context, task, result);
             } else {
-                visualizeAtomicDelta(delta, scene, context, task, result);
+                visualizeAtomicDelta(delta, visualization, context, task, result);
             }
         }
-        sortItems(scene);
-        sortPartialScenes(scene);
+        sortItems(visualization);
+        sortPartialVisualizations(visualization);
     }
 
-    private void sortItems(SceneImpl scene) {
-        scene.getItems().sort((Comparator<SceneItemImpl>) (o1, o2) -> compareDefinitions(o1.getSourceDefinition(), o2.getSourceDefinition()));
+    private void sortItems(VisualizationImpl visualization) {
+        visualization.getItems().sort((Comparator<VisualizationItemImpl>) (o1, o2) -> compareDefinitions(o1.getSourceDefinition(), o2.getSourceDefinition()));
     }
 
-    private void sortPartialScenes(SceneImpl scene) {
-        scene.getPartialVisualizations().sort((Comparator<SceneImpl>) (s1, s2) -> {
+    private void sortPartialVisualizations(VisualizationImpl visualization) {
+        visualization.getPartialVisualizations().sort((Comparator<VisualizationImpl>) (s1, s2) -> {
 
             final PrismContainerDefinition<?> def1 = s1.getSourceDefinition();
             final PrismContainerDefinition<?> def2 = s2.getSourceDefinition();
@@ -455,7 +455,7 @@ public class Visualizer {
         });
     }
 
-    private <C extends Containerable> void visualizeContainerDelta(ContainerDelta<C> delta, SceneImpl scene, VisualizationContext context, Task task, OperationResult result) {
+    private <C extends Containerable> void visualizeContainerDelta(ContainerDelta<C> delta, VisualizationImpl visualization, VisualizationContext context, Task task, OperationResult result) {
         if (delta.isEmpty()) {
             return;
         }
@@ -486,21 +486,21 @@ public class Visualizer {
         }
         if (valuesToDelete != null) {
             for (PrismContainerValue<C> value : valuesToDelete) {
-                visualizeContainerDeltaValue(value, DELETE, delta, scene, context, task, result);
+                visualizeContainerDeltaValue(value, DELETE, delta, visualization, context, task, result);
             }
         }
         if (valuesToAdd != null) {
             for (PrismContainerValue<C> value : valuesToAdd) {
-                visualizeContainerDeltaValue(value, ADD, delta, scene, context, task, result);
+                visualizeContainerDeltaValue(value, ADD, delta, visualization, context, task, result);
             }
         }
     }
 
     private <C extends Containerable> void visualizeContainerDeltaValue(PrismContainerValue<C> value, ChangeType changeType,
-            ContainerDelta<C> containerDelta, SceneImpl owningScene, VisualizationContext context, Task task, OperationResult result) {
-        SceneImpl scene = createContainerScene(changeType, containerDelta.getPath(), owningScene);
+            ContainerDelta<C> containerDelta, VisualizationImpl parentVisualization, VisualizationContext context, Task task, OperationResult result) {
+        VisualizationImpl visualization = createContainerVisualization(changeType, containerDelta.getPath(), parentVisualization);
         if (value.getId() != null) {
-            scene.getName().setId(String.valueOf(value.getId()));
+            visualization.getName().setId(String.valueOf(value.getId()));
         }
         // delete-by-id: we supply known values
         if ((value.getItems().isEmpty()) && value.getId() != null) {
@@ -513,39 +513,39 @@ public class Visualizer {
                 }
             }
         }
-        scene.setSourceValue(value);
-        visualizeItems(scene, value.getItems(), true, context, task, result);
+        visualization.setSourceValue(value);
+        visualizeItems(visualization, value.getItems(), true, context, task, result);
 
-        owningScene.addPartialScene(scene);
+        parentVisualization.addPartialVisualization(visualization);
     }
 
-    private SceneImpl createContainerScene(ChangeType changeType, ItemPath containerPath, SceneImpl owningScene) {
-        SceneImpl scene = new SceneImpl(owningScene);
-        scene.setChangeType(changeType);
+    private VisualizationImpl createContainerVisualization(ChangeType changeType, ItemPath containerPath, VisualizationImpl parentVisualization) {
+        VisualizationImpl visualization = new VisualizationImpl(parentVisualization);
+        visualization.setChangeType(changeType);
 
         ItemPath deltaParentItemPath = getDeltaParentItemPath(containerPath);
-        PrismContainerDefinition<?> sceneDefinition = getSceneDefinition(scene, deltaParentItemPath);
+        PrismContainerDefinition<?> visualizationDefinition = getVisualizationDefinition(visualization, deltaParentItemPath);
 
-        NameImpl name = createNameForContainerDelta(containerPath, sceneDefinition);
-        scene.setName(name);
+        NameImpl name = createNameForContainerDelta(containerPath, visualizationDefinition);
+        visualization.setName(name);
 
-        if (sceneDefinition != null) {
-            scene.setOperational(sceneDefinition.isOperational());
-            scene.setSourceDefinition(sceneDefinition);
+        if (visualizationDefinition != null) {
+            visualization.setOperational(visualizationDefinition.isOperational());
+            visualization.setSourceDefinition(visualizationDefinition);
         }
 
-        ItemPath sceneRelativePath = containerPath.remainder(owningScene.getSourceRelPath());
-        scene.setSourceRelPath(sceneRelativePath);
-        scene.setSourceAbsPath(containerPath);
-        scene.setSourceDelta(null);
-        return scene;
+        ItemPath visualizationRelativePath = containerPath.remainder(parentVisualization.getSourceRelPath());
+        visualization.setSourceRelPath(visualizationRelativePath);
+        visualization.setSourceAbsPath(containerPath);
+        visualization.setSourceDelta(null);
+        return visualization;
     }
 
-    private NameImpl createNameForContainerDelta(ItemPath deltaParentPath, PrismContainerDefinition<?> sceneDefinition) {
+    private NameImpl createNameForContainerDelta(ItemPath deltaParentPath, PrismContainerDefinition<?> visualizationDefinition) {
         NameImpl name = new NameImpl(deltaParentPath.toString());
         name.setId(String.valueOf(getLastId(deltaParentPath)));
-        if (sceneDefinition != null) {
-            name.setDisplayName(sceneDefinition.getDisplayName());
+        if (visualizationDefinition != null) {
+            name.setDisplayName(visualizationDefinition.getDisplayName());
         }
         name.setNamesAreResourceKeys(true);            // TODO: ok?
         return name;
@@ -563,8 +563,8 @@ public class Visualizer {
         return ItemPath.toIdOrNull(deltaParentPath.last());
     }
 
-    private PrismContainerDefinition<?> getSceneDefinition(SceneImpl ownerScene, ItemPath deltaParentItemPath) {
-        PrismContainerDefinition<?> rootDefinition = getRootDefinition(ownerScene);
+    private PrismContainerDefinition<?> getVisualizationDefinition(VisualizationImpl parent, ItemPath deltaParentItemPath) {
+        PrismContainerDefinition<?> rootDefinition = getRootDefinition(parent);
         if (rootDefinition == null) {
             return null;
         } else {
@@ -572,61 +572,61 @@ public class Visualizer {
         }
     }
 
-    private void visualizeAtomicDelta(ItemDelta<?, ?> delta, SceneImpl scene, VisualizationContext context, Task task, OperationResult result)
+    private void visualizeAtomicDelta(ItemDelta<?, ?> delta, VisualizationImpl visualization, VisualizationContext context, Task task, OperationResult result)
             throws SchemaException {
         ItemPath deltaParentPath = delta.getParentPath();
-        ItemPath sceneRelativeItemPath = getDeltaParentItemPath(deltaParentPath).remainder(scene.getSourceRelPath());
-        SceneImpl sceneForItem;
+        ItemPath visualizationRelativeItemPath = getDeltaParentItemPath(deltaParentPath).remainder(visualization.getSourceRelPath());
+        VisualizationImpl visualizationForItem;
         if (ItemPath.isEmpty(deltaParentPath)) {
-            sceneForItem = scene;
+            visualizationForItem = visualization;
         } else {
-            sceneForItem = findPartialSceneByPath(scene, deltaParentPath);
-            if (sceneForItem == null) {
-                sceneForItem = createContainerScene(MODIFY, deltaParentPath, scene);
-                if (sceneForItem.isOperational() && !context.isIncludeOperationalItems()) {
+            visualizationForItem = findPartialVisualizationByPath(visualization, deltaParentPath);
+            if (visualizationForItem == null) {
+                visualizationForItem = createContainerVisualization(MODIFY, deltaParentPath, visualization);
+                if (visualizationForItem.isOperational() && !context.isIncludeOperationalItems()) {
                     return;
                 }
-                PrismContainerValue<?> ownerPCV = scene.getSourceValue();
+                PrismContainerValue<?> ownerPCV = visualization.getSourceValue();
                 if (ownerPCV != null) {
-                    Item<?, ?> item = ownerPCV.findItem(sceneRelativeItemPath);
+                    Item<?, ?> item = ownerPCV.findItem(visualizationRelativeItemPath);
                     if (item instanceof PrismContainer) {
                         PrismContainer<?> container = (PrismContainer<?>) item;
-                        sceneForItem.setSourceDefinition(container.getDefinition());
+                        visualizationForItem.setSourceDefinition(container.getDefinition());
                         Long lastId = getLastId(deltaParentPath);
-                        PrismContainerValue<?> sceneSrcValue;
+                        PrismContainerValue<?> visualizationSrcValue;
                         if (lastId == null) {
                             if (container.size() == 1) {
-                                sceneSrcValue = container.getValues().get(0);
+                                visualizationSrcValue = container.getValues().get(0);
                             } else {
-                                sceneSrcValue = null;
+                                visualizationSrcValue = null;
                             }
                         } else {
-                            sceneSrcValue = container.findValue(lastId);
+                            visualizationSrcValue = container.findValue(lastId);
                         }
-                        if (sceneSrcValue != null) {
-                            sceneForItem.setSourceValue(sceneSrcValue);
-                            addDescriptiveItems(sceneForItem, sceneSrcValue, context, task, result);
+                        if (visualizationSrcValue != null) {
+                            visualizationForItem.setSourceValue(visualizationSrcValue);
+                            addDescriptiveItems(visualizationForItem, visualizationSrcValue, context, task, result);
                         }
                     }
                 }
-                scene.addPartialScene(sceneForItem);
+                visualization.addPartialVisualization(visualizationForItem);
             }
         }
-        ItemPath itemRelativeItemPath = getDeltaParentItemPath(delta.getPath()).remainder(sceneForItem.getSourceRelPath());
+        ItemPath itemRelativeItemPath = getDeltaParentItemPath(delta.getPath()).remainder(visualizationForItem.getSourceRelPath());
         if (context.isRemoveExtraDescriptiveItems()) {
-            Iterator<? extends SceneItemImpl> iterator = sceneForItem.getItems().iterator();
+            Iterator<? extends VisualizationItemImpl> iterator = visualizationForItem.getItems().iterator();
             while (iterator.hasNext()) {
-                SceneItemImpl sceneItem = iterator.next();
-                if (sceneItem.isDescriptive() && sceneItem.getSourceRelPath() != null && sceneItem.getSourceRelPath().equivalent(itemRelativeItemPath)) {
+                VisualizationItemImpl item = iterator.next();
+                if (item.isDescriptive() && item.getSourceRelPath() != null && item.getSourceRelPath().equivalent(itemRelativeItemPath)) {
                     iterator.remove();
                     break;
                 }
             }
         }
-        visualizeAtomicItemDelta(sceneForItem, delta, context, task, result);
+        visualizeAtomicItemDelta(visualizationForItem, delta, context, task, result);
     }
 
-    private void addDescriptiveItems(SceneImpl scene, PrismContainerValue<?> sourceValue, VisualizationContext context, Task task, OperationResult result) {
+    private void addDescriptiveItems(VisualizationImpl visualization, PrismContainerValue<?> sourceValue, VisualizationContext context, Task task, OperationResult result) {
         // TODO dynamically typed values
         if (sourceValue.getContainer() == null || sourceValue.getContainer().getCompileTimeClass() == null) {
             return;
@@ -643,37 +643,37 @@ public class Visualizer {
                 itemsToShow.add(item);
             }
         }
-        visualizeItems(scene, itemsToShow, true, context, task, result);
+        visualizeItems(visualization, itemsToShow, true, context, task, result);
     }
 
-    private PrismContainerDefinition<?> getRootDefinition(SceneImpl scene) {
-        while (scene.getOwner() != null) {
-            scene = scene.getOwner();
+    private PrismContainerDefinition<?> getRootDefinition(VisualizationImpl visualization) {
+        while (visualization.getOwner() != null) {
+            visualization = visualization.getOwner();
         }
-        return scene.getSourceDefinition();
+        return visualization.getSourceDefinition();
     }
 
-    private SceneImpl findPartialSceneByPath(SceneImpl scene, ItemPath deltaParentPath) {
-        for (SceneImpl subscene : scene.getPartialVisualizations()) {
-            if (subscene.getSourceAbsPath().equivalent(deltaParentPath) && subscene.getChangeType() == MODIFY) {
-                return subscene;
+    private VisualizationImpl findPartialVisualizationByPath(VisualizationImpl visualization, ItemPath deltaParentPath) {
+        for (VisualizationImpl partial : visualization.getPartialVisualizations()) {
+            if (partial.getSourceAbsPath().equivalent(deltaParentPath) && partial.getChangeType() == MODIFY) {
+                return partial;
             }
         }
         return null;
     }
 
-    private void visualizeAtomicItemDelta(SceneImpl scene, ItemDelta<?, ?> delta, VisualizationContext context, Task task, OperationResult result)
+    private void visualizeAtomicItemDelta(VisualizationImpl visualization, ItemDelta<?, ?> delta, VisualizationContext context, Task task, OperationResult result)
             throws SchemaException {
-        final SceneDeltaItemImpl sceneDeltaItem;
+        final VisualizationDeltaItemImpl visualizationDeltaItem;
         if (delta instanceof PropertyDelta) {
-            sceneDeltaItem = createSceneDeltaItem((PropertyDelta) delta, scene, context, task, result);
+            visualizationDeltaItem = createVisualizationDeltaItem((PropertyDelta) delta, visualization, context, task, result);
         } else if (delta instanceof ReferenceDelta) {
-            sceneDeltaItem = createSceneDeltaItem((ReferenceDelta) delta, scene, context, task, result);
+            visualizationDeltaItem = createVisualizationDeltaItem((ReferenceDelta) delta, visualization, context, task, result);
         } else {
             throw new IllegalStateException("No property nor reference delta: " + delta);
         }
-        if (!sceneDeltaItem.isOperational() || context.isIncludeOperationalItems()) {
-            scene.addItem(sceneDeltaItem);
+        if (!visualizationDeltaItem.isOperational() || context.isIncludeOperationalItems()) {
+            visualization.addItem(visualizationDeltaItem);
         }
     }
 
@@ -711,8 +711,8 @@ public class Visualizer {
         }
     }
 
-    private SceneItemImpl createSceneItemCommon(Item<?, ?> item) {
-        SceneItemImpl si = new SceneItemImpl(createSceneItemName(item));
+    private VisualizationItemImpl createVisualizationItemCommon(Item<?, ?> item) {
+        VisualizationItemImpl si = new VisualizationItemImpl(createVisualizationItemName(item));
         ItemDefinition<?> def = item.getDefinition();
         if (def != null) {
             si.setOperational(def.isOperational());
@@ -722,30 +722,30 @@ public class Visualizer {
         return si;
     }
 
-    private SceneItemImpl createSceneItem(PrismProperty<?> property, boolean descriptive) {
-        SceneItemImpl si = createSceneItemCommon(property);
-        si.setNewValues(toSceneItemValues(property.getValues()));
+    private VisualizationItemImpl createVisualizationItem(PrismProperty<?> property, boolean descriptive) {
+        VisualizationItemImpl si = createVisualizationItemCommon(property);
+        si.setNewValues(toVisualizationItemValues(property.getValues()));
         si.setDescriptive(descriptive);
         return si;
     }
 
-    private SceneItemImpl createSceneItem(PrismReference reference, boolean descriptive, VisualizationContext context, Task task,
+    private VisualizationItemImpl createVisualizationItem(PrismReference reference, boolean descriptive, VisualizationContext context, Task task,
             OperationResult result) {
-        SceneItemImpl si = createSceneItemCommon(reference);
-        si.setNewValues(toSceneItemValuesRef(reference.getValues(), context, task, result));
+        VisualizationItemImpl si = createVisualizationItemCommon(reference);
+        si.setNewValues(toVisualizationItemValuesRef(reference.getValues(), context, task, result));
         si.setDescriptive(descriptive);
         return si;
     }
 
     @SuppressWarnings({ "unused", "unchecked" })
-    private SceneDeltaItemImpl createSceneDeltaItem(PropertyDelta<?> delta, SceneImpl owningScene, VisualizationContext context, Task task,
+    private VisualizationDeltaItemImpl createVisualizationDeltaItem(PropertyDelta<?> delta, VisualizationImpl parent, VisualizationContext context, Task task,
             OperationResult result) throws SchemaException {
-        SceneDeltaItemImpl si = createSceneDeltaItemCommon(delta, owningScene);
+        VisualizationDeltaItemImpl si = createVisualizationDeltaItemCommon(delta, parent);
         if (delta.isDelete() && CollectionUtils.isEmpty(delta.getEstimatedOldValues()) &&
                 CollectionUtils.isNotEmpty(delta.getValuesToDelete())) {
             delta.setEstimatedOldValues((Collection) delta.getValuesToDelete());
         }
-        si.setOldValues(toSceneItemValues(delta.getEstimatedOldValues()));
+        si.setOldValues(toVisualizationItemValues(delta.getEstimatedOldValues()));
 
         PrismProperty property = prismContext.itemFactory().createProperty(delta.getElementName());
         if (delta.getEstimatedOldValues() != null) {
@@ -757,18 +757,18 @@ public class Visualizer {
             throw new SystemException("Couldn't visualize property delta: " + delta + ": " + e.getMessage(), e);
         }
         computeAddedDeletedUnchanged(si, delta.getEstimatedOldValues(), property.getValues());
-        si.setNewValues(toSceneItemValues(property.getValues()));
+        si.setNewValues(toVisualizationItemValues(property.getValues()));
         return si;
     }
 
-    private <V extends PrismPropertyValue<?>> void computeAddedDeletedUnchanged(SceneDeltaItemImpl si, Collection<V> oldValues, Collection<V> newValues) {
+    private <V extends PrismPropertyValue<?>> void computeAddedDeletedUnchanged(VisualizationDeltaItemImpl si, Collection<V> oldValues, Collection<V> newValues) {
         List<V> added = new ArrayList<>();
         List<V> deleted = new ArrayList<>();
         List<V> unchanged = new ArrayList<>();
         computeDifferences(oldValues, newValues, added, deleted, unchanged);
-        si.setAddedValues(toSceneItemValues(added));
-        si.setDeletedValues(toSceneItemValues(deleted));
-        si.setUnchangedValues(toSceneItemValues(unchanged));
+        si.setAddedValues(toVisualizationItemValues(added));
+        si.setDeletedValues(toVisualizationItemValues(deleted));
+        si.setUnchangedValues(toVisualizationItemValues(unchanged));
     }
 
     private <V extends PrismValue> void computeDifferences(Collection<V> oldValues, Collection<V> newValues, List<V> added, List<V> deleted, List<V> unchanged) {
@@ -790,20 +790,20 @@ public class Visualizer {
         }
     }
 
-    private void computeAddedDeletedUnchangedRef(SceneDeltaItemImpl si, Collection<PrismReferenceValue> oldValues, Collection<PrismReferenceValue> newValues,
+    private void computeAddedDeletedUnchangedRef(VisualizationDeltaItemImpl si, Collection<PrismReferenceValue> oldValues, Collection<PrismReferenceValue> newValues,
             VisualizationContext context, Task task, OperationResult result) {
         List<PrismReferenceValue> added = new ArrayList<>();
         List<PrismReferenceValue> deleted = new ArrayList<>();
         List<PrismReferenceValue> unchanged = new ArrayList<>();
         computeDifferences(oldValues, newValues, added, deleted, unchanged);
-        si.setAddedValues(toSceneItemValuesRef(added, context, task, result));
-        si.setDeletedValues(toSceneItemValuesRef(deleted, context, task, result));
-        si.setUnchangedValues(toSceneItemValuesRef(unchanged, context, task, result));
+        si.setAddedValues(toVisualizationItemValuesRef(added, context, task, result));
+        si.setDeletedValues(toVisualizationItemValuesRef(deleted, context, task, result));
+        si.setUnchangedValues(toVisualizationItemValuesRef(unchanged, context, task, result));
     }
 
     @SuppressWarnings("unchecked")
-    private <V extends PrismValue, D extends ItemDefinition> SceneDeltaItemImpl createSceneDeltaItemCommon(ItemDelta<V, D> itemDelta,
-            SceneImpl owningScene)
+    private <V extends PrismValue, D extends ItemDefinition> VisualizationDeltaItemImpl createVisualizationDeltaItemCommon(ItemDelta<V, D> itemDelta,
+            VisualizationImpl parent)
             throws SchemaException {
         String simpleName = itemDelta.getElementName() != null ? itemDelta.getElementName().getLocalPart() : "";
         NameImpl name = new NameImpl(simpleName);
@@ -813,7 +813,7 @@ public class Visualizer {
         name.setId(simpleName);
         name.setNamesAreResourceKeys(true);
 
-        SceneDeltaItemImpl si = new SceneDeltaItemImpl(name);
+        VisualizationDeltaItemImpl si = new VisualizationDeltaItemImpl(name);
         si.setSourceDelta(itemDelta);
 
         D def = itemDelta.getDefinition();
@@ -825,7 +825,7 @@ public class Visualizer {
             si.setSourceItem(item);
             si.setOperational(def.isOperational());
         }
-        ItemPath remainder = itemDelta.getPath().remainder(owningScene.getSourceRelPath());
+        ItemPath remainder = itemDelta.getPath().remainder(parent.getSourceRelPath());
         if (remainder.startsWithNullId()) {
             remainder = remainder.rest();
         }
@@ -833,7 +833,7 @@ public class Visualizer {
         return si;
     }
 
-    private NameImpl createSceneItemName(Item<?, ?> item) {
+    private NameImpl createVisualizationItemName(Item<?, ?> item) {
         NameImpl name = new NameImpl(item.getElementName().getLocalPart());
         ItemDefinition<?> def = item.getDefinition();
         if (def != null) {
@@ -845,15 +845,15 @@ public class Visualizer {
         return name;
     }
 
-    private SceneDeltaItemImpl createSceneDeltaItem(ReferenceDelta delta, SceneImpl owningScene, VisualizationContext context, Task task,
+    private VisualizationDeltaItemImpl createVisualizationDeltaItem(ReferenceDelta delta, VisualizationImpl parent, VisualizationContext context, Task task,
             OperationResult result)
             throws SchemaException {
-        SceneDeltaItemImpl di = createSceneDeltaItemCommon(delta, owningScene);
+        VisualizationDeltaItemImpl di = createVisualizationDeltaItemCommon(delta, parent);
         if (delta.isDelete() && CollectionUtils.isEmpty(delta.getEstimatedOldValues()) &&
                 CollectionUtils.isNotEmpty(delta.getValuesToDelete())) {
             delta.setEstimatedOldValues(delta.getValuesToDelete());
         }
-        di.setOldValues(toSceneItemValuesRef(delta.getEstimatedOldValues(), context, task, result));
+        di.setOldValues(toVisualizationItemValuesRef(delta.getEstimatedOldValues(), context, task, result));
 
         PrismReference reference = prismContext.itemFactory().createReference(delta.getElementName());
         try {
@@ -865,16 +865,16 @@ public class Visualizer {
             throw new SystemException("Couldn't visualize reference delta: " + delta + ": " + e.getMessage(), e);
         }
         computeAddedDeletedUnchangedRef(di, delta.getEstimatedOldValues(), reference.getValues(), context, task, result);
-        di.setNewValues(toSceneItemValuesRef(reference.getValues(), context, task, result));
+        di.setNewValues(toVisualizationItemValuesRef(reference.getValues(), context, task, result));
         return di;
     }
 
-    private List<SceneItemValueImpl> toSceneItemValues(Collection<? extends PrismPropertyValue<?>> values) {
-        List<SceneItemValueImpl> rv = new ArrayList<>();
+    private List<VisualizationItemValueImpl> toVisualizationItemValues(Collection<? extends PrismPropertyValue<?>> values) {
+        List<VisualizationItemValueImpl> rv = new ArrayList<>();
         if (values != null) {
             for (PrismPropertyValue<?> value : values) {
                 if (value != null) {
-                    SceneItemValueImpl siv = new SceneItemValueImpl(ValueDisplayUtil.toStringValue(value));
+                    VisualizationItemValueImpl siv = new VisualizationItemValueImpl(ValueDisplayUtil.toStringValue(value));
                     siv.setSourceValue(value);
                     rv.add(siv);
                 }
@@ -883,8 +883,8 @@ public class Visualizer {
         return rv;
     }
 
-    private List<SceneItemValueImpl> toSceneItemValuesRef(Collection<PrismReferenceValue> refValues, VisualizationContext context, Task task, OperationResult result) {
-        List<SceneItemValueImpl> rv = new ArrayList<>();
+    private List<VisualizationItemValueImpl> toVisualizationItemValuesRef(Collection<PrismReferenceValue> refValues, VisualizationContext context, Task task, OperationResult result) {
+        List<VisualizationItemValueImpl> rv = new ArrayList<>();
         if (refValues != null) {
             for (PrismReferenceValue refValue : refValues) {
                 if (refValue != null) {
@@ -903,7 +903,7 @@ public class Visualizer {
                     } else {
                         relation = null;
                     }
-                    SceneItemValueImpl itemValue = new SceneItemValueImpl(name, relation);
+                    VisualizationItemValueImpl itemValue = new VisualizationItemValueImpl(name, relation);
                     itemValue.setSourceValue(refValue);
                     rv.add(itemValue);
                 }
@@ -927,7 +927,7 @@ public class Visualizer {
         return refValue;
     }
 
-    private NameImpl createSceneName(PrismObject<? extends ObjectType> object) {
+    private NameImpl createVisualizationName(PrismObject<? extends ObjectType> object) {
         NameImpl name = new NameImpl(object.getName() != null ? getOrig(object.getName()) : object.getOid());
         name.setId(object.getOid());
         ObjectType objectType = object.asObjectable();
@@ -941,7 +941,7 @@ public class Visualizer {
         return name;
     }
 
-    private NameImpl createSceneName(String oid, ObjectReferenceType objectRef) {
+    private NameImpl createVisualizationName(String oid, ObjectReferenceType objectRef) {
         NameImpl nv = new NameImpl(oid);
         nv.setId(oid);
         if (objectRef != null && objectRef.asReferenceValue() != null && objectRef.asReferenceValue().getObject() != null) {

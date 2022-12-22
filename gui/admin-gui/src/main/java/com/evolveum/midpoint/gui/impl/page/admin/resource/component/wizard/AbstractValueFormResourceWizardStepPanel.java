@@ -6,11 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.*;
@@ -24,6 +25,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -32,14 +35,15 @@ import org.apache.wicket.model.LoadableDetachableModel;
 /**
  * @author lskublik
  */
-public abstract class AbstractValueFormResourceWizardStepPanel<C extends Containerable> extends AbstractResourceWizardStepPanel {
+public abstract class AbstractValueFormResourceWizardStepPanel<C extends Containerable, O extends ObjectType, ODM extends ObjectDetailsModels<O>>
+        extends AbstractWizardStepPanel<O, ODM> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractValueFormResourceWizardStepPanel.class);
     private static final String ID_VALUE = "value";
     private final IModel<PrismContainerValueWrapper<C>> newValueModel;
 
     public AbstractValueFormResourceWizardStepPanel(
-            ResourceDetailsModel model,
+            ODM model,
             IModel<PrismContainerValueWrapper<C>> newValueModel) {
         super(model);
         this.newValueModel = newValueModel;
@@ -111,7 +115,7 @@ public abstract class AbstractValueFormResourceWizardStepPanel<C extends Contain
 
     protected ContainerPanelConfigurationType getContainerConfiguration() {
         return WebComponentUtil.getContainerConfiguration(
-                getResourceModel().getObjectDetailsPageConfiguration().getObject(), getPanelType());
+                this.getDetailsModel().getObjectDetailsPageConfiguration().getObject(), getPanelType());
     }
 
     protected abstract String getPanelType();

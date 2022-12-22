@@ -7,13 +7,15 @@
 
 package com.evolveum.midpoint.schema;
 
+import java.io.Serializable;
+
 /**
  * Describes the execution mode this task runs in. For example, if it is a "full execution" or a preview/simulation.
  * Or, if we should work with the production or development configuration.
  *
  * TEMPORARY IMPLEMENTATION
  */
-public class TaskExecutionMode {
+public class TaskExecutionMode implements Serializable {
 
     public static final TaskExecutionMode PRODUCTION =
             new TaskExecutionMode("PRODUCTION", true, true);
@@ -47,7 +49,7 @@ public class TaskExecutionMode {
      * - Production usually means `active` and `deprecated` lifecycle states.
      * - Development usually means `active` and `proposed` states.
      *
-     * However, in the future we may provide more customization options here (e.g. explicit enumeration of livecycle states
+     * However, in the future we may provide more customization options here (e.g. explicit enumeration of lifecycle states
      * to use, or even a set of specific deltas to apply).
      *
      * If {@link #persistent} is `true` then {@link #productionConfiguration} should be `true` as well.

@@ -223,7 +223,12 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
         AssignmentPathVariables assignmentPathVariables = request.getAssignmentPathVariables();
 
         if (!MappingImpl.isApplicableToChannel(mappingBean, context.getChannel())) {
-            LOGGER.trace("Mapping {} not applicable to channel {}, skipping.", mappingBean, context.getChannel());
+            LOGGER.trace("Mapping {} is not applicable to channel {}, skipping", mappingBean, context.getChannel());
+            return null;
+        }
+
+        if (!task.canSee(mappingBean)) {
+            LOGGER.trace("Mapping {} is not visible in the current task, skipping", mappingBean);
             return null;
         }
 
@@ -286,7 +291,6 @@ public class FocalMappingSetEvaluation<F extends AssignmentHolderType, T extends
                         variables,
                         beans.mappingFactory.getObjectResolver(),
                         contextDesc,
-                        prismContext,
                         task,
                         result);
 

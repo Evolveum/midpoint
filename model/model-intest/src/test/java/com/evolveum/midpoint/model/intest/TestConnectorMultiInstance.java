@@ -43,8 +43,8 @@ public class TestConnectorMultiInstance extends AbstractConfiguredModelIntegrati
 
     public static final File TEST_DIR = new File("src/test/resources/multi");
 
-    protected DummyResource dummyResourceYellow;
-    protected DummyResourceContoller dummyResourceCtlYellow;
+    private DummyResource dummyResourceYellow;
+    private DummyResourceContoller dummyResourceCtlYellow;
 
     private String accountJackYellowOid;
     private String initialConnectorStaticVal;

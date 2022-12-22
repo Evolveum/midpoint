@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.common.expression.evaluator.path;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -26,12 +25,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  *
  * @author Radovan Semancik
  */
-public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>>
         extends AbstractExpressionEvaluator<V, D, ItemPathType> {
 
-    PathExpressionEvaluator(QName elementName, ItemPathType path, D outputDefinition, Protector protector,
-            PrismContext prismContext) {
-        super(elementName, path, outputDefinition, protector, prismContext);
+    PathExpressionEvaluator(QName elementName, ItemPathType path, D outputDefinition, Protector protector) {
+        super(elementName, path, outputDefinition, protector);
     }
 
     @Override

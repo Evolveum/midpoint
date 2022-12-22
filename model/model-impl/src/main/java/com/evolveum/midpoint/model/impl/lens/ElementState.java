@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.OperationExecution;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
 import static com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.recordEndEmbedded;
 import static com.evolveum.midpoint.schema.internals.ThreadLocalOperationsMonitor.recordStartEmbedded;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MonitoredOperationType.*;
@@ -719,11 +721,43 @@ class ElementState<O extends ObjectType> implements Serializable, Cloneable {
      *
      * CURRENTLY CALLED ONLY FOR FOCUS. ASSUMES SUCCESSFUL EXECUTION.
      */
-    void updateAfterExecution(int executionWave) {
+    void updateAfterExecution(@NotNull TaskExecutionMode taskExecutionMode, int executionWave) throws SchemaException {
         wasPrimaryDeltaExecuted = true;
 
         archivedSecondaryDeltas.add(executionWave, secondaryDelta);
+
+        if (!taskExecutionMode.isPersistent()) {
+            // FIXME temporary code
+            if (currentObject == null && isAdd(primaryDelta)) {
+                currentObject = primaryDelta.getObjectToAdd().clone();
+            }
+            if (currentObject == null) {
+                if (isAdd(currentDelta)) {
+                    currentObject = currentDelta.getObjectToAdd();
+                } else if (currentDelta != null) {
+                    LOGGER.warn("No current object and current delta is not add? Ignoring:\n{}", currentDelta.debugDump());
+                }
+            } else if (currentDelta != null) {
+                if (currentDelta.isAdd()) {
+                    LOGGER.warn("Current object exists and current delta is ADD? Ignoring. Object:\n{}\nDelta:\n{}",
+                            currentObject.debugDump(1), currentDelta.debugDump(1));
+                } else if (currentDelta.isDelete()) {
+                    LOGGER.debug("Ignoring application of DELETE delta in simulation mode: {}", currentDelta);
+                } else {
+                    currentDelta.applyTo(currentObject);
+                }
+            }
+            if (currentObject != null) {
+                generateMissingContainerIds(currentObject);
+            }
+        }
+
         clearSecondaryDelta();
+    }
+
+    private void generateMissingContainerIds(PrismObject<O> currentObject) throws SchemaException {
+        StolenContainerValueIdGenerator generator = new StolenContainerValueIdGenerator(currentObject);
+        generator.generateForNewObject(); // temporary
     }
 
     /**

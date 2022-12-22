@@ -6,28 +6,17 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ENABLE_TIMESTAMP;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.cast;
 
 import java.io.File;
 import java.util.*;
-import java.util.Objects;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -36,24 +25,28 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.*;
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -82,8 +75,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     private static final String RESOURCE_DUMMY_CORAL_OID = "10000000-0000-0000-0000-0000000b1004";
     private static final String RESOURCE_DUMMY_CORAL_NAME = "coral";
 
-    private static final TestResource RESOURCE_DUMMY_PRECREATE = new TestResource(TEST_DIR, "resource-dummy-precreate.xml", "f18711a2-5db5-4562-b50d-3ef4c74f2e1d");
-    private static final String RESOURCE_DUMMY_PRECREATE_NAME = "precreate";
+    private static final DummyTestResource RESOURCE_DUMMY_PRECREATE = new DummyTestResource(TEST_DIR,
+            "resource-dummy-precreate.xml", "f18711a2-5db5-4562-b50d-3ef4c74f2e1d", "precreate");
 
     private static final String ACCOUNT_MANCOMB_DUMMY_USERNAME = "mancomb";
     private static final Date ACCOUNT_MANCOMB_VALID_FROM_DATE = MiscUtil.asDate(2011, 2, 3, 4, 5, 6);
@@ -107,11 +100,6 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     private ResourceType resourceDummyCoralType;
     private PrismObject<ResourceType> resourceDummyCoral;
 
-    private DummyResource dummyResourcePrecreate;
-    private DummyResourceContoller dummyResourceCtlPrecreate;
-    private ResourceType resourceDummyPrecreateType;
-    private PrismObject<ResourceType> resourceDummyPrecreate;
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
@@ -132,11 +120,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         resourceDummyCoralType = resourceDummyCoral.asObjectable();
         dummyResourceCtlCoral.setResource(resourceDummyCoral);
 
-        dummyResourceCtlPrecreate = DummyResourceContoller.create(RESOURCE_DUMMY_PRECREATE_NAME, resourceDummyPrecreate);
-        dummyResourcePrecreate = dummyResourceCtlPrecreate.getDummyResource();
-        resourceDummyPrecreate = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PRECREATE.file, RESOURCE_DUMMY_PRECREATE.oid, initTask, initResult);
-        resourceDummyPrecreateType = resourceDummyPrecreate.asObjectable();
-        dummyResourceCtlPrecreate.setResource(resourceDummyPrecreate);
+        RESOURCE_DUMMY_PRECREATE.init(this, initTask, initResult);
 //
 //        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }

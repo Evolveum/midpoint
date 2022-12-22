@@ -12,6 +12,7 @@ import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.EvaluatedResourceObjectConstruction;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
@@ -96,7 +97,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
 
     //region Construction evaluation
     /**
-     * Evaluates this construction. Note that evaluation is delegated to EvaluatedConstruction objects,
+     * Evaluates this construction. Note that evaluation is delegated to {@link EvaluatedResourceObjectConstruction} objects,
      * which are created here (based on tag mapping evaluation).
      */
     public NextRecompute evaluate(Task task, OperationResult parentResult)
@@ -164,7 +165,8 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder =
                 getMappingFactory().createMappingBuilder(tagMappingBean, "for outbound tag mapping in " + getSource());
 
-        builder = initializeMappingBuilder(builder, ShadowType.F_TAG, ShadowType.F_TAG, createTagDefinition(), null);
+        builder = initializeMappingBuilder(
+                builder, ShadowType.F_TAG, ShadowType.F_TAG, createTagDefinition(), null, task);
         if (builder == null) {
             return null;
         }
@@ -178,7 +180,7 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     @NotNull
     private MutablePrismPropertyDefinition<String> createTagDefinition() {
         MutablePrismPropertyDefinition<String> outputDefinition =
-                getMappingFactory().getExpressionFactory().getPrismContext().definitionFactory()
+                PrismContext.get().definitionFactory()
                         .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
         outputDefinition.setMaxOccurs(-1);
         return outputDefinition;
@@ -243,11 +245,19 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
      * @return null if mapping is not applicable
      */
     <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> initializeMappingBuilder(
-            MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
-            ResourceObjectTypeDefinition assocTargetObjectClassDefinition) throws SchemaException {
+            MappingBuilder<V, D> builder,
+            ItemPath implicitTargetPath,
+            QName mappingQName,
+            D outputDefinition,
+            ResourceObjectTypeDefinition assocTargetObjectClassDefinition,
+            Task task) throws SchemaException {
 
         if (!builder.isApplicableToChannel(lensContext.getChannel())) {
             LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", implicitTargetPath);
+            return null;
+        }
+        if (!builder.isApplicableToExecutionMode(task.getExecutionMode())) {
+            LOGGER.trace("Skipping outbound mapping for {} because the execution mode does not match", implicitTargetPath);
             return null;
         }
 

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.functions;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
@@ -51,16 +52,15 @@ public class CustomFunctions {
 
     private static final Trace LOGGER = TraceManager.getTrace(CustomFunctions.class);
 
-    private ExpressionFactory expressionFactory;
-    private FunctionLibraryType library;
-    private ExpressionProfile expressionProfile;
-    private PrismContext prismContext;
+    private final ExpressionFactory expressionFactory;
+    private final FunctionLibraryType library;
+    private final ExpressionProfile expressionProfile;
+    private final PrismContext prismContext = PrismContext.get();
 
     public CustomFunctions(FunctionLibraryType library, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile) {
         this.library = library;
         this.expressionFactory = expressionFactory;
         this.expressionProfile = expressionProfile;
-        this.prismContext = expressionFactory.getPrismContext();
     }
 
     /**
@@ -122,6 +122,7 @@ public class CustomFunctions {
                     shortDesc, task, result);
 
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+            context.setExpressionFactory(expressionFactory);
             PrismValueDeltaSetTriple<V> outputTriple = expression.evaluate(context, result);
 
             LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
@@ -192,20 +193,18 @@ public class CustomFunctions {
         Class<?> expressionParameterClass = prismContext.getSchemaRegistry().determineClassForType(paramType);
 
         Object value;
-        if (expressionParameterClass != null && !DOMUtil.XSD_ANYTYPE.equals(paramType) && XmlTypeConverter.canConvert(expressionParameterClass)) {
-            value = ExpressionUtil.convertValue(expressionParameterClass, null, argValue,
-                    prismContext.getDefaultProtector(), prismContext);
+        if (expressionParameterClass != null
+                && !DOMUtil.XSD_ANYTYPE.equals(paramType)
+                && XmlTypeConverter.canConvert(expressionParameterClass)) {
+            value = ExpressionUtil.convertValue(
+                    expressionParameterClass, null, argValue, prismContext.getDefaultProtector());
         } else {
             value = argValue;
         }
 
         Class<?> valueClass;
         if (value == null) {
-            if (expressionParameterClass == null) {
-                valueClass = Object.class;
-            } else {
-                valueClass = expressionParameterClass;
-            }
+            valueClass = Objects.requireNonNullElse(expressionParameterClass, Object.class);
         } else {
             valueClass = value.getClass();
         }

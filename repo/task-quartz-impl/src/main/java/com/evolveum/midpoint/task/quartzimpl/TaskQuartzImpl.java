@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
 import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -105,6 +106,8 @@ public class TaskQuartzImpl implements Task {
     private static final int TIGHT_BINDING_INTERVAL_LIMIT = 10;
 
     @NotNull private TaskExecutionMode executionMode = TaskExecutionMode.PRODUCTION;
+
+    @NotNull private final Collection<AggregatedObjectProcessingListener> objectProcessingListeners = Sets.newConcurrentHashSet();
 
     /** Synchronizes Quartz-related operations. */
     private final Object quartzAccess = new Object();
@@ -387,7 +390,6 @@ public class TaskQuartzImpl implements Task {
         if (recreateQuartzTrigger) { // just in case there were no pending modifications
             synchronizeWithQuartz(result);
         }
-        beans.listenerRegistry.notifyTaskStatusFlushed(this, result);
     }
 
     int getPendingModificationsCount() {
@@ -403,13 +405,14 @@ public class TaskQuartzImpl implements Task {
         }
     }
 
-    private void modifyRepository(Collection<ItemDelta<?, ?>> deltas, OperationResult parentResult)
+    private void modifyRepository(Collection<ItemDelta<?, ?>> deltas, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         if (isPersistent() && !deltas.isEmpty()) {
             try {
-                beans.repositoryService.modifyObject(TaskType.class, getOid(), deltas, parentResult);
+                beans.repositoryService.modifyObject(TaskType.class, getOid(), deltas, result);
+                beans.listenerRegistry.notifyTaskUpdated(this, result);
             } finally {
-                synchronizeWithQuartzIfNeeded(deltas, parentResult);
+                synchronizeWithQuartzIfNeeded(deltas, result);
             }
         }
     }
@@ -419,6 +422,7 @@ public class TaskQuartzImpl implements Task {
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
         if (isPersistent()) {
             beans.repositoryService.modifyObject(TaskType.class, getOid(), deltas, precondition, null, result);
+            beans.listenerRegistry.notifyTaskUpdated(this, result);
         }
     }
 
@@ -427,6 +431,7 @@ public class TaskQuartzImpl implements Task {
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         if (isPersistent()) {
             beans.repositoryService.modifyObject(TaskType.class, getOid(), CloneUtil.cloneCollectionMembers(itemDeltas), result);
+
         }
         applyModificationsTransient(itemDeltas);
         synchronizeWithQuartzIfNeeded(pendingModifications, result);
@@ -1118,7 +1123,8 @@ public class TaskQuartzImpl implements Task {
 
         try {
             // todo use type from the reference instead
-            PrismObject<FocusType> owner = beans.repositoryService.getObject(FocusType.class, ownerRef.getOid(), null, result);
+            PrismObject<FocusType> owner =
+                    beans.repositoryService.getObject(FocusType.class, ownerRef.getOid(), null, result);
             synchronized (prismAccess) {
                 ownerRef.setObject(owner);
             }
@@ -2304,8 +2310,32 @@ public class TaskQuartzImpl implements Task {
         return executionMode;
     }
 
-    public void setExecutionMode(@NotNull TaskExecutionMode executionMode) {
+    public @NotNull TaskExecutionMode setExecutionMode(@NotNull TaskExecutionMode executionMode) {
+        TaskExecutionMode oldMode = this.executionMode;
         this.executionMode = Objects.requireNonNull(executionMode);
+        return oldMode;
+    }
+
+    @Override
+    public void addObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
+        objectProcessingListeners.add(listener);
+    }
+
+    @Override
+    public void removeObjectProcessingListener(@NotNull AggregatedObjectProcessingListener listener) {
+        objectProcessingListeners.remove(listener);
+    }
+
+    @Override
+    public <O extends ObjectType> void onItemProcessed(
+            @Nullable O stateBefore,
+            @Nullable ObjectDelta<O> executedDelta,
+            @Nullable ObjectDelta<O> simulatedDelta,
+            @NotNull Collection<String> eventTags,
+            @NotNull OperationResult result) throws SchemaException {
+        for (AggregatedObjectProcessingListener objectProcessingListener : objectProcessingListeners) {
+            objectProcessingListener.onItemProcessed(stateBefore, executedDelta, simulatedDelta, eventTags, result);
+        }
     }
     //endregion
 }

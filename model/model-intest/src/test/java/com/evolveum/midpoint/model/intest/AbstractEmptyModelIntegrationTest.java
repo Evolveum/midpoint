@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION;
 import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND;
 
 import java.io.File;
@@ -34,9 +34,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  * Creates a repo with:
  *
- *  - empty system configuration
- *  - administrator user (from common dir)
- *  - superuser role (from common dir)
+ * - empty system configuration
+ * - administrator user (from common dir)
+ * - superuser role (from common dir)
  *
  * There are some standard archetypes defined, but not imported. Individual tests should import them if necessary.
  */
@@ -61,9 +61,6 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
         InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
         super.initSystem(initTask, initResult);
 
-        modelService.postInit(initResult);
-        ManualConnectorInstance.setRandomDelayRange(0);
-
         // System Configuration
         PrismObject<SystemConfigurationType> configuration;
         try {
@@ -80,6 +77,11 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
         if (configuration != null) {
             relationRegistry.applyRelationsConfiguration(configuration.asObjectable());
         }
+
+        modelService.postInit(initResult);
+        ManualConnectorInstance.setRandomDelayRange(0);
+
+        repoAdd(STANDARD_FUNCTIONS, initResult);
 
         // Users
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);

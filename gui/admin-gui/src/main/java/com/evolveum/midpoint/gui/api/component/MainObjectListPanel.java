@@ -6,29 +6,10 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.*;
-
-import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
-import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
-import com.evolveum.midpoint.gui.impl.util.TableUtil;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.web.component.*;
-
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,38 +22,54 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.button.CsvDownloadButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.GuiDisplayTypeUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
+import com.evolveum.midpoint.gui.impl.util.ObjectCollectionViewUtil;
+import com.evolveum.midpoint.gui.impl.util.TableUtil;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxIconButton;
+import com.evolveum.midpoint.web.component.CompositedIconButtonDto;
+import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.wicket.model.PropertyModel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author katkav
@@ -309,15 +306,6 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
     }
 
-    @Override
-    protected List<IColumn<SelectableBean<O>, String>> createDefaultColumns() {
-        GuiObjectListViewType defaultView = DefaultColumnUtils.getDefaultView(getType());
-        if (defaultView == null) {
-            return null;
-        }
-        return getViewColumnsTransformed(defaultView.getColumn());
-    }
-
     private DisplayType getNewObjectButtonStandardDisplayType() {
         if (isCollectionViewPanelForCompiledView()) {
             CompiledObjectCollectionView view = getObjectCollectionView();
@@ -500,7 +488,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             return;
         }
 
-        OperationResult result = new OperationResult(objects.size() == 1 ? OPERATION_DELETE_OBJECT: OPERATION_DELETE_OBJECTS);
+        OperationResult result = new OperationResult(objects.size() == 1 ? OPERATION_DELETE_OBJECT : OPERATION_DELETE_OBJECTS);
         for (SelectableBean<O> object : objects) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
             try {
@@ -537,10 +525,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     /**
      * This method check selection in table. If selectedObject != null than it
      * returns only this object.
+     *
      * @return
      */
     public List<SelectableBean<O>> isAnythingSelected(AjaxRequestTarget target, IModel<SelectableBean<O>> selectedObject) {
-        List<SelectableBean<O>>  selectedObjects;
+        List<SelectableBean<O>> selectedObjects;
         if (selectedObject != null) {
             selectedObjects = new ArrayList<>();
             selectedObjects.add(selectedObject.getObject());
@@ -554,13 +543,13 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
         return null;
     }
 
-    public IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName){
+    public IModel<String> getConfirmationMessageModel(ColumnMenuAction action, String actionName) {
         if (action.getRowModel() == null) {
             return createStringResource(getConfirmMessageKeyForMultiObject(),
-                    actionName, getSelectedObjectsCount() );
+                    actionName, getSelectedObjectsCount());
         } else {
             return createStringResource(getConfirmMessageKeyForSingleObject(),
-                    actionName, ((ObjectType)((SelectableBean<?>)action.getRowModel().getObject()).getValue()).getName());
+                    actionName, ((ObjectType) ((SelectableBean<?>) action.getRowModel().getObject()).getValue()).getName());
         }
     }
 
@@ -587,7 +576,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
             }
 
             @Override
-            public IModel<String> getConfirmationMessageModel(){
+            public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("MainObjectListPanel.message.deleteAction").getString();
                 return MainObjectListPanel.this.getConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
             }

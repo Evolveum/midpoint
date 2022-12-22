@@ -82,7 +82,7 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .source((AssignmentHolderType) segment.target)
                 .sourceDescription(nextSourceDescription)
                 .assignment(inducement)
-                .isAssignment(false)
+                .isInducement()
                 .isHierarchy(archetypeHierarchy)
                 .pathToSourceValid(targetActivity.pathAndTargetActive)
                 .pathToSourceConditionState(targetOverallConditionState)

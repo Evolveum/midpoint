@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -21,6 +23,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.test.util.TestUtil;
 
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
@@ -569,8 +573,9 @@ public class ModifyTest extends BaseSQLRepoTest {
         // GIVEN
         XMLGregorianCalendar now = XmlTypeConverter
                 .createXMLGregorianCalendar(System.currentTimeMillis());
-        List<ItemDelta<?, ?>> syncSituationDeltas = SynchronizationUtils
-                .createSynchronizationSituationAndDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, null, false, now);
+        List<ItemDelta<?, ?>> syncSituationDeltas =
+                SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
+                        repoShadow.asObjectable(), SynchronizationSituationType.LINKED, null, false, now);
 
         // WHEN
         when();
@@ -629,8 +634,9 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.addObject(account, null, result);
 
         XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        List<ItemDelta<?, ?>> syncSituationDeltas = SynchronizationUtils.
-                createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null, false, timestamp);
+        List<ItemDelta<?, ?>> syncSituationDeltas =
+                SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
+                        account.asObjectable(), SynchronizationSituationType.LINKED, null, false, timestamp);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);
 
@@ -642,7 +648,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals(SynchronizationSituationType.LINKED, description.getSituation());
 
         timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false, timestamp);
+        syncSituationDeltas = SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
+                afterFirstModify.asObjectable(), null, null, false, timestamp);
 
         repositoryService.modifyObject(ShadowType.class, account.getOid(), syncSituationDeltas, getModifyOptions(), result);
 

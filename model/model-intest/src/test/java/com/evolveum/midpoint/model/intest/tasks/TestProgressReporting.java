@@ -148,7 +148,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         int users = 10;
         createAccounts("a", users);
 
-        addObject(TASK_RECONCILE_DUMMY_0T_NB_NP.file, task, result);
+        addObject(TASK_RECONCILE_DUMMY_0T_NB_NP, task, result);
 
         when();
 
@@ -174,7 +174,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
                     .end()
                     .child(RECONCILIATION_REMAINING_SHADOWS_ID)
                         .progress()
-                            .assertCommitted(0, 0, 1)
+                            .assertCommitted(1, 0, 0) // "pending" is processed because of death timestamp
                             .assertUncommitted(0, 0, 0)
                         .end()
                         .itemProcessingStatistics().display().end()
@@ -219,7 +219,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         given();
         createAccounts(accountPrefix, USERS);
 
-        addObject(reconciliationTask.file, task, result);
+        addObject(reconciliationTask, task, result);
 
         when("1st run");
 
@@ -316,7 +316,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         given();
         createAccounts(accountPrefix, USERS);
 
-        addObject(reconciliationTask.file, task, result);
+        addObject(reconciliationTask, task, result);
 
         int bucketSize = 10;
 
@@ -449,7 +449,7 @@ public class TestProgressReporting extends AbstractEmptyModelIntegrationTest {
         }
 
         System.out.println("Importing recompute task.");
-        addObject(recomputationTask.file, task, result);
+        addObject(recomputationTask, task, result);
 
         int bucketSize = 10;
 

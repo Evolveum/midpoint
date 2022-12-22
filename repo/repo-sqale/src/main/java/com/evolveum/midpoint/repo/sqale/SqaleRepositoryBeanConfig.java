@@ -53,9 +53,12 @@ import com.evolveum.midpoint.repo.sqale.qmodel.role.QArchetypeMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QRoleMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.role.QServiceMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.shadow.QShadowMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QProcessedObjectMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.simulation.QSimulationResultMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSecurityPolicyMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QSystemConfigurationMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.system.QValuePolicyMapping;
+import com.evolveum.midpoint.repo.sqale.qmodel.tag.QTagMapping;
 import com.evolveum.midpoint.repo.sqale.qmodel.task.QTaskMapping;
 import com.evolveum.midpoint.repo.sqlbase.DataSourceFactory;
 import com.evolveum.midpoint.repo.sqlbase.SystemConfigurationChangeDispatcherImpl;
@@ -186,6 +189,9 @@ public class SqaleRepositoryBeanConfig {
                 .register(ValuePolicyType.COMPLEX_TYPE, QValuePolicyMapping.init(repositoryContext))
                 .register(QContainerMapping.initContainerMapping(repositoryContext))
                 .register(QReferenceMapping.init(repositoryContext))
+                .register(SimulationResultType.COMPLEX_TYPE, QSimulationResultMapping.initSimulationResultMapping(repositoryContext))
+                .register(SimulationResultProcessedObjectType.COMPLEX_TYPE, QProcessedObjectMapping.initProcessedResultMapping(repositoryContext))
+                .register(TagType.COMPLEX_TYPE, QTagMapping.init(repositoryContext))
                 .seal();
 
         return repositoryContext;

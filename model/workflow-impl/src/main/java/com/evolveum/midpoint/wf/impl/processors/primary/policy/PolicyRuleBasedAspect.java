@@ -127,7 +127,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
     // evaluatedAssignment present only if relevant
     LocalizableMessage createProcessName(ApprovalSchemaBuilder.Result schemaBuilderResult,
-            @Nullable EvaluatedAssignment<?> evaluatedAssignment, ModelInvocationContext<?> ctx, OperationResult result) {
+            @Nullable EvaluatedAssignment evaluatedAssignment, ModelInvocationContext<?> ctx, OperationResult result) {
         LocalizableMessage name = processNameFromApprovalActions(schemaBuilderResult, evaluatedAssignment, ctx, result);
         LOGGER.trace("Approval display name from approval actions: {}", name);
         if (name != null) {
@@ -140,7 +140,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
     // corresponds with ConstraintEvaluationHelper.createVariablesMap
     private LocalizableMessage processNameFromApprovalActions(ApprovalSchemaBuilder.Result schemaBuilderResult,
-            @Nullable EvaluatedAssignment<?> evaluatedAssignment, ModelInvocationContext<?> ctx, OperationResult result) {
+            @Nullable EvaluatedAssignment evaluatedAssignment, ModelInvocationContext<?> ctx, OperationResult result) {
         if (schemaBuilderResult.approvalDisplayName == null) {
             return null;
         }
@@ -190,7 +190,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
                 if (actionWithRule.getRight() != null) {
                     for (EvaluatedPolicyRuleTrigger<?> trigger : actionWithRule.getRight().getAllTriggers()) {
                         // we don't care about options; these converted triggers will be thrown away
-                        triggers.add(trigger.toEvaluatedPolicyRuleTriggerBean(new PolicyRuleExternalizationOptions(), prismContext));
+                        triggers.add(trigger.toEvaluatedPolicyRuleTriggerBean(new PolicyRuleExternalizationOptions()));
                     }
                 }
             }

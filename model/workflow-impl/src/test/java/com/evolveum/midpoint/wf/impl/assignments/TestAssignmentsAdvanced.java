@@ -404,11 +404,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
                 .replace("new description")
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
                 .replace(PolyString.fromOrig("new full name"))
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
 
         // +THEN
         executeTest2(new TestDetails2<UserType>() {
@@ -520,11 +520,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_DESCRIPTION)
                 .replace("new description 2")
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
                 .replace(PolyString.fromOrig("new full name 2"))
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
 
         // +THEN
         executeTest2(new TestDetails2<UserType>() {
@@ -643,11 +643,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .item(UserType.F_ASSIGNMENT)
                 .add(ObjectTypeUtil.createAssignmentTo(roleRole28Oid, ObjectTypes.ROLE, prismContext)
                         .description("description"))
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
                 .replace(PolyString.fromOrig("new full name 3"))
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
 
         PrismObject<UserType> jackBefore = getUser(userJackOid);
 
@@ -756,11 +756,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .replace("new description")
                 .item(UserType.F_ASSIGNMENT, assignment.getId(), AssignmentType.F_LIFECYCLE_STATE)      // this will be part of the delta to approve
                 .replace("active")
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
                 .replace(PolyString.fromOrig("new full name 4"))
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
 
         // +THEN
         executeTest2(new TestDetails2<UserType>() {
@@ -862,11 +862,11 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> deltaToApprove = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .delete(new AssignmentType().id(assignment.getId()))        // id-only, to test the constraint
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
         ObjectDelta<UserType> delta0 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME)
                 .replace(PolyString.fromOrig("new full name 5"))
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
 
         // +THEN
         executeTest2(new TestDetails2<UserType>() {
@@ -971,7 +971,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                 .item(UserType.F_ASSIGNMENT)
                 .add(ObjectTypeUtil.createAssignmentTo(roleRole27Oid, ObjectTypes.ROLE, prismContext)
                         .description("description"))
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
         executeChanges(delta, null, task, result); // should proceed without approvals (only 1 of the items is present)
 
         // THEN
@@ -994,7 +994,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT, assignmentBefore.getId(), AssignmentType.F_DESCRIPTION)
                 .replace("new description")
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
 
         executeChanges(delta, null, task, result); // should proceed without approvals (only 1 of the items is present)
 
@@ -1177,7 +1177,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                         new AssignmentType()
                                 .targetRef(ROLE_IDEMPOTENT.oid, RoleType.COMPLEX_TYPE)
                                 .beginActivation().validFrom("1990-01-01T00:00:00").end())
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
 
         executeChanges(delta, null, task, result);
 
@@ -1217,7 +1217,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
                         new AssignmentType()
                                 .targetRef(ROLE_WITH_IDEMPOTENT_METAROLE.oid, RoleType.COMPLEX_TYPE)
                                 .beginActivation().validFrom("1990-01-01T00:00:00").end())
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
 
         executeChanges(delta, null, task, result);
 
@@ -1256,7 +1256,7 @@ public class TestAssignmentsAdvanced extends AbstractWfTestPolicy {
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(new AssignmentType().targetRef(ROLE_SKIPPED_FILE.oid, RoleType.COMPLEX_TYPE))
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
 
         executeChanges(delta, null, task, result);
 

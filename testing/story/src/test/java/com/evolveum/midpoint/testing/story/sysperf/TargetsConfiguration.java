@@ -133,7 +133,8 @@ class TargetsConfiguration {
         List<String> targetOidList = generatedResources.stream()
                 .map(r -> r.oid)
                 .collect(Collectors.toList());
-        VelocityGenerator.generate(ROLE_TARGETS_TEMPLATE_FILE, ROLE_TARGETS.file,
+        VelocityGenerator.generate(
+                ROLE_TARGETS_TEMPLATE_FILE, ROLE_TARGETS.getFile(),
                 Map.of("oidList", targetOidList));
     }
 

@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationExclusionReasonType.*;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.correlation.CompleteCorrelationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
@@ -39,6 +40,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 /**
  * Synchronization service receives change notifications from provisioning. It
  * decides which synchronization policy to use and evaluates it (correlation,
@@ -64,8 +67,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
     @Autowired private PrismContext prismContext;
     @Autowired private ModelBeans beans;
-    @Autowired private SynchronizationContextLoader syncContextLoader;
+    @Autowired private SynchronizationContextCreator syncContextCreator;
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
+    @Autowired private Clock clock;
 
     @Override
     public void notifyChange(
@@ -83,7 +87,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
             checkConsistence(change);
 
             // Object type and synchronization policy are determined here. Sorter is evaluated, if present.
-            SynchronizationContext<?> syncCtx = syncContextLoader.loadSynchronizationContextFromChange(change, task, result);
+            SynchronizationContext<?> syncCtx = syncContextCreator.createSynchronizationContext(change, task, result);
 
             if (shouldSkipSynchronization(syncCtx, result)) {
                 return; // sync metadata are saved by the above method
@@ -96,10 +100,20 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .updateAllSyncMetadata()
                     .commit(result);
 
+            boolean synchronizationFailure;
             if (!completeCtx.isDryRun()) {
-                new SynchronizationActionExecutor<>(completeCtx)
-                        .react(result);
+                synchronizationFailure =
+                        new SynchronizationActionExecutor<>(completeCtx)
+                                .react(result);
                 // Note that exceptions from action execution are not propagated here.
+            } else {
+                synchronizationFailure = false;
+            }
+
+            if (completeCtx.isPersistentExecution() && !synchronizationFailure) {
+                completeCtx.getUpdater()
+                        .updateFullSyncTimestamp(clock.currentTimeXMLGregorianCalendar())
+                        .commit(result);
             }
 
             LOGGER.debug("SYNCHRONIZATION: DONE (mode '{}') for {}",
@@ -169,16 +183,30 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      */
     private boolean shouldSkipSynchronization(SynchronizationContext<?> syncCtx, OperationResult result)
             throws SchemaException {
+        ShadowType shadow = syncCtx.getShadowedResourceObject();
+        QName objectClass = shadow.getObjectClass();
+        ResourceType resource = syncCtx.getResource();
+        String channel = syncCtx.getChannel();
+
+        if (!syncCtx.isVisible()) {
+            String message = String.format(
+                    "SYNCHRONIZATION the synchronization policy for %s (%s) on %s is not visible, ignoring change from channel %s",
+                    shadow, objectClass, resource, channel);
+            LOGGER.debug(message);
+            syncCtx.getUpdater()
+                    .updateAllSyncMetadata()
+                    .commit(result);
+            result.recordNotApplicable(message);
+            syncCtx.recordSyncExclusionInTask(NO_SYNCHRONIZATION_POLICY); // at least temporary
+            return true;
+        }
+
         if (!syncCtx.isComplete()) {
             // This means that either the shadow is not classified, or there is no type definition nor sync section
             // for its type (kind/intent).
             String message = String.format(
                     "SYNCHRONIZATION no applicable synchronization policy and/or type definition for %s (%s) on %s, "
-                            + "ignoring change from channel %s",
-                    syncCtx.getShadowedResourceObject(),
-                    syncCtx.getShadowedResourceObject().getObjectClass(),
-                    syncCtx.getResource(),
-                    syncCtx.getChannel());
+                            + "ignoring change from channel %s", shadow, objectClass, resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater()
                     .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
@@ -190,8 +218,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         if (!syncCtx.isSynchronizationEnabled()) {
             String message = String.format(
-                    "SYNCHRONIZATION is not enabled for %s, ignoring change from channel %s",
-                    syncCtx.getResource(), syncCtx.getChannel());
+                    "SYNCHRONIZATION is not enabled for %s, ignoring change from channel %s", resource, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater()
                     .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
@@ -204,8 +231,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
         if (syncCtx.isProtected()) {
             String message = String.format(
-                    "SYNCHRONIZATION is skipped for protected shadow %s, ignoring change from channel %s",
-                    syncCtx.getShadowedResourceObject(), syncCtx.getChannel());
+                    "SYNCHRONIZATION is skipped for protected shadow %s, ignoring change from channel %s", shadow, channel);
             LOGGER.debug(message);
             syncCtx.getUpdater()
                     .updateBothSyncTimestamps() // TODO should we really record this as full synchronization?
@@ -213,6 +239,19 @@ public class SynchronizationServiceImpl implements SynchronizationService {
                     .commit(result);
             result.recordNotApplicable(message);
             syncCtx.recordSyncExclusionInTask(PROTECTED);
+            return true;
+        }
+
+        if (syncCtx.isSynchronizationPreventedByShadowPolicySituation()) {
+            String message = String.format(
+                    "SYNCHRONIZATION is skipped for %s because of the policy situation %s, ignoring change from channel %s",
+                    shadow, shadow.getPolicySituation(), channel);
+            LOGGER.debug(message);
+            syncCtx.getUpdater()
+                    .updateAllSyncMetadata()
+                    .commit(result);
+            result.recordNotApplicable(message);
+            syncCtx.recordSyncExclusionInTask(POLICY_SITUATION);
             return true;
         }
 
@@ -310,8 +349,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
      *
      * We need to update the correlator state.
      */
-    private <F extends FocusType> void determineSituationWithCorrelators(SynchronizationContext.Complete<F> syncCtx,
-            ResourceObjectShadowChangeDescription change, OperationResult result)
+    private <F extends FocusType> void determineSituationWithCorrelators(
+            SynchronizationContext.Complete<F> syncCtx, ResourceObjectShadowChangeDescription change, OperationResult result)
             throws CommonException {
 
         if (change.isDelete()) {
@@ -329,7 +368,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
         setupResourceRefInShadowIfNeeded(change);
 
         evaluatePreMappings(syncCtx, result);
-        setObjectTemplateForCorrelation(syncCtx, result);
+        setObjectTemplateForCorrelation(syncCtx, syncCtx.getTask(), result);
 
         if (syncCtx.isUpdatingCorrelatorsOnly()) {
             new CorrelationProcessing<>(syncCtx, beans)
@@ -379,12 +418,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
     }
 
     private <F extends FocusType> void setObjectTemplateForCorrelation(
-            SynchronizationContext.Complete<F> syncCtx, OperationResult result)
+            SynchronizationContext.Complete<F> syncCtx, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         syncCtx.setObjectTemplateForCorrelation(
                 beans.correlationServiceImpl.determineObjectTemplate(
                         syncCtx.getSynchronizationPolicy(),
                         syncCtx.getPreFocus(),
+                        task,
                         result));
     }
 

@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2019 Evolveum and contributors
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!--suppress XmlUnusedNamespaceDeclaration -->
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-            elementFormDefault="qualified"
-            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-            jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -31,7 +32,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
     <xsd:complexType name="LensContextType">
         <xsd:annotation>
@@ -317,28 +318,28 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="iteration" type="xsd:int" minOccurs="0">
-               <xsd:annotation>
-                   <xsd:documentation>
-                       TODO
-                   </xsd:documentation>
-               </xsd:annotation>
-           </xsd:element>
-           <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
-               <xsd:annotation>
-                   <xsd:documentation>
-                       TODO
-                   </xsd:documentation>
-               </xsd:annotation>
-           </xsd:element>
-           <xsd:element name="synchronizationIntent" type="c:SynchronizationIntentType" minOccurs="0">
-               <xsd:annotation>
-                   <xsd:documentation>
-                       Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the context.
-                       If set to null then the decision is left to "the engine". Null is also a typical value
-                       when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
-                   </xsd:documentation>
-               </xsd:annotation>
-           </xsd:element>
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="synchronizationIntent" type="c:SynchronizationIntentType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the context.
+                        If set to null then the decision is left to "the engine". Null is also a typical value
+                        when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="fresh" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -373,7 +374,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="lensFocusContext" type="tns:LensFocusContextType" />     <!-- seems to be necessary for PrismContainerDefinition for LFCT to be created -->
+    <xsd:element name="lensFocusContext" type="tns:LensFocusContextType"/>     <!-- seems to be necessary for PrismContainerDefinition for LFCT to be created -->
 
     <xsd:complexType name="LensProjectionContextType">
         <xsd:annotation>
@@ -533,13 +534,13 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="lensProjectionContext" type="tns:LensProjectionContextType" />     <!-- seems to be necessary for PrismContainerDefinition for LFCT to be created -->
+    <xsd:element name="lensProjectionContext" type="tns:LensProjectionContextType"/>     <!-- seems to be necessary for PrismContainerDefinition for LFCT to be created -->
 
     <xsd:complexType name="ObjectDeltaWavesType">
         <xsd:sequence>
-            <xsd:element name="wave" type="tns:ObjectDeltaWaveType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="wave" type="tns:ObjectDeltaWaveType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
-        <xsd:attribute name="waveCount" type="xsd:int" />
+        <xsd:attribute name="waveCount" type="xsd:int"/>
     </xsd:complexType>
 
     <xsd:complexType name="ObjectDeltaWaveType">
@@ -551,7 +552,7 @@
         <xsd:sequence>
             <xsd:element name="delta" type="t:ObjectDeltaType"/>
         </xsd:sequence>
-        <xsd:attribute name="number" type="xsd:int" />
+        <xsd:attribute name="number" type="xsd:int"/>
 
     </xsd:complexType>
 
@@ -562,8 +563,8 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectDeltaOperation" type="c:ObjectDeltaOperationType" />
-            <xsd:element name="audited" type="xsd:boolean" />
+            <xsd:element name="objectDeltaOperation" type="c:ObjectDeltaOperationType"/>
+            <xsd:element name="audited" type="xsd:boolean"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -625,19 +626,19 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ref" type="xsd:int" minOccurs="0" />
-            <xsd:element name="triggerId" type="xsd:int" minOccurs="0" />       <!-- not 'id' to avoid collisions with container identifiers -->
-            <xsd:element name="ruleName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="constraintName" type="xsd:string" minOccurs="0" />
-            <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0" />
-            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0" />
-            <xsd:element name="shortMessage" type="tns:LocalizableMessageType" minOccurs="0" />
-            <xsd:element name="presentationOrder" type="xsd:int" minOccurs="0" />
-            <xsd:element name="final" type="xsd:boolean" minOccurs="0" />
-            <xsd:element name="hidden" type="xsd:boolean" minOccurs="0" />
+            <xsd:element name="ref" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="triggerId" type="xsd:int" minOccurs="0"/>       <!-- not 'id' to avoid collisions with container identifiers -->
+            <xsd:element name="ruleName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="constraintName" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0"/>
+            <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0"/>
+            <xsd:element name="shortMessage" type="tns:LocalizableMessageType" minOccurs="0"/>
+            <xsd:element name="presentationOrder" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="final" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="hidden" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="evaluatedPolicyRuleTrigger" type="tns:EvaluatedPolicyRuleTriggerType" />
+    <xsd:element name="evaluatedPolicyRuleTrigger" type="tns:EvaluatedPolicyRuleTriggerType"/>
 
     <xsd:complexType name="EvaluatedStateTriggerType">
         <xsd:complexContent>
@@ -647,7 +648,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="evaluatedStateTrigger" type="tns:EvaluatedStateTriggerType" />
+    <xsd:element name="evaluatedStateTrigger" type="tns:EvaluatedStateTriggerType"/>
 
     <xsd:complexType name="EvaluatedHasAssignmentTriggerType">
         <xsd:complexContent>
@@ -657,7 +658,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="evaluatedHasAssignmentTrigger" type="tns:EvaluatedHasAssignmentTriggerType" />
+    <xsd:element name="evaluatedHasAssignmentTrigger" type="tns:EvaluatedHasAssignmentTriggerType"/>
 
     <xsd:complexType name="EvaluatedMultiplicityTriggerType">
         <xsd:complexContent>
@@ -667,7 +668,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="evaluatedMultiplicityTrigger" type="tns:EvaluatedMultiplicityTriggerType" />
+    <xsd:element name="evaluatedMultiplicityTrigger" type="tns:EvaluatedMultiplicityTriggerType"/>
 
     <xsd:complexType name="EvaluatedTimeValidityTriggerType">
         <xsd:complexContent>
@@ -677,7 +678,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="evaluatedTimeValidityTrigger" type="tns:EvaluatedTimeValidityTriggerType" />
+    <xsd:element name="evaluatedTimeValidityTrigger" type="tns:EvaluatedTimeValidityTriggerType"/>
 
     <xsd:complexType name="EvaluatedModificationTriggerType">
         <xsd:complexContent>
@@ -687,7 +688,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="evaluatedModificationTrigger" type="tns:EvaluatedModificationTriggerType" />
+    <xsd:element name="evaluatedModificationTrigger" type="tns:EvaluatedModificationTriggerType"/>
 
     <xsd:complexType name="EvaluatedEmbeddingTriggerType">  <!-- TODO name -->
         <xsd:complexContent>
@@ -707,7 +708,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="evaluatedTransitionTrigger" type="tns:EvaluatedTransitionTriggerType" />
+    <xsd:element name="evaluatedTransitionTrigger" type="tns:EvaluatedTransitionTriggerType"/>
 
     <xsd:complexType name="EvaluatedLogicalTriggerType">
         <xsd:complexContent>
@@ -717,33 +718,33 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="evaluatedLogicalTrigger" type="tns:EvaluatedLogicalTriggerType" />
+    <xsd:element name="evaluatedLogicalTrigger" type="tns:EvaluatedLogicalTriggerType"/>
 
     <xsd:complexType name="EvaluatedExclusionTriggerType">
         <xsd:complexContent>
             <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
                 <xsd:sequence>
-                    <xsd:element name="conflictingObjectRef" type="c:ObjectReferenceType" minOccurs="0" />
-                    <xsd:element name="conflictingObjectDisplayName" type="t:PolyStringType" minOccurs="0" />
-                    <xsd:element name="conflictingObjectPath" type="tns:AssignmentPathType" minOccurs="0" />
-                    <xsd:element name="conflictingAssignment" type="tns:AssignmentType" minOccurs="0" />
+                    <xsd:element name="conflictingObjectRef" type="c:ObjectReferenceType" minOccurs="0"/>
+                    <xsd:element name="conflictingObjectDisplayName" type="t:PolyStringType" minOccurs="0"/>
+                    <xsd:element name="conflictingObjectPath" type="tns:AssignmentPathType" minOccurs="0"/>
+                    <xsd:element name="conflictingAssignment" type="tns:AssignmentType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="evaluatedExclusionTrigger" type="tns:EvaluatedExclusionTriggerType" />
+    <xsd:element name="evaluatedExclusionTrigger" type="tns:EvaluatedExclusionTriggerType"/>
 
     <!-- IMPORTANT: when adding attributes here, update also PolicyRuleTypeUtil.triggerCollectionsEqual -->
     <xsd:complexType name="EvaluatedSituationTriggerType">
         <xsd:complexContent>
             <xsd:extension base="tns:EvaluatedPolicyRuleTriggerType">
                 <xsd:sequence>
-                    <xsd:element name="sourceRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded" />     <!-- TODO -->
+                    <xsd:element name="sourceRule" type="tns:EvaluatedPolicyRuleType" minOccurs="0" maxOccurs="unbounded"/>     <!-- TODO -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="evaluatedSituationTrigger" type="tns:EvaluatedSituationTriggerType" />
+    <xsd:element name="evaluatedSituationTrigger" type="tns:EvaluatedSituationTriggerType"/>
 
     <xsd:complexType name="EvaluatedCollectionStatsTriggerType">
         <xsd:complexContent>
@@ -753,7 +754,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="evaluatedCollectionStatsTrigger" type="tns:EvaluatedCollectionStatsTriggerType" />
+    <xsd:element name="evaluatedCollectionStatsTrigger" type="tns:EvaluatedCollectionStatsTriggerType"/>
 
     <xsd:complexType name="EvaluatedPolicyRuleType">
         <xsd:annotation>
@@ -807,27 +808,51 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="evaluatedPolicyRule" type="tns:EvaluatedPolicyRuleType" />
+    <xsd:element name="evaluatedPolicyRule" type="tns:EvaluatedPolicyRuleType"/>
 
     <xsd:complexType name="AssignmentPathType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Sequence of assignment paths, e.g. one chain of evaluated assignments.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="segment" type="tns:AssignmentPathSegmentType" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="segment" type="tns:AssignmentPathSegmentType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="AssignmentPathSegmentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                One segment in the assignment path.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="sourceRef" type="c:ObjectReferenceType" minOccurs="0" />
-            <xsd:element name="sourceDisplayName" type="t:PolyStringType" minOccurs="0" />
-            <xsd:element name="assignment" type="c:AssignmentType" minOccurs="0" />
-            <xsd:element name="assignmentId" type="xsd:long" minOccurs="0" />
-            <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" />
-            <xsd:element name="targetDisplayName" type="t:PolyStringType" minOccurs="0" />
-            <xsd:element name="matchingOrder" type="xsd:boolean" minOccurs="0" />
-            <xsd:element name="isAssignment" type="xsd:boolean" minOccurs="0" />
+            <xsd:element name="segmentOrder" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Order of this segment in the whole assignment path.
+                        First segment is numbered 1.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="sourceRef" type="c:ObjectReferenceType" minOccurs="0"/>
+            <xsd:element name="sourceDisplayName" type="t:PolyStringType" minOccurs="0"/>
+            <xsd:element name="assignment" type="c:AssignmentType" minOccurs="0"/>
+            <xsd:element name="assignmentId" type="xsd:long" minOccurs="0"/>
+            <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0"/>
+            <xsd:element name="targetDisplayName" type="t:PolyStringType" minOccurs="0"/>
+            <xsd:element name="matchingOrder" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="isAssignment" type="xsd:boolean" minOccurs="0"/>
             <!-- TODO maybe also evaluation order -->
         </xsd:sequence>
     </xsd:complexType>
@@ -854,7 +879,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="trace" type="tns:TraceType" />
+    <xsd:element name="trace" type="tns:TraceType"/>
 
     <xsd:complexType name="ClockworkTraceType">
         <xsd:annotation>
@@ -909,7 +934,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="clockworkTraceType" type="tns:ClockworkTraceType" />
+    <xsd:element name="clockworkTraceType" type="tns:ClockworkTraceType"/>
 
     <xsd:complexType name="ClockworkRunTraceType">
         <xsd:annotation>
@@ -936,7 +961,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="clockworkRunTrace" type="tns:ClockworkRunTraceType" />
+    <xsd:element name="clockworkRunTrace" type="tns:ClockworkRunTraceType"/>
 
     <xsd:complexType name="ClockworkClickTraceType">
         <xsd:annotation>
@@ -960,7 +985,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="clockworkClickTrace" type="tns:ClockworkClickTraceType" />
+    <xsd:element name="clockworkClickTrace" type="tns:ClockworkClickTraceType"/>
 
     <xsd:complexType name="ProjectorRunTraceType">
         <xsd:annotation>
@@ -980,7 +1005,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="projectorRunTrace" type="tns:ProjectorRunTraceType" />
+    <xsd:element name="projectorRunTrace" type="tns:ProjectorRunTraceType"/>
 
     <xsd:complexType name="ProjectorComponentTraceType">
         <xsd:annotation>
@@ -1011,7 +1036,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="projectorComponentTrace" type="tns:ProjectorComponentTraceType" />
+    <xsd:element name="projectorComponentTrace" type="tns:ProjectorComponentTraceType"/>
 
     <xsd:complexType name="FocusLoadedTraceType">
         <xsd:annotation>
@@ -1039,7 +1064,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="focusLoadedTrace" type="tns:FocusLoadedTraceType" />
+    <xsd:element name="focusLoadedTrace" type="tns:FocusLoadedTraceType"/>
 
     <xsd:complexType name="FullShadowLoadedTraceType">
         <xsd:annotation>
@@ -1081,7 +1106,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="fullShadowLoadedTrace" type="tns:FullShadowLoadedTraceType" />
+    <xsd:element name="fullShadowLoadedTrace" type="tns:FullShadowLoadedTraceType"/>
 
     <xsd:complexType name="ModelExecuteDeltaTraceType">
         <xsd:annotation>
@@ -1097,12 +1122,12 @@
         <xsd:complexContent>
             <xsd:extension base="tns:TraceType">
                 <xsd:sequence>
-                    <xsd:element name="delta" type="tns:LensObjectDeltaOperationType" />
+                    <xsd:element name="delta" type="tns:LensObjectDeltaOperationType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="modelExecuteDeltaTrace" type="tns:ModelExecuteDeltaTraceType" />
+    <xsd:element name="modelExecuteDeltaTrace" type="tns:ModelExecuteDeltaTraceType"/>
 
     <xsd:complexType name="ProvisioningOperationTraceType">
         <xsd:annotation>
@@ -1123,7 +1148,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="provisioningOperationTrace" type="tns:ProvisioningOperationTraceType" />
+    <xsd:element name="provisioningOperationTrace" type="tns:ProvisioningOperationTraceType"/>
 
     <xsd:complexType name="RepositoryOperationTraceType">
         <xsd:annotation>
@@ -1172,7 +1197,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="repositoryOperationTrace" type="tns:RepositoryOperationTraceType" />
+    <xsd:element name="repositoryOperationTrace" type="tns:RepositoryOperationTraceType"/>
 
     <xsd:complexType name="RepositoryAddTraceType">
         <xsd:annotation>
@@ -1216,7 +1241,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="repositoryAddTrace" type="tns:RepositoryAddTraceType" />
+    <xsd:element name="repositoryAddTrace" type="tns:RepositoryAddTraceType"/>
 
     <xsd:complexType name="RepositoryModifyTraceType">
         <xsd:annotation>
@@ -1264,7 +1289,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="repositoryModifyTrace" type="tns:RepositoryModifyTraceType" />
+    <xsd:element name="repositoryModifyTrace" type="tns:RepositoryModifyTraceType"/>
 
     <xsd:complexType name="RepositoryDeleteTraceType">
         <xsd:annotation>
@@ -1298,7 +1323,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="repositoryDeleteTrace" type="tns:RepositoryDeleteTraceType" />
+    <xsd:element name="repositoryDeleteTrace" type="tns:RepositoryDeleteTraceType"/>
 
     <xsd:complexType name="RepositoryGetObjectTraceType">
         <xsd:annotation>
@@ -1349,7 +1374,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="repositoryGetObjectTrace" type="tns:RepositoryGetObjectTraceType" />
+    <xsd:element name="repositoryGetObjectTrace" type="tns:RepositoryGetObjectTraceType"/>
 
     <xsd:complexType name="RepositoryGetTraceType">
         <xsd:annotation>
@@ -1367,7 +1392,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="repositoryGetTrace" type="tns:RepositoryGetTraceType" />
+    <xsd:element name="repositoryGetTrace" type="tns:RepositoryGetTraceType"/>
 
     <xsd:complexType name="RepositorySearchTraceType">
         <xsd:annotation>
@@ -1385,7 +1410,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="repositorySearchTrace" type="tns:RepositorySearchTraceType" />
+    <xsd:element name="repositorySearchTrace" type="tns:RepositorySearchTraceType"/>
 
     <xsd:complexType name="RepositoryGetVersionTraceType">
         <xsd:annotation>
@@ -1433,7 +1458,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="repositoryGetVersionTrace" type="tns:RepositoryGetVersionTraceType" />
+    <xsd:element name="repositoryGetVersionTrace" type="tns:RepositoryGetVersionTraceType"/>
 
     <xsd:complexType name="RepositorySearchObjectsTraceType">
         <xsd:annotation>
@@ -1491,7 +1516,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="repositorySearchObjectsTrace" type="tns:RepositorySearchObjectsTraceType" />
+    <xsd:element name="repositorySearchObjectsTrace" type="tns:RepositorySearchObjectsTraceType"/>
 
     <xsd:complexType name="ResourceObjectConstructionEvaluationTraceType">
         <xsd:annotation>
@@ -1514,7 +1539,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="resourceObjectConstructionEvaluationTrace" type="tns:ResourceObjectConstructionEvaluationTraceType" />
+    <xsd:element name="resourceObjectConstructionEvaluationTrace" type="tns:ResourceObjectConstructionEvaluationTraceType"/>
 
     <xsd:complexType name="MappingEvaluationTraceType">
         <xsd:annotation>
@@ -1600,7 +1625,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="mappingEvaluationTrace" type="tns:MappingEvaluationTraceType" />
+    <xsd:element name="mappingEvaluationTrace" type="tns:MappingEvaluationTraceType"/>
 
     <xsd:complexType name="MappingStatePropertiesType">
         <xsd:annotation>
@@ -1664,10 +1689,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractSourceEvaluationTraceType" />
+            <xsd:extension base="tns:AbstractSourceEvaluationTraceType"/>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="mappingSourceEvaluationTrace" type="tns:MappingSourceEvaluationTraceType" />
+    <xsd:element name="mappingSourceEvaluationTrace" type="tns:MappingSourceEvaluationTraceType"/>
 
     <xsd:complexType name="ExpressionSourceEvaluationTraceType">
         <xsd:annotation>
@@ -1694,7 +1719,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="expressionSourceEvaluationTrace" type="tns:ExpressionSourceEvaluationTraceType" />
+    <xsd:element name="expressionSourceEvaluationTrace" type="tns:ExpressionSourceEvaluationTraceType"/>
 
     <xsd:simpleType name="MappingKindType">
         <xsd:annotation>
@@ -1829,16 +1854,16 @@
                     <xsd:element name="expressionEvaluator" type="tns:ExpressionEvaluatorWrapperType" minOccurs="0"/>
                     <xsd:element name="source" type="tns:ExpressionSourceEvaluationTraceType" minOccurs="0" maxOccurs="unbounded"/>
                     <!-- variables (in the future) -->
-                    <xsd:element name="skipEvaluationPlus" type="xsd:boolean" minOccurs="0" />
-                    <xsd:element name="skipEvaluationMinus" type="xsd:boolean" minOccurs="0" />
-                    <xsd:element name="contextDescription" type="xsd:string" minOccurs="0" />
-                    <xsd:element name="localContextDescription" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="skipEvaluationPlus" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="skipEvaluationMinus" type="xsd:boolean" minOccurs="0"/>
+                    <xsd:element name="contextDescription" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="localContextDescription" type="xsd:string" minOccurs="0"/>
                     <xsd:element name="output" type="t:DeltaSetTripleType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="expressionEvaluationTrace" type="tns:ExpressionEvaluationTraceType" />
+    <xsd:element name="expressionEvaluationTrace" type="tns:ExpressionEvaluationTraceType"/>
 
     <xsd:complexType name="ExpressionEvaluatorWrapperType">
         <xsd:annotation>
@@ -1854,7 +1879,7 @@
             <xsd:element ref="tns:expressionEvaluator" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="expressionEvaluatorWrapper" type="tns:ExpressionEvaluatorWrapperType" />
+    <xsd:element name="expressionEvaluatorWrapper" type="tns:ExpressionEvaluatorWrapperType"/>
 
     <xsd:complexType name="ValueTransformationExpressionEvaluationTraceType">
         <xsd:annotation>
@@ -1875,7 +1900,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="valueTransformationExpressionEvaluationTrace" type="tns:ValueTransformationExpressionEvaluationTraceType" />
+    <xsd:element name="valueTransformationExpressionEvaluationTrace" type="tns:ValueTransformationExpressionEvaluationTraceType"/>
 
     <xsd:simpleType name="ValueTransformationEvaluationModeType">
         <xsd:annotation>
@@ -1986,7 +2011,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="valueTransformationTrace" type="tns:ValueTransformationTraceType" />
+    <xsd:element name="valueTransformationTrace" type="tns:ValueTransformationTraceType"/>
 
     <xsd:complexType name="ScriptEvaluationTraceType">
         <xsd:annotation>
@@ -2027,7 +2052,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="scriptEvaluationTrace" type="tns:ScriptEvaluationTraceType" />
+    <xsd:element name="scriptEvaluationTrace" type="tns:ScriptEvaluationTraceType"/>
 
     <xsd:complexType name="ScriptVariableEvaluationTraceType">
         <xsd:annotation>
@@ -2046,7 +2071,7 @@
             <xsd:element name="value" type="tns:AnyValueType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="scriptVariableEvaluationTrace" type="tns:ScriptVariableEvaluationTraceType" />
+    <xsd:element name="scriptVariableEvaluationTrace" type="tns:ScriptVariableEvaluationTraceType"/>
 
     <xsd:complexType name="ItemConsolidationTraceType">
         <xsd:annotation>
@@ -2063,17 +2088,17 @@
             <xsd:extension base="tns:TraceType">
                 <xsd:sequence>
                     <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0"/>
-                    <xsd:element name="deltaSetTriple" type="t:DeltaSetTripleType" minOccurs="0" />
-                    <xsd:element name="existingItem" type="t:ItemType" minOccurs="0" />
-                    <xsd:element name="aprioriDelta" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded" />
-                    <xsd:element name="equivalenceClassCount" type="xsd:int" minOccurs="0" />
+                    <xsd:element name="deltaSetTriple" type="t:DeltaSetTripleType" minOccurs="0"/>
+                    <xsd:element name="existingItem" type="t:ItemType" minOccurs="0"/>
+                    <xsd:element name="aprioriDelta" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="equivalenceClassCount" type="xsd:int" minOccurs="0"/>
                     <xsd:element name="resultingDelta" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded"/>
                     <!-- We could maybe add the parameters here -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="itemConsolidationTrace" type="tns:ItemConsolidationTraceType" />
+    <xsd:element name="itemConsolidationTrace" type="tns:ItemConsolidationTraceType"/>
 
     <xsd:complexType name="AssignmentEvaluationTraceType">
         <xsd:annotation>
@@ -2104,7 +2129,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="assignmentEvaluationTrace" type="tns:AssignmentEvaluationTraceType" />
+    <xsd:element name="assignmentEvaluationTrace" type="tns:AssignmentEvaluationTraceType"/>
 
     <xsd:complexType name="AssignmentSegmentEvaluationTraceType">
         <xsd:annotation>
@@ -2128,7 +2153,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="assignmentSegmentEvaluationTrace" type="tns:AssignmentSegmentEvaluationTraceType" />
+    <xsd:element name="assignmentSegmentEvaluationTrace" type="tns:AssignmentSegmentEvaluationTraceType"/>
 
     <xsd:complexType name="PolicyConstraintEvaluationTraceType">
         <xsd:annotation>
@@ -2144,13 +2169,13 @@
         <xsd:complexContent>
             <xsd:extension base="tns:TraceType">
                 <xsd:sequence>
-                    <xsd:element ref="tns:abstractPolicyConstraint" minOccurs="0" />
-                    <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" />
+                    <xsd:element ref="tns:abstractPolicyConstraint" minOccurs="0"/>
+                    <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="policyConstraintEvaluationTrace" type="tns:PolicyConstraintEvaluationTraceType" />
+    <xsd:element name="policyConstraintEvaluationTrace" type="tns:PolicyConstraintEvaluationTraceType"/>
 
     <xsd:complexType name="PolicyRuleEvaluationTraceType">
         <xsd:annotation>
@@ -2166,12 +2191,12 @@
         <xsd:complexContent>
             <xsd:extension base="tns:TraceType">
                 <xsd:sequence>
-                    <xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0" />
+                    <xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="policyRuleEvaluationTrace" type="tns:PolicyRuleEvaluationTraceType" />
+    <xsd:element name="policyRuleEvaluationTrace" type="tns:PolicyRuleEvaluationTraceType"/>
 
     <xsd:complexType name="ApprovalProcessStartInstructionCreationTraceType">
         <xsd:annotation>
@@ -2199,7 +2224,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="approvalProcessStartInstructionCreationTrace" type="tns:ApprovalProcessStartInstructionCreationTraceType" />
+    <xsd:element name="approvalProcessStartInstructionCreationTrace" type="tns:ApprovalProcessStartInstructionCreationTraceType"/>
 
     <xsd:complexType name="CacheUseTraceType">
         <xsd:annotation>
@@ -2213,11 +2238,11 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="category" type="tns:CacheUseCategoryTraceType" minOccurs="0" />
+            <xsd:element name="category" type="tns:CacheUseCategoryTraceType" minOccurs="0"/>
             <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="cacheUseTrace" type="tns:CacheUseTraceType" />
+    <xsd:element name="cacheUseTrace" type="tns:CacheUseTraceType"/>
 
     <xsd:simpleType name="CacheUseCategoryTraceType">
         <xsd:annotation>
@@ -2457,7 +2482,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="tracingProfile" type="tns:TracingProfileType" />
+    <xsd:element name="tracingProfile" type="tns:TracingProfileType"/>
 
     <xsd:complexType name="TracingTypeProfileType">
         <xsd:annotation>
@@ -2489,7 +2514,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="tracingTypeProfile" type="tns:TracingTypeProfileType" />
+    <xsd:element name="tracingTypeProfile" type="tns:TracingTypeProfileType"/>
 
     <xsd:simpleType name="TracingRootType">
         <xsd:annotation>
@@ -2659,7 +2684,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="operationMonitoring" type="tns:OperationMonitoringType" />
+    <xsd:element name="operationMonitoring" type="tns:OperationMonitoringType"/>
 
     <xsd:simpleType name="OperationMonitoringLevelType">
         <xsd:annotation>
@@ -2723,7 +2748,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="traceDictionary" type="tns:TraceDictionaryType" />
+    <xsd:element name="traceDictionary" type="tns:TraceDictionaryType"/>
 
     <xsd:complexType name="TraceDictionaryEntryType">
         <xsd:annotation>
@@ -2767,7 +2792,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="traceDictionaryEntry" type="tns:TraceDictionaryEntryType" />
+    <xsd:element name="traceDictionaryEntry" type="tns:TraceDictionaryEntryType"/>
 
     <xsd:complexType name="TracingOutputType">
         <xsd:annotation>
@@ -2813,7 +2838,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="tracingOutput" type="tns:TracingOutputType" />
+    <xsd:element name="tracingOutput" type="tns:TracingOutputType"/>
 
     <xsd:complexType name="TracingOutputMetadataType">
         <xsd:annotation>
@@ -2851,7 +2876,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="tracingOutputMetadata" type="tns:TracingOutputMetadataType" />
+    <xsd:element name="tracingOutputMetadata" type="tns:TracingOutputMetadataType"/>
 
     <xsd:complexType name="TracingEnvironmentType">
         <xsd:annotation>
@@ -2896,7 +2921,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="tracingEnvironment" type="tns:TracingEnvironmentType" />
+    <xsd:element name="tracingEnvironment" type="tns:TracingEnvironmentType"/>
 
     <xsd:complexType name="LoggingOverrideType">
         <xsd:annotation>
@@ -2920,7 +2945,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="loggingOverride" type="tns:LoggingOverrideType" />
+    <xsd:element name="loggingOverride" type="tns:LoggingOverrideType"/>
 
     <xsd:complexType name="ClassLoggerLevelOverrideType">
         <xsd:annotation>
@@ -2951,7 +2976,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="classLoggerLevelOverride" type="tns:ClassLoggerLevelOverrideType" />
+    <xsd:element name="classLoggerLevelOverride" type="tns:ClassLoggerLevelOverrideType"/>
 
     <xsd:complexType name="AnyValueType">
         <xsd:annotation>
@@ -2985,7 +3010,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="anyValue" type="tns:AnyValueType" />
+    <xsd:element name="anyValue" type="tns:AnyValueType"/>
 
     <xsd:complexType name="NamedValueType">
         <xsd:annotation>
@@ -3003,38 +3028,38 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AnyValueType">
                 <xsd:sequence>
-                    <xsd:element name="name" type="xsd:QName" minOccurs="0" />
+                    <xsd:element name="name" type="xsd:QName" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="namedValue" type="tns:NamedValueType" />
+    <xsd:element name="namedValue" type="tns:NamedValueType"/>
 
-<!--    <xsd:complexType name="AnyValuesType">-->
-<!--        <xsd:annotation>-->
-<!--            <xsd:documentation>-->
-<!--                List of any value (property, reference, container).-->
-<!--                EXPERIMENTAL-->
+    <!--    <xsd:complexType name="AnyValuesType">-->
+    <!--        <xsd:annotation>-->
+    <!--            <xsd:documentation>-->
+    <!--                List of any value (property, reference, container).-->
+    <!--                EXPERIMENTAL-->
 
-<!--                This is a workaround to avoid using xsd:anyType directly in a container. It is mapped to a property;-->
-<!--                however, it cannot be always serialized as a property.-->
-<!--            </xsd:documentation>-->
-<!--            <xsd:appinfo>-->
-<!--                <a:experimental>true</a:experimental>-->
-<!--                <a:since>4.0.1</a:since>-->
-<!--            </xsd:appinfo>-->
-<!--        </xsd:annotation>-->
-<!--        <xsd:sequence>-->
-<!--            <xsd:element name="value" type="tns:AnyValueType" minOccurs="0" maxOccurs="unbounded">-->
-<!--                <xsd:annotation>-->
-<!--                    <xsd:appinfo>-->
-<!--                        <a:rawType>true</a:rawType>-->
-<!--                    </xsd:appinfo>-->
-<!--                </xsd:annotation>-->
-<!--            </xsd:element>-->
-<!--        </xsd:sequence>-->
-<!--    </xsd:complexType>-->
-<!--    <xsd:element name="anyValues" type="tns:AnyValuesType" />-->
+    <!--                This is a workaround to avoid using xsd:anyType directly in a container. It is mapped to a property;-->
+    <!--                however, it cannot be always serialized as a property.-->
+    <!--            </xsd:documentation>-->
+    <!--            <xsd:appinfo>-->
+    <!--                <a:experimental>true</a:experimental>-->
+    <!--                <a:since>4.0.1</a:since>-->
+    <!--            </xsd:appinfo>-->
+    <!--        </xsd:annotation>-->
+    <!--        <xsd:sequence>-->
+    <!--            <xsd:element name="value" type="tns:AnyValueType" minOccurs="0" maxOccurs="unbounded">-->
+    <!--                <xsd:annotation>-->
+    <!--                    <xsd:appinfo>-->
+    <!--                        <a:rawType>true</a:rawType>-->
+    <!--                    </xsd:appinfo>-->
+    <!--                </xsd:annotation>-->
+    <!--            </xsd:element>-->
+    <!--        </xsd:sequence>-->
+    <!--    </xsd:complexType>-->
+    <!--    <xsd:element name="anyValues" type="tns:AnyValuesType" />-->
 
     <xsd:simpleType name="OperationKindType">
         <xsd:annotation>
@@ -3256,7 +3281,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="instruction" type="tns:TraceVisualizationInstructionType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="columns" type="tns:TraceVisualizationColumnsType" minOccurs="0" />
+            <xsd:element name="columns" type="tns:TraceVisualizationColumnsType" minOccurs="0"/>
             <xsd:element name="dataFlow" type="tns:TraceDataFlowVisualizationInstructionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3267,7 +3292,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="traceVisualizationInstructions" type="tns:TraceVisualizationInstructionsType" />
+    <xsd:element name="traceVisualizationInstructions" type="tns:TraceVisualizationInstructionsType"/>
 
     <xsd:complexType name="TraceVisualizationInstructionType">
         <xsd:annotation>
@@ -3281,7 +3306,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="order" type="xsd:int" minOccurs="0" />
+            <xsd:element name="order" type="xsd:int" minOccurs="0"/>
             <xsd:element name="selector" type="tns:TraceSelectorType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3289,10 +3314,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="visualization" type="tns:TraceVisualizationType" minOccurs="0" />
+            <xsd:element name="visualization" type="tns:TraceVisualizationType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="traceVisualizationInstruction" type="tns:TraceVisualizationInstructionType" />
+    <xsd:element name="traceVisualizationInstruction" type="tns:TraceVisualizationInstructionType"/>
 
     <xsd:complexType name="TraceVisualizationColumnsType">
         <xsd:annotation>
@@ -3308,15 +3333,15 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="invocationId" type="xsd:boolean" minOccurs="0" />
-            <xsd:element name="duration" type="xsd:boolean" minOccurs="0" />
-            <xsd:element name="durationBefore" type="xsd:boolean" minOccurs="0" />
+            <xsd:element name="invocationId" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="duration" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="durationBefore" type="xsd:boolean" minOccurs="0"/>
             <!-- The following two be replaced by references to enums instead of strings -->
-            <xsd:element name="countFor" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
-            <xsd:element name="timeFor" type="xsd:string" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:element name="countFor" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="timeFor" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="traceVisualizationColumns" type="tns:TraceVisualizationColumnsType" />
+    <xsd:element name="traceVisualizationColumns" type="tns:TraceVisualizationColumnsType"/>
 
     <xsd:complexType name="TraceSelectorType">
         <xsd:annotation>
@@ -3346,7 +3371,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="traceSelector" type="tns:TraceSelectorType" />
+    <xsd:element name="traceSelector" type="tns:TraceSelectorType"/>
 
     <xsd:complexType name="TraceVisualizationType">
         <xsd:annotation>
@@ -3378,7 +3403,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="traceVisualization" type="tns:TraceVisualizationType" />
+    <xsd:element name="traceVisualization" type="tns:TraceVisualizationType"/>
 
     <xsd:simpleType name="GenericTraceVisualizationType">
         <xsd:annotation>
@@ -3534,5 +3559,5 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="traceDataFlowVisualizationInstruction" type="tns:TraceDataFlowVisualizationInstructionType" />
+    <xsd:element name="traceDataFlowVisualizationInstruction" type="tns:TraceDataFlowVisualizationInstructionType"/>
 </xsd:schema>

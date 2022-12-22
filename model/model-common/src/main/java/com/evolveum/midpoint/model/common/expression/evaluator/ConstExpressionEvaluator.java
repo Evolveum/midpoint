@@ -8,9 +8,12 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -20,20 +23,22 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Returns zero set with a single value obtained by resolving given https://docs.evolveum.com/midpoint/reference/expressions/constants/[constant].
  * Currently, limited to single-valued string constants.
  */
-public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>>
         extends AbstractExpressionEvaluator<V, D, ConstExpressionEvaluatorType> {
 
     private final ConstantsManager constantsManager;
 
-    ConstExpressionEvaluator(QName elementName, @NotNull ConstExpressionEvaluatorType evaluatorBean, D outputDefinition,
-            Protector protector, ConstantsManager constantsManager, PrismContext prismContext) {
-        super(elementName, evaluatorBean, outputDefinition, protector, prismContext);
+    ConstExpressionEvaluator(
+            QName elementName,
+            @NotNull ConstExpressionEvaluatorType evaluatorBean,
+            D outputDefinition,
+            Protector protector,
+            ConstantsManager constantsManager) {
+        super(elementName, evaluatorBean, outputDefinition, protector);
         this.constantsManager = constantsManager;
     }
 
@@ -62,7 +67,7 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
                     "Can only provide values of property, not " + output.getClass());
         }
 
-        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null);
         applyValueMetadata(outputTriple, context, result);
         return outputTriple;
     }

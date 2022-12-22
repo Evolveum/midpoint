@@ -1,0 +1,31 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="fec07d55-5bdd-4d9a-87f1-5f814303a4f5">
+    <name>person</name>
+    <includeRef oid="3c27b909-5f79-4b24-a54f-85e7673f6782"/> <!-- included template is development-mode -->
+    <mapping>
+        <lifecycleState>proposed</lifecycleState>
+        <strength>strong</strength>
+        <expression>
+            <value>template:person (proposed)</value>
+        </expression>
+        <target>
+            <path>organization</path>
+        </target>
+    </mapping>
+    <mapping>
+        <strength>strong</strength>
+        <expression>
+            <value>template:person (active)</value>
+        </expression>
+        <target>
+            <path>organization</path>
+        </target>
+    </mapping>
+</objectTemplate>

@@ -50,8 +50,9 @@ public class ImportFromResourceLauncher {
     @Autowired private PrismContext prismContext;
     @Autowired private TaskManager taskManager;
 
-    public boolean importSingleShadow(String shadowOid, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public boolean importSingleShadow(String shadowOid, Task task, OperationResult parentResult)
+            throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(OP_IMPORT_SINGLE_SHADOW);
         try {
             ShadowType shadow = provisioningService
@@ -63,7 +64,6 @@ public class ImportFromResourceLauncher {
                     new NullPostSearchFilterImpl(),
                     eventDispatcher,
                     SchemaConstants.CHANNEL_IMPORT,
-                    false,
                     true);
             synchronizer.synchronize(shadow.asPrismObject(), null, task, result);
             result.computeStatusIfUnknown();

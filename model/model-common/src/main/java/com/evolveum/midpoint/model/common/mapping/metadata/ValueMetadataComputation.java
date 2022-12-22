@@ -142,6 +142,10 @@ abstract public class ValueMetadataComputation {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         for (MetadataMappingType mappingBean : processingSpec.getMappings()) {
+            if (!env.task.canSee(mappingBean)) {
+                LOGGER.trace("Mapping {} is not visible for the current task, ignoring", mappingBean);
+                continue;
+            }
             MetadataMappingImpl<?, ?> mapping = createMapping(mappingBean);
             mapping.evaluate(env.task, result);
             appendValues(mapping.getOutputPath(), mapping.getOutputTriple());

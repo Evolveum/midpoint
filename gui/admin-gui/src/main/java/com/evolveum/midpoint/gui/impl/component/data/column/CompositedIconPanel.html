@@ -8,14 +8,15 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="d-flex flex-wrap gap-2 justify-content-center">
-        <div class="d-block position-relative w-100" wicket:id="layeredIcon">
+    <span class="d-flex flex-wrap gap-2 justify-content-center">
+        <span class="d-block position-relative px-3" wicket:id="layeredIcon">
             <i wicket:id="basicIcon"/>
-            <div wicket:id="layerIcons">
+            <wicket:container wicket:id="layerIcons">
                 <i wicket:id="layerIcon"/>
-            </div>
-        </div>
+            </wicket:container>
+        </span>
+
         <wicket:child/>
-    </div>
+    </span>
 </wicket:panel>
 </html>

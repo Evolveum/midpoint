@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
+import static com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil.hasMappingSpecification;
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastMinimal;
 
 import static com.evolveum.midpoint.schema.util.TraceUtil.isAtLeastNormal;
@@ -14,7 +15,6 @@ import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE;
-import static com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil.hasMappingSpec;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -41,7 +41,6 @@ import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -894,10 +893,18 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
 
         ValueSetDefinitionType rangeSetDefBean = target.getSet();
-        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(rangeSetDefBean, getOutputDefinition(), valueMetadataDefinition,
-                expressionProfile, name, mappingSpecification, "range",
-                "range of " + name + " in " + getMappingContextDescription(), task, result);
-        rangeSetDef.init(ModelCommonBeans.get().expressionFactory);
+        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
+                rangeSetDefBean,
+                getOutputDefinition(),
+                valueMetadataDefinition,
+                expressionProfile,
+                ModelCommonBeans.get().expressionFactory,
+                name,
+                mappingSpecification,
+                "range",
+                "range of " + name + " in " + getMappingContextDescription(),
+                task, result);
+        rangeSetDef.init();
         rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
             if (rangeSetDef.contains(originalValue)) {
@@ -933,8 +940,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                     //   that are important is now marked as operational. But we will gradually fix that.
                     List<PrismContainerValue<ValueMetadataType>> matchingMetadata =
                             matchingOriginalValue.<ValueMetadataType>getValueMetadataAsContainer().getValues().stream()
-                                    .filter(md ->
-                                            hasMappingSpec(md.asContainerable(), mappingSpecification)
+                                    .filter(md -> hasMappingSpecification(md.asContainerable(), mappingSpecification)
                                                     && !nonNegativeValue.<ValueMetadataType>getValueMetadataAsContainer().contains(md, REAL_VALUE))
                                     .collect(Collectors.toList());
 
@@ -988,7 +994,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                             nakedValuePresent = true;
                         }
                         metadataValues.stream()
-                                .filter(md -> hasMappingSpec(md.asContainerable(), mappingSpecification))
+                                .filter(md -> hasMappingSpecification(md.asContainerable(), mappingSpecification))
                                 .forEach(matchingMetadataValues::add);
                     }
 
@@ -1031,7 +1037,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (rangeSetDef.isYieldSpecific()) {
             LOGGER.trace("A yield of original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
             valueToDelete.<ValueMetadataType>getValueMetadataAsContainer()
-                    .removeIf(md -> !ProvenanceMetadataUtil.hasMappingSpec(md.asContainerable(), mappingSpecification));
+                    .removeIf(md -> !hasMappingSpecification(md.asContainerable(), mappingSpecification));
             // TODO we could check if the minus set already contains the value we are going to remove
         } else {
             LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
@@ -1308,8 +1314,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         expression = ModelCommonBeans.get().expressionFactory.makeExpression(
                 mappingBean.getExpression(), getOutputDefinition(), expressionProfile,
                 "expression in " + getMappingContextDescription(), task, result);
-        ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
-                "expression in " + getMappingContextDescription(), task);
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(
+                sources, variables, "expression in " + getMappingContextDescription(), task);
         context.setDefaultSource(defaultSource);
         context.setSkipEvaluationMinus(!conditionResultOld);
         context.setSkipEvaluationPlus(!conditionResultNew);

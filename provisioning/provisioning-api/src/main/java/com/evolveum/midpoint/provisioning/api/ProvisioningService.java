@@ -1037,9 +1037,9 @@ public interface ProvisioningService {
      *
      * EXPERIMENTAL feature.
      *
-     * @return  Return supported operations for connector.
+     * @return Return supported operations for connector.
      */
     @Experimental
-    CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
+    @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException;
 }

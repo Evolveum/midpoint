@@ -31,8 +31,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author semancik
  */
-public class Source<V extends PrismValue,D extends ItemDefinition>
-        extends ItemDeltaItem<V,D>
+public class Source<V extends PrismValue, D extends ItemDefinition<?>>
+        extends ItemDeltaItem<V, D>
         implements DebugDumpable, ShortDumpable {
 
     @NotNull private final QName name;
@@ -67,7 +67,7 @@ public class Source<V extends PrismValue,D extends ItemDefinition>
         sb.append("  old: ").append(getItemOld()).append("\n");
         sb.append("  delta: ").append(getDelta()).append("\n");
         if (getSubItemDeltas() != null) {
-            sb.append("  subitem deltas: ").append(getSubItemDeltas()).append("\n");
+            sb.append("  sub-item deltas: ").append(getSubItemDeltas()).append("\n");
         }
         sb.append("  new: ").append(getItemNew());
     }

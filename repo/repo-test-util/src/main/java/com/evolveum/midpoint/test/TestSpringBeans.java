@@ -46,6 +46,11 @@ public class TestSpringBeans {
                 .getBean("cacheRepositoryService", RepositoryService.class);
     }
 
+    public static @NotNull RepoSimpleObjectResolver getRepoSimpleObjectResolver() {
+        return getApplicationContext()
+                .getBean(RepoSimpleObjectResolver.class);
+    }
+
     public static @NotNull MidpointConfiguration getMidpointConfiguration() {
         return getBean(MidpointConfiguration.class);
     }

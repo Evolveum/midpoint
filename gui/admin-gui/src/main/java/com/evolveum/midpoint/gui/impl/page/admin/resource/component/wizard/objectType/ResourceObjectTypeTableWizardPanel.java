@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lskublik
  */
-public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardBasicPanel {
+public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
 
     private static final String PANEL_TYPE = "schemaHandling";
     private static final String ID_TABLE = "table";
@@ -39,7 +39,7 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
     }
 
     private void initLayout() {
-        ResourceSchemaHandlingPanel table = new ResourceSchemaHandlingPanel(ID_TABLE, getResourceModel(), getConfiguration()) {
+        ResourceSchemaHandlingPanel table = new ResourceSchemaHandlingPanel(ID_TABLE, getAssignmentHolderDetailsModel(), getConfiguration()) {
             @Override
             protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
                 ResourceObjectTypeTableWizardPanel.this.onEditValue(valueModel, target);
@@ -62,7 +62,7 @@ public abstract class ResourceObjectTypeTableWizardPanel extends AbstractWizardB
 
     ContainerPanelConfigurationType getConfiguration(){
         return WebComponentUtil.getContainerConfiguration(
-                getResourceModel().getObjectDetailsPageConfiguration().getObject(),
+                getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
                 PANEL_TYPE);
     }
 

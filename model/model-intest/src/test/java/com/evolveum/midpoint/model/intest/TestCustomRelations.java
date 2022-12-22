@@ -63,7 +63,7 @@ public class TestCustomRelations extends AbstractEmptyModelIntegrationTest {
         // @formatter:off
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
-                    .add(ObjectTypeUtil.createAssignmentTo(USER_ABRAHAM.object, CHILD))
+                    .add(ObjectTypeUtil.createAssignmentTo(USER_ABRAHAM.get(), CHILD))
                 .asObjectDelta(USER_ISAAC.oid);
         // @formatter:on
 

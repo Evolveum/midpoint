@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.model.impl.ModelBeans;
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,6 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.archetypes.ArchetypeManager;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
@@ -41,6 +41,7 @@ import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -75,16 +76,17 @@ public class AssignmentCollector {
     @Autowired private ContextLoader contextLoader;
     @Autowired private ModelBeans modelBeans;
 
-    public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> collect(PrismObject<AH> focus,
+    public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment> collect(PrismObject<AH> focus,
             boolean loginMode, Task task, OperationResult result) throws SchemaException {
 
         LensContext<AH> lensContext = createAuthenticationLensContext(focus, result);
 
         AH focusBean = focus.asObjectable();
 
-        Collection<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
+        Collection<EvaluatedAssignment> evaluatedAssignments = new ArrayList<>();
 
-        Collection<AssignmentType> forcedAssignments = collectForcedAssignments(focusBean, lensContext.getFocusContext().getLifecycleModel(), task, result);
+        Collection<AssignmentType> forcedAssignments = collectForcedAssignments(
+                focusBean, lensContext.getFocusContext().getLifecycleModel(), task, result);
         if (!focusBean.getAssignment().isEmpty() || forcedAssignments != null) {
             AssignmentEvaluator.Builder<AH> builder =
                     new AssignmentEvaluator.Builder<AH>()
@@ -122,27 +124,30 @@ public class AssignmentCollector {
         return evaluatedAssignments;
     }
 
-    private <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> evaluateAssignments(AH focus,
-            Collection<AssignmentType> assignments, AssignmentOrigin origin, AssignmentEvaluator<AH> assignmentEvaluator, Task task, OperationResult result) {
+    private <AH extends AssignmentHolderType> Collection<EvaluatedAssignment> evaluateAssignments(
+            AH focus, Collection<AssignmentType> assignments, AssignmentOrigin origin,
+            AssignmentEvaluator<AH> assignmentEvaluator, Task task, OperationResult result) {
 
-        List<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
+        List<EvaluatedAssignment> evaluatedAssignments = new ArrayList<>();
         RepositoryCache.enterLocalCaches(cacheConfigurationManager);
         try {
             PrismContainerDefinition<AssignmentType> standardAssignmentDefinition = prismContext.getSchemaRegistry()
                     .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
                     .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
-            for (AssignmentType assignmentType : emptyIfNull(assignments)) {
+            for (AssignmentType assignment : emptyIfNull(assignments)) {
                 try {
                     //noinspection unchecked
                     PrismContainerDefinition<AssignmentType> definition = defaultIfNull(
-                            assignmentType.asPrismContainerValue().getDefinition(), standardAssignmentDefinition);
+                            assignment.asPrismContainerValue().getDefinition(), standardAssignmentDefinition);
                     ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
-                            new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType), definition);
-                    EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, focus, focus.toString(), origin, task, result);
-                    evaluatedAssignments.add(assignment);
-                } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
+                            new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignment), definition);
+                    EvaluatedAssignment evaluatedAssignment = assignmentEvaluator.evaluate(
+                            assignmentIdi, PlusMinusZero.ZERO, false, focus, focus.toString(), origin, task, result);
+                    evaluatedAssignments.add(evaluatedAssignment);
+                } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException
+                        | SecurityViolationException | ConfigurationException | CommunicationException e) {
                     LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
-                            focus, e.getMessage(), assignmentType, e);
+                            focus, e.getMessage(), assignment, e);
                 }
             }
         } finally {
@@ -151,14 +156,16 @@ public class AssignmentCollector {
         return evaluatedAssignments;
     }
 
-    private <AH extends AssignmentHolderType> LensContext<AH> createAuthenticationLensContext(PrismObject<AH> user, OperationResult result) throws SchemaException {
-        LensContext<AH> lensContext = new LensContextPlaceholder<>(user);
+    private <AH extends AssignmentHolderType> LensContext<AH> createAuthenticationLensContext(
+            PrismObject<AH> user, OperationResult result) throws SchemaException {
+        LensContext<AH> lensContext = new LensContextPlaceholder<>(user, TaskExecutionMode.PRODUCTION);
         ArchetypePolicyType policyConfigurationType = determineObjectPolicyConfiguration(user, result);
         lensContext.getFocusContext().setArchetypePolicy(policyConfigurationType);
         return lensContext;
     }
 
-    private <AH extends AssignmentHolderType> Collection<AssignmentType> collectForcedAssignments(AH focusBean, LifecycleStateModelType lifecycleModel, Task task, OperationResult result) {
+    private <AH extends AssignmentHolderType> Collection<AssignmentType> collectForcedAssignments(
+            AH focusBean, LifecycleStateModelType lifecycleModel, Task task, OperationResult result) {
         try {
             return LensUtil.getForcedAssignments(lifecycleModel,
                     focusBean.getLifecycleState(), objectResolver, prismContext, task, result);
@@ -169,7 +176,8 @@ public class AssignmentCollector {
         }
     }
 
-    private <AH extends AssignmentHolderType> ArchetypePolicyType determineObjectPolicyConfiguration(PrismObject<AH> user, OperationResult result) throws SchemaException {
+    private <AH extends AssignmentHolderType> ArchetypePolicyType determineObjectPolicyConfiguration(
+            PrismObject<AH> user, OperationResult result) throws SchemaException {
         ArchetypePolicyType archetypePolicy;
         try {
             archetypePolicy = archetypeManager.determineArchetypePolicy(user, result);
@@ -178,7 +186,9 @@ public class AssignmentCollector {
         }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Selected policy configuration from subtypes {}:\n{}",
-                    FocusTypeUtil.determineSubTypes(user), archetypePolicy == null ? null : archetypePolicy.asPrismContainerValue().debugDump(1));
+                    FocusTypeUtil.determineSubTypes(user), archetypePolicy == null
+                            ? null
+                            : archetypePolicy.asPrismContainerValue().debugDump(1));
         }
 
         return archetypePolicy;

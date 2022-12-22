@@ -12,20 +12,14 @@ import com.evolveum.midpoint.task.api.Task;
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * Listens for {@link ResourceOperationDescription} events. Used e.g. for resource objects-related notifications.
  *
- * This is an additional processing of the
- * result. Even if no listener instance ever handled the event then the system
- * will function normally. This is meant for
- *
- * (e.g. notify the administrator).
- *
- *      * The call should return without a major delay. It means that the
-     * implementation can do calls to repository, but it should not
-     * (synchronously) initiate a long-running process or provisioning request.
-
+ * The calls to methods here should return without a major delay. It means that implementations can do calls to repository,
+ * but they should not (synchronously) initiate a long-running process or a provisioning request.
  *
  * @author Radovan Semancik
  *
+ * @see ResourceOperationDescription
  */
 public interface ResourceOperationListener extends ProvisioningListener {
 

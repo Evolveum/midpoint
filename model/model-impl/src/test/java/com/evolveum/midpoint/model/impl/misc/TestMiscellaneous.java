@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -72,7 +73,7 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
 
         when("one of them is resolved");
         try {
-            archetypeManager.getExpandedObjectTemplate(TEMPLATE_A1.oid, result);
+            archetypeManager.getExpandedObjectTemplate(TEMPLATE_A1.oid, TaskExecutionMode.PRODUCTION, result);
             fail("unexpected success");
         } catch (ConfigurationException e) {
             then("exception is raised");
@@ -93,7 +94,8 @@ public class TestMiscellaneous extends AbstractInternalModelIntegrationTest {
         repoAdd(TEMPLATE_B2B, result);
 
         when("the main one is resolved");
-        ObjectTemplateType expanded = archetypeManager.getExpandedObjectTemplate(TEMPLATE_B1.oid, result);
+        ObjectTemplateType expanded =
+                archetypeManager.getExpandedObjectTemplate(TEMPLATE_B1.oid, TaskExecutionMode.PRODUCTION, result);
 
         then("the result has correct name");
         displayDumpable("expanded version", expanded);

@@ -12,23 +12,17 @@ import static com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper.
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
+import com.google.common.base.MoreObjects;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.run.*;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil;
 import com.evolveum.midpoint.repo.common.activity.run.buckets.segmentation.content.NumericIntervalBucketUtil.Interval;
 import com.evolveum.midpoint.repo.common.activity.run.processing.GenericProcessingRequest;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.google.common.base.MoreObjects;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.task.work.LegacyWorkDefinitionSource;
@@ -36,10 +30,10 @@ import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskConstants;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.springframework.stereotype.Component;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Just a dummy activity to be used for demonstration and testing purposes.
@@ -88,19 +82,19 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         }
 
         @Override
-        public void beforeRun(OperationResult result) throws CommonException, ActivityRunException {
+        public void beforeRun(OperationResult result) {
             MyWorkDefinition def = getWorkDefinition();
             LOGGER.info("Run starting; steps to be executed = {}, delay for one step = {}, step interruptibility = {}"
                             + " in task {}", def.steps, def.delay, def.stepInterruptibility, getRunningTask());
         }
 
         @Override
-        public Integer determineOverallSize(OperationResult result) throws CommonException {
+        public Integer determineOverallSize(OperationResult result) {
             return getWorkDefinition().getInterval().getSize();
         }
 
         @Override
-        public Integer determineCurrentBucketSize(OperationResult result) throws CommonException {
+        public Integer determineCurrentBucketSize(OperationResult result) {
             return NumericIntervalBucketUtil.getNarrowedInterval(
                             bucket,
                             getWorkDefinition().getInterval())
@@ -120,7 +114,7 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         }
 
         @Override
-        public void afterRun(OperationResult result) throws CommonException, ActivityRunException {
+        public void afterRun(OperationResult result) {
             LOGGER.info("Run stopping; canRun = {}", canRun());
         }
 
@@ -201,7 +195,7 @@ public class NoOpActivityHandler implements ActivityHandler<NoOpActivityHandler.
         protected void debugDumpContent(StringBuilder sb, int indent) {
             DebugUtil.debugDumpWithLabelLn(sb, "delay", delay, indent + 1);
             DebugUtil.debugDumpWithLabelLn(sb, "steps", steps, indent + 1);
-            DebugUtil.debugDumpWithLabelLn(sb, "stepInterruptibility", stepInterruptibility, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, "stepInterruptibility", stepInterruptibility, indent + 1);
         }
     }
 }

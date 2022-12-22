@@ -88,11 +88,11 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
 
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
 
-        RESOURCE_HR.initializeAndTest(this, initTask, initResult);
-        getTargetResource().initializeAndTest(this, initTask, initResult);
+        RESOURCE_HR.initAndTest(this, initTask, initResult);
+        getTargetResource().initAndTest(this, initTask, initResult);
 
-        TASK_IMPORT_HR.initialize(this, initTask, initResult);
-        TASK_IMPORT_TARGET.initialize(this, initTask, initResult);
+        TASK_IMPORT_HR.init(this, initTask, initResult);
+        TASK_IMPORT_TARGET.init(this, initTask, initResult);
     }
 
     @Override
@@ -275,7 +275,7 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
 
     private @NotNull PrismObject<ShadowType> getTargetShadow(String name, OperationResult result) throws SchemaException {
         return Objects.requireNonNull(
-                findShadowByPrismName(name, getTargetResource().getObject(), result),
+                findShadowByPrismName(name, getTargetResource().get(), result),
                 () -> "no target shadow of '" + name + "' was found");
     }
 
@@ -343,13 +343,13 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
 
         given("new account is added and imported");
         getTargetResource().append("mx1,Martin,Black,,,,");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(getTargetResource().oid)
                 .withNamingAttribute("login")
                 .withNameValue("mx1")
                 .execute(result);
 
-        PrismObject<ShadowType> firstShadow = findShadowByPrismName("mx1", getTargetResource().getObject(), result);
+        PrismObject<ShadowType> firstShadow = findShadowByPrismName("mx1", getTargetResource().get(), result);
         assertShadow(firstShadow, "first")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN)
@@ -373,7 +373,7 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
 
         when("account is updated and re-imported");
         getTargetResource().replaceLine("mx1,.*", "mx1,Martin,Green,,,,");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(getTargetResource().oid)
                 .withNamingAttribute("login")
                 .withNameValue("mx1")
@@ -381,7 +381,7 @@ public abstract class AbstractSimpleInternalCorrelationTest extends AbstractCorr
 
         then("case is updated");
 
-        PrismObject<ShadowType> secondShadow = findShadowByPrismName("mx1", getTargetResource().getObject(), result);
+        PrismObject<ShadowType> secondShadow = findShadowByPrismName("mx1", getTargetResource().get(), result);
         assertShadow(secondShadow, "second")
                 .display()
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN)

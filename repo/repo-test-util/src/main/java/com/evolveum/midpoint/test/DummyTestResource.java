@@ -8,15 +8,13 @@
 package com.evolveum.midpoint.test;
 
 import java.io.File;
-import java.io.IOException;
 
+import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.FailableProcessor;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 /**
@@ -40,21 +38,31 @@ public class DummyTestResource extends TestResource<ResourceType> {
     }
 
     @Override
-    public void reload(OperationResult result) throws SchemaException, IOException, ObjectNotFoundException {
-        super.reload(result);
-        controller.setResource(getObject());
+    protected void afterReload(OperationResult result) {
+        controller.setResource(get());
     }
 
+    @Deprecated // use .get()
     public PrismObject<ResourceType> getResource() {
         return controller.getResource();
     }
 
+    @Deprecated // use .getObjectable()
     public ResourceType getResourceBean() {
         return controller.getResource().asObjectable();
+    }
+
+    public DummyResource getDummyResource() {
+        return controller.getDummyResource();
     }
 
     // It's logical for this functionality to be invokable right on the DummyTestResource object. Hence this method.
     public void initAndTest(DummyTestResourceInitializer initializer, Task task, OperationResult result) throws Exception {
         initializer.initAndTestDummyResource(this, task, result);
+    }
+
+    // It's logical for this functionality to be invokable right on the DummyTestResource object. Hence this method.
+    public void init(DummyTestResourceInitializer initializer, Task task, OperationResult result) throws Exception {
+        initializer.initDummyResource(this, task, result);
     }
 }

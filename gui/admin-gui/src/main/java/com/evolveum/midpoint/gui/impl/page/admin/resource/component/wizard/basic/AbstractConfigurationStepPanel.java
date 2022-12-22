@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -23,7 +25,7 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-public abstract class AbstractConfigurationStepPanel extends AbstractFormResourceWizardStepPanel {
+public abstract class AbstractConfigurationStepPanel extends AbstractFormWizardStepPanel<ResourceType, ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractConfigurationStepPanel.class);
 
@@ -56,7 +58,7 @@ public abstract class AbstractConfigurationStepPanel extends AbstractFormResourc
     public boolean onNextPerformed(AjaxRequestTarget target) {
 
         CapabilityCollectionType capabilities
-                = WebComponentUtil.getNativeCapabilities(getResourceModel().getObjectType(), getPageBase());
+                = WebComponentUtil.getNativeCapabilities(getDetailsModel().getObjectType(), getPageBase());
 
         if (capabilities.getSchema() != null || capabilities.getTestConnection() != null) {
             PageBase pageBase = getPageBase();
@@ -64,7 +66,7 @@ public abstract class AbstractConfigurationStepPanel extends AbstractFormResourc
             OperationResult result = task.getResult();
 
             try {
-                pageBase.getModelService().testResource(getResourceModel().getObjectWrapper().getObjectApplyDelta(), task, result);
+                pageBase.getModelService().testResource(getDetailsModel().getObjectWrapper().getObjectApplyDelta(), task, result);
             } catch (Exception e) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Failed to test resource connection", e);
                 result.recordFatalError(getString("TestConnectionMessagesPanel.message.testConnection.fatalError"), e);

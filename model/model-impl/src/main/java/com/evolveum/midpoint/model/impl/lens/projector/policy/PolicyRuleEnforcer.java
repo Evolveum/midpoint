@@ -112,7 +112,7 @@ public class PolicyRuleEnforcer {
     }
 
     private <F extends FocusType> void evaluateAssignmentRules(EvaluationContext evalCtx, LensContext<F> context) {
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             return;
         }
@@ -143,7 +143,7 @@ public class PolicyRuleEnforcer {
             // TODO really include assignments content?
             policyRule.addToEvaluatedPolicyRuleBeans(evalCtx.rules,
                     new PolicyRuleExternalizationOptions(FULL, true, true),
-                    t -> enforceAll || t.isEnforcementOverride(), prismContext);
+                    t -> enforceAll || t.isEnforcementOverride());
 
             List<TreeNode<LocalizableMessage>> messageTrees = extractMessages(enforcingTriggers, NORMAL);
             for (TreeNode<LocalizableMessage> messageTree : messageTrees) {

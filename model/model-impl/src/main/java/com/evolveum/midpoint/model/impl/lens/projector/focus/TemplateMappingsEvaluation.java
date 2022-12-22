@@ -118,7 +118,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     private final String iterationToken;
 
     /**
-     * Target object to which the items are to be applied.
+     * The target object to which the items are to be applied.
      * For standard template processing this is the current object.
      * For persona template processing this is the new (persona) object.
      */
@@ -166,15 +166,22 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     private DeltaSetTripleMapConsolidation<T> consolidation;
     //endregion
 
-    private TemplateMappingsEvaluation(ModelBeans beans, LensContext<F> context,
+    private TemplateMappingsEvaluation(
+            ModelBeans beans,
+            LensContext<F> context,
             ObjectDeltaObject<F> focusOdo,
             ObjectTemplateMappingEvaluationPhaseType phase,
             ObjectTemplateType template,
-            int iteration, String iterationToken,
-            TargetObjectSpecification<T> targetSpecification, ObjectDelta<T> targetAPrioriDelta,
+            int iteration,
+            String iterationToken,
+            TargetObjectSpecification<T> targetSpecification,
+            ObjectDelta<T> targetAPrioriDelta,
             Function<ItemPath, Boolean> itemDeltaExistsProvider,
             PrismObjectDefinition<T> targetDefinition,
-            String parentContextDesc, XMLGregorianCalendar now, Task task, OperationResult result) {
+            String parentContextDesc,
+            XMLGregorianCalendar now,
+            Task task,
+            OperationResult result) {
         this.beans = beans;
         this.context = context;
         this.focusContext = context.getFocusContext();
@@ -192,10 +199,13 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     static <AH extends AssignmentHolderType> TemplateMappingsEvaluation<AH, AH> createForStandardTemplate(
-            ModelBeans beans, LensContext<AH> context, ObjectTemplateMappingEvaluationPhaseType phase,
-            XMLGregorianCalendar now, Task task, OperationResult result) {
+            ModelBeans beans,
+            LensContext<AH> context,
+            ObjectTemplateMappingEvaluationPhaseType phase,
+            XMLGregorianCalendar now,
+            Task task,
+            OperationResult result) {
         LensFocusContext<AH> focusContext = context.getFocusContextRequired();
-        TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusContext.getObjectNew(), true);
         return new TemplateMappingsEvaluation<>(
                 beans,
                 context,
@@ -204,7 +214,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
                 context.getFocusTemplate(),
                 focusContext.getIteration(),
                 focusContext.getIterationToken(),
-                targetSpecification,
+                new FixedTargetSpecification<>(focusContext.getObjectNew(), true),
                 focusContext.getCurrentDelta(),
                 context::primaryFocusItemDeltaExists,
                 focusContext.getObjectDefinition(),
@@ -216,13 +226,16 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     public static <F extends AssignmentHolderType, T extends AssignmentHolderType>
     TemplateMappingsEvaluation<F, T> createForPersonaTemplate(
-            ModelBeans beans, LensContext<F> context,
+            ModelBeans beans,
+            LensContext<F> context,
             ObjectDeltaObject<F> focusOdoAbsolute,
             ObjectTemplateType template,
-            @NotNull PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta,
+            @NotNull PrismObject<T> targetObject,
+            ObjectDelta<T> targetAPrioriDelta,
             String contextDescription,
-            XMLGregorianCalendar now, Task task, OperationResult result) {
-        TargetObjectSpecification<T> targetSpecification = new FixedTargetSpecification<>(targetObject, false);
+            XMLGregorianCalendar now,
+            Task task,
+            OperationResult result) {
         return new TemplateMappingsEvaluation<>(
                 beans,
                 context,
@@ -231,7 +244,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
                 template,
                 0,
                 null,
-                targetSpecification,
+                new FixedTargetSpecification<>(targetObject, false),
                 targetAPrioriDelta,
                 itemPath -> targetAPrioriDelta != null && targetAPrioriDelta.findItemDelta(itemPath) != null,
                 targetObject.getDefinition(),
@@ -325,7 +338,8 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     private void collectMappingsFromTemplate()
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
         if (template != null) {
             new ObjectTemplateIncludeProcessor(beans.modelObjectResolver)
                     .processThisAndIncludedTemplates(
@@ -333,7 +347,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         }
     }
 
-    private void collectLocalMappings(ObjectTemplateType objectTemplate) throws ConfigurationException {
+    private void collectLocalMappings(ObjectTemplateType objectTemplate) {
         for (ObjectTemplateMappingType mapping: objectTemplate.getMapping()) {
             mappings.add(
                     new TemplateMappingEvaluationRequest(mapping, objectTemplate));

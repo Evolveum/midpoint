@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common.mapping;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -70,14 +68,13 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     private static final String MAPPING_VALUE_FULLNAME_METADATA_XML = "mapping-value-fullname-metadata.xml";
     private MappingTestEvaluator evaluator;
 
-    private static final TestResource<ObjectTemplateType> TEMPLATE_PROVENANCE = new TestResource<>(TEST_DIR, "template-provenance.xml", "0ca5cef4-6df3-42c3-82b6-daae691e960d");
+    private static final TestResource<ObjectTemplateType> TEMPLATE_PROVENANCE =
+            new TestResource<>(TEST_DIR, "template-provenance.xml", "0ca5cef4-6df3-42c3-82b6-daae691e960d");
 
     @BeforeClass
     public void setupFactory() throws SAXException, IOException, SchemaException {
         evaluator = new MappingTestEvaluator();
         evaluator.initWithMetadata();
-
-        TEMPLATE_PROVENANCE.read();
     }
 
     /**
@@ -817,7 +814,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackSparrowHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .mappingSpec(createMappingSpec())
+                    .mappingSpecification(createMappingSpec())
                     .beginAcquisition()
                         .originRef("hr", ServiceType.COMPLEX_TYPE)
                     .<ProvenanceMetadataType>end()
@@ -846,8 +843,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     }
 
     private MappingSpecificationType createMappingSpec() {
-        return new MappingSpecificationType(getPrismContext())
-                .mappingName("mapping");
+        return new MappingSpecificationType().mappingName("mapping");
     }
 
     /**
@@ -878,7 +874,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackSparrowHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .mappingSpec(createMappingSpec())
+                    .mappingSpecification(createMappingSpec())
                     .beginAcquisition()
                         .originRef("hr", ServiceType.COMPLEX_TYPE)
                     .<ProvenanceMetadataType>end()
@@ -1052,8 +1048,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         assertThat(metadataContainer.size()).isEqualTo(1);
         ValueMetadataType metadata = (ValueMetadataType) metadataContainer.getValue().asContainerable();
         assertThat(metadata.getProvenance()).isNotNull();
-        assertThat(metadata.getProvenance().getMappingSpec()).as("mapping spec").isNotNull();
-        assertThat(metadata.getProvenance().getMappingSpec().getMappingName()).as("mapping name").isEqualTo("mapping");
+        assertThat(metadata.getProvenance().getMappingSpecification()).as("mapping spec").isNotNull();
+        assertThat(metadata.getProvenance().getMappingSpecification().getMappingName()).as("mapping name").isEqualTo("mapping");
         assertThat(metadata.getProvenance().getAcquisition().size()).isEqualTo(origins.length);
         Set<String> realOrigins = metadata.getProvenance().getAcquisition().stream()
                 .map(acq -> acq.getOriginRef().getOid())
@@ -1068,7 +1064,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackSparrowOriginal.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .mappingSpec(createMappingSpec())
+                    .mappingSpecification(createMappingSpec())
                     .beginAcquisition()
                         .originRef("user", ServiceType.COMPLEX_TYPE)
                     .<ProvenanceMetadataType>end()
@@ -1096,7 +1092,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     }
 
     private ModelContext<UserType> createFakeLensContext() {
-        return new ModelContext<UserType>() {
+        return new ModelContext<>() {
             @Override
             public String getRequestIdentifier() {
                 return null;
@@ -1153,22 +1149,22 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             }
 
             @Override
-            public DeltaSetTriple<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentTriple() {
+            public DeltaSetTriple<? extends EvaluatedAssignment> getEvaluatedAssignmentTriple() {
                 return null;
             }
 
             @Override
-            public @NotNull Stream<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentsStream() {
+            public @NotNull Stream<? extends EvaluatedAssignment> getEvaluatedAssignmentsStream() {
                 return Stream.empty();
             }
 
             @Override
-            public @NotNull Collection<? extends EvaluatedAssignment<?>> getNonNegativeEvaluatedAssignments() {
+            public @NotNull Collection<? extends EvaluatedAssignment> getNonNegativeEvaluatedAssignments() {
                 return Collections.emptyList();
             }
 
             @Override
-            public @NotNull Collection<? extends EvaluatedAssignment<?>> getAllEvaluatedAssignments() {
+            public @NotNull Collection<? extends EvaluatedAssignment> getAllEvaluatedAssignments() {
                 return Collections.emptyList();
             }
 

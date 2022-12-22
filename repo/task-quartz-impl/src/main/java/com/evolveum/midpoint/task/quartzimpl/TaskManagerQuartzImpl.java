@@ -763,13 +763,13 @@ public class TaskManagerQuartzImpl implements TaskManager, SystemConfigurationCh
     }
 
     @Override
-    public void registerTaskUpdatedListener(TaskUpdatedListener taskListener) {
-        listenerRegistry.registerTaskUpdatedListener(taskListener);
+    public void registerTaskUpdatedListener(TaskUpdatedListener listener) {
+        listenerRegistry.registerTaskUpdatedListener(listener);
     }
 
     @Override
-    public void unregisterTaskUpdatedListener(TaskUpdatedListener taskListener) {
-        listenerRegistry.unregisterTaskUpdatedListener(taskListener);
+    public void unregisterTaskUpdatedListener(TaskUpdatedListener listener) {
+        listenerRegistry.unregisterTaskUpdatedListener(listener);
     }
     //endregion
 

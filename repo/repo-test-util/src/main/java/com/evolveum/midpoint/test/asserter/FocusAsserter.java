@@ -338,7 +338,7 @@ public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsser
         return asserter;
     }
 
-    public FocusAsserter<F,RA> assertRoleMemberhipRefs(int expected) {
+    public FocusAsserter<F,RA> assertRoleMembershipRefs(int expected) {
         roleMembershipRefs().assertRoleMemberhipRefs(expected);
         return this;
     }

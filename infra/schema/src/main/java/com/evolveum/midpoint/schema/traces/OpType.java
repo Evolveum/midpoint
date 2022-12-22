@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema.traces;
 
 import static java.util.Collections.singletonList;
@@ -14,10 +13,11 @@ import static com.evolveum.midpoint.schema.traces.TraceUtil.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -26,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Experimental
 public enum OpType {
+
+    // TODO replace operation pattern with null wherever OperationKindType precisely and uniquely matches the OpType
 
     CLOCKWORK_RUN(OperationKindType.CLOCKWORK_EXECUTION, "Clockwork run", "com.evolveum.midpoint.model.impl.lens.Clockwork.run",
             "Clockwork run - ${t:focusName}"),
@@ -37,7 +39,7 @@ public enum OpType {
             "com.evolveum.midpoint.model.impl.lens.projector.Projector.project",
             "Projector"),
 
-    MODEL_AUDIT(OperationKindType.MODEL_AUDIT, "Audit", "com.evolveum.midpoint.model.impl.util.AuditHelper.audit",
+    MODEL_AUDIT(OperationKindType.MODEL_AUDIT, "Audit", null,
             "Audit ${p:stage:L} - ${p:eventType} - ${p:targetName}"),
 
     PROJECTOR_INBOUND(OperationKindType.OTHER, "Inbounds", "com.evolveum.midpoint.model.impl.lens.projector.Projector.inbound",
@@ -66,7 +68,7 @@ public enum OpType {
 
     ASSIGNMENT_SEGMENT_EVALUATION(OperationKindType.OTHER, "Assignment segment evaluation", null,
             Arrays.asList("com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator.evaluateFromSegment",
-                "com.evolveum.midpoint.model.impl.lens.assignments.PathSegmentEvaluation.evaluate"),
+                    "com.evolveum.midpoint.model.impl.lens.assignments.PathSegmentEvaluation.evaluate"),
             "${m:getSegmentLabel}"),
 
     PROJECTOR_FOCUS_POLICY_RULES(OperationKindType.OTHER, "Focus policy rules",
@@ -81,37 +83,37 @@ public enum OpType {
             "com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*ConstraintEvaluator.evaluate",
             "Constraint evaluation: ${m:getConstraintInfo}"),
 
-    PROJECTION_ACTIVATION(OperationKindType.OTHER,"Projection activation",
+    PROJECTION_ACTIVATION(OperationKindType.OTHER, "Projection activation",
             "com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor.projectionActivation",
             "Activation: ${p:resourceName} ${m:getDecisionInfo}"),
 
-    PROJECTOR_PROJECTION(OperationKindType.OTHER,"Projector projection",
+    PROJECTOR_PROJECTION(OperationKindType.OTHER, "Projector projection",
             "com.evolveum.midpoint.model.impl.lens.projector.Projector.projection",
             "Projector projection: ${m:getInfo}"),
 
-    PROJECTOR_COMPONENT_OTHER(OperationKindType.OTHER,"Projector component",
+    PROJECTOR_COMPONENT_OTHER(OperationKindType.OTHER, "Projector component",
             "com.evolveum.midpoint.model.impl.lens.projector.Projector.*"),
 
-    CLOCKWORK_METHOD(OperationKindType.OTHER,"Clockwork method",
+    CLOCKWORK_METHOD(OperationKindType.OTHER, "Clockwork method",
             "com.evolveum.midpoint.model.impl.lens.Clockwork.*"),
 
-    RESOURCE_OBJECT_CONSTRUCTION_EVALUATION(OperationKindType.RESOURCE_OBJECT_CONSTRUCTION_EVALUATION,"Resource object construction evaluation",
+    RESOURCE_OBJECT_CONSTRUCTION_EVALUATION(OperationKindType.RESOURCE_OBJECT_CONSTRUCTION_EVALUATION, "Resource object construction evaluation",
             "com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl.evaluate",
             "Construction: ${m:getInfo}"),
 
-    MAPPING_EVALUATION(OperationKindType.MAPPING_EVALUATION,"Mapping evaluation",
+    MAPPING_EVALUATION(OperationKindType.MAPPING_EVALUATION, "Mapping evaluation",
             "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluate",
             "Mapping: ${m:getMappingInfo}"),
 
-    MAPPING_TIME_VALIDITY_EVALUATION(OperationKindType.MAPPING_EVALUATION,"Mapping time validity evaluation",
+    MAPPING_TIME_VALIDITY_EVALUATION(OperationKindType.MAPPING_EVALUATION, "Mapping time validity evaluation",
             "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluateTimeValidity",
             "Mapping time validity: ${m:getMappingInfo}"),
 
-    MAPPING_PREPARATION(OperationKindType.OTHER,"Mapping preparation",
+    MAPPING_PREPARATION(OperationKindType.OTHER, "Mapping preparation",
             "com.evolveum.midpoint.model.common.mapping.MappingImpl.prepare",
             "Mapping preparation"),
 
-    MAPPING_EVALUATION_PREPARED(OperationKindType.OTHER,"Prepared mapping evaluation",
+    MAPPING_EVALUATION_PREPARED(OperationKindType.OTHER, "Prepared mapping evaluation",
             "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluatePrepared",
             "Prepared mapping evaluation"),
 
@@ -134,15 +136,15 @@ public enum OpType {
     SCRIPT_EXECUTION(OperationKindType.SCRIPT_EVALUATION, "Script evaluation",
             "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate"),
 
-    CHANGE_EXECUTION(OperationKindType.OTHER,"Change execution",
+    CHANGE_EXECUTION(OperationKindType.OTHER, "Change execution",
             "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.execute",
             "Change execution"),
 
-    FOCUS_CHANGE_EXECUTION(OperationKindType.FOCUS_CHANGE_EXECUTION,"Focus change execution",
+    FOCUS_CHANGE_EXECUTION(OperationKindType.FOCUS_CHANGE_EXECUTION, "Focus change execution",
             "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.execute.focus.*",
             "Focus change execution: ${m:getInfo}"),
 
-    PROJECTION_CHANGE_EXECUTION(OperationKindType.PROJECTION_CHANGE_EXECUTION,"Projection change execution",
+    PROJECTION_CHANGE_EXECUTION(OperationKindType.PROJECTION_CHANGE_EXECUTION, "Projection change execution",
             "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.execute.projection.*",
             "Projection change execution on ${m:getResourceName}: ${m:getInfo}"),
 
@@ -155,12 +157,12 @@ public enum OpType {
                     "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.unlinkShadow"),
             "${m:getLabel}"),
 
-    CHANGE_EXECUTION_DELTA(OperationKindType.OTHER,"Delta execution",
+    CHANGE_EXECUTION_DELTA(OperationKindType.OTHER, "Delta execution",
             "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta",
             "Delta execution"),
 
     @Deprecated
-    CHANGE_EXECUTION_OTHER(OperationKindType.OTHER,"Change execution - other",
+    CHANGE_EXECUTION_OTHER(OperationKindType.OTHER, "Change execution - other",
             "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.*"),
 
     FOCUS_REPOSITORY_LOAD(OperationKindType.FOCUS_LOAD, "Focus load",
@@ -168,49 +170,76 @@ public enum OpType {
             singletonList("com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.determineFocusContext"),
             "Focus load from repository"),
 
-    FOCUS_LOAD_CHECK (OperationKindType.FOCUS_LOAD_CHECK,"Focus load check",
+    FOCUS_LOAD_CHECK(OperationKindType.FOCUS_LOAD_CHECK, "Focus load check",
             "com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.determineFocusContext"),
 
-    SHADOW_LOAD (OperationKindType.OTHER,"Shadow load",
+    SHADOW_LOAD(OperationKindType.OTHER, "Shadow load",
             "com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.loadProjection",
             "Shadow load"),
 
-    FULL_PROJECTION_LOAD (OperationKindType.FULL_PROJECTION_LOAD, "Full projection load",
+    FULL_PROJECTION_LOAD(OperationKindType.FULL_PROJECTION_LOAD, "Full projection load",
             "com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.loadFullShadow",
             "Projection load: ${m:getInfo}"),
 
-    MODEL_OTHER (OperationKindType.OTHER,"Model - other",
+    MODEL_OTHER(OperationKindType.OTHER, "Model - other",
             "com.evolveum.midpoint.model.*"),
 
-    PROVISIONING_API (OperationKindType.PROVISIONING,"Provisioning (API)", "com.evolveum.midpoint.provisioning.api.*"),
+    PROVISIONING_API(OperationKindType.PROVISIONING, "Provisioning (API)", "com.evolveum.midpoint.provisioning.api.*"),
 
-    PROVISIONING_INTERNAL (OperationKindType.OTHER,"Provisioning (internal)", "com.evolveum.midpoint.provisioning.impl.*"),
+    PROVISIONING_INTERNAL(OperationKindType.OTHER, "Provisioning (internal)", "com.evolveum.midpoint.provisioning.impl.*"),
 
-    REPOSITORY (OperationKindType.REPOSITORY, "Repository", "com.evolveum.midpoint.repo.api.RepositoryService.*"),
+    REPOSITORY(OperationKindType.REPOSITORY, "Repository", "com.evolveum.midpoint.repo.api.RepositoryService.*"),
 
-    REPOSITORY_CACHE (OperationKindType.REPOSITORY_CACHE, "Repository cache", "com.evolveum.midpoint.repo.cache.RepositoryCache.*"),
+    REPOSITORY_CACHE(OperationKindType.REPOSITORY_CACHE, "Repository cache", "com.evolveum.midpoint.repo.cache.RepositoryCache.*"),
 
-    CONNECTOR (OperationKindType.CONNECTOR, "Connector", "com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance.*"),
+    CONNECTOR(OperationKindType.CONNECTOR, "Connector", "com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance.*"),
 
-    OTHER (OperationKindType.OTHER, "Other",
-            "*");
+    /** OTHER is also used as a catch-all fallback - see {@link #determine(OperationResultType)}. */
+    OTHER(OperationKindType.OTHER, "Other", "*");
 
     private static final String LOADED_FROM_REPOSITORY = "Loaded from repository"; // TODO
 
     private final OperationKindType kind;
     private final String label;
-    private final Function<OperationResultType, Boolean> predicate;
-    private final List<Pattern> compiledPatterns;
+
+    /** If provided, must return true to match the {@link OperationResultType}; see {@link #matches(OperationResultType)}. */
+    private final Predicate<OperationResultType> matchPredicate;
+
+    /**
+     * Match patterns for {@link OperationResultType#getOperation()}.
+     *
+     * If `null`, the interpretation depends on the {@link #kind} and {@link OperationResultType#getOperationKind()}:
+     * * if operation kind is not null and it is matched, it is considered a match;
+     * * if operation result has no kind, then `null` patterns mean no match.
+     *
+     * For example:
+     * * {@link #MODEL_AUDIT} is clearly matched on operation kind only - it can specify no pattern
+     * (`null` String parameter is used in some constructors).
+     * * {@link #OTHER} is not the only op-type matching op-kind `OTHER`, it can also match operations without kind specified.
+     * Here "*" pattern is specified which matches either OTHER of any kind, but also operation without kind
+     *
+     * See {@link #matches(OperationResultType)}
+     */
+    private final List<Pattern> operationPatterns;
     private final String nameTemplate;
 
-    OpType(OperationKindType kind, String label, Function<OperationResultType, Boolean> predicate, List<String> patterns, String nameTemplate) {
+    OpType(OperationKindType kind,
+            String label,
+            @Nullable Predicate<OperationResultType> predicate,
+            @Nullable List<String> operationPatterns,
+            String nameTemplate) {
         this.kind = kind;
         this.label = label;
-        this.predicate = predicate;
-        this.compiledPatterns = new ArrayList<>();
-        for (String aPattern : patterns) {
-            String regex = toRegex(aPattern);
-            compiledPatterns.add(Pattern.compile(regex));
+        this.matchPredicate = predicate;
+        if (operationPatterns != null) {
+            this.operationPatterns = new ArrayList<>();
+            for (String operationPattern : operationPatterns) {
+                this.operationPatterns.add(
+                        Pattern.compile(
+                                toRegex(operationPattern)));
+            }
+        } else {
+            this.operationPatterns = null;
         }
         this.nameTemplate = nameTemplate;
     }
@@ -220,11 +249,15 @@ public enum OpType {
     }
 
     OpType(OperationKindType kind, String label, String pattern) {
-        this(kind, label, null, singletonList(pattern), null);
+        this(kind, label, null,
+                pattern != null ? List.of(pattern) : null,
+                null);
     }
 
     OpType(OperationKindType kind, String label, String pattern, String nameTemplate) {
-        this(kind, label, null, singletonList(pattern), nameTemplate);
+        this(kind, label, null,
+                pattern != null ? List.of(pattern) : null,
+                nameTemplate);
     }
 
     public String getFormattedName(OpNode node) {
@@ -252,14 +285,19 @@ public enum OpType {
         switch (this) {
             case PROJECTOR_COMPONENT_OTHER:
                 return "Projector " + last;
-            case CLOCKWORK_METHOD: return "Clockwork " + last;
-            case CHANGE_EXECUTION_OTHER: return "Change execution - " + last;
-            case REPOSITORY: return "Repository " + last + commaQualifiers;
+            case CLOCKWORK_METHOD:
+                return "Clockwork " + last;
+            case CHANGE_EXECUTION_OTHER:
+                return "Change execution - " + last;
+            case REPOSITORY:
+                return "Repository " + last + commaQualifiers;
             case REPOSITORY_CACHE:
                 return getRepoCacheOpDescription(node, opResult, last, commaQualifiers);
-            case PROVISIONING_API: return "Provisioning " + last + commaQualifiers;
-            case PROVISIONING_INTERNAL: return getLastTwo(operation) + commaQualifiers;
-            case FOCUS_LOAD_CHECK: return "Focus load check (" + node.getResultComment() + ")";
+            case PROVISIONING_API:
+                return "Provisioning " + last + commaQualifiers;
+            case FOCUS_LOAD_CHECK:
+                return "Focus load check (" + node.getResultComment() + ")";
+            case PROVISIONING_INTERNAL:
             case MODEL_OTHER:
             case OTHER:
                 return getLastTwo(operation) + commaQualifiers;
@@ -308,13 +346,12 @@ public enum OpType {
         }
     }
 
-
     private String getLastTwo(String operation) {
         int i = StringUtils.lastOrdinalIndexOf(operation, ".", 2);
         if (i < 0) {
             return operation;
         } else {
-            return operation.substring(i+1);
+            return operation.substring(i + 1);
         }
     }
 
@@ -333,7 +370,7 @@ public enum OpType {
                 return type;
             }
         }
-        return null;
+        return OTHER;
     }
 
     private boolean matches(OperationResultType operation) {
@@ -341,16 +378,18 @@ public enum OpType {
             return false;
         }
 
-        // not all kinds are unique, so we have to check also the patterns - FIXME
-
-        for (Pattern pattern : compiledPatterns) {
-            if (pattern.matcher(operation.getOperation()).matches()) {
-                if (predicate == null || predicate.apply(operation)) {
-                    return true;
-                }
-            }
+        if (matchPredicate != null && !matchPredicate.test(operation)) {
+            return false;
         }
-        return false;
+
+        // Not all kinds are unique, so we have to check also the patterns.
+        if (operationPatterns != null) {
+            return operationPatterns.stream().anyMatch(
+                    pattern -> pattern.matcher(operation.getOperation()).matches());
+        } else {
+            // No patterns mean match only if operation kind was matched (see the condition above).
+            return operation.getOperationKind() != null;
+        }
     }
 
     public String getLabel() {

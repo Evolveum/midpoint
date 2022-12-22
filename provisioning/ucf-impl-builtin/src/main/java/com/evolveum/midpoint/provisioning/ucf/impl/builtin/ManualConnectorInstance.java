@@ -403,7 +403,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
     }
 
     @Override
-    public CapabilityCollectionType getNativeCapabilities(OperationResult result) throws CommunicationException, GenericFrameworkException, ConfigurationException {
+    public @NotNull CapabilityCollectionType getNativeCapabilities(OperationResult result) throws CommunicationException, GenericFrameworkException, ConfigurationException {
         return fetchCapabilities(result);
     }
 

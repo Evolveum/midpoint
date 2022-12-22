@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2020 Evolveum and contributors
+  ~ Copyright (C) 2020-2022 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!--suppress XmlUnusedNamespaceDeclaration -->
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
@@ -34,7 +35,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
 
-    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
 
     <xsd:complexType name="ValueMetadataType">
         <xsd:annotation>
@@ -95,7 +96,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
-    <xsd:element name="valueMetadata" type="tns:ValueMetadataType" />
+    <xsd:element name="valueMetadata" type="tns:ValueMetadataType"/>
 
     <xsd:complexType name="StorageMetadataType">
         <xsd:annotation>
@@ -222,7 +223,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="storageMetadata" type="tns:StorageMetadataType" />
+    <xsd:element name="storageMetadata" type="tns:StorageMetadataType"/>
 
     <xsd:complexType name="ProcessMetadataType">
         <xsd:annotation>
@@ -251,7 +252,7 @@
                         <a:displayName>MetadataType.requestTimestamp</a:displayName>
                         <a:operational>true</a:operational>
                         <a:since>3.5</a:since>
-                        <a:valueMetadata />
+                        <a:valueMetadata/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -264,7 +265,7 @@
                         <a:displayName>MetadataType.requestorRef</a:displayName>
                         <a:operational>true</a:operational>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-                        <a:valueMetadata />
+                        <a:valueMetadata/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -437,7 +438,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="processMetadata" type="tns:ProcessMetadataType" />
+    <xsd:element name="processMetadata" type="tns:ProcessMetadataType"/>
 
     <xsd:complexType name="ProvisioningMetadataType">
         <xsd:annotation>
@@ -476,7 +477,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="provisioningMetadata" type="tns:ProvisioningMetadataType" />
+    <xsd:element name="provisioningMetadata" type="tns:ProvisioningMetadataType"/>
 
     <xsd:complexType name="TransformationMetadataType">
         <xsd:annotation>
@@ -498,7 +499,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="transformationMetadata" type="tns:TransformationMetadataType" />
+    <xsd:element name="transformationMetadata" type="tns:TransformationMetadataType"/>
 
     <xsd:complexType name="MappingTransformationType">
         <xsd:annotation>
@@ -528,7 +529,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="mappingTransformation" type="tns:MappingTransformationType" />
+    <xsd:element name="mappingTransformation" type="tns:MappingTransformationType"/>
 
     <xsd:complexType name="MappingSourceType">
         <xsd:annotation>
@@ -558,14 +559,14 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="mappingSource" type="tns:MappingSourceType" />
+    <xsd:element name="mappingSource" type="tns:MappingSourceType"/>
 
     <xsd:complexType name="ProvenanceMetadataType">
         <xsd:annotation>
             <xsd:documentation>
                 Provenance metadata provide high-level information about origin of the value.
                 It specifies system, process, partner or organization that was used to obtain the data.
-                This is a high-level information without excessive details, designed for long-term storage with the data.
+                This is high-level information without excessive details, designed for long-term storage with the data.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:operational>false</a:operational> <!-- intentionally -->
@@ -576,11 +577,14 @@
         <xsd:sequence>
             <xsd:element name="acquisition" type="tns:ProvenanceAcquisitionType" minOccurs="0" maxOccurs="unbounded">
             </xsd:element>
-            <xsd:element name="mappingSpec" type="tns:MappingSpecificationType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType" minOccurs="0" maxOccurs="1">
+            </xsd:element>
+            <!-- TODO WIP accesses experiment, working name -->
+            <xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0" maxOccurs="unbounded">
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="provenanceMetadata" type="tns:ProvenanceMetadataType" />
+    <xsd:element name="provenanceMetadata" type="tns:ProvenanceMetadataType"/>
 
     <xsd:complexType name="ProvenanceAcquisitionType">
         <xsd:annotation>
@@ -634,7 +638,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Channel that was the source of the value (shortened).
-                        E.g. "user" channel indicates that the value was entered in user interface, "reconciliation" means that the value was learned during resource recondiliation and so on.
+                        E.g. "user" channel indicates that the value was entered in user interface, "reconciliation" means that the value was learned during resource reconciliation and so on.
 
                         The channel is shortened to the shortest possible form.
                         E.g. the standard midPoint channel namespace is removed (custom channel names still retain the namespace).
@@ -658,7 +662,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="provenanceAcquisition" type="tns:ProvenanceAcquisitionType" />
+    <xsd:element name="provenanceAcquisition" type="tns:ProvenanceAcquisitionType"/>
 
     <xsd:complexType name="MappingSpecificationType">
         <xsd:annotation>
@@ -678,7 +682,7 @@
             <xsd:element name="mappingName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType" />
+    <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType"/>
 
     <xsd:complexType name="MetadataHandlingType">
         <xsd:annotation>
@@ -721,7 +725,7 @@
     <xsd:complexType name="MetadataItemDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Description of the metadata item handling details, such as  (TODO)
+                Description of the metadata item handling details, such as (TODO)
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>

@@ -132,9 +132,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
         repoAdd(ROLE10B, initResult);
 
         repoAdd(USER_JACK_DEPUTY, initResult);
-        addAndRecomputeUser(USER_LEAD1.file, initTask, initResult);
-        addAndRecomputeUser(USER_LEAD2.file, initTask, initResult);
-        addAndRecomputeUser(USER_LEAD3.file, initTask, initResult);
+        addAndRecompute(USER_LEAD1, initTask, initResult);
+        addAndRecompute(USER_LEAD2, initTask, initResult);
+        addAndRecompute(USER_LEAD3, initTask, initResult);
         // LEAD10 will be imported later!
 
         repoAdd(USER_DRAFT, initResult);
@@ -662,12 +662,12 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     }
 
     private void importLead10(Task task, OperationResult result) throws Exception {
-        addAndRecomputeUser(USER_LEAD10.file, task, result);
+        addAndRecompute(USER_LEAD10, task, result);
     }
 
     private void importLead1Deputies(Task task, OperationResult result) throws Exception {
-        addAndRecomputeUser(USER_LEAD1_DEPUTY_1.file, task, result);
-        addAndRecomputeUser(USER_LEAD1_DEPUTY_2.file, task, result);
+        addAndRecompute(USER_LEAD1_DEPUTY_1, task, result);
+        addAndRecompute(USER_LEAD1_DEPUTY_2, task, result);
         lead1DeputiesLoaded = true;
     }
 }

@@ -222,7 +222,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         when();
 
         add(TASK_SINGLE_RUN, result); // Task will get picked by task scanner and executed
-        waitForTaskClose(TASK_SINGLE_RUN.oid, result, 10000, 1000);
+        waitForTaskClose(TASK_SINGLE_RUN.oid, result, 10000);
 
         then();
 
@@ -576,7 +576,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
             add(TASK_WAITING_FOR_NO_ONE, result);
 
             then();
-            waitForTaskClose(TASK_WAITING_FOR_NO_ONE.oid, result, 40000, 300);
+            waitForTaskClose(TASK_WAITING_FOR_NO_ONE.oid, result, 40000);
 
         } finally {
             taskManager.getClusterManager().stopClusterManagerThread(10000L, result);
@@ -764,7 +764,7 @@ public class TestTaskManagerBasic extends AbstractTaskManagerTest {
         checkTreadSafety(TASK_WITH_THREADS.oid, 1000L, result);
 
         waitUntilDone(TASK_WITH_THREADS.oid, result, 15000, 100);
-        waitForTaskClose(TASK_WITH_THREADS.oid, result, 15000, 100);
+        waitForTaskClose(TASK_WITH_THREADS.oid, result, 15000);
 
         then();
 

@@ -122,7 +122,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
                         ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext))
-                .asObjectDeltaCast(userJackOid);
+                .asObjectDelta(userJackOid);
         executeChanges(assignDelta, executeOptions().executeImmediatelyAfterApproval(), task, result); // should start approval processes
         assertNotAssignedRole(userJackOid, roleRole51aOid, result);
         assertNotAssignedRole(userJackOid, roleRole52aOid, result);
@@ -233,14 +233,14 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext))
-                .asObjectDeltaCast(userBobOid);
+                .asObjectDelta(userBobOid);
         executeChanges(assignDelta1, executeOptions().executeImmediatelyAfterApproval(), task1, result1); // should start approval processes
         ObjectDelta<UserType> assignDelta2 = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(
                         ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE, prismContext),
                         ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext))
-                .asObjectDeltaCast(userBobOid);
+                .asObjectDelta(userBobOid);
         executeChanges(assignDelta2, executeOptions().executeImmediatelyAfterApproval(), task2, result2); // should start approval processes
         assertNotAssignedRole(userBobOid, roleRole51aOid, result0);
         assertNotAssignedRole(userBobOid, roleRole52aOid, result0);

@@ -219,13 +219,13 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when("task is run");
-        TASK_EXECUTE_CHANGES_LEGACY.initialize(this, task, result);
+        TASK_EXECUTE_CHANGES_LEGACY.init(this, task, result);
         TASK_EXECUTE_CHANGES_LEGACY.rerun(result);
 
         then("user is created in raw mode");
         assertUserAfterByUsername("user-legacy")
                 .assertAssignments(1)
-                .assertRoleMemberhipRefs(0); // to check the raw mode
+                .assertRoleMembershipRefs(0); // to check the raw mode
 
         and("task is OK");
         // @formatter:off
@@ -246,13 +246,13 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when("task is run");
-        TASK_EXECUTE_CHANGES_SINGLE.initialize(this, task, result);
+        TASK_EXECUTE_CHANGES_SINGLE.init(this, task, result);
         TASK_EXECUTE_CHANGES_SINGLE.rerun(result);
 
         then("user is created in raw mode");
         assertUserAfterByUsername("user-single")
                 .assertAssignments(1)
-                .assertRoleMemberhipRefs(0); // to check the raw mode
+                .assertRoleMembershipRefs(0); // to check the raw mode
 
         and("task is OK");
         // @formatter:off
@@ -274,18 +274,18 @@ public class TestMiscTasks extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when("task is run");
-        TASK_EXECUTE_CHANGES_MULTI.initialize(this, task, result);
+        TASK_EXECUTE_CHANGES_MULTI.init(this, task, result);
         TASK_EXECUTE_CHANGES_MULTI.rerun(result);
 
         then("user 1 is created in raw mode");
         assertUserAfterByUsername("user-multi-1")
                 .assertAssignments(1)
-                .assertRoleMemberhipRefs(0); // to check the raw mode
+                .assertRoleMembershipRefs(0); // to check the raw mode
 
         and("user 2 is created in non-raw mode");
         assertUserAfterByUsername("user-multi-2")
                 .assertAssignments(1)
-                .assertRoleMemberhipRefs(1);
+                .assertRoleMembershipRefs(1);
 
         and("task is OK");
         // @formatter:off

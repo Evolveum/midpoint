@@ -63,8 +63,8 @@ public class NotificationHook implements ChangeHook {
     }
 
     @Override
-    public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
-            @NotNull OperationResult parentResult) {
+    public <O extends ObjectType> HookOperationMode invoke(
+            @NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OP_INVOKE);
         try {
             if (context.getState() != ModelState.FINAL) {
@@ -97,7 +97,7 @@ public class NotificationHook implements ChangeHook {
         for (EvaluatedPolicyRule rule : focusContext.getObjectPolicyRules()) {
             emitPolicyEventIfPresent(rule, context, task, result);
         }
-        for (EvaluatedAssignment<?> assignment : context.getNonNegativeEvaluatedAssignments()) {
+        for (EvaluatedAssignment assignment : context.getNonNegativeEvaluatedAssignments()) {
             for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
                 emitPolicyEventIfPresent(rule, context, task, result);
             }

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.impl.expr;
 import static com.evolveum.midpoint.prism.delta.ObjectDelta.isAdd;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
@@ -369,6 +371,67 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public boolean isProjectionEnabled() {
+        return isProjectionActivationChanged(true);
+    }
+
+    @Override
+    public boolean isProjectionDisabled() {
+        return isProjectionActivationChanged(false);
+    }
+
+    private boolean isProjectionActivationChanged(boolean newState) {
+        ModelContext<?> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
+        for (ModelProjectionContext projectionContext : ctx.getProjectionContexts()) {
+            if (isProjectionActivationChanged(projectionContext, newState)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isProjectionActivationChanged(ModelProjectionContext projectionContext, boolean newState) {
+        // Shadows are not re-loaded after delta application, hence "object current" is as good as "object old".
+        // We do not use object old, because the newly-loaded full object is not stored there.
+        ShadowType objectCurrent = asObjectable(projectionContext.getObjectCurrent());
+        if (objectCurrent == null) {
+            LOGGER.trace("Considering admin status changed (to '{}') for {}: no current object", newState, projectionContext);
+            return false;
+        }
+        ShadowType objectNew = asObjectable(projectionContext.getObjectNew());
+        if (objectNew == null) {
+            LOGGER.trace("Considering admin status changed (to '{}') for {}: no new object", newState, projectionContext);
+            return false;
+        }
+        ActivationStatusType statusNew = getAdministrativeStatus(objectNew);
+        if (statusNew == null) {
+            LOGGER.trace("Considering admin status changed (to '{}') for {}: No new value for admin status, probably we"
+                    + "don't have full shadow (and there is no change) or the activation is not supported at all",
+                    newState, projectionContext);
+            return false;
+        }
+        boolean enabledNew = statusNew == ActivationStatusType.ENABLED;
+
+        ActivationStatusType statusCurrent = getAdministrativeStatus(objectCurrent);
+        if (statusCurrent == null) {
+            LOGGER.trace("Considering admin status changed (to '{}') for {}: No current value for admin status, probably we"
+                            + "don't have full shadow. But there is new value ({}) so there must be the delta",
+                    newState, projectionContext, statusNew);
+            return enabledNew == newState;
+        }
+        boolean enabledCurrent = statusCurrent == ActivationStatusType.ENABLED;
+        boolean matches = enabledNew == newState && enabledCurrent != newState;
+        LOGGER.trace("Considering admin status changed (to '{}') for {}: Current value: {}, new value: {}, matches: {}",
+                newState, projectionContext, statusCurrent, statusNew, matches);
+        return matches;
+    }
+
+    private static @Nullable ActivationStatusType getAdministrativeStatus(ShadowType shadow) {
+        ActivationType activationNew = shadow.getActivation();
+        return activationNew != null ? activationNew.getAdministrativeStatus() : null;
+    }
+
+    @Override
     public <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid) {
         for (AssignmentType assignment : focusType.getAssignment()) {
             ObjectReferenceType targetRef = assignment.getTargetRef();
@@ -422,12 +485,12 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Experimental
     public boolean hasActiveAssignmentTargetSubtype(String roleSubtype) {
         ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<? extends EvaluatedAssignment> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         if (evaluatedAssignmentTriple == null) {
             throw new UnsupportedOperationException("hasActiveAssignmentRoleSubtype works only with evaluatedAssignmentTriple");
         }
-        Collection<? extends EvaluatedAssignment<?>> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues(); // MID-6403
-        for (EvaluatedAssignment<?> nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
+        Collection<? extends EvaluatedAssignment> nonNegativeEvaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues(); // MID-6403
+        for (EvaluatedAssignment nonNegativeEvaluatedAssignment : nonNegativeEvaluatedAssignments) {
             PrismObject<?> target = nonNegativeEvaluatedAssignment.getTarget();
             if (target == null) {
                 continue;
@@ -1727,12 +1790,35 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
     @Override
     public String translate(LocalizableMessage message) {
-        return localizationService.translate(message, Locale.getDefault());
+        return translate(message, true);
+    }
+
+    @Override
+    public String translate(LocalizableMessage message, boolean useDefaultLocale) {
+        Locale locale = findProperLocale(useDefaultLocale);
+
+        return localizationService.translate(message, locale);
     }
 
     @Override
     public String translate(LocalizableMessageType message) {
-        return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), Locale.getDefault());
+        return translate(message, true);
+    }
+
+    @Override
+    public String translate(LocalizableMessageType message, boolean useDefaultLocale) {
+        Locale locale = findProperLocale(useDefaultLocale);
+
+        return localizationService.translate(LocalizationUtil.toLocalizableMessage(message), locale);
+    }
+
+    @NotNull private Locale findProperLocale(boolean useDefaultLocale) {
+        if (useDefaultLocale) {
+            return Locale.getDefault();
+        }
+
+        MidPointPrincipal principal = SecurityUtil.getPrincipalSilent();
+        return principal != null ? principal.getLocale() : Locale.getDefault();
     }
 
     @Override
@@ -1770,7 +1856,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
         ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
         Collection<PrismValue> rv = new HashSet<>();
-        for (EvaluatedAssignment<?> evaluatedAssignment : lensContext.getNonNegativeEvaluatedAssignments()) {
+        for (EvaluatedAssignment evaluatedAssignment : lensContext.getNonNegativeEvaluatedAssignments()) {
             if (evaluatedAssignment.isValid()) {
                 for (Mapping<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
                     if (path.equivalent(mapping.getOutputPath())) {
@@ -1938,17 +2024,18 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     public <O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp,
             TriggerCustomizer triggerCustomizer)
             throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
-        TriggerType trigger = new TriggerType(prismContext)
+        TriggerType trigger = new TriggerType()
                 .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
                 .timestamp(XmlTypeConverter.createXMLGregorianCalendar(timestamp != null ? timestamp : System.currentTimeMillis()));
         if (triggerCustomizer != null) {
             triggerCustomizer.customize(trigger);
         }
-        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(object.asObjectable().getClass())
+        Class<? extends ObjectType> objectType = object.asObjectable().getClass();
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(objectType)
                 .item(ObjectType.F_TRIGGER).add(trigger)
                 .asItemDeltas();
-        repositoryService.modifyObject(object.getCompileTimeClass(), object.getOid(), itemDeltas,
-                getCurrentResult(CLASS_DOT + "addRecomputeTrigger"));
+        repositoryService.modifyObject(
+                objectType, object.getOid(), itemDeltas, getCurrentResult(CLASS_DOT + "addRecomputeTrigger"));
     }
 
     @Override
@@ -2082,7 +2169,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             ObjectAlreadyExistsException, ObjectNotFoundException {
         OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".createRecomputeTrigger");
 
-        TriggerType trigger = new TriggerType(prismContext)
+        TriggerType trigger = new TriggerType()
                 .handlerUri(RecomputeTriggerHandler.HANDLER_URI)
                 .timestamp(XmlTypeConverter.createXMLGregorianCalendar());
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(type)

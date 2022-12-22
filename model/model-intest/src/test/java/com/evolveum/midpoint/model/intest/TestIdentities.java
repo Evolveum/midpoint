@@ -178,7 +178,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         account.addAttributeValue(ATTR_PERSONAL_NUMBER, "1003456");
 
         when("account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_SINGLE.oid)
                 .withNameValue("bob")
                 .execute(result);
@@ -219,7 +219,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         account1.addAttributeValue(ATTR_PERSONAL_NUMBER, "1004444");
 
         when("account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_MULTI.oid)
                 .withNameValue("10700020")
                 .execute(result);
@@ -250,7 +250,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         account2.addAttributeValue(ATTR_PERSONAL_NUMBER, "1004444");
 
         and("second account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_MULTI.oid)
                 .withNameValue("10700010")
                 .execute(result);
@@ -286,7 +286,7 @@ public class TestIdentities extends AbstractEmptyModelIntegrationTest {
         account3.addAttributeValue(ATTR_PERSONAL_NUMBER, "1004444");
 
         and("third account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_SINGLE.oid)
                 .withNameValue("brown")
                 .execute(result);

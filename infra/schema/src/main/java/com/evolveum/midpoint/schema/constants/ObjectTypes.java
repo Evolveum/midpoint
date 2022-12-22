@@ -12,6 +12,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -31,6 +32,9 @@ public enum ObjectTypes {
 
     GENERIC_OBJECT(SchemaConstants.C_GENERIC_OBJECT_TYPE,
             SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, ObjectManager.MODEL, "genericObjects"),
+
+    TAG(TagType.COMPLEX_TYPE,
+            SchemaConstantsGenerated.C_TAG, TagType.class, ObjectManager.MODEL, "tags"),
 
     RESOURCE(SchemaConstants.C_RESOURCE_TYPE, SchemaConstants.C_RESOURCE,
             ResourceType.class, ObjectManager.PROVISIONING, "resources"),
@@ -107,8 +111,13 @@ public enum ObjectTypes {
     DASHBOARD(DashboardType.COMPLEX_TYPE, SchemaConstantsGenerated.C_DASHBOARD, DashboardType.class, ObjectManager.MODEL,
             "dashboards"),
 
-    MESSAGE_TEMPLATE(MessageTemplateType.COMPLEX_TYPE, SchemaConstantsGenerated.C_MESSAGE_TEMPLATE, MessageTemplateType.class, ObjectManager.MODEL,
-            "messageTemplates"),
+    MESSAGE_TEMPLATE(
+            MessageTemplateType.COMPLEX_TYPE, SchemaConstantsGenerated.C_MESSAGE_TEMPLATE, MessageTemplateType.class,
+            ObjectManager.MODEL, "messageTemplates"),
+
+    SIMULATION_RESULT(
+            SimulationResultType.COMPLEX_TYPE, SchemaConstantsGenerated.C_SIMULATION_RESULT, SimulationResultType.class,
+            ObjectManager.MODEL, "simulationResults"),
 
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
@@ -203,6 +212,7 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Unsupported object type " + objectType);
     }
 
+    @Contract("null -> null; !null -> !null")
     public static ObjectTypes getObjectTypeFromTypeQName(QName typeQName) {
         if (typeQName == null) {
             return null;

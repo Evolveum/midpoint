@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -42,29 +40,30 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static com.evolveum.midpoint.model.impl.controller.ModelController.*;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
 
 @Component
 public class ModelObjectResolver implements ObjectResolver {
 
     @Autowired private ProvisioningService provisioning;
-
-    @Autowired
-    @Qualifier("cacheRepositoryService")
-    private RepositoryService cacheRepositoryService;
-
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
     @Autowired private PrismContext prismContext;
-
     @Autowired private TaskManager taskManager;
-
-    @Autowired(required = false)
-    private HookRegistry hookRegistry;
+    @Autowired(required = false) private HookRegistry hookRegistry;
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 
     @Override
-    public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
-            String contextDescription, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    public <O extends ObjectType> O resolve(
+            ObjectReferenceType ref,
+            Class<O> expectedType,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            String contextDescription,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException {
         String oid = ref.getOid();
         Class<?> typeClass = null;
         QName typeQName = ref.getType();
@@ -103,8 +102,9 @@ public class ModelObjectResolver implements ObjectResolver {
         return (PrismObject<O>) (getObjectSimple((Class<O>) typeClass, oid, options, task, result)).asPrismObject();
     }
 
-    public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task,
-            OperationResult result) throws ObjectNotFoundException {
+    public <T extends ObjectType> T getObjectSimple(
+            Class<T> clazz, String oid, GetOperationOptions options, Task task, OperationResult result)
+            throws ObjectNotFoundException {
         try {
             return getObject(clazz, oid, SelectorOptions.createCollection(options), task, result);
         } catch (SystemException | ObjectNotFoundException ex) {
@@ -165,27 +165,6 @@ public class ModelObjectResolver implements ObjectResolver {
             throw new SystemException("Error resolving object with oid '" + oid + "': " + ex.getMessage(), ex);
         }
         return objectType;
-    }
-
-    /**
-     * Returns the component that is responsible for execution of get/search/count operation for given type of objects,
-     * under given options.
-     *
-     * Specifically, in raw mode we simply skip specialized components like provisioning or task manager, and we go
-     * directly to repository.
-     *
-     * Actually it is a bit questionable if this is really correct. But this is how it has been implemented for a long time
-     * (for the getObject op), so later the other operations were added.
-     */
-    private @NotNull <T extends ObjectType> ObjectTypes.ObjectManager getObjectManager(Class<T> clazz,
-            Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (GetOperationOptions.isRaw(SelectorOptions.findRootOptions(options))) {
-            return ObjectTypes.ObjectManager.REPOSITORY;
-        } else {
-            return Objects.requireNonNullElse(
-                    ObjectTypes.getObjectManagerForClass(clazz),
-                    ObjectTypes.ObjectManager.REPOSITORY);
-        }
     }
 
     @Override

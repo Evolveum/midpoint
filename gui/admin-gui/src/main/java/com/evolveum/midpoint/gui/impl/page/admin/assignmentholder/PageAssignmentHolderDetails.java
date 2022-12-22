@@ -6,9 +6,14 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.impl.page.admin.TemplateChoicePanel;
+
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
@@ -39,12 +44,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
 
+import org.jetbrains.annotations.NotNull;
+
 public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderType, AHDM extends AssignmentHolderDetailsModel<AH>>
         extends AbstractPageObjectDetails<AH, AHDM> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentHolderDetails.class);
-    private static final String ID_TEMPLATE_VIEW = "templateView";
-    private static final String ID_TEMPLATE = "template";
+    protected static final String ID_TEMPLATE_VIEW = "templateView";
+    protected static final String ID_TEMPLATE = "template";
+
+    private List<Breadcrumb> wizardBreadcrumbs = new ArrayList<>();
 
     public PageAssignmentHolderDetails() {
         super();
@@ -105,7 +114,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
     }
 
     protected WebMarkupContainer createTemplatePanel(String id) {
-        return new CreateTemplatePanel<>(id) {
+        return new TemplateChoicePanel(id) {
 
             @Override
             protected Collection<CompiledObjectCollectionView> findAllApplicableArchetypeViews() {
@@ -119,6 +128,7 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
 
             @Override
             protected void onTemplateChosePerformed(CompiledObjectCollectionView collectionViews, AjaxRequestTarget target) {
+                getBreadcrumbs().clear();
                 applyTemplate(collectionViews);
 
                 Fragment fragment = createDetailsFragment();
@@ -226,5 +236,9 @@ public abstract class PageAssignmentHolderDetails<AH extends AssignmentHolderTyp
         }
 
         return null;
+    }
+
+    public List<Breadcrumb> getWizardBreadcrumbs() {
+        return wizardBreadcrumbs;
     }
 }

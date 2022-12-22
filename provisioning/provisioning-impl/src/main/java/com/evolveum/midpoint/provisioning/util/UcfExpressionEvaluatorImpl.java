@@ -57,6 +57,7 @@ public class UcfExpressionEvaluatorImpl implements UcfExpressionEvaluator {
             VariablesMap exprVariables = new VariablesMap();
             exprVariables.putAll(variables);
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, exprVariables, ctxDesc, task);
+            context.setExpressionFactory(expressionFactory);
             PrismValueDeltaSetTriple<PrismPropertyValue<O>> exprResultTriple = expression.evaluate(context, result);
             List<O> list = new ArrayList<>();
             for (PrismPropertyValue<O> pv : exprResultTriple.getZeroSet()) {

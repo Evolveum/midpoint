@@ -1,18 +1,17 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.story.consistency;
 
-import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoThreadLocalCache;
+import static com.evolveum.midpoint.test.util.MidPointTestConstants.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,10 +22,6 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.CapabilityUtil;
-
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +48,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -75,6 +71,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityCollectionType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -236,21 +233,17 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         logger.trace("initSystem");
         super.initSystem(initTask, initResult);
 
-        repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, initResult);
-        repoAddObjectFromFile(ROLE_LDAP_ADMINS_FILENAME, initResult);
-        repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
+        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 
-        // This should discover the connectors
         logger.trace("initSystem: trying modelService.postInit()");
         modelService.postInit(initResult);
         logger.trace("initSystem: modelService.postInit() done");
 
-        login(USER_ADMINISTRATOR_NAME);
+        repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, initResult);
+        repoAddObjectFromFile(ROLE_LDAP_ADMINS_FILENAME, initResult);
+        repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
 
-        // We need to add config after calling postInit() so it will not be applied.
-        // we want original logging configuration from the test logback config file, not
-        // the one from the system config.
-        repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
+        login(USER_ADMINISTRATOR_NAME);
 
         // Need to import instead of add, so the (dynamic) connector reference
         // will be resolved correctly
@@ -262,12 +255,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     protected File getResourceFile() {
         return RESOURCE_OPENDJ_FILE;
     }
-
-//    @Override
-//    protected TracingProfileType getTestMethodTracingProfile() {
-//        return createModelAndProvisioningLoggingTracingProfile()
-//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-//    }
 
     /**
      * Initialize embedded OpenDJ instance. Note: this is not in the abstract
@@ -533,7 +520,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         UserAsserter.forUser(userJackBefore)
                 .assertLiveLinks(1)
                 .links()
-                    .link(ACCOUNT_JACKIE_OID);
+                .link(ACCOUNT_JACKIE_OID);
         //check if the jackie account already exists on the resource
 
         PrismObject<ShadowType> existingJackieAccount = getShadowRepo(ACCOUNT_JACKIE_OID);
@@ -618,9 +605,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     /**
      * 1. creates Alfred Bomba `abomba` user (no projections), then adds an account for `abomba`
-     *   - DN is `abomba`
+     * - DN is `abomba`
      * 2. creates Andrej Bomba `abom` user (no projections), then adds an account for `abom`
-     *   - DN should be `abomba`, iterated to `abomba1`
+     * - DN should be `abomba`, iterated to `abomba1`
      * 3. unlinks `abomba` account from `abomba`
      * 4. unlinks `abomba1` account from `abom`
      * 5. re-creates `abomba` account to `abomba`
@@ -775,7 +762,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         UserAsserter.forUser(userBefore)
                 .assertLiveLinks(1)
                 .links()
-                    .link(ACCOUNT_GUYBRUSH_OID);
+                .link(ACCOUNT_GUYBRUSH_OID);
 
         when();
         ObjectDelta<ShadowType> delta = prismContext.deltaFor(ShadowType.class)
@@ -830,7 +817,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         UserAsserter.forUser(userBefore)
                 .assertLiveLinks(1)
                 .links()
-                    .link(ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID);
+                .link(ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID);
 
         Task task = taskManager.createTaskInstance();
 
@@ -890,7 +877,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         UserAsserter.forUser(userBefore)
                 .assertLiveLinks(1)
                 .links()
-                    .link(ACCOUNT_HECTOR_OID);
+                .link(ACCOUNT_HECTOR_OID);
 
         Task task = taskManager.createTaskInstance();
 
@@ -902,7 +889,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         UserAsserter.forUser(userAfter)
                 .assertLiveLinks(1)
                 .links()
-                    .link(ACCOUNT_HECTOR_OID);
+                .link(ACCOUNT_HECTOR_OID);
 
         PrismObject<ShadowType> modifiedAccount = getShadowModel(ACCOUNT_HECTOR_OID);
         assertNotNull(modifiedAccount);
@@ -924,8 +911,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         String liveLinkOidBefore = assertUserBefore(USER_GUYBRUSH_OID)
                 .links()
-                    .singleLive()
-                        .getOid();
+                .singleLive()
+                .getOid();
 
         PrismObject<ShadowType> shadowBefore = getShadowModel(liveLinkOidBefore);
         display("Model Shadow before", shadowBefore);
@@ -1016,10 +1003,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         display("User after", userAfter);
         String liveOidAfter = assertUser(userAfter, "after")
                 .links()
-                    .singleLive()
-                    .resolveTarget()
-                        .display()
-                        .getOid();
+                .singleLive()
+                .resolveTarget()
+                .display()
+                .getOid();
 
         assertThat(liveOidBefore)
                 .withFailMessage("Old and new shadow with the same oid?")
@@ -1518,8 +1505,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertNoLegacyConsistency()
                 .assertAdministrativeStatus(ActivationStatusType.ENABLED) // MID-6420
                 .attributes()
-                    .assertValue(QNAME_CN, "jackNew2")
-                    .end()
+                .assertValue(QNAME_CN, "jackNew2")
+                .end()
                 .assertIsExists()
                 .end();
     }
@@ -1562,7 +1549,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance();
 
         executeChanges(objectDelta, ModelExecuteOptions.create().pushChanges(), task, parentResult);
-        XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
@@ -1707,9 +1693,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     /**
      * 1. modifies an account (while resource is down)
-     *     - checks pending MODIFY operation + futurized shadow
+     * - checks pending MODIFY operation + futurized shadow
      * 2. gets an account while resource is up (force retry)
-     *     - checks that the pending operation is complete
+     * - checks that the pending operation is complete
      */
     @Test
     public void test262GetDiscoveryModifyCommunicationProblem() throws Exception {
@@ -2715,7 +2701,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
      * The following process is executed:
      *
      * 1. A construction is unassigned, resulting in account being deleted.
-     *    The delete operation is pending because of the resource unavailability.
+     * The delete operation is pending because of the resource unavailability.
      * 2. Resource goes up. The pending operation is NOT applied (no shadow refresh is explicitly run).
      * 3. The construction is assigned again.
      * 4. Shadow refresh is executed.
@@ -2762,7 +2748,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         then("re-creating the account by re-assigning the construction");
         assertStateAfterRecreatingTheAssignment(userOid, userName, originalShadow, task, result);
     }
-
 
     /**
      * The same as {@link #test610DeleteAndRecreateShadow()} but this time the resource is in maintenance mode
@@ -2943,10 +2928,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = getTestTask();
         final OperationResult result = createOperationResult();
 
-        // TODO: remove this if the previous test is enabled
-//        openDJController.start();
-
-        // rename eobject dirrectly on resource before the recon start ..it tests the rename + recon situation (MID-1594)
+        // rename object directly on resource before the recon start ..it tests the rename + recon situation (MID-1594)
 
         // precondition
         assertTrue(EmbeddedUtils.isRunning());
@@ -3042,8 +3024,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         openDJController.executeRenameChange(LDIF_MODIFY_RENAME_FILE);
         logger.info("rename ended");
-//        Entry res = openDJController.searchByUid("e");
-//        LOGGER.info("E OBJECT AFTER RENAME " + res.toString());
 
         logger.info("start running task");
         // WHEN
@@ -3136,7 +3116,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
             ResourceAttributeDefinition<?> enableAttrDef = accountDefinition.findAttributeDefinition(enableAttrName);
             displayDumpable("Simulated activation attribute definition", enableAttrDef);
             assertNotNull("No definition for enable attribute " + enableAttrName + " in account (resource from " + source + ")", enableAttrDef);
-            assertTrue("Enable attribute " + enableAttrName + " is not ignored (resource from " + source + ")", enableAttrDef.isIgnored());
+            assertSame("Enable attribute " + enableAttrName + " is not ignored (resource from " + source + ")",
+                    enableAttrDef.getProcessing(), ItemProcessing.IGNORE);
         }
     }
 
@@ -3159,8 +3140,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new ItemName(
                 connectorNamespace, credentialsPropertyName));
         if (credentialsProp == null) {
-            // The is the heisenbug we are looking for. Just dump the entire
-            // damn thing.
+            // This is the heisenbug we are looking for. Just dump the entire damn thing.
             displayValue("Configuration with the heisenbug", configurationContainer.debugDump());
         }
         assertNotNull("No credentials property in " + resource + " from " + source, credentialsProp);

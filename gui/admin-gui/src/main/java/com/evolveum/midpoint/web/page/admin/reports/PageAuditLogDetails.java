@@ -403,7 +403,7 @@ public class PageAuditLogDetails extends PageBase {
     }
 
     private void initDeltasPanel(WebMarkupContainer eventPanel) {
-        ListView<ObjectDeltaOperationType> deltaScene = new ListView<>(ID_DELTA_LIST_PANEL, createObjectDeltasModel()) {
+        ListView<ObjectDeltaOperationType> deltaListPanel = new ListView<>(ID_DELTA_LIST_PANEL, createObjectDeltasModel()) {
 
             @Override
             protected void populateItem(ListItem<ObjectDeltaOperationType> item) {
@@ -417,7 +417,7 @@ public class PageAuditLogDetails extends PageBase {
                 item.add(deltaPanel);
             }
         };
-        eventPanel.add(deltaScene);
+        eventPanel.add(deltaListPanel);
     }
 
     private IModel<List<ObjectDeltaOperationType>> createObjectDeltasModel() {

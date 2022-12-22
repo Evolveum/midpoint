@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.impl.shadows.ProvisioningOperationState.AddOperationState;
 
@@ -67,6 +68,7 @@ public class OperationResultRecorder {
     @Autowired private ShadowUpdater shadowUpdater;
     @Autowired private ShadowCreator shadowCreator;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
+    @Autowired private Clock clock;
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationResultRecorder.class);
 
@@ -297,13 +299,15 @@ public class OperationResultRecorder {
                 return;
             }
 
-            shadowModifications.addAll(
-                    prismContext.deltaFor(ShadowType.class)
-                            .item(ShadowType.F_DEAD).replace(true)
-                            // We need to free the identifier for further use by live shadows that may come later
-                            .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
-                            .asItemDeltas()
-            );
+            if (!ShadowUtil.isDead(repoShadow)) {
+                shadowModifications.addAll(
+                        prismContext.deltaFor(ShadowType.class)
+                                .item(ShadowType.F_DEAD).replace(true)
+                                .item(ShadowType.F_DEATH_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
+                                // We need to free the identifier for further use by live shadows that may come later
+                                .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
+                                .asItemDeltas());
+            }
         }
 
         if (!shadowModifications.isEmpty()) {

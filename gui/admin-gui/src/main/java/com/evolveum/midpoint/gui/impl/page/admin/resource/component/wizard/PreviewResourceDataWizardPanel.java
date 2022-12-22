@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.ResourceUncategorizedPanel;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lskublik
  */
-public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel {
+public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
 
     private static final String PANEL_TYPE = "resourceUncategorized";
     private static final String ID_TABLE = "table";
@@ -42,7 +42,7 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel {
     }
 
     private void initLayout() {
-        ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(ID_TABLE, getResourceModel(), getConfiguration()) {
+        ResourceUncategorizedPanel table = new ResourceUncategorizedPanel(ID_TABLE, getAssignmentHolderDetailsModel(), getConfiguration()) {
 
             @Override
             protected boolean isRepoSearch() {
@@ -85,7 +85,7 @@ public class PreviewResourceDataWizardPanel extends AbstractWizardBasicPanel {
 
     ContainerPanelConfigurationType getConfiguration(){
         return WebComponentUtil.getContainerConfiguration(
-                getResourceModel().getObjectDetailsPageConfiguration().getObject(),
+                getAssignmentHolderDetailsModel().getObjectDetailsPageConfiguration().getObject(),
                 PANEL_TYPE);
     }
 

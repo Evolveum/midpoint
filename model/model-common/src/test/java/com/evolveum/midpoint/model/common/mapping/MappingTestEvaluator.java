@@ -84,7 +84,7 @@ public class MappingTestEvaluator {
         init(false);
     }
 
-    public void initWithMetadata() throws SchemaException, SAXException, IOException {
+    void initWithMetadata() throws SchemaException, SAXException, IOException {
         init(true);
     }
 
@@ -92,34 +92,25 @@ public class MappingTestEvaluator {
         this.withMetadata = withMetadata;
 
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
-        prismContext = PrismTestUtil.createInitializedPrismContext();
-        ObjectResolver resolver = new DirectoryFileObjectResolver(MidPointTestConstants.OBJECTS_DIR);
-        protector = ExpressionTestUtil.createInitializedProtector(prismContext);
-        Clock clock = new Clock();
-        ExpressionFactory expressionFactory =
-                ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock);
-
-        // We need only selected beans for the mapping factory
-        ModelCommonBeans beans = new ModelCommonBeans();
-        beans.expressionFactory = expressionFactory;
-        beans.objectResolver = resolver;
-        beans.prismContext = prismContext;
-        beans.protector = protector;
-        beans.init();
+        ModelCommonBeans beans = ExpressionTestUtil.initializeModelCommonBeans();
 
         if (withMetadata) {
             BuiltinMetadataMappingsRegistry builtinMetadataMappingsRegistry = new BuiltinMetadataMappingsRegistry();
-            ProvenanceBuiltinMapping provenanceBuiltinMapping = new ProvenanceBuiltinMapping(prismContext, builtinMetadataMappingsRegistry);
+            ProvenanceBuiltinMapping provenanceBuiltinMapping =
+                    new ProvenanceBuiltinMapping(prismContext, builtinMetadataMappingsRegistry);
             provenanceBuiltinMapping.register();
 
-            beans.metadataMappingEvaluator = new MetadataMappingEvaluator(mappingFactory, prismContext, builtinMetadataMappingsRegistry);
+            beans.metadataMappingEvaluator =
+                    new MetadataMappingEvaluator(mappingFactory, prismContext, builtinMetadataMappingsRegistry);
         }
 
         mappingFactory = new MappingFactory();
         mappingFactory.setBeans(beans);
         mappingFactory.setProfiling(true);
+
+        this.prismContext = beans.prismContext;
+        this.protector = beans.protector;
     }
 
     public Protector getProtector() {

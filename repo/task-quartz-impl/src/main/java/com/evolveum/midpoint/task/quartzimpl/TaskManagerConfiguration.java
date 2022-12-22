@@ -319,7 +319,9 @@ public class TaskManagerConfiguration {
         clustered = c.getBoolean(CLUSTERED_CONFIG_ENTRY, CLUSTERED_DEFAULT);
         jdbcJobStore = c.getBoolean(JDBC_JOB_STORE_CONFIG_ENTRY, clustered);
 
-        nodeId = new NodeIdComputer(prismContext, repositoryService).determineNodeId(root, clustered, result);
+        nodeId =
+                new NodeIdComputer(prismContext, repositoryService)
+                        .determineNodeId(root, clustered, result);
 
         hostName = root.getString(MidpointConfiguration.MIDPOINT_HOST_NAME_PROPERTY, null);
 

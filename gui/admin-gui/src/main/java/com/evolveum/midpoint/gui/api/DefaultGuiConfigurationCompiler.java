@@ -218,9 +218,17 @@ public class DefaultGuiConfigurationCompiler implements GuiProfileCompilable {
             if (collectionInstance == null) {
                 continue;
             }
-            ObjectTypes objectType = ObjectTypes.getObjectType(collectionInstance.applicableForType());
+
+            Class<? extends Containerable> applicableForType = collectionInstance.applicableForType();
+            QName type;
+            if (ObjectType.class.isAssignableFrom(applicableForType)) {
+                ObjectTypes objectType = ObjectTypes.getObjectType((Class<? extends ObjectType>) applicableForType);
+                type = objectType.getTypeQName();
+            } else {
+                type = prismContext.getSchemaRegistry().determineTypeForClass(applicableForType);
+            }
             CompiledObjectCollectionView defaultCollectionView =
-                    new CompiledObjectCollectionView(objectType.getTypeQName(), collectionInstance.identifier());
+                    new CompiledObjectCollectionView(type, collectionInstance.identifier());
             defaultCollectionView.setDisplay(createDisplayType(collectionInstance.display()));
             compiledObjectCollectionViews.add(defaultCollectionView);
             defaultCollectionView.setDefaultView(true);

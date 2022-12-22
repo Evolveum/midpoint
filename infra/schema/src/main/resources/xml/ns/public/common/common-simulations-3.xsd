@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!--suppress XmlUnusedNamespaceDeclaration -->
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+        elementFormDefault="qualified"
+        xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+        jaxb:extensionBindingPrefixes="xjc"
+        jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            TODO
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
+
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3"/>
+
+    <xsd:complexType name="SimulationResultType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Result of Simulation run.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:object/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="metric" type="tns:SimulationMetricType" maxOccurs="unbounded"/>
+                    <xsd:element name="processedObject" type="tns:SimulationResultProcessedObjectType" maxOccurs="unbounded" />
+                    <xsd:element name="useOwnPartitionForProcessedObjects" type="xsd:boolean" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="simulationResult" type="tns:SimulationResultType" substitutionGroup="c:object"/>
+
+
+    <xsd:complexType name="SystemConfigurationSimulationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Global Configuration of Simulations.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="useOwnPartitionForProcessedObjects" type="xsd:boolean" />
+            <!--  TODO: Do we want storage strategies per type? or per metric?
+
+                  Storage strategies may be beneficial for large deployments
+                   - eg. do not store information about objects, that do not match any metric
+                     or are unmodified.
+                   - do not store before / after state
+             -->
+            <xsd:element name="metrics" type="tns:SimulationMetricDefinitionType" maxOccurs="unbounded" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimulationMetricDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Result of Simulation run.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+      <xsd:sequence>
+        <xsd:element name="identifier" type="xsd:string"/>
+        <xsd:element name="displayName" type="t:PolyStringType"/>
+        <xsd:element name="filter" type="tns:SimulationMetricBeforeAfterFilter" />
+      </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimulationMetricBeforeAfterFilter">
+        <xsd:annotation>
+            <xsd:documentation>
+                Pair of filters, which are run on object before / after state.
+
+                In order for object to match this filter, it must match both filters
+                if they are present.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="beforeFilter" type="q:SearchFilterType" />
+            <xsd:element name="afterFilter" type="q:SearchFilterType" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimulationMetricType">
+      <xsd:annotation>
+          <xsd:documentation>
+              Result of Simulation run.
+          </xsd:documentation>
+          <xsd:appinfo>
+              <a:container/>
+              <a:since>4.7</a:since>
+          </xsd:appinfo>
+      </xsd:annotation>
+      <xsd:sequence>
+        <xsd:element name="identifier" type="xsd:string" />
+        <xsd:element name="definition" type="tns:SimulationMetricDefinitionType" />
+        <xsd:element name="processedObjects" type="xsd:decimal" />
+        <xsd:element name="matchedObjects" type="xsd:decimal"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SimulationResultProcessedObjectType">
+       <xsd:annotation>
+          <xsd:documentation>
+              Result of Simulation run.
+          </xsd:documentation>
+          <xsd:appinfo>
+              <a:container/>
+              <a:since>4.7</a:since>
+          </xsd:appinfo>
+      </xsd:annotation>
+       <xsd:sequence>
+          <xsd:element name="oid" type="xsd:string" />
+          <xsd:element name="type" type="xsd:QName" />
+          <xsd:element name="name" type="t:PolyStringType" />
+          <xsd:element name="state" type="tns:ObjectProcessingStateType" />
+          <xsd:element name="metricIdentifier" type="xsd:string" maxOccurs="unbounded" />
+
+          <!--  Extra stored state -->
+          <xsd:element name="before" type="tns:ObjectType">
+              <xsd:annotation>
+                  <xsd:appinfo>
+                      <a:embeddedObject>true</a:embeddedObject>
+                      <a:elaborate>true</a:elaborate>
+                  </xsd:appinfo>
+              </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="after" type="tns:ObjectType">
+              <xsd:annotation>
+                  <xsd:appinfo>
+                      <a:embeddedObject>true</a:embeddedObject>
+                      <a:elaborate>true</a:elaborate>
+                  </xsd:appinfo>
+              </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="delta" type="t:ObjectDeltaType" />
+       </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ObjectProcessingStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="unmodified">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UNMODIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="added">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ADDED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="modified">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MODIFIED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="deleted">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DELETED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+</xsd:schema>

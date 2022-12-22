@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -87,6 +88,11 @@ public class ActivationAsserter<RA> extends AbstractAsserter<RA> {
 
     public ActivationAsserter<RA> assertNoEffectiveStatus() {
         assertNull("Unexpected effective status in " + desc() + ": " + getActivation().getEffectiveStatus(), getActivation().getEffectiveStatus());
+        return this;
+    }
+
+    public ActivationAsserter<RA> assertEnableTimestampPresent() {
+        assertThat(getActivation().getEnableTimestamp()).as("enable timestamp in " + desc()).isNotNull();
         return this;
     }
 

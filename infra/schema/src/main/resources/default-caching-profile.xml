@@ -17,11 +17,11 @@
         <objectTypeSettings>
             <objectType>SystemConfigurationType</objectType>
             <objectType>ArchetypeType</objectType>
+            <objectType>TagType</objectType>
             <objectType>ObjectTemplateType</objectType>
             <objectType>ResourceType</objectType>
             <objectType>ConnectorType</objectType>
             <objectType>SecurityPolicyType</objectType>
-            <objectType>ObjectTemplateType</objectType>
             <timeToVersionCheck>10</timeToVersionCheck>
         </objectTypeSettings>
     </globalRepoCache>

@@ -31,12 +31,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -73,7 +69,7 @@ class LinkUpdater<F extends FocusType> {
     @NotNull private final LensProjectionContext projCtx;
 
     /** OID of the projection. Not null after initial checks. */
-    @Nullable private final String projectionOid;
+    private final String projectionOid;
 
     /** Current liveness state of the shadow. */
     private final ShadowLivenessState shadowLivenessState;
@@ -227,18 +223,21 @@ class LinkUpdater<F extends FocusType> {
         String channel = focusContext.getLensContext().getChannel();
         OperationResult result = parentResult.createSubresult(opName);
         try {
-            repositoryService.modifyObject(focusType, focus.getOid(), delta.getModifications(), result);
+            boolean real = task.isPersistentExecution();
+            if (real) {
+                repositoryService.modifyObject(focusType, focus.getOid(), delta.getModifications(), result);
+            }
             task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, null);
         } catch (ObjectAlreadyExistsException ex) {
             task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, ex);
-            result.recordFatalError(ex);
+            result.recordException(ex);
             throw new SystemException(ex);
         } catch (Throwable t) {
             task.recordObjectActionExecuted(focus, focusType, focus.getOid(), ChangeType.MODIFY, channel, t);
-            result.recordFatalError(t);
+            result.recordException(t);
             throw t;
         } finally {
-            result.computeStatusIfUnknown();
+            result.close();
             if (delta != null) {
                 focusContext.addToExecutedDeltas(LensUtil.createObjectDeltaOperation(delta, result, focusContext, projCtx));
             }
@@ -424,30 +423,41 @@ class LinkUpdater<F extends FocusType> {
             }
 
             XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-            List<ItemDelta<?, ?>> syncSituationDeltas = SynchronizationUtils
-                    .createSynchronizationSituationAndDescriptionDelta(currentShadow, newSituation, task.getChannel(),
-                            projCtx.hasFullShadow() && TaskUtil.isExecute(task), now);
+            // We consider the shadow to be fully synchronized, as we are processing its owner in the clockwork now.
+            boolean fullSynchronization = projCtx.hasFullShadow() && task.isPersistentExecution();
+            List<ItemDelta<?, ?>> syncSituationDeltas =
+                    SynchronizationUtils.createSynchronizationSituationAndDescriptionDelta(
+                            currentShadow.asObjectable(), newSituation, task.getChannel(), fullSynchronization, now);
 
-            try {
-                ModelImplUtils.setRequestee(task, focusContext);
-                ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
-                options.setDoNotDiscovery(true);
-                provisioningService.modifyObject(ShadowType.class, projectionOid, syncSituationDeltas, null,
-                        options, task, result);
-                LOGGER.trace("Situation in projection {} was updated to {}", projCtx, newSituation);
-            } catch (ObjectNotFoundException ex) {
-                // if the object not found exception is thrown, it's ok..probably
-                // the account was deleted by previous execution of changes..just
-                // log in the trace the message for the user..
-                LOGGER.debug("Situation in account could not be updated. Account not found on the resource.");
-            } finally {
-                ModelImplUtils.clearRequestee(task);
+            boolean real = task.isPersistentExecution();
+            if (real) {
+                executeShadowDelta(syncSituationDeltas, result);
             }
+            LOGGER.trace("Situation in projection {} was updated to {} (real={})", projCtx, newSituation, real);
         } catch (Exception ex) {
             result.recordFatalError(ex);
             throw new SystemException(ex.getMessage(), ex);
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private void executeShadowDelta(List<ItemDelta<?, ?>> syncSituationDeltas, OperationResult result)
+            throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            PolicyViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+        try {
+            ModelImplUtils.setRequestee(task, focusContext);
+            ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
+            options.setDoNotDiscovery(true);
+            provisioningService.modifyObject(
+                    ShadowType.class, projectionOid, syncSituationDeltas, null, options, task, result);
+        } catch (ObjectNotFoundException ex) {
+            // if the object not found exception is thrown, it's ok..probably
+            // the account was deleted by previous execution of changes..just
+            // log in the trace the message for the user..
+            LOGGER.debug("Situation in account could not be updated. Account not found on the resource.");
+        } finally {
+            ModelImplUtils.clearRequestee(task);
         }
     }
 

@@ -7,10 +7,7 @@
 
 package com.evolveum.midpoint.model.api.expr;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -22,6 +19,7 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -1003,6 +1001,26 @@ public interface MidpointFunctions {
 
     <F extends ObjectType> boolean hasLinkedAccount(String resourceOid);
 
+    /**
+     * Returns `true` if the current clockwork operation causes (any) projection to have `administrativeState` switched to
+     * {@link ActivationStatusType#ENABLED}.
+     *
+     * Not always precise - the original value may not be known.
+     *
+     * TODO what about creating projections?
+     */
+    boolean isProjectionEnabled();
+
+    /**
+     * Returns `true` if the current clockwork operation causes (any) projection to have `administrativeState` switched to
+     * a disabled value (e.g. {@link ActivationStatusType#DISABLED} or {@link ActivationStatusType#ARCHIVED}.
+     *
+     * Not always precise - the original value may not be known.
+     *
+     * TODO what about deleting projections?
+     */
+    boolean isProjectionDisabled();
+
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
 
     boolean isDirectlyAssigned(String targetOid);
@@ -1160,7 +1178,27 @@ public interface MidpointFunctions {
 
     String translate(LocalizableMessage message);
 
+    /**
+     * Translates message parameter.
+     *
+     * @param message
+     * @param useDefaultLocale If true, default JVM locale will be used for translation - {@link Locale#getDefault()}.
+     * If false, Midpoint will check principal object for more appropriate login - {@link MidPointPrincipal#getLocale()}, if no locale available {@link Locale#getDefault()} will be used.
+     * @return translated string
+     */
+    String translate(LocalizableMessage message, boolean useDefaultLocale);
+
     String translate(LocalizableMessageType message);
+
+    /**
+     * Translates message parameter.
+     *
+     * @param message
+     * @param useDefaultLocale If true, default JVM locale will be used for translation - {@link Locale#getDefault()}.
+     * If false, Midpoint will check principal object for more appropriate login - {@link MidPointPrincipal#getLocale()}, if no locale available {@link Locale#getDefault()} will be used.
+     * @return translated string
+     */
+    String translate(LocalizableMessageType message, boolean useDefaultLocale);
 
     /**
      * Counts accounts having `attributeValue` of `attributeName`.
@@ -1418,4 +1456,16 @@ public interface MidpointFunctions {
             @Nullable Collection<FocusIdentityType> identities,
             @Nullable FocusIdentitySourceType source,
             @NotNull ItemPath itemPath);
+
+    /**
+     * Returns true if the object (of FocusType) is effectively enabled.
+     * Assumes that the object underwent standard computation and the activation/effectiveStatus is set.
+     *
+     * As a convenience measure, if the object is not present, the method returns `false`.
+     *
+     * If the `activation/effectiveStatus` is not present, the return value of the method is undefined.
+     */
+    default boolean isEffectivelyEnabled(@Nullable FocusType focus) {
+        return FocusTypeUtil.getEffectiveStatus(focus) == ActivationStatusType.ENABLED;
+    }
 }

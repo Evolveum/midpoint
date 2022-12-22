@@ -56,7 +56,6 @@ class SuspendAndDeleteHelper {
     @Autowired private LocalScheduler localScheduler;
 
     @Autowired private CloseHelper closeHelper;
-    @Autowired private UnpauseHelper unpauseHelper;
 
     public boolean suspendTask(TaskQuartzImpl task, long waitTime, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
@@ -258,7 +257,7 @@ class SuspendAndDeleteHelper {
         //  be then unpaused? Maybe the forceful close of the task should be introduced.
     }
 
-    public void deleteTaskTree(String rootOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    void deleteTaskTree(String rootOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
         TaskQuartzImpl root = taskRetriever.getTaskPlain(rootOid, result);
         LOGGER.debug("Deleting task tree {}", root);
         List<TaskQuartzImpl> allTasks = new ArrayList<>(root.listSubtasksDeeply(true, result));

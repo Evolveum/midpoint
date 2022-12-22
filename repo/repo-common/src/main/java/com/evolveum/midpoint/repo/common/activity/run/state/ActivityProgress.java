@@ -14,7 +14,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.common.activity.run.AbstractActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.IterativeActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.CommonTaskBeans;
@@ -44,7 +43,7 @@ public class ActivityProgress extends Initializable {
     /**
      * Current value. Guarded by: this.
      */
-    @NotNull private final ActivityProgressType value = new ActivityProgressType(PrismContext.get());
+    @NotNull private final ActivityProgressType value = new ActivityProgressType();
 
     ActivityProgress(@NotNull CurrentActivityState<?> activityState) {
         this.activityState = activityState;
@@ -90,10 +89,6 @@ public class ActivityProgress extends Initializable {
 
     public synchronized void setExpectedTotal(Integer expectedTotal) {
         value.setExpectedTotal(expectedTotal);
-    }
-
-    public synchronized @Nullable Integer getExpectedInCurrentBucket() {
-        return value.getExpectedInCurrentBucket();
     }
 
     public synchronized void setExpectedInCurrentBucket(Integer expectedInCurrentBucket) {

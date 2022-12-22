@@ -6,8 +6,9 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 
 import java.io.File;
 
@@ -17,9 +18,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -28,8 +26,7 @@ import com.evolveum.midpoint.schema.internals.CachingStatistics;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.TestResource;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.ThreadTestExecutor;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.*;
@@ -44,36 +41,24 @@ public class TestManyThreads extends AbstractStoryTest {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "threads");
 
-    private static final TestResource RESOURCE_DUMMY = new TestResource(TEST_DIR, "resource-dummy.xml", "be4d88ff-bbb7-45f2-91dc-4b0fc9a00ced");
+    private static final DummyTestResource RESOURCE_DUMMY =
+            new DummyTestResource(TEST_DIR, "resource-dummy.xml", "be4d88ff-bbb7-45f2-91dc-4b0fc9a00ced", null);
 
     @Autowired RepositoryCache repositoryCache;
-
-    private DummyResource dummyResource;
-    private DummyResourceContoller dummyResourceCtl;
-    private PrismObject<ResourceType> resourceDummy;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY.file, RESOURCE_DUMMY.oid, initTask, initResult);
-        dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
-        dummyResource = dummyResourceCtl.getDummyResource();
-    }
-
-    @Test
-    public void test000Sanity() throws Exception {
-        Task task = getTestTask();
-
-        assertSuccess(modelService.testResource(RESOURCE_DUMMY.oid, task, task.getResult()));
+        RESOURCE_DUMMY.initAndTest(this, initTask, initResult);
     }
 
     @Test
     public void test100SearchResourceObjects() throws Exception {
-        Task globalTask = getTestTask();
-        OperationResult globalResult = getTestOperationResult();
+//        Task globalTask = getTestTask();
+//        OperationResult globalResult = getTestOperationResult();
 
-        dummyResource.addAccount(new DummyAccount("jack"));
+        RESOURCE_DUMMY.controller.addAccount("jack");
 
         // trigger version increment (will invalidate cached resource object)
 //        repositoryService.modifyObject(ResourceType.class, RESOURCE_DUMMY.oid,

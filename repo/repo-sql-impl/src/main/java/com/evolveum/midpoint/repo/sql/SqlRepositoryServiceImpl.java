@@ -244,26 +244,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    @Override
-    public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
-        Validate.notEmpty(shadowOid, "Oid must not be null or empty.");
-        Validate.notNull(result, "Operation result must not be null.");
-
-        LOGGER.debug("Searching shadow owner for {}", shadowOid);
-
-        OperationResult subResult = result.subresult(SEARCH_SHADOW_OWNER)
-                .addParam("shadowOid", shadowOid)
-                .build();
-
-        try {
-            return executeAttempts(shadowOid, OP_SEARCH_SHADOW_OWNER, FocusType.class, "searching shadow owner",
-                    subResult, () -> objectRetriever.searchShadowOwnerAttempt(shadowOid, options, subResult)
-            );
-        } catch (ObjectNotFoundException | SchemaException e) {
-            throw new AssertionError("Should not occur; exception should have been treated in searchShadowOwnerAttempt.", e);
-        }
-    }
-
     @NotNull
     @Override
     public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(
@@ -1436,5 +1416,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     public void destroy() {
         super.destroy();
         LOGGER.info("Shutdown complete.");
+    }
+
+    @Override
+    public boolean supports(@NotNull Class<? extends ObjectType> type) {
+        return !SimulationResultType.class.equals(type)
+                && !TagType.class.equals(type);
     }
 }

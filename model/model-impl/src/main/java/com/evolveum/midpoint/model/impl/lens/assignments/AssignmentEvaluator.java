@@ -153,7 +153,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                 .build();
         AssignmentEvaluationTraceType trace;
         if (result.isTracingNormal(AssignmentEvaluationTraceType.class)) {
-            trace = new AssignmentEvaluationTraceType(prismContext)
+            trace = new AssignmentEvaluationTraceType()
                     .assignmentOld(LensUtil.cloneResolveResource(getAssignmentBean(assignmentIdi, true), lensContext))
                     .assignmentNew(LensUtil.cloneResolveResource(getAssignmentBean(assignmentIdi, false), lensContext))
                     .primaryAssignmentMode(PlusMinusZeroType.fromValue(primaryAssignmentMode))
@@ -178,7 +178,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                     .source(source)
                     .sourceDescription(sourceDescription)
                     .assignmentIdi(assignmentIdi)
-                    .isAssignment(true)
+                    .isAssignment()
                     .evaluateOld(evaluateOld)
                     .evaluationOrder(getInitialEvaluationOrder(evaluatedAssignment.getNormalizedRelation()))
                     .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))

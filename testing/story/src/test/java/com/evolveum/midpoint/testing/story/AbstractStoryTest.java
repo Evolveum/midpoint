@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013-2021 Evolveum and contributors
+ * Copyright (C) 2013-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -91,7 +91,6 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        modelService.postInit(initResult);
 
         // System Configuration
         try {
@@ -100,6 +99,7 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
             throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
                     "looks like the previous test haven't cleaned it up", e);
         }
+        modelService.postInit(initResult);
 
         repoAdd(ARCHETYPE_CORRELATION_CASE, initResult);
 

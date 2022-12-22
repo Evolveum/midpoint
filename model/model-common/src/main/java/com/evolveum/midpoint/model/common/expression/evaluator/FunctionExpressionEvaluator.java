@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -43,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author katkav
  * @author semancik
  */
-public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>>
         extends AbstractExpressionEvaluator<V, D, FunctionExpressionEvaluatorType> {
 
     private static final String OP_EVALUATE = FunctionExpressionEvaluator.class.getSimpleName() + ".evaluate";
@@ -54,9 +53,13 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
 
     private final ObjectResolver objectResolver;
 
-    FunctionExpressionEvaluator(QName elementName, FunctionExpressionEvaluatorType functionEvaluatorType, D outputDefinition,
-            Protector protector, ObjectResolver objectResolver, PrismContext prismContext) {
-        super(elementName, functionEvaluatorType, outputDefinition, protector, prismContext);
+    FunctionExpressionEvaluator(
+            QName elementName,
+            FunctionExpressionEvaluatorType functionEvaluatorType,
+            D outputDefinition,
+            Protector protector,
+            ObjectResolver objectResolver) {
+        super(elementName, functionEvaluatorType, outputDefinition, protector);
         this.objectResolver = objectResolver;
     }
 
@@ -236,7 +239,7 @@ public class FunctionExpressionEvaluator<V extends PrismValue, D extends ItemDef
             throw new SchemaException("Cannot determine parameter output definition for " + functionParameter);
         }
 
-        ItemDefinition returnTypeDef = prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
+        ItemDefinition<?> returnTypeDef = prismContext.getSchemaRegistry().findItemDefinitionByType(returnType);
         if (returnTypeDef != null) {
             //noinspection unchecked
             return (D) returnTypeDef;

@@ -61,9 +61,15 @@ public interface ObjectResolver {
      *
      * TODO resolve module dependencies to allow task to be of type Task
      */
-    <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
-            String contextDescription, Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
+    <O extends ObjectType> O resolve(
+            ObjectReferenceType ref,
+            Class<O> expectedType,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            String contextDescription,
+            Task task,
+            OperationResult result)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            SecurityViolationException, ExpressionEvaluationException;
 
     <O extends ObjectType> O getObject(
             @NotNull Class<O> clazz,

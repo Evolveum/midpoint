@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.lens.assignments;
+
+import static java.util.Collections.emptyList;
+
+import java.util.List;
 
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.*;
@@ -15,12 +18,11 @@ import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentSegmentEvaluationTraceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PlusMinusZeroType;
-
-import java.util.List;
-
-import static java.util.Collections.emptyList;
 
 /**
  * Carries out and holds assignment evaluation:
@@ -33,7 +35,7 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
 
     private static final Trace LOGGER = TraceManager.getTrace(PathSegmentEvaluation.class);
 
-    private static final String OP_EVALUATE = PathSegmentEvaluation.class.getName()+".evaluate";
+    private static final String OP_EVALUATE = PathSegmentEvaluation.class.getName() + ".evaluate";
 
     /**
      * The segment with the assignment that is being evaluated.
@@ -125,16 +127,19 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
             // Validity of segment that is sourced at focus (either directly or indirectly i.e. through inducements)
             // is determined using focus lifecycle state model.
             AH focusNewOrCurrent = ctx.ae.lensContext.getFocusContextRequired().getObjectNewOrCurrentRequired().asObjectable();
-            active = LensUtil.isAssignmentValid(focusNewOrCurrent, segment.assignment,
-                    ctx.ae.now, ctx.ae.activationComputer, ctx.ae.focusStateModel);
+            active = LensUtil.isAssignmentValid(
+                    focusNewOrCurrent, segment.assignment,
+                    ctx.ae.now, ctx.ae.activationComputer, ctx.ae.focusStateModel, ctx.task.getExecutionMode());
         } else {
             // But for other assignments/inducements we consider their validity by regarding their actual source.
             // So, even if (e.g.) focus is in "draft" state, only validity of direct assignments should be influenced by this fact.
-            // Other assignments (e.g. from roles to metaroles) should be considered valid, provided these roles are
+            // Other assignments (e.g. from roles to meta-roles) should be considered valid, provided these roles are
             // in active lifecycle states. See also MID-6113.
             //
             // TODO We should consider the assignment source's state model! But we are ignoring it for now.
-            active = LensUtil.isAssignmentValid(segment.source, segment.assignment, ctx.ae.now, ctx.ae.activationComputer, null);
+            active = LensUtil.isAssignmentValid(
+                    segment.source, segment.assignment,
+                    ctx.ae.now, ctx.ae.activationComputer, null, ctx.task.getExecutionMode());
         }
         segment.setAssignmentActive(active);
         LOGGER.trace("Determined activity of assignment in {} to be {}", segment, active);
@@ -167,7 +172,7 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
                     ctx.primaryAssignmentMode);
         }
         if (result.isTracingNormal(AssignmentSegmentEvaluationTraceType.class)) {
-            AssignmentSegmentEvaluationTraceType trace = new AssignmentSegmentEvaluationTraceType(ctx.ae.prismContext)
+            AssignmentSegmentEvaluationTraceType trace = new AssignmentSegmentEvaluationTraceType()
                     .segment(segment.toAssignmentPathSegmentType(true));
             result.addTrace(trace);
             return trace;
@@ -192,7 +197,6 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
                 segment.getOverallConditionState());
     }
 
-
     private String getMatchingText(boolean matching) {
         return matching ?
                 "matching    " :
@@ -213,30 +217,30 @@ public class PathSegmentEvaluation<AH extends AssignmentHolderType> extends Abst
 
     private void checkSchema() throws SchemaException {
         if (segment.source == null) {
-            throw new IllegalArgumentException("Source cannot be null (while evaluating assignment "+ ctx.evalAssignment +")");
+            throw new IllegalArgumentException("Source cannot be null (while evaluating assignment " + ctx.evalAssignment + ")");
         }
 
         AssignmentType assignment = segment.assignment;
         PrismContainerValue<?> assignmentContainerValue = assignment.asPrismContainerValue();
         PrismContainerable<?> assignmentContainer = assignmentContainerValue.getParent();
         if (assignmentContainer == null) {
-            throw new SchemaException("The assignment "+assignment+" does not have a parent in "+segment.sourceDescription);
+            throw new SchemaException("The assignment " + assignment + " does not have a parent in " + segment.sourceDescription);
         }
         if (assignmentContainer.getDefinition() == null) {
-            throw new SchemaException("The assignment "+assignment+" does not have definition in "+segment.sourceDescription);
+            throw new SchemaException("The assignment " + assignment + " does not have definition in " + segment.sourceDescription);
         }
         PrismContainer<Containerable> extensionContainer = assignmentContainerValue.findContainer(AssignmentType.F_EXTENSION);
         if (extensionContainer != null) {
             if (extensionContainer.getDefinition() == null) {
-                throw new SchemaException("Extension does not have a definition in assignment "+assignment+" in "+segment.sourceDescription);
+                throw new SchemaException("Extension does not have a definition in assignment " + assignment + " in " + segment.sourceDescription);
             }
 
-            for (Item<?,?> item: extensionContainer.getValue().getItems()) {
+            for (Item<?, ?> item : extensionContainer.getValue().getItems()) {
                 if (item == null) {
-                    throw new SchemaException("Null item in extension in assignment "+assignment+" in "+segment.sourceDescription);
+                    throw new SchemaException("Null item in extension in assignment " + assignment + " in " + segment.sourceDescription);
                 }
                 if (item.getDefinition() == null) {
-                    throw new SchemaException("Item "+item+" has no definition in extension in assignment "+assignment+" in "+segment.sourceDescription);
+                    throw new SchemaException("Item " + item + " has no definition in extension in assignment " + assignment + " in " + segment.sourceDescription);
                 }
             }
         }

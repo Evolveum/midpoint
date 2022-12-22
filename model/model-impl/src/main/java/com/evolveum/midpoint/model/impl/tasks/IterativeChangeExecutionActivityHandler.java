@@ -26,7 +26,6 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory.WorkDefinitionSupplier;
@@ -115,7 +114,7 @@ public class IterativeChangeExecutionActivityHandler
         @Override
         public boolean processItem(@NotNull ObjectType object,
                 @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult result)
-                throws CommonException, ActivityRunException {
+                throws CommonException {
             LOGGER.trace("Executing change on object {}", object);
 
             MyWorkDefinition workDefinition = getActivity().getWorkDefinition();
@@ -166,7 +165,7 @@ public class IterativeChangeExecutionActivityHandler
             return delta;
         }
 
-        public ModelExecuteOptions getExecutionOptions() {
+        ModelExecuteOptions getExecutionOptions() {
             return executionOptions;
         }
 
@@ -174,7 +173,7 @@ public class IterativeChangeExecutionActivityHandler
         protected void debugDumpContent(StringBuilder sb, int indent) {
             DebugUtil.debugDumpWithLabelLn(sb, "objects", objects, indent+1);
             DebugUtil.debugDumpWithLabelLn(sb, "delta", String.valueOf(delta), indent+1);
-            DebugUtil.debugDumpWithLabelLn(sb, "executionOptions", String.valueOf(executionOptions), indent+1);
+            DebugUtil.debugDumpWithLabel(sb, "executionOptions", String.valueOf(executionOptions), indent+1);
         }
     }
 }

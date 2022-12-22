@@ -27,8 +27,6 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.result.Toast;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -83,6 +81,7 @@ import com.evolveum.midpoint.gui.api.AdminLTESkin;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.component.result.Toast;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
@@ -187,8 +186,8 @@ import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.prism.show.SceneDto;
-import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
@@ -1317,7 +1316,15 @@ public final class WebComponentUtil {
         return combinedDisplay;
     }
 
-    public static String getItemDefinitionDisplayNameOrName(ItemDefinition def, Component component) {
+    public static String getItemDefinitionDisplayNameOrName(ItemDefinition def) {
+        String name = getItemDefinitionDisplayName(def);
+        if (StringUtils.isNotEmpty(name)) {
+            return name;
+        }
+        return def.getItemName().getLocalPart();
+    }
+
+    public static String getItemDefinitionDisplayName(ItemDefinition def) {
         if (def == null) {
             return null;
         }
@@ -1331,7 +1338,7 @@ public final class WebComponentUtil {
         if (def instanceof ResourceAttributeDefinition && StringUtils.isNotEmpty(def.getDisplayName())) {
             return def.getDisplayName();
         }
-        return def.getItemName().getLocalPart();
+        return null;
     }
 
     private static String getAcquisitionDescription(ProvenanceAcquisitionType acquisitionType) {
@@ -4418,11 +4425,11 @@ public final class WebComponentUtil {
         };
     }
 
-    public static SceneDto createSceneDto(CaseWorkItemType caseWorkItem, PageBase pageBase, String operation) {
+    public static VisualizationDto createVisualizationDto(CaseWorkItemType caseWorkItem, PageBase pageBase, String operation) {
         if (caseWorkItem == null) {
             return null;
         }
-        return createSceneDto(CaseTypeUtil.getCase(caseWorkItem), pageBase, operation);
+        return createVisualizationDto(CaseTypeUtil.getCase(caseWorkItem), pageBase, operation);
     }
 
     public static List<EvaluatedTriggerGroupDto> computeTriggers(ApprovalContextType wfc, Integer stage) {
@@ -4441,7 +4448,7 @@ public final class WebComponentUtil {
         return triggers;
     }
 
-    public static SceneDto createSceneDto(CaseType caseObject, PageBase pageBase, String operation) {
+    public static VisualizationDto createVisualizationDto(CaseType caseObject, PageBase pageBase, String operation) {
         if (caseObject == null || caseObject.getApprovalContext() == null) {
             return null;
         }
@@ -4450,17 +4457,17 @@ public final class WebComponentUtil {
         OperationResult result = new OperationResult(operation);
         Task task = pageBase.createSimpleTask(operation);
         try {
-            Visualization deltasScene = SceneUtil.visualizeObjectTreeDeltas(caseObject.getApprovalContext().getDeltasToApprove(),
+            Visualization visualization = VisualizationUtil.visualizeObjectTreeDeltas(caseObject.getApprovalContext().getDeltasToApprove(),
                     CaseTypeUtil.isClosed(caseObject) ? "pageWorkItem.changesApplied" : "pageWorkItem.delta",
                     pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
-            return new SceneDto(deltasScene);
+            return new VisualizationDto(visualization);
         } catch (SchemaException | ExpressionEvaluationException ex) {
             LOGGER.error("Unable to create delta visualization for case {}: {}", caseObject, ex.getLocalizedMessage(), ex);
         }
         return null;
     }
 
-    public static SceneDto createSceneDtoForManualCase(CaseType caseObject, PageBase pageBase, String operation) {
+    public static VisualizationDto createVisualizationDtoForManualCase(CaseType caseObject, PageBase pageBase, String operation) {
         if (caseObject == null || caseObject.getManualProvisioningContext() == null ||
                 caseObject.getManualProvisioningContext().getPendingOperation() == null) {
             return null;
@@ -4469,9 +4476,9 @@ public final class WebComponentUtil {
         OperationResult result = new OperationResult(operation);
         Task task = pageBase.createSimpleTask(operation);
         try {
-            Visualization deltasScene = SceneUtil.visualizeObjectDeltaType(caseObject.getManualProvisioningContext().getPendingOperation().getDelta(),
+            Visualization deltaVisualization = VisualizationUtil.visualizeObjectDeltaType(caseObject.getManualProvisioningContext().getPendingOperation().getDelta(),
                     CaseTypeUtil.isClosed(caseObject) ? "pageWorkItem.changesApplied" : "pageWorkItem.changesToBeApplied", pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
-            return new SceneDto(deltasScene);
+            return new VisualizationDto(deltaVisualization);
         } catch (SchemaException | ExpressionEvaluationException ex) {
             LOGGER.error("Unable to create delta visualization for case {}: {}", caseObject, ex.getLocalizedMessage(), ex);
         }
@@ -4619,10 +4626,10 @@ public final class WebComponentUtil {
     }
 
     @NotNull
-    public static List<SceneDto> computeChangesCategorizationList(ChangesByState changesByState, ObjectReferenceType objectRef,
+    public static List<VisualizationDto> computeChangesCategorizationList(ChangesByState changesByState, ObjectReferenceType objectRef,
             ModelInteractionService modelInteractionService, PrismContext prismContext, Task opTask,
             OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-        List<SceneDto> changes = new ArrayList<>();
+        List<VisualizationDto> changes = new ArrayList<>();
         if (!changesByState.getApplied().isEmpty()) {
             changes.add(createTaskChangesDto("TaskDto.changesApplied", "card-success", changesByState.getApplied(),
                     modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
@@ -4650,13 +4657,13 @@ public final class WebComponentUtil {
         return changes;
     }
 
-    private static SceneDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
+    private static VisualizationDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
             PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
-        Visualization scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, objectRef, opTask, result);
-        SceneDto sceneDto = new SceneDto(scene);
-        sceneDto.setBoxClassOverride(boxClassOverride);
-        return sceneDto;
+        Visualization visualization = VisualizationUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, objectRef, opTask, result);
+        VisualizationDto visualizationDto = new VisualizationDto(visualization);
+        visualizationDto.setBoxClassOverride(boxClassOverride);
+        return visualizationDto;
     }
 
     public static String getMidpointCustomSystemName(PageAdminLTE pageBase, String defaultSystemNameKey) {
@@ -5414,22 +5421,24 @@ public final class WebComponentUtil {
         return AdminLTESkin.create(skin);
     }
 
-    public static void createToastForUpdateResource(AjaxRequestTarget target, Component panel){
-        createToastForResource(target, panel, "ResourceWizardPanel.updateResource");
+    public static void createToastForUpdateObject(AjaxRequestTarget target, Component panel, QName type) {
+        createToastForResource("AbstractWizardPanel.updateObject", ResourceType.COMPLEX_TYPE, target);
     }
 
-    public static void createToastForCreateResource(AjaxRequestTarget target, Component panel){
-        createToastForResource(target, panel, "ResourceWizardPanel.createResource");
+    public static void createToastForCreateObject(AjaxRequestTarget target, Component panel, QName type) {
+        createToastForResource("AbstractWizardPanel.createObject", ResourceType.COMPLEX_TYPE, target);
     }
 
-    private static void createToastForResource(AjaxRequestTarget target, Component panel, String key){
+    private static void createToastForResource(String key, QName type, AjaxRequestTarget target) {
+        String typeLabel = translateMessage(ObjectTypeUtil.createTypeDisplayInformation(type, false));
         new Toast()
                 .success()
-                .title(panel.getString(key))
+                .title(PageBase.createStringResourceStatic(key, typeLabel).getString())
                 .icon("fas fa-circle-check")
                 .autohide(true)
                 .delay(5_000)
-                .body(panel.getString(key + ".text")).show(target);
+                .body(PageBase.createStringResourceStatic(key + ".text", typeLabel).getString())
+                .show(target);
     }
 
     public static String translateMessage(LocalizableMessage msg) {
@@ -5443,5 +5452,13 @@ public final class WebComponentUtil {
         }
 
         return application.getLocalizationService().translate(msg, getCurrentLocale());
+    }
+
+    public static ItemPath getPath(GuiObjectColumnType column) {
+        if (column == null) {
+            return null;
+        }
+
+        return column.getPath().getItemPath();
     }
 }

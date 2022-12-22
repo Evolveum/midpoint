@@ -85,7 +85,7 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
         //    not cover bulk actions which are not part of a task.
         // We consider this solution to be adequate for now.
         ModelImplUtils.resolveReferences(delta, cacheRepositoryService, false, false,
-                EvaluationTimeType.IMPORT, true, prismContext, result);
+                EvaluationTimeType.IMPORT, true, result);
 
         operationsHelper.applyDelta(delta, options, dryRun, context, result);
         context.println("Modified " + object + optionsSuffix(options, dryRun));

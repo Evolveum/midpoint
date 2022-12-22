@@ -36,16 +36,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * @author semancik
  */
-public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>>
         extends AbstractExpressionEvaluator<V, D, SequentialValueExpressionEvaluatorType> {
 
     @NotNull private final String sequenceOid;
     private final RepositoryService repositoryService;
 
-    SequentialValueExpressionEvaluator(QName elementName, @NotNull String sequenceOid,
-            SequentialValueExpressionEvaluatorType sequentialValueEvaluatorType, D outputDefinition,
-            Protector protector, RepositoryService repositoryService, PrismContext prismContext) {
-        super(elementName, sequentialValueEvaluatorType, outputDefinition, protector, prismContext);
+    SequentialValueExpressionEvaluator(
+            QName elementName,
+            @NotNull String sequenceOid,
+            SequentialValueExpressionEvaluatorType sequentialValueEvaluatorType,
+            D outputDefinition,
+            Protector protector,
+            RepositoryService repositoryService) {
+        super(elementName, sequentialValueEvaluatorType, outputDefinition, protector);
         this.sequenceOid = sequenceOid;
         this.repositoryService = repositoryService;
     }
@@ -61,7 +65,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
         Object value = ExpressionUtil.convertToOutputValue(counterValue, outputDefinition, protector);
         Item<V, D> output = addValueToOutputProperty(value);
 
-        return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        return ItemDeltaUtil.toDeltaSetTriple(output, null);
     }
 
     /**

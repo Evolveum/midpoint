@@ -12,6 +12,6 @@ import org.jetbrains.annotations.NotNull;
 @FunctionalInterface
 public interface CandidateIdentifierFormatter {
 
-    @NotNull
-    String formatCandidateIdentifier(int iteration);
+    /** Suggests child activity identifier */
+    @NotNull String formatCandidateIdentifier(int iteration);
 }

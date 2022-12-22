@@ -135,7 +135,7 @@ public class TestMappingInbound extends AbstractMappingTest {
 
         addObject(ROLE_WHEEL, initTask, initResult); // creates a resource object as well
 
-        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.initialize(this, initTask, initResult);
+        TASK_LIVE_SYNC_DUMMY_TEA_GREEN.init(this, initTask, initResult);
         TASK_LIVE_SYNC_DUMMY_TEA_GREEN.rerun(initResult); // to get the token
     }
 

@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -226,7 +226,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationActivityHandler.setReconciliationResultListener(reconciliationResultListener);
 
         // Object templates (must be imported before resource, otherwise there are validation warnigns)
-        repoAddObjectFromFile(USER_TEMPLATE_LIME.file, initResult);
+        repoAdd(USER_TEMPLATE_LIME, initResult);
 
         dummyResourceCtlAzure = DummyResourceContoller.create(RESOURCE_DUMMY_AZURE_NAME, resourceDummyAzure);
         dummyResourceCtlAzure.extendSchemaPirate();
@@ -243,9 +243,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyResourceCtlLime.setResource(resourceDummyLime);
 
         initAndTestDummyResource(RESOURCE_DUMMY_GRAVEYARD, initTask, initResult);
-        TASK_RECONCILE_DUMMY_GRAVEYARD.initialize(this, initTask, initResult);
+        TASK_RECONCILE_DUMMY_GRAVEYARD.init(this, initTask, initResult);
         initAndTestDummyResource(RESOURCE_DUMMY_REAPING, initTask, initResult);
-        TASK_RECONCILE_DUMMY_REAPING_DRY_RUN.initialize(this, initTask, initResult);
+        TASK_RECONCILE_DUMMY_REAPING_DRY_RUN.init(this, initTask, initResult);
 
         // Create an account that midPoint does not know about yet
         getDummyResourceController().addAccount(USER_RAPP_USERNAME, USER_RAPP_FULLNAME, "Scabb Island");
@@ -267,17 +267,17 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyResourceCtlAzure.addGroup(GROUP_CORPSES_NAME);
 
         // Roles
-        repoAddObjectFromFile(ROLE_CORPSE.file, initResult);
-        repoAddObjectFromFile(ROLE_IMPORTER.file, initResult);
+        repoAdd(ROLE_CORPSE, initResult);
+        repoAdd(ROLE_IMPORTER, initResult);
 
         // Password policy
         repoAddObjectFromFile(PASSWORD_POLICY_GLOBAL_FILE, initResult);
-        repoAddObjectFromFile(PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE.file, initResult);
+        repoAdd(PASSWORD_POLICY_LOWER_CASE_ALPHA_AZURE, initResult);
 
         applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, SECURITY_POLICY_OID, initTask, initResult);
 
         // Users
-        userImporter = repoAddObjectFromFile(USER_IMPORTER.file, initResult);
+        userImporter = repoAdd(USER_IMPORTER, initResult);
         // And a user that will be correlated to that account
         repoAddObjectFromFile(USER_RAPP_FILE, initResult);
 
@@ -668,7 +668,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        addObject(TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY.file, task, result);
+        addObject(TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY, task, result);
         loginAdministrator();
         waitForTaskFinish(TASK_IMPORT_DUMMY_LIME_LIMITED_LEGACY.oid, false);
 
@@ -713,7 +713,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         when();
 
-        addObject(TASK_IMPORT_DUMMY_LIME_LIMITED.file, task, result);
+        addObject(TASK_IMPORT_DUMMY_LIME_LIMITED, task, result);
         loginAdministrator();
         waitForTaskFinish(TASK_IMPORT_DUMMY_LIME_LIMITED.oid, false);
 
@@ -947,7 +947,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         reconciliationResultListener.clear();
 
         when("reconciliation task is run");
-        importObjectFromFile(TASK_RECONCILE_DUMMY_SINGLE.file);
+        importObject(TASK_RECONCILE_DUMMY_SINGLE, task, result);
 
         then("task should be OK");
 
@@ -1585,7 +1585,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        importObjectFromFile(TASK_RECONCILE_DUMMY_AZURE.file);
+        importObject(TASK_RECONCILE_DUMMY_AZURE, task, result);
 
         // THEN
         then();
@@ -2129,7 +2129,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        importObjectFromFile(TASK_RECONCILE_DUMMY_LIME.file);
+        importObject(TASK_RECONCILE_DUMMY_LIME, task, result);
 
         // THEN
         then();
@@ -2536,8 +2536,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        PrismObject<ShadowType> accountTaugustus = PrismTestUtil.parseObject(ACCOUNT_TAUGUSTUS.file);
-        provisioningService.addObject(accountTaugustus, null, null, task, result);
+        provisioningService.addObject(ACCOUNT_TAUGUSTUS.getFresh(), null, null, task, result);
 
         // Preconditions
         assertUsers(getNumberOfUsers() + 5);
@@ -2601,7 +2600,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAugustusBefore = findUserByUsername(USER_AUGUSTUS_NAME);
         display("User augustus before", userAugustusBefore);
 
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_AUGUSTUS.file);
+        PrismObject<ShadowType> account = ACCOUNT_AUGUSTUS.getFresh();
         provisioningService.addObject(account, null, null, task, result);
         display("Account augustus before", account);
 
@@ -2663,29 +2662,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_KENNY.file);
-        provisioningService.addObject(account, null, null, task, result);
-
-        account = PrismTestUtil.parseObject(ACCOUNT_TPALIDO.file);
-        provisioningService.addObject(account, null, null, task, result);
-
-        account = PrismTestUtil.parseObject(ACCOUNT_LECHIMP.file);
-        provisioningService.addObject(account, null, null, task, result);
-
-        account = PrismTestUtil.parseObject(ACCOUNT_TLECHIMP.file);
-        provisioningService.addObject(account, null, null, task, result);
-
-        account = PrismTestUtil.parseObject(ACCOUNT_ANDRE.file);
-        provisioningService.addObject(account, null, null, task, result);
-
-        account = PrismTestUtil.parseObject(ACCOUNT_TANDRE.file);
-        provisioningService.addObject(account, null, null, task, result);
-
-        account = PrismTestUtil.parseObject(ACCOUNT_TLAFOOT.file);
-        provisioningService.addObject(account, null, null, task, result);
-
-        account = PrismTestUtil.parseObject(ACCOUNT_CRUFF.file);
-        provisioningService.addObject(account, null, null, task, result);
+        provisioningService.addObject(ACCOUNT_KENNY.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_TPALIDO.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_LECHIMP.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_TLECHIMP.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_ANDRE.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_TANDRE.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_TLAFOOT.getFresh(), null, null, task, result);
+        provisioningService.addObject(ACCOUNT_CRUFF.getFresh(), null, null, task, result);
 
         // Preconditions
         assertUsers(getNumberOfUsers() + 6);
@@ -2755,7 +2739,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
      */
     @Test
     public void test520ReconResourceDummyFilter() throws Exception {
-        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         // Preconditions
@@ -2771,8 +2757,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // runPrivileged is necessary for TestImportReconAuthorizations as importObjectFromFile() is using raw operations
         runPrivileged(() -> {
             try {
-                importObjectFromFile(TASK_RECONCILE_DUMMY_FILTER.file);
-            } catch (FileNotFoundException e) {
+                importObject(TASK_RECONCILE_DUMMY_FILTER, task, result);
+            } catch (IOException e) {
                 throw new RuntimeException(e.getMessage(), e);
             }
             return null;
@@ -2857,7 +2843,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
 
         when("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -2905,7 +2891,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 result);
 
         when("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -2956,7 +2942,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 result);
 
         when("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED_FILTER_BASED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -2986,7 +2972,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
 
         and("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -3007,7 +2993,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .assertNoArchetypeRef();
 
         when("the account is imported again");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -3033,7 +3019,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         account.addAttributeValue(ATTR_EMPLOYEE_NUMBER, empNo);
 
         and("the account is imported");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
                 .execute(result);
@@ -3061,10 +3047,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .assertArchetypeRef(ARCHETYPE_OTHER.oid);
 
         when("the account is imported again");
-        var taskOid = importSingleAccountRequest()
+        var taskOid = importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_ARCHETYPED.oid)
                 .withNameValue(name)
-                .withAssertSuccess(false)
+                .withNotAssertingSuccess()
                 .execute(result);
 
         then("the task has failed");
@@ -3300,7 +3286,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        importObjectFromFile(TASK_DELETE_DUMMY_SHADOWS.file);
+        importObject(TASK_DELETE_DUMMY_SHADOWS, task, result);
 
         // THEN
         then();
@@ -3358,7 +3344,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        importObjectFromFile(TASK_DELETE_DUMMY_ACCOUNTS.file);
+        importObject(TASK_DELETE_DUMMY_ACCOUNTS, task, result);
 
         // THEN
         then();

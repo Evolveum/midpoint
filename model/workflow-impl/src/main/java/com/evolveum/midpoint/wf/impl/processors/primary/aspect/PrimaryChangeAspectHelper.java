@@ -54,19 +54,21 @@ public class PrimaryChangeAspectHelper {
         return isEnabled(aspectConfigurationType, aspect.isEnabledByDefault());
     }
 
-    public PcpAspectConfigurationType getPcpAspectConfigurationType(PrimaryChangeProcessorConfigurationType processorConfigurationType, PrimaryChangeAspect aspect) {
-        if (processorConfigurationType == null) {
+    public PcpAspectConfigurationType getPcpAspectConfigurationType(
+            PrimaryChangeProcessorConfigurationType processorConfiguration, PrimaryChangeAspect aspect) {
+        if (processorConfiguration == null) {
             return null;
         }
         String aspectName = aspect.getBeanName();
         String getterName = "get" + StringUtils.capitalize(aspectName);
         Object aspectConfigurationObject;
         try {
-            Method getter = processorConfigurationType.getClass().getDeclaredMethod(getterName);
+            Method getter = processorConfiguration.getClass().getDeclaredMethod(getterName);
             try {
-                aspectConfigurationObject = getter.invoke(processorConfigurationType);
+                aspectConfigurationObject = getter.invoke(processorConfiguration);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new SystemException("Couldn't obtain configuration for aspect " + aspectName + " from the workflow configuration.", e);
+                throw new SystemException(
+                        "Couldn't obtain configuration for aspect " + aspectName + " from the workflow configuration.", e);
             }
             if (aspectConfigurationObject != null) {
                 return (PcpAspectConfigurationType) aspectConfigurationObject;
@@ -76,12 +78,6 @@ public class PrimaryChangeAspectHelper {
             // nothing wrong with this, let's try generic configuration
             LOGGER.trace("Configuration getter method for {} not found, trying generic configuration", aspectName);
         }
-
-//        for (GenericPcpAspectConfigurationType genericConfig : processorConfigurationType.getOtherAspect()) {
-//            if (aspectName.equals(genericConfig.getName())) {
-//                return genericConfig;
-//            }
-//        }
         return null;
     }
 
@@ -96,7 +92,8 @@ public class PrimaryChangeAspectHelper {
 
     //region ========================================================================== Expression evaluation
 
-    public boolean evaluateApplicabilityCondition(PcpAspectConfigurationType config, ModelContext modelContext, Serializable itemToApprove,
+    public boolean evaluateApplicabilityCondition(
+            PcpAspectConfigurationType config, ModelContext<?> modelContext, Serializable itemToApprove,
             VariablesMap additionalVariables, PrimaryChangeAspect aspect, Task task, OperationResult result) {
 
         if (config == null || config.getApplicabilityCondition() == null) {
@@ -120,10 +117,11 @@ public class PrimaryChangeAspectHelper {
             Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
                     expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(),
                             "applicability condition expression", task, result);
-            ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap,
-                    "applicability condition expression", task);
+            ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(
+                    null, variablesMap, "applicability condition expression", task);
+            eeContext.setExpressionFactory(expressionFactory);
 
-            exprResultTriple = ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+            exprResultTriple = ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | RuntimeException |
                 CommunicationException | ConfigurationException | SecurityViolationException e) {
             // TODO report as a specific exception?

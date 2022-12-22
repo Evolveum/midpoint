@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
@@ -139,8 +138,7 @@ public abstract class EvaluatedPolicyRuleTrigger<CT extends AbstractPolicyConstr
         return PolicyRuleTypeUtil.toDiagShortcut(constraintKind);
     }
 
-    public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
-            PrismContext prismContext) {
+    public EvaluatedPolicyRuleTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
         EvaluatedPolicyRuleTriggerType rv = new EvaluatedPolicyRuleTriggerType();
         fillCommonContent(rv);
         return rv;

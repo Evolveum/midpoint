@@ -7,11 +7,11 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.Collection;
-import java.util.Objects;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
 
+import com.evolveum.midpoint.schema.util.SimulationUtil;
 import com.evolveum.midpoint.task.api.TaskUtil;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -45,6 +45,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Context of the synchronization operation. It is created in the early stages of {@link ResourceObjectShadowChangeDescription}
@@ -136,6 +138,7 @@ public abstract class SynchronizationContext<F extends FocusType>
     private final boolean forceClassificationUpdate;
 
     @NotNull private final PrismContext prismContext = PrismContext.get();
+
     @NotNull private final ModelBeans beans;
 
     /** TODO maybe will be removed */
@@ -189,7 +192,9 @@ public abstract class SynchronizationContext<F extends FocusType>
     }
 
     public boolean isProtected() {
-        return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject());
+        return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject())
+                || shadowedResourceObject.getPolicySituation().contains(
+                        SchemaConstants.MODEL_POLICY_SITUATION_PROTECTED_SHADOW); // TODO resolve this TEMPORARY code
     }
 
     /**
@@ -270,6 +275,10 @@ public abstract class SynchronizationContext<F extends FocusType>
         return resource;
     }
 
+    public @NotNull String getResourceOid() {
+        return requireNonNull(getResource().getOid());
+    }
+
     public @NotNull Class<F> getFocusClass() throws SchemaException {
         assert synchronizationPolicy != null;
         //noinspection unchecked
@@ -298,11 +307,11 @@ public abstract class SynchronizationContext<F extends FocusType>
         return (PrismObject<F>) preFocus.asPrismObject();
     }
 
-    public ObjectTemplateType getObjectTemplateForCorrelation() {
+    ObjectTemplateType getObjectTemplateForCorrelation() {
         return objectTemplateForCorrelation;
     }
 
-    public void setObjectTemplateForCorrelation(ObjectTemplateType objectTemplateForCorrelation) {
+    void setObjectTemplateForCorrelation(ObjectTemplateType objectTemplateForCorrelation) {
         this.objectTemplateForCorrelation = objectTemplateForCorrelation;
     }
 
@@ -469,6 +478,28 @@ public abstract class SynchronizationContext<F extends FocusType>
 
     public abstract boolean isComplete();
 
+    boolean isPersistentExecution() {
+        return task.isPersistentExecution();
+    }
+
+    // TEMPORARY IMPLEMENTATION
+    public boolean isVisible() {
+        if (task.isProductionConfiguration()) {
+            return SimulationUtil.isInProduction(resource, resourceObjectDefinition);
+        } else {
+            return true; // TODO
+        }
+    }
+
+    /**
+     * TEMPORARY IMPLEMENTATION
+     *
+     * Later, we will have a dictionary of those situations with the information how they affect the synchronization process.
+     */
+    boolean isSynchronizationPreventedByShadowPolicySituation() {
+        return !shadowedResourceObject.getPolicySituation().isEmpty();
+    }
+
     /**
      * Synchronization context ready for the synchronization, i.e. it has type identification and synchronization policy present.
      */
@@ -487,12 +518,12 @@ public abstract class SynchronizationContext<F extends FocusType>
 
         @Override
         public @NotNull ResourceObjectTypeIdentification getTypeIdentification() {
-            return Objects.requireNonNull(super.getTypeIdentification());
+            return requireNonNull(super.getTypeIdentification());
         }
 
         @Override
         public @NotNull SynchronizationPolicy getSynchronizationPolicy() {
-            return Objects.requireNonNull(super.getSynchronizationPolicy());
+            return requireNonNull(super.getSynchronizationPolicy());
         }
 
         @Override

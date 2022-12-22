@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -145,9 +146,13 @@ public class CustomMessageTransport implements Transport<CustomTransportConfigur
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = transportSupport.prismContext().definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 
-        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = transportSupport.expressionFactory().makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
-        ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+        ExpressionFactory expressionFactory = transportSupport.expressionFactory();
+        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
+                expressionFactory.makeExpression(
+                        expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
+        eeContext.setExpressionFactory(expressionFactory);
+        ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
     }
 
     protected VariablesMap getDefaultVariables(Message message, Event event) throws UnsupportedEncodingException {

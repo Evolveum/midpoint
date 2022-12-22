@@ -70,7 +70,9 @@ public class AbstractTaskManagerTest extends AbstractIntegrationTest {
     }
 
     <T extends ObjectType> PrismObject<T> add(TestResource<T> testResource, OperationResult result) throws Exception {
-        return addObjectFromFile(testResource.file.getAbsolutePath(), result);
+        PrismObject<T> object = testResource.get();
+        addObject(object, result);
+        return object;
     }
 
     @SuppressWarnings("UnusedReturnValue")
@@ -80,14 +82,19 @@ public class AbstractTaskManagerTest extends AbstractIntegrationTest {
 
     private <T extends ObjectType> PrismObject<T> addObjectFromFile(String filePath, OperationResult result) throws Exception {
         PrismObject<T> object = PrismTestUtil.parseObject(new File(filePath));
+        addObject(object, result);
+        logger.trace("Object from {} added to repository.", filePath);
+        return object;
+    }
+
+    private <T extends ObjectType> void addObject(PrismObject<T> object, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
         try {
             add(object, result);
         } catch (ObjectAlreadyExistsException e) {
             delete(object, result);
             add(object, result);
         }
-        logger.trace("Object from {} added to repository.", filePath);
-        return object;
     }
 
     protected void add(PrismObject<? extends ObjectType> object, OperationResult result)

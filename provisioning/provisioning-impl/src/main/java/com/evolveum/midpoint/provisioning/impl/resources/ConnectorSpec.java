@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl.resources;
 
+import static com.evolveum.midpoint.prism.Referencable.getOid;
 import static com.evolveum.midpoint.util.MiscUtil.configCheck;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -136,7 +137,7 @@ public abstract class ConnectorSpec {
     /**
      * To be used when we are sure to deal with fully expanded, non-abstract resources.
      */
-    public @NotNull String getConnectorOidRequired() {
+    @NotNull String getConnectorOidRequired() {
         return MiscUtil.requireNonNull(
                 getConnectorOid(),
                 () -> new IllegalStateException("Expected to have connector OID but there was none; in " + this));
@@ -144,7 +145,7 @@ public abstract class ConnectorSpec {
 
     public abstract @Nullable PrismContainer<ConnectorConfigurationType> getConnectorConfiguration();
 
-    public @NotNull ConfiguredConnectorCacheKey getCacheKey() {
+    @NotNull ConfiguredConnectorCacheKey getCacheKey() {
         return new ConfiguredConnectorCacheKey(resource.getOid(), getConnectorName());
     }
 
@@ -255,8 +256,7 @@ public abstract class ConnectorSpec {
 
         @Override
         public @Nullable String getConnectorOid() {
-            ObjectReferenceType ref = definitionBean.getConnectorRef();
-            return ref != null ? ref.getOid() : null;
+            return getOid(definitionBean.getConnectorRef());
         }
 
         @Override

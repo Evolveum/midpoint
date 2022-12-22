@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EvaluatedStateTriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintKindType;
@@ -22,8 +21,7 @@ public class EvaluatedStateTrigger extends EvaluatedPolicyRuleTrigger<StatePolic
     }
 
     @Override
-    public EvaluatedStateTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
-            PrismContext prismContext) {
+    public EvaluatedStateTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
         EvaluatedStateTriggerType rv = new EvaluatedStateTriggerType();
         fillCommonContent(rv);
         return rv;

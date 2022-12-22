@@ -20,8 +20,8 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 @Component
 public class HookRegistryImpl implements HookRegistry {
 
-    private Map<String, ChangeHook> changeHookMap = new HashMap<>();
-    private Map<String, ReadHook> readHookMap = new HashMap<>();
+    private final Map<String, ChangeHook> changeHookMap = new HashMap<>();
+    private final Map<String, ReadHook> readHookMap = new HashMap<>();
 
     @Override
     public void registerChangeHook(String url, ChangeHook changeHook) {
@@ -30,8 +30,7 @@ public class HookRegistryImpl implements HookRegistry {
 
     @Override
     public List<ChangeHook> getAllChangeHooks() {
-        List<ChangeHook> rv = new ArrayList<>();
-        rv.addAll(changeHookMap.values());
+        List<ChangeHook> rv = new ArrayList<>(changeHookMap.values());
         rv.sort(Comparator.comparing(ChangeHook::getPriority));
         return rv;
     }

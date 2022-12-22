@@ -298,7 +298,7 @@ public class MockFactory {
             }
 
             @Override
-            public CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result) {
+            public @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result) {
                 return new CapabilityCollectionType();
             }
         };
@@ -394,11 +394,6 @@ public class MockFactory {
             }
 
             @Override
-            public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-                return null;
-            }
-
-            @Override
             public long advanceSequence(String oid, OperationResult parentResult) {
                 return 0;
             }
@@ -416,6 +411,11 @@ public class MockFactory {
             @Override
             public @NotNull String getRepositoryType() {
                 return "mock";
+            }
+
+            @Override
+            public boolean supports(@NotNull Class<? extends ObjectType> type) {
+                return false;
             }
 
             @Override
