@@ -46,7 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @PageDescriptor(urls = {
-        @Url(mountUrl = "/verification/attributes", matchUrlForSecurity = "/verification/attributes")
+        @Url(mountUrl = "/attributeVerification", matchUrlForSecurity = "/attributeVerification")
 }, permitAll = true, loginPage = true, authModule = AuthenticationModuleNameConstants.ATTRIBUTE_VERIFICATION)
 public class PageAttributeVerification extends PageAuthenticationBase {
     private static final long serialVersionUID = 1L;
@@ -177,20 +177,6 @@ public class PageAttributeVerification extends PageAuthenticationBase {
     }
 
     private void initButtons(MidpointForm form) {
-
-        AjaxButton back = new AjaxButton(ID_BACK_BUTTON) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                userModel.detach();
-                attributesPathModel.detach();
-                target.add();
-            }
-        };
-        form.add(back);
-
         AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT_BUTTON, createStringResource("PageAttributeVerification.verifyAttributeButton")) {
 
             private static final long serialVersionUID = 1L;

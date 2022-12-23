@@ -29,8 +29,8 @@ public class AttributeVerificationEvaluatorImpl extends AuthenticationEvaluatorI
     }
 
     @Override
-    protected SecurityQuestionsCredentialsType getCredential(CredentialsType credentials) {
-        return credentials.getSecurityQuestions();
+    protected AttributeVerificationCredentialsType getCredential(CredentialsType credentials) {
+        return credentials.getAttributeVerification();
     }
 
     @Override

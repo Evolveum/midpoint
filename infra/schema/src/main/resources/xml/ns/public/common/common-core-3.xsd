@@ -2220,6 +2220,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsType" minOccurs="0" />
             <!-- More credential types may be here, such as OTP seeds, X.509 credentials, etc. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -2462,6 +2463,18 @@
                 <xsd:sequence>
                     <xsd:element name="questionAnswer" type="tns:SecurityQuestionAnswerType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AttributeVerificationCredentialsType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractCredentialType">
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

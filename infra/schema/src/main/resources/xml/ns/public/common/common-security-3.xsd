@@ -1746,6 +1746,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="attributeVerification" type="tns:AttributeVerificationCredentialsPolicyType" minOccurs="0" />
             <!-- More credential types may come here in the future. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
@@ -2553,6 +2554,13 @@
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="AttributeVerificationCredentialsPolicyType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:CredentialPolicyType">
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
