@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResult;
+import com.evolveum.midpoint.gui.impl.page.admin.simulation.PageSimulationResults;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -310,6 +313,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
         menu.addMainMenuItem(createServerTasksItems());
         menu.addMainMenuItem(createNodesItems());
         menu.addMainMenuItem(createReportsItems());
+        menu.addMainMenuItem(createSimulationItems());
         return menu;
     }
 
@@ -479,6 +483,20 @@ public class LeftMenuPanel extends BasePanel<Void> {
         reportMenu.addMenuItem(new MenuItem("PageAdmin.menu.top.reports.created", PageCreatedReports.class));
         reportMenu.addMenuItem(new MenuItem("PageAuditLogViewer.menuName", PageAuditLogViewer.class));
         return reportMenu;
+    }
+
+    private MainMenuItem createSimulationItems() {
+        MainMenuItem simulation = createMainMenuItem("PageAdmin.menu.top.simulations", GuiStyleConstants.CLASS_CIRCLE_FULL);
+        simulation.addMenuItem(new MenuItem("PageAdmin.menu.top.simulationResults", PageSimulationResults.class));
+
+        boolean editActive = classMatches(PageSimulationResult.class);
+        if (editActive) {
+            MenuItem edit = new MenuItem("PageAdmin.menu.top.simulationResult", PageSimulationResult.class);
+            edit.setDynamic(true);
+            simulation.addMenuItem(edit);
+        }
+
+        return simulation;
     }
 
     private SideBarMenuItem createConfigurationMenu(boolean experimentalFeaturesEnabled) {

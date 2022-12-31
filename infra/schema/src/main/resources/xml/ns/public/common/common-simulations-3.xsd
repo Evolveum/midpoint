@@ -92,7 +92,7 @@
         </xsd:annotation>
       <xsd:sequence>
         <xsd:element name="identifier" type="xsd:string"/>
-        <xsd:element name="displayName" type="t:PolyStringType"/>
+        <xsd:element name="displayName" type="c:DisplayType"/>
         <xsd:element name="filter" type="tns:SimulationMetricBeforeAfterFilter" />
       </xsd:sequence>
     </xsd:complexType>
@@ -111,8 +111,8 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="beforeFilter" type="q:SearchFilterType" />
-            <xsd:element name="afterFilter" type="q:SearchFilterType" />
+            <xsd:element name="beforeFilter" type="q:SearchFilterType" minOccurs="0" />
+            <xsd:element name="afterFilter" type="q:SearchFilterType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
 

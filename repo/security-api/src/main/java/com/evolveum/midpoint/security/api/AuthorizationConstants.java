@@ -85,6 +85,12 @@ public class AuthorizationConstants {
     // public static final String AUTZ_UI_TASKS_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_TASKS_ALL_QNAME);
     // are not constant enough for use in annotations (e.g. in GUI pages)
 
+    public static final QName AUTZ_UI_SIMULATIONS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "simulationsAll");
+    public static final String AUTZ_UI_SIMULATIONS_ALL_URL = NS_AUTHORIZATION_UI + "#simulationsAll";
+
+    public static final QName AUTZ_UI_SIMULATION_RESULTS_QNAME = new QName(NS_AUTHORIZATION_UI, "simulationResults");
+    public static final String AUTZ_UI_SIMULATION_RESULTS_URL = NS_AUTHORIZATION_UI + "#simulationResults";
+
     //user
     public static final QName AUTZ_UI_USERS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "usersAll");
     public static final String AUTZ_UI_USERS_ALL_URL = NS_AUTHORIZATION_UI + "#usersAll";
