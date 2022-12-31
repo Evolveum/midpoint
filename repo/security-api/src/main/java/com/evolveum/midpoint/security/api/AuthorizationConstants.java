@@ -6,27 +6,17 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
- *
  */
 public class AuthorizationConstants {
 
@@ -61,7 +51,7 @@ public class AuthorizationConstants {
     public static final QName AUTZ_WS_ALL_QNAME = new QName(NS_AUTHORIZATION_WS, "all");
     public static final String AUTZ_WS_ALL_URL = QNameUtil.qNameToUri(AUTZ_WS_ALL_QNAME);
 
-//    public static final QName AUTZ_DEVEL_QNAME = new QName(NS_AUTHORIZATION, "devel");
+    //    public static final QName AUTZ_DEVEL_QNAME = new QName(NS_AUTHORIZATION, "devel");
     public static final String AUTZ_NO_ACCESS_URL = NS_AUTHORIZATION + "#noAccess";
 //    public static final String AUTZ_DEVEL_URL = QNameUtil.qNameToUri(AUTZ_DEVEL_QNAME);
 
@@ -79,7 +69,6 @@ public class AuthorizationConstants {
 //    @Deprecated
 //    public static final String AUTZ_GUI_ALL_DEPRECATED_URL = QNameUtil.qNameToUri(AUTZ_GUI_ALL_DEPRECATED_QNAME);
 
-
     // Following constants are ugly ... but they have to be.
     // Expressions such as:
     // public static final String AUTZ_UI_TASKS_ALL_URL = QNameUtil.qNameToUri(AUTZ_UI_TASKS_ALL_QNAME);
@@ -90,6 +79,9 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_SIMULATION_RESULTS_QNAME = new QName(NS_AUTHORIZATION_UI, "simulationResults");
     public static final String AUTZ_UI_SIMULATION_RESULTS_URL = NS_AUTHORIZATION_UI + "#simulationResults";
+
+    public static final QName AUTZ_UI_SIMULATION_RESULT_QNAME = new QName(NS_AUTHORIZATION_UI, "simulationResult");
+    public static final String AUTZ_UI_SIMULATION_RESULT_URL = NS_AUTHORIZATION_UI + "#simulationResult";
 
     //user
     public static final QName AUTZ_UI_USERS_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "usersAll");
@@ -333,7 +325,7 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_REPORTS_REPORT_CREATE_QNAME = new QName(NS_AUTHORIZATION_UI, "reportCreate");
     public static final String AUTZ_UI_REPORTS_REPORT_CREATE_URL = NS_AUTHORIZATION_UI + "#reportCreate";
 
-   //Cases
+    //Cases
     public static final QName AUTZ_UI_CASES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "casesAll");
     public static final String AUTZ_UI_CASES_ALL_URL = NS_AUTHORIZATION_UI + "#casesAll";
 
@@ -348,7 +340,6 @@ public class AuthorizationConstants {
 
     public static final String AUTZ_UI_WORK_ITEMS_ALL_URL = NS_AUTHORIZATION_UI + "#workItemsAll";
 
-
     //Certification
     public static final String AUTZ_UI_CERTIFICATION_DEFINITIONS_URL = NS_AUTHORIZATION_UI + "#certificationDefinitions";
     public static final String AUTZ_UI_CERTIFICATION_DEFINITION_URL = NS_AUTHORIZATION_UI + "#certificationDefinition";
@@ -360,7 +351,6 @@ public class AuthorizationConstants {
 
     public static final QName AUTZ_UI_CERTIFICATION_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "certificationAll");
     public static final String AUTZ_UI_CERTIFICATION_ALL_URL = NS_AUTHORIZATION_UI + "#certificationAll";
-
 
     //Home
     public static final QName AUTZ_UI_HOME_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "home");
@@ -375,10 +365,8 @@ public class AuthorizationConstants {
     public static final QName AUTZ_UI_MY_QUESTIONS_QNAME = new QName(NS_AUTHORIZATION_UI, "myQuestions");
     public static final String AUTZ_UI_MY_QUESTIONS_URL = NS_AUTHORIZATION_UI + "#myQuestions";
 
-
     public static final QName AUTZ_UI_BULK_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "bulkAction");
     public static final String AUTZ_UI_BULK_ACTION_URL = NS_AUTHORIZATION_UI + "#bulkAction";
-
 
     public static final QName AUTZ_UI_CONTACTS_QNAME = new QName(NS_AUTHORIZATION_UI, "contacts");
     public static final String AUTZ_UI_CONTACTS_URL = NS_AUTHORIZATION_UI + "#contacts";
@@ -638,7 +626,7 @@ public class AuthorizationConstants {
             ItemPath.create(FocusType.F_ROLE_INFLUENCE_REF),
             ItemPath.create(FocusType.F_ROLE_MEMBERSHIP_REF),
             ItemPath.create(FocusType.F_TRIGGERED_POLICY_RULE)
-        );
+    );
 
     /**
      * Items that are not considered for authorization in case that the entire container is deleted. MidPoint will
@@ -689,6 +677,6 @@ public class AuthorizationConstants {
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_METADATA),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_POLICY_SITUATION),
             ItemPath.create(AbstractRoleType.F_INDUCEMENT, FocusType.F_ASSIGNMENT, AssignmentType.F_TRIGGERED_POLICY_RULE)
-        );
+    );
 
 }

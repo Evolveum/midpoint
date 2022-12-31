@@ -279,4 +279,6 @@ public class GuiStyleConstants {
     public static final String CLASS_TRACING_BUTTON_ICON = "fa fa-stethoscope";
 
     public static final String CLASS_ICON_HISTORY = "fa fa-history";
+
+    public static final String CLASS_SIMULATION_RESULT = CLASS_CIRCLE_FULL;
 }

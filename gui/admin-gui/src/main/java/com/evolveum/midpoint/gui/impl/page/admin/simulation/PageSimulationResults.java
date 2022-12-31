@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.web.application.CollectionInstance;
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.wicket.markup.html.form.Form;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
@@ -37,6 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
                         description = "PageSimulationResults.auth.simulationResults.description")
         }
 )
+@CollectionInstance(identifier = "allSimulationResults", applicableForType = SimulationResultType.class,
+        display = @PanelDisplay(label = "PageAdmin.menu.top.simulations", singularLabel = "ObjectType.SimulationResultType", icon = GuiStyleConstants.CLASS_SIMULATION_RESULT))
 public class PageSimulationResults extends PageAdmin {
 
     private static final long serialVersionUID = 1L;

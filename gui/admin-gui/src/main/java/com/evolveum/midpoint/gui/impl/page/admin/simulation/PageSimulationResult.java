@@ -7,32 +7,40 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 @PageDescriptor(
         urls = {
-                @Url(mountUrl = "/admin/simulations/result", matchUrlForSecurity = "/admin/simulations/result")
+                @Url(mountUrl = "/admin/simulations/result")
         },
-        // todo fix authorization urls
+        encoder = OnePageParameterEncoder.class,
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATIONS_ALL_URL,
                         label = "PageSimulationResults.auth.simulationsAll.label",
                         description = "PageSimulationResults.auth.simulationsAll.description"),
-                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATION_RESULTS_URL,
-                        label = "PageSimulationResults.auth.simulationResults.label",
-                        description = "PageSimulationResults.auth.simulationResults.description")
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATION_RESULT_URL,
+                        label = "PageSimulationResults.auth.simulationResult.label",
+                        description = "PageSimulationResults.auth.simulationResult.description")
         }
 )
-public class PageSimulationResult extends PageAdmin {
+public class PageSimulationResult extends AbstractPageObjectDetails<SimulationResultType, ObjectDetailsModels<SimulationResultType>> {
 
     private static final long serialVersionUID = 1L;
 
@@ -43,14 +51,33 @@ public class PageSimulationResult extends PageAdmin {
     public PageSimulationResult() {
     }
 
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
-        initLayout();
+    public PageSimulationResult(PageParameters parameters) {
+        super(parameters);
     }
 
-    private void initLayout() {
+    @Override
+    public Class<SimulationResultType> getType() {
+        return SimulationResultType.class;
+    }
 
+    @Override
+    protected Panel createSummaryPanel(String id, IModel<SimulationResultType> summaryModel) {
+        return new ObjectSummaryPanel<>(id, SimulationResultType.class, summaryModel, getSummaryPanelSpecification()) {
+
+            @Override
+            protected String getDefaultIconCssClass() {
+                return null;
+            }
+
+            @Override
+            protected String getIconBoxAdditionalCssClass() {
+                return null;
+            }
+
+            @Override
+            protected String getBoxAdditionalCssClass() {
+                return null;
+            }
+        };
     }
 }

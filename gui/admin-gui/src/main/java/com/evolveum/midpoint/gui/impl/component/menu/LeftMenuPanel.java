@@ -486,7 +486,7 @@ public class LeftMenuPanel extends BasePanel<Void> {
     }
 
     private MainMenuItem createSimulationItems() {
-        MainMenuItem simulation = createMainMenuItem("PageAdmin.menu.top.simulations", GuiStyleConstants.CLASS_CIRCLE_FULL);
+        MainMenuItem simulation = createMainMenuItem("PageAdmin.menu.top.simulations", GuiStyleConstants.CLASS_SIMULATION_RESULT);
         simulation.addMenuItem(new MenuItem("PageAdmin.menu.top.simulationResults", PageSimulationResults.class));
 
         boolean editActive = classMatches(PageSimulationResult.class);
