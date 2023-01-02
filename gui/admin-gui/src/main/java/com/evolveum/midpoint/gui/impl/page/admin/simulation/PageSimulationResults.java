@@ -7,20 +7,18 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.web.application.CollectionInstance;
-import com.evolveum.midpoint.web.application.PanelDisplay;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import org.apache.wicket.markup.html.form.Form;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.CollectionInstance;
+import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -56,12 +54,6 @@ public class PageSimulationResults extends PageAdmin {
     private static final String ID_TABLE = "table";
 
     public PageSimulationResults() {
-    }
-
-    @Override
-    protected void onBeforeRender() {
-        super.onBeforeRender();
-
         initLayout();
     }
 
@@ -69,7 +61,7 @@ public class PageSimulationResults extends PageAdmin {
         Form form = new MidpointForm(ID_FORM);
         add(form);
 
-        // todo add delete whole result action and delete processed objects (leave result) action
+        // todo add "delete whole result" action and delete "processed objects (leave result)" action
         MainObjectListPanel<SimulationResultType> table = new MainObjectListPanel<>(ID_TABLE, SimulationResultType.class) {
 
             @Override

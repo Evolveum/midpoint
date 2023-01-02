@@ -7,21 +7,25 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import org.apache.wicket.markup.html.panel.Panel;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
-import com.evolveum.midpoint.gui.impl.page.admin.AbstractPageObjectDetails;
-import com.evolveum.midpoint.gui.impl.page.admin.ObjectDetailsModels;
+import com.evolveum.midpoint.gui.impl.component.box.SmallBox;
+import com.evolveum.midpoint.gui.impl.component.box.SmallBoxData;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
+import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -40,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
                         description = "PageSimulationResults.auth.simulationResult.description")
         }
 )
-public class PageSimulationResult extends AbstractPageObjectDetails<SimulationResultType, ObjectDetailsModels<SimulationResultType>> {
+public class PageSimulationResult extends PageAdmin {
 
     private static final long serialVersionUID = 1L;
 
@@ -48,36 +52,41 @@ public class PageSimulationResult extends AbstractPageObjectDetails<SimulationRe
 
     private static final String DOT_CLASS = PageSimulationResult.class.getName() + ".";
 
+    private static final String ID_WIDGETS = "widgets";
+
+    private static final String ID_WIDGET = "widget";
+
     public PageSimulationResult() {
+        this(new PageParameters());
     }
 
     public PageSimulationResult(PageParameters parameters) {
         super(parameters);
+
+        initLayout();
     }
 
-    @Override
-    public Class<SimulationResultType> getType() {
-        return SimulationResultType.class;
-    }
+    private void initLayout() {
+        // todo implement
+        IModel<List<SmallBoxData>> data = () -> new ArrayList<>();
 
-    @Override
-    protected Panel createSummaryPanel(String id, IModel<SimulationResultType> summaryModel) {
-        return new ObjectSummaryPanel<>(id, SimulationResultType.class, summaryModel, getSummaryPanelSpecification()) {
+        ListView<SmallBoxData> widgets = new ListView<>(ID_WIDGETS, data) {
 
             @Override
-            protected String getDefaultIconCssClass() {
-                return null;
-            }
+            protected void populateItem(ListItem<SmallBoxData> item) {
+                item.add(new SmallBox(ID_WIDGET, item.getModel()) {
 
-            @Override
-            protected String getIconBoxAdditionalCssClass() {
-                return null;
-            }
-
-            @Override
-            protected String getBoxAdditionalCssClass() {
-                return null;
+                    @Override
+                    protected void onClickLink(AjaxRequestTarget target) {
+                        onWidgetClick(target, getModelObject());
+                    }
+                });
             }
         };
+        add(widgets);
+    }
+
+    private void onWidgetClick(AjaxRequestTarget target, SmallBoxData data) {
+
     }
 }
