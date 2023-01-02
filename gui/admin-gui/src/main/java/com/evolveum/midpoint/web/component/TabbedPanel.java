@@ -100,6 +100,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
             }
         };
 
+        add(AttributeModifier.prepend("class", "card card-primary card-outline card-outline-tabs"));
+
         WebMarkupContainer tabsContainer = newTabsContainer(ID_TABS_CONTAINER);
         tabsContainer.setOutputMarkupId(true);
         tabsContainer.setOutputMarkupPlaceholderTag(true);

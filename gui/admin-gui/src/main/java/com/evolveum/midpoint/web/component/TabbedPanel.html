@@ -6,23 +6,21 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div class="card card-primary card-outline card-outline-tabs">
-        <div class="card-header p-0 border-bottom-0">
-            <ul class="nav nav-tabs" wicket:id="tabs-container">
-                <li class="nav-item" wicket:id="tabs">
-                    <a class="nav-link" href="#" wicket:id="link">
-                        <span wicket:id="title"/>
-                        <small class="badge" wicket:id="count"/>
-                    </a>
-                </li>
-                <wicket:remove><!-- TODO fix the style for rightSideTabItem --></wicket:remove>
-                <li wicket:id="rightSideTabItem" class="pull-right" style="border-radius: 0; margin: 10px"><div wicket:id="rightSideTab"/></li>
-            </ul>
-        </div>
-        <div class="card-body">
-            <div class="tab-content">
-                <div wicket:id="panel" class="tab-pane active" />
-            </div>
+    <div class="card-header p-0 border-bottom-0">
+        <ul class="nav nav-tabs" wicket:id="tabs-container">
+            <li class="nav-item" wicket:id="tabs">
+                <a class="nav-link" href="#" wicket:id="link">
+                    <span wicket:id="title"/>
+                    <small class="badge" wicket:id="count"/>
+                </a>
+            </li>
+            <wicket:remove><!-- TODO fix the style for rightSideTabItem --></wicket:remove>
+            <li wicket:id="rightSideTabItem" class="pull-right" style="border-radius: 0; margin: 10px"><div wicket:id="rightSideTab"/></li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content">
+            <div wicket:id="panel" class="tab-pane active" />
         </div>
     </div>
 </wicket:panel>

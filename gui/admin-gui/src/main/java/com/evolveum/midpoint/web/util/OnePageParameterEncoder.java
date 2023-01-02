@@ -7,9 +7,16 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Page;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -24,6 +31,8 @@ import java.util.List;
 public class OnePageParameterEncoder implements IPageParametersEncoder {
 
     public static final String PARAMETER = "pathParameter";
+
+    private static final Trace LOGGER = TraceManager.getTrace(OnePageParameterEncoder.class);
 
     @Override
     public PageParameters decodePageParameters(Url url) {
@@ -58,5 +67,24 @@ public class OnePageParameterEncoder implements IPageParametersEncoder {
         }
 
         return url;
+    }
+
+    public static String getParameter(@NotNull Page page) {
+        PageParameters parameters = page.getPageParameters();
+        LOGGER.trace("Page parameters: {}", parameters);
+
+        StringValue oidValue = parameters.get(PARAMETER);
+        LOGGER.trace("OID parameter: {}", oidValue);
+
+        if (oidValue == null) {
+            return null;
+        }
+
+        String oid = oidValue.toString();
+        if (StringUtils.isBlank(oid)) {
+            return null;
+        }
+
+        return oid;
     }
 }

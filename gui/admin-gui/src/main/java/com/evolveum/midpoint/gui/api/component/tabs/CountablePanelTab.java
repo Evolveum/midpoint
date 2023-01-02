@@ -6,9 +6,10 @@
  */
 package com.evolveum.midpoint.gui.api.component.tabs;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.model.CountModelProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.wicket.model.IModel;
 
 /**
  * Tab that can display object count (small bubble with number) in the tab label.
@@ -33,15 +34,7 @@ public abstract class CountablePanelTab extends PanelTab implements CountModelPr
         // When we display the tab the panel does not exist yet.
         // The panel is created only when the tab is clicked.
 
-        return new IModel<String>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                return getCount();
-            }
-        };
+        return () -> getCount();
     }
 
     public abstract String getCount();
