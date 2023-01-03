@@ -12,12 +12,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.tree.AbstractTree;
 import org.apache.wicket.markup.html.WebComponent;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -28,8 +26,6 @@ public class MyTreeColumnPanel<T> extends BasePanel<T> {
 
     private static final String ID_LINK = "link";
     private static final String ID_CHEVRON = "chevron";
-    private static final String ID_ICON = "icon";
-    private static final String ID_LABEL = "label";
 
     private final AbstractTree<T> tree;
 
@@ -54,18 +50,6 @@ public class MyTreeColumnPanel<T> extends BasePanel<T> {
         WebComponent chevron = new WebComponent(ID_CHEVRON);
         chevron.add(AttributeModifier.append("class", () -> getChevronCss(getModel())));
         link.add(chevron);
-
-        WebComponent icon = new WebComponent(ID_ICON);
-        icon.add(AttributeModifier.append("class", () -> getIconCss(getModel())));
-        icon.add(new VisibleBehaviour(() -> getIconCss(getModel()) != null));
-        link.add(icon);
-
-        Label label = new Label(ID_LABEL, getModel());
-        link.add(label);
-    }
-
-    protected String getIconCss(IModel<T> model) {
-        return null;
     }
 
     protected String getChevronCss(IModel<T> model) {

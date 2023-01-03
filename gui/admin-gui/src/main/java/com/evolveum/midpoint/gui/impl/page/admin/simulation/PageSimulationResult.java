@@ -9,23 +9,35 @@ package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationMetricType;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBox;
 import com.evolveum.midpoint.gui.impl.component.box.SmallBoxData;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -56,6 +68,8 @@ public class PageSimulationResult extends PageAdmin {
 
     private static final String ID_WIDGET = "widget";
 
+    private IModel<SimulationResultType> model;
+
     public PageSimulationResult() {
         this(new PageParameters());
     }
@@ -63,18 +77,57 @@ public class PageSimulationResult extends PageAdmin {
     public PageSimulationResult(PageParameters parameters) {
         super(parameters);
 
+        initModels();
         initLayout();
+    }
+
+    private void initModels() {
+        model = new LoadableDetachableModel<>() {
+            @Override
+            protected SimulationResultType load() {
+                String oid = OnePageParameterEncoder.getParameter(PageSimulationResult.this);
+                if (StringUtils.isEmpty(oid)) {
+                    throw new RestartResponseException(PageError404.class);
+                }
+
+                Task task = getPageTask();
+                PrismObject<SimulationResultType> object = WebModelServiceUtils.loadObject(SimulationResultType.class, oid, PageSimulationResult.this, task, task.getResult());
+                if (object == null) {
+                    throw new RestartResponseException(PageError404.class);
+                }
+
+                return object.asObjectable();
+            }
+        };
     }
 
     private void initLayout() {
         // todo implement
-        IModel<List<SmallBoxData>> data = () -> new ArrayList<>();
+        IModel<List<SmallBoxData>> data = () -> {
+
+            List<SimulationMetricType> metrics = model.getObject().getMetric();
+            return metrics.stream().map(m -> {
+                SmallBoxData sbd = new SmallBoxData();
+                sbd.setDescription(m.getIdentifier());
+                sbd.setTitle(m.getMatchedObjects().longValue() + "/" + m.getProcessedObjects().longValue());
+                sbd.setSmallBoxCssClass("bg-info");
+                sbd.setLinkText("More info");
+                sbd.setIcon("fa fa-database");
+
+                return sbd;
+            }).collect(Collectors.toList());
+        };
 
         ListView<SmallBoxData> widgets = new ListView<>(ID_WIDGETS, data) {
 
             @Override
             protected void populateItem(ListItem<SmallBoxData> item) {
                 item.add(new SmallBox(ID_WIDGET, item.getModel()) {
+
+                    @Override
+                    protected boolean isLinkVisible() {
+                        return true;
+                    }
 
                     @Override
                     protected void onClickLink(AjaxRequestTarget target) {
@@ -87,6 +140,6 @@ public class PageSimulationResult extends PageAdmin {
     }
 
     private void onWidgetClick(AjaxRequestTarget target, SmallBoxData data) {
-
+        System.out.println();
     }
 }
