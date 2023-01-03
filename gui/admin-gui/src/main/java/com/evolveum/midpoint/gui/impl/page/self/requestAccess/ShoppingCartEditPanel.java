@@ -359,11 +359,13 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             // this is just a nasty "pre-save" code to handle assignment extension via wrappers -> apply it to our assignment stored in request access
             PrismContainerValueWrapper<AssignmentType> containerValueWrapper = assignmentExtension.getObject();
             if (containerValueWrapper == null) {
+                updateSelectedAssignment();
                 return;
             }
 
             PrismObjectWrapper<UserType> wrapper = containerValueWrapper.getParent().findObjectWrapper();
             if (wrapper.getObjectDelta().isEmpty()) {
+                updateSelectedAssignment();
                 return;
             }
 
@@ -372,6 +374,7 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             // that second assignment contains modified extension...very nasty hack
             List<AssignmentType> assignments = user.getAssignment();
             if (assignments.size() < 2) {
+                updateSelectedAssignment();
                 return;
             }
             AssignmentType modified = user.getAssignment().get(1);
@@ -379,11 +382,16 @@ public class ShoppingCartEditPanel extends BasePanel<ShoppingCartItem> implement
             AssignmentType a = getModelObject().getAssignment();
             a.setExtension(modified.getExtension());
 
-            requestAccess.getObject().updateSelectedAssignment(a);
+            updateSelectedAssignment();
         } catch (SchemaException ex) {
             getPageBase().error(getString("ShoppingCartEditPanel.message.couldntProcessExtension", ex.getMessage()));
             LOGGER.debug("Couldn't process extension attributes", ex);
         }
+    }
+
+    private void updateSelectedAssignment() {
+        AssignmentType a = getModelObject().getAssignment();
+        requestAccess.getObject().updateSelectedAssignment(a);
     }
 
     protected void closePerformed(AjaxRequestTarget target, IModel<ShoppingCartItem> model) {
