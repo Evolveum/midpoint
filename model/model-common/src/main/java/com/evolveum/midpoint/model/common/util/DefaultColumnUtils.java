@@ -102,6 +102,9 @@ public class DefaultColumnUtils {
                 .put(MessageTemplateType.class, Arrays.asList(
                         new ColumnWrapper(MessageTemplateType.F_NAME),
                         new ColumnWrapper(MessageTemplateType.F_DESCRIPTION)))
+                .put(TagType.class, Arrays.asList(
+                        new ColumnWrapper(TagType.F_NAME),
+                        new ColumnWrapper(TagType.F_DESCRIPTION)))
                 .build();
     }
 
