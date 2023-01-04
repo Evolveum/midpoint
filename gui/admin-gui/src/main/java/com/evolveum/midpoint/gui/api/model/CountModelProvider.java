@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.api.model;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+
 import org.apache.wicket.model.IModel;
 
 /**
@@ -24,4 +26,20 @@ public interface CountModelProvider {
      */
     IModel<String> getCountModel();
 
+    default IModel<String> getCountCssClassModel() {
+        return () -> {
+            IModel<String> countModel = getCountModel();
+
+            if (countModel == null) {
+                return GuiStyleConstants.CLASS_BADGE_PASSIVE;
+            }
+
+            String count = countModel.getObject();
+            if ("0".equals(count)) {
+                return GuiStyleConstants.CLASS_BADGE_PASSIVE;
+            } else {
+                return GuiStyleConstants.CLASS_BADGE_ACTIVE;
+            }
+        };
+    }
 }

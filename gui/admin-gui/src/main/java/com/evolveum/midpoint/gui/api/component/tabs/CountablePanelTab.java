@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.api.component.tabs;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.CountModelProvider;
+import com.evolveum.midpoint.gui.api.model.CssIconModelProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
@@ -16,7 +17,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  *
  * @author semancik
  */
-public abstract class CountablePanelTab extends PanelTab implements CountModelProvider {
+public abstract class CountablePanelTab extends PanelTab implements CountModelProvider, CssIconModelProvider {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,6 +36,11 @@ public abstract class CountablePanelTab extends PanelTab implements CountModelPr
         // The panel is created only when the tab is clicked.
 
         return () -> getCount();
+    }
+
+    @Override
+    public IModel<String> getCssIconModel() {
+        return () -> null;
     }
 
     public abstract String getCount();
