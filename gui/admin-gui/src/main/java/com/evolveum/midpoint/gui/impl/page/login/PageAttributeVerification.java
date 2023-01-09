@@ -62,7 +62,7 @@ public class PageAttributeVerification extends PageAuthenticationBase {
 
     LoadableDetachableModel<List<ItemPathType>> attributesPathModel;
     private LoadableDetachableModel<UserType> userModel;
-    private HashMap<ItemPathType, String> attributeValuesMap;
+    private HashMap<ItemPathType, String> attributeValuesMap = new HashMap<>();
 
     public PageAttributeVerification() {
     }
@@ -82,7 +82,7 @@ public class PageAttributeVerification extends PageAuthenticationBase {
             @Override
             protected List<ItemPathType> load() {
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                if (authentication instanceof MidpointAuthentication) {
+                if (!(authentication instanceof MidpointAuthentication)) {
                     getSession().error(getString("No midPoint authentication is found"));
                     throw new RestartResponseException(PageError.class);
                 }
@@ -148,8 +148,7 @@ public class PageAttributeVerification extends PageAuthenticationBase {
 
             @Override
             protected void populateItem(ListItem<ItemPathType> item) {
-                Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, new PropertyModel<String>(
-                        item.getModelObject().getItemPath(), "questionText"));
+                Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, Model.of(item.getModelObject().getItemPath()));
                 item.add(attributeNameLabel);
 
                 RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, Model.of());
