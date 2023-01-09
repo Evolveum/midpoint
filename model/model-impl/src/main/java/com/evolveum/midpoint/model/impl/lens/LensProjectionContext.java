@@ -1441,6 +1441,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         sb.append(", state=").append(getCurrentShadowState());
         if (!isFresh()) {
             sb.append(", NOT FRESH");
+        } else {
+            sb.append(", fresh");
         }
         if (isGone()) {
             sb.append(", GONE");
