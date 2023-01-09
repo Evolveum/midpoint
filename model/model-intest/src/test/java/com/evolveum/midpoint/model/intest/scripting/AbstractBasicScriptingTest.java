@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.test.TestTask;
 import com.evolveum.midpoint.util.exception.ScriptExecutionException;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -147,6 +148,9 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
     private static final String PASSWORD_PLAINTEXT_1 = "pass1234wor1";
     private static final String PASSWORD_PLAINTEXT_2 = "pass1234wor2";
     private static final String PASSWORD_PLAINTEXT_3 = "pass1234wor3";
+
+    private static final TestTask TASK_CUSTOM_SCRIPTING =
+            new TestTask(TEST_DIR, "task-custom-scripting.xml", "f3b3f5e1-b3fb-42d5-9676-fa8ab9e5b58c");
 
     @Autowired ScriptingExpressionEvaluator evaluator;
 
@@ -1431,6 +1435,33 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
 
         displayDumpable("Dummy transport", dummyTransport);
         displayDumpable("Audit", dummyAuditService);
+    }
+
+    /**
+     * Tests (experimental, unofficial) custom reporting.
+     *
+     * MID-8056
+     */
+    @Test
+    public void test620CustomScripting() throws CommonException, IOException {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        TASK_CUSTOM_SCRIPTING.initialize(this, task, result);
+        TASK_CUSTOM_SCRIPTING.rerunErrorsOk(result);
+
+        // @formatter:off
+        assertTask(TASK_CUSTOM_SCRIPTING.oid, "after")
+                .display()
+                .assertPartialError()
+                .assertResultMessageContains("custom-error")
+                .rootActivityState()
+                    .progress()
+                        .assertCommitted(3, 1, 1)
+                        .assertExpectedTotal(5)
+                    .end()
+                .end();
+        // @formatter:on
     }
 
     private void assertNoOutputData(ExecutionContext output) {

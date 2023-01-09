@@ -9,6 +9,8 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.evolveum.midpoint.schema.util.task.ActivityProgressUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -108,5 +110,10 @@ public class ActivityProgressAsserter<RA> extends AbstractAsserter<RA> {
 
     private int getNonFailureCount(boolean open) {
         return getSuccessCount(open) + getSkipCount(open);
+    }
+
+    public ActivityProgressAsserter<RA> assertExpectedTotal(int expected) {
+        assertThat(information.getExpectedTotal()).as("expected total").isEqualTo(expected);
+        return this;
     }
 }
