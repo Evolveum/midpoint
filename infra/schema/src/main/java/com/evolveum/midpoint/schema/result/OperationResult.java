@@ -687,12 +687,10 @@ public class OperationResult
     /**
      * Set all error status in this result and all subresults as handled.
      */
-    public void setErrorsHandled() {
-        if (isError()) {
-            setStatus(OperationResultStatus.HANDLED_ERROR);
-        }
+    public void muteErrorsRecursively() {
+        muteError();
         for (OperationResult subresult : getSubresults()) {
-            subresult.setErrorsHandled();
+            subresult.muteErrorsRecursively();
         }
     }
 

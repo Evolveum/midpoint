@@ -256,6 +256,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         sb.append(getDebugDumpTitle());
         if (!isFresh()) {
             sb.append(", NOT FRESH");
+        } else {
+            sb.append(", fresh");
         }
         if (deleted) {
             sb.append(", DELETED");

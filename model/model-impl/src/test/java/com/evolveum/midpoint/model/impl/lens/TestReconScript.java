@@ -8,9 +8,12 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_MODEL_EXTENSION_DRY_RUN;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -43,28 +46,23 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
     @Test
     public void test001TestReconcileScriptsWhenProvisioning() throws Exception {
         Task task = getTestTask();
-        OperationResult parentResult = createOperationResult();
+        OperationResult result = createOperationResult();
 
         ObjectDelta<UserType> delta = createModifyUserAddAccount(USER_JACK_OID, getDummyResourceObject());
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        deltas.add(delta);
-
         task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON));
-        modelService.executeChanges(deltas, executeOptions().reconcile(), task, parentResult);
+        modelService.executeChanges(List.of(delta), executeOptions().reconcile(), task, result);
 
-        delta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME, new PolyString("tralala"));
-        deltas = new ArrayList<>();
-        deltas.add(delta);
+        ObjectDelta<UserType> delta2 =
+                createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_FULL_NAME, new PolyString("tralala"));
+        modelService.executeChanges(List.of(delta2), executeOptions().reconcile(), task, result);
 
-        modelService.executeChanges(deltas, executeOptions().reconcile(), task, parentResult);
+        ObjectDelta<UserType> delta3 =
+                createModifyUserReplaceDelta(USER_BARBOSSA_OID, UserType.F_FULL_NAME, new PolyString("tralala"));
+        modelService.executeChanges(List.of(delta3), executeOptions().reconcile(), task, result);
 
-        delta = createModifyUserReplaceDelta(USER_BARBOSSA_OID, UserType.F_FULL_NAME, new PolyString("tralala"));
-        deltas = new ArrayList<>();
-        deltas.add(delta);
-
-        modelService.executeChanges(deltas, executeOptions().reconcile(), task, parentResult);
-
-        for (ScriptHistoryEntry script : getDummyResource().getScriptHistory()) {
+        List<ScriptHistoryEntry> scriptHistory = getDummyResource().getScriptHistory();
+        assertThat(scriptHistory).as("script history").isNotEmpty();
+        for (ScriptHistoryEntry script : scriptHistory) {
             String userName = (String) script.getParams().get("midpoint_usercn");
             String idPath = (String) script.getParams().get("midpoint_idpath");
             String tempPath = (String) script.getParams().get("midpoint_temppath");
@@ -94,7 +92,9 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         assertTask(TASK_RECON_DUMMY_OID, "after")
                 .display(); // TODO
 
-        for (ScriptHistoryEntry script : getDummyResource().getScriptHistory()) {
+        List<ScriptHistoryEntry> scriptHistory = getDummyResource().getScriptHistory();
+        assertThat(scriptHistory).as("script history").isNotEmpty();
+        for (ScriptHistoryEntry script : scriptHistory) {
             String userName = (String) script.getParams().get("midpoint_usercn");
             String idPath = (String) script.getParams().get("midpoint_idpath");
             String tempPath = (String) script.getParams().get("midpoint_temppath");
@@ -137,7 +137,9 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
         PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
         AssertJUnit.assertNotNull("Owner for account " + shadow.asPrismObject() + " not found. Some problem in recon occurred.", user);
 
-        for (ScriptHistoryEntry script : getDummyResource().getScriptHistory()) {
+        List<ScriptHistoryEntry> scriptHistory = getDummyResource().getScriptHistory();
+        assertThat(scriptHistory).as("script history").isNotEmpty();
+        for (ScriptHistoryEntry script : scriptHistory) {
 
             String userName = (String) script.getParams().get("midpoint_usercn");
             String idPath = (String) script.getParams().get("midpoint_idpath");
