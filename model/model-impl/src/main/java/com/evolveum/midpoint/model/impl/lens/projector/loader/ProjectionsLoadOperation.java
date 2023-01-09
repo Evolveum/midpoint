@@ -212,15 +212,19 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         try {
             return beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
         } catch (ObjectNotFoundException e) {
-            // Broken linkRef. We need to mark it for deletion.
-            LensProjectionContext projectionContext = getOrCreateEmptyGoneProjectionContext(oid);
-            projectionContext.setFresh(true);
-            projectionContext.setExists(false);
-            projectionContext.setShadowExistsInRepo(false);
+            createBrokenProjectionContext(oid);
             result.getLastSubresult()
                     .setErrorsHandled();
             return null;
         }
+    }
+
+    private void createBrokenProjectionContext(String oid) {
+        LOGGER.trace("Broken linkRef {}. We need to mark it for deletion.", oid);
+        LensProjectionContext projectionContext = getOrCreateEmptyGoneProjectionContext(oid);
+        projectionContext.setFresh(true);
+        projectionContext.setExists(false);
+        projectionContext.setShadowExistsInRepo(false);
     }
 
     private boolean isInactive(PrismReferenceValue linkRefVal) {
@@ -251,6 +255,13 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         }
         try {
             beans.provisioningService.getObject(ShadowType.class, oid, options, task, result);
+        } catch (ObjectNotFoundException e) {
+            // We will NOT delete the linkRef here. Instead, we will persuade LinkUpdater to do it, by creating a broken
+            // projection context (just as if the link would be regular one). This is the only situation when there is
+            // a projection context created for inactive linkRef.
+            createBrokenProjectionContext(oid);
+            result.getLastSubresult()
+                    .setErrorsHandled();
         } catch (Exception e) {
             result.muteLastSubresultError();
             LOGGER.debug("Couldn't refresh linked shadow {}. Continuing.", oid, e);
