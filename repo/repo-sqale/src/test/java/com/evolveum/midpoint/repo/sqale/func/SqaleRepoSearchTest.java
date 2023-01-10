@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -747,6 +748,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test171SearchShadowOwner() {
         when("searching for shadow owner by shadow OID");
         OperationResult operationResult = createOperationResult();
+        //noinspection deprecation
         PrismObject<UserType> result =
                 repositoryService.searchShadowOwner(shadow1Oid, null, operationResult);
 
@@ -762,6 +764,7 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     public void test172SearchShadowOwnerByNonexistentOid() {
         when("searching for shadow owner by shadow OID");
         OperationResult operationResult = createOperationResult();
+        //noinspection deprecation
         PrismObject<UserType> result =
                 repositoryService.searchShadowOwner(shadow1Oid, null, operationResult);
 
@@ -2399,25 +2402,35 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
                         .lt(createXMLGregorianCalendar("2022-01-01T00:00:00Z")),
                 user1Oid);
     }
-    // endregion
 
-    // right-hand path
     @Test
-    public void test800SearchUsersWithSimplePath() throws SchemaException {
-        searchUsersTest("fullName does not equals fname",
+    public void test750SearchUsersWithRightHandSimplePath() throws SchemaException {
+        searchUsersTest("where fullName equals givenName",
                 f -> f.item(UserType.F_FULL_NAME).eq().item(UserType.F_GIVEN_NAME),
                 user4Oid);
     }
 
     @Test
-    public void test820SearchUsersWithReferencedPath() {
-        assertThatThrownBy(() ->
-                searchUsersTest("fullName does not equals fname",
+    public void test760SearchUsersWithRightHandReferencedPath() {
+        assertThatThrownBy(
+                () -> searchUsersTest(
+                        "comparing nested timestamps",
                         f -> f.not().item(ObjectType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP)
                                 .eq().item(UserType.F_ASSIGNMENT, AssignmentType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
-                        user1Oid, user2Oid, user3Oid, user4Oid))
+                        user1Oid, user2Oid, user3Oid, user4Oid),
+                "right-hand side nesting into multivalue container is not supported")
                 .isInstanceOf(SystemException.class);
-        // Should fail because right-hand side nesting into multivalue container is not supported
+    }
+    // endregion
+
+    // region reference search
+    @Test // TODO disable if not finished
+    public void test800SearchReference() {
+        ObjectFilter objectFilter = prismContext.queryFor(UserType.class)
+                .ref(UserType.F_ROLE_MEMBERSHIP_REF)
+                .item(F_NAME).eq("actual-role-name")
+                .buildFilter(); // buildRefQuery()
+//        SearchResultList<ObjectReferenceType> objectReferenceTypes = repositoryService.searchReference();
     }
     // endregion
 

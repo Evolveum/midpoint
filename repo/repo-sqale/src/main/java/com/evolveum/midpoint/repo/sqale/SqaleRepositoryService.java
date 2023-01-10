@@ -6,9 +6,9 @@
  */
 package com.evolveum.midpoint.repo.sqale;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
-
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.schema.GetOperationOptions.isAllowNotFound;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -19,8 +19,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.common.SequenceUtil;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ObjectArrays;
@@ -33,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.common.SequenceUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -135,6 +134,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         this.sqlQueryExecutor = new SqlQueryExecutor(repositoryContext);
     }
 
+    // region getObject/getVersion
     @Override
     public @NotNull <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
@@ -281,9 +281,9 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
             registerOperationFinish(opHandle);
         }
     }
+    // endregion
 
-    // Add/modify/delete
-
+    // region Add/modify/delete
     @Override
     @NotNull
     public <T extends ObjectType> String addObject(
@@ -818,6 +818,7 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
         return new DeleteObjectResult(new String(fullObject, StandardCharsets.UTF_8));
     }
+    // endregion
 
     // region Counting/searching
     @Override
@@ -1271,6 +1272,21 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
         } finally {
             registerOperationFinish(opHandle);
         }
+    }
+
+    // TODO what is the return type?
+    //  Can be: SearchResultList<ObjectReferenceType> of references extracted from objects selected by ref owners
+    public SearchResultList<ObjectReferenceType> searchReference(
+            Class<ObjectType> ownerType, RefFilter filter) { // does not support pagination
+            //Class<ObjectType> ownerType, RefFilter filter) {
+        // RefFilter or something different? Probably, extended ref filter could work just fine.
+        ItemPath refPath = filter.getPath();
+        // 1. select refs, this can be low-level repo based List<MReference>
+        // 2. collect unique owner OIDs
+        // 3. select owner objects
+        // 4. crawl the object to extract the result references from them
+        ObjectReferenceType ort = null;
+        return new SearchResultList<>();
     }
     // endregion
 
