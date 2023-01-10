@@ -136,18 +136,19 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         Search<C> search = getModelObject();
         AvailableFilterType availableFilter = new AvailableFilterType();
         availableFilter.setDisplay(new DisplayType().label(queryNameModel.getObject()));
-        availableFilter.setSearchMode(getModelObject().getSearchMode());
+        SearchBoxModeType searchMode = search.getSearchMode();
+        availableFilter.setSearchMode(searchMode);
         SearchItemType searchItem = null;
-        if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchMode())) {
+        if (SearchBoxModeType.BASIC.equals(searchMode)) {
             availableFilter.getSearchItem().addAll(getAvailableFilterSearchItems(type, search.getItems(), search.getSearchMode()));
         } else {
-            if (SearchBoxModeType.AXIOM_QUERY.equals(getModelObject().getSearchMode())) {
+            if (SearchBoxModeType.AXIOM_QUERY.equals(searchMode)) {
                 searchItem = createAxiomSearchItem();
-            } else if (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchMode())) {
+            } else if (SearchBoxModeType.ADVANCED.equals(searchMode)) {
                 searchItem = createAdvancedSearchItem();
-            } else if (SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchMode())) {
+            } else if (SearchBoxModeType.FULLTEXT.equals(searchMode)) {
                 searchItem = createFulltextSearchItem();
-            } else if (SearchBoxModeType.OID.equals(getModelObject().getSearchMode())) {
+            } else if (SearchBoxModeType.OID.equals(searchMode)) {
                 searchItem = createOidSearchItem(getModelObject().findOidSearchItemWrapper());
             }
             if (searchItem != null) {
@@ -245,6 +246,79 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
         return null;
     }
 
+    private void saveSearchItemToAdminConfigNew(AvailableFilterType availableFilter, AjaxRequestTarget ajaxRequestTarget) {
+        FocusType principalFocus = getPageBase().getPrincipalFocus();
+        if (!(principalFocus instanceof UserType)) {
+            LOGGER.debug("Cannot save filter, principal not user, but {}", principalFocus);
+            return;
+        }
+
+        AdminGuiConfigurationType adminGui = ((UserType) principalFocus).getAdminGuiConfiguration();
+        if (adminGui == null) {
+            createAdminGuiAddDelta(availableFilter);
+            return;
+        }
+
+        String collectionViewIdentifier = getCollectionViewIdentifier();
+        if (collectionViewIdentifier != null) {
+            adminGui.getObjectCollectionViews();
+        }
+
+
+    }
+
+    private void createAdminGuiAddDelta(AvailableFilterType availableFilterType) {
+        AdminGuiConfigurationType adminGuiConfigurationType = new AdminGuiConfigurationType();
+        String collectionViewIdentifier = getCollectionViewIdentifier();
+        if (collectionViewIdentifier != null) {
+            GuiObjectListViewType objectListViewType = createObjectCollectionView(collectionViewIdentifier, availableFilterType);
+            GuiObjectListViewsType listViews = adminGuiConfigurationType.getObjectCollectionViews();
+            if (listViews == null) {
+                listViews = new GuiObjectListViewsType();
+            }
+            listViews.getObjectCollectionView().add(objectListViewType);
+        }
+
+        Class<? extends ObjectType> pageType = WebComponentUtil.getObjectTypeForDetailsPage(getPageBase());
+        if (pageType != null) {
+            GuiObjectDetailsSetType objectDetails = adminGuiConfigurationType.getObjectDetails();
+            if (objectDetails == null) {
+                objectDetails = new GuiObjectDetailsSetType();
+            }
+            GuiObjectDetailsPageType detailsPage = createObjectDetailsPage(pageType, availableFilterType);
+            objectDetails.getObjectDetailsPage().add(detailsPage);
+        }
+    }
+
+    private String getCollectionViewIdentifier() {
+        StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
+        String viewName = collectionViewParameter == null || collectionViewParameter.isNull() ? defaultCollectionViewIdentifier
+                : collectionViewParameter.toString();
+        return viewName;
+    }
+
+    private GuiObjectListViewType createObjectCollectionView(String identifier, AvailableFilterType availableFilterType) {
+        return new GuiObjectListViewType()
+                .identifier(identifier)
+                .beginSearchBoxConfiguration()
+                    .availableFilter(availableFilterType).end();
+    }
+
+    private GuiObjectDetailsPageType createObjectDetailsPage(Class<? extends ObjectType> pageType, AvailableFilterType availableFilterType) {
+        GuiObjectDetailsPageType detailsPage = new GuiObjectDetailsPageType();
+        detailsPage.setType(WebComponentUtil.classToQName(PrismContext.get(), pageType));
+        detailsPage.getPanel().add(getContainerPanelConfig(availableFilterType));
+        return detailsPage;
+    }
+
+    private ContainerPanelConfigurationType getContainerPanelConfig(AvailableFilterType availableFilterType) {
+        String panelId = WebComponentUtil.getPanelIdentifierFromParams(getPageBase().getPageParameters());
+        ContainerPanelConfigurationType configurationType = new ContainerPanelConfigurationType().identifier(panelId)
+                .listView(createObjectCollectionView("id", availableFilterType));
+        return configurationType;
+    }
+
+
     private void saveSearchItemToAdminConfig(AvailableFilterType availableFilter, AjaxRequestTarget ajaxRequestTarget) {
         FocusType principalFocus = getPageBase().getPrincipalFocus();
         boolean viewExists = true;
@@ -277,6 +351,7 @@ public class SaveSearchPanel<C extends Containerable> extends BasePanel<Search<C
             }
             addItemToPath = false;
         }
+
 
         StringValue collectionViewParameter = WebComponentUtil.getCollectionNameParameterValue(getPageBase());
         String viewName = collectionViewParameter == null || collectionViewParameter.isNull() ? defaultCollectionViewIdentifier

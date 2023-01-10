@@ -14,6 +14,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +57,8 @@ public class SearchFactory<C extends Containerable> {
 
     private boolean isViewForDashboard;
 
+    private ResourceObjectDefinition resourceObjectDefinition;
+
     public SearchFactory() {
 
     }
@@ -94,6 +98,11 @@ public class SearchFactory<C extends Containerable> {
 
     public SearchFactory isViewForDashboard(boolean isViewForDashboard) {
         this.isViewForDashboard = isViewForDashboard;
+        return this;
+    }
+
+    public SearchFactory resourceObjectDefinition(ResourceObjectDefinition resourceObjectDefinition) {
+        this.resourceObjectDefinition = resourceObjectDefinition;
         return this;
     }
 
@@ -161,9 +170,9 @@ public class SearchFactory<C extends Containerable> {
         SearchBoxConfigurationType configuredSearchBox = getConfiguredSearchBox();
 
         //not entirely clear, but at least backup
-        if (defaultSearchBoxConfig == null) {
-            this.defaultSearchBoxConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(definition.getTypeClass(), null, modelServiceLocator);
-        }
+//        if (defaultSearchBoxConfig == null) {
+//            this.defaultSearchBoxConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(definition.getTypeClass(), null, modelServiceLocator);
+//        }
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }
 
@@ -279,7 +288,7 @@ public class SearchFactory<C extends Containerable> {
         SearchConfigurationWrapper<C> searchConfigWrapper = new SearchConfigurationWrapper<>();
         SearchItemsType searchItems = mergedConfig.getSearchItems();
         for (SearchItemType searchItem : searchItems.getSearchItem()) {
-            searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(definition, searchItem,  coordinates, modelServiceLocator));
+            searchConfigWrapper.getItemsList().add(SearchConfigurationWrapperFactory.createPropertySearchItemWrapper(definition, searchItem,  resourceObjectDefinition, modelServiceLocator));
         }
 
 

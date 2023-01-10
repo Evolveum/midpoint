@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.impl.component.search.PredefinedSearchableItems;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -355,15 +354,19 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 Class<? extends Containerable> type = getType();
 
                 if (ObjectType.class.isAssignableFrom(type)) {
-                    PrismObjectDefinition objectDef = PredefinedSearchableItems.findObjectDefinition(getType(), null, getPageBase());
-                    Map<ItemPath, ItemDefinition<?>> availableDefs = PredefinedSearchableItems.getAvailableSearchItems(type, Collections.singletonList(ItemPath.create(ObjectType.F_EXTENSION)), null, getPageBase());
-//                            SearchFactory.getAvailableDefinitions(objectDef, null, true, getPageBase());
-                    List<Property> propertiesList = new ArrayList<>();
-                    availableDefs.entrySet().forEach(searchItemDef -> {
-                        if (!isPropertyAlreadyAdded(searchItemDef.getKey())) {
-                            propertiesList.add(new Property(searchItemDef.getValue(), searchItemDef.getKey()));
-                        }
-                    });
+                    Map<ItemPath, ItemDefinition<?>> availableDefs = new SearchBoxConfigurationUtil(type)
+                            .modelServiceLocator(getPageBase())
+                            .createAvailableSearchItems();
+//                    PrismObjectDefinition objectDef = SearchBoxConfigurationUtil.findObjectDefinition(getType(), null, getPageBase());
+//                    Map<ItemPath, ItemDefinition<?>> availableDefs = SearchBoxConfigurationUtil.createAvailableSearchItems(type, Collections.singletonList(ItemPath.create(ObjectType.F_EXTENSION)), null, getPageBase());
+////                            SearchFactory.getAvailableDefinitions(objectDef, null, true, getPageBase());
+
+                    List<Property> propertiesList = availableDefs.entrySet()
+                            .stream()
+                            .filter(searchItemDef -> !isPropertyAlreadyAdded(searchItemDef.getKey()))
+                            .map(searchItemDef -> new Property(searchItemDef.getValue(), searchItemDef.getKey()))
+                            .collect(Collectors.toList());
+
                     return propertiesList;
                 }
                 if (AuditEventRecordType.class.isAssignableFrom(type)) {

@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -54,45 +55,44 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 
     @Override
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration() {
-        return null;
+        return new SearchBoxConfigurationUtil(ShadowType.class)
+                .modelServiceLocator(getPageBase())
+                .shadowSearchType(SearchBoxConfigurationUtil.ShadowSearchType.RESOURCE)
+                .resourceObjectDefinition(createAttributeSearchItemWrappers())
+                .create();
     }
 
-    private <T extends ObjectType> List<FilterableSearchItemWrapper> createAttributeSearchItemWrappers() {
+//    private ResourceObjectDefinition createAttributeSearchItemWrappers() {
+//        try {
+//            if (getKind() != null) {
+//                return getDefinitionByKind();
+//            }
+//
+//            if (getObjectClass() != null) {
+//                return getDefinitionByObjectClass();
+//
+//            }
+//        } catch (SchemaException | ConfigurationException e) {
+//            warn("Could not determine object definition");
+//        }
+//        return null;
+//
+////        if (ocDef == null) {
+////            return itemsList;
+////        }
+////
+////        for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
+//////            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class,
+//////                    new SearchItemType().path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)))), //TODO visible by default
+//////                    def, null, getPageBase()));
+////        }
+////
+////        return itemsList;
+//    }
 
-        List<FilterableSearchItemWrapper> itemsList = new ArrayList<>();
-
-        ResourceObjectDefinition ocDef = null;
-        try {
-
-            if (getKind() != null) {
-
-                ocDef = getDefinitionByKind();
-
-            } else if (getObjectClass() != null) {
-                ocDef = getDefinitionByObjectClass();
-
-            }
-        } catch (SchemaException | ConfigurationException e) {
-            warn("Could not get determine object definition");
-            return itemsList;
-        }
-
-        if (ocDef == null) {
-            return itemsList;
-        }
-
-        for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
-//            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class,
-//                    new SearchItemType().path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)))), //TODO visible by default
-//                    def, null, getPageBase()));
-        }
-
-        return itemsList;
-    }
-
-    private ItemName getAttributeName(ResourceAttributeDefinition def) {
-        return def.getItemName();
-    }
+//    private ItemName getAttributeName(ResourceAttributeDefinition def) {
+//        return def.getItemName();
+//    }
 
     @Override
     protected ModelExecuteOptions createModelOptions() {

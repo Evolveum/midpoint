@@ -1324,6 +1324,9 @@ public final class WebComponentUtil {
     }
 
     public static String getItemDefinitionDisplayNameOrName(ItemDefinition def) {
+        if (def == null) {
+            return null;
+        }
         String name = getItemDefinitionDisplayName(def);
         if (StringUtils.isNotEmpty(name)) {
             return name;
@@ -2605,6 +2608,26 @@ public final class WebComponentUtil {
 
     public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {
         return OBJECT_DETAILS_PAGE_MAP.get(type);
+    }
+
+    public static Class<? extends ObjectType> getObjectTypeForDetailsPage(PageBase pageType) {
+        var objectDetailsPages = OBJECT_DETAILS_PAGE_MAP.entrySet();
+        for (Map.Entry<Class<? extends ObjectType>, Class<? extends PageBase>> detailsPage : objectDetailsPages) {
+            if (detailsPage.getValue().equals(pageType.getPageClass())) {
+                return detailsPage.getKey();
+            }
+        }
+
+        return null;
+    }
+
+    public static String getPanelIdentifierFromParams(PageParameters pageParameters) {
+        StringValue panelIdentifierParam = pageParameters.get(AbstractPageObjectDetails.PARAM_PANEL_ID);
+        String panelIdentifier = null;
+        if (panelIdentifierParam != null && !panelIdentifierParam.isEmpty()) {
+            panelIdentifier = panelIdentifierParam.toString();
+        }
+        return panelIdentifier;
     }
 
     public static Class<? extends PageBase> getNewlyCreatedObjectPage(Class<? extends ObjectType> type) {

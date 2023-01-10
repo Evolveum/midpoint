@@ -60,17 +60,20 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private AdvancedQueryWrapper advancedQueryWrapper;
 //    private String dslQuery;
     private AxiomQueryWrapper axiomQueryWrapper;
-    private String advancedError;
     private FulltextQueryWrapper fulltextQueryWrapper;
-
-
     private SearchConfigurationWrapper searchConfigurationWrapper;
+
+    private String advancedError;
+    
+
     private PrismContainerDefinition<C> containerDefinitionOverride;
 
     private String collectionViewName;
     private String collectionRefOid;
 
     private boolean forceReload;
+
+    private List<AvailableFilterType> availableFilterTypes;
 
     public String getCollectionViewName() {
         return collectionViewName;
@@ -91,6 +94,7 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public Search(Class type, SearchBoxConfigurationType searchBoxConfigurationType) {
         this.typeClass = type;
         this.defaultSearchBoxMode = searchBoxConfigurationType.getDefaultMode();
+        this.availableFilterTypes = searchBoxConfigurationType.getAvailableFilter();
     }
 
     public void setAllowedTypeList(List<QName> allowedTypeList) {
@@ -587,5 +591,9 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
     public boolean isForceReload() {
         return forceReload;
+    }
+
+    public List<AvailableFilterType> getAvailableFilterTypes() {
+        return availableFilterTypes;
     }
 }

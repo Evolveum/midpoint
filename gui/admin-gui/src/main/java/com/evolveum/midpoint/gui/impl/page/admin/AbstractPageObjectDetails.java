@@ -401,7 +401,8 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
 
     private ContainerPanelConfigurationType findDefaultConfiguration() {
 
-        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(), getPanelIdentifierFromParams());
+        ContainerPanelConfigurationType defaultConfiguration = findDefaultConfiguration(getPanelConfigurations().getObject(),
+                WebComponentUtil.getPanelIdentifierFromParams(getPageParameters()));
 
         if (defaultConfiguration != null) {
             return defaultConfiguration;
@@ -411,15 +412,6 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
                 .filter(config -> isApplicableForOperation(config) && WebComponentUtil.getElementVisibility(config.getVisibility()))
                 .findFirst()
                 .orElseGet(() -> null);
-    }
-
-    private String getPanelIdentifierFromParams() {
-        StringValue panelIdentifierParam = getPageParameters().get(PARAM_PANEL_ID);
-        String panelIdentifier = null;
-        if (panelIdentifierParam != null && !panelIdentifierParam.isEmpty()) {
-            panelIdentifier = panelIdentifierParam.toString();
-        }
-        return panelIdentifier;
     }
 
     private ContainerPanelConfigurationType findDefaultConfiguration(List<ContainerPanelConfigurationType> configs, String panelIdentifier) {

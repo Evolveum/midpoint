@@ -11,6 +11,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -217,13 +219,20 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
                 .modelServiceLocator(getPageBase())
                 .nameSearch(getSearchByNameParameterValue())
                 .isPreview(isPreview())
-                .isViewForDashboard(isCollectionViewPanelForWidget());
+                .isViewForDashboard(isCollectionViewPanelForWidget())
+                .resourceObjectDefinition(getResourceObjectDefinition());
 
         return searchFactory.createSearch();
     }
 
+    protected ResourceObjectDefinition getResourceObjectDefinition() {
+        return null;
+    }
+
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<C> type) {
-        return SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, null, getPageBase());
+        return new SearchBoxConfigurationUtil(type)
+                .modelServiceLocator(getPageBase())
+                .create(); //getDefaultSearchBoxConfiguration(type, null, getPageBase());
     }
 
     private void initLayout() {
@@ -633,7 +642,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
     }
 
     private List<ItemPath> getSearchablePaths(Class<C> type, ModelServiceLocator modelServiceLocator) {
-        List<ItemPath> availablePaths = PredefinedSearchableItems.getAvailableSearchableItems(type, modelServiceLocator);
+        List<ItemPath> availablePaths = PredefinedSearchableItems.getSearchableItemsFor(type);//SearchBoxConfigurationUtil.getAvailableSearchableItems(type, modelServiceLocator);
         if (CollectionUtils.isEmpty(availablePaths)) {
             availablePaths = new ArrayList<>();
         }
@@ -647,7 +656,7 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
             return typePaths;
         }
 
-        List<ItemPath> superPaths = PredefinedSearchableItems.getAvailableSearchableItems(superClass, getPageBase());
+        List<ItemPath> superPaths = PredefinedSearchableItems.getSearchableItemsFor(superClass);//SearchBoxConfigurationUtil.getAvailableSearchableItems(superClass, getPageBase());
         if (CollectionUtils.isNotEmpty(superPaths)) {
             typePaths.addAll(superPaths);
         }
@@ -902,25 +911,25 @@ public abstract class ContainerableListPanel<C extends Containerable, PO extends
 
     public abstract List<C> getSelectedRealObjects();
 
-    protected final Collection<SelectorOptions<GetOperationOptions>> createOptions() {
-
-        if (getObjectCollectionView() != null && getObjectCollectionView().getOptions() != null
-                && !getObjectCollectionView().getOptions().isEmpty()) {
-            return getObjectCollectionView().getOptions();
-        }
-
-        if (options == null) {
-            if (ResourceType.class.equals(getType())) {
-                options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-            }
-        } else {
-            if (ResourceType.class.equals(getType())) {
-                GetOperationOptions root = SelectorOptions.findRootOptions(options);
-                root.setNoFetch(Boolean.TRUE);
-            }
-        }
-        return options;
-    }
+//    protected final Collection<SelectorOptions<GetOperationOptions>> createOptions() {
+//
+//        if (getObjectCollectionView() != null && getObjectCollectionView().getOptions() != null
+//                && !getObjectCollectionView().getOptions().isEmpty()) {
+//            return getObjectCollectionView().getOptions();
+//        }
+//
+//        if (options == null) {
+//            if (ResourceType.class.equals(getType())) {
+//                options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+//            }
+//        } else {
+//            if (ResourceType.class.equals(getType())) {
+//                GetOperationOptions root = SelectorOptions.findRootOptions(options);
+//                root.setNoFetch(Boolean.TRUE);
+//            }
+//        }
+//        return options;
+//    }
 
     protected List<C> getPreselectedObjectList() {
         return null;

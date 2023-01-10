@@ -109,7 +109,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
             }
         };
         provider.setCompiledObjectCollectionView(getObjectCollectionView());
-        provider.setOptions(createOptions());
+        provider.setOptions(getOptions());
         return provider;
     }
 

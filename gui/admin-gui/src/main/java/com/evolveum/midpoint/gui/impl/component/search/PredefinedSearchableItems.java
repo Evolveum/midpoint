@@ -34,10 +34,10 @@ public class PredefinedSearchableItems {
 
     private static final Map<Class<?>, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
 
+    private static final Map<SearchBoxConfigurationUtil.ShadowSearchType, List<ItemPath>> SHADOW_SEARCHABLE_ITEMS = new HashMap<>();
+
     private static final Map<QName, List<ItemPath>> SEARCHABLE_ASSIGNMENT_ITEMS = new HashMap<>();
 
-    private static final String DOT_CLASS = SearchFactory.class.getName() + ".";
-    private static final String LOAD_OBJECT_DEFINITION = DOT_CLASS + "loadObjectDefinition";
 
     static {
         SEARCHABLE_OBJECTS.put(ObjectType.class, Arrays.asList(
@@ -96,23 +96,8 @@ public class PredefinedSearchableItems {
                 ItemPath.create(OrgType.F_PARENT_ORG_REF),
                 ItemPath.create(OrgType.F_LOCALITY)
         ));
-//        SEARCHABLE_OBJECTS.put(GenericObjectType.class, Arrays.asList(
-//                ItemPath.create(GenericObjectType.F_OBJECT_TYPE)
-//        ));
         SEARCHABLE_OBJECTS.put(NodeType.class, Arrays.asList(
                 ItemPath.create(NodeType.F_NODE_IDENTIFIER)
-        ));
-//        SEARCHABLE_OBJECTS.put(ReportType.class, Arrays.asList(
-//                ItemPath.create(ReportType.F_NAME)
-//        ));
-        SEARCHABLE_OBJECTS.put(ShadowType.class, Arrays.asList(
-                ItemPath.create(ShadowType.F_OBJECT_CLASS),
-                ItemPath.create(ShadowType.F_RESOURCE_REF),
-                ItemPath.create(ShadowType.F_DEAD),
-                ItemPath.create(ShadowType.F_INTENT),
-                ItemPath.create(ShadowType.F_KIND),
-                ItemPath.create(ShadowType.F_EXISTS),
-                ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)
         ));
         SEARCHABLE_OBJECTS.put(TaskType.class, Arrays.asList(
                 ItemPath.create(TaskType.F_TASK_IDENTIFIER),
@@ -177,6 +162,36 @@ public class PredefinedSearchableItems {
     }
 
     static {
+//        SEARCHABLE_OBJECTS.put(ShadowType.class, Arrays.asList(
+//                ItemPath.create(ShadowType.F_OBJECT_CLASS),
+//                ItemPath.create(ShadowType.F_RESOURCE_REF),
+//                ItemPath.create(ShadowType.F_DEAD),
+//                ItemPath.create(ShadowType.F_INTENT),
+//                ItemPath.create(ShadowType.F_KIND),
+//                ItemPath.create(ShadowType.F_EXISTS),
+//                ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)
+//        ));
+        SHADOW_SEARCHABLE_ITEMS.put(SearchBoxConfigurationUtil.ShadowSearchType.PROJECTIONS,
+                Arrays.asList(
+                        ItemPath.create(ShadowType.F_OBJECT_CLASS),
+                        ItemPath.create(ShadowType.F_RESOURCE_REF),
+                        ItemPath.create(ShadowType.F_DEAD),
+                        ItemPath.create(ShadowType.F_INTENT),
+                        ItemPath.create(ShadowType.F_KIND),
+                        ItemPath.create(ShadowType.F_EXISTS),
+                        ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)));
+
+        SHADOW_SEARCHABLE_ITEMS.put(SearchBoxConfigurationUtil.ShadowSearchType.REPOSITORY,
+                Arrays.asList(
+                        ItemPath.create(ShadowType.F_DEAD),
+                        ItemPath.create(ShadowType.F_INTENT),
+                        ItemPath.create(ShadowType.F_KIND),
+                        ItemPath.create(ShadowType.F_EXISTS),
+                        ItemPath.create(ShadowType.F_SYNCHRONIZATION_SITUATION)));
+
+    }
+
+    static {
         SEARCHABLE_ASSIGNMENT_ITEMS.put(RoleType.COMPLEX_TYPE, Arrays.asList(
                 ItemPath.create(AssignmentType.F_TARGET_REF),
                 ItemPath.create(AssignmentType.F_TENANT_REF),
@@ -221,27 +236,6 @@ public class PredefinedSearchableItems {
         ));
     }
 
-    public static List<ItemPath> getAvailableSearchableItems(Class<?> typeClass, ModelServiceLocator modelServiceLocator) {
-        List<ItemPath> items = SEARCHABLE_OBJECTS.get(typeClass);
-        if (AuditEventRecordType.class.equals(typeClass)) {
-            SystemConfigurationType systemConfigurationType;
-            try {
-                systemConfigurationType = modelServiceLocator.getModelInteractionService()
-                        .getSystemConfiguration(new OperationResult("load_system_config"));
-            } catch (SchemaException | ObjectNotFoundException e) {
-                throw new SystemException(e);
-            }
-            if (systemConfigurationType != null && systemConfigurationType.getAudit() != null
-                    && systemConfigurationType.getAudit().getEventRecording() != null &&
-                    Boolean.TRUE.equals(systemConfigurationType.getAudit().getEventRecording().isRecordResourceOids())) {
-                ArrayList<ItemPath> auditItems = new ArrayList<>(items);
-                auditItems.add(ItemPath.create(AuditEventRecordType.F_RESOURCE_OID));
-                items = auditItems;
-            }
-        }
-        return items;
-    }
-
     public static <C extends Containerable> boolean isFixedItem(Class<C> typeClass, ItemPath path) {
 
         while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
@@ -255,135 +249,15 @@ public class PredefinedSearchableItems {
         return false;
     }
 
-    public static <C extends Containerable> Map<ItemPath, ItemDefinition<?>> getAvailableSearchItems(Class<C> type, Collection<ItemPath> extensionPaths, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
-        PrismContainerDefinition<C> def = null;
-        if (ObjectType.class.isAssignableFrom(type)) {
-            def = findObjectDefinition((Class<? extends ObjectType>) type, coordinates, modelServiceLocator);
-        } else {
-            def = PrismContext.get().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
-        }
-
-        return getSearchableDefinitionMap(def, extensionPaths, modelServiceLocator);
+    public static List<ItemPath> getSearchableItemsFor(Class<?> typeClass) {
+        return getSearchableItemsFor(typeClass, SearchBoxConfigurationUtil.ShadowSearchType.PROJECTIONS);
     }
 
-    public static <C extends Containerable> Map<ItemPath, ItemDefinition<?>> getAvailableAssignmentSearchItems(QName assignmentTargetType, PrismContainerDefinition<AssignmentType> definitionOverride, Collection<ItemPath> extensionPaths, ModelServiceLocator modelServiceLocator) {
-        Map<ItemPath, ItemDefinition<?>> searchableDefinitions = new HashMap<>();
-        collectExtensionDefinitions(definitionOverride, extensionPaths, searchableDefinitions);
-
-        collectionNonExtensionDefinitions(definitionOverride, searchableDefinitions, true, modelServiceLocator);
-
-        //TODO assignment search items according to type
-        return searchableDefinitions;
-    }
-
-    public static <T extends ObjectType> PrismObjectDefinition findObjectDefinition(
-            Class<T> type, ResourceShadowCoordinates coordinates,
-            ModelServiceLocator modelServiceLocator) {
-
-        Task task = modelServiceLocator.createSimpleTask(LOAD_OBJECT_DEFINITION);
-        OperationResult result = task.getResult();
-        try {
-            if (Modifier.isAbstract(type.getModifiers())) {
-                SchemaRegistry registry = modelServiceLocator.getPrismContext().getSchemaRegistry();
-                return registry.findObjectDefinitionByCompileTimeClass(type);
-            }
-            PrismObject empty = modelServiceLocator.getPrismContext().createObject(type);
-
-            if (ShadowType.class.equals(type)) {
-                return modelServiceLocator.getModelInteractionService().getEditShadowDefinition(
-                        coordinates, AuthorizationPhaseType.REQUEST, task, result);
-            } else {
-                return modelServiceLocator.getModelInteractionService().getEditObjectDefinition(
-                        empty, AuthorizationPhaseType.REQUEST, task, result);
-            }
-        } catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | SecurityViolationException ex) {
-            result.recordFatalError(ex.getMessage());
-            throw new SystemException(ex);
-        }
-    }
-
-    public static <C extends Containerable> Map<ItemPath, ItemDefinition<?>> getSearchableDefinitionMap(
-            PrismContainerDefinition<C> containerDef, Collection<ItemPath> extensionPaths, ModelServiceLocator modelServiceLocator) {
-        return getSearchableDefinitionMap(containerDef, modelServiceLocator, extensionPaths, true);
-    }
-
-    public static <C extends Containerable> Map<ItemPath, ItemDefinition<?>> getSearchableDefinitionMap(
-            PrismContainerDefinition<C> containerDef, ModelServiceLocator modelServiceLocator, Collection<ItemPath> extensionPaths, boolean useDefsFromSuperclass) {
-
-        Map<ItemPath, ItemDefinition<?>> searchableDefinitions = new HashMap<>();
-        collectExtensionDefinitions(containerDef, extensionPaths, searchableDefinitions);
-
-        collectionNonExtensionDefinitions(containerDef, searchableDefinitions, useDefsFromSuperclass, modelServiceLocator);
-
-        return searchableDefinitions;
-    }
-
-    @NotNull
-    private static <C extends Containerable> void collectExtensionDefinitions(PrismContainerDefinition<C> containerDef, Collection<ItemPath> extensionPaths, Map<ItemPath, ItemDefinition<?>> searchableItems) {
-        if (containerDef == null) {
-            return;
+    public static List<ItemPath> getSearchableItemsFor(Class<?> typeClass, SearchBoxConfigurationUtil.ShadowSearchType shadowSearchType) {
+        if (ShadowType.class.equals(typeClass)) {
+            return SHADOW_SEARCHABLE_ITEMS.get(shadowSearchType);
         }
 
-        for (ItemPath path : extensionPaths) {
-
-            PrismContainerDefinition ext = containerDef.findContainerDefinition(path);
-            if (ext == null || ext.getDefinitions() == null) {
-                LOGGER.trace("No extension defined, shipping collecting extension search items");
-                return;
-            }
-            Map<ItemPath, ItemDefinition<?>> extensionItems = ((List<ItemDefinition<?>>) ext.getDefinitions()).stream()
-                    .filter(def -> isNotContainerAndIsIndexed(def))
-                    .collect(Collectors.toMap(d -> ItemPath.create(path, d.getItemName()), d -> d));
-            searchableItems.putAll(extensionItems);
-        }
-    }
-
-    private static <C extends Containerable> void collectionNonExtensionDefinitions(PrismContainerDefinition<C> containerDef, Map<ItemPath, ItemDefinition<?>> searchableDefinitions, boolean useDefsFromSuperclass,  ModelServiceLocator modelServiceLocator) {
-        Class<C> typeClass = containerDef.getCompileTimeClass();
-        while (typeClass != null && !com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(typeClass)) {
-            List<ItemPath> paths = PredefinedSearchableItems.getAvailableSearchableItems(typeClass, modelServiceLocator);
-
-            if (paths == null) {
-                if (!useDefsFromSuperclass) {
-                    break;
-                }
-                typeClass = (Class<C>) typeClass.getSuperclass();
-                continue;
-            }
-
-            for (ItemPath path : paths) {
-                ItemDefinition<?> def = containerDef.findItemDefinition(path);
-                if (def != null) {
-                    searchableDefinitions.put(path, def);
-                }
-            }
-
-            if (!useDefsFromSuperclass) {
-                break;
-            }
-
-            typeClass = (Class<C>) typeClass.getSuperclass();
-        }
-    }
-
-    private static boolean isNotContainerAndIsIndexed(ItemDefinition<?> def) {
-        if (def instanceof PrismContainerDefinition) {
-            return false;
-        }
-        return isIndexed(def);
-    }
-
-    private static boolean isIndexed(ItemDefinition def) {
-        if (!(def instanceof PrismPropertyDefinition)) {
-            return true;
-        }
-
-        PrismPropertyDefinition propertyDef = (PrismPropertyDefinition) def;
-        Boolean indexed = propertyDef.isIndexed();
-        if (indexed == null) {
-            return true;
-        }
-
-        return indexed.booleanValue();
+        return PredefinedSearchableItems.SEARCHABLE_OBJECTS.get(typeClass);
     }
 }

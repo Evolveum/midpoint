@@ -16,6 +16,7 @@ import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchIte
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 public class SearchConfigurationWrapperFactory {
@@ -23,11 +24,11 @@ public class SearchConfigurationWrapperFactory {
     private static List<AbstractSearchItemWrapperFactory> factories = new ArrayList<>();
 
     static {
+        factories.add(new DeadShadowSearchItemWrapperFactory());
         factories.add(new ChoicesSearchItemWrapperFactory());
         factories.add(new AutocompleteSearchItemWrapperFactory());
         factories.add(new ReferenceSearchItemWrapperFactory());
         factories.add(new ObjectClassSearchItemWrapperFactory());
-        factories.add(new DeadShadowSearchItemWrapperFactory());
         factories.add(new ObjectClassSearchItemWrapperFactory());
         factories.add(new ItemPathSearchItemWrapperFactory());
         factories.add(new DateSearchItemWrapperFactory());
@@ -35,25 +36,15 @@ public class SearchConfigurationWrapperFactory {
     }
 
     public static  <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(PrismContainerDefinition<C> definition,
-            SearchItemType item, ResourceShadowCoordinates coordinates, ModelServiceLocator modelServiceLocator) {
+            SearchItemType item, ResourceObjectDefinition resourceObjectDefinition, ModelServiceLocator modelServiceLocator) {
 
-        PropertySearchItemWrapper<?> searchItemWrapper =
-                createPropertySearchItemWrapper(definition, item, modelServiceLocator); //
-
-        return searchItemWrapper;
-    }
-    private static <C extends Containerable> PropertySearchItemWrapper createPropertySearchItemWrapper(
-            PrismContainerDefinition<C> definition,
-            SearchItemType item, ModelServiceLocator modelServiceLocator) {
-
-        SearchItemContext searchItemContext = new SearchItemContext(definition, item, modelServiceLocator);
+        SearchItemContext searchItemContext = new SearchItemContext(definition, resourceObjectDefinition, item, modelServiceLocator);
 
 
         AbstractSearchItemWrapperFactory<?, ? extends PropertySearchItemWrapper> searchItemFactory =
                 findSearchItemWrapperFactory(searchItemContext);
         PropertySearchItemWrapper searchItem = searchItemFactory.create(searchItemContext);
         return searchItem;
-
     }
 
     private static AbstractSearchItemWrapperFactory<?, ? extends PropertySearchItemWrapper> findSearchItemWrapperFactory(SearchItemContext searchItemContext) {

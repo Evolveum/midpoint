@@ -156,8 +156,13 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private Search<? extends ObjectType> createSearch(Class<? extends ObjectType> type) {
-        SearchBoxConfigurationType defaultSearchConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(type, null, PageDebugList.this);
-        defaultSearchConfig.setObjectTypeConfiguration(SearchBoxConfigurationUtil.createObjectTypeSearchItemConfiguration(SystemConfigurationType.class, getAllowedTypes()));
+        SearchBoxConfigurationType defaultSearchConfig = new SearchBoxConfigurationUtil(type)
+                .modelServiceLocator(PageDebugList.this)
+                .supportedTypes(getAllowedTypes())
+                .shadowSearchType(SearchBoxConfigurationUtil.ShadowSearchType.PROJECTIONS)
+                .create();
+        //.getDefaultSearchBoxConfiguration(type, null, PageDebugList.this);
+//        defaultSearchConfig.setObjectTypeConfiguration(SearchBoxConfigurationUtil.createObjectTypeSearchItemConfiguration(SystemConfigurationType.class, getAllowedTypes()));
         SearchFactory<? extends ObjectType> factory = new SearchFactory<>()
                 .type(type)
                 .defaultSearchBoxConfig(defaultSearchConfig)

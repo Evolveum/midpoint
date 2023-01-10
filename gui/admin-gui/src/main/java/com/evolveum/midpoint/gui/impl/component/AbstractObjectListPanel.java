@@ -51,14 +51,18 @@ public abstract class AbstractObjectListPanel<O extends ObjectType> extends Main
 
     @Override
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<O> type) {
-        SearchBoxConfigurationType searchBoxConfigurationType = super.getDefaultSearchBoxConfiguration(type);
-        searchBoxConfigurationType.setObjectTypeConfiguration(SearchBoxConfigurationUtil.createObjectTypeSearchItemConfiguration(type, Arrays.asList(
+        return new SearchBoxConfigurationUtil(type)
+                .supportedTypes(Arrays.asList(
                         AbstractRoleType.COMPLEX_TYPE,
                         OrgType.COMPLEX_TYPE,
                         ArchetypeType.COMPLEX_TYPE,
                         RoleType.COMPLEX_TYPE,
-                        ServiceType.COMPLEX_TYPE)));
-        return searchBoxConfigurationType;
+                        ServiceType.COMPLEX_TYPE))
+                .modelServiceLocator(getPageBase())
+                .create();
+//        SearchBoxConfigurationType searchBoxConfigurationType = super.getDefaultSearchBoxConfiguration(type);
+//        searchBoxConfigurationType.setObjectTypeConfiguration(SearchBoxConfigurationUtil.createObjectTypeSearchItemConfiguration(type, );
+//        return searchBoxConfigurationType;
 
     }
 

@@ -10,6 +10,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.SearchConfigurationWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
@@ -168,7 +169,10 @@ public class ResourceContentRepositoryPanel extends ResourceContentPanel {
     //TODO //        //TODO compuled object coolection view
     @Override
     protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration() {
-        return null;
+        return new SearchBoxConfigurationUtil(ShadowType.class)
+                .modelServiceLocator(getPageBase())
+                .shadowSearchType(SearchBoxConfigurationUtil.ShadowSearchType.REPOSITORY)
+                .create();
     }
 
 //    private SearchConfigurationWrapper<ShadowType> createSearchConfigWrapper() {

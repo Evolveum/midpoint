@@ -598,9 +598,14 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
             definitionOverwrite = getPageBase().getModelInteractionService().assignmentTypeDefinitionWithConcreteTargetRefType(orig, targetType);
         }
 
-        var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(targetType), ObjectType.F_EXTENSION);
-        return SearchBoxConfigurationUtil.getDefaultAssignmentSearchBoxConfiguration(getAssignmentType(), definitionOverwrite,
-                Arrays.asList(ObjectType.F_EXTENSION, targetExtensionPath), getPageBase());
+//        var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(targetType), ObjectType.F_EXTENSION);
+        return new SearchBoxConfigurationUtil(type)
+                .assignmentTargetType(getAssignmentType())
+                .containerDefinition(definitionOverwrite)
+                .modelServiceLocator(getPageBase())
+                .create();
+//        return SearchBoxConfigurationUtil.getDefaultAssignmentSearchBoxConfiguration(getAssignmentType(), definitionOverwrite,
+//                Arrays.asList(ObjectType.F_EXTENSION, targetExtensionPath), getPageBase());
     }
 
     @Override

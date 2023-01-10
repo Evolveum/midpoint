@@ -11,8 +11,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
@@ -45,7 +48,6 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.task.work.ResourceObjectSetUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -131,6 +133,34 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
     public QName getObjectClass() {
         return objectClass;
+    }
+
+    ResourceObjectDefinition createAttributeSearchItemWrappers() {
+        try {
+            if (getKind() != null) {
+                return getDefinitionByKind();
+            }
+
+            if (getObjectClass() != null) {
+                return getDefinitionByObjectClass();
+
+            }
+        } catch (SchemaException | ConfigurationException e) {
+            warn("Could not determine object definition");
+        }
+        return null;
+
+//        if (ocDef == null) {
+//            return itemsList;
+//        }
+//
+//        for (ResourceAttributeDefinition def : ocDef.getAttributeDefinitions()) {
+////            itemsList.add(SearchFactory.createPropertySearchItemWrapper(ShadowType.class,
+////                    new SearchItemType().path(new ItemPathType(ItemPath.create(ShadowType.F_ATTRIBUTES, getAttributeName(def)))), //TODO visible by default
+////                    def, null, getPageBase()));
+//        }
+//
+//        return itemsList;
     }
 
     public ResourceObjectDefinition getDefinitionByKind() throws SchemaException, ConfigurationException {
@@ -229,8 +259,13 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
             @Override
             protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<ShadowType> type) {
-                return super.getDefaultSearchBoxConfiguration(type);
-//                return ResourceContentPanel.this.getDefaultSearchBoxConfiguration();
+//                return super.getDefaultSearchBoxConfiguration(type);
+                return ResourceContentPanel.this.getDefaultSearchBoxConfiguration();
+            }
+
+            @Override
+            protected ResourceObjectDefinition getResourceObjectDefinition() {
+                return createAttributeSearchItemWrappers();
             }
 
             @Override

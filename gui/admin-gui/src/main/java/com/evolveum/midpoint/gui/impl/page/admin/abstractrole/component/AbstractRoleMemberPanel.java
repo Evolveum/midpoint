@@ -305,7 +305,13 @@ public class AbstractRoleMemberPanel<R extends AbstractRoleType> extends Abstrac
     }
 
     protected  <AH extends AssignmentHolderType> SearchBoxConfigurationType getDefaultMemberSearchBoxConfig(Class<AH> type) {
-        return SearchBoxConfigurationUtil.getDefaultOrgMembersSearchBoxConfiguration(type, getAbstractRoleType(), getDefaultSupportedObjectTypes(true), getSupportedRelations(), getPageBase());
+        return new SearchBoxConfigurationUtil(type)
+                .abstractRoleType(getAbstractRoleType())
+                .supportedTypes(getDefaultSupportedObjectTypes(true))
+                .supportedRelations(getSupportedRelations())
+                .modelServiceLocator(getPageBase())
+                .create();
+//        return SearchBoxConfigurationUtil.getDefaultOrgMembersSearchBoxConfiguration(type, getAbstractRoleType(), getDefaultSupportedObjectTypes(true), getSupportedRelations(), getPageBase());
     }
 
     protected boolean reloadPageOnRefresh() {

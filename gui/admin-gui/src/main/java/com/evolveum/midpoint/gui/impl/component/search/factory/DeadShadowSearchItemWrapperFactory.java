@@ -23,6 +23,6 @@ public class DeadShadowSearchItemWrapperFactory extends AbstractSearchItemWrappe
 
     @Override
     public boolean match(SearchItemContext ctx) {
-        return ShadowType.F_DEAD.equivalent(ctx.getPath());
+        return ShadowType.F_DEAD.equivalent(ctx.getPath()) && ctx.isVisible();
     }
 }

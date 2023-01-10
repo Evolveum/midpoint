@@ -10,11 +10,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.component.search.SearchBoxConfigurationUtil;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 
 import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.web.component.dialog.DeleteConfirmationPanel;
@@ -247,6 +250,17 @@ public class FocusProjectionsPanel<F extends FocusType> extends AbstractObjectMa
                     protected MultivalueContainerDetailsPanel<ShadowType> getMultivalueContainerDetailsPanel(
                             ListItem<PrismContainerValueWrapper<ShadowType>> item) {
                         return FocusProjectionsPanel.this.getMultivalueContainerDetailsPanel(item);
+                    }
+
+                    @Override
+                    protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<ShadowType> type) {
+                        return new SearchBoxConfigurationUtil(type)
+                                .shadowSearchType(SearchBoxConfigurationUtil.ShadowSearchType.PROJECTIONS)
+                                .modelServiceLocator(getPageBase())
+                                .create();
+//                        return SearchBoxConfigurationUtil.getDefaultShadowSearchBoxConfiguration(type,
+//                                SearchBoxConfigurationUtil.ShadowSearchType.PROJECTIONS, null, getPageBase());
+
                     }
                 };
         add(multivalueContainerListPanel);

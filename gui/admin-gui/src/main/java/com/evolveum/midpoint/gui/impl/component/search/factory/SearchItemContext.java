@@ -14,6 +14,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,10 +32,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.gui.impl.component.search.SearchValue;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchFilterParameterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.jetbrains.annotations.Nullable;
@@ -48,20 +48,28 @@ public class SearchItemContext implements Serializable {
     private String lookupTableOid;
     @Nullable private ItemPath path;
 
-    public SearchItemContext(PrismContainerDefinition<? extends Containerable> containerDefinition, SearchItemType searchItem, ModelServiceLocator modelServiceLocator) {
+    public SearchItemContext(PrismContainerDefinition<? extends Containerable> containerDefinition,
+            ResourceObjectDefinition resourceObjectDefinition,
+            SearchItemType searchItem,
+            ModelServiceLocator modelServiceLocator) {
         this.containerDefinition = containerDefinition;
         this.item = searchItem;
         if (item.getPath() != null) {
-            this.itemDef = containerDefinition.findItemDefinition(item.getPath().getItemPath());
+            this.path = item.getPath().getItemPath();
+        }
+        if (path != null) {
+            if (path.startsWith(ItemPath.create(ShadowType.F_ATTRIBUTES))) {
+                this.itemDef = resourceObjectDefinition.findAttributeDefinition(path.lastName());
+            } else {
+                this.itemDef = containerDefinition.findItemDefinition(path);
+            }
         }
         this.availableValues = getSearchItemAvailableValues(item, itemDef, modelServiceLocator);
         this.valueTypeName = getSearchItemValueTypeName(item, itemDef);
         LookupTableType lookupTable = getSearchItemLookupTable(itemDef, modelServiceLocator);
         this.lookupTableOid = lookupTable == null ? null : lookupTable.getOid();
 
-        if (item.getPath() != null) {
-            this.path = item.getPath().getItemPath();
-        }
+
     }
 
 
