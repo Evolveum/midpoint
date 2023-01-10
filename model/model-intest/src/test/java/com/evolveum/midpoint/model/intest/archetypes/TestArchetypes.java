@@ -227,7 +227,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
 
         assertUserAfter(USER_GUYBRUSH_OID)
                 .assertNoArchetypeRef()
-                .assertRoleMemberhipRefs(1)
+                .assertRoleMembershipRefs(1)
                 .assertCostCenter("Archetype null: null isEmployee: false");
     }
 
@@ -752,7 +752,7 @@ public class TestArchetypes extends AbstractArchetypesTest {
                     .assertAssignments(1)
                 .end()
                 .assertArchetypeRef(ARCHETYPE_CONTRACTOR_OID)
-                .assertRoleMemberhipRefs(1)
+                .assertRoleMembershipRefs(1)
                 .end();
         // @formatter:on
     }

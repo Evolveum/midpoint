@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.sync;
 
 import java.util.Collection;
-import java.util.Objects;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectTypeIdentification;
@@ -193,7 +192,9 @@ public abstract class SynchronizationContext<F extends FocusType>
     }
 
     public boolean isProtected() {
-        return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject());
+        return BooleanUtils.isTrue(shadowedResourceObject.isProtectedObject())
+                || shadowedResourceObject.getPolicySituation().contains(
+                        SchemaConstants.MODEL_POLICY_SITUATION_PROTECTED_SHADOW); // TODO resolve this TEMPORARY code
     }
 
     /**
@@ -306,11 +307,11 @@ public abstract class SynchronizationContext<F extends FocusType>
         return (PrismObject<F>) preFocus.asPrismObject();
     }
 
-    public ObjectTemplateType getObjectTemplateForCorrelation() {
+    ObjectTemplateType getObjectTemplateForCorrelation() {
         return objectTemplateForCorrelation;
     }
 
-    public void setObjectTemplateForCorrelation(ObjectTemplateType objectTemplateForCorrelation) {
+    void setObjectTemplateForCorrelation(ObjectTemplateType objectTemplateForCorrelation) {
         this.objectTemplateForCorrelation = objectTemplateForCorrelation;
     }
 
@@ -488,6 +489,15 @@ public abstract class SynchronizationContext<F extends FocusType>
         } else {
             return true; // TODO
         }
+    }
+
+    /**
+     * TEMPORARY IMPLEMENTATION
+     *
+     * Later, we will have a dictionary of those situations with the information how they affect the synchronization process.
+     */
+    boolean isSynchronizationPreventedByShadowPolicySituation() {
+        return !shadowedResourceObject.getPolicySituation().isEmpty();
     }
 
     /**

@@ -139,7 +139,7 @@ public class TestActivities extends AbstractRepoCommonTest {
     public void test000Sanity() throws Exception {
         when();
 
-        PrismObject<TaskType> task = prismContext.parserFor(TASK_130_MOCK_COMPOSITE.file).parse();
+        PrismObject<TaskType> task = TASK_130_MOCK_COMPOSITE.get();
         ActivityDefinitionType activityDefinition = task.asObjectable().getActivity();
 
         then();

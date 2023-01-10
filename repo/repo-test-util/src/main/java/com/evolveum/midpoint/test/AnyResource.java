@@ -36,10 +36,10 @@ public class AnyResource extends TestResource<ResourceType> {
     /**
      * Imports the resource, tests it, and reloads it (to have e.g. the schema).
      */
-    public void initializeAndTest(ResourceTester tester, Task task, OperationResult result) throws CommonException, IOException {
+    public void initAndTest(ResourceTester tester, Task task, OperationResult result) throws CommonException, IOException {
         importObject(task, result);
         assertSuccess(
                 tester.testResource(oid, task, result));
-        reload(result);
+        reload(tester, result);
     }
 }

@@ -5,18 +5,7 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
-
-import com.evolveum.midpoint.prism.ExpressionWrapper;
-import com.evolveum.midpoint.prism.impl.query.ValueFilterImpl;
-import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -27,14 +16,19 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
+import com.evolveum.midpoint.gui.impl.component.search.panel.SearchPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ExpressionWrapper;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.impl.query.ValueFilterImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.VariableItemPathSegment;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -45,19 +39,18 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.session.ObjectListStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author lskublik
@@ -232,7 +225,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     private boolean isDisableCounting() {
         Boolean disableCounting = null;
         if (view != null) {
-            disableCounting =view.isDisableCounting();
+            disableCounting = view.isDisableCounting();
         }
         if (disableCounting == null && guiView != null) {
             disableCounting = guiView.isDisableCounting();
@@ -243,7 +236,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     private boolean isDisableSorting() {
         Boolean disableSorting = null;
         if (view != null) {
-            disableSorting =view.isDisableSorting();
+            disableSorting = view.isDisableSorting();
         }
         if (disableSorting == null && guiView != null) {
             disableSorting = guiView.isDisableSorting();
@@ -257,7 +250,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
                 if (entry.getValue() == null) {
                     variablesMap.put(entry.getKey(), null, String.class);
                 } else if (entry.getValue() instanceof Item) {
-                    variablesMap.put(entry.getKey(), (Item)entry.getValue(), ((Item)entry.getValue()).getDefinition());
+                    variablesMap.put(entry.getKey(), (Item) entry.getValue(), ((Item) entry.getValue()).getDefinition());
                 } else {
                     variablesMap.put(entry.getKey(), entry.getValue(), entry.getValue().getClass());
                 }
@@ -270,6 +263,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     protected SearchPanel initSearch(String headerId) {
         return new SearchPanel<>(headerId, getSearchModel()) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void searchPerformed(AjaxRequestTarget target) {
                 refreshTable(target);
@@ -355,8 +349,8 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
     }
 
     @Override
-    protected IColumn<SelectableBean<C>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
-        return createCustomExportableColumn(displayModel, customColumn, itemPath == null ? null : ItemPath.create(itemPath), expression);
+    protected IColumn<SelectableBean<C>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+        return createCustomExportableColumn(displayModel, customColumn, expression);
     }
 
     @Override
@@ -421,7 +415,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
             }
             Object object = getPageBase().getReportManager().evaluateScript(getReport().asPrismObject(), expression, variablesMap, "evaluate column expression", task, result);
             if (object instanceof Collection) {
-                return (Collection)object;
+                return (Collection) object;
             }
             return (Collection<T>) Collections.singletonList(object);
         } catch (Exception e) {
@@ -446,7 +440,7 @@ public class ReportObjectsListPanel<C extends Containerable> extends Containerab
         return pageStorage;
     }
 
-    public boolean hasView(){
+    public boolean hasView() {
         return view != null;
     }
 

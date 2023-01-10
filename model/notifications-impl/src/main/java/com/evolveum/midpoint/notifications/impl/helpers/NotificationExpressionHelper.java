@@ -72,10 +72,11 @@ public class NotificationExpressionHelper {
         PrismPropertyDefinition<Boolean> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN);
         Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
+        eeContext.setExpressionFactory(expressionFactory);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
         if (exprResult.size() == 0) {
@@ -110,9 +111,10 @@ public class NotificationExpressionHelper {
 
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
+        eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =
-                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
 
         List<String> retval = new ArrayList<>();
         for (PrismPropertyValue<String> item : exprResult.getZeroSet()) {
@@ -146,6 +148,7 @@ public class NotificationExpressionHelper {
         Expression<PrismPropertyValue<RecipientExpressionResultType>, PrismPropertyDefinition<RecipientExpressionResultType>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
+        context.setExpressionFactory(expressionFactory);
         context.setAdditionalConvertor(this::recipientConverter);
         PrismValueDeltaSetTriple<PrismPropertyValue<RecipientExpressionResultType>> exprResult =
                 ExpressionUtil.evaluateExpressionInContext(expression, context, task, result);
@@ -207,10 +210,11 @@ public class NotificationExpressionHelper {
                 prismContext.definitionFactory().createPropertyDefinition(resultName, NotificationMessageAttachmentType.COMPLEX_TYPE);
         Expression<PrismPropertyValue<NotificationMessageAttachmentType>, PrismPropertyDefinition<NotificationMessageAttachmentType>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
+        eeContext.setExpressionFactory(expressionFactory);
 
         PrismValueDeltaSetTriple<PrismPropertyValue<NotificationMessageAttachmentType>> exprResultTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
 
         Collection<PrismPropertyValue<NotificationMessageAttachmentType>> exprResult = exprResultTriple.getZeroSet();
         if (exprResult.size() == 0) {

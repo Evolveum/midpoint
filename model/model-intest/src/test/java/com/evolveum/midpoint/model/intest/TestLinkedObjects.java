@@ -157,20 +157,20 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
                 .display()
                 .assertLiveLinks(1)
                 .getObjectable();
-        refresh(TOKEN_BLUE, task, result);
+        refresh(TOKEN_BLUE, result);
         assertHwToken(TOKEN_BLUE, "blue", null, null);
 
         assertService(TOKEN_GREEN.oid, "after init")
                 .display()
                 .assertLiveLinks(1);
-        refresh(TOKEN_GREEN, task, result);
+        refresh(TOKEN_GREEN, result);
         assertHwToken(TOKEN_GREEN, "green", null, null);
 
         assertService(TOKEN_RED.oid, "after init")
                 .display()
                 .assertAdministrativeStatus(ActivationStatusType.DISABLED)
                 .assertLiveLinks(1);
-        refresh(TOKEN_RED, task, result);
+        refresh(TOKEN_RED, result);
         assertHwToken(TOKEN_RED, "red", null, null);
     }
 
@@ -230,7 +230,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        refresh(USER_NIELS, task, result);
+        refresh(USER_NIELS, result);
         unassignIfSingle(USER_NIELS, TOKEN_BLUE, SchemaConstants.ORG_DEFAULT, null, task, result);
 
         assertHwToken(TOKEN_BLUE, "blue", null, null);
@@ -294,7 +294,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        refresh(USER_PAUL, task, result);
+        refresh(USER_PAUL, result);
         unassignIfSingle(USER_PAUL, TOKEN_RED, SchemaConstants.ORG_DEFAULT, null, task, result);
 
         assertHwToken(TOKEN_RED, "red", null, null);
@@ -404,7 +404,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        refresh(USER_CAVIN, task, result);
+        refresh(USER_CAVIN, result);
 
         when();
         unassignIfSingle(USER_CAVIN, SERVICE_MEDALLION, SchemaConstants.ORG_DEFAULT, null, task, result);
@@ -568,7 +568,7 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        refresh(USER_CUBBY, task, result);
+        refresh(USER_CUBBY, result);
 
         when();
         unassignIfSingle(USER_CUBBY, SERVICE_SWORD, SchemaConstants.ORG_DEFAULT, null, task, result);
@@ -636,8 +636,8 @@ public class TestLinkedObjects extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        addObject(USER_CUBBY.file, task, result, cubby ->
-                ((UserType) cubby.asObjectable())
+        addObject(USER_CUBBY, task, result, cubby ->
+                cubby.asObjectable()
                         .beginAssignment().targetRef(SERVICE_SWORD.oid, ServiceType.COMPLEX_TYPE)
         );
 

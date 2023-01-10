@@ -154,7 +154,12 @@ public class MemberTilePanel<T extends Serializable> extends FocusTilePanel<T, T
         add(tagPanel);
 
         Component unassign = createUnassignButton(ID_UNASSIGN);
+        unassign.add(AttributeAppender.append("class", getCssForUnassignButton()));
         add(unassign);
+    }
+
+    protected String getCssForUnassignButton() {
+        return "btn btn-link mt-3 ml-auto";
     }
 
     protected List<InlineMenuItem> createMenuItems() {

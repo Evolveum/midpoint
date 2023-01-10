@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.traces.operations;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.traces.OpNode;
 import com.evolveum.midpoint.schema.traces.OpResultInfo;
 import com.evolveum.midpoint.schema.traces.TraceInfo;
@@ -28,7 +29,7 @@ public class PolicyRuleEvaluationOpNode extends OpNode {
     }
 
     public String getRuleInfo() {
-        String rule = getParameter("policyRule");
+        String rule = getParameter(OperationResult.PARAM_POLICY_RULE);
         String triggeredSuffix = isTriggered() ? getEnabledActionsCount() + " enabled action(s)" : "";
 
         return rule + " ⇒ " + triggeredSuffix;

@@ -98,7 +98,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_110));
-        grouperDummyResource.addGroup(createGroup(ALUMNI_ID, ALUMNI_NAME));
+        RESOURCE_GROUPER.getDummyResource().addGroup(createGroup(ALUMNI_ID, ALUMNI_NAME));
 
         // WHEN
 
@@ -149,7 +149,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_115));
-        grouperDummyResource.addGroup(createGroup(STAFF_ID, STAFF_NAME));
+        RESOURCE_GROUPER.getDummyResource().addGroup(createGroup(STAFF_ID, STAFF_NAME));
         // WHEN
 
         rerunTask(TASK_ASYNC_UPDATE.oid, result);
@@ -199,7 +199,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_200));
-        grouperDummyResource.getGroupByName(ALUMNI_NAME).addMember(BANDERSON_USERNAME);
+        RESOURCE_GROUPER.getDummyResource().getGroupByName(ALUMNI_NAME).addMember(BANDERSON_USERNAME);
 
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
 
@@ -255,7 +255,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .end()
                 .links()
                     .assertLiveLinks(1)
-                    .projectionOnResource(resourceLdap.getOid());
+                    .projectionOnResource(RESOURCE_LDAP.oid);
 
         openDJController.assertUniqueMember(DN_ALUMNI, DN_BANDERSON);
     }
@@ -273,7 +273,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_210));
-        grouperDummyResource.getGroupByName(STAFF_NAME).addMember(BANDERSON_USERNAME);
+        RESOURCE_GROUPER.getDummyResource().getGroupByName(STAFF_NAME).addMember(BANDERSON_USERNAME);
 
         // WHEN
 
@@ -316,7 +316,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .end()
                 .links()
                     .assertLiveLinks(1)
-                    .projectionOnResource(resourceLdap.getOid());
+                    .projectionOnResource(RESOURCE_LDAP.oid);
 
         openDJController.assertUniqueMember(DN_ALUMNI, DN_BANDERSON);
         openDJController.assertUniqueMember(DN_STAFF, DN_BANDERSON);
@@ -336,7 +336,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_220));
-        grouperDummyResource.getGroupByName(ALUMNI_NAME).addMember(JLEWIS685_USERNAME);
+        RESOURCE_GROUPER.getDummyResource().getGroupByName(ALUMNI_NAME).addMember(JLEWIS685_USERNAME);
 
         // WHEN
 
@@ -366,7 +366,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_221));
-        grouperDummyResource.getGroupByName(STAFF_NAME).addMember(JLEWIS685_USERNAME);
+        RESOURCE_GROUPER.getDummyResource().getGroupByName(STAFF_NAME).addMember(JLEWIS685_USERNAME);
 
         // WHEN
 
@@ -409,7 +409,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .end()
                 .links()
                     .assertLiveLinks(1)
-                    .projectionOnResource(resourceLdap.getOid());
+                    .projectionOnResource(RESOURCE_LDAP.oid);
 
         openDJController.assertUniqueMember(DN_ALUMNI, DN_JLEWIS685);
         openDJController.assertUniqueMember(DN_STAFF, DN_JLEWIS685);
@@ -428,7 +428,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_230));
-        grouperDummyResource.getGroupByName(ALUMNI_NAME).addMember(NOBODY_USERNAME);
+        RESOURCE_GROUPER.getDummyResource().getGroupByName(ALUMNI_NAME).addMember(NOBODY_USERNAME);
 
         // WHEN
 
@@ -454,7 +454,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_250));
-        grouperDummyResource.getGroupByName(ALUMNI_NAME).removeMember(BANDERSON_USERNAME);
+        RESOURCE_GROUPER.getDummyResource().getGroupByName(ALUMNI_NAME).removeMember(BANDERSON_USERNAME);
 
         // WHEN
 
@@ -495,7 +495,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .end()
                 .links()
                     .assertLiveLinks(1)
-                    .projectionOnResource(resourceLdap.getOid());
+                    .projectionOnResource(RESOURCE_LDAP.oid);
 
         openDJController.assertUniqueMember(DN_STAFF, DN_BANDERSON);
     }
@@ -513,7 +513,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_305));
-        grouperDummyResource.renameGroup(STAFF_NAME, STAFF_NAME, STAFF2_NAME);
+        RESOURCE_GROUPER.getDummyResource().renameGroup(STAFF_NAME, STAFF_NAME, STAFF2_NAME);
 
         executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_BANDERSON.oid), null, task, result);
         executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_JLEWIS685.oid), null, task, result);
@@ -570,7 +570,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
 
         MockAsyncUpdateSource.INSTANCE.reset();
         MockAsyncUpdateSource.INSTANCE.prepareMessage(getAmqp091Message(CHANGE_310));
-        grouperDummyResource.deleteGroupByName(STAFF2_NAME);
+        RESOURCE_GROUPER.getDummyResource().deleteGroupByName(STAFF2_NAME);
 
         executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_BANDERSON.oid), null, task, result);
         executeChanges(deltaFor(UserType.class).item(UserType.F_TRIGGER).replace().asObjectDelta(USER_JLEWIS685.oid), null, task, result);
@@ -634,7 +634,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .end()
                 .links()
                     .assertLiveLinks(1)
-                    .projectionOnResource(resourceLdap.getOid());
+                    .projectionOnResource(RESOURCE_LDAP.oid);
 
         assertUserAfterByUsername(JLEWIS685_USERNAME)
                 .assignments()
@@ -644,7 +644,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
                 .end()
                 .links()
                     .assertLiveLinks(1)
-                    .projectionOnResource(resourceLdap.getOid());
+                    .projectionOnResource(RESOURCE_LDAP.oid);
 
         openDJController.assertNoEntry(DN_STAFF);
         openDJController.assertNoEntry(DN_STAFF2);
@@ -667,7 +667,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
             ConfigurationException, ExpressionEvaluationException {
 
         PrismObject<ShadowType> shadowInRepo = findShadowByName(
-                ShadowKindType.ENTITLEMENT, "group", groupName, resourceGrouper, result);
+                ShadowKindType.ENTITLEMENT, "group", groupName, RESOURCE_GROUPER.get(), result);
         assertNotNull("No shadow with name '"+groupName+"'", shadowInRepo);
 
         Collection<SelectorOptions<GetOperationOptions>> options =

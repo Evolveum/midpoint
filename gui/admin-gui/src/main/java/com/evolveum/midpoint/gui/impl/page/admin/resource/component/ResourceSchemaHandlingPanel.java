@@ -138,7 +138,7 @@ public class ResourceSchemaHandlingPanel extends AbstractObjectMainPanel<Resourc
             }
 
             @Override
-            protected IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+            protected IColumn<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
                 return new PrismPropertyWrapperColumn<>(getContainerModel(), ResourceObjectTypeDefinitionType.F_DISPLAY_NAME, AbstractItemWrapperColumn.ColumnType.LINK, getPageBase()) {
 
                     @Override

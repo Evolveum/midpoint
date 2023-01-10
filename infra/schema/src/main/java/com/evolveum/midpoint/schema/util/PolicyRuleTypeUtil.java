@@ -54,6 +54,7 @@ public class PolicyRuleTypeUtil {
     private static final String SYMBOL_OBJECT_TIME_VALIDITY = "otime";
     private static final String SYMBOL_ASSIGNMENT_TIME_VALIDITY = "atime";
     private static final String SYMBOL_SITUATION = "sit";
+    private static final String SYMBOL_CUSTOM = "custom";
     private static final String SYMBOL_TRANSITION = "trans";
     private static final String SYMBOL_ALWAYS_TRUE = "true";
     private static final String SYMBOL_ORPHANED = "orphaned";
@@ -71,6 +72,7 @@ public class PolicyRuleTypeUtil {
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_OBJECT_TIME_VALIDITY.getLocalPart(), SYMBOL_OBJECT_TIME_VALIDITY);
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ASSIGNMENT_TIME_VALIDITY.getLocalPart(), SYMBOL_ASSIGNMENT_TIME_VALIDITY);
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_SITUATION.getLocalPart(), SYMBOL_SITUATION);
+        CONSTRAINT_NAMES.put(PolicyConstraintsType.F_CUSTOM.getLocalPart(), SYMBOL_CUSTOM);
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TRANSITION.getLocalPart(), SYMBOL_TRANSITION);
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ALWAYS_TRUE.getLocalPart(), SYMBOL_ALWAYS_TRUE);
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ORPHANED.getLocalPart(), SYMBOL_ORPHANED);
@@ -96,7 +98,7 @@ public class PolicyRuleTypeUtil {
 
     public static String toShortString(PolicyConstraintsType constraints, char join) {
         if (constraints == null) {
-            return "null";
+            return "";
         }
         StringBuilder sb = new StringBuilder();
         // we ignore refs to be able to dump even unresolved policy rules
@@ -160,7 +162,7 @@ public class PolicyRuleTypeUtil {
      */
     public static String toShortString(PolicyActionsType actions, List<PolicyActionType> enabledActions) {
         if (actions == null) {
-            return "null";
+            return "";
         }
         StringBuilder sb = new StringBuilder();
         if (actions.getEnforcement() != null) {
@@ -335,7 +337,13 @@ public class PolicyRuleTypeUtil {
      * Returns false if the process was stopped by the consumer.
      * All references should be resolved.
      */
-    public static boolean accept(PolicyConstraintsType pc, ConstraintVisitor visitor, boolean deep, boolean alsoRoots, QName rootElementName, boolean ignoreRefs) {
+    public static boolean accept(
+            PolicyConstraintsType pc,
+            ConstraintVisitor visitor,
+            boolean deep,
+            boolean alsoRoots,
+            QName rootElementName,
+            boolean ignoreRefs) {
         if (pc == null) {
             return true;
         }
@@ -360,6 +368,7 @@ public class PolicyRuleTypeUtil {
                 && visit(pc.getAssignmentState(), F_ASSIGNMENT_STATE, visitor)
                 && visit(pc.getObjectState(), F_OBJECT_STATE, visitor)
                 && visit(pc.getSituation(), F_SITUATION, visitor)
+                && visit(pc.getCustom(), F_CUSTOM, visitor)
                 && visit(pc.getTransition(), F_TRANSITION, visitor)
                 && visit(pc.getAlwaysTrue(), F_ALWAYS_TRUE, visitor)
                 && visit(pc.getOrphaned(), F_ORPHANED, visitor)
@@ -392,7 +401,12 @@ public class PolicyRuleTypeUtil {
         return true;
     }
 
-    private static boolean accept(List<PolicyConstraintsType> constraintsList, ConstraintVisitor matcher, boolean alsoRoots, QName rootElementName, boolean ignoreRefs) {
+    private static boolean accept(
+            List<PolicyConstraintsType> constraintsList,
+            ConstraintVisitor matcher,
+            boolean alsoRoots,
+            QName rootElementName,
+            boolean ignoreRefs) {
         for (PolicyConstraintsType constraints : constraintsList) {
             if (!accept(constraints, matcher, true, alsoRoots, rootElementName, ignoreRefs)) {
                 return false;
@@ -401,9 +415,16 @@ public class PolicyRuleTypeUtil {
         return true;
     }
 
-    public static List<JAXBElement<AbstractPolicyConstraintType>> toConstraintsList(PolicyConstraintsType pc, boolean deep, boolean ignoreRefs) {
+    public static List<JAXBElement<AbstractPolicyConstraintType>> toConstraintsList(
+            PolicyConstraintsType pc, boolean deep, boolean ignoreRefs) {
         List<JAXBElement<AbstractPolicyConstraintType>> rv = new ArrayList<>();
-        accept(pc, (name, c) -> { rv.add(toConstraintJaxbElement(name, c)); return true; }, deep, false, null, ignoreRefs);
+        accept(
+                pc,
+                (name, c) -> {
+                    rv.add(toConstraintJaxbElement(name, c));
+                    return true;
+                },
+                deep, false, null, ignoreRefs);
         return rv;
     }
 
@@ -418,8 +439,9 @@ public class PolicyRuleTypeUtil {
      * (even if technically they could be applied to assignments as well).
      */
     public static boolean isApplicableToAssignment(PolicyRuleType rule) {
-        if (rule.getEvaluationTarget() != null) {
-            return rule.getEvaluationTarget() == PolicyRuleEvaluationTargetType.ASSIGNMENT;
+        PolicyRuleEvaluationTargetType evaluationTarget = rule.getEvaluationTarget();
+        if (evaluationTarget != null) {
+            return evaluationTarget == PolicyRuleEvaluationTargetType.ASSIGNMENT;
         } else {
             return hasAssignmentOnlyConstraint(rule) || !hasObjectRelatedConstraint(rule);
         }
@@ -444,7 +466,10 @@ public class PolicyRuleTypeUtil {
     // do we have a constraint that indicates a use against object?
     private static boolean hasObjectRelatedConstraint(PolicyRuleType rule) {
         // 'accept' continues until isNotObjectRelated is false; and returns false then --> so we return true in that case (i.e. we have found object-related constraint)
-        return !accept(rule.getPolicyConstraints(), PolicyRuleTypeUtil::isNotObjectRelated, true, true, F_AND, false);
+        return !accept(
+                rule.getPolicyConstraints(),
+                PolicyRuleTypeUtil::isNotObjectRelated,
+                true, true, F_AND, false);
     }
 
     private static final Set<Class<? extends AbstractPolicyConstraintType>> ASSIGNMENTS_ONLY_CONSTRAINTS_CLASSES =
@@ -487,14 +512,11 @@ public class PolicyRuleTypeUtil {
         // (in this class)
         @NotNull private final List<Supplier<List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>>>> constraintsSuppliers;
         @NotNull private final Map<String, JAXBElement<? extends AbstractPolicyConstraintType>> constraintsMap = new HashMap<>();
-        @NotNull private final PrismContext prismContext;
         private int usedSuppliers = 0;
 
         @SafeVarargs
         private LazyMapConstraintsResolver(
-                @NotNull PrismContext prismContext,
                 @NotNull Supplier<List<Map.Entry<String, JAXBElement<? extends AbstractPolicyConstraintType>>>>... constraintsSuppliers) {
-            this.prismContext = prismContext;
             this.constraintsSuppliers = Arrays.asList(constraintsSuppliers);
         }
 
@@ -524,8 +546,8 @@ public class PolicyRuleTypeUtil {
                                 || !existingElement.getValue().equals(newElement.getValue())) {
                             LOGGER.error("Conflicting definitions of '{}' found:\n>>> new:\n{}\n>>> existing:\n{}",
                                     newEntry.getKey(),
-                                    prismContext.xmlSerializer().serialize(newElement),
-                                    prismContext.xmlSerializer().serialize(existingElement));
+                                    PrismContext.get().xmlSerializer().serialize(newElement),
+                                    PrismContext.get().xmlSerializer().serialize(existingElement));
                             throw new SchemaException("Conflicting definitions of '" + newEntry.getKey() + "' found.");
                         }
                     } else {
@@ -536,7 +558,7 @@ public class PolicyRuleTypeUtil {
         }
     }
 
-    private static void resolveReferences(PolicyConstraintsType pc, ConstraintResolver resolver) {
+    private static void resolveConstraintReferences(PolicyConstraintsType pc, ConstraintResolver resolver) {
         // This works even on chained rules because on any PolicyConstraintsType the visitor is called on a root
         // (thus resolving the references) before it is called on children. And those children are already resolved;
         // so, any references contained within them get also resolved.
@@ -595,12 +617,11 @@ public class PolicyRuleTypeUtil {
         }
     }
 
-    public static void resolveReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules,
-            PrismContext prismContext) {
-        LazyMapConstraintsResolver resolver = new LazyMapConstraintsResolver(prismContext, createConstraintsSupplier(rules),
-                createConstraintsSupplier(otherRules));
+    public static void resolveConstraintReferences(List<PolicyRuleType> rules, Collection<? extends PolicyRuleType> otherRules) {
+        LazyMapConstraintsResolver resolver =
+                new LazyMapConstraintsResolver(createConstraintsSupplier(rules), createConstraintsSupplier(otherRules));
         for (PolicyRuleType rule : rules) {
-            resolveReferences(rule.getPolicyConstraints(), resolver);
+            resolveConstraintReferences(rule.getPolicyConstraints(), resolver);
         }
     }
 

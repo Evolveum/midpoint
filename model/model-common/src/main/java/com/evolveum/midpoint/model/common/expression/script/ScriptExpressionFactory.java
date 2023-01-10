@@ -254,8 +254,8 @@ public class ScriptExpressionFactory implements Cache {
                 .createMinorSubresult(ScriptExpressionFactory.class.getName() + ".searchCustomFunctions");
         try {
             LOGGER.trace("Searching for function libraries");
-            repositoryService.searchObjectsIterative(FunctionLibraryType.class, null, functionLibraryHandler,
-                    createReadOnlyCollection(), true, subResult);
+            repositoryService.searchObjectsIterative(
+                    FunctionLibraryType.class, null, functionLibraryHandler, createReadOnlyCollection(), true, subResult);
         } catch (SchemaException | RuntimeException e) {
             subResult.recordFatalError("Failed to initialize custom functions", e);
             throw new ExpressionSyntaxException(

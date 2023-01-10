@@ -65,7 +65,7 @@ public class SequentialValueExpressionEvaluator<V extends PrismValue, D extends 
         Object value = ExpressionUtil.convertToOutputValue(counterValue, outputDefinition, protector);
         Item<V, D> output = addValueToOutputProperty(value);
 
-        return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        return ItemDeltaUtil.toDeltaSetTriple(output, null);
     }
 
     /**

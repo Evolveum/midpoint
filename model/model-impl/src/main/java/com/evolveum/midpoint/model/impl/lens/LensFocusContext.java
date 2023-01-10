@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -296,6 +294,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         sb.append(getDebugDumpTitle());
         if (!isFresh()) {
             sb.append(", NOT FRESH");
+        } else {
+            sb.append(", fresh");
         }
         if (deleted) {
             sb.append(", DELETED");
@@ -475,5 +475,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     public void deleteEmptyPrimaryDelta() {
         state.deleteEmptyPrimaryDelta();
+    }
+
+    @Override
+    @NotNull
+    Collection<String> getEventTags() {
+        return policyRulesContext.getEventTags();
     }
 }

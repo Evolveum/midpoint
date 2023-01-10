@@ -1,46 +1,17 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType.*;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
-import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
-import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
-import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
-import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
-import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
-import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
-import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.PathKeyedMap;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -49,38 +20,60 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ProjectionContextKey;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.ConstructionTargetKey;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
+import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation.ItemDefinitionProvider;
+import com.evolveum.midpoint.model.impl.lens.projector.loader.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.FixedTargetSpecification;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.TargetObjectSpecification;
+import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
+import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.SystemObjectCache;
+import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ConstructionTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Assignment processor is recomputing user assignments. It recomputes all the assignments whether they are direct
@@ -160,7 +153,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             result.setStatus(finalStatus);
             result.setMessage(message);
             result.recordEnd();
-            result.cleanupResult();
+            result.cleanup();
         } catch (Throwable t) { // shouldn't occur -- just in case
             result.recordFatalError(t);
             throw t;
@@ -200,7 +193,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
         }
         policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
-        context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
+        context.setEvaluatedAssignmentTriple((DeltaSetTriple) evaluatedAssignmentTriple);
 
         LOGGER.trace("evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDumpLazily());
 
@@ -214,7 +207,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
             assignmentTripleEvaluator.reset(true);
             evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
-            context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
+            context.setEvaluatedAssignmentTriple((DeltaSetTriple) evaluatedAssignmentTriple);
 
             // TODO implement isMemberOf invocation result change check here! MID-5784
             //  Actually, we should factor out the relevant code to avoid code duplication.
@@ -288,7 +281,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     private <AH extends AssignmentHolderType> void evaluateFocusMappings(LensContext<AH> context, XMLGregorianCalendar now,
             LensFocusContext<AH> focusContext,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task,
-            OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, PolicyViolationException,
+            OperationResult parentResult) throws SchemaException, ExpressionEvaluationException,
             ConfigurationException, SecurityViolationException, ObjectNotFoundException, CommunicationException {
 
         OperationResult result = parentResult.subresult(OP_EVALUATE_FOCUS_MAPPINGS)
@@ -570,7 +563,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                                         getConstructions(constructionMapTriple.getMinusMap().get(key), false));
                         LensProjectionContext projectionContext = context.findFirstProjectionContext(key, true);
                         if (projectionContext != null) {
-                            // This can be null in a exotic case if we delete already deleted account
+                            // This can be null in an exotic case if we delete already deleted account
                             LOGGER.trace("Construction delta set triple for {}:\n{}", key,
                                     evaluatedConstructionDeltaSetTriple.debugDumpLazily(1));
                             projectionContext.setEvaluatedAssignedConstructionDeltaSetTriple(evaluatedConstructionDeltaSetTriple);
@@ -673,7 +666,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
      * Simply mark all projections as illegal - except those that are being unlinked
      */
     private <F extends AssignmentHolderType> void markProjectionsAsIllegal(LensContext<F> context) {
-        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+        for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
             if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK) {
                 // We do not want to affect unlinked projections
                 continue;
@@ -705,7 +698,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
      */
     private <F extends AssignmentHolderType> void finishLegalDecisions(LensContext<F> context)
             throws PolicyViolationException, SchemaException, ConfigurationException {
-        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+        for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
 
             String desc = projectionContext.toHumanReadableString();
 
@@ -716,7 +709,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 continue;
             }
 
-            if (projectionContext.isLegalize()){
+            if (projectionContext.isLegalize()) {
                 LOGGER.trace("Projection {} legal: legalized", desc);
                 createAssignmentDelta(context, projectionContext);
                 projectionContext.setAssigned(true);
@@ -736,8 +729,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     // If it were then the code could not get here.
                     projectionContext.setLegalOldIfUnknown(false);
                     if (projectionContext.isAdd()) {
-                        throw new PolicyViolationException("Attempt to add projection "+projectionContext.toHumanReadableString()
-                                +" while the synchronization enforcement policy is FULL and the projection is not assigned");
+                        throw new PolicyViolationException("Attempt to add projection " + projectionContext.toHumanReadableString()
+                                + " while the synchronization enforcement policy is FULL and the projection is not assigned");
                     }
 
                 } else if (enforcementType == NONE && !projectionContext.isGone()) {
@@ -785,7 +778,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     private <F extends ObjectType> void propagateLegalDecisionToHigherOrders(
             LensContext<F> context, LensProjectionContext refProjCtx) {
         ProjectionContextKey key = refProjCtx.getKey();
-        for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
+        for (LensProjectionContext aProjCtx : context.getProjectionContexts()) {
             ProjectionContextKey aKey = aProjCtx.getKey();
             if (key.equivalent(aKey) && key.getOrder() < aKey.getOrder()) {
                 aProjCtx.setLegal(refProjCtx.isLegal());
@@ -851,30 +844,30 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 try {
 
                     parentOrgRefDelta.validateValues(
-                        (plusMinusZero,val) -> {
-                            switch (plusMinusZero) {
-                                case PLUS:
-                                case ZERO:
-                                    if (!PrismValueCollectionsUtil.containsRealValue(shouldBeParentOrgRefs, val)) {
-                                        throw new TunnelException(
-                                                new PolicyViolationException(
-                                                        "Attempt to add parentOrgRef " + val.getOid()
-                                                                + ", but it is not allowed by assignments"));
-                                    }
-                                    break;
-                                case MINUS:
-                                    if (PrismValueCollectionsUtil.containsRealValue(shouldBeParentOrgRefs, val)) {
-                                        throw new TunnelException(
-                                                new PolicyViolationException(
-                                                        "Attempt to delete parentOrgRef " + val.getOid()
-                                                                + ", but it is mandated by assignments"));
-                                    }
-                                    break;
-                            }
-                        }, parentOrgRefCurrentValues);
+                            (plusMinusZero, val) -> {
+                                switch (plusMinusZero) {
+                                    case PLUS:
+                                    case ZERO:
+                                        if (!PrismValueCollectionsUtil.containsRealValue(shouldBeParentOrgRefs, val)) {
+                                            throw new TunnelException(
+                                                    new PolicyViolationException(
+                                                            "Attempt to add parentOrgRef " + val.getOid()
+                                                                    + ", but it is not allowed by assignments"));
+                                        }
+                                        break;
+                                    case MINUS:
+                                        if (PrismValueCollectionsUtil.containsRealValue(shouldBeParentOrgRefs, val)) {
+                                            throw new TunnelException(
+                                                    new PolicyViolationException(
+                                                            "Attempt to delete parentOrgRef " + val.getOid()
+                                                                    + ", but it is mandated by assignments"));
+                                        }
+                                        break;
+                                }
+                            }, parentOrgRefCurrentValues);
 
                 } catch (TunnelException e) {
-                    throw (PolicyViolationException)e.getCause();
+                    throw (PolicyViolationException) e.getCause();
                 }
             }
         }
@@ -890,7 +883,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             return;
         }
 
-        if (objectNew.canRepresent(OrgType.class) && BooleanUtils.isTrue(((OrgType)objectNew.asObjectable()).isTenant())) {
+        if (objectNew.canRepresent(OrgType.class) && BooleanUtils.isTrue(((OrgType) objectNew.asObjectable()).isTenant())) {
             // Special "zero" case. Tenant org has itself as a tenant.
             tenantOid = objectNew.getOid();
 
@@ -938,7 +931,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 LOGGER.trace("Clearing tenantRef");
                 ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference()
                         .createModificationReplace(
-                                ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue)null);
+                                ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue) null);
                 focusContext.swallowToSecondaryDelta(tenantRefDelta);
             } else {
                 if (!tenantOid.equals(currentTenantRef.getOid())) {
@@ -956,7 +949,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     <F extends ObjectType> void checkForAssignmentConflicts(
             LensContext<F> context, XMLGregorianCalendar ignored1, Task ignored2, OperationResult ignored3)
             throws PolicyViolationException, SchemaException, ConfigurationException {
-        for(LensProjectionContext projectionContext: context.getProjectionContexts()) {
+        for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
             if (NONE == projectionContext.getAssignmentPolicyEnforcementMode()) {
                 continue;
             }
@@ -987,7 +980,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             LensContext<F> context,
             XMLGregorianCalendar ignored1,
             Task ignored2,
-            OperationResult ignored3)
+            OperationResult operationResult)
             throws SchemaException {
         assert context.hasFocusOfType(AssignmentHolderType.class);
         LensFocusContext<F> focusContext = context.getFocusContext();
@@ -1004,7 +997,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) { // MID-6403
             if (evalAssignment.isValid()) {
                 LOGGER.trace("Adding references from: {}", evalAssignment);
-                addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
+                addRoleReferences(shouldBeRoleRefs, evalAssignment, operationResult);
                 addReferences(shouldBeDelegatedRefs, evalAssignment.getDelegationRefVals());
                 addReferences(shouldBeArchetypeRefs, evalAssignment.getArchetypeRefVals());
             } else {
@@ -1022,6 +1015,60 @@ public class AssignmentProcessor implements ProjectorProcessor {
         setReferences(focusContext, AssignmentHolderType.F_ARCHETYPE_REF, shouldBeArchetypeRefs);
 
         context.recompute(); // really needed?
+    }
+
+    private void addRoleReferences(Collection<PrismReferenceValue> shouldBeRoleRefs,
+            EvaluatedAssignmentImpl<?> evalAssignment, OperationResult operationResult) throws SchemaException {
+        addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
+
+        // If sysconfig enables accesses value metadata, we will add them.
+        SystemConfigurationType sysconfig = systemObjectCache.getSystemConfigurationBean(operationResult);
+        if (sysconfig == null) {
+            return; // unlikely
+        }
+        RoleManagementConfigurationType roleManagement = sysconfig.getRoleManagement();
+        if (roleManagement == null || !Boolean.TRUE.equals(roleManagement.isAccessesMetadataEnabled())) {
+            return; // not enabled
+        }
+
+        for (PrismReferenceValue roleRef : shouldBeRoleRefs) {
+            EvaluatedAssignmentTargetImpl evaluatedAssignmentTarget = findEvaluatedAssignmentTarget(roleRef, evalAssignment);
+            if (evaluatedAssignmentTarget == null) {
+                LOGGER.warn("EvaluatedAssignmentTarget not found for role ref {}", roleRef);
+                continue;
+            }
+
+            AssignmentPathType assignmentPath = evaluatedAssignmentTarget.getAssignmentPath().toAssignmentPathType(false);
+            // There can be some value metadata already created by previous assignment evaluation
+            PrismContainer<ValueMetadataType> valueMetadataContainer = roleRef.getValueMetadataAsContainer();
+            if (valueMetadataContainer.hasAnyValue()) {
+                ValueMetadataType valueMetadata = valueMetadataContainer.getAnyValue().asContainerable();
+                ProvenanceMetadataType provenance = valueMetadata.getProvenance();
+                if (provenance == null) {
+                    // unlikely, but let's handle this case as well
+                    valueMetadata.provenance(new ProvenanceMetadataType()
+                            .assignmentPath(assignmentPath));
+                } else {
+                    provenance.assignmentPath(assignmentPath);
+                }
+            } else {
+                roleRef.setValueMetadata(new ValueMetadataType()
+                        .provenance(new ProvenanceMetadataType()
+                                .assignmentPath(assignmentPath)));
+            }
+        }
+    }
+
+    private EvaluatedAssignmentTargetImpl findEvaluatedAssignmentTarget(
+            PrismReferenceValue roleRef, EvaluatedAssignmentImpl<?> evalAssignment) {
+        for (EvaluatedAssignmentTargetImpl eat : evalAssignment.getRoles().getNonNegativeValues()) {
+            ObjectReferenceType evaluatedAssignmentTargetRef = eat.getAssignment().getTargetRef();
+            if (MiscUtil.equals(evaluatedAssignmentTargetRef.getOid(), roleRef.getOid())
+                    && prismContext.relationsEquivalent(evaluatedAssignmentTargetRef.getRelation(), roleRef.getRelation())) {
+                return eat;
+            }
+        }
+        return null;
     }
 
     private <F extends ObjectType> void setReferences(LensFocusContext<F> focusContext, QName name,
@@ -1043,7 +1090,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 // we don't use QNameUtil.match here, because we want to ensure we store qualified values there
                 // (and newValues are all qualified)
                 Comparator<PrismReferenceValue> comparator =
-                        (a, b) -> 2*a.getOid().compareTo(b.getOid())
+                        (a, b) -> 2 * a.getOid().compareTo(b.getOid())
                                 + (Objects.equals(a.getRelation(), b.getRelation()) ? 0 : 1);
                 if (MiscUtil.unorderedCollectionCompare(targetState, existingState.getValues(), comparator)) {
                     return;
@@ -1058,9 +1105,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     private void addReferences(Collection<PrismReferenceValue> extractedReferences, Collection<PrismReferenceValue> references) {
-        for (PrismReferenceValue reference: references) {
+        for (PrismReferenceValue reference : references) {
             boolean found = false;
-            for (PrismReferenceValue exVal: extractedReferences) {
+            for (PrismReferenceValue exVal : extractedReferences) {
                 if (MiscUtil.equals(exVal.getOid(), reference.getOid())
                         && prismContext.relationsEquivalent(exVal.getRelation(), reference.getRelation())) {
                     found = true;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -60,15 +60,13 @@ public class TestOrgHierarchy extends AbstractModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        modelService.postInit(initResult);
-
         // System Configuration and administrator
         repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+        modelService.postInit(initResult);
+
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, initResult);
         login(userAdministrator);
-
-        // Resources
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
     }

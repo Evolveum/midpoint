@@ -116,10 +116,20 @@ public class InitialDataImport extends DataImport {
             String fileName, Task task, OperationResult mainResult, boolean overwrite) {
         OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 
+        Class<? extends ObjectType> type = object.getCompileTimeClass();
+        if (type == null) {
+            LOGGER.warn("Object without static type? Skipping: {}", object);
+            return ImportResult.SKIPPED;
+        }
+        if (!model.isSupportedByRepository(type)) { // temporary code (until generic repo is gone)
+            LOGGER.debug("Skipping {} because of unsupported object type", object);
+            return ImportResult.SKIPPED;
+        }
+
         try {
             // returns not-null or throws, we don't care about the returned object
             model.getObject(
-                    object.getCompileTimeClass(),
+                    type,
                     object.getOid(),
                     SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()),
                     task,

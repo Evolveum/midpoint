@@ -7,9 +7,14 @@
 
 package com.evolveum.midpoint.gui.impl.component.tile;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -27,6 +32,8 @@ public class TilePanel<T extends Serializable> extends BasePanel<Tile<T>> {
 
     private static final String ID_ICON = "icon";
     private static final String ID_TITLE = "title";
+
+    private static final String ID_DESCRIPTION = "description";
 
     public TilePanel(String id, IModel<Tile<T>> model) {
         super(id, model);
@@ -47,6 +54,12 @@ public class TilePanel<T extends Serializable> extends BasePanel<Tile<T>> {
             return title != null ? getString(title, null, title) : null;
         }));
 
+        Label description = new Label(ID_DESCRIPTION, () -> getModelObject().getDescription());
+        description.add(AttributeAppender.replace("title", () -> getModelObject().getDescription()));
+        description.add(new TooltipBehavior());
+        description.add(getDescriptionBehaviour());
+        add(description);
+
         add(new AjaxEventBehavior("click") {
 
             @Override
@@ -54,6 +67,10 @@ public class TilePanel<T extends Serializable> extends BasePanel<Tile<T>> {
                 TilePanel.this.onClick(target);
             }
         });
+    }
+
+    protected VisibleEnableBehaviour getDescriptionBehaviour() {
+        return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }
 
     protected WebMarkupContainer createIconPanel(String idIcon) {

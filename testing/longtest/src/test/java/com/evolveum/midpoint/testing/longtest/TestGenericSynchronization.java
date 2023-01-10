@@ -1,20 +1,15 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.testing.longtest;
 
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -28,16 +23,19 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
-import javax.xml.namespace.QName;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-longtest-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 
@@ -68,8 +66,8 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 //    private static final int[] TREE_LEVELS_USER = {3, 5, 5, 10};
 
     //86 org. units, 636 users
-    private static final int[] TREE_LEVELS = {2, 7, 5};
-    private static final int[] TREE_LEVELS_USER = {3, 5, 8};
+    private static final int[] TREE_LEVELS = { 2, 7, 5 };
+    private static final int[] TREE_LEVELS_USER = { 3, 5, 8 };
 
     //18 org. units, 86 users
 //    private static final int[] TREE_LEVELS = {2, 8};
@@ -99,10 +97,11 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 
         loadOpenDJWithData();
 
-        modelService.postInit(initResult);
-
         // System Configuration and administrator
         repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+
+        modelService.postInit(initResult);
+
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         login(userAdministrator);
@@ -163,35 +162,33 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     }
 
     private void logCreateEntry(Entry entry) {
-        if (logCreateEntry ) {
+        if (logCreateEntry) {
             System.out.println("Creating LDAP entry: " + entry.getDN());
             logger.trace("Creating LDAP entry: {}", entry.getDN());
         }
     }
 
     private Entry createUserEntry(String uid, String suffix, String sn) throws IOException, LDIFException {
-        StringBuilder sb = new StringBuilder();
         String dn = "uid=" + uid + "," + suffix;
-        sb.append("dn: ").append(dn).append('\n');
-        sb.append("objectClass: inetOrgPerson\n");
-        sb.append("uid: ").append(uid).append('\n');
-        sb.append("givenName: ").append("John").append('\n');
-        sb.append("cn: ").append("John " + sn).append('\n');
-        sb.append("sn: ").append(sn).append('\n');
-        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb.toString(), StandardCharsets.UTF_8));
+        String sb = "dn: " + dn + '\n'
+                + "objectClass: inetOrgPerson\n"
+                + "uid: " + uid + '\n'
+                + "givenName: " + "John" + '\n'
+                + "cn: " + "John " + sn + '\n'
+                + "sn: " + sn + '\n';
+        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb, StandardCharsets.UTF_8));
         LDIFReader ldifReader = new LDIFReader(importConfig);
         Entry ldifEntry = ldifReader.readEntry();
         return ldifEntry;
     }
 
     private Entry createOrgEntry(String ou, String suffix) throws IOException, LDIFException {
-        StringBuilder sb = new StringBuilder();
         String dn = "ou=" + ou + "," + suffix;
-        sb.append("dn: ").append(dn).append("\n");
-        sb.append("objectClass: organizationalUnit\n");
-        sb.append("ou: ").append(ou).append("\n");
-        sb.append("description: ").append("This is sparta! ...or " + ou).append("\n");
-        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb.toString(), StandardCharsets.UTF_8));
+        String sb = "dn: " + dn + "\n"
+                + "objectClass: organizationalUnit\n"
+                + "ou: " + ou + "\n"
+                + "description: " + "This is sparta! ...or " + ou + "\n";
+        LDIFImportConfig importConfig = new LDIFImportConfig(IOUtils.toInputStream(sb, StandardCharsets.UTF_8));
         LDIFReader ldifReader = new LDIFReader(importConfig);
         Entry ldifEntry = ldifReader.readEntry();
         return ldifEntry;

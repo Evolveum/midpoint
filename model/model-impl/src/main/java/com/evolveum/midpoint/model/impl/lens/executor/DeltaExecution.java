@@ -453,12 +453,12 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             objectToAdd.setOid(oid);
             LensUtil.setContextOid(context, elementContext, oid);
 
-            task.recordObjectActionExecuted(objectToAdd, objectToAdd.getCompileTimeClass(), oid,
-                    ChangeType.ADD, context.getChannel(), null);
+            task.recordObjectActionExecuted(
+                    objectToAdd, objectToAdd.getCompileTimeClass(), oid, ChangeType.ADD, context.getChannel(), null);
             objectAfterModification = objectToAdd;
         } catch (Throwable t) {
-            task.recordObjectActionExecuted(objectToAdd, objectToAdd.getCompileTimeClass(), null,
-                    ChangeType.ADD, context.getChannel(), t);
+            task.recordObjectActionExecuted(
+                    objectToAdd, objectToAdd.getCompileTimeClass(), null, ChangeType.ADD, context.getChannel(), t);
             if (objectBeanToAdd instanceof ShadowType) {
                 handleProvisioningError(resource, t, task, result);
                 ((LensProjectionContext) elementContext).setBroken();

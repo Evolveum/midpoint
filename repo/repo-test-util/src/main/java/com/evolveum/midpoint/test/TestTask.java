@@ -53,7 +53,7 @@ public class TestTask extends TestResource<TaskType> {
      *
      * @param test To provide access to necessary functionality. Temporary!
      */
-    public void initialize(AbstractIntegrationTest test, Task task, OperationResult result)
+    public void init(AbstractIntegrationTest test, Task task, OperationResult result)
             throws IOException, CommonException {
         this.test = test;
         importObject(task, result);

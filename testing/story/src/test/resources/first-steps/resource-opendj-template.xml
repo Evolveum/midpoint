@@ -8,9 +8,7 @@
 <resource oid="bb554a60-3e83-40e5-be21-ca913ee58a43"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-        xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
@@ -52,12 +50,49 @@
         <objectType>
             <kind>account</kind>
             <intent>default</intent>
+            <default>true</default>
             <delineation>
                 <objectClass>ri:inetOrgPerson</objectClass>
             </delineation>
             <focus>
                 <type>UserType</type>
             </focus>
+            <attribute>
+                <ref>ri:dn</ref>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>ri:givenName</ref>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>ri:sn</ref>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>ri:mail</ref>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+            </attribute>
+            <attribute>
+                <ref>ri:employeeNumber</ref>
+                <limitations>
+                    <maxOccurs>1</maxOccurs>
+                </limitations>
+            </attribute>
             <!-- We don't want to import these accounts in our scenarios, so we mark them as protected. -->
             <protected>
                 <filter>

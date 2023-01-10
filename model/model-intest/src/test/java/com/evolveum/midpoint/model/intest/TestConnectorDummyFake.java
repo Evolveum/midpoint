@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Evolveum and contributors
+ * Copyright (C) 2010-2022 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -57,13 +57,8 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-        // Make sure that the connectors are discovered
-        modelService.postInit(initResult);
-
-        // Make sure to call postInit first. This add system config to repo.
-        // If system is initialized after that then the logging config from system config
-        // will be used instead of test logging config
         super.initSystem(initTask, initResult);
+        modelService.postInit(initResult);
 
         DummyResourceContoller dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
         dummyResourceCtl.extendSchemaPirate();
@@ -224,8 +219,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
-                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID
-                );
+                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID);
         PrismReference connectorRef = resourceDummyFake.findReference(ResourceType.F_CONNECTOR_REF);
         ReferenceDelta connectorRefDeltaDel = prismContext.deltaFactory().reference().createModificationDelete(ResourceType.F_CONNECTOR_REF,
                 getResourceDefinition(), connectorRef.getValue().clone());
@@ -255,8 +249,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
-                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID
-                );
+                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID);
         ReferenceDelta connectorRefDeltaDel = prismContext.deltaFactory().reference().createModificationDelete(ResourceType.F_CONNECTOR_REF,
                 getResourceDefinition(), connectorDummyOid);
         resourceDelta.addModification(connectorRefDeltaDel);
@@ -282,8 +275,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
-                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID
-                );
+                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID);
         ReferenceDelta connectorRefDeltaReplace = prismContext.deltaFactory().reference().createModificationReplace(ResourceType.F_CONNECTOR_REF,
                 getResourceDefinition(), connectorDummyOid);
         resourceDelta.addModification(connectorRefDeltaReplace);
@@ -306,8 +298,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
-                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID
-                );
+                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID);
         ReferenceDelta connectorRefDeltaReplace = prismContext.deltaFactory().reference().createModificationReplace(ResourceType.F_CONNECTOR_REF,
                 getResourceDefinition(), connectorDummyFakeOid);
         resourceDelta.addModification(connectorRefDeltaReplace);
@@ -330,8 +321,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
-                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID
-                );
+                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID);
         ReferenceDelta connectorRefDeltaDel = prismContext.deltaFactory().reference().createModificationDelete(ResourceType.F_CONNECTOR_REF,
                 getResourceDefinition(), connectorDummyFakeOid);
         resourceDelta.addModification(connectorRefDeltaDel);
@@ -359,8 +349,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
-                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID
-                );
+                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID);
         ReferenceDelta connectorRefDeltaDel = prismContext.deltaFactory().reference().createModificationDelete(ResourceType.F_CONNECTOR_REF,
                 getResourceDefinition(), connectorDummyOid);
         resourceDelta.addModification(connectorRefDeltaDel);
@@ -391,8 +380,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
-                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID
-                );
+                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID);
         ReferenceDelta connectorRefDeltaReplace = prismContext.deltaFactory().reference().createModificationReplace(ResourceType.F_CONNECTOR_REF,
                 getResourceDefinition(), connectorDummyOid);
         resourceDelta.addModification(connectorRefDeltaReplace);
@@ -420,8 +408,7 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
         PrismObject<ResourceType> dummyResourceModelBefore = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
 
         ObjectDelta<ResourceType> resourceDelta = prismContext.deltaFactory().object()
-                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID
-                );
+                .createEmptyModifyDelta(ResourceType.class, RESOURCE_DUMMY_FAKE_OID);
         ReferenceDelta connectorRefDeltaReplace = prismContext.deltaFactory().reference().createModificationReplace(ResourceType.F_CONNECTOR_REF,
                 getResourceDefinition(), connectorDummyFakeOid);
         resourceDelta.addModification(connectorRefDeltaReplace);
@@ -533,5 +520,4 @@ public class TestConnectorDummyFake extends AbstractConfiguredModelIntegrationTe
 
         assertEquals("Unexpected number of accounts on " + resource + ": " + accounts, numAccounts, accounts.size());
     }
-
 }

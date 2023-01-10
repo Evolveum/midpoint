@@ -152,8 +152,22 @@
           <xsd:element name="metricIdentifier" type="xsd:string" maxOccurs="unbounded" />
 
           <!--  Extra stored state -->
-          <xsd:element name="before" type="tns:ObjectType" />
-          <xsd:element name="after" type="tns:ObjectType" />
+          <xsd:element name="before" type="tns:ObjectType">
+              <xsd:annotation>
+                  <xsd:appinfo>
+                      <a:embeddedObject>true</a:embeddedObject>
+                      <a:elaborate>true</a:elaborate>
+                  </xsd:appinfo>
+              </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="after" type="tns:ObjectType">
+              <xsd:annotation>
+                  <xsd:appinfo>
+                      <a:embeddedObject>true</a:embeddedObject>
+                      <a:elaborate>true</a:elaborate>
+                  </xsd:appinfo>
+              </xsd:annotation>
+          </xsd:element>
           <xsd:element name="delta" type="t:ObjectDeltaType" />
        </xsd:sequence>
     </xsd:complexType>

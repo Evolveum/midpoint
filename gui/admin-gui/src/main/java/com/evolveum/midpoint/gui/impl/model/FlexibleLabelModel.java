@@ -136,6 +136,7 @@ public class FlexibleLabelModel<C extends Containerable> implements IModel<Strin
         variables.put(ExpressionConstants.VAR_OBJECT, object, object.asPrismContainerValue().getDefinition());
         addAdditionalVariablesMap(variables);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
+        context.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, result);
         if (outputTriple == null) {
             return "";

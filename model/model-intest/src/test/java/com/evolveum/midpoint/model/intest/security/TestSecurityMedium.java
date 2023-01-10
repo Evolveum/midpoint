@@ -139,10 +139,10 @@ public class TestSecurityMedium extends AbstractSecurityTest {
         login(USER_JACK_USERNAME);
 
         then("adding resource with no 'super' is allowed");
-        assertAddAllow(RESOURCE_NO_SUPER.file, ModelExecuteOptions.create().setIsImport());
+        assertAddAllow(RESOURCE_NO_SUPER, ModelExecuteOptions.create().setIsImport());
 
         then("adding resource with 'super' is denied");
-        assertAddDeny(RESOURCE_WITH_SUPER.file, ModelExecuteOptions.create().setIsImport());
+        assertAddDeny(RESOURCE_WITH_SUPER, ModelExecuteOptions.create().setIsImport());
 
         then("modifying resource item other than 'super' is allowed");
         assertModifyAllow(ResourceType.class, RESOURCE_NO_SUPER.oid, ResourceType.F_DESCRIPTION, "anything");

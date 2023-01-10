@@ -5502,4 +5502,12 @@ public final class WebComponentUtil {
         }
         return null;
     }
+
+    public static ItemPath getPath(GuiObjectColumnType column) {
+        if (column == null) {
+            return null;
+        }
+
+        return column.getPath().getItemPath();
+    }
 }

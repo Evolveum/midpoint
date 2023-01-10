@@ -80,11 +80,11 @@ public class ProfilingClassLoggerContainerWrapperImpl<C extends Containerable> e
 
             if (value != null) {
                 PrismPropertyWrapper<LoggingLevelType> level = value.findProperty(ClassLoggerConfigurationType.F_LEVEL);
-                if (!level.getValues().isEmpty()) {
-                    if (level.getValue().getRealValue() != null) {
-                        return true;
-                    }
+                Collection deltas = level.getDelta();
+                if (deltas != null && !deltas.isEmpty()) {
+                    return true;
                 }
+
                 PrismPropertyWrapper<LoggingLevelType> appender = value.findProperty(ClassLoggerConfigurationType.F_APPENDER);
                 if (!appender.getValues().isEmpty()) {
                     if (appender.getValues().get(0).getRealValue() != null) {

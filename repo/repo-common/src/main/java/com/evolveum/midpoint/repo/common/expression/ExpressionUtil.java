@@ -197,7 +197,6 @@ public class ExpressionUtil {
             VariablesMap variables,
             ObjectResolver objectResolver,
             String contextDesc,
-            PrismContext prismContext,
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -223,7 +222,7 @@ public class ExpressionUtil {
             return (List<V>) Collections.singletonList((PrismValue) object);
         } else if (object instanceof ItemDeltaItem) {
             ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
-            PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple(prismContext);
+            PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
             return triple != null ? triple.getNonNegativeValues() : new ArrayList<>();
         } else {
             throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
@@ -526,7 +525,7 @@ public class ExpressionUtil {
         }
     }
 
-    public static <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV, ID> toItemDeltaItem(Object object) {
+    public static <IV extends PrismValue, ID extends ItemDefinition<?>> ItemDeltaItem<IV, ID> toItemDeltaItem(Object object) {
         if (object == null) {
             return null;
         } else if (object instanceof ItemDeltaItem<?, ?>) {
@@ -914,6 +913,7 @@ public class ExpressionUtil {
                 .makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, parentResult);
 
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        context.setExpressionFactory(expressionFactory);
         context.setSkipEvaluationMinus(true); // no need to evaluate 'old' state
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, parentResult);
 

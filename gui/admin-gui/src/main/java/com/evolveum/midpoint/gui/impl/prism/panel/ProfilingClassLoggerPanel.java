@@ -6,10 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
@@ -17,7 +16,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
 
 /**
  * @author skublik
- *
  */
 public class ProfilingClassLoggerPanel extends PrismContainerPanel<ClassLoggerConfigurationType, PrismContainerWrapper<ClassLoggerConfigurationType>> {
 
@@ -29,11 +27,10 @@ public class ProfilingClassLoggerPanel extends PrismContainerPanel<ClassLoggerCo
                         .build());
     }
 
-    private static ItemVisibility checkVisibility(ItemWrapper itemWrapper, ItemVisibilityHandler visibilitytHandler) {
-
-        if(itemWrapper.getItemName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
+    private static ItemVisibility checkVisibility(ItemWrapper wrapper, ItemVisibilityHandler handler) {
+        if (wrapper.getItemName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
             return ItemVisibility.HIDDEN;
         }
-        return visibilitytHandler != null ? visibilitytHandler.isVisible(itemWrapper) : ItemVisibility.AUTO;
+        return handler != null ? handler.isVisible(wrapper) : ItemVisibility.AUTO;
     }
 }

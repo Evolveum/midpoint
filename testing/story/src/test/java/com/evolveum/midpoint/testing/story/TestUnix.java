@@ -316,7 +316,7 @@ public class TestUnix extends AbstractStoryTest {
                 .objectClass(OPENDJ_ACCOUNT_STRUCTURAL_OBJECTCLASS_NAME)
                 .auxiliaryObjectClass(OPENDJ_ACCOUNT_POSIX_AUXILIARY_OBJECTCLASS_NAME);
 
-        login(USER_ALICE.object);
+        login(USER_ALICE.get());
         try {
             ResourceObjectDefinition editDef =
                     modelInteractionService.getEditObjectClassDefinition(

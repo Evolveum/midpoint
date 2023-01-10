@@ -57,7 +57,7 @@ public class LiteralExpressionEvaluator<V extends PrismValue, D extends ItemDefi
             addInternalOrigin(value, context);
         }
 
-        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null);
         applyValueMetadata(outputTriple, context, result);
         return outputTriple;
     }

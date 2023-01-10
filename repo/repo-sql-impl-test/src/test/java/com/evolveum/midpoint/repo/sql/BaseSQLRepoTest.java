@@ -85,7 +85,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
-    private static final String NS_EXT = "http://example.com/p";
+    protected static final String NS_EXT = "http://example.com/p";
 
     static final ItemName EXT_HIDDEN1 = new ItemName(NS_EXT, "hidden1");
     static final ItemName EXT_HIDDEN2 = new ItemName(NS_EXT, "hidden2");

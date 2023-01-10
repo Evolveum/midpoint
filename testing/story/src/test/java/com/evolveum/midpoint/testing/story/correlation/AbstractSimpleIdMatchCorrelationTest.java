@@ -52,7 +52,7 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
 
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
 
-        RESOURCE_SIS.initializeAndTest(this, initTask, initResult);
+        RESOURCE_SIS.initAndTest(this, initTask, initResult);
     }
 
     @Override
@@ -112,7 +112,7 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
 
         then("Correlation case should be created");
 
-        PrismObject<ShadowType> a2 = findShadowByPrismName("2", RESOURCE_SIS.getObject(), result);
+        PrismObject<ShadowType> a2 = findShadowByPrismName("2", RESOURCE_SIS.get(), result);
         assertShadowAfter(a2)
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN);
         CaseType aCase = correlationCaseManager.findCorrelationCase(a2.asObjectable(), true, result);
@@ -153,7 +153,7 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
         RESOURCE_SIS.replaceLine("2,.*", "3,John,Smith,2004-02-06,040206/1329");
 
         given("clearing the correlation state");
-        PrismObject<ShadowType> a2 = findShadowByPrismName("2", RESOURCE_SIS.getObject(), result);
+        PrismObject<ShadowType> a2 = findShadowByPrismName("2", RESOURCE_SIS.get(), result);
         correlationService.clearCorrelationState(a2.getOid(), result);
 
         when("import for #3 is run");
@@ -165,7 +165,7 @@ public abstract class AbstractSimpleIdMatchCorrelationTest extends AbstractIdMat
 
         then("Correlation case should be created");
 
-        PrismObject<ShadowType> a3 = findShadowByPrismName("3", RESOURCE_SIS.getObject(), result);
+        PrismObject<ShadowType> a3 = findShadowByPrismName("3", RESOURCE_SIS.get(), result);
         assertShadowAfter(a3)
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN);
         CaseType aCase = correlationCaseManager.findCorrelationCase(a3.asObjectable(), true, result);

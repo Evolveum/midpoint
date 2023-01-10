@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.model.api.simulation;
 
 import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -34,5 +36,13 @@ public interface SimulationResultContext {
     }
 
     /** TEMPORARY. Retrieves stored deltas. May be replaced by something more general in the future. */
-    @NotNull Collection<ObjectDelta<?>> getStoredDeltas(OperationResult result) throws SchemaException;
+    default @NotNull Collection<ObjectDelta<?>> getStoredDeltas(OperationResult result) throws SchemaException {
+        return getStoredProcessedObjects(result).stream()
+                .map(ProcessedObject::getDelta)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    /** TEMPORARY. Retrieves stored processed objects. May be replaced by something more general in the future. */
+    @NotNull Collection<ProcessedObject<?>> getStoredProcessedObjects(OperationResult result) throws SchemaException;
 }

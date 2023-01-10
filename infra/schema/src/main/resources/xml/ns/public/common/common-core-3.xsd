@@ -40,6 +40,7 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-gui-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-provisioning-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-correlation-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-simulations-3" />
 
     <!-- ################################## -->
     <!-- ##      Common Schema Layer     ## -->
@@ -757,6 +758,61 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
+
+    <xsd:complexType name="TagType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A tag is a "mark" given to an object - currently a prism object, an assignment, or audited/simulation event.
+                Tags are used in various contexts, for example as policy situations or event tags. (More uses are expected
+                in the future.) This object serves as a point of definition of such tags.
+
+                Well-known archetypes: policy situation, event tag.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.7</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AssignmentHolderType">
+                <xsd:sequence>
+                    <xsd:element name="uri" type="xsd:anyURI" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Optional URI assigned to this tag. For example, policy situations had traditionally such URIs.
+                                It should be globally unique.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TagType.uri</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="display" type="tns:DisplayType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Display properties of the tag. It is used to display the tag in drop-down lists, buttons, etc..
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TagType.display</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="policyRule" type="tns:GlobalPolicyRuleType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Global policy rules that can yield this tag (policy situation or event tag).
+                                By including them here they are evaluated automatically, just like if they would be included
+                                in the system configuration. (Provided that this tag is in appropriate lifecycle state.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>TagType.uri</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="tag" type="tns:TagType" substitutionGroup="tns:object"/>
 
     <xsd:complexType name="TriggerType">
            <xsd:annotation>
@@ -5327,6 +5383,8 @@
         <xsd:annotation>
             <xsd:documentation>
                 Describes input parameters to the expression.
+                Currently serves as both parameter declaration and parameter use (i.e. providing the argument value).
+                <!-- TODO this should perhaps change -->
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.7</a:since>
@@ -14012,6 +14070,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO fix names, consult - experimental? -->
+            <xsd:element name="accessesMetadataEnabled" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Global switch that enables accesses metadata processing for assignment holders.
+                        That stores not only indirect assignments but also the details how it appeared on the object.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.7</a:since>
+                        <a:displayName>RoleManagementConfigurationType.accessesMetadataEnabled</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="relations" type="tns:RelationsDefinitionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -14592,6 +14663,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="tagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Tag(s) that are the result when this policy rule is triggered.
+                        These may be implicit if the policy rule is defined as part of tag definition.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
+                        <a:displayName>PolicyRuleType.tag</a:displayName>
+                        <a:help>PolicyRuleType.tag.help</a:help>
+                        <a:since>4.7</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="policySituation" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -14599,10 +14684,15 @@
                         triggered. If the situation is not explicitly stated then
                         default situation will be selected instead. The situation
                         is determined by the constraint that triggered the rule.
+                        DEPRECATED. Use tagRef instead.
+
+                        TODO specify the time of planned removal
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>PolicyRuleType.policySituation</a:displayName>
                         <a:help>PolicyRuleType.policySituation.help</a:help>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.7</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -14841,6 +14931,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="SITUATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="custom">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CUSTOM"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -15337,6 +15434,112 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ORIGIN_INTERNAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000700">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_EVENT_TAG"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000701">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_POLICY_SITUATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- Do we want also these tags? -->
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000710">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_FOCUS_ENABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000711">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_FOCUS_DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000712">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_FOCUS_NAME_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000713">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_FOCUS_ASSIGNMENT_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000714">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_FOCUS_ARCHETYPE_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000715">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_FOCUS_PARENT_ORG_REFERENCE_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000716">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_FOCUS_ROLE_MEMBERSHIP_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000730">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_PROJECTION_ENABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000731">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_PROJECTION_DISABLED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000732">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_PROJECTION_NAME_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000733">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_PROJECTION_IDENTIFIER_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000734">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TAG_PROJECTION_ENTITLEMENT_CHANGED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000001005">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="STANDARD_FUNCTIONS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -17556,6 +17759,16 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>SubreportParameterType.order</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="asRow" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <!-- todo documentation -->
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SubreportParameterType.asRow</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

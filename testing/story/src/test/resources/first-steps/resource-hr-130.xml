@@ -52,6 +52,11 @@
                 <ref>ri:empNo</ref>
                 <inbound>
                     <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>"empNo:$input"</code>
+                        </script>
+                    </expression>
                     <target>
                         <path>name</path>
                     </target>

@@ -98,6 +98,7 @@ public class CommandLineScriptExecutor {
 
             Collection<Source<?, ?>> sources = new ArrayList<>(1);
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables, shortDesc, task);
+            context.setExpressionFactory(expressionFactory);
 
             TypedValue defaultObjectValAndDef = variables.get(macroName);
             if (defaultObjectValAndDef != null) {

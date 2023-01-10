@@ -97,7 +97,7 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
                     "Can only generate values of property, not " + output.getClass());
         }
 
-        return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        return ItemDeltaUtil.toDeltaSetTriple(output, null);
     }
 
     private void validateInputNumbers(Integer totalItems, Integer actualItems, ProportionalStyleType style) {

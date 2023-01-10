@@ -226,6 +226,22 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="custom" type="tns:CustomPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Custom ways of evaluating a policy constraint. Used typically for transitional constraints.
+                                (State-based custom ones can always be evaluated using `objectState` constraint.)
+
+                                TODO reconsider the name
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <xsd:appinfo>
+                                    <a:displayName>PolicyConstraintsType.custom</a:displayName>
+                                    <a:help>PolicyConstraintsType.custom.help</a:help>
+                                </xsd:appinfo>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="collectionStats" type="tns:CollectionStatsPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1101,6 +1117,40 @@
     </xsd:complexType>
     <xsd:element name="situationPolicyConstraint" type="tns:PolicySituationPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
 
+    <xsd:complexType name="CustomPolicyConstraintType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Custom ways of evaluating a policy constraint. Used typically for transitional constraints.
+                (State-based custom ones can always be evaluated using `objectState` constraint.)
+
+                TODO reconsider the name
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.7</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractPolicyConstraintType">
+                <xsd:sequence>
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that is used to determine the result. It must have a value of true in order
+                                for constraint to be triggered.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>CustomPolicyConstraintType.expression</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="customPolicyConstraint" type="tns:CustomPolicyConstraintType" substitutionGroup="tns:abstractPolicyConstraint" />
+
     <xsd:complexType name="CollectionStatsPolicyConstraintType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1469,7 +1519,7 @@
             <xsd:element name="record" type="tns:RecordPolicyActionType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Record action. The operation will proceed. Policy situation will be recorded for
+                        Record action. The operation will proceed. Policy situation(s) will be recorded for
                         given object or assignment. It can be reported on or certified later on.
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2171,6 +2221,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <!-- TODO we may select what situation(s) we want to record. The default is all applicable ones. -->
                     <!--<xsd:element name="situationConstraints" type="tns:SituationConstraintsStorageStrategyType" minOccurs="0">-->
                         <!--<xsd:annotation>-->
                             <!--<xsd:documentation>-->
@@ -2179,7 +2230,6 @@
                             <!--</xsd:documentation>-->
                         <!--</xsd:annotation>-->
                     <!--</xsd:element>-->
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

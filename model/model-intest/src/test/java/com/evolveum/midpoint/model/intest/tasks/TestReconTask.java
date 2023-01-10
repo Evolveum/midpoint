@@ -46,7 +46,7 @@ public class TestReconTask extends AbstractInitializedModelIntegrationTest {
 
         interruptedSyncResource = DummyInterruptedSyncResource.create(dummyResourceCollection, initTask, initResult);
 
-        addObject(getReconciliationTask().file, initTask, initResult, tailoringWorkerThreadsCustomizer(getWorkerThreads()));
+        addObject(getReconciliationTask(), initTask, initResult, tailoringWorkerThreadsCustomizer(getWorkerThreads()));
 
         assertUsers(getNumberOfUsers());
         interruptedSyncResource.createAccounts(USERS, this::getUserName);

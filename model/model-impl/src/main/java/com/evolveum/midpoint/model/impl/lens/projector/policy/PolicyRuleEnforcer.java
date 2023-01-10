@@ -143,7 +143,7 @@ public class PolicyRuleEnforcer {
             // TODO really include assignments content?
             policyRule.addToEvaluatedPolicyRuleBeans(evalCtx.rules,
                     new PolicyRuleExternalizationOptions(FULL, true, true),
-                    t -> enforceAll || t.isEnforcementOverride(), prismContext);
+                    t -> enforceAll || t.isEnforcementOverride());
 
             List<TreeNode<LocalizableMessage>> messageTrees = extractMessages(enforcingTriggers, NORMAL);
             for (TreeNode<LocalizableMessage> messageTree : messageTrees) {

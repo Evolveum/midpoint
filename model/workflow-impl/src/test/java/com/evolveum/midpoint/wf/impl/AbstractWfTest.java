@@ -92,11 +92,11 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
-        modelService.postInit(initResult);
 
         PrismObject<SystemConfigurationType> sysconfig = prismContext.parseObject(getSystemConfigurationFile());
         updateSystemConfiguration(sysconfig.asObjectable());
         repoAddObject(sysconfig, initResult);
+        modelService.postInit(initResult);
 
         repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
@@ -269,8 +269,6 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
     }
 
     protected void assertDeltasEqual(String message, ObjectDelta expectedDelta, ObjectDelta realDelta) {
-//        removeOldValues(expectedDelta);
-//        removeOldValues(realDelta);
         if (!expectedDelta.equivalent(realDelta)) {
             fail(message + "\nExpected:\n" + expectedDelta.debugDump() + "\nReal:\n" + realDelta.debugDump());
         }

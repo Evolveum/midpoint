@@ -34,6 +34,8 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 
+import org.jetbrains.annotations.Nullable;
+
 /**
  * Converts between "XML" (i.e. XML/JSON/YAML/bean) and "native" (ObjectDelta and company) form.
  *
@@ -83,6 +85,13 @@ public class DeltaConvertor {
             @NotNull ObjectDeltaType deltaBean, PrismContext ignored)
             throws SchemaException {
         return createObjectDelta(deltaBean);
+    }
+
+    @Contract("null -> null; !null -> !null")
+    public static <T extends Objectable> ObjectDelta<T> createObjectDeltaNullable(@Nullable ObjectDeltaType objectDeltaBean)
+            throws SchemaException {
+        return objectDeltaBean != null ?
+                createObjectDelta(objectDeltaBean) : null;
     }
 
     /**

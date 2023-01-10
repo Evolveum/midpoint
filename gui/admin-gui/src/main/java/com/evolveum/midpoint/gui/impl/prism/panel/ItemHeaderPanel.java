@@ -6,12 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -23,24 +17,24 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 /**
  * @author katka
- *
  */
 public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> extends BasePanel<IW> {
     private static final long serialVersionUID = 1L;
 
-
     protected static final String ID_LABEL = "label";
-//    protected static final String ID_LABEL_CONTAINER = "labelContainer";
     protected static final String ID_HELP = "help";
     private static final String ID_EXPERIMENTAL = "experimental";
     private static final String ID_DEPRECATED = "deprecated";
@@ -49,9 +43,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     private static final String ID_ADD_BUTTON = "add";
     private static final String ID_REMOVE_BUTTON = "remove";
 
-
     private static final Trace LOGGER = TraceManager.getTrace(ItemHeaderPanel.class);
-
 
     public ItemHeaderPanel(String id, IModel<IW> model) {
         super(id, model);
@@ -72,7 +64,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     }
 
-    protected void initHeaderLabel(){
+    protected void initHeaderLabel() {
         createTitle();
         createHelpText();
         createExperimentalTooltip();
@@ -96,7 +88,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
         Label help = new Label(ID_HELP);
         IModel<String> helpModel = new PropertyModel<>(getModel(), "help");
-        help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
+        help.add(AttributeModifier.replace("title", createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new InfoTooltipBehavior());
         help.add(new VisibleBehaviour(this::isHelpTextVisible));
         add(help);
@@ -143,8 +135,12 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     protected void createRequired(String id) {
         WebMarkupContainer required = new WebMarkupContainer(id);
-        required.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isMandatory()));
+        required.add(new VisibleBehaviour(() -> isRequired()));
         add(required);
+    }
+
+    protected boolean isRequired() {
+        return getModelObject() != null && getModelObject().isMandatory();
     }
 
     public IModel<String> getDeprecatedCss() {
@@ -205,7 +201,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
             getModelObject().removeAll(getPageBase());
         } catch (SchemaException e) {
             LOGGER.error("Cannot remove value: {}", getModelObject());
-            getSession().error("Cannot remove value "+ getModelObject());
+            getSession().error("Cannot remove value " + getModelObject());
             target.add(getPageBase().getFeedbackPanel());
 
         }
@@ -215,7 +211,6 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     protected abstract V createNewValue(IW parent);
     protected abstract void refreshPanel(AjaxRequestTarget target);
 
-
     protected boolean isAddButtonVisible() {
         return getModelObject() != null && getModelObject().isMultiValue();
     }
@@ -223,6 +218,5 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
     protected boolean isButtonEnabled() {
         return getModelObject() != null && !getModelObject().isReadOnly() && getModelObject().isMultiValue();
     }
-
 
 }

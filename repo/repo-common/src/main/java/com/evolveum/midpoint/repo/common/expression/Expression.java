@@ -121,8 +121,8 @@ public class Expression<V extends PrismValue, D extends ItemDefinition> {
 
         try {
 
-            processedVariables = processInnerVariables(context.getVariables(), context.getContextDescription(),
-                    context.getTask(), result);
+            processedVariables = processInnerVariables(
+                    context.getVariables(), context.getContextDescription(), context.getTask(), result);
 
             ExpressionEvaluationContext contextWithProcessedVariables = context.shallowClone();
             contextWithProcessedVariables.setVariables(processedVariables);

@@ -19,6 +19,7 @@ import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.FocusIdentityTypeUtil;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -1000,6 +1001,26 @@ public interface MidpointFunctions {
 
     <F extends ObjectType> boolean hasLinkedAccount(String resourceOid);
 
+    /**
+     * Returns `true` if the current clockwork operation causes (any) projection to have `administrativeState` switched to
+     * {@link ActivationStatusType#ENABLED}.
+     *
+     * Not always precise - the original value may not be known.
+     *
+     * TODO what about creating projections?
+     */
+    boolean isProjectionEnabled();
+
+    /**
+     * Returns `true` if the current clockwork operation causes (any) projection to have `administrativeState` switched to
+     * a disabled value (e.g. {@link ActivationStatusType#DISABLED} or {@link ActivationStatusType#ARCHIVED}.
+     *
+     * Not always precise - the original value may not be known.
+     *
+     * TODO what about deleting projections?
+     */
+    boolean isProjectionDisabled();
+
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
 
     boolean isDirectlyAssigned(String targetOid);
@@ -1435,4 +1456,16 @@ public interface MidpointFunctions {
             @Nullable Collection<FocusIdentityType> identities,
             @Nullable FocusIdentitySourceType source,
             @NotNull ItemPath itemPath);
+
+    /**
+     * Returns true if the object (of FocusType) is effectively enabled.
+     * Assumes that the object underwent standard computation and the activation/effectiveStatus is set.
+     *
+     * As a convenience measure, if the object is not present, the method returns `false`.
+     *
+     * If the `activation/effectiveStatus` is not present, the return value of the method is undefined.
+     */
+    default boolean isEffectivelyEnabled(@Nullable FocusType focus) {
+        return FocusTypeUtil.getEffectiveStatus(focus) == ActivationStatusType.ENABLED;
+    }
 }

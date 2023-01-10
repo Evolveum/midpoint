@@ -103,8 +103,8 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
         addObject(ORG_PROGRAM_SW_ENG, initTask, initResult);
         addObject(ORG_PROGRAM_SW_ENG_DOCTORAL, initTask, initResult);
 
-        RESOURCE_SIS.initializeAndTest(this, initTask, initResult);
-        TASK_IMPORT_SIS.initialize(this, initTask, initResult); // importing in closed state
+        RESOURCE_SIS.initAndTest(this, initTask, initResult);
+        TASK_IMPORT_SIS.init(this, initTask, initResult); // importing in closed state
     }
 
     @Override
@@ -600,6 +600,6 @@ public class TestInternalCorrelationMultiAccounts extends AbstractCorrelationTes
     }
 
     private PrismObject<ShadowType> getShadow(String name, OperationResult result) throws SchemaException {
-        return findShadowByPrismName(name, RESOURCE_SIS.getObject(), result);
+        return findShadowByPrismName(name, RESOURCE_SIS.get(), result);
     }
 }

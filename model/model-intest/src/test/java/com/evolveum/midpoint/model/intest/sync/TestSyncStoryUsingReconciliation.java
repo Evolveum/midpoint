@@ -45,7 +45,7 @@ public abstract class TestSyncStoryUsingReconciliation extends AbstractSynchroni
 
         BucketingConfigurationOverrides.setFreeBucketWaitIntervalOverride(100L);
         for (TestTask task : getTaskMap().values()) {
-            task.initialize(this, initTask, initResult);
+            task.init(this, initTask, initResult);
         }
     }
 
