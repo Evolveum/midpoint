@@ -67,9 +67,17 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
     public static final String PROJECTOR_FATAL_ERROR = "projector-fatal-error";
 
     // Numbers of accounts with various kinds of errors
+
+    /** u-000000: good account */
     private static final int IDX_GOOD_ACCOUNT = 0;
+
+    /** u-000001: null resource object name in {@link #test090ImportWithSearchFailing()} */
     private static final int IDX_MALFORMED_SHADOW = 1;
+
+    /** u-000002: fatal error in projector */
     private static final int IDX_PROJECTOR_FATAL_ERROR = 2;
+
+    /** u-000003: uid too long to be stored in the repository */
     private static final int IDX_LONG_UID = 3;
 
     private static final String MALFORMED_SHADOW_NAME = formatAccountName(IDX_MALFORMED_SHADOW);
@@ -213,7 +221,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .display();
         // @formatter:on
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display();
     }
 
@@ -317,10 +325,10 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .isEqualTo(formatAccountName(IDX_LONG_UID));
         }
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display()
                 .assertHasComplexOperationExecution(TASK_IMPORT.oid, OperationResultStatusType.SUCCESS);
-        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.get())
                 .display()
                 .assertHasComplexOperationExecution(TASK_IMPORT.oid, OperationResultStatusType.FATAL_ERROR);
     }
@@ -369,9 +377,9 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         }
         // @formatter:on
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display();
-        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.get())
                 .display();
     }
 
@@ -406,9 +414,9 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertTransitions(2);
         // @formatter:on
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display();
-        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.get())
                 .display();
     }
 
@@ -434,7 +442,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .displayOperationResult()
                     .assertPartialError()
                     .assertClosed()
-                    .assertProgress(11)
+                    .assertProgress(12)
                     .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                         .display()
                         .itemProcessingStatistics()
@@ -452,6 +460,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                         .display()
                         .itemProcessingStatistics()
                             .assertFailureCount(1) // u-000001 failed once in 2nd part, and once in 3rd part
+                            .assertSkipCount(1) // u-000002 - repeated because fullSynchronizationTimestamp is still null
                             .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
                         .end()
                     .end();
@@ -463,7 +472,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .displayOperationResult()
                     .assertPartialError()
                     .assertClosed()
-                    .assertProgress(11)
+                    .assertProgress(12)
                     .activityState(RECONCILIATION_RESOURCE_OBJECTS_PATH)
                         .display()
                         .itemProcessingStatistics()
@@ -482,17 +491,18 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                         .display()
                         .itemProcessingStatistics()
                             .assertFailureCount(1) // u-000001 failed once in 2nd part, and once in 3rd part
+                            .assertSkipCount(1) // u-000002 - repeated because fullSynchronizationTimestamp is still null
                             .assertLastFailureObjectName(MALFORMED_SHADOW_NAME)
                         .end()
                     .end();
             // @formatter:on
         }
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display();
-        assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.get())
                 .display();
-        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.get())
                 .display();
     }
 
@@ -528,10 +538,10 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .display();
         // @formatter:on
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display()
                 .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.SUCCESS);
-        assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.get())
                 .display()
                 .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.FATAL_ERROR);
         // MID-7113
@@ -551,7 +561,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         PrismObject<ShadowType> hacker = createHackerShadow();
         provisioningService.addObject(hacker, null, null, task, result);
-        assertShadow("hacker", RESOURCE_DUMMY_HACKED.getResource())
+        assertShadow("hacker", RESOURCE_DUMMY_HACKED.get())
                 .display();
 
         when();

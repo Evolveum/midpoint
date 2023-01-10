@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.test;
 
+import com.evolveum.midpoint.schema.util.SimpleObjectResolver;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -19,7 +20,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 /**
  * Object that is able to test the resource. It may be e.g. an instance of the model integration test.
  */
-public interface ResourceTester {
+public interface ResourceTester extends SimpleObjectResolver {
 
     OperationResult testResource(@NotNull String oid, @NotNull Task task, @NotNull OperationResult result)
             throws ObjectNotFoundException, SchemaException, ConfigurationException;

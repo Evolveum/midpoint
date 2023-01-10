@@ -91,7 +91,7 @@ public final class LiveSyncActivityRun
     }
 
     @Override
-    public void afterRun(OperationResult result) throws SchemaException {
+    public void afterRun(OperationResult result) {
         int itemsProcessed = transientRunStatistics.getItemsProcessed();
         LOGGER.trace("LiveSyncTaskHandler.run stopping (resource {}); changes processed: {}",
                 processingScope.resource, itemsProcessed);
@@ -134,8 +134,8 @@ public final class LiveSyncActivityRun
 
     @NotNull
     private LiveSyncOptions createLiveSyncOptions() {
-        LiveSyncWorkDefinition def = getActivity().getWorkDefinition();
-        return new LiveSyncOptions(def.getExecutionMode(), def.getBatchSize(), def.isUpdateLiveSyncTokenInDryRun());
+        LiveSyncWorkDefinition def = activity.getWorkDefinition();
+        return new LiveSyncOptions(activity.getExecutionMode(), def.getBatchSize(), def.isUpdateLiveSyncTokenInDryRun());
     }
 
     @Override
@@ -149,7 +149,6 @@ public final class LiveSyncActivityRun
             if (event.isComplete()) {
                 ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
                 changeDescription.setItemProcessingIdentifier(request.getIdentifier()); // hack?
-                changeDescription.setSimulate(isPreview());
                 getModelBeans().eventDispatcher.notifyChange(changeDescription, workerTask, result);
             } else if (event.isNotApplicable()) {
                 result.recordNotApplicable();

@@ -163,7 +163,7 @@ class NodeIdComputer {
                     // Note that we set (fake) last check-in time here so this node will not be accidentally cleaned-up.
                     // TODO consider moving this addObject call to NodeRegistrar (requires cleanup of the mix of
                     //   Spring injected and manually created objects)
-                    NodeType node = new NodeType(prismContext)
+                    NodeType node = new NodeType()
                             .name(candidateNodeId)
                             .lastCheckInTime(XmlTypeConverter.createXMLGregorianCalendar());
                     repositoryService.addObject(node.asPrismObject(), null, result);
@@ -172,7 +172,8 @@ class NodeIdComputer {
                     String nodeIdNorm = prismContext.getDefaultPolyStringNormalizer().normalize(candidateNodeId);
                     SearchResultList<PrismObject<NodeType>> existingNodes;
                     try {
-                        existingNodes = repositoryService.searchObjects(NodeType.class,
+                        existingNodes = repositoryService.searchObjects(
+                                NodeType.class,
                                 prismContext.queryFor(NodeType.class)
                                         .item(NodeType.F_NAME).eqPoly(candidateNodeId, nodeIdNorm).matchingNorm()
                                         .build(),

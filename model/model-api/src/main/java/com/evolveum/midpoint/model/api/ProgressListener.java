@@ -26,7 +26,7 @@ public interface ProgressListener {
      * @param modelContext Current context of the model operation.
      * @param progressInformation Specific progress information.
      */
-    void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation);
+    void onProgressAchieved(ModelContext<?> modelContext, ProgressInformation progressInformation);
 
     boolean isAbortRequested();
 }

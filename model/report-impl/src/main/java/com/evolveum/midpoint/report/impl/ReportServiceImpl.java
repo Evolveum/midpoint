@@ -327,40 +327,57 @@ public class ReportServiceImpl implements ReportService {
     }
 
     public VariablesMap evaluateSubreportParameters(
-            PrismObject<ReportType> report, VariablesMap variables, Task task, OperationResult result) {
+            PrismObject<ReportType> reportObject, VariablesMap variables, Task task, OperationResult result) {
         VariablesMap subreportVariable = new VariablesMap();
-        if (report != null && report.asObjectable().getObjectCollection() != null
-                && report.asObjectable().getObjectCollection().getSubreport() != null
-                && !report.asObjectable().getObjectCollection().getSubreport().isEmpty()) {
-            Collection<SubreportParameterType> subreports = report.asObjectable().getObjectCollection().getSubreport();
-            List<SubreportParameterType> sortedSubreports = new ArrayList<>(subreports);
-            sortedSubreports.sort(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)));
-            for (SubreportParameterType subreport : sortedSubreports) {
-                if (subreport.getExpression() == null || subreport.getName() == null) {
-                    continue;
-                }
-                ExpressionType expression = subreport.getExpression();
-                try {
-                    Collection<? extends PrismValue> subreportParameter =
-                            evaluateScript(report, expression, variables, "subreport parameter", task, result);
-                    Class<?> subreportParameterClass;
-                    if (subreport.getType() != null) {
-                        subreportParameterClass = getPrismContext().getSchemaRegistry().determineClassForType(subreport.getType());
-                    } else {
-                        if (subreportParameter != null && !subreportParameter.isEmpty()) {
-                            subreportParameterClass = subreportParameter.iterator().next().getRealClass();
-                        } else {
-                            subreportParameterClass = Object.class;
-                        }
-                    }
-                    subreportVariable.put(subreport.getName(), subreportParameter, subreportParameterClass);
-                } catch (Exception e) {
-                    LOGGER.error("Couldn't execute expression " + expression, e);
-                }
-            }
+        if (reportObject == null) {
             return subreportVariable;
         }
+
+        ReportType report = reportObject.asObjectable();
+        ObjectCollectionReportEngineConfigurationType collection = report.getObjectCollection();
+        if (collection == null || collection.getSubreport().isEmpty()) {
+            return subreportVariable;
+        }
+
+        Collection<SubreportParameterType> subreports = collection.getSubreport();
+
+        List<SubreportParameterType> sortedSubreports = new ArrayList<>(subreports);
+        sortedSubreports.sort(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)));
+
+        for (SubreportParameterType subreport : sortedSubreports) {
+            VariablesMap map = evaluateSubreportParameter(reportObject, variables, subreport, task, result);
+            subreportVariable.putAll(map);
+        }
+
         return subreportVariable;
+    }
+
+    public VariablesMap evaluateSubreportParameter(PrismObject<ReportType> reportObject, VariablesMap variables, SubreportParameterType subreport, Task task, OperationResult result) {
+        VariablesMap map = new VariablesMap();
+
+        if (subreport.getExpression() == null || subreport.getName() == null) {
+            return map;
+        }
+
+        ExpressionType expression = subreport.getExpression();
+        try {
+            Collection<? extends PrismValue> subreportParameter = evaluateScript(reportObject, expression, variables, "subreport parameter", task, result);
+            Class<?> subreportParameterClass;
+            if (subreport.getType() != null) {
+                subreportParameterClass = getPrismContext().getSchemaRegistry().determineClassForType(subreport.getType());
+            } else {
+                if (subreportParameter != null && !subreportParameter.isEmpty()) {
+                    subreportParameterClass = subreportParameter.iterator().next().getRealClass();
+                } else {
+                    subreportParameterClass = Object.class;
+                }
+            }
+            map.put(subreport.getName(), subreportParameter, subreportParameterClass);
+        } catch (Exception e) {
+            LOGGER.error("Couldn't execute expression " + expression, e);
+        }
+
+        return map;
     }
 
     public Clock getClock() {

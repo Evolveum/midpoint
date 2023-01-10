@@ -98,11 +98,6 @@ public class ShoppingCartPanel extends WizardStepPanel<RequestAccess> implements
     }
 
     @Override
-    public String appendCssToWizard() {
-        return "w-100";
-    }
-
-    @Override
     public VisibleEnableBehaviour getNextBehaviour() {
         return VisibleEnableBehaviour.ALWAYS_INVISIBLE;
     }

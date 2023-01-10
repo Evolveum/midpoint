@@ -68,7 +68,8 @@ public class TaskCleaner {
                 .and().item(TaskType.F_COMPLETION_TIMESTAMP).le(deleteTasksClosedUpTo)
                 .and().item(TaskType.F_PARENT).isNull()
                 .build();
-        List<PrismObject<TaskType>> obsoleteTasks = repositoryService.searchObjects(TaskType.class, obsoleteTasksQuery, null, result);
+        List<PrismObject<TaskType>> obsoleteTasks =
+                repositoryService.searchObjects(TaskType.class, obsoleteTasksQuery, null, result);
 
         LOGGER.debug("Found {} task tree(s) to be cleaned up", obsoleteTasks.size());
 

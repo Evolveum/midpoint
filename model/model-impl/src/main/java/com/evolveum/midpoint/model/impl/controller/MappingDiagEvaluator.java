@@ -43,41 +43,47 @@ public class MappingDiagEvaluator {
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
 
-    public MappingEvaluationResponseType evaluateMapping(@NotNull MappingEvaluationRequestType request, @NotNull Task task,
-            @NotNull OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+    public MappingEvaluationResponseType evaluateMapping(
+            @NotNull MappingEvaluationRequestType request, @NotNull Task task, @NotNull OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
 
         MappingBuilder<?,?> builder = mappingFactory.createMappingBuilder();
 
         ObjectDeltaObject<?> sourceContext = createSourceContext(request, task, result);
 
-        builder
-                .mappingBean(request.getMapping())
-                .mappingKind(MappingKindType.OTHER)
-                .contextDescription("mapping diagnostic execution")
-                .sourceContext(sourceContext)
-                .targetContext(createTargetContext(request, sourceContext))
-                .profiling(true)
-                .now(clock.currentTimeXMLGregorianCalendar());
-
-        MappingImpl<?,?> mapping = builder.build();
-
-        ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
-        try {
-            mapping.evaluate(task, result);
-        } finally {
-            ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
-        }
-
         StringBuilder sb = new StringBuilder();
-        sb.append("Output triple: ");
-        dumpOutputTriple(sb, mapping.getOutputTriple());
-        sb.append("Condition output triple: ");
-        dumpOutputTriple(sb, mapping.getConditionOutputTriple());
-        sb.append("Time constraint valid: ").append(mapping.isTimeConstraintValid()).append("\n");
-        sb.append("Next recompute time: ").append(mapping.getNextRecomputeTime()).append("\n");
-        sb.append("\n");
-        sb.append("Evaluation time: ").append(mapping.getEtime()).append(" ms\n");
+        MappingType mappingBean = request.getMapping();
+        if (task.canSee(mappingBean)) {
+            builder
+                    .mappingBean(mappingBean)
+                    .mappingKind(MappingKindType.OTHER)
+                    .contextDescription("mapping diagnostic execution")
+                    .sourceContext(sourceContext)
+                    .targetContext(createTargetContext(request, sourceContext))
+                    .profiling(true)
+                    .now(clock.currentTimeXMLGregorianCalendar());
+
+            MappingImpl<?, ?> mapping = builder.build();
+
+            ExpressionEnvironmentThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment(task, result));
+            try {
+                mapping.evaluate(task, result);
+            } finally {
+                ExpressionEnvironmentThreadLocalHolder.popExpressionEnvironment();
+            }
+
+            sb.append("Output triple: ");
+            dumpOutputTriple(sb, mapping.getOutputTriple());
+            sb.append("Condition output triple: ");
+            dumpOutputTriple(sb, mapping.getConditionOutputTriple());
+            sb.append("Time constraint valid: ").append(mapping.isTimeConstraintValid()).append("\n");
+            sb.append("Next recompute time: ").append(mapping.getNextRecomputeTime()).append("\n");
+            sb.append("\n");
+            sb.append("Evaluation time: ").append(mapping.getEtime()).append(" ms\n");
+        } else {
+            sb.append("Mapping is not visible for the current task");
+        }
 
         MappingEvaluationResponseType response = new MappingEvaluationResponseType();
         response.setResponse(sb.toString());

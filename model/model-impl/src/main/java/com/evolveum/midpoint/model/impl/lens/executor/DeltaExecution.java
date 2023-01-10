@@ -57,6 +57,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import static com.evolveum.midpoint.model.impl.lens.ChangeExecutor.OPERATION_EXECUTE_DELTA;
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
@@ -441,25 +442,10 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             b.indexingManager.updateIndexDataOnElementAdd(objectBeanToAdd, elementContext, task, result);
 
             String oid;
-            if (objectBeanToAdd instanceof TaskType) {
-                oid = b.taskManager.addTask(cast(objectToAdd, TaskType.class), createRepoAddOptions(), result);
-            } else if (objectBeanToAdd instanceof NodeType) {
-                throw new UnsupportedOperationException("NodeType cannot be added using model interface");
-            } else if (ObjectTypes.isManagedByProvisioning(objectBeanToAdd)) {
-                oid = addProvisioningObject(objectToAdd, result);
-                if (oid == null) {
-                    throw new SystemException("Provisioning addObject returned null OID while adding " + objectToAdd);
-                }
-                if (objectBeanToAdd instanceof ShadowType) {
-                    // Even if the resource object is not created on the resource (e.g. because of error or because the
-                    // resource is manual), we know the shadow exists. And we assume the shadow is live.
-                    // TODO reconsider if this assumption is valid.
-                    shadowLivenessState = ShadowLivenessState.LIVE;
-                }
-                result.addReturn("createdAccountOid", oid);
+            if (task.isPersistentExecution()) {
+                oid = executeRealAddition(objectToAdd, result);
             } else {
-                FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
-                oid = b.cacheRepositoryService.addObject(objectToAdd, createRepoAddOptions(), result);
+                oid = executeSimulatedAddition(objectToAdd);
             }
             if (!delta.isImmutable()) {
                 delta.setOid(oid);
@@ -467,18 +453,55 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             objectToAdd.setOid(oid);
             LensUtil.setContextOid(context, elementContext, oid);
 
-            task.recordObjectActionExecuted(objectToAdd, objectToAdd.getCompileTimeClass(), oid,
-                    ChangeType.ADD, context.getChannel(), null);
+            task.recordObjectActionExecuted(
+                    objectToAdd, objectToAdd.getCompileTimeClass(), oid, ChangeType.ADD, context.getChannel(), null);
             objectAfterModification = objectToAdd;
         } catch (Throwable t) {
-            task.recordObjectActionExecuted(objectToAdd, objectToAdd.getCompileTimeClass(), null,
-                    ChangeType.ADD, context.getChannel(), t);
+            task.recordObjectActionExecuted(
+                    objectToAdd, objectToAdd.getCompileTimeClass(), null, ChangeType.ADD, context.getChannel(), t);
             if (objectBeanToAdd instanceof ShadowType) {
                 handleProvisioningError(resource, t, task, result);
                 ((LensProjectionContext) elementContext).setBroken();
                 objectAfterModification = null;
             }
             throw t;
+        }
+    }
+
+    private String executeRealAddition(PrismObject<E> objectToAdd, OperationResult result)
+            throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
+        E objectBeanToAdd = objectToAdd.asObjectable();
+        String oid;
+        if (objectBeanToAdd instanceof TaskType) {
+            oid = b.taskManager.addTask(cast(objectToAdd, TaskType.class), createRepoAddOptions(), result);
+        } else if (objectBeanToAdd instanceof NodeType) {
+            throw new UnsupportedOperationException("NodeType cannot be added using model interface");
+        } else if (ObjectTypes.isManagedByProvisioning(objectBeanToAdd)) {
+            oid = addProvisioningObject(objectToAdd, result);
+            if (oid == null) {
+                throw new SystemException("Provisioning addObject returned null OID while adding " + objectToAdd);
+            }
+            if (objectBeanToAdd instanceof ShadowType) {
+                // Even if the resource object is not created on the resource (e.g. because of error or because the
+                // resource is manual), we know the shadow exists. And we assume the shadow is live.
+                // TODO reconsider if this assumption is valid.
+                shadowLivenessState = ShadowLivenessState.LIVE;
+            }
+            result.addReturn("createdAccountOid", oid);
+        } else {
+            FocusConstraintsChecker.clearCacheFor(objectToAdd.asObjectable().getName());
+            oid = b.cacheRepositoryService.addObject(objectToAdd, createRepoAddOptions(), result);
+        }
+        return oid;
+    }
+
+    private String executeSimulatedAddition(PrismObject<E> objectToAdd) {
+        String explicitOid = objectToAdd.getOid();
+        if (explicitOid != null) {
+            return explicitOid;
+        } else {
+            return UUID.randomUUID().toString();
         }
     }
 
@@ -542,7 +565,7 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                     task,
                     result);
 
-            if (shouldApplyModifyMetadata(objectClass, context.getSystemConfigurationBean())) {
+            if (shouldApplyModifyMetadata(objectClass)) {
                 b.metadataManager.applyMetadataModify(
                         delta, objectClass, elementContext, b.clock.currentTimeXMLGregorianCalendar(), task, context);
             }
@@ -554,25 +577,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                 return;
             }
 
-            if (TaskType.class.isAssignableFrom(objectClass)) {
-                b.taskManager.modifyTask(delta.getOid(), delta.getModifications(), result);
-            } else if (NodeType.class.isAssignableFrom(objectClass)) {
-                b.cacheRepositoryService.modifyObject(NodeType.class, delta.getOid(), delta.getModifications(), result);
-            } else if (ObjectTypes.isClassManagedByProvisioning(objectClass)) {
-                String oid = modifyProvisioningObject(result);
-                if (!oid.equals(delta.getOid())) {
-                    delta.setOid(oid);
-                    LensUtil.setContextOid(context, elementContext, oid);
-                }
-            } else {
-                FocusConstraintsChecker.clearCacheForDelta(delta.getModifications());
-                ModificationPrecondition<E> precondition = createRepoModificationPrecondition();
-                try {
-                    b.cacheRepositoryService.modifyObject(
-                            objectClass, delta.getOid(), delta.getModifications(), precondition, null, result);
-                } catch (PreconditionViolationException e) {
-                    throw new ConflictDetectedException(e);
-                }
+            if (task.isPersistentExecution()) {
+                executeRealModification(objectClass, result);
             }
             task.recordObjectActionExecuted(baseObject, objectClass, delta.getOid(), ChangeType.MODIFY,
                     context.getChannel(), null);
@@ -580,6 +586,32 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             task.recordObjectActionExecuted(baseObject, objectClass, delta.getOid(), ChangeType.MODIFY,
                     context.getChannel(), t);
             throw t;
+        }
+    }
+
+    private void executeRealModification(Class<E> objectClass, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException,
+            ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException,
+            ConflictDetectedException {
+        if (TaskType.class.isAssignableFrom(objectClass)) {
+            b.taskManager.modifyTask(delta.getOid(), delta.getModifications(), result);
+        } else if (NodeType.class.isAssignableFrom(objectClass)) {
+            b.cacheRepositoryService.modifyObject(NodeType.class, delta.getOid(), delta.getModifications(), result);
+        } else if (ObjectTypes.isClassManagedByProvisioning(objectClass)) {
+            String oid = modifyProvisioningObject(result);
+            if (!oid.equals(delta.getOid())) {
+                delta.setOid(oid);
+                LensUtil.setContextOid(context, elementContext, oid);
+            }
+        } else {
+            FocusConstraintsChecker.clearCacheForDelta(delta.getModifications());
+            ModificationPrecondition<E> precondition = createRepoModificationPrecondition();
+            try {
+                b.cacheRepositoryService.modifyObject(
+                        objectClass, delta.getOid(), delta.getModifications(), precondition, null, result);
+            } catch (PreconditionViolationException e) {
+                throw new ConflictDetectedException(e);
+            }
         }
     }
 
@@ -661,15 +693,12 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
         return new VersionPrecondition<>(readVersion);
     }
 
-    private <T extends ObjectType> boolean shouldApplyModifyMetadata(Class<T> objectTypeClass, SystemConfigurationType config) {
+    private <T extends ObjectType> boolean shouldApplyModifyMetadata(Class<T> objectTypeClass) {
         if (!ShadowType.class.equals(objectTypeClass)) {
             return true;
-        } else if (config == null || config.getInternals() == null || config.getInternals().getShadowMetadataRecording() == null) {
-            return true;
-        } else {
-            MetadataRecordingStrategyType recording = config.getInternals().getShadowMetadataRecording();
-            return !Boolean.TRUE.equals(recording.isSkipOnModify());
         }
+        MetadataRecordingStrategyType recordingStrategy = context.getShadowMetadataRecordingStrategy();
+        return recordingStrategy == null || !Boolean.TRUE.equals(recordingStrategy.isSkipOnModify());
     }
     //endregion
 
@@ -692,44 +721,8 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
                     task,
                     result);
 
-            if (TaskType.class.isAssignableFrom(objectTypeClass)) {
-                b.taskManager.deleteTask(oid, result);
-            } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
-                b.taskManager.deleteNode(oid, result);
-            } else if (b.caseManager != null && CaseType.class.isAssignableFrom(objectTypeClass)) {
-                b.caseManager.deleteCase(oid, task, result);
-            } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-                try {
-                    objectAfterModification = deleteProvisioningObject(objectTypeClass, oid, result);
-                    if (ShadowType.class.equals(objectTypeClass)) {
-                        PrismObject<ShadowType> shadowAfterModification = cast(objectAfterModification, ShadowType.class);
-                        // TODO what about shadows with pending deletion?
-                        shadowLivenessState = ShadowLivenessState.forShadow(shadowAfterModification);
-                        LOGGER.trace("Determined liveness of {} (after modification) to be {} (dead: {})",
-                                shadowAfterModification, shadowLivenessState,
-                                shadowAfterModification != null ? ShadowUtil.isDead(shadowAfterModification) : "(null)");
-                    }
-                } catch (ObjectNotFoundException e) {
-                    // Object that we wanted to delete is already gone. This can happen in some race conditions.
-                    // As the resulting state is the same as we wanted it to be we will not complain and we will go on.
-                    LOGGER.trace("Attempt to delete object {} ({}) that is already gone", oid, objectTypeClass);
-                    result.muteLastSubresultError();
-                    objectAfterModification = null;
-                    shadowLivenessState = ShadowLivenessState.DELETED;
-                }
-                if (objectAfterModification == null && elementContext instanceof LensProjectionContext) {
-                    ((LensProjectionContext) elementContext).setShadowExistsInRepo(false);
-                }
-            } else {
-                try {
-                    b.cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
-                } catch (ObjectNotFoundException e) {
-                    // Object that we wanted to delete is already gone. This can happen in some race conditions.
-                    // As the resulting state is the same as we wanted it to be we will not complain and we will go on.
-                    LOGGER.trace("Attempt to delete object {} ({}) that is already gone", oid, objectTypeClass);
-                    result.muteLastSubresultError();
-                }
-                objectAfterModification = null;
+            if (task.isPersistentExecution()) {
+                executeRealDeletion(objectTypeClass, oid, result);
             }
             deleted = true;
             task.recordObjectActionExecuted(objectOld, objectTypeClass, oid, ChangeType.DELETE, context.getChannel(), null);
@@ -742,6 +735,50 @@ class DeltaExecution<O extends ObjectType, E extends ObjectType> {
             }
 
             throw t;
+        }
+    }
+
+    private void executeRealDeletion(Class<E> objectTypeClass, String oid, OperationResult result)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, SecurityViolationException,
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
+        if (TaskType.class.isAssignableFrom(objectTypeClass)) {
+            b.taskManager.deleteTask(oid, result);
+        } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
+            b.taskManager.deleteNode(oid, result);
+        } else if (b.caseManager != null && CaseType.class.isAssignableFrom(objectTypeClass)) {
+            b.caseManager.deleteCase(oid, task, result);
+        } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
+            try {
+                objectAfterModification = deleteProvisioningObject(objectTypeClass, oid, result);
+                if (ShadowType.class.equals(objectTypeClass)) {
+                    PrismObject<ShadowType> shadowAfterModification = cast(objectAfterModification, ShadowType.class);
+                    // TODO what about shadows with pending deletion?
+                    shadowLivenessState = ShadowLivenessState.forShadow(shadowAfterModification);
+                    LOGGER.trace("Determined liveness of {} (after modification) to be {} (dead: {})",
+                            shadowAfterModification, shadowLivenessState,
+                            shadowAfterModification != null ? ShadowUtil.isDead(shadowAfterModification) : "(null)");
+                }
+            } catch (ObjectNotFoundException e) {
+                // Object that we wanted to delete is already gone. This can happen in some race conditions.
+                // As the resulting state is the same as we wanted it to be we will not complain and we will go on.
+                LOGGER.trace("Attempt to delete object {} ({}) that is already gone", oid, objectTypeClass);
+                result.muteLastSubresultError();
+                objectAfterModification = null;
+                shadowLivenessState = ShadowLivenessState.DELETED;
+            }
+            if (objectAfterModification == null && elementContext instanceof LensProjectionContext) {
+                ((LensProjectionContext) elementContext).setShadowExistsInRepo(false);
+            }
+        } else {
+            try {
+                b.cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
+            } catch (ObjectNotFoundException e) {
+                // Object that we wanted to delete is already gone. This can happen in some race conditions.
+                // As the resulting state is the same as we wanted it to be we will not complain and we will go on.
+                LOGGER.trace("Attempt to delete object {} ({}) that is already gone", oid, objectTypeClass);
+                result.muteLastSubresultError();
+            }
+            objectAfterModification = null;
         }
     }
 

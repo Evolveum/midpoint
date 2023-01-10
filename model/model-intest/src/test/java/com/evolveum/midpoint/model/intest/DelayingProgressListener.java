@@ -21,7 +21,7 @@ public class DelayingProgressListener implements ProgressListener {
     }
 
     @Override
-    public void onProgressAchieved(ModelContext modelContext, ProgressInformation progressInformation) {
+    public void onProgressAchieved(ModelContext<?> modelContext, ProgressInformation progressInformation) {
         try {
             long delay = (long) (delayMin + Math.random() * (delayMax - delayMin));
             System.out.println("[" + Thread.currentThread().getName() + "] Delaying execution by " + delay + " ms for " + progressInformation);

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
@@ -28,7 +29,7 @@ import org.apache.wicket.model.IModel;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class BasicInformationStepPanel extends AbstractFormResourceWizardStepPanel {
+public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<ResourceType, ResourceDetailsModel> {
 
     private static final String PANEL_TYPE = "rw-basic";
 
@@ -38,8 +39,8 @@ public class BasicInformationStepPanel extends AbstractFormResourceWizardStepPan
 
     @Override
     protected void onInitialize() {
-        getResourceModel().getObjectWrapper().setShowEmpty(false, false);
-        getResourceModel().getObjectWrapper().getValues().forEach(valueWrapper -> valueWrapper.setShowEmpty(false));
+        getDetailsModel().getObjectWrapper().setShowEmpty(false, false);
+        getDetailsModel().getObjectWrapper().getValues().forEach(valueWrapper -> valueWrapper.setShowEmpty(false));
         super.onInitialize();
     }
 

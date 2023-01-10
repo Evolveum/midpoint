@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -381,8 +383,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        AssignmentType policyRuleAssignment = new AssignmentType(prismContext);
-        PolicyRuleType rule = new PolicyRuleType(prismContext);
+        AssignmentType policyRuleAssignment = new AssignmentType();
+        PolicyRuleType rule = new PolicyRuleType();
         rule.setName("barbossa-0");
         policyRuleAssignment.setPolicyRule(rule);
         ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
@@ -463,8 +465,8 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
         AssignmentType deputyOfBarbossaAssignment = ObjectTypeUtil.createAssignmentTo(USER_BARBOSSA_OID, ObjectTypes.USER, prismContext);
         deputyOfBarbossaAssignment.getTargetRef().setRelation(SchemaConstants.ORG_DEPUTY);
-        AssignmentType policyRuleAssignment = new AssignmentType(prismContext);
-        PolicyRuleType rule = new PolicyRuleType(prismContext);
+        AssignmentType policyRuleAssignment = new AssignmentType();
+        PolicyRuleType rule = new PolicyRuleType();
         rule.setName("guybrush-0");
         policyRuleAssignment.setPolicyRule(rule);
         ObjectDelta<UserType> objectDelta = deltaFor(UserType.class)
@@ -528,11 +530,11 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         OperationResult result = getTestOperationResult();
 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
-        AssignmentType jackGuybrushAssignment = new AssignmentType(prismContext)
+        AssignmentType jackGuybrushAssignment = new AssignmentType()
                 .targetRef(USER_GUYBRUSH_OID, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY);
         jackGuybrushAssignment.beginLimitTargetContent().allowTransitive(true);
         jack.asObjectable().getAssignment().add(jackGuybrushAssignment);
-        LensContext<UserType> context = new LensContextPlaceholder<>(jack);
+        LensContext<UserType> context = new LensContextPlaceholder<>(jack, TaskExecutionMode.PRODUCTION);
 
         AssignmentEvaluator<UserType> assignmentEvaluator = new AssignmentEvaluator.Builder<UserType>()
                 .referenceResolver(referenceResolver)
@@ -2105,7 +2107,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private void createCustomConstruction(RoleType role, String name, int order) {
-        ConstructionType c = new ConstructionType(prismContext);
+        ConstructionType c = new ConstructionType();
         c.setDescription(name);
         c.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_DUMMY_EMPTY_OID, ObjectTypes.RESOURCE));
         ResourceAttributeDefinitionType nameDef = new ResourceAttributeDefinitionType();
@@ -2124,7 +2126,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         outbound.setExpression(expression);
         nameDef.setOutbound(outbound);
         c.getAttribute().add(nameDef);
-        AssignmentType a = new AssignmentType(prismContext);
+        AssignmentType a = new AssignmentType();
         a.setDescription("Assignment for " + c.getDescription());
         a.setConstruction(c);
         addAssignmentOrInducement(role, order, a);
@@ -2153,7 +2155,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         for (String name : getList(text)) {
             AbstractRoleType role = findRole(name);
             if (role.getActivation() == null) {
-                role.setActivation(new ActivationType(prismContext));
+                role.setActivation(new ActivationType());
             }
             role.getActivation().setAdministrativeStatus(ActivationStatusType.DISABLED);
         }
@@ -2163,7 +2165,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         for (String assignmentText : getList(text)) {
             AssignmentType assignment = findAssignmentOrInducement(assignmentText);
             if (assignment.getActivation() == null) {
-                assignment.setActivation(new ActivationType(prismContext));
+                assignment.setActivation(new ActivationType());
             }
             assignment.getActivation().setAdministrativeStatus(ActivationStatusType.DISABLED);
         }
@@ -2244,11 +2246,11 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private RoleType createRole(int level, int number) {
-        return prepareAbstractRole(new RoleType(prismContext), createName("R", level, number));
+        return prepareAbstractRole(new RoleType(), createName("R", level, number));
     }
 
     private RoleType createRole(String name) {
-        return prepareAbstractRole(new RoleType(prismContext), name);
+        return prepareAbstractRole(new RoleType(), name);
     }
 
     private String createName(String prefix, int level, int number) {
@@ -2256,11 +2258,11 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     }
 
     private OrgType createOrg(int number) {
-        return prepareAbstractRole(new OrgType(prismContext), createName("O", 1, number));
+        return prepareAbstractRole(new OrgType(), createName("O", 1, number));
     }
 
     private OrgType createOrg(String name) {
-        return prepareAbstractRole(new OrgType(prismContext), name);
+        return prepareAbstractRole(new OrgType(), name);
     }
 
     private <R extends AbstractRoleType> R prepareAbstractRole(R abstractRole, String name) {
@@ -2271,10 +2273,10 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
         // constructions
         for (int i = 0; i <= constructionLevels; i++) {
-            ConstructionType c = new ConstructionType(prismContext);
+            ConstructionType c = new ConstructionType();
             c.setDescription(name + "-" + i);
             c.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_DUMMY_EMPTY_OID, ObjectTypes.RESOURCE));
-            AssignmentType a = new AssignmentType(prismContext);
+            AssignmentType a = new AssignmentType();
             a.setDescription("Assignment for " + c.getDescription());
             a.setConstruction(c);
             addAssignmentOrInducement(abstractRole, i, a);
@@ -2290,24 +2292,24 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
             VariableBindingDefinitionType target = new VariableBindingDefinitionType();
             target.setPath(new ItemPathType(UserType.F_DESCRIPTION));
             mapping.setTarget(target);
-            MappingsType mappings = new MappingsType(prismContext);
+            MappingsType mappings = new MappingsType();
             mappings.getMapping().add(mapping);
-            AssignmentType a = new AssignmentType(prismContext);
+            AssignmentType a = new AssignmentType();
             a.setFocusMappings(mappings);
             addAssignmentOrInducement(abstractRole, i, a);
         }
 
         // policy rules
         for (int i = 0; i <= policyRulesLevels; i++) {
-            PolicyRuleType rule = new PolicyRuleType(prismContext);
+            PolicyRuleType rule = new PolicyRuleType();
             rule.setName(name + "-" + i);
-            AssignmentType a = new AssignmentType(prismContext);
+            AssignmentType a = new AssignmentType();
             a.setPolicyRule(rule);
             addAssignmentOrInducement(abstractRole, i, a);
         }
 
         // authorization
-        AuthorizationType authorization = new AuthorizationType(prismContext);
+        AuthorizationType authorization = new AuthorizationType();
         authorization.getAction().add(name);
         abstractRole.getAuthorization().add(authorization);
 

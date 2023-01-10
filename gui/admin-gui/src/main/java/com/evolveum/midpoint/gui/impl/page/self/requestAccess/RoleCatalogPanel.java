@@ -171,11 +171,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
     }
 
     @Override
-    public String appendCssToWizard() {
-        return "w-100";
-    }
-
-    @Override
     public IModel<String> getTitle() {
         return createStringResource("RoleCatalogPanel.title");
     }
@@ -477,16 +472,6 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
                             @Override
                             protected IModel<IResource> createPreferredImage(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
                                 return createImage(() -> model.getObject().getValue().getValue());
-                            }
-
-                            @Override
-                            protected DisplayType createDisplayType(IModel<CatalogTile<SelectableBean<ObjectType>>> model) {
-                                ObjectType obj = model.getObject().getValue().getValue();
-                                String icon = WebComponentUtil.createDefaultBlackIcon(obj.asPrismContainerValue().getTypeName());
-
-                                return new DisplayType()
-                                        .icon(new IconType()
-                                                .cssClass(StringUtils.joinWith(" ", icon, "fa-2x")));
                             }
                         };
                     }

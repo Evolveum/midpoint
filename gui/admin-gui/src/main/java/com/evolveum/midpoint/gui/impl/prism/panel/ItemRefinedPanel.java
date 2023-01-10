@@ -10,13 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -24,6 +17,8 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -31,9 +26,13 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-
-import org.apache.wicket.model.Model;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemRefinedDefinitionType;
 
 public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BasePanel<PrismContainerWrapper<C>> {
 
@@ -109,9 +108,9 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
             }
 
             @Override
-            protected IColumn<PrismContainerValueWrapper<C>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+            protected IColumn<PrismContainerValueWrapper<C>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
                 return new PrismPropertyWrapperColumn<>(getContainerModel(), ItemRefinedDefinitionType.F_REF,
-                        allowLinkForFirstColumn() ? AbstractItemWrapperColumn.ColumnType.LINK : AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()){
+                        allowLinkForFirstColumn() ? AbstractItemWrapperColumn.ColumnType.LINK : AbstractItemWrapperColumn.ColumnType.STRING, getPageBase()) {
                     @Override
                     protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> model) {
                         itemDetailsPerformed(target, model);
@@ -195,7 +194,7 @@ public class ItemRefinedPanel<C extends ItemRefinedDefinitionType> extends BaseP
         return (Class<C>) ItemRefinedDefinitionType.class;
     }
 
-    protected MultivalueContainerListPanelWithDetailsPanel getMultivalueContainerListPanel(){
+    protected MultivalueContainerListPanelWithDetailsPanel getMultivalueContainerListPanel() {
         return (MultivalueContainerListPanelWithDetailsPanel) get(ID_TABLE);
     }
 }

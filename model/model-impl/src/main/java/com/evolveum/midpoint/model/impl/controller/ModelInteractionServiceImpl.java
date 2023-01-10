@@ -182,8 +182,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         TaskExecutionMode executionMode = task.getExecutionMode();
-        if (executionMode == null || TaskExecutionMode.PRODUCTION.equals(executionMode)) {
-            LOGGER.warn("Task {} has execution mode undefined or set to PRODUCTION when executing previewChanges, setting to SIMULATED_PRODUCTION", task.getName());
+        if (executionMode.isPersistent()) {
+            LOGGER.warn("Task {} has 'persistent' execution mode when executing previewChanges, setting to SIMULATED_PRODUCTION",
+                    task.getName());
 
             task.setExecutionMode(TaskExecutionMode.SIMULATED_PRODUCTION);
         }
@@ -199,8 +200,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         if (options.getSimulationOptions() == null) {
             SimulationOptionsType simulation = new SimulationOptionsType();
 
-            TaskExecutionMode mode = task.getExecutionMode();
-            SimulationOptionType option = mode.isPersistent() ? SimulationOptionType.UNSAFE : SimulationOptionType.SAFE;
+            SimulationOptionType option = task.isPersistentExecution() ? SimulationOptionType.UNSAFE : SimulationOptionType.SAFE;
             simulation.setCreateOnDemand(option);
             simulation.setSequence(option);
 
@@ -252,7 +252,10 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
-    public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+    public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(
+            PrismObject<O> object, AuthorizationPhaseType phase, Task task, OperationResult parentResult)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException {
         OperationResult result = parentResult.createMinorSubresult(GET_EDIT_OBJECT_DEFINITION);
         TransformableObjectDefinition<O> objectDefinition = schemaTransformer.transformableDefinition(object.getDefinition());
         try {
@@ -270,7 +273,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 result.recordNotApplicable();
                 return null;
             } else {
-                applyArchetypePolicy(objectDefinition, object, result);
+                applyArchetypePolicy(objectDefinition, object, task, result);
                 schemaTransformer.applySecurityConstraints(objectDefinition, securityConstraints, phase);
                 if (object.canRepresent(ShadowType.class)) {
                     applyObjectClassDefinition(objectDefinition, object, phase, task, result);
@@ -311,8 +314,9 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         }
     }
 
-    private <O extends ObjectType> void applyArchetypePolicy(PrismObjectDefinition<O> objectDefinition,
-            PrismObject<O> object, OperationResult result) throws SchemaException {
+    private <O extends ObjectType> void applyArchetypePolicy(
+            PrismObjectDefinition<O> objectDefinition, PrismObject<O> object, Task task, OperationResult result)
+            throws SchemaException {
         try {
             ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(object, result);
             if (archetypePolicy != null) {
@@ -323,7 +327,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 if (objectTemplateRef != null) {
                     PrismObject<ObjectTemplateType> objectTemplate = cacheRepositoryService.getObject(
                             ObjectTemplateType.class, objectTemplateRef.getOid(), createReadOnlyCollection(), result);
-                    schemaTransformer.applyObjectTemplateToDefinition(objectDefinition, objectTemplate.asObjectable(), result);
+                    schemaTransformer.applyObjectTemplateToDefinition(
+                            objectDefinition, objectTemplate.asObjectable(), task, result);
                 }
 
             }
@@ -871,8 +876,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
         final List<ModelProjectionContext> projectionContexts = new ArrayList<>();
 
-        final List<Visualization> primaryScenes;
-        final List<Visualization> secondaryScenes;
+        final List<Visualization> primary;
+        final List<Visualization> secondary;
 
         if (context.getFocusContext() != null) {
             addIgnoreNull(primaryDeltas, CloneUtil.clone(context.getFocusContext().getPrimaryDelta()));
@@ -896,13 +901,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
             LOGGER.trace("Secondary deltas:\n{}", DebugUtil.debugDump(secondaryDeltas));
         }
 
-        primaryScenes = visualizeDeltas(primaryDeltas, task, result);
-        secondaryScenes = visualizeDeltas(secondaryDeltas, task, result);
+        primary = visualizeDeltas(primaryDeltas, task, result);
+        secondary = visualizeDeltas(secondaryDeltas, task, result);
 
-        List<Visualization> projectionScenes = visualizer.visualizeProjectionContexts(projectionContexts, task, result);
-        secondaryScenes.addAll(projectionScenes);
+        List<Visualization> projectionVisualizations = visualizer.visualizeProjectionContexts(projectionContexts, task, result);
+        secondary.addAll(projectionVisualizations);
 
-        return new ModelContextVisualization(primaryScenes, secondaryScenes);
+        return new ModelContextVisualization(primary, secondary);
     }
 
     private boolean isEquivalentWithoutOperationAttr(ObjectDelta<ShadowType> primaryDelta, ObjectDelta<ShadowType> secondaryDelta) {
@@ -1108,7 +1113,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 | CommunicationException | ConfigurationException | ObjectAlreadyExistsException
                 | PolicyViolationException | SecurityViolationException e) {
             LOGGER.error("Could not execute deltas for generated values. Reason: " + e.getMessage(), e);
-            result.recordFatalError("Could not execute deltas for gegenerated values. Reason: " + e.getMessage(), e);
+            result.recordFatalError("Could not execute deltas for generated values. Reason: " + e.getMessage(), e);
             throw e;
         }
 
@@ -1593,7 +1598,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                         .loginMode(true)
                         // We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
                         // will need something to push on the stack. So give them context placeholder.
-                        .lensContext(new LensContextPlaceholder<>(potentialDeputy));
+                        .lensContext(new LensContextPlaceholder<>(potentialDeputy, task.getExecutionMode()));
         AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
 
         for (AssignmentType assignmentType : potentialDeputy.asObjectable().getAssignment()) {
@@ -1693,13 +1698,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 
     @Override
     @NotNull
-    public LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
-            VariablesMap variables, Task task, OperationResult result)
+    public LocalizableMessageType createLocalizableMessageType(
+            LocalizableMessageTemplateType template, VariablesMap variables, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         VariablesMap vars = new VariablesMap();
         vars.putAll(variables);
-        return LensUtil.interpretLocalizableMessageTemplate(template, vars, expressionFactory, prismContext, task, result);
+        return LensExpressionUtil.interpretLocalizableMessageTemplate(template, vars, null, task, result);
     }
 
     @Override

@@ -261,6 +261,7 @@ public class AuditController implements ModelAuditService {
         return object;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private <O extends ObjectType> boolean isApplicable(
             ObjectDeltaOperationType lastEventDeltasOperation,
             PrismObject<O> object, AuditEventRecordType lastEvent) {

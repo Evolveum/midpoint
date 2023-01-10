@@ -81,14 +81,11 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 
     public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
-    public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
     protected static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
-    protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
     protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 
     protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
-    protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
     protected static final File ROLE_END_USER_FILE = new File(COMMON_DIR, "role-end-user.xml");
     protected static final String ROLE_END_USER_OID = "00000000-0000-0000-0000-000000000008";
@@ -283,21 +280,14 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         super.initSystem(initTask, initResult);
 
         // System Configuration
-        PrismObject<SystemConfigurationType> config;
         try {
-            config = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+            repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
         } catch (ObjectAlreadyExistsException e) {
             throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
                     "looks like the previous test haven't cleaned it up", e);
         }
 
         modelService.postInit(initResult);
-
-        // TODO what now? config is unused
-        // to get profiling facilities (until better API is available)
-//        LoggingConfigurationManager.configure(
-//                ProfilingConfigurationManager.checkSystemProfilingConfiguration(config),
-//                config.asObjectable().getVersion(), initResult);
 
         // administrator
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);

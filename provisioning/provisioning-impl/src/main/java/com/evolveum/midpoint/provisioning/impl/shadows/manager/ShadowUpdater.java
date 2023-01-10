@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import com.evolveum.midpoint.common.Clock;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +69,7 @@ public class ShadowUpdater {
     @Autowired private ShadowFinder shadowFinder;
     @Autowired private PendingOperationsHelper pendingOperationsHelper;
     @Autowired private EventDispatcher eventDispatcher;
+    @Autowired private Clock clock;
 
     private static final Trace LOGGER = TraceManager.getTrace(ShadowUpdater.class);
 
@@ -80,10 +83,11 @@ public class ShadowUpdater {
                             .asItemDelta());
         }
         if (!ShadowUtil.isDead(repoShadow)) {
-            shadowModifications.add(
+            shadowModifications.addAll(
                     prismContext.deltaFor(ShadowType.class)
                             .item(ShadowType.F_DEAD).replace(true)
-                            .asItemDelta());
+                            .item(ShadowType.F_DEATH_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
+                            .asItemDeltas());
         }
         if (repoShadow.getPrimaryIdentifierValue() != null) {
             // We need to free the identifier for further use by live shadows that may come later
@@ -187,6 +191,7 @@ public class ShadowUpdater {
         }
         List<ItemDelta<?, ?>> shadowChanges = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_DEAD).replace(true)
+                .item(ShadowType.F_DEATH_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar()) // TODO what if already dead?
                 .item(ShadowType.F_EXISTS).replace(false)
                 // We need to free the identifier for further use by live shadows that may come later
                 .item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()

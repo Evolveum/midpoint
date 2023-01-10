@@ -216,7 +216,7 @@ public class TestOperationCounts extends AbstractStoryTest {
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).replace(PolyString.fromOrig("Brown"))
-                .asObjectDeltaCast(USER_BOB_OID);
+                .asObjectDelta(USER_BOB_OID);
 
         // WHEN
         when();

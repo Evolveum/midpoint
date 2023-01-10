@@ -15,11 +15,13 @@ import com.evolveum.midpoint.repo.common.activity.run.sources.SearchableItemSour
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -64,11 +66,25 @@ class NoOpAdvancedActivityRunSupport implements AdvancedActivityRunSupport {
     public ItemPreprocessor<ShadowType> createShadowFetchingPreprocessor(
             @NotNull Producer<Collection<SelectorOptions<GetOperationOptions>>> producerOptions,
             @NotNull SchemaService schemaService) {
-        throw new UnsupportedOperationException("Model-impl is not available");
+        throw noModelAvailableException();
     }
 
     @Override
     public <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type) {
-        throw new UnsupportedOperationException("Model-impl is not available");
+        throw noModelAvailableException();
+    }
+
+    @Override
+    public @NotNull ObjectReferenceType createSimulationResult(OperationResult result) {
+        throw noModelAvailableException();
+    }
+
+    @Override
+    public @NotNull AggregatedObjectProcessingListener getObjectProcessingListener(ObjectReferenceType simulationResultRef) {
+        throw noModelAvailableException();
+    }
+
+    private UnsupportedOperationException noModelAvailableException() {
+        return new UnsupportedOperationException("Model-impl is not available");
     }
 }

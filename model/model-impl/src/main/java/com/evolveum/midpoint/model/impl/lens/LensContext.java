@@ -21,6 +21,8 @@ import com.evolveum.midpoint.model.impl.expr.SpringApplicationContextHolder;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.loader.ProjectionsLoadOperation;
 
+import com.evolveum.midpoint.schema.TaskExecutionMode;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -117,6 +119,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Channel that is the source of primary change (GUI, live sync, import, ...)
      */
     private String channel;
+
+    /** TEMPORARY. TODO. */
+    @NotNull private final TaskExecutionMode taskExecutionMode;
 
     private LensFocusContext<F> focusContext;
 
@@ -242,6 +247,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     @NotNull private final List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
 
+    /** Denotes (legacy) "preview changes" mode. */
     private transient boolean preview;
 
     private transient Map<String, Collection<Containerable>> hookPreviewResultsMap;
@@ -265,12 +271,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     private transient ModelBeans modelBeans;
 
-    public LensContext() {
-        this(null);
+    public LensContext(@NotNull TaskExecutionMode taskExecutionMode) {
+        this(null, taskExecutionMode);
     }
 
-    public LensContext(Class<F> focusClass) {
+    public LensContext(Class<F> focusClass, @NotNull TaskExecutionMode taskExecutionMode) {
         this.focusClass = focusClass;
+        this.taskExecutionMode = taskExecutionMode;
     }
 
     /**
@@ -623,6 +630,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * Makes the context and all sub-context non-fresh.
      */
     public void rot(String reason) {
+        if (!taskExecutionMode.isPersistent()) {
+            LOGGER.trace("Not rotting the context ({}) because we are not in persistent execution mode", reason);
+            return;
+        }
         LOGGER.debug("Rotting context because of {}", reason);
         setFresh(false);
         if (focusContext != null) {
@@ -638,6 +649,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * This is more intelligent than rot()
      */
     private void rotAfterExecution() throws SchemaException, ConfigurationException {
+        if (!taskExecutionMode.isPersistent()) {
+            LOGGER.trace("Not rotting the context because we are not in persistent execution mode");
+            return;
+        }
         Holder<Boolean> rotHolder = new Holder<>(false);
         rotProjectionContextsIfNeeded(rotHolder);
         rotFocusContextIfNeeded(rotHolder);
@@ -1052,7 +1067,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     public void cleanup() throws SchemaException {
         if (focusContext != null) {
-            focusContext.cleanup();
+            focusContext.cleanup(); // currently no-op
         }
         for (LensProjectionContext projectionContext : projectionContexts) {
             projectionContext.cleanup();
@@ -1071,7 +1086,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     public LensContext<F> clone() {
-        LensContext<F> clone = new LensContext<>(focusClass);
+        LensContext<F> clone = new LensContext<>(focusClass, taskExecutionMode);
         copyValues(clone);
         return clone;
     }
@@ -1438,7 +1453,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
         LensContext<T> lensContext;
         try {
-            lensContext = new LensContext<>((Class<T>) Class.forName(focusClassString));
+            lensContext = new LensContext<>((Class<T>) Class.forName(focusClassString), task.getExecutionMode());
         } catch (ClassNotFoundException e) {
             throw new SystemException(
                     "Couldn't instantiate LensContext because focus or projection class couldn't be found",
@@ -1657,7 +1672,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean hasProjectionChange() {
+    public boolean hasProjectionChange() throws SchemaException, ConfigurationException {
         for (LensProjectionContext projectionContext : getProjectionContexts()) {
             if (projectionContext.getWave() != getExecutionWave()) {
                 continue;
@@ -1669,6 +1684,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 continue;
             }
             if (projectionContext.isGone()) {
+                continue;
+            }
+            if (!projectionContext.isVisible()) {
+                // Maybe we should act on really executed deltas. But adding a linkRef to development-mode resource
+                // is a real primary delta, even if not executed. That's why we check the visibility here. Later we
+                // should remove this hack.
                 continue;
             }
             if (projectionContext.hasPrimaryDelta() || projectionContext.hasSecondaryDelta()) {
@@ -1972,8 +1993,29 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return modelBeans;
     }
 
+    @NotNull TaskExecutionMode getTaskExecutionMode() {
+        return taskExecutionMode;
+    }
+
+    public MetadataRecordingStrategyType getShadowMetadataRecordingStrategy() {
+        SystemConfigurationType config = getSystemConfigurationBean();
+        if (config == null) {
+            return null;
+        }
+        InternalsConfigurationType internals = config.getInternals();
+        if (internals == null) {
+            return null;
+        }
+        return internals.getShadowMetadataRecording();
+    }
+
     public enum ExportType {
         MINIMAL, REDUCED, OPERATIONAL, TRACE
+    }
+
+    /** Returns true if the current task should see the production configuration, false if it should see development config. */
+    boolean isProductionConfigurationTask() {
+        return taskExecutionMode.isProductionConfiguration();
     }
 
     // FIXME temporary solution

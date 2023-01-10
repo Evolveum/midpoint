@@ -835,7 +835,7 @@ public abstract class AbstractAssignmentEvaluatorTest extends AbstractLensTest {
 
         ObjectDelta<UserType> descriptionDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace(pastTime)
-                .asObjectDeltaCast(fredAsCreated.getOid());
+                .asObjectDelta(fredAsCreated.getOid());
 
         LensContext<UserType> lensContext = createUserLensContext();
         fillContextWithUser(lensContext, fredAsCreated.getOid(), result);

@@ -161,7 +161,7 @@ public class IterativeScriptingActivityHandler
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
             DebugUtil.debugDumpWithLabelLn(sb, "objects", objects, indent+1);
-            DebugUtil.debugDumpWithLabelLn(sb, "scriptExecutionRequest", String.valueOf(scriptExecutionRequest), indent+1);
+            DebugUtil.debugDumpWithLabel(sb, "scriptExecutionRequest", String.valueOf(scriptExecutionRequest), indent+1);
         }
     }
 }

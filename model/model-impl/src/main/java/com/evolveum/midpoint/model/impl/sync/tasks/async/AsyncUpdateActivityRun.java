@@ -90,7 +90,6 @@ public final class AsyncUpdateActivityRun
         if (event.isComplete()) {
             ResourceObjectShadowChangeDescription changeDescription = event.getChangeDescription();
             changeDescription.setItemProcessingIdentifier(request.getIdentifier());
-            changeDescription.setSimulate(isPreview());
             getModelBeans().eventDispatcher.notifyChange(changeDescription, workerTask, result);
         } else if (event.isNotApplicable()) {
             result.recordNotApplicable();

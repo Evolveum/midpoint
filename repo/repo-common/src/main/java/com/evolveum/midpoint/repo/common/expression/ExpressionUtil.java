@@ -70,9 +70,8 @@ public class ExpressionUtil {
      * Slightly more powerful version of "convert" as compared to
      * JavaTypeConverter. This version can also encrypt/decrypt and also handles poly-strings.
      */
-    public static <I, O> O convertValue(Class<O> finalExpectedJavaType, Function<Object, Object> additionalConvertor, I inputVal,
-            Protector protector,
-            PrismContext prismContext) {
+    public static <I, O> O convertValue(
+            Class<O> finalExpectedJavaType, Function<Object, Object> additionalConvertor, I inputVal, Protector protector) {
         if (inputVal == null) {
             return null;
         }
@@ -85,7 +84,7 @@ public class ExpressionUtil {
         intermediateInputVal = treatAdditionalConvertor(additionalConvertor, intermediateInputVal);
 
         O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateInputVal);
-        PrismUtil.recomputeRealValue(convertedVal, prismContext);
+        PrismUtil.recomputeRealValue(convertedVal, PrismContext.get());
         return convertedVal;
     }
 
@@ -198,7 +197,6 @@ public class ExpressionUtil {
             VariablesMap variables,
             ObjectResolver objectResolver,
             String contextDesc,
-            PrismContext prismContext,
             Task task,
             OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -224,7 +222,7 @@ public class ExpressionUtil {
             return (List<V>) Collections.singletonList((PrismValue) object);
         } else if (object instanceof ItemDeltaItem) {
             ItemDeltaItem<V, ?> idi = (ItemDeltaItem<V, ?>) object;
-            PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple(prismContext);
+            PrismValueDeltaSetTriple<V> triple = idi.toDeltaSetTriple();
             return triple != null ? triple.getNonNegativeValues() : new ArrayList<>();
         } else {
             throw new IllegalStateException("Unsupported target value(s): " + object.getClass() + " (" + object + ")");
@@ -527,7 +525,7 @@ public class ExpressionUtil {
         }
     }
 
-    public static <IV extends PrismValue, ID extends ItemDefinition> ItemDeltaItem<IV, ID> toItemDeltaItem(Object object) {
+    public static <IV extends PrismValue, ID extends ItemDefinition<?>> ItemDeltaItem<IV, ID> toItemDeltaItem(Object object) {
         if (object == null) {
             return null;
         } else if (object instanceof ItemDeltaItem<?, ?>) {
@@ -915,6 +913,7 @@ public class ExpressionUtil {
                 .makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, parentResult);
 
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        context.setExpressionFactory(expressionFactory);
         context.setSkipEvaluationMinus(true); // no need to evaluate 'old' state
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, parentResult);
 
@@ -936,7 +935,7 @@ public class ExpressionUtil {
             ExpressionType expressionType, ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task,
             OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ItemDefinition<?> outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
+        ItemDefinition<?> outputDefinition = PrismContext.get().definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
         outputDefinition.freeze();
         return evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,

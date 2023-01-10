@@ -33,11 +33,6 @@
 
         <icfc:configurationProperties>
             <icfi:instanceId>resource-preview-changes-cod</icfi:instanceId>
-            <icfi:requireExplicitEnable>true</icfi:requireExplicitEnable>
-            <icfi:uselessGuardedString>
-                <clearValue>whatever</clearValue>
-            </icfi:uselessGuardedString>
-            <icfi:uselessString>Useless</icfi:uselessString>
             <icfi:varyLetterCase>false</icfi:varyLetterCase>
         </icfc:configurationProperties>
 
@@ -64,13 +59,6 @@
                     <source>
                         <path>name</path>
                     </source>
-                    <expression>
-                        <script>
-                            <code>
-                                name
-                            </code>
-                        </script>
-                    </expression>
                 </outbound>
             </attribute>
             <attribute>
@@ -121,13 +109,6 @@
                     <source>
                         <path>name</path>
                     </source>
-                    <expression>
-                        <script>
-                            <code>
-                                name
-                            </code>
-                        </script>
-                    </expression>
                 </outbound>
             </attribute>
             <attribute>
@@ -140,13 +121,6 @@
                     <source>
                         <path>description</path>
                     </source>
-                    <expression>
-                        <script>
-                            <code>
-                                description
-                            </code>
-                        </script>
-                    </expression>
                 </outbound>
             </attribute>
 

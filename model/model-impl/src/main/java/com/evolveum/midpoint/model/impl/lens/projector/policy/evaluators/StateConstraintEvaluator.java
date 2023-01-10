@@ -131,7 +131,9 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
             variables.put(VAR_RULE_EVALUATION_CONTEXT, ctx, PolicyRuleEvaluationContext.class);
             ExecutionContext resultingContext;
             try {
-                resultingContext = scriptingExpressionEvaluator.evaluateExpressionPrivileged(constraint.getExecuteScript(), variables, ctx.task, result);
+                resultingContext =
+                        scriptingExpressionEvaluator.evaluateExpressionPrivileged(
+                                constraint.getExecuteScript(), variables, ctx.task, result);
             } catch (ScriptExecutionException e) {
                 throw new SystemException(e);       // TODO
             }
@@ -146,9 +148,13 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         }
 
         if (constraint.getMessageExpression() != null) {
-            LocalizableMessageType messageBean = evaluatorHelper
-                    .evaluateLocalizableMessageType(constraint.getMessageExpression(), evaluatorHelper.createVariablesMap(ctx, constraintElement),
-                            "message expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task,
+            LocalizableMessageType messageBean =
+                    evaluatorHelper.evaluateLocalizableMessageType(
+                            constraint.getMessageExpression(),
+                            evaluatorHelper.createVariablesMap(ctx, constraintElement),
+                            String.format(
+                                    "message expression in object state constraint %s (%s)", constraint.getName(), ctx.state),
+                            ctx,
                             result);
             if (messageBean == null) {
                 return null;
@@ -159,8 +165,12 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         }
 
         if (constraint.getExpression() != null) {
-            if (!evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createVariablesMap(ctx, constraintElement),
-                    "expression in object state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result)) {
+            if (!evaluatorHelper.evaluateBoolean(
+                    constraint.getExpression(),
+                    evaluatorHelper.createVariablesMap(ctx, constraintElement),
+                    String.format(
+                            "expression in object state constraint %s (%s)", constraint.getName(), ctx.state),
+                    ctx, result)) {
                 return null;
             }
         }
@@ -170,9 +180,11 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
                     createShortMessage(OBJECT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, false, result));
     }
 
-    private <AH extends AssignmentHolderType> EvaluatedStateTrigger evaluateForAssignment(JAXBElement<StatePolicyConstraintType> constraintElement,
+    private <AH extends AssignmentHolderType> EvaluatedStateTrigger evaluateForAssignment(
+            JAXBElement<StatePolicyConstraintType> constraintElement,
             AssignmentPolicyRuleEvaluationContext<AH> ctx, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         StatePolicyConstraintType constraint = constraintElement.getValue();
         if (constraint.getFilter() != null) {
             throw new UnsupportedOperationException("Filter is not supported for assignment state constraints yet.");
@@ -183,8 +195,12 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         if (!ctx.isApplicableToState()) {
             return null;
         }
-        boolean match = evaluatorHelper.evaluateBoolean(constraint.getExpression(), evaluatorHelper.createVariablesMap(ctx, constraintElement),
-                "expression in assignment state constraint " + constraint.getName() + " (" + ctx.state + ")", ctx.task, result);
+        boolean match =
+                evaluatorHelper.evaluateBoolean(
+                        constraint.getExpression(),
+                        evaluatorHelper.createVariablesMap(ctx, constraintElement),
+                        String.format("expression in assignment state constraint %s (%s)", constraint.getName(), ctx.state),
+                        ctx, result);
         if (match) {
             return new EvaluatedStateTrigger(ASSIGNMENT_STATE, constraint,
                     createMessage(ASSIGNMENT_CONSTRAINT_KEY_PREFIX, constraintElement, ctx, true, result),
@@ -194,10 +210,21 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
     }
 
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(String constraintKeyPrefix,
-            JAXBElement<StatePolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, boolean assignmentTarget, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LocalizableMessage builtInMessage = createBuiltInMessage(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + constraintKeyPrefix, constraintElement, ctx, assignmentTarget, result);
+    private <AH extends AssignmentHolderType> LocalizableMessage createMessage(
+            String constraintKeyPrefix,
+            JAXBElement<StatePolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<AH> ctx,
+            boolean assignmentTarget,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage =
+                createBuiltInMessage(
+                        SchemaConstants.DEFAULT_POLICY_CONSTRAINT_KEY_PREFIX + constraintKeyPrefix,
+                        constraintElement,
+                        ctx,
+                        assignmentTarget,
+                        result);
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
@@ -227,7 +254,8 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
         return evaluatorHelper.createLocalizableMessage(constraintElement, ctx, builtInMessage, result);
     }
 
-    private <AH extends AssignmentHolderType> void addAssignmentTargetArgument(List<Object> args, PolicyRuleEvaluationContext<AH> ctx) {
+    private <AH extends AssignmentHolderType> void addAssignmentTargetArgument(
+            List<Object> args, PolicyRuleEvaluationContext<AH> ctx) {
         if (!(ctx instanceof AssignmentPolicyRuleEvaluationContext)) {
             args.add("");
         } else {
@@ -237,10 +265,21 @@ public class StateConstraintEvaluator implements PolicyConstraintEvaluator<State
     }
 
     @NotNull
-    private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(String constraintKeyPrefix,
-            JAXBElement<StatePolicyConstraintType> constraintElement, PolicyRuleEvaluationContext<AH> ctx, boolean assignmentTarget, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LocalizableMessage builtInMessage = createBuiltInMessage(SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraintKeyPrefix, constraintElement, ctx, assignmentTarget, result);
+    private <AH extends AssignmentHolderType> LocalizableMessage createShortMessage(
+            String constraintKeyPrefix,
+            JAXBElement<StatePolicyConstraintType> constraintElement,
+            PolicyRuleEvaluationContext<AH> ctx,
+            boolean assignmentTarget,
+            OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        LocalizableMessage builtInMessage =
+                createBuiltInMessage(
+                        SchemaConstants.DEFAULT_POLICY_CONSTRAINT_SHORT_MESSAGE_KEY_PREFIX + constraintKeyPrefix,
+                        constraintElement,
+                        ctx,
+                        assignmentTarget,
+                        result);
         return evaluatorHelper.createLocalizableShortMessage(constraintElement, ctx, builtInMessage, result);
     }
 }

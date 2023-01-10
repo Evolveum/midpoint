@@ -111,7 +111,7 @@ public abstract class AbstractAsserter<RA> {
         if (details == null) {
             return o.toString();
         } else {
-            return o.toString()+" ("+details+")";
+            return o+" ("+details+")";
         }
     }
 
@@ -141,5 +141,9 @@ public abstract class AbstractAsserter<RA> {
         if (value < expectedMin || value > expectedMax) {
             fail(message + ": expected " + expectedMin + "-" + expectedMax + ", real value is " + value);
         }
+    }
+
+    public RA getReturnAsserter() {
+        return returnAsserter;
     }
 }

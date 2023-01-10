@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceActivationDefinitionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -20,7 +23,7 @@ import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -32,9 +35,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
  */
 
 @Experimental
-public class ActivationsWizardPanel extends AbstractResourceWizardPanel<ResourceObjectTypeDefinitionType> {
+public class ActivationsWizardPanel extends AbstractWizardPanel<ResourceObjectTypeDefinitionType, ResourceDetailsModel> {
 
-    public ActivationsWizardPanel(String id, ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> helper) {
+    public ActivationsWizardPanel(String id, WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> helper) {
         super(id, helper);
     }
 
@@ -47,7 +50,7 @@ public class ActivationsWizardPanel extends AbstractResourceWizardPanel<Resource
     private List<WizardStep> createActivationsSteps(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
         List<WizardStep> steps = new ArrayList<>();
         AdministrativeStatusStepPanel adminPanel = new AdministrativeStatusStepPanel(
-                getResourceModel(),
+                getAssignmentHolderModel(),
                 PrismContainerWrapperModel.fromContainerValueWrapper(
                         valueModel,
                         ItemPath.create(
@@ -62,7 +65,7 @@ public class ActivationsWizardPanel extends AbstractResourceWizardPanel<Resource
         steps.add(adminPanel);
 
         ExistenceStepPanel existencePanel = new ExistenceStepPanel(
-                getResourceModel(),
+                getAssignmentHolderModel(),
                 PrismContainerWrapperModel.fromContainerValueWrapper(
                         valueModel,
                         ItemPath.create(
@@ -77,7 +80,7 @@ public class ActivationsWizardPanel extends AbstractResourceWizardPanel<Resource
         steps.add(existencePanel);
 
         ValidFromStepPanel validFromPanel = new ValidFromStepPanel(
-                getResourceModel(),
+                getAssignmentHolderModel(),
                 PrismContainerWrapperModel.fromContainerValueWrapper(
                         valueModel,
                         ItemPath.create(
@@ -92,7 +95,7 @@ public class ActivationsWizardPanel extends AbstractResourceWizardPanel<Resource
         steps.add(validFromPanel);
 
         ValidToStepPanel validToPanel = new ValidToStepPanel(
-                getResourceModel(),
+                getAssignmentHolderModel(),
                 PrismContainerWrapperModel.fromContainerValueWrapper(
                         valueModel,
                         ItemPath.create(
@@ -107,7 +110,7 @@ public class ActivationsWizardPanel extends AbstractResourceWizardPanel<Resource
         steps.add(validToPanel);
 
         LockoutStatusStepPanel lockPanel = new LockoutStatusStepPanel(
-                getResourceModel(),
+                getAssignmentHolderModel(),
                 PrismContainerWrapperModel.fromContainerValueWrapper(
                         valueModel,
                         ItemPath.create(
@@ -126,7 +129,7 @@ public class ActivationsWizardPanel extends AbstractResourceWizardPanel<Resource
                 }
                 OperationResult result = ActivationsWizardPanel.this.onSaveResourcePerformed(target);
                 if (result != null && !result.isError()) {
-                    WebComponentUtil.createToastForUpdateResource(target, this);
+                    WebComponentUtil.createToastForUpdateObject(target, this, ResourceType.COMPLEX_TYPE);
                     onExitPerformed(target);
                 }
             }

@@ -190,7 +190,7 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
                 if (actionWithRule.getRight() != null) {
                     for (EvaluatedPolicyRuleTrigger<?> trigger : actionWithRule.getRight().getAllTriggers()) {
                         // we don't care about options; these converted triggers will be thrown away
-                        triggers.add(trigger.toEvaluatedPolicyRuleTriggerBean(new PolicyRuleExternalizationOptions(), prismContext));
+                        triggers.add(trigger.toEvaluatedPolicyRuleTriggerBean(new PolicyRuleExternalizationOptions()));
                     }
                 }
             }

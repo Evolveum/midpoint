@@ -298,7 +298,7 @@ public class MockFactory {
             }
 
             @Override
-            public CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result) {
+            public @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult result) {
                 return new CapabilityCollectionType();
             }
         };
@@ -411,6 +411,11 @@ public class MockFactory {
             @Override
             public @NotNull String getRepositoryType() {
                 return "mock";
+            }
+
+            @Override
+            public boolean supports(@NotNull Class<? extends ObjectType> type) {
+                return false;
             }
 
             @Override

@@ -41,6 +41,6 @@ public class CleanupWorkDefinition extends AbstractWorkDefinition {
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "cleanupPolicies", cleanupPolicies, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "cleanupPolicies", cleanupPolicies, indent + 1);
     }
 }

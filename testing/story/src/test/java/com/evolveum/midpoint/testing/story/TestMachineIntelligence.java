@@ -19,7 +19,6 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -29,7 +28,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.CsvResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
@@ -48,9 +46,6 @@ public class TestMachineIntelligence extends AbstractStoryTest {
     private static final File SHADOW_CHAPPIE_FILE = new File(TEST_DIR, "shadow-chappie.xml");
     private static final String SHADOW_CHAPPIE_OID = "77777700-0000-0000-0000-111111111112";
 
-    @Autowired
-    private MidpointConfiguration midPointConfig;
-
     @Override
     protected File getSystemConfigurationFile() {
         return super.getSystemConfigurationFile();
@@ -60,24 +55,14 @@ public class TestMachineIntelligence extends AbstractStoryTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
-        RESOURCE_HR.initialize(initTask, initResult);
+        RESOURCE_HR.initAndTest(this, initTask, initResult);
     }
 
     @Test
     public void test000Sanity() throws Exception {
-        Task task = getTestTask();
-
-        OperationResult hrTestResult = modelService.testResource(RESOURCE_HR.oid, task, task.getResult());
-        TestUtil.assertSuccess("HR resource test result", hrTestResult);
-
-        // TODO What is this?
-        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_HR.oid, task, task.getResult());
-        TestUtil.assertSuccess("OpenDJ resource test result", testResultOpenDj);
-
         SystemConfigurationType systemConfiguration = getSystemConfiguration();
         assertNotNull("No system configuration", systemConfiguration);
         display("System config", systemConfiguration);
-
     }
 
     /**
@@ -156,6 +141,7 @@ public class TestMachineIntelligence extends AbstractStoryTest {
     private PrismObject<UserType> assertShadowOwner(
             String shadowOid, String userName, String userGivenName, String userFamilyName,
             String userFullName, Task task, OperationResult result) throws Exception {
+        //noinspection unchecked
         PrismObject<UserType> userRur = (PrismObject<UserType>) modelService.searchShadowOwner(shadowOid, null, task, result);
         assertNotNull("Owner must not be null", userRur);
 

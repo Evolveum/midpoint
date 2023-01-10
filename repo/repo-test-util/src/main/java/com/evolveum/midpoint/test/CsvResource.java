@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.test;
 
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
 import java.io.*;
@@ -19,14 +18,11 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.ClassPathUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  *
  * - data manipulation methods use fixed charset (system default)
  */
-public class CsvResource extends TestResource<ResourceType> {
+public class CsvResource extends AnyResource {
 
     private static final Trace LOGGER = TraceManager.getTrace(CsvResource.class);
 
@@ -56,6 +52,8 @@ public class CsvResource extends TestResource<ResourceType> {
                     ResourceType.F_CONNECTOR_CONFIGURATION,
                     SchemaConstants.ICF_CONFIGURATION_PROPERTIES,
                     FILE_PATH_NAME);
+
+    @NotNull private final File dir;
 
     /** Name of the data file (without the path). It is the same for source and "live" data file. */
     @NotNull private final String dataFileName;
@@ -76,6 +74,7 @@ public class CsvResource extends TestResource<ResourceType> {
      */
     public CsvResource(@NotNull File dir, @NotNull String fileName, @NotNull String oid, @NotNull String dataFileName) {
         super(dir, fileName, oid);
+        this.dir = dir;
         this.dataFileName = dataFileName;
         this.initialContent = null;
     }
@@ -87,60 +86,49 @@ public class CsvResource extends TestResource<ResourceType> {
     public CsvResource(@NotNull File dir, @NotNull String fileName, @NotNull String oid, @NotNull String dataFileName,
             @NotNull String initialContent) {
         super(dir, fileName, oid);
+        this.dir = dir;
         this.dataFileName = dataFileName;
         this.initialContent = initialContent;
     }
 
-    /**
-     * Imports the resource (using appropriate importer e.g. model importer) and reloads it - to have all the metadata.
-     */
-    public void initialize(Task task, OperationResult result)
-            throws IOException, CommonException {
-        prepareObject();
-        importObject(task, result);
-        reload(result);
+    @Override
+    protected void customizeParsed(PrismObject<ResourceType> parsed) {
+        setCsvFilePathInResourceDefinition(parsed);
     }
 
-    /**
-     * Imports the resource, tests it, and reloads it (to have e.g. the schema).
-     */
-    public void initializeAndTest(ResourceTester tester, Task task, OperationResult result) throws CommonException, IOException {
-        prepareObject();
-        importObject(task, result);
-        assertSuccess(
-                tester.testResource(oid, task, result));
-        reload(result);
-    }
-
-    private void prepareObject() throws SchemaException, IOException {
-        read();
+    /** Hacks the resource prism object by setting CSV file path. */
+    private void setCsvFilePathInResourceDefinition(PrismObject<ResourceType> parsed) {
         dataFile = prepareDataFile();
-        object.findProperty(FILE_PATH_PATH)
+        parsed.findProperty(FILE_PATH_PATH)
                 .setRealValue(dataFile.getAbsolutePath());
     }
 
-    private @NotNull File prepareDataFile() throws IOException {
-        File destinationDir = new File(
-                TestSpringBeans.getMidpointConfiguration().getMidpointHome(),
-                oid);
-        //noinspection ResultOfMethodCallIgnored
-        destinationDir.mkdir();
-        File destinationFile = new File(destinationDir, dataFileName);
+    private @NotNull File prepareDataFile() {
+        try {
+            File destinationDir = new File(
+                    TestSpringBeans.getMidpointConfiguration().getMidpointHome(),
+                    oid);
+            //noinspection ResultOfMethodCallIgnored
+            destinationDir.mkdir();
+            File destinationFile = new File(destinationDir, dataFileName);
 
-        if (initialContent != null) {
-            LOGGER.info("Creating {} in {}", dataFileName, destinationDir);
-            write(destinationFile, terminateLastLine(initialContent));
-        } else {
-            LOGGER.info("Start copying {} from {} to {}", dataFileName, dir, destinationDir);
-            ClassPathUtil.copyFile(
-                    new FileInputStream(new File(dir, dataFileName)),
-                    dataFileName, destinationFile);
-        }
+            if (initialContent != null) {
+                LOGGER.info("Creating {} in {}", dataFileName, destinationDir);
+                write(destinationFile, terminateLastLine(initialContent));
+            } else {
+                LOGGER.info("Start copying {} from {} to {}", dataFileName, dir, destinationDir);
+                ClassPathUtil.copyFile(
+                        new FileInputStream(new File(dir, dataFileName)),
+                        dataFileName, destinationFile);
+            }
 
-        if (!destinationFile.exists()) {
-            throw new SystemException("CSV file was not created");
+            if (!destinationFile.exists()) {
+                throw new SystemException("CSV file was not created");
+            }
+            return destinationFile;
+        } catch (IOException e) {
+            throw new SystemException("Couldn't read the data file: " + e.getMessage(), e);
         }
-        return destinationFile;
     }
 
     /** Appends line separator, if not there. */
@@ -178,7 +166,6 @@ public class CsvResource extends TestResource<ResourceType> {
      * Returns the current content of the file as a mutable list of lines.
      */
     public List<String> getContent() throws IOException {
-        //noinspection UnstableApiUsage
         return Files.readLines(dataFile, charset);
     }
 
@@ -207,19 +194,25 @@ public class CsvResource extends TestResource<ResourceType> {
     }
 
     /**
-     * Replaces first line that matches given regular expression with the new content.
+     * Replaces first line that matches given regular expression with the new content. (Or deletes it if `newLine` is `null`.)
      * Throws an exception if there was no matching line.
      *
      * The new line should NOT contain line separators.
      */
-    public void replaceLine(@Language("RegExp") String regex, String newLine) throws IOException {
-        checkNoSeparator(newLine);
+    public void replaceLine(@Language("RegExp") String regex, @Nullable String newLine) throws IOException {
+        if (newLine != null) {
+            checkNoSeparator(newLine);
+        }
         List<String> content = getContent();
         boolean found = false;
         for (int i = 0; i < content.size(); i++) {
             String existingLine = content.get(i);
             if (existingLine.matches(regex)) {
-                content.set(i, newLine);
+                if (newLine != null) {
+                    content.set(i, newLine);
+                } else {
+                    content.remove(i);
+                }
                 found = true;
                 break;
             }
@@ -228,5 +221,10 @@ public class CsvResource extends TestResource<ResourceType> {
             throw new IllegalArgumentException("No line matched '" + regex + "'");
         }
         setContent(content);
+    }
+
+    /** A convenience variant of {@link #replaceLine(String, String)}. */
+    public void deleteLine(@Language("RegExp") String regex) throws IOException {
+        replaceLine(regex, null);
     }
 }

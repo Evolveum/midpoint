@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
@@ -68,8 +67,10 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
 
     Collection<PolicyExceptionType> getPolicyExceptions();
 
-    void addToEvaluatedPolicyRuleBeans(Collection<EvaluatedPolicyRuleType> rules, PolicyRuleExternalizationOptions options,
-            Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector, PrismContext prismContext);
+    void addToEvaluatedPolicyRuleBeans(
+            Collection<EvaluatedPolicyRuleType> rules,
+            PolicyRuleExternalizationOptions options,
+            Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector);
 
     boolean isGlobal();
 

@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.cases.component;
 
+import java.util.List;
+
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -18,18 +24,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PanelDisplay;
 import com.evolveum.midpoint.web.application.PanelInstance;
 import com.evolveum.midpoint.web.application.PanelType;
-import com.evolveum.midpoint.web.component.prism.show.SceneDto;
-import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationDto;
+import com.evolveum.midpoint.web.component.prism.show.VisualizationPanel;
 import com.evolveum.midpoint.wf.api.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
-
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-
-import java.util.List;
 
 /**
  * Created by honchar
@@ -46,29 +45,29 @@ public class OperationRequestCasePanel extends AbstractObjectMainPanel<CaseType,
 
     private static final String ID_REQUEST_DETAILS_PANELS = "requestDetailsPanels";
     private static final String ID_OPERATIONAL_REQUEST_CASE_PANEL = "operationRequestCasePanel";
-    private IModel<List<SceneDto>> sceneModel;
+    private IModel<List<VisualizationDto>> visualizationsModel;
 
     public OperationRequestCasePanel(String id, AssignmentHolderDetailsModel objectWrapperModel, ContainerPanelConfigurationType config) {
         super(id, objectWrapperModel, config);
         initModels(); //TODO: should be in CaseDetailsModel???
     }
 
-    private void initModels(){
-        sceneModel = new LoadableModel<List<SceneDto>>(false) {
+    private void initModels() {
+        visualizationsModel = new LoadableModel<>(false) {
             @Override
-            protected List<SceneDto> load() {
+            protected List<VisualizationDto> load() {
                 PageBase pageBase = OperationRequestCasePanel.this.getPageBase();
 
-                CaseType caseObject =  getObjectWrapper().getObject().asObjectable();
+                CaseType caseObject = getObjectWrapper().getObject().asObjectable();
                 OperationResult result = new OperationResult(OPERATION_PREPARE_DELTA_VISUALIZATION);
                 Task task = pageBase.createSimpleTask(OPERATION_PREPARE_DELTA_VISUALIZATION);
                 try {
                     ChangesByState<?> changesByState = pageBase.getApprovalsManager().getChangesByState(caseObject,
                             pageBase.getModelInteractionService(), pageBase.getPrismContext(), task, result);
-                    List<SceneDto> sceneDtoList = WebComponentUtil.computeChangesCategorizationList(changesByState, caseObject.getObjectRef(),
-                             pageBase.getModelInteractionService(), pageBase.getPrismContext(), task, result);
-                    return sceneDtoList;
-                } catch (Exception ex){
+
+                    return WebComponentUtil.computeChangesCategorizationList(changesByState, caseObject.getObjectRef(),
+                            pageBase.getModelInteractionService(), pageBase.getPrismContext(), task, result);
+                } catch (Exception ex) {
                     LOGGER.error("Couldn't prepare delta visualization: {}", ex.getLocalizedMessage());
                 }
                 return null;
@@ -76,21 +75,19 @@ public class OperationRequestCasePanel extends AbstractObjectMainPanel<CaseType,
         };
     }
 
-
-    protected void initLayout(){
-        ListView<SceneDto> requestDetailsPanels = new ListView<SceneDto>(ID_REQUEST_DETAILS_PANELS, sceneModel) {
+    protected void initLayout() {
+        ListView<VisualizationDto> requestDetailsPanels = new ListView<>(ID_REQUEST_DETAILS_PANELS, visualizationsModel) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(ListItem<SceneDto> item) {
-                ScenePanel scenePanel = new ScenePanel(ID_OPERATIONAL_REQUEST_CASE_PANEL, item.getModel());
-                scenePanel.setOutputMarkupId(true);
-                item.add(scenePanel);
+            protected void populateItem(ListItem<VisualizationDto> item) {
+                VisualizationPanel panel = new VisualizationPanel(ID_OPERATIONAL_REQUEST_CASE_PANEL, item.getModel());
+                panel.setOutputMarkupId(true);
+                item.add(panel);
             }
         };
         requestDetailsPanels.setOutputMarkupId(true);
         add(requestDetailsPanels);
     }
-
 }

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -92,12 +91,11 @@ public class EvaluatedSituationTrigger extends EvaluatedPolicyRuleTrigger<Policy
     }
 
     @Override
-    public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
-            PrismContext prismContext) {
+    public EvaluatedSituationTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
         EvaluatedSituationTriggerType rv = new EvaluatedSituationTriggerType();
         fillCommonContent(rv);
         if (!options.isRespectFinalFlag() || !isFinal()) {
-            sourceRules.forEach(r -> r.addToEvaluatedPolicyRuleBeans(rv.getSourceRule(), options, null, prismContext));
+            sourceRules.forEach(r -> r.addToEvaluatedPolicyRuleBeans(rv.getSourceRule(), options, null));
         }
         return rv;
     }

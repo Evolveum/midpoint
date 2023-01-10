@@ -9,16 +9,16 @@ package com.evolveum.midpoint.model.impl.lens;
 import static java.util.Collections.emptySet;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createReadOnlyCollection;
-import static com.evolveum.midpoint.util.MiscUtil.getSingleValue;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.expr.SequentialValueExpressionEvaluator;
+
+import com.evolveum.midpoint.schema.*;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -46,10 +46,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.*;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.VirtualAssignmentSpecification;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -319,10 +315,12 @@ public class LensUtil {
         Source<PrismPropertyValue<Integer>,PrismPropertyDefinition<Integer>> iterationSource = new Source<>(idi, ExpressionConstants.VAR_ITERATION_QNAME);
         sources.add(iterationSource);
 
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables,
-                "iteration token expression in "+accountContext.getHumanReadableName(), task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(
+                sources , variables, "iteration token expression in "+accountContext.getHumanReadableName(), task);
+        eeContext.setExpressionFactory(expressionFactory);
+
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, expressionContext, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
         Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
         if (outputValues.isEmpty()) {
             return "";
@@ -379,10 +377,11 @@ public class LensUtil {
         variables.put(ExpressionConstants.VAR_ITERATION, iteration, Integer.class);
         variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
 
-        ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null , variables, desc, task);
+        eeContext.setExpressionFactory(expressionFactory);
         ModelExpressionEnvironment<?,?,?> env = new ModelExpressionEnvironment<>(context, null, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, expressionContext, env, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, env, result);
         Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
         if (outputValues.isEmpty()) {
             return false;
@@ -400,8 +399,10 @@ public class LensUtil {
     /**
      * Used for assignments and similar objects that do not have separate lifecycle.
      */
-    public static boolean isAssignmentValid(AssignmentHolderType focus, AssignmentType assignment, XMLGregorianCalendar now,
-            ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
+    public static boolean isAssignmentValid(
+            AssignmentHolderType focus, AssignmentType assignment,
+            XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel,
+            @NotNull TaskExecutionMode taskExecutionMode) {
         ObjectReferenceType targetRef = assignment.getTargetRef();
         if (targetRef != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
             // Archetype assignments are always valid, even in non-valid lifecycle states.
@@ -410,10 +411,16 @@ public class LensUtil {
         }
         String focusLifecycleState = focus.getLifecycleState();
 
-        if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState, focusStateModel)) {
+        if (!activationComputer.lifecycleHasActiveAssignments(focusLifecycleState, focusStateModel, taskExecutionMode)) {
             return false;
         }
-        return isValid(assignment.getLifecycleState(), assignment.getActivation(), now, activationComputer, focusStateModel);
+        return isValid(
+                assignment.getLifecycleState(),
+                assignment.getActivation(),
+                now,
+                activationComputer,
+                focusStateModel,
+                taskExecutionMode);
     }
 
     @NotNull
@@ -438,16 +445,32 @@ public class LensUtil {
         return forcedAssignments;
     }
 
-    public static boolean isFocusValid(AssignmentHolderType focus, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
-        if (FocusType.class.isAssignableFrom(focus.getClass())) {
-            return isValid(focus.getLifecycleState(),  ((FocusType) focus).getActivation(), now, activationComputer, focusStateModel);
-        }
-        return isValid(focus.getLifecycleState(),  null, now, activationComputer, focusStateModel);
+    public static boolean isFocusValid(
+            AssignmentHolderType focus,
+            XMLGregorianCalendar now,
+            ActivationComputer activationComputer,
+            LifecycleStateModelType focusStateModel,
+            @NotNull TaskExecutionMode taskExecutionMode) {
+        ActivationType activation = focus instanceof FocusType ? ((FocusType) focus).getActivation() : null;
+        return isValid(focus.getLifecycleState(), activation, now, activationComputer, focusStateModel, taskExecutionMode);
     }
 
-    private static boolean isValid(String lifecycleState, ActivationType activationType, XMLGregorianCalendar now, ActivationComputer activationComputer, LifecycleStateModelType focusStateModel) {
+    private static boolean isValid(
+            String lifecycleState,
+            ActivationType activationType,
+            XMLGregorianCalendar now,
+            ActivationComputer activationComputer,
+            LifecycleStateModelType focusStateModel,
+            @NotNull TaskExecutionMode taskExecutionMode) {
+        String lifecycleStateHacked;
+        if (!taskExecutionMode.isProductionConfiguration() && SchemaConstants.LIFECYCLE_PROPOSED.equals(lifecycleState)) {
+            lifecycleStateHacked = SchemaConstants.LIFECYCLE_ACTIVE; // FIXME brutal hack
+        } else {
+            lifecycleStateHacked = lifecycleState;
+        }
         TimeIntervalStatusType validityStatus = activationComputer.getValidityStatus(activationType, now);
-        ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(lifecycleState, activationType, validityStatus, focusStateModel);
+        ActivationStatusType effectiveStatus =
+                activationComputer.getEffectiveStatus(lifecycleStateHacked, activationType, validityStatus, focusStateModel);
         return effectiveStatus == ActivationStatusType.ENABLED;
     }
 
@@ -816,94 +839,9 @@ public class LensUtil {
                 ResourceTypeUtil.getEnabledCapability(projCtx.getResource(), CredentialsCapabilityType.class));
     }
 
-    public static boolean evaluateBoolean(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return evaluateExpressionSingle(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
-                task, result,
-                DOMUtil.XSD_BOOLEAN, false, null);
-    }
-
-    public static String evaluateString(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return evaluateExpressionSingle(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
-                task, result,
-                DOMUtil.XSD_STRING, null, null);
-    }
-
-    public static LocalizableMessageType evaluateLocalizableMessageType(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
-            OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Function<Object, Object> additionalConvertor = (o) -> {
-            if (o == null || o instanceof LocalizableMessageType) {
-                return o;
-            } else if (o instanceof LocalizableMessage) {
-                return LocalizationUtil.createLocalizableMessageType((LocalizableMessage) o);
-            } else {
-                return new SingleLocalizableMessageType().fallbackMessage(String.valueOf(o));
-            }
-        };
-        return evaluateExpressionSingle(expressionBean, VariablesMap, contextDescription, expressionFactory, prismContext,
-                task, result, LocalizableMessageType.COMPLEX_TYPE, null, additionalConvertor);
-    }
-
-    public static <T> T evaluateExpressionSingle(ExpressionType expressionBean, VariablesMap VariablesMap,
-            String contextDescription, ExpressionFactory expressionFactory, PrismContext prismContext, Task task,
-            OperationResult result, QName typeName,
-            T defaultValue, Function<Object, Object> additionalConvertor)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        PrismPropertyDefinition<T> resultDef = prismContext.definitionFactory().createPropertyDefinition(
-                new QName(SchemaConstants.NS_C, "result"), typeName);
-        Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> expression =
-                expressionFactory.makeExpression(expressionBean, resultDef, MiscSchemaUtil.getExpressionProfile(), contextDescription, task, result);
-        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, contextDescription, task);
-        eeContext.setAdditionalConvertor(additionalConvertor);
-        PrismValueDeltaSetTriple<PrismPropertyValue<T>> exprResultTriple =
-                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
-        List<T> results = exprResultTriple.getZeroSet().stream()
-                .map(ppv -> (T) ppv.getRealValue())
-                .collect(Collectors.toList());
-        return getSingleValue(results, defaultValue, contextDescription);
-    }
-
-    @NotNull
-    public static SingleLocalizableMessageType interpretLocalizableMessageTemplate(LocalizableMessageTemplateType template,
-            VariablesMap var, ExpressionFactory expressionFactory, PrismContext prismContext,
-            Task task, OperationResult result)
-            throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-            ConfigurationException, SecurityViolationException {
-        SingleLocalizableMessageType rv = new SingleLocalizableMessageType();
-        if (template.getKey() != null) {
-            rv.setKey(template.getKey());
-        } else if (template.getKeyExpression() != null) {
-            rv.setKey(evaluateString(template.getKeyExpression(), var, "localizable message key expression", expressionFactory, prismContext, task, result));
-        }
-        if (!template.getArgument().isEmpty() && !template.getArgumentExpression().isEmpty()) {
-            throw new IllegalArgumentException("Both argument and argumentExpression items are non empty");
-        } else if (!template.getArgumentExpression().isEmpty()) {
-            for (ExpressionType argumentExpression : template.getArgumentExpression()) {
-                LocalizableMessageType argument = evaluateLocalizableMessageType(argumentExpression, var,
-                        "localizable message argument expression", expressionFactory, prismContext, task, result);
-                rv.getArgument().add(new LocalizableMessageArgumentType().localizable(argument));
-            }
-        } else {
-            // TODO allow localizable messages templates here
-            rv.getArgument().addAll(template.getArgument());
-        }
-        if (template.getFallbackMessage() != null) {
-            rv.setFallbackMessage(template.getFallbackMessage());
-        } else if (template.getFallbackMessageExpression() != null) {
-            rv.setFallbackMessage(evaluateString(template.getFallbackMessageExpression(), var,
-                    "localizable message fallback expression", expressionFactory, prismContext, task, result));
-        }
-        return rv;
-    }
-
-    public static <F extends ObjectType> void reclaimSequences(LensContext<F> context, RepositoryService repositoryService, Task task, OperationResult result) throws SchemaException {
+    public static <F extends ObjectType> void reclaimSequences(
+            LensContext<F> context, RepositoryService repositoryService, Task task, OperationResult result)
+            throws SchemaException {
         if (context == null) {
             return;
         }
@@ -986,7 +924,7 @@ public class LensUtil {
         return result.isTracingNormal(trace.getClass()) ? LensContext.ExportType.TRACE : LensContext.ExportType.MINIMAL;
     }
 
-    public static LensContext.ExportType getExportTypeTraceOrReduced(TraceType trace, OperationResult result) {
+    static LensContext.ExportType getExportTypeTraceOrReduced(TraceType trace, OperationResult result) {
         return result.isTracingNormal(trace.getClass()) ? LensContext.ExportType.TRACE : LensContext.ExportType.REDUCED;
     }
 

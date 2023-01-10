@@ -5,20 +5,18 @@ import java.util.Collection;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
-
 import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.impl.tasks.simple.SimpleActivityHandler;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunException;
 import com.evolveum.midpoint.repo.common.activity.definition.AbstractWorkDefinition;
 import com.evolveum.midpoint.repo.common.activity.definition.ObjectSetSpecificationProvider;
 import com.evolveum.midpoint.repo.common.activity.definition.WorkDefinitionFactory;
-import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
 import com.evolveum.midpoint.repo.common.activity.run.ActivityReportingCharacteristics;
+import com.evolveum.midpoint.repo.common.activity.run.ActivityRunInstantiationContext;
+import com.evolveum.midpoint.repo.common.activity.run.SearchBasedActivityRun;
 import com.evolveum.midpoint.repo.common.activity.run.processing.ItemProcessingRequest;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -30,7 +28,6 @@ import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionSource;
 import com.evolveum.midpoint.schema.util.task.work.WorkDefinitionWrapper;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -118,8 +115,7 @@ public class ObjectIntegrityCheckActivityHandler
 
         @Override
         public Collection<SelectorOptions<GetOperationOptions>> customizeSearchOptions(
-                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result)
-                throws CommonException {
+                Collection<SelectorOptions<GetOperationOptions>> configuredOptions, OperationResult result) {
             return SelectorOptions.updateRootOptions(configuredOptions, opt -> opt.setAttachDiagData(true), GetOperationOptions::new);
         }
 
@@ -134,7 +130,7 @@ public class ObjectIntegrityCheckActivityHandler
         }
 
         @Override
-        public void afterRun(OperationResult result) throws ActivityRunException, CommonException {
+        public void afterRun(OperationResult result) {
             getActivityHandler().dumpStatistics(
                     objectStatistics,
                     getWorkDefinition().histogramColumns);
@@ -142,8 +138,7 @@ public class ObjectIntegrityCheckActivityHandler
 
         @Override
         public boolean processItem(@NotNull ObjectType object,
-                @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult parentResult)
-                throws CommonException, ActivityRunException {
+                @NotNull ItemProcessingRequest<ObjectType> request, RunningTask workerTask, OperationResult parentResult) {
             OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_ITEM);
             try {
                 objectStatistics.record(object);
@@ -196,14 +191,10 @@ public class ObjectIntegrityCheckActivityHandler
             return objects;
         }
 
-        public int getHistogramColumns() {
-            return histogramColumns;
-        }
-
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
             DebugUtil.debugDumpWithLabelLn(sb, "objects", objects, indent + 1);
-            DebugUtil.debugDumpWithLabelLn(sb, "histogramColumns", histogramColumns, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, "histogramColumns", histogramColumns, indent + 1);
         }
     }
 }

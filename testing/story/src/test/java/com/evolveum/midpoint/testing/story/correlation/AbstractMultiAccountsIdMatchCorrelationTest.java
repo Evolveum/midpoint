@@ -120,10 +120,10 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
         addObject(USER_ALICE, initTask, initResult); // approver of correlation operators org - not to be included in the case
         assignOrg(USER_ADMINISTRATOR_OID, ORG_CORRELATION_OPERATORS.oid, initTask, initResult);
 
-        RESOURCE_SIS.initializeAndTest(this, initTask, initResult);
+        RESOURCE_SIS.initAndTest(this, initTask, initResult);
 
-        TASK_IMPORT_SIS.initialize(this, initTask, initResult); // importing in closed state
-        TASK_UPDATE_SIS.initialize(this, initTask, initResult); // importing in closed state
+        TASK_IMPORT_SIS.init(this, initTask, initResult); // importing in closed state
+        TASK_UPDATE_SIS.init(this, initTask, initResult); // importing in closed state
     }
 
     @Override
@@ -642,6 +642,6 @@ public abstract class AbstractMultiAccountsIdMatchCorrelationTest extends Abstra
     }
 
     private PrismObject<ShadowType> getShadow(String name, OperationResult result) throws SchemaException {
-        return findShadowByPrismName(name, RESOURCE_SIS.getObject(), result);
+        return findShadowByPrismName(name, RESOURCE_SIS.get(), result);
     }
 }

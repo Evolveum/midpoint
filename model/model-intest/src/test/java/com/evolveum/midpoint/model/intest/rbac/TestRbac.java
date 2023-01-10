@@ -4403,7 +4403,7 @@ public class TestRbac extends AbstractRbacTest {
 
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("Came from Pluto")
-                .asObjectDeltaCast(USER_JACK_OID);
+                .asObjectDelta(USER_JACK_OID);
 
         // WHEN
 
@@ -4473,7 +4473,7 @@ public class TestRbac extends AbstractRbacTest {
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_NAME).replace(PolyString.fromOrig("modified"))
-                .asObjectDeltaCast(ROLE_DETECTING_MODIFICATIONS_OID);
+                .asObjectDelta(ROLE_DETECTING_MODIFICATIONS_OID);
         executeChanges(delta, null, task, result);
 
         // THEN
@@ -4507,7 +4507,7 @@ public class TestRbac extends AbstractRbacTest {
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("modified")
-                .asObjectDeltaCast(USER_FAILING_SCRIPT.oid);
+                .asObjectDelta(USER_FAILING_SCRIPT.oid);
         traced(() -> executeChanges(delta, null, task, result));
 
         // THEN
@@ -4540,7 +4540,7 @@ public class TestRbac extends AbstractRbacTest {
         when();
         ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_DESCRIPTION).replace("modified")
-                .asObjectDeltaCast(user.getOid());
+                .asObjectDelta(user.getOid());
         executeChanges(delta, null, task, result);
 
         then();

@@ -75,7 +75,7 @@ public class TestIdMatchCorrelationMultiAccountsReal extends AbstractMultiAccoun
                         .assertLastFailureObjectName(accountName)
                         .assertLastFailureMessageContaining(message);
 
-        PrismObject<ShadowType> shadow = findShadowByPrismName(accountName, RESOURCE_SIS.getObject(), result);
+        PrismObject<ShadowType> shadow = findShadowByPrismName(accountName, RESOURCE_SIS.get(), result);
         assertShadowAfter(shadow)
                 .assertCorrelationSituation(CorrelationSituationType.ERROR)
                 .assertHasComplexOperationExecutionFailureWithMessageContaining(TASK_IMPORT_SIS.oid, message);
@@ -104,7 +104,7 @@ public class TestIdMatchCorrelationMultiAccountsReal extends AbstractMultiAccoun
 
         deleteObjectRepo(
                 ShadowType.class,
-                findShadowByPrismName("900", RESOURCE_SIS.getObject(), result).getOid());
+                findShadowByPrismName("900", RESOURCE_SIS.get(), result).getOid());
 
         breakServerAddress(task, result);
 

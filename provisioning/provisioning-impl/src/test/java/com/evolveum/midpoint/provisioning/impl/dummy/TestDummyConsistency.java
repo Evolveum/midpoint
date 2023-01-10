@@ -2081,7 +2081,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         dummyResource.setBreakMode(BreakMode.NETWORK);
 
-        PrismObject<ShadowType> account = prismContext.parseObject(ACCOUNT_LATE.file);
+        PrismObject<ShadowType> account = ACCOUNT_LATE.get();
         account.checkConsistence();
         display("Adding shadow", account);
 

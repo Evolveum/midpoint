@@ -22,6 +22,11 @@ import static com.evolveum.midpoint.test.AbstractIntegrationTest.COMMON_DIR;
 @Experimental
 public interface CommonArchetypes {
 
-    TestResource<ArchetypeType> ARCHETYPE_TASK_ITERATIVE_BULK_ACTION = new TestResource<>(COMMON_DIR, "archetype-task-iterative-bulk-action.xml", SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
-    TestResource<ArchetypeType> ARCHETYPE_TASK_SINGLE_BULK_ACTION = new TestResource<>(COMMON_DIR, "archetype-task-single-bulk-action.xml", SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value());
+    TestResource<ArchetypeType> ARCHETYPE_TASK_ITERATIVE_BULK_ACTION = new TestResource<>(
+            COMMON_DIR, "archetype-task-iterative-bulk-action.xml",
+            SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
+
+    TestResource<ArchetypeType> ARCHETYPE_TASK_SINGLE_BULK_ACTION = new TestResource<>(
+            COMMON_DIR, "archetype-task-single-bulk-action.xml",
+            SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value());
 }

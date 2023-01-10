@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.util.task.ActivityPath;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -214,7 +215,13 @@ public abstract class SchemaConstants {
     public static final ItemPath PATH_AUTOASSIGN_ENABLED = ItemPath
             .create(AbstractRoleType.F_AUTOASSIGN, AutoassignSpecificationType.F_ENABLED);
     public static final ItemPath PATH_PARENT_ORG_REF = ItemPath.create(ObjectType.F_PARENT_ORG_REF);
+    public static final ItemPath PATH_METADATA_LAST_PROVISIONING_TIMESTAMP = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_LAST_PROVISIONING_TIMESTAMP);
     public static final ItemPath PATH_METADATA_MODIFY_TIMESTAMP = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP);
+    public static final ItemPath PATH_METADATA_MODIFY_CHANNEL = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL);
+    public static final ItemPath PATH_METADATA_MODIFIER_REF = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFIER_REF);
+    public static final ItemPath PATH_METADATA_MODIFY_TASK_REF = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_TASK_REF);
+    public static final ItemPath PATH_METADATA_MODIFY_APPROVER_REF = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF);
+    public static final ItemPath PATH_METADATA_MODIFY_APPROVAL_COMMENT = ItemPath.create(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT);
 
     public static final String NS_PROVISIONING = NS_MIDPOINT_PUBLIC + "/provisioning";
     public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-3";
@@ -305,6 +312,12 @@ public abstract class SchemaConstants {
             qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "assignmentState"));
     public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =
             qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));
+
+    // TODO decide on the final form of the following (e.g. namespace = model? provisioning? something else?)
+    @Experimental public static final String MODEL_POLICY_SITUATION_PROTECTED_SHADOW =
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "protectedShadow"));
+    @Experimental public static final String MODEL_POLICY_SITUATION_INVALID_DATA =
+            qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "invalidData"));
 
     /**
      * An orphaned task is such that has a parent but that parent does not exist.

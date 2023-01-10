@@ -159,6 +159,10 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
                 LOGGER.trace("Mapping is not applicable to channel {}", channel);
                 continue;
             }
+            if (!context.env.task.canSee(mappingBean)) {
+                LOGGER.trace("Mapping is not applicable to the task execution mode");
+                continue;
+            }
 
             String contextDescription = "inbound expression for " + itemDescription + " in " + resource;
 
@@ -209,7 +213,6 @@ class MappedItem<V extends PrismValue, D extends ItemDefinition<?>, F extends Fo
                                 builder.getVariables(),
                                 beans.mappingFactory.getObjectResolver(),
                                 "resolving target values",
-                                beans.prismContext,
                                 context.env.task,
                                 context.result));
             }

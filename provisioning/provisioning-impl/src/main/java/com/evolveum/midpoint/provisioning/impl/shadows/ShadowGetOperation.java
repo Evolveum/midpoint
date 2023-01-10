@@ -275,7 +275,8 @@ class ShadowGetOperation {
             throw new ObjectNotFoundException(
                     "Resource object not found (after quick refresh)",
                     ShadowType.class,
-                    oid);
+                    oid,
+                    ctx.isAllowNotFound());
         }
         updateShadowState();
     }

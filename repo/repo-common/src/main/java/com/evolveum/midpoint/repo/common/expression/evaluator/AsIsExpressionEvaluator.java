@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.common.expression.evaluator;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
@@ -25,11 +24,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AsIsExpressionEvalua
  *
  * @author Radovan Semancik
  */
-public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
-        extends AbstractExpressionEvaluator<V,D,AsIsExpressionEvaluatorType> {
+public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>>
+        extends AbstractExpressionEvaluator<V, D, AsIsExpressionEvaluatorType> {
 
-    AsIsExpressionEvaluator(QName elementName, AsIsExpressionEvaluatorType evaluatorBean, D outputDefinition, Protector protector, PrismContext prismContext) {
-        super(elementName, evaluatorBean, outputDefinition, protector, prismContext);
+    AsIsExpressionEvaluator(
+            QName elementName, AsIsExpressionEvaluatorType evaluatorBean, D outputDefinition, Protector protector) {
+        super(elementName, evaluatorBean, outputDefinition, protector);
     }
 
     @Override
@@ -56,8 +56,7 @@ public class AsIsExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
             //noinspection unchecked
             source = (Source<V,D>) context.getSources().iterator().next();
         }
-        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(source.getItemOld(), source.getDelta(),
-                prismContext);
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(source.getItemOld(), source.getDelta());
 
         applyValueMetadata(outputTriple, context, result);
         return finishOutputTriple(outputTriple, context.getAdditionalConvertor(), source.getResidualPath());

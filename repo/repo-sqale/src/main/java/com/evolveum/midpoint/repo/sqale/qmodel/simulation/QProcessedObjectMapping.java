@@ -3,33 +3,22 @@ package com.evolveum.midpoint.repo.sqale.qmodel.simulation;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.sqale.SqaleRepoContext;
 import com.evolveum.midpoint.repo.sqale.SqaleUtils;
 import com.evolveum.midpoint.repo.sqale.qmodel.common.QContainerMapping;
 import com.evolveum.midpoint.repo.sqlbase.JdbcSession;
 import com.evolveum.midpoint.repo.sqlbase.mapping.TableRelationResolver;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType;
-import com.querydsl.core.types.Path;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultProcessedObjectType.*;
 
-import java.util.Collection;
 import java.util.Objects;
-
 
 public class QProcessedObjectMapping extends QContainerMapping<SimulationResultProcessedObjectType, QProcessedObject, MProcessedObject, MSimulationResult> {
 
     public static final String DEFAULT_ALIAS_NAME = "po";
-
-    // FIXME: This constants should be provided by generated schema code
-    public static final ItemName F_BEFORE = new ItemName(F_OID.getNamespaceURI(), "before");
-    public static final ItemName F_AFTER = new ItemName(F_OID.getNamespaceURI(), "after");
-
 
     private static QProcessedObjectMapping instance;
 
@@ -106,8 +95,10 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         MProcessedObject row = initRowObject(object, ownerRow);
         //row.oid
         row.oid = SqaleUtils.oidToUUid(object.getOid());
-        row.nameOrig = object.getName().getOrig();
-        row.nameNorm = object.getName().getNorm();
+        if (object.getName() != null) {
+            row.nameOrig = object.getName().getOrig();
+            row.nameNorm = object.getName().getNorm();
+        }
         row.state = object.getState();
 
         row.metricIdentifiers = stringsToArray(object.getMetricIdentifier());
@@ -117,6 +108,4 @@ public class QProcessedObjectMapping extends QContainerMapping<SimulationResultP
         insert(row, jdbcSession);
         return row;
     }
-
-
 }

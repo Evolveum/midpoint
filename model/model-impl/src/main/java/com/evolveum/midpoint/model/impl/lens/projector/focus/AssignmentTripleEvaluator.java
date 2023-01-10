@@ -320,11 +320,13 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         PrismObject<AH> focusBefore = assignmentElement.isOld() && !assignmentElement.isCurrent() ?
                 focusContext.getObjectOld() : focusContext.getObjectCurrent();
         boolean wasActive = focusBefore != null &&
-                LensUtil.isAssignmentValid(focusBefore.asObjectable(),
-                        assignmentValueBefore.asContainerable(), now, beans.activationComputer, focusStateModel);
+                LensUtil.isAssignmentValid(
+                        focusBefore.asObjectable(), assignmentValueBefore.asContainerable(),
+                        now, beans.activationComputer, focusStateModel, task.getExecutionMode());
         boolean isActive = focusContext.getObjectNew() != null &&
-                LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
-                        assignmentValueAfter.asContainerable(), now, beans.activationComputer, focusStateModel);
+                LensUtil.isAssignmentValid(
+                        focusContext.getObjectNew().asObjectable(), assignmentValueAfter.asContainerable(),
+                        now, beans.activationComputer, focusStateModel, task.getExecutionMode());
 
         ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
                 createAssignmentIdiInternalChange(assignmentValueBefore, innerAssignmentDeltas);

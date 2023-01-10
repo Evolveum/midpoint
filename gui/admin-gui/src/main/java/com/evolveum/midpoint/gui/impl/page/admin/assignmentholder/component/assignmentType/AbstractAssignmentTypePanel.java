@@ -8,14 +8,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.component.ass
 
 import java.util.*;
 import java.util.stream.Collectors;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +33,11 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.AssignmentsDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.search.AbstractSearchItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -50,6 +47,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -63,11 +61,11 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.RepoAssignmentListProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -92,14 +90,12 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     private String objectOid;
     private PrismContainerDefinition<AssignmentType> searchDefinition;
 
-
     public AbstractAssignmentTypePanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model, ContainerPanelConfigurationType config, Class<? extends Objectable> type, String oid) {
         super(id, AssignmentType.class, config);
         this.model = model;
         this.objectType = type;
         this.objectOid = oid;
     }
-
 
     protected void setModel(IModel<PrismContainerWrapper<AssignmentType>> model) {
         this.model = model;
@@ -153,7 +149,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     @Override
-    protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+    protected IColumn<PrismContainerValueWrapper<AssignmentType>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
         displayModel = displayModel == null ? createStringResource("PolicyRulesPanel.nameColumn") : displayModel;
 
         return new AjaxLinkColumn<>(displayModel, RepoAssignmentListProvider.TARGET_NAME_STRING, null) {
@@ -161,6 +157,8 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
             @Override
             public IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                ItemPath itemPath = WebComponentUtil.getPath(customColumn);
+
                 return new LoadableModel<>() {
                     @Override
                     protected String load() {
@@ -363,6 +361,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         }
         return targetObject;
     }
+
     @Override
     protected List<Component> createToolbarButtonsList(String idButton) {
         List<Component> bar = new ArrayList<>();
@@ -613,7 +612,7 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
     }
 
     @Override
-    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef){
+    protected List<? super AbstractSearchItemWrapper> initSearchableItemWrappers(PrismContainerDefinition<AssignmentType> containerDef) {
         return createSearchableItemWrappers(containerDef);
     }
 
@@ -644,14 +643,13 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
 
         if (getAssignmentType() != null) {
             var targetExtensionPath = ItemPath.create(AssignmentType.F_TARGET_REF, new ObjectReferencePathSegment(getAssignmentType()), ObjectType.F_EXTENSION);
-            var objectExt =  SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase(), targetExtensionPath);
+            var objectExt = SearchFactory.createSearchableExtensionWrapperList(containerDef, getPageBase(), targetExtensionPath);
             LOGGER.debug("Adding extension properties from targetRef/@: {}", objectExt);
             defs.addAll(objectExt);
         }
         return defs;
 
     }
-
 
     @Override
     protected PrismContainerDefinition<AssignmentType> getTypeDefinitionForSearch() {
@@ -670,14 +668,11 @@ public abstract class AbstractAssignmentTypePanel extends MultivalueContainerLis
         return searchDefinition;
     }
 
-
     @Override
     protected PrismContainerDefinition<AssignmentType> getContainerDefinitionForColumns() {
         // In columns model we can benefit for same targetType expansion as in container model.
         return getTypeDefinitionForSearch();
     }
-
-
 
     @Deprecated
     protected abstract void addSpecificSearchableItems(PrismContainerDefinition<AssignmentType> containerDef, List<SearchItemDefinition> defs);

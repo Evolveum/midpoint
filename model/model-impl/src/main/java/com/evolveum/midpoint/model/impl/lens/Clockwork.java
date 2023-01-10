@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.CLOCKWORK;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
+import static com.evolveum.midpoint.model.api.context.ModelState.FINAL;
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportTypeTraceOrReduced;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
@@ -25,7 +26,6 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
-import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.AssociationSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.impl.ModelBeans;
@@ -34,7 +34,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.focus.FocusConstraintsChe
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleSuspendTaskExecutor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -47,7 +46,6 @@ import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultBuilder;
-import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.Tracer;
@@ -70,7 +68,6 @@ public class Clockwork {
     @Autowired private Projector projector;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private EventDispatcher eventDispatcher;
-    @Autowired private PrismContext prismContext;
     @Autowired private Tracer tracer;
     @Autowired private PolicyRuleEnforcer policyRuleEnforcer;
     @Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
@@ -106,13 +103,14 @@ public class Clockwork {
             return clockworkConflictResolver.resolveFocusConflictIfPresent(context, conflictResolutionContext, mode, task, result);
 
         } catch (CommonException t) {
-            result.recordFatalError(t.getMessage(), t);
+            result.recordException(t);
             throw t;
         } finally {
             task.setChannel(originalTaskChannel);
-            result.computeStatusIfUnknown();
+            result.close();
 
             recordTraceAtEnd(context, trace, result);
+
             if (tracingRequested) {
                 tracer.storeTrace(task, result, parentResult);
             }
@@ -144,7 +142,7 @@ public class Clockwork {
             executeInitialChecks(context);
 
             try {
-                while (context.getState() != ModelState.FINAL) {
+                while (context.getState() != FINAL) {
 
                     context.increaseClickCounter();
                     HookOperationMode mode = click(context, task, result);
@@ -170,6 +168,7 @@ public class Clockwork {
             }
         } finally {
             operationExecutionRecorder.recordOperationExecutions(context, task, result);
+            beans.clockworkAuditHelper.submitSimulationDeltas(context, task, result);
             clockworkConflictResolver.unregisterConflictWatcher(context);
             exitCaches();
             context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
@@ -250,32 +249,37 @@ public class Clockwork {
         }
     }
 
-    // todo check authorization in this method
-    private <F extends ObjectType> boolean startTracingIfRequested(LensContext<F> context, Task task,
-            OperationResultBuilder builder, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-            SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        // If the result is already traced, we could abstain from recording the final trace ourselves.
-        // But I think it's more reasonable to do that, because e.g. if there is clockwork-inside-clockwork processing,
-        // we would like to have two traces, even if the second one is contained also within the first one.
+    /**
+     * Sets the tracing profile in the operation result, effectively requesting tracing for this operation (if needed).
+     * Returns `true` if the profile was set here, so the caller can write the trace down.
+     *
+     * Note that we request the trace even if a tracing from the upper layers is already in place. For example, if there is
+     * clockwork-inside-clockwork processing, it is convenient to have two traces, even if the second one is contained (also)
+     * within the first one.
+     */
+    private <F extends ObjectType> boolean startTracingIfRequested(
+            LensContext<F> context, Task task, OperationResultBuilder builder, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+            ConfigurationException, ExpressionEvaluationException {
         TracingProfileType tracingProfile = ModelExecuteOptions.getTracingProfile(context.getOptions());
         if (tracingProfile != null) {
-            securityEnforcer.authorize(ModelAuthorizationAction.RECORD_TRACE.getUrl(), null,
-                    AuthorizationParameters.EMPTY, null, task, parentResult);
-            builder.tracingProfile(tracer.compileProfile(tracingProfile, parentResult));
+            securityEnforcer.authorize(ModelAuthorizationAction.RECORD_TRACE.getUrl(), task, parentResult);
+            builder.tracingProfile(
+                    tracer.compileProfile(tracingProfile, parentResult));
             return true;
         } else if (task.getTracingRequestedFor().contains(TracingRootType.CLOCKWORK_RUN)) {
-            TracingProfileType profile = task.getTracingProfile() != null ? task.getTracingProfile() : tracer.getDefaultProfile();
-            builder.tracingProfile(tracer.compileProfile(profile, parentResult));
+            builder.tracingProfile(
+                    tracer.compileProfile(
+                            task.getTracingProfile(), parentResult));
             return true;
         } else {
             return false;
         }
     }
 
-    private <F extends ObjectType> ClockworkRunTraceType recordTraceAtStart(LensContext<F> context,
-            OperationResult result) throws SchemaException {
+    private ClockworkRunTraceType recordTraceAtStart(LensContext<?> context, OperationResult result) throws SchemaException {
         if (result.isTracingAny(ClockworkRunTraceType.class)) {
-            ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
+            ClockworkRunTraceType trace = new ClockworkRunTraceType();
             trace.setInputLensContextText(context.debugDump());
             trace.setInputLensContext(context.toBean(getExportTypeTraceOrReduced(trace, result)));
             result.addTrace(trace);
@@ -285,13 +289,13 @@ public class Clockwork {
         }
     }
 
-    private <F extends ObjectType> void recordTraceAtEnd(LensContext<F> context, ClockworkRunTraceType trace,
-            OperationResult result) throws SchemaException {
+    private void recordTraceAtEnd(LensContext<?> context, ClockworkRunTraceType trace, OperationResult result)
+            throws SchemaException {
         if (trace != null) {
             trace.setOutputLensContextText(context.debugDump());
             trace.setOutputLensContext(context.toBean(getExportTypeTraceOrReduced(trace, result)));
-            if (context.getFocusContext() != null) {    // todo reconsider this
-                PrismObject<F> objectAny = context.getFocusContext().getObjectAny();
+            if (context.getFocusContext() != null) { // todo reconsider this
+                PrismObject<?> objectAny = context.getFocusContext().getObjectAny();
                 if (objectAny != null) {
                     trace.setFocusName(PolyString.getOrig(objectAny.getName()));
                 }
@@ -329,7 +333,7 @@ public class Clockwork {
         LOGGER.debug("Preview changes output:\n{}", context.debugDumpLazily());
 
         result.computeStatus();
-        result.cleanupResult();
+        result.cleanup();
 
         return context;
     }

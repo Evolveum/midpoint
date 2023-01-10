@@ -149,7 +149,7 @@ public class ShadowRefreshActivityHandler
 
         @Override
         protected void debugDumpContent(StringBuilder sb, int indent) {
-            DebugUtil.debugDumpWithLabelLn(sb, "objects", objects, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, "objects", objects, indent + 1);
         }
     }
 }

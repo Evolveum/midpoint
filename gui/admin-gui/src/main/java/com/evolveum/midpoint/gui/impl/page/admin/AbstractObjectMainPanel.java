@@ -95,6 +95,10 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType, M extends Ob
     }
 
     public QName getType() {
+        ContainerPanelConfigurationType config = getPanelConfiguration();
+        if (config == null) {
+            return null;
+        }
         return getPanelConfiguration().getType();
     }
 

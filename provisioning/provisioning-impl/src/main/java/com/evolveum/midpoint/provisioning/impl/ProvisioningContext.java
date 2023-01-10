@@ -482,27 +482,16 @@ public class ProvisioningContext {
      * https://docs.lab.evolveum.com/midpoint/devel/design/simulations/simulated-shadows/.
      */
     public boolean isObjectDefinitionInProduction() {
-        // Level 1: resource
-        if (!LifecycleUtil.isInProduction(resource.getLifecycleState())) {
-            // The whole resource is in development mode. We ignore any object class/type level settings in this case.
+        if (!SimulationUtil.isInProduction(resource)) {
             return false;
         }
         if (resourceObjectDefinition == null) {
             // Resource is in production, and we have no further information.
             throw new IllegalStateException(
                     "Asked for production state of the object definition, but there is no object definition: " + this);
+        } else {
+            return SimulationUtil.isInProduction(resourceObjectDefinition);
         }
-        // Level 2: object class
-        ResourceObjectClassDefinition classDefinition = resourceObjectDefinition.getObjectClassDefinition();
-        if (!LifecycleUtil.isInProduction(classDefinition.getLifecycleState())) {
-            return false;
-        }
-        // Level 3: object type (if there's any)
-        ResourceObjectTypeDefinition typeDefinition = resourceObjectDefinition.getTypeDefinition();
-        if (typeDefinition == null) {
-            return true;
-        }
-        return LifecycleUtil.isInProduction(typeDefinition.getLifecycleState());
     }
 
     public void checkNotInMaintenance() throws MaintenanceException {

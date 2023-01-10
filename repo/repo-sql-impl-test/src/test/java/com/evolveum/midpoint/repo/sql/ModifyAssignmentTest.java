@@ -73,7 +73,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_ASSIGNMENT).add(assignment1)
-                .asObjectDeltaCast(ROLE_OID);
+                .asObjectDelta(ROLE_OID);
 
         OperationResult result = new OperationResult("add assignment");
 
@@ -115,7 +115,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT).add(inducement1)
-                .asObjectDeltaCast(ROLE_OID);
+                .asObjectDelta(ROLE_OID);
 
         OperationResult result = new OperationResult("add inducement");
 
@@ -149,7 +149,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_ASSIGNMENT, 4L, AssignmentType.F_TARGET_REF)
                 .replace(new ObjectReferenceType().oid(NEW_ASSIGNMENT_4_TARGET_OID).type(RoleType.COMPLEX_TYPE))
-                .asObjectDeltaCast(ROLE_OID);
+                .asObjectDelta(ROLE_OID);
 
         OperationResult result = new OperationResult("modify assignment");
 
@@ -184,7 +184,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT, 5L, AssignmentType.F_TARGET_REF)
                 .replace(new ObjectReferenceType().oid(NEW_INDUCEMENT_5_TARGET_OID).type(RoleType.COMPLEX_TYPE))
-                .asObjectDeltaCast(ROLE_OID);
+                .asObjectDelta(ROLE_OID);
 
         OperationResult result = new OperationResult("modify inducement");
 
@@ -221,7 +221,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         given();
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_ASSIGNMENT).delete(new AssignmentType().id(4L))
-                .asObjectDeltaCast(ROLE_OID);
+                .asObjectDelta(ROLE_OID);
 
         OperationResult result = new OperationResult("delete assignment");
 
@@ -265,7 +265,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
 
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_INDUCEMENT).delete(i)
-                .asObjectDeltaCast(ROLE_OID);
+                .asObjectDelta(ROLE_OID);
 
         OperationResult result = new OperationResult("delete inducement");
 
@@ -309,7 +309,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         ObjectDelta<RoleType> delta = deltaFor(RoleType.class)
                 .item(RoleType.F_ASSIGNMENT).delete(a.clone())
                 .item(RoleType.F_INDUCEMENT).add(in)
-                .asObjectDeltaCast(ROLE_OID);
+                .asObjectDelta(ROLE_OID);
 
         OperationResult result = new OperationResult("delete add assignment");
 

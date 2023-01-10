@@ -63,8 +63,8 @@ public class NotificationHook implements ChangeHook {
     }
 
     @Override
-    public <O extends ObjectType> HookOperationMode invoke(@NotNull ModelContext<O> context, @NotNull Task task,
-            @NotNull OperationResult parentResult) {
+    public <O extends ObjectType> HookOperationMode invoke(
+            @NotNull ModelContext<O> context, @NotNull Task task, @NotNull OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OP_INVOKE);
         try {
             if (context.getState() != ModelState.FINAL) {

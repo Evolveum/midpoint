@@ -33,10 +33,13 @@ import java.util.Collections;
 import java.util.function.Function;
 
 /**
+ * Evaluates an expression defined by {@link #expressionEvaluatorBean}.
+ *
  * @param <E> evaluator bean (configuration) type
+ *
  * @author Radovan Semancik
  */
-public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extends ItemDefinition, E>
+public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>, E>
         implements ExpressionEvaluator<V> {
 
     /**
@@ -57,14 +60,14 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
     protected final D outputDefinition;
 
     protected final Protector protector;
-    @NotNull protected final PrismContext prismContext;
 
-    public AbstractExpressionEvaluator(@NotNull QName elementName, E expressionEvaluatorBean, D outputDefinition,
-            Protector protector, @NotNull PrismContext prismContext) {
+    @NotNull protected final PrismContext prismContext = PrismContext.get();
+
+    public AbstractExpressionEvaluator(
+            @NotNull QName elementName, E expressionEvaluatorBean, D outputDefinition, Protector protector) {
         this.elementName = elementName;
         this.expressionEvaluatorBean = expressionEvaluatorBean;
         this.outputDefinition = outputDefinition;
-        this.prismContext = prismContext;
         this.protector = protector;
     }
 
@@ -132,8 +135,8 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
                         }
                     }
                     if (expectedJavaType != null) {
-                        Object convertedVal = ExpressionUtil.convertValue(expectedJavaType, additionalConvertor, realVal, protector, prismContext);
-                        pval.setValue(convertedVal);
+                        pval.setValue(
+                                ExpressionUtil.convertValue(expectedJavaType, additionalConvertor, realVal, protector));
                     }
                 }
             }
@@ -169,9 +172,9 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
      * Adds Internal origin for given prismValue. Assumes that value has no metadata.
      * (Currently does not fill-in actorRef nor channel.)
      */
-    public void addInternalOrigin(PrismValue value, ExpressionEvaluationContext context) throws SchemaException {
+    protected void addInternalOrigin(PrismValue value, ExpressionEvaluationContext context) throws SchemaException {
         if (value != null && !value.hasValueMetadata() && context.getValueMetadataComputer() != null) {
-            ValueMetadataType metadata = new ValueMetadataType(prismContext)
+            ValueMetadataType metadata = new ValueMetadataType()
                     .beginProvenance()
                         .beginAcquisition()
                             .originRef(SystemObjectsType.ORIGIN_INTERNAL.value(), ServiceType.COMPLEX_TYPE)

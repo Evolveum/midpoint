@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -30,8 +29,7 @@ public class EvaluatedModificationTrigger extends EvaluatedPolicyRuleTrigger<Mod
     }
 
     @Override
-    public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
-            PrismContext prismContext) {
+    public EvaluatedModificationTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
         EvaluatedModificationTriggerType rv = new EvaluatedModificationTriggerType();
         fillCommonContent(rv);
         return rv;

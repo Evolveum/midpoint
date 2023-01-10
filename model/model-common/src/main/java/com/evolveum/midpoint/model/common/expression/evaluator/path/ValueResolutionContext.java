@@ -44,7 +44,7 @@ class ValueResolutionContext extends ResolutionContext {
     }
 
     @Override
-    ResolutionContext stepInto(ItemName step, DefinitionResolver defResolver) throws SchemaException {
+    ResolutionContext stepInto(ItemName step, DefinitionResolver<?, ?> defResolver) throws SchemaException {
         assert isContainer();
         Item<PrismValue, ItemDefinition> item = ((PrismContainerValue<?>) value).findItem(step);
         if (item != null) {
@@ -67,7 +67,7 @@ class ValueResolutionContext extends ResolutionContext {
     }
 
     @Override
-    ResolutionContext resolveStructuredProperty(ItemPath pathToResolve, PrismPropertyDefinition outputDefinition,
+    ResolutionContext resolveStructuredProperty(ItemPath pathToResolve, PrismPropertyDefinition<?> outputDefinition,
             PrismContext prismContext) {
         assert isStructuredProperty();
         //noinspection ConstantConditions

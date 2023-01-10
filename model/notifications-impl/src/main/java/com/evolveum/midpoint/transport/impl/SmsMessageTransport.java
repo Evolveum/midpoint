@@ -22,6 +22,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -305,7 +307,7 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
 
     // A little hack: for single-value cases we always return single-item list (even if the returned value is null)
     @NotNull
-    private List<String> evaluateExpression(ExpressionType expressionType, VariablesMap VariablesMap,
+    private List<String> evaluateExpression(ExpressionType expressionType, VariablesMap variablesMap,
             boolean multipleValues, String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         if (expressionType == null) {
@@ -318,12 +320,14 @@ public class SmsMessageTransport implements Transport<SmsTransportConfigurationT
             resultDef.setMaxOccurs(-1);
         }
 
+        ExpressionFactory expressionFactory = transportSupport.expressionFactory();
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
-                transportSupport.expressionFactory().makeExpression(
+                expressionFactory.makeExpression(
                         expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variablesMap, shortDesc, task);
+        eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =
-                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
 
         if (!multipleValues) {
             if (exprResult.getZeroSet().size() > 1) {

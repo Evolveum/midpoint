@@ -122,9 +122,18 @@ public class ActivationProcessor implements ProjectorProcessor {
                 .build();
         try {
 
+            // There may be contexts with unknown resources (e.g. for broken linkRefs). We want to execute the activation
+            // for them - at least for now.
+            if (projectionContext.hasResource() && !projectionContext.isVisible()) {
+                LOGGER.trace("Projection {} is not visible for this task execution mode, skipping activation processing",
+                        projectionContext.getHumanReadableName());
+                result.recordNotApplicable("Not visible");
+                return;
+            }
+
             if (!projectionContext.isCurrentForProjection()) {
                 LOGGER.trace("Projection {} is not current, skipping activation processing", projectionContext.getHumanReadableName());
-                result.recordNotApplicable();
+                result.recordNotApplicable("Not current");
                 return;
             }
 

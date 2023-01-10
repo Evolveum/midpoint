@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.tasks;
 
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
+import com.evolveum.midpoint.model.api.simulation.SimulationResultManager;
 import com.evolveum.midpoint.repo.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
@@ -38,19 +39,19 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Objects;
 
 import static com.evolveum.midpoint.prism.PrismObject.asObjectable;
 
@@ -67,6 +68,7 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
     @Autowired private ModelObjectSource modelObjectSource;
     @Autowired private ModelAuditItemSource modelAuditItemSource;
     @Autowired private ModelContainerableItemSource modelContainerableItemSource;
+    @Autowired private SimulationResultManager simulationResultManager;
 
     @Override
     public boolean isPresent() {
@@ -139,5 +141,21 @@ public class AdvancedActivityRunSupportImpl implements AdvancedActivityRunSuppor
         } else {
             return modelContainerableItemSource;
         }
+    }
+
+    @Override
+    public @NotNull ObjectReferenceType createSimulationResult(OperationResult result) {
+        SimulationResultType configuration = simulationResultManager.newConfiguration();
+        return simulationResultManager
+                .newSimulationResult(configuration, result)
+                .getResultRef();
+    }
+
+    @Override
+    public @NotNull AggregatedObjectProcessingListener getObjectProcessingListener(
+            @NotNull ObjectReferenceType simulationResultRef) {
+        return simulationResultManager
+                .newSimulationContext(Objects.requireNonNull(simulationResultRef.getOid(), "no result OID"))
+                .aggregatedObjectProcessingListener();
     }
 }

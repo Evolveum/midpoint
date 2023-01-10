@@ -45,7 +45,7 @@ public class ExpressionFactory implements Cache {
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionFactory.class);
     private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
-    private final PrismContext prismContext;
+    private final PrismContext prismContext = PrismContext.get();
     private final SecurityContextManager securityContextManager;
     private final LocalizationService localizationService;
     private final Map<QName, ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
@@ -59,9 +59,7 @@ public class ExpressionFactory implements Cache {
     private ExpressionEvaluatorFactory defaultEvaluatorFactory;
     private ObjectResolver objectResolver;
 
-    public ExpressionFactory(SecurityContextManager securityContextManager,
-            PrismContext prismContext, LocalizationService localizationService) {
-        this.prismContext = prismContext;
+    public ExpressionFactory(SecurityContextManager securityContextManager, LocalizationService localizationService) {
         this.securityContextManager = securityContextManager;
         this.localizationService = localizationService;
     }
@@ -80,15 +78,15 @@ public class ExpressionFactory implements Cache {
         this.objectResolver = objectResolver;
     }
 
-    public PrismContext getPrismContext() {
-        return prismContext;
-    }
-
     public LocalizationService getLocalizationService() {
         return localizationService;
     }
 
-    public <V extends PrismValue, D extends ItemDefinition> Expression<V, D> makeExpression(
+    public SecurityContextManager getSecurityContextManager() {
+        return securityContextManager;
+    }
+
+    public <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> makeExpression(
             ExpressionType expressionType, D outputDefinition, ExpressionProfile expressionProfile,
             String shortDesc, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException {
@@ -123,7 +121,7 @@ public class ExpressionFactory implements Cache {
     }
 
     @NotNull
-    private <V extends PrismValue, D extends ItemDefinition> Expression<V, D> createExpression(ExpressionType expressionType,
+    private <V extends PrismValue, D extends ItemDefinition<?>> Expression<V, D> createExpression(ExpressionType expressionType,
             D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result) {
         try {
             Expression<V, D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
@@ -142,7 +140,7 @@ public class ExpressionFactory implements Cache {
         evaluatorFactoriesMap.put(factory.getElementName(), factory);
     }
 
-    public ExpressionEvaluatorFactory getDefaultEvaluatorFactory() {
+    ExpressionEvaluatorFactory getDefaultEvaluatorFactory() {
         return defaultEvaluatorFactory;
     }
 
@@ -152,11 +150,11 @@ public class ExpressionFactory implements Cache {
 
     static class ExpressionIdentifier {
         private final ExpressionType expressionBean;
-        private final ItemDefinition outputDefinition;
+        private final ItemDefinition<?> outputDefinition;
         private final String expressionProfileIdentifier;
         private final int hashCode;
 
-        private ExpressionIdentifier(ExpressionType expressionBean, ItemDefinition outputDefinition,
+        private ExpressionIdentifier(ExpressionType expressionBean, ItemDefinition<?> outputDefinition,
                 ExpressionProfile expressionProfile) {
 
             this.expressionBean = expressionBean != null ? expressionBean.clone() : null;
@@ -167,7 +165,7 @@ public class ExpressionFactory implements Cache {
         }
 
         @Nullable
-        private ItemDefinition cloneDefinitionIfNeeded(ItemDefinition outputDefinition) {
+        private ItemDefinition<?> cloneDefinitionIfNeeded(ItemDefinition<?> outputDefinition) {
             if (outputDefinition != null) {
                 if (outputDefinition.isImmutable()) {
                     return outputDefinition;
@@ -177,7 +175,7 @@ public class ExpressionFactory implements Cache {
                     if (outputDefinition instanceof PrismContainerDefinition) {
                         PERFORMANCE_ADVISOR.info("Deep clone of container definition: {}. This can harm performance.", outputDefinition);
                     }
-                    ItemDefinition clone = outputDefinition.deepClone(DeepCloneOperation.notUltraDeep());
+                    ItemDefinition<?> clone = outputDefinition.deepClone(DeepCloneOperation.notUltraDeep());
                     clone.freeze();
                     return clone;
                 }
@@ -205,7 +203,7 @@ public class ExpressionFactory implements Cache {
             return hashCode;
         }
 
-        public int computeHashCode() {
+        int computeHashCode() {
             return Objects.hash(expressionBean, outputDefinition, expressionProfileIdentifier);
         }
     }

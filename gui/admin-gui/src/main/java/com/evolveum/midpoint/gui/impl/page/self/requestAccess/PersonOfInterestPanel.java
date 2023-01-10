@@ -821,6 +821,7 @@ public class PersonOfInterestPanel extends BasicWizardStepPanel<RequestAccess> i
                 variables.put(ExpressionConstants.VAR_OBJECT, object, object.getDefinition());
 
                 ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
+                context.setExpressionFactory(factory);
                 PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(context, result);
                 if (outputTriple == null) {
                     return null;

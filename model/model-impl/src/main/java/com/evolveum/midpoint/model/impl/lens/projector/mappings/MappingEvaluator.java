@@ -88,7 +88,7 @@ public class MappingEvaluator {
             ConfigurationException, CommunicationException {
 
         if (!mapping.isEnabled()) {
-            LOGGER.debug("Skipping mapping evaluation, because mapping is disabled, {}", mapping);
+            LOGGER.debug("Skipping mapping evaluation, because mapping is disabled: {}", mapping);
             return;
         }
 

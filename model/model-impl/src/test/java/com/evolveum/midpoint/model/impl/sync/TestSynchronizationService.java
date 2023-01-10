@@ -1034,7 +1034,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         RESOURCE_DUMMY_BROKEN.controller.addAccount(accountName);
 
         when("import task is run");
-        TASK_IMPORT_DUMMY_BROKEN.initialize(this, task, result);
+        TASK_IMPORT_DUMMY_BROKEN.init(this, task, result);
         waitForTaskCloseOrSuspend(TASK_IMPORT_DUMMY_BROKEN.oid, 20000);
 
         then("error is correctly recorded both in task and in shadow");
@@ -1052,7 +1052,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
                         .assertLastFailureObjectName(accountName)
                         .assertLastFailureMessage(expectedMessage);
 
-        PrismObject<ShadowType> shadow = findShadowByPrismName(accountName, RESOURCE_DUMMY_BROKEN.getResource(), result);
+        PrismObject<ShadowType> shadow = findShadowByPrismName(accountName, RESOURCE_DUMMY_BROKEN.get(), result);
         assertShadowAfter(shadow)
                 .assertCorrelationSituation(CorrelationSituationType.ERROR)
                 .assertHasComplexOperationExecutionFailureWithMessage(TASK_IMPORT_DUMMY_BROKEN.oid, expectedMessage);
@@ -1074,7 +1074,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         RESOURCE_DUMMY_LIMITED.controller.addAccount(accountName);
 
         when("account is imported (the first time)");
-        importSingleAccountRequest()
+        importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_LIMITED.oid)
                 .withNameValue(accountName)
                 .execute(result);
@@ -1106,7 +1106,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
                 result);
 
         and("account is re-imported");
-        var taskOid = importSingleAccountRequest()
+        var taskOid = importAccountsRequest()
                 .withResourceOid(RESOURCE_DUMMY_LIMITED.oid)
                 .withNameValue(accountName)
                 .execute(result);

@@ -1762,7 +1762,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         ObjectDelta<SecurityPolicyType> delta = prismContext.deltaFor(SecurityPolicyType.class)
                 .item(SecurityPolicyType.F_CREDENTIALS, CredentialsPolicyType.F_PASSWORD, PasswordCredentialsPolicyType.F_MIN_OCCURS)
                 .replace(value)
-                .asObjectDeltaCast(getSecurityPolicyOid());
+                .asObjectDelta(getSecurityPolicyOid());
         executeChanges(delta, null, task, result);
     }
 
@@ -3995,7 +3995,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 .end();
         ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS).add(credentials)
-                .asObjectDeltaCast(alice.getOid());
+                .asObjectDelta(alice.getOid());
 
         executeChanges(objectDelta, null, task, result);
 
@@ -4033,7 +4033,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
                 .end();
         ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS).replace(credentials)
-                .asObjectDeltaCast(user.getOid());
+                .asObjectDelta(user.getOid());
 
         executeChanges(objectDelta, null, task, result);
 
@@ -4068,7 +4068,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PasswordType password = new PasswordType(prismContext).value(value);
         ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD).add(password)
-                .asObjectDeltaCast(user.getOid());
+                .asObjectDelta(user.getOid());
 
         executeChanges(objectDelta, null, task, result);
 
@@ -4103,7 +4103,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         PasswordType password = new PasswordType(prismContext).value(value);
         ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD).replace(password)
-                .asObjectDeltaCast(user.getOid());
+                .asObjectDelta(user.getOid());
 
         executeChanges(objectDelta, null, task, result);
 
@@ -4137,7 +4137,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         value.setClearValue(PASSWORD_HELLO_WORLD);
         ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE).add(value)
-                .asObjectDeltaCast(user.getOid());
+                .asObjectDelta(user.getOid());
 
         executeChanges(objectDelta, null, task, result);
 
@@ -4171,7 +4171,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         value.setClearValue(PASSWORD_HELLO_WORLD);
         ObjectDelta<UserType> objectDelta = prismContext.deltaFor(UserType.class)
                 .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE).replace(value)
-                .asObjectDeltaCast(user.getOid());
+                .asObjectDelta(user.getOid());
 
         executeChanges(objectDelta, null, task, result);
 

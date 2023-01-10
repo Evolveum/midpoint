@@ -8,8 +8,9 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 
@@ -31,7 +32,7 @@ public abstract class AssociationsTableWizardPanel extends AbstractResourceWizar
 
     public AssociationsTableWizardPanel(
             String id,
-            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> superHelper) {
+            WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> superHelper) {
         super(id, superHelper);
     }
 

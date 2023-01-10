@@ -1134,7 +1134,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
     }
 
     @Override
-    public CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult parentResult)
+    public @NotNull CapabilityCollectionType getNativeCapabilities(@NotNull String connOid, OperationResult parentResult)
             throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException {
         OperationResult result = parentResult.subresult(OP_GET_NATIVE_CAPABILITIES)
                 .addParam("connectorOid", connOid)

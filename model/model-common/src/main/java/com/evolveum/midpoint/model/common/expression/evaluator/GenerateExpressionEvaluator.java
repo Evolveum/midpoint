@@ -45,19 +45,24 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  *
  * @author semancik
  */
-public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
+public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDefinition<?>>
         extends AbstractExpressionEvaluator<V, D, GenerateExpressionEvaluatorType> {
 
     public static final int DEFAULT_LENGTH = 8;
 
     private final ObjectResolver objectResolver;
-    private final ValuePolicyProcessor valuePolicyGenerator;
+    private final ValuePolicyProcessor valuePolicyProcessor;
 
-    GenerateExpressionEvaluator(QName elementName, GenerateExpressionEvaluatorType generateEvaluatorType, D outputDefinition,
-            Protector protector, ObjectResolver objectResolver, ValuePolicyProcessor valuePolicyGenerator, PrismContext prismContext) {
-        super(elementName, generateEvaluatorType, outputDefinition, protector, prismContext);
+    GenerateExpressionEvaluator(
+            QName elementName,
+            GenerateExpressionEvaluatorType generateEvaluatorBean,
+            D outputDefinition,
+            Protector protector,
+            ObjectResolver objectResolver,
+            ValuePolicyProcessor valuePolicyProcessor) {
+        super(elementName, generateEvaluatorBean, outputDefinition, protector);
         this.objectResolver = objectResolver;
-        this.valuePolicyGenerator = valuePolicyGenerator;
+        this.valuePolicyProcessor = valuePolicyProcessor;
     }
 
     @Override
@@ -74,7 +79,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
         String stringValue = generateStringValue(valuePolicy, context, outputPath, result);
         addValueToOutputProperty(output, stringValue, context);
 
-        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null);
         applyValueMetadata(outputTriple, context, result);
         return outputTriple;
     }
@@ -125,10 +130,10 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
         ObjectBasedValuePolicyOriginResolver<?> originResolver = getOriginResolver(context);
         String generatedValue;
         if (isNotEmptyMinLength(valuePolicy)) {
-            generatedValue = valuePolicyGenerator.generate(outputPath, valuePolicy, DEFAULT_LENGTH, true, originResolver,
+            generatedValue = valuePolicyProcessor.generate(outputPath, valuePolicy, DEFAULT_LENGTH, true, originResolver,
                     context.getContextDescription(), context.getTask(), result);
         } else {
-            generatedValue = valuePolicyGenerator.generate(outputPath, valuePolicy, DEFAULT_LENGTH, false, originResolver,
+            generatedValue = valuePolicyProcessor.generate(outputPath, valuePolicy, DEFAULT_LENGTH, false, originResolver,
                     context.getContextDescription(), context.getTask(), result);
         }
         result.computeStatus();

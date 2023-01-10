@@ -144,8 +144,7 @@ final class RemainingShadowsActivityRun
      * the result must not be marked as `HANDLED_ERROR` as it's currently the case in provisioning handling.
      */
     private void reconcileShadow(ShadowType shadow, String requestIdentifier, Task task, OperationResult result)
-            throws SchemaException, SecurityViolationException, CommunicationException,
-            ConfigurationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException {
+            throws CommonException {
         LOGGER.trace("Reconciling shadow {}, fullSynchronizationTimestamp={}", shadow,
                 shadow.getFullSynchronizationTimestamp());
         try {
@@ -161,18 +160,30 @@ final class RemainingShadowsActivityRun
                             .build();
             PrismObject<ShadowType> shadowFetched =
                     getModelBeans().provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, result);
-            handleNoException(shadowFetched, requestIdentifier, task, result);
+            handleNoException(shadowFetched.asObjectable(), requestIdentifier, task, result);
         } catch (ObjectNotFoundException e) {
             handleObjectNotFoundException(shadow, requestIdentifier, e, task, result);
         }
     }
 
     private void handleNoException(
-            PrismObject<ShadowType> shadowFetched, String requestIdentifier, Task task, OperationResult result) {
-        // Here are e.g. protected shadows or tombstones. To keep the statistics reasonable, let us provide
-        // a reason for synchronization exclusion.
-        LOGGER.debug("ObjectNotFound was not thrown, so no need to issue DELETE sync event. Shadow: {}", shadowFetched);
-        if (ShadowUtil.isProtected(shadowFetched)) {
+            ShadowType shadowFetched, String requestIdentifier, Task task, OperationResult result)
+            throws CommonException {
+        // Here are e.g. tombstones or protected shadows. The former may need synchronization, if they were not synced yet.
+        // For the others, to keep the statistics reasonable, let us provide a reason for synchronization exclusion.
+
+        LOGGER.debug("ObjectNotFound was not thrown, going to check whether to fire DELETE sync event. Shadow: {}", shadowFetched);
+
+        if (ShadowUtil.isDead(shadowFetched)) {
+            if (ShadowUtil.wasSynchronizedAfterDeath(shadowFetched)) {
+                LOGGER.debug("Shadow already marked as dead, with the full synchronization already done. "
+                        + "DELETE notification will not be issued.");
+                task.onSynchronizationExclusion(requestIdentifier, SynchronizationExclusionReasonType.SYNCHRONIZATION_NOT_NEEDED);
+                result.recordNotApplicable("Shadow already marked dead and synchronized");
+            } else {
+                reactResourceObjectGone(shadowFetched, requestIdentifier, task, result);
+            }
+        } else if (ShadowUtil.isProtected(shadowFetched)) {
             LOGGER.trace("Shadow is protected. Technically, signalling 'synchronization not needed' would be correct, "
                     + "but let's be more specific by providing the reason as 'protected'.");
             task.onSynchronizationExclusion(requestIdentifier, SynchronizationExclusionReasonType.PROTECTED);
@@ -199,12 +210,11 @@ final class RemainingShadowsActivityRun
 
         result.muteLastSubresultError();
 
-        if (ShadowUtil.isDead(shadow) || !ShadowUtil.isExists(shadow)) {
-            // Not sure when exactly this can occur.
-            LOGGER.debug("Shadow already marked as dead and/or not existing. "
+        if (ShadowUtil.isDead(shadow) && ShadowUtil.wasSynchronizedAfterDeath(shadow)) {
+            LOGGER.debug("Shadow already marked as dead, with the full synchronization already done. "
                     + "DELETE notification will not be issued. Shadow: {}", shadow);
             task.onSynchronizationExclusion(requestIdentifier, SynchronizationExclusionReasonType.SYNCHRONIZATION_NOT_NEEDED);
-            result.recordNotApplicable("Shadow already marked dead and/or not existing");
+            result.recordNotApplicable("Shadow already marked dead");
             return;
         }
 
@@ -226,7 +236,6 @@ final class RemainingShadowsActivityRun
         change.setResource(processingScope.getResource().asPrismObject());
         change.setObjectDelta(shadow.createDeleteDelta());
         change.setShadowedResourceObject(shadow);
-        change.setSimulate(isPreview());
         change.setItemProcessingIdentifier(requestIdentifier); // To record synchronization state changes
         ModelImplUtils.clearRequestee(task);
         getModelBeans().eventDispatcher.notifyChange(change, task, result);

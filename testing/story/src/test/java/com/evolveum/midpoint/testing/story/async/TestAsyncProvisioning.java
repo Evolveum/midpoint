@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentW
 import java.io.File;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.test.AnyResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
@@ -40,8 +41,8 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
 
     protected static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource<ResourceType> RESOURCE_ASYNC_OUTBOUND = new TestResource<>(TEST_DIR, "resource-async-outbound.xml", "f64a3dc5-3b5e-4bf9-9f46-ed01992984ef");
-    private static final TestResource<ResourceType> RESOURCE_ASYNC_INBOUND = new TestResource<>(TEST_DIR, "resource-async-inbound.xml", "6628a329-4b29-4f3a-9339-8fa12c59c38f");
+    private static final AnyResource RESOURCE_ASYNC_OUTBOUND = new AnyResource(TEST_DIR, "resource-async-outbound.xml", "f64a3dc5-3b5e-4bf9-9f46-ed01992984ef");
+    private static final AnyResource RESOURCE_ASYNC_INBOUND = new AnyResource(TEST_DIR, "resource-async-inbound.xml", "6628a329-4b29-4f3a-9339-8fa12c59c38f");
 
     private static final TestResource<TaskType> TASK_ASYNC_UPDATE = new TestResource<>(TEST_DIR, "task-async-update.xml", "2041e429-8ca9-4f80-a38f-1e3359627e39");
     private static final TestResource<TaskType> TASK_ASYNC_UPDATE_MULTI = new TestResource<>(TEST_DIR, "task-async-update-multi.xml", "c1f5a293-9fc9-4ab4-b497-de8605ee7dc6");
@@ -49,20 +50,15 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
 
     private EmbeddedActiveMQ embeddedBroker;
 
-    private PrismObject<ResourceType> resourceOutbound;
-
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         startEmbeddedBroker();
 
-        resourceOutbound = importAndGetObjectFromFile(ResourceType.class, RESOURCE_ASYNC_OUTBOUND.file, RESOURCE_ASYNC_OUTBOUND.oid, initTask, initResult);
-        importAndGetObjectFromFile(ResourceType.class, RESOURCE_ASYNC_INBOUND.file, RESOURCE_ASYNC_INBOUND.oid, initTask, initResult);
-
         // We have to test the resource before async update task is started. See MID-7721.
-        assertSuccess(modelService.testResource(RESOURCE_ASYNC_OUTBOUND.oid, initTask, initResult));
-        assertSuccess(modelService.testResource(RESOURCE_ASYNC_INBOUND.oid, initTask, initResult));
+        RESOURCE_ASYNC_OUTBOUND.initAndTest(this, initTask, initResult);
+        RESOURCE_ASYNC_INBOUND.initAndTest(this, initTask, initResult);
 
         addObject(TASK_ASYNC_UPDATE, initTask, initResult);
     }
@@ -94,7 +90,7 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
                 .fullName("Jim Beam")
                 .assignment(
                         createAssignmentWithConstruction(
-                                resourceOutbound, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext));
+                                RESOURCE_ASYNC_OUTBOUND.get(), ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT));
 
         when("object is added and the addition is processed by the async update task");
         addObject(jim, task, result);
@@ -184,7 +180,7 @@ public class TestAsyncProvisioning extends AbstractStoryTest {
                     .fullName(String.format("User %06d", i))
                     .assignment(
                             createAssignmentWithConstruction(
-                                    resourceOutbound, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext));
+                                    RESOURCE_ASYNC_OUTBOUND.get(), ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT));
             repositoryService.addObject(user.asPrismObject(), null, result);
         }
 

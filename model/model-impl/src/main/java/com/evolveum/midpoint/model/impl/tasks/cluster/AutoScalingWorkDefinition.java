@@ -43,15 +43,15 @@ public class AutoScalingWorkDefinition extends AbstractWorkDefinition implements
         return tasks;
     }
 
-    public Duration getMinReconciliationInterval() {
+    Duration getMinReconciliationInterval() {
         return minReconciliationInterval;
     }
 
-    public Duration getMaxReconciliationInterval() {
+    Duration getMaxReconciliationInterval() {
         return maxReconciliationInterval;
     }
 
-    public boolean isSkipInitialReconciliation() {
+    boolean isSkipInitialReconciliation() {
         return skipInitialReconciliation;
     }
 
@@ -60,6 +60,6 @@ public class AutoScalingWorkDefinition extends AbstractWorkDefinition implements
         DebugUtil.debugDumpWithLabelLn(sb, "tasks", tasks, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "minReconciliationInterval", String.valueOf(minReconciliationInterval), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "maxReconciliationInterval", String.valueOf(maxReconciliationInterval), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "skipInitialReconciliation", skipInitialReconciliation, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "skipInitialReconciliation", skipInitialReconciliation, indent + 1);
     }
 }

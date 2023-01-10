@@ -9,6 +9,11 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.application.PanelDisplay;
+import com.evolveum.midpoint.web.application.PanelInstance;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -23,7 +28,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.input.ContainersDropDownPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardStepPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormDefaultContainerablePanel;
 import com.evolveum.midpoint.gui.impl.prism.panel.vertical.form.VerticalFormPrismContainerValuePanel;
@@ -40,7 +45,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActio
 /**
  * @author lskublik
  */
-public class ActionStepPanel extends AbstractResourceWizardStepPanel {
+@PanelInstance(identifier = "rw-synchronization-reaction-action",
+        applicableForType = ResourceType.class,
+        applicableForOperation = OperationTypeType.ADD,
+        display = @PanelDisplay(label = "PageResource.wizard.step.synchronization.reaction.action", icon = "fa fa-wrench"),
+        expanded = true)
+public class ActionStepPanel extends AbstractWizardStepPanel {
+
+    public static final String PANEL_TYPE = "rw-synchronization-reaction-action";
 
     private static final Trace LOGGER = TraceManager.getTrace(ActionStepPanel.class);
 
@@ -136,6 +148,7 @@ public class ActionStepPanel extends AbstractResourceWizardStepPanel {
     private Component createValuePanel() {
         ItemPanelSettingsBuilder settings = new ItemPanelSettingsBuilder();
         settings.headerVisibility(false);
+        settings.panelConfiguration(getContainerConfiguration(PANEL_TYPE));
         VerticalFormPrismContainerValuePanel panel = new VerticalFormPrismContainerValuePanel(ID_PANEL, getValueModel(), settings.build()) {
 
             @Override

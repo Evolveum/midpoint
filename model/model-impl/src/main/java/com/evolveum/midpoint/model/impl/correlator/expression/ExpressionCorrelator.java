@@ -127,10 +127,11 @@ class ExpressionCorrelator extends BaseCorrelator<ExpressionCorrelatorType> {
                             expressionBean, outputDefinition, expressionProfile, contextDescription, task, result);
 
             VariablesMap variables = getVariablesMap();
-            ExpressionEvaluationContext params =
+            ExpressionEvaluationContext eeContext =
                     new ExpressionEvaluationContext(null, variables, contextDescription, task);
+            eeContext.setExpressionFactory(beans.expressionFactory);
             PrismValueDeltaSetTriple<?> outputTriple =
-                    ExpressionUtil.evaluateAnyExpressionInContext(expression, params, task, result);
+                    ExpressionUtil.evaluateAnyExpressionInContext(expression, eeContext, task, result);
             LOGGER.trace("Correlation expression returned:\n{}", DebugUtil.debugDumpLazily(outputTriple, 1));
 
             ObjectSet<F> allCandidates = new ObjectSet<>();

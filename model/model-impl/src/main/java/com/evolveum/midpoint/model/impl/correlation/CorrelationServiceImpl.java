@@ -183,7 +183,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 synchronizationPolicy.getObjectTypeDefinition(),
                 synchronizationPolicy,
                 preFocus,
-                determineObjectTemplate(synchronizationPolicy, preFocus, result),
+                determineObjectTemplate(synchronizationPolicy, preFocus, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)));
         CorrelatorContext<?> correlatorContext = CorrelatorContextCreator.createRootContext(fullContext);
         CorrelationContext correlationContext = createCorrelationContext(fullContext, task, result);
@@ -336,7 +336,7 @@ public class CorrelationServiceImpl implements CorrelationService {
                 policy.getObjectTypeDefinition(),
                 policy,
                 preFocus,
-                determineObjectTemplate(policy, preFocus, result),
+                determineObjectTemplate(policy, preFocus, task, result),
                 asObjectable(systemObjectCache.getSystemConfiguration(result)));
     }
 
@@ -401,6 +401,7 @@ public class CorrelationServiceImpl implements CorrelationService {
     public ObjectTemplateType determineObjectTemplate(
             @NotNull SynchronizationPolicy synchronizationPolicy,
             @NotNull FocusType preFocus,
+            @NotNull Task task,
             @NotNull OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException {
         ArchetypePolicyType policy;
@@ -414,6 +415,6 @@ public class CorrelationServiceImpl implements CorrelationService {
         String oid = policy != null ? getOid(policy.getObjectTemplateRef()) : null;
         LOGGER.trace("Determined archetype OID: {}", oid);
         return oid != null ?
-                beans.archetypeManager.getExpandedObjectTemplate(oid, result) : null;
+                beans.archetypeManager.getExpandedObjectTemplate(oid, task.getExecutionMode(), result) : null;
     }
 }

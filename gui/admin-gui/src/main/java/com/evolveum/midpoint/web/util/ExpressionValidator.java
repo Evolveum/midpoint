@@ -91,6 +91,7 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
         variables.put(ExpressionConstants.VAR_INPUT, valueToValidate, typeClass);
         variables.putObject(ExpressionConstants.VAR_OBJECT, (ObjectType)getObjectType(), ObjectType.class);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task);
+        context.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<OperationResultType>> outputTriple;
         try {
             outputTriple = expression.evaluate(context, result);

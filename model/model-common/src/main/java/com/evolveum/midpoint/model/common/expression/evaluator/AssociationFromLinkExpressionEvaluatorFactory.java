@@ -7,20 +7,17 @@
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -35,13 +32,10 @@ public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjec
 
     private static final QName ELEMENT_NAME = SchemaConstantsGenerated.C_ASSOCIATION_FROM_LINK;
 
-    private final PrismContext prismContext;
     private final Protector protector;
 
-    public AssociationFromLinkExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext,
-            Protector protector, CacheConfigurationManager cacheConfigurationManager) {
-        super(expressionFactory, cacheConfigurationManager);
-        this.prismContext = prismContext;
+    public AssociationFromLinkExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector) {
+        super(expressionFactory);
         this.protector = protector;
     }
 
@@ -51,7 +45,7 @@ public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjec
     }
 
     @Override
-    public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V> createEvaluator(
+    public <V extends PrismValue, D extends ItemDefinition<?>> ExpressionEvaluator<V> createEvaluator(
             Collection<JAXBElement<?>> evaluatorElements,
             D outputDefinition,
             ExpressionProfile expressionProfile,
@@ -63,7 +57,11 @@ public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjec
 
         //noinspection unchecked
         return (ExpressionEvaluator<V>)
-                new AssociationFromLinkExpressionEvaluator(ELEMENT_NAME,
-                        evaluatorBean, (PrismContainerDefinition<ShadowAssociationType>) outputDefinition, protector, prismContext, getObjectResolver());
+                new AssociationFromLinkExpressionEvaluator(
+                        ELEMENT_NAME,
+                        evaluatorBean,
+                        (PrismContainerDefinition<ShadowAssociationType>) outputDefinition,
+                        protector,
+                        getObjectResolver());
     }
 }

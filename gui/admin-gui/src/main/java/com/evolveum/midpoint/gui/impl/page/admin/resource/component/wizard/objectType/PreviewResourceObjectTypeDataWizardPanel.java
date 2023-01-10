@@ -14,7 +14,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDe
 
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.component.wizard.AbstractWizardBasicPanel;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardBasicPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +24,7 @@ import javax.xml.namespace.QName;
 /**
  * @author lskublik
  */
-public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasicPanel {
+public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasicPanel<ResourceDetailsModel> {
 
     private static final String ID_TABLE = "table";
 
@@ -55,7 +55,7 @@ public class PreviewResourceObjectTypeDataWizardPanel extends AbstractWizardBasi
         ResourceContentPanel table = new ResourceContentPanel(
                 ID_TABLE,
                 resourceObjectType.getObject().getRealValue().getKind(),
-                getResourceModel(),
+                getAssignmentHolderDetailsModel(),
                 null,
                 false) {
 

@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="be5bf6fb-11ce-40a8-b588-ec44cf051523">
+    <name>person-dev-archetype</name>
+    <documentation>The whole archetype is proposed. Its effects in production mode should be none.</documentation>
+    <lifecycleState>proposed</lifecycleState>
+    <archetypePolicy>
+        <objectTemplateRef oid="fec07d55-5bdd-4d9a-87f1-5f814303a4f5"/>
+    </archetypePolicy>
+</archetype>

@@ -134,7 +134,7 @@ public class TestHtmlReportExportClassic extends EmptyReportIntegrationTest {
                 storeDataType
         );
 
-        repoAddObjectFromFile(DASHBOARD_DEFAULT_COLUMNS.file, RepoAddOptions.createOverwrite(), false, result);
+        repoAdd(DASHBOARD_DEFAULT_COLUMNS, RepoAddOptions.createOverwrite(), result);
 
         when();
 

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report oid="44026fc7-c73d-4210-91c3-e5d10391c02b" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+    <name>Object Collection: subreport audit</name>
+    <objectCollection>
+        <collection>
+            <filter>
+                <!-- eventStage = "execution" and targetRef/@/name = `targetName` -->
+                <q:text>
+                    eventStage = "execution"
+                </q:text>
+            </filter>
+        </collection>
+        <condition>
+            <script>
+                <code>
+                    import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType
+
+                    def object = object as AuditEventRecordType
+
+                    return object.targetRef?.targetName == 'test140ExportAuditRecords'
+                </code>
+            </script>
+        </condition>
+        <parameter>
+            <name>targetName</name>
+            <type>string</type>
+        </parameter>
+        <view>
+            <column>
+                <name>timestamp</name>
+                <path>timestamp</path>
+                <display>
+                    <label>Timestamp</label>
+                </display>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                return object.timestamp
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <column>
+                <name>timestamp</name>
+                <path>timestamp</path>
+                <display>
+                    <label>Timestamp</label>
+                </display>
+            </column>
+            <column>
+                <name>targetRef</name>
+                <path>targetRef</path>
+                <display>
+                    <label>Target</label>
+                </display>
+                <previousColumn>timestamp</previousColumn>
+            </column>
+            <column>
+                <name>eventType</name>
+                <path>eventType</path>
+                <display>
+                    <label>Audit event type</label>
+                </display>
+                <previousColumn>targetRef</previousColumn>
+            </column>
+            <column>
+                <name>deltaOperation</name>
+                <display>
+                    <label>Object delta</label>
+                </display>
+                <previousColumn>eventType</previousColumn>
+                <export>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType
+
+                                def deltaOperation = deltaOperation as ObjectDeltaOperationType
+
+                                return deltaOperation.objectName + '-' + deltaOperation.objectDelta.changeType
+                            </code>
+                        </script>
+                    </expression>
+                </export>
+            </column>
+            <type>AuditEventRecordType</type>
+        </view>
+        <useOnlyReportView>true</useOnlyReportView>
+        <subreport>
+            <name>deltaOperation</name>
+            <expression>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType
+
+                        def object = object as AuditEventRecordType
+
+                        return object.delta()
+                    </code>
+                </script>
+            </expression>
+            <asRow>true</asRow>
+        </subreport>
+    </objectCollection>
+</report>

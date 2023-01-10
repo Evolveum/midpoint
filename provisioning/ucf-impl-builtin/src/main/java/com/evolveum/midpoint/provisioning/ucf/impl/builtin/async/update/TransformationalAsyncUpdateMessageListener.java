@@ -116,8 +116,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
                 }
 
                 if (task.getTracingRequestedFor().contains(TracingRootType.ASYNCHRONOUS_MESSAGE_PROCESSING)) {
-                    TracingProfileType profile = task.getTracingProfile() != null ? task.getTracingProfile() : tracer.getDefaultProfile();
-                    resultBuilder.tracingProfile(tracer.compileProfile(profile, task.getResult()));
+                    resultBuilder.tracingProfile(
+                            tracer.compileProfile(
+                                    task.getTracingProfile(), task.getResult()));
                 }
 
                 // replace task result with the newly-built one

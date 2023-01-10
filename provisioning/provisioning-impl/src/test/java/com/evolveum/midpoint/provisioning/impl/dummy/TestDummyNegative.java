@@ -476,7 +476,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                     .end()
                 .assertSuccessOrNoFetchResult();
 
-        PrismObject<ShadowType> goodAfter = findShadowByPrismName(GOOD_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS.object, result);
+        PrismObject<ShadowType> goodAfter = findShadowByPrismName(GOOD_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS.get(), result);
         assertShadow(goodAfter, GOOD_ACCOUNT)
                 .display()
                 .assertOid()
@@ -497,7 +497,7 @@ public class TestDummyNegative extends AbstractDummyTest {
                 // (maybe it's not necessary to provide account attributes in the message - reconsider)
 
         PrismObject<ShadowType> inconvertibleAfter =
-                findShadowByPrismName(INCONVERTIBLE_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS.object, result);
+                findShadowByPrismName(INCONVERTIBLE_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS.get(), result);
         assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
@@ -515,8 +515,8 @@ public class TestDummyNegative extends AbstractDummyTest {
                 .assertFetchResult(OperationResultStatusType.FATAL_ERROR, "Exception when translating", "WRONG");
                 // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
 
-        PrismObject<ShadowType> unstorableAfter = findShadowByPrismName(UNSTORABLE_ACCOUNT,
-                RESOURCE_DUMMY_BROKEN_ACCOUNTS.object, result);
+        PrismObject<ShadowType> unstorableAfter =
+                findShadowByPrismName(UNSTORABLE_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS.get(), result);
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()
@@ -587,7 +587,8 @@ public class TestDummyNegative extends AbstractDummyTest {
                     .end()
                 .assertSuccessOrNoFetchResult();
 
-        PrismObject<ShadowType> goodAfter = findShadowByPrismName(GOOD_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        PrismObject<ShadowType> goodAfter =
+                findShadowByPrismName(GOOD_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(goodAfter, GOOD_ACCOUNT)
                 .display()
                 .assertOid()
@@ -608,8 +609,8 @@ public class TestDummyNegative extends AbstractDummyTest {
                 // (maybe it's not necessary to provide account attributes in the message - reconsider)
 
         // name is now derived from UID
-        PrismObject<ShadowType> inconvertibleAfter = findShadowByPrismName(INCONVERTIBLE_ACCOUNT_UID,
-                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        PrismObject<ShadowType> inconvertibleAfter =
+                findShadowByPrismName(INCONVERTIBLE_ACCOUNT_UID, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
@@ -629,8 +630,8 @@ public class TestDummyNegative extends AbstractDummyTest {
                 // (maybe it's not necessary to provide the unconvertible value in the message - reconsider)
 
         // name is now derived from UID
-        PrismObject<ShadowType> unstorableAfter = findShadowByPrismName(UNSTORABLE_ACCOUNT_UID,
-                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        PrismObject<ShadowType> unstorableAfter =
+                findShadowByPrismName(UNSTORABLE_ACCOUNT_UID, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()
@@ -710,7 +711,8 @@ public class TestDummyNegative extends AbstractDummyTest {
                     .end()
                 .assertSuccessOrNoFetchResult();
 
-        PrismObject<ShadowType> goodAfter = findShadowByPrismName(GOOD_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        PrismObject<ShadowType> goodAfter =
+                findShadowByPrismName(GOOD_ACCOUNT, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(goodAfter, GOOD_ACCOUNT)
                 .display()
                 .assertOid()
@@ -729,8 +731,8 @@ public class TestDummyNegative extends AbstractDummyTest {
                     .end();
 
         // name is now derived from UID
-        PrismObject<ShadowType> inconvertibleAfter = findShadowByPrismName(INCONVERTIBLE_ACCOUNT_UID,
-                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        PrismObject<ShadowType> inconvertibleAfter =
+                findShadowByPrismName(INCONVERTIBLE_ACCOUNT_UID, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(inconvertibleAfter, INCONVERTIBLE_ACCOUNT)
                 .display()
                 .assertOid()
@@ -748,8 +750,8 @@ public class TestDummyNegative extends AbstractDummyTest {
                     .end();
 
         // name is now derived from UID
-        PrismObject<ShadowType> unstorableAfter = findShadowByPrismName(UNSTORABLE_ACCOUNT_UID,
-                RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.object, result);
+        PrismObject<ShadowType> unstorableAfter =
+                findShadowByPrismName(UNSTORABLE_ACCOUNT_UID, RESOURCE_DUMMY_BROKEN_ACCOUNTS_EXTERNAL_UID.get(), result);
         assertShadow(unstorableAfter, UNSTORABLE_ACCOUNT)
                 .display()
                 .assertOid()

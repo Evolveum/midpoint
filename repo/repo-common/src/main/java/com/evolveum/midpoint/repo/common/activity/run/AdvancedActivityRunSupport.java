@@ -15,11 +15,13 @@ import com.evolveum.midpoint.repo.common.activity.run.sources.SearchableItemSour
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.AggregatedObjectProcessingListener;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
 import com.evolveum.midpoint.util.exception.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.jetbrains.annotations.NotNull;
@@ -68,4 +70,10 @@ public interface AdvancedActivityRunSupport {
      * Returns item source suitable for processing items of given type.
      */
     <C extends Containerable> SearchableItemSource getItemSourceFor(Class<C> type);
+
+    /** Creates a simulation result into which the activity will store information about processed objects. */
+    @NotNull ObjectReferenceType createSimulationResult(OperationResult result);
+
+    /** TODO better name */
+    @NotNull AggregatedObjectProcessingListener getObjectProcessingListener(ObjectReferenceType simulationResultRef);
 }

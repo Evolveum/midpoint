@@ -7,53 +7,58 @@
 
 package com.evolveum.midpoint.report.impl.controller;
 
-import java.util.*;
+import static java.util.Objects.requireNonNull;
+
+import static com.evolveum.midpoint.report.impl.controller.GenericSupport.evaluateCondition;
+import static com.evolveum.midpoint.report.impl.controller.GenericSupport.getHeaderColumns;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.report.impl.activity.ClassicCollectionReportExportActivityRun;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
+import com.evolveum.midpoint.report.impl.activity.ClassicCollectionReportExportActivityRun;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaService;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static com.evolveum.midpoint.report.impl.controller.GenericSupport.*;
-
-import static java.util.Objects.requireNonNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * Controls the process of exporting collection-based reports.
- *
- * Currently the only use of this class is to be a "bridge" between the world of the activity framework
+ * </p>
+ * Currently, the only use of this class is to be a "bridge" between the world of the activity framework
  * (represented mainly by {@link ClassicCollectionReportExportActivityRun} class) and a set of cooperating
  * classes that implement the report export itself. However, in the future it may be used in other ways,
  * independently of the activity framework.
- *
+ * </p>
  * The process is driven by the activity execution that calls the following methods of this class:
- *
+ * </p>
  * 1. {@link #initialize(RunningTask, OperationResult)} that sets up the processes (in a particular worker task),
  * 2. {@link #beforeBucketExecution(int, OperationResult)} that starts processing of a given work bucket,
  * 3. {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} that processes given prism object,
@@ -62,7 +67,7 @@ import static java.util.Objects.requireNonNull;
  * @param <C> Type of records to be processed.
  */
 @Experimental
-public class CollectionExportController<C extends Containerable> implements ExportController<C>{
+public class CollectionExportController<C extends Containerable> implements ExportController<C> {
 
     private static final Trace LOGGER = TraceManager.getTrace(CollectionExportController.class);
 
@@ -206,7 +211,7 @@ public class CollectionExportController<C extends Containerable> implements Expo
     /**
      * Called before bucket of data is executed, i.e. before data start flowing to
      * {@link #handleDataRecord(int, Containerable, RunningTask, OperationResult)} method.
-     *
+     * </p>
      * We have to prepare for collecting the data.
      */
     public void beforeBucketExecution(int sequentialNumber, @SuppressWarnings("unused") OperationResult result) {
@@ -240,7 +245,7 @@ public class CollectionExportController<C extends Containerable> implements Expo
         if (condition != null) {
             try {
                 boolean writeRecord = evaluateCondition(condition, variables, this.reportService.getExpressionFactory(), workerTask, result);
-                if (!writeRecord){
+                if (!writeRecord) {
                     return;
                 }
             } catch (Exception e) {
@@ -249,8 +254,72 @@ public class CollectionExportController<C extends Containerable> implements Expo
             }
         }
 
-        variables.putAll(this.reportService.evaluateSubreportParameters(report.asPrismObject(), variables, workerTask, result));
+        // handle subreport parameters that have asRow=true, we'll create "new virtual rows")
+        List<SubreportParameterType> paramsAsRow = getSubreports(true);
+        if (paramsAsRow.isEmpty()) {
+            processSingleDataRecord(sequentialNumber, record, variables, workerTask, result);
+            return;
+        }
 
+        boolean rowsCreated = false;
+        for (SubreportParameterType param : paramsAsRow) {
+            VariablesMap map = reportService.evaluateSubreportParameter(report.asPrismObject(), variables, param, workerTask, result);
+            if (map.isEmpty()) {
+                continue;
+            }
+
+            TypedValue value = map.get(param.getName());
+            if (value == null || value.getValue() == null) {
+                continue;
+            }
+
+            Object obj = value.getValue();
+
+            VariablesMap vars = new VariablesMap();
+            vars.putAll(variables);
+            vars.putAll(evaluateSimpleSubreportParameters(vars, workerTask, result));
+
+            List rows = new ArrayList();
+            if (obj instanceof Collection) {
+                rows.addAll((Collection) obj);
+            } else {
+                rows.add(obj);
+            }
+
+            if (rows.isEmpty()) {
+                continue;
+            }
+
+            rowsCreated = true;
+
+            for (Object row : rows) {
+                vars.put(param.getName(), row, row.getClass());
+
+                convertAndWriteRow(sequentialNumber, record, vars, workerTask, result);
+            }
+        }
+
+        if (!rowsCreated) {
+            processSingleDataRecord(sequentialNumber, record, variables, workerTask, result);
+        }
+    }
+
+    private VariablesMap evaluateSimpleSubreportParameters(VariablesMap variables, RunningTask task, OperationResult result) {
+        VariablesMap resultMap = new VariablesMap();
+
+        List<SubreportParameterType> params = getSubreports(false);
+        for (SubreportParameterType param : params) {
+            VariablesMap allVars = new VariablesMap();
+            allVars.putAll(variables);
+            allVars.putAll(resultMap);
+
+            resultMap.putAll(reportService.evaluateSubreportParameter(report.asPrismObject(), allVars, param, task, result));
+        }
+
+        return resultMap;
+    }
+
+    private void convertAndWriteRow(int sequentialNumber, C record, VariablesMap variables, RunningTask workerTask, OperationResult result) {
         ColumnDataConverter<C> columnDataConverter =
                 new ColumnDataConverter<>(record, report, variables, reportService, workerTask, result);
 
@@ -261,5 +330,24 @@ public class CollectionExportController<C extends Containerable> implements Expo
                         columnDataConverter.convertColumn(column)));
 
         dataWriter.appendDataRow(dataRow);
+    }
+
+    private void processSingleDataRecord(int sequentialNumber, C record, VariablesMap variables, RunningTask workerTask, OperationResult result) {
+        variables.putAll(this.reportService.evaluateSubreportParameters(report.asPrismObject(), variables, workerTask, result));
+
+        convertAndWriteRow(sequentialNumber, record, variables, workerTask, result);
+    }
+
+    private List<SubreportParameterType> getSubreports(boolean asRow) {
+        ObjectCollectionReportEngineConfigurationType collection = report.getObjectCollection();
+        if (collection == null || collection.getSubreport().isEmpty()) {
+            return new ArrayList();
+        }
+
+        Collection<SubreportParameterType> subreports = collection.getSubreport();
+        List<SubreportParameterType> paramsAsRow = subreports.stream().filter(s -> asRow ? BooleanUtils.isTrue(s.isAsRow()) : BooleanUtils.isNotTrue(s.isAsRow())).collect(Collectors.toList());
+        paramsAsRow.sort(Comparator.comparingInt(s -> ObjectUtils.defaultIfNull(s.getOrder(), Integer.MAX_VALUE)));
+
+        return paramsAsRow;
     }
 }

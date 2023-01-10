@@ -43,6 +43,6 @@ public class ImportWorkDefinition extends AbstractWorkDefinition implements Reso
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
-        DebugUtil.debugDumpWithLabelLn(sb, "resourceObjects", resourceObjects, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "resourceObjects", resourceObjects, indent+1);
     }
 }

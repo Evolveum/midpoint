@@ -26,12 +26,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * Cache for search expression-based evaluators.
  *
  * It needs to be customized in the following ways:
- * - what's in the query key besides basic data - namely, what parts of ExpressionEvaluationContext should be part of the key?
- * - should we store anything in addition to the resulting list of values? E.g. shadow kind in case of associationTargetSearch that is used for invalidation?
  *
- * V - type of cached result items
- * O - type of raw values that we are searching for
- * QK, QR - customized query keys / values
+ * - what is in the query key besides basic data - namely, what parts of {@link ExpressionEvaluationContext} should
+ * be part of the key?
+ * - should we store anything in addition to the resulting list of values? E.g. shadow kind in case of `associationTargetSearch`
+ * that is used for invalidation?
+ *
+ * @param <V> type of cached result items
+ * @param <O> type of raw values that we are searching for
+ * @param <QK> query key
+ * @param <QR> query result
  *
  * After refactoring, this class contains almost nothing ;) Consider removing it altogether.
  */
@@ -39,8 +43,8 @@ public abstract class AbstractSearchExpressionEvaluatorCache<
         V extends PrismValue,
         O extends ObjectType,
         QK extends QueryKey,
-        QR extends QueryResult<V>> extends
-        AbstractThreadLocalCache {
+        QR extends QueryResult<V>>
+        extends AbstractThreadLocalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluatorCache.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(AbstractSearchExpressionEvaluatorCache.class.getName() + ".content");

@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.obje
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -16,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.AbstractResourceWizardBasicPanel;
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.ResourceWizardPanelHelper;
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
@@ -33,7 +35,7 @@ public abstract class SynchronizationReactionTableWizardPanel extends AbstractRe
 
     public SynchronizationReactionTableWizardPanel(
             String id,
-            ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> superHelper) {
+            WizardPanelHelper<ResourceObjectTypeDefinitionType, ResourceDetailsModel> superHelper) {
         super(id, superHelper);
     }
 
@@ -67,7 +69,7 @@ public abstract class SynchronizationReactionTableWizardPanel extends AbstractRe
     }
 
     private boolean isDeprecatedContainerInfoVisible() {
-        PrismContainerValue depSynch = getResourceModel().getObjectType().getSynchronization().clone().asPrismContainerValue();
+        PrismContainerValue depSynch = getAssignmentHolderDetailsModel().getObjectType().getSynchronization().clone().asPrismContainerValue();
         depSynch = WebPrismUtil.cleanupEmptyContainerValue(depSynch);
         return depSynch != null && !depSynch.hasNoItems();
     }

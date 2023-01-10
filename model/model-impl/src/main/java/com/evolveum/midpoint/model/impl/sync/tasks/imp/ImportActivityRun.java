@@ -73,7 +73,6 @@ public final class ImportActivityRun
                 processingScope.getPostSearchFilter(),
                 getModelBeans().eventDispatcher,
                 SchemaConstants.CHANNEL_IMPORT,
-                isPreview(),
                 true);
     }
 

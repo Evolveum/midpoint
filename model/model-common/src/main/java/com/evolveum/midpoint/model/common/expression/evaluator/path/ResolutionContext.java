@@ -35,7 +35,7 @@ abstract class ResolutionContext {
     /**
      * Resolve next step of the container-type context.
      */
-    abstract ResolutionContext stepInto(ItemName step, DefinitionResolver defResolver) throws SchemaException;
+    abstract ResolutionContext stepInto(ItemName step, DefinitionResolver<?, ?> defResolver) throws SchemaException;
 
     /**
      * Is the context of "structured property" type i.e. can we try to find the path in it?
@@ -45,8 +45,8 @@ abstract class ResolutionContext {
     /**
      * Resolve the last mile in structured property.
      */
-    abstract ResolutionContext resolveStructuredProperty(ItemPath pathToResolve,
-            PrismPropertyDefinition outputDefinition, PrismContext prismContext);
+    abstract ResolutionContext resolveStructuredProperty(
+            ItemPath pathToResolve, PrismPropertyDefinition<?> outputDefinition, PrismContext prismContext);
 
     /**
      * Is the context null so there's nothing to resolve?

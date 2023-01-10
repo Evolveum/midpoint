@@ -118,7 +118,7 @@ public class ModelImplUtils {
         // If this is really an error then it should be logged by the invoking code.
         LoggingUtils.logExceptionOnDebugLevel(LOGGER, message, e);
         result.recordException(message, e);
-        result.cleanupResult(e);
+        result.cleanup();
     }
 
     public static void recordPartialError(OperationResult result, Throwable e) {
@@ -234,14 +234,14 @@ public class ModelImplUtils {
     public static <T extends ObjectType> void resolveReferences(PrismObject<T> object, RepositoryService repository,
                 boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType resolutionTime,
                 boolean throwExceptionOnFailure,
-                PrismContext prismContext, OperationResult result) {
+                OperationResult result) {
 
         Visitor visitor = visitable -> {
             if (!(visitable instanceof PrismReferenceValue)) {
                 return;
             }
             resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
-                    resolutionTime, prismContext, object.toString(), throwExceptionOnFailure, result);
+                    resolutionTime, object.toString(), throwExceptionOnFailure, result);
         };
         object.accept(visitor);
     }
@@ -254,14 +254,14 @@ public class ModelImplUtils {
     public static <T extends ObjectType> void resolveReferences(ObjectDelta<T> objectDelta, RepositoryService repository,
             boolean enforceReferentialIntegrity, boolean forceFilterReevaluation,
             EvaluationTimeType resolutionTime, boolean throwExceptionOnFailure,
-            PrismContext prismContext, OperationResult result) {
+            OperationResult result) {
 
         Visitor visitor = visitable -> {
             if (!(visitable instanceof PrismReferenceValue)) {
                 return;
             }
             resolveRef((PrismReferenceValue)visitable, repository, enforceReferentialIntegrity, forceFilterReevaluation,
-                    resolutionTime, prismContext, objectDelta.toString(), throwExceptionOnFailure, result);
+                    resolutionTime, objectDelta.toString(), throwExceptionOnFailure, result);
         };
         // We could use objectDelta.accept(visitor), but we want to visit only values to add and replace
         // (NOT values to delete! - otherwise very strange effects could result)
@@ -300,7 +300,8 @@ public class ModelImplUtils {
 
     public static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
             boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType evaluationTimeType,
-            PrismContext prismContext, String contextDesc, boolean throwExceptionOnFailure, OperationResult parentResult) {
+            String contextDesc, boolean throwExceptionOnFailure, OperationResult parentResult) {
+        PrismContext prismContext = PrismContext.get();
         String refName = refVal.getParent() != null ?
                 refVal.getParent().getElementName().toString() : "(unnamed)";
 
@@ -629,11 +630,11 @@ public class ModelImplUtils {
         }
         if (deltaOps.size() == 1) {
             ObjectDeltaOperation<? extends ObjectType> deltaOp = deltaOps.iterator().next();
-            return getAuditTarget(deltaOp.getObjectDelta(), PrismContext.get());
+            return getAuditTarget(deltaOp.getObjectDelta());
         }
         for (ObjectDeltaOperation<? extends ObjectType> deltaOp: deltaOps) {
             if (!ShadowType.class.isAssignableFrom(deltaOp.getObjectDelta().getObjectTypeClass())) {
-                return getAuditTarget(deltaOp.getObjectDelta(), PrismContext.get());
+                return getAuditTarget(deltaOp.getObjectDelta());
             }
         }
         // Several raw operations, all on shadows, no focus ... this should not happen
@@ -642,18 +643,17 @@ public class ModelImplUtils {
         return null;
     }
 
-    public static PrismReferenceValue determineAuditTarget(Collection<ObjectDelta<? extends ObjectType>> deltas,
-            PrismContext prismContext) {
+    public static PrismReferenceValue determineAuditTarget(Collection<ObjectDelta<? extends ObjectType>> deltas) {
         if (deltas == null || deltas.isEmpty()) {
             return null;
         }
         if (deltas.size() == 1) {
             ObjectDelta<? extends ObjectType> delta = deltas.iterator().next();
-            return getAuditTarget(delta, prismContext);
+            return getAuditTarget(delta);
         }
         for (ObjectDelta<? extends ObjectType> delta: deltas) {
             if (!ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                return getAuditTarget(delta, prismContext);
+                return getAuditTarget(delta);
             }
         }
         // Several raw operations, all on shadows, no focus ... this should not happen
@@ -662,9 +662,8 @@ public class ModelImplUtils {
         return null;
     }
 
-    private static PrismReferenceValue getAuditTarget(ObjectDelta<? extends ObjectType> delta,
-            PrismContext prismContext) {
-        PrismReferenceValue targetRef = prismContext.itemFactory().createReferenceValue(delta.getOid());
+    private static PrismReferenceValue getAuditTarget(ObjectDelta<? extends ObjectType> delta) {
+        PrismReferenceValue targetRef = PrismContext.get().itemFactory().createReferenceValue(delta.getOid());
         targetRef.setTargetType(ObjectTypes.getObjectType(delta.getObjectTypeClass()).getTypeQName());
         if (delta.isAdd()) {
             targetRef.setObject(delta.getObjectToAdd());

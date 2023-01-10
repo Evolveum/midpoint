@@ -6,17 +6,29 @@
  */
 package com.evolveum.midpoint.gui.impl.page.admin.role;
 
+import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.page.admin.DetailsFragment;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 import com.evolveum.midpoint.gui.impl.page.admin.focus.PageFocusDetails;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.ApplicationRoleWizardPanel;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -50,5 +62,46 @@ public class PageRole extends PageFocusDetails<RoleType, FocusDetailsModels<Role
     @Override
     protected Panel createSummaryPanel(String id, IModel<RoleType> summaryModel) {
         return new RoleSummaryPanel(id, summaryModel, getSummaryPanelSpecification());
+    }
+
+    protected DetailsFragment createDetailsFragment() {
+
+        if (!isEditObject() && WebComponentUtil.hasArchetypeAssignment(
+                getObjectDetailsModels().getObjectType(),
+                SystemObjectsType.ARCHETYPE_APPLICATION_ROLE.value())) {
+            setUseWizardForCreating();
+            return new DetailsFragment(ID_DETAILS_VIEW, ID_TEMPLATE_VIEW, PageRole.this) {
+
+                @Override
+                protected void initFragmentLayout() {
+                    add(new ApplicationRoleWizardPanel(ID_TEMPLATE, createRoleWizardPanelHelper()) {
+
+                        @Override
+                        protected OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
+                            OperationResult result = new OperationResult(OPERATION_SAVE);
+                            saveOrPreviewPerformed(target, result, false);
+                            return result;
+                        }
+                    });
+                }
+            };
+        }
+        return super.createDetailsFragment();
+    }
+
+    private WizardPanelHelper<RoleType, FocusDetailsModels<RoleType>> createRoleWizardPanelHelper() {
+        return new WizardPanelHelper<>(getObjectDetailsModels()) {
+
+            @Override
+            public void onExitPerformed(AjaxRequestTarget target) {
+                navigateToNext(PageRoles.class);
+            }
+
+            @Override
+            public IModel<PrismContainerValueWrapper<RoleType>> getValueModel() {
+                return new ContainerValueWrapperFromObjectWrapperModel<>(
+                        getDetailsModel().getObjectWrapperModel(), ItemPath.EMPTY_PATH);
+            }
+        };
     }
 }

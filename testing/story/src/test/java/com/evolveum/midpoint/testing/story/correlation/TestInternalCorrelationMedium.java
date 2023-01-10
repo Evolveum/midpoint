@@ -79,13 +79,13 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
         addObject(ARCHETYPE_PERSON, initTask, initResult);
 
-        RESOURCE_SIS.initializeAndTest(this, initTask, initResult);
-        RESOURCE_HR.initializeAndTest(this, initTask, initResult);
-        RESOURCE_EXTERNAL.initializeAndTest(this, initTask, initResult);
+        RESOURCE_SIS.initAndTest(this, initTask, initResult);
+        RESOURCE_HR.initAndTest(this, initTask, initResult);
+        RESOURCE_EXTERNAL.initAndTest(this, initTask, initResult);
 
-        TASK_IMPORT_SIS.initialize(this, initTask, initResult);
-        TASK_IMPORT_HR.initialize(this, initTask, initResult);
-        TASK_IMPORT_EXTERNAL.initialize(this, initTask, initResult);
+        TASK_IMPORT_SIS.init(this, initTask, initResult);
+        TASK_IMPORT_HR.init(this, initTask, initResult);
+        TASK_IMPORT_EXTERNAL.init(this, initTask, initResult);
     }
 
     @Override
@@ -166,7 +166,7 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
                         .assertCommitted(1, 0, 0);
         // @formatter:on
 
-        PrismObject<ShadowType> a1001 = findShadowByPrismName("A1001", RESOURCE_HR.getObject(), result);
+        PrismObject<ShadowType> a1001 = findShadowByPrismName("A1001", RESOURCE_HR.get(), result);
         assertShadowAfter(a1001)
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN);
         CaseType aCase = correlationCaseManager.findCorrelationCase(a1001.asObjectable(), true, result);
@@ -234,7 +234,7 @@ public class TestInternalCorrelationMedium extends AbstractCorrelationTest {
                         .assertCommitted(1, 0, 0);
         // @formatter:on
 
-        PrismObject<ShadowType> x1 = findShadowByPrismName("X1", RESOURCE_EXTERNAL.getObject(), result);
+        PrismObject<ShadowType> x1 = findShadowByPrismName("X1", RESOURCE_EXTERNAL.get(), result);
         assertShadowAfter(x1)
                 .assertCorrelationSituation(CorrelationSituationType.UNCERTAIN);
         CaseType aCase = correlationCaseManager.findCorrelationCase(x1.asObjectable(), true, result);

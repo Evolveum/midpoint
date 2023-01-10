@@ -39,13 +39,13 @@ public class SimpleMockWorkDefinition extends AbstractWorkDefinition {
         return message;
     }
 
-    public int getInitialFailures() {
+    int getInitialFailures() {
         return initialFailures;
     }
 
     @Override
     protected void debugDumpContent(StringBuilder sb, int indent) {
         DebugUtil.debugDumpWithLabelLn(sb, "message", message, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "initialFailures", initialFailures, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "initialFailures", initialFailures, indent+1);
     }
 }

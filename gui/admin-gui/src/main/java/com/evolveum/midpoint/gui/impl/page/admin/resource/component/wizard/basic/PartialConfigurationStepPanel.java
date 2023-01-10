@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.basi
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.wizard.AbstractFormWizardStepPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.resource.ResourceDetailsModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -36,7 +37,7 @@ import org.apache.wicket.model.IModel;
                 icon = "fa fa-cog"),
         containerPath = "connectorConfiguration/configurationProperties",
         expanded = true)
-public class PartialConfigurationStepPanel extends AbstractFormResourceWizardStepPanel {
+public class PartialConfigurationStepPanel extends AbstractFormWizardStepPanel {
 
     private static final String DOT_CLASS = PartialConfigurationStepPanel.class.getName() + ".";
     private static final String OPERATION_PARTIAL_CONFIGURATION_TEST = DOT_CLASS + "partialConfigurationTest";
@@ -93,7 +94,7 @@ public class PartialConfigurationStepPanel extends AbstractFormResourceWizardSte
         OperationResult result = task.getResult();
 
         try {
-            WebComponentUtil.partialConfigurationTest(getResourceModel().getObjectWrapper().getObjectApplyDelta(), getPageBase(), task, result);
+            WebComponentUtil.partialConfigurationTest(getDetailsModel().getObjectWrapper().getObjectApplyDelta(), getPageBase(), task, result);
         } catch (SchemaException e) {
             result.recordFatalError("Couldn't apply delta for resource", e);
         }
