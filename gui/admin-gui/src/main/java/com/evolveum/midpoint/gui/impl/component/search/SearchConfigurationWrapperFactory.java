@@ -15,7 +15,6 @@ import com.evolveum.midpoint.gui.impl.component.search.factory.*;
 import com.evolveum.midpoint.gui.impl.component.search.wrapper.PropertySearchItemWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 

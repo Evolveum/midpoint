@@ -9,32 +9,32 @@ package com.evolveum.midpoint.gui.impl.component.search;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.search.wrapper.*;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class Search<C extends Containerable> implements Serializable, DebugDumpable {
 
@@ -54,23 +54,14 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     private List<QName> allowedTypeList = new ArrayList<>();
     private SearchBoxModeType defaultSearchBoxMode;
     private List<SearchBoxModeType> allowedModeList = new ArrayList<>();
-
-
-//    private String advancedQuery;
     private AdvancedQueryWrapper advancedQueryWrapper;
-//    private String dslQuery;
     private AxiomQueryWrapper axiomQueryWrapper;
     private FulltextQueryWrapper fulltextQueryWrapper;
     private SearchConfigurationWrapper searchConfigurationWrapper;
-
     private String advancedError;
-    
-
     private PrismContainerDefinition<C> containerDefinitionOverride;
-
     private String collectionViewName;
     private String collectionRefOid;
-
     private boolean forceReload;
 
     private List<AvailableFilterType> availableFilterTypes;
@@ -275,10 +266,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             advancedError = null;
 
             ObjectQuery query = createAdvancedObjectFilter(pageBase.getPrismContext());
-//            if (filter == null) {
-//                return null;
-//            }
-//            @NotNull ObjectQuery query = pageBase.getPrismContext().queryFactory().createQuery(filter);
             return query;
         } catch (Exception ex) {
             advancedError = createErrorMessage(ex);
@@ -286,16 +273,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
 
         return null;
     }
-
-//    private ObjectQuery createObjectQueryFullText(PageBase pageBase) {
-//        if (StringUtils.isEmpty(fullText)) {
-//            return null;
-//        }
-//        ObjectQuery query = pageBase.getPrismContext().queryFor(getTypeClass())
-//                .fullText(fullText)
-//                .build();
-//        return query;
-//    }
 
     private ObjectQuery createObjectQueryOid(PageBase pageBase) {
         OidSearchItemWrapper oidItem = findOidSearchItemWrapper();
@@ -422,33 +399,15 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         if (!SearchBoxModeType.BASIC.equals(getSearchMode())) {
             return conditions;
         }
-//        boolean abstractRoleFilterCheck = false;
         for (FilterableSearchItemWrapper item : getItems()) {
 
             ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
             if (filter != null) {
                 conditions.add(filter);
             }
-
-//            if (//hasParameter(item) ||
-//                    !item.isApplyFilter(getSearchMode()) ||
-//                    (item instanceof AbstractRoleSearchItemWrapper && abstractRoleFilterCheck)) {
-//                continue;
-//            }
-//            ObjectFilter filter = item.createFilter(getTypeClass(), pageBase, defaultVariables);
-//            if (filter != null) {
-//                conditions.add(filter);
-//            }
-//            if (item instanceof  AbstractRoleSearchItemWrapper) {
-//                abstractRoleFilterCheck = true;
-//            }
         }
         return conditions;
     }
-
-//    private boolean hasParameter(FilterableSearchItemWrapper<?> searchItemWrapper) {
-//        return StringUtils.isNotEmpty(searchItemWrapper.getParameterName());
-//    }
 
     public VariablesMap getFilterVariables(VariablesMap defaultVariables, PageBase pageBase) {
         VariablesMap variables = defaultVariables == null ? new VariablesMap() : defaultVariables;
@@ -466,7 +425,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
     public void setAdvancedQuery(String advancedQuery) {
         advancedQueryWrapper = new AdvancedQueryWrapper();
         advancedQueryWrapper.setAdvancedQuery(advancedQuery);
-//        this.advancedQuery = advancedQuery;
     }
 
     public String getFullText() {
@@ -478,16 +436,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         fulltextQueryWrapper.setFullText(fullText);
     }
 
-    public boolean allPropertyItemsPresent(List<FilterableSearchItemWrapper> items) {
-        for (FilterableSearchItemWrapper item : items) {
-            if (item instanceof PropertySearchItemWrapper && ((PropertySearchItemWrapper)item).getPath() != null &&
-                    findPropertySearchItem(((PropertySearchItemWrapper<?>) item).getPath()) == null) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public PropertySearchItemWrapper findPropertyItemByPath(ItemPath path) {
         for (FilterableSearchItemWrapper searchItemWrapper : getItems()) {
             if (!(searchItemWrapper instanceof PropertySearchItemWrapper)) {
@@ -495,20 +443,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
             }
             if (path.equivalent(((PropertySearchItemWrapper)searchItemWrapper).getPath())) {
                 return (PropertySearchItemWrapper)searchItemWrapper;
-            }
-        }
-        return null;
-    }
-
-    public boolean isTypeChanged() {
-        ObjectTypeSearchItemWrapper item = getObjectTypeSearchItemWrapper();
-        return item != null ? item.isTypeChanged() : false;
-    }
-
-    public ObjectTypeSearchItemWrapper getObjectTypeSearchItemWrapper() {
-        for (FilterableSearchItemWrapper item : getItems()) {
-            if (item instanceof ObjectTypeSearchItemWrapper) {
-                return (ObjectTypeSearchItemWrapper) item;
             }
         }
         return null;
@@ -552,10 +486,6 @@ public class Search<C extends Containerable> implements Serializable, DebugDumpa
         return "Search{" +
                 //todo implement
                 '}';
-    }
-
-    public void setContainerDefinition(PrismContainerDefinition<C> typeDefinitionForSearch) {
-        containerDefinitionOverride = typeDefinitionForSearch;
     }
 
     public PrismContainerDefinition<C> getContainerDefinitionOverride() {

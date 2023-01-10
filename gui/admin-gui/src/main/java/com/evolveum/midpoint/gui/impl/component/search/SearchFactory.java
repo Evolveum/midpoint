@@ -14,8 +14,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -27,8 +25,8 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowCoordinates;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -136,43 +134,41 @@ public class SearchFactory<C extends Containerable> {
     }
 
     private void initSearchByNameIfNeeded(Search<C> search) {
-        if (nameSearch != null && !search.searchByNameEquals(nameSearch)) {
-            if (SearchBoxModeType.FULLTEXT.equals(search.getSearchMode())) {
-                FulltextQueryWrapper fulltextWrapper = new FulltextQueryWrapper();
-                fulltextWrapper.setFullText(nameSearch);
-                search.setFulltextQueryWrapper(fulltextWrapper);
-            } else {
-                for (FilterableSearchItemWrapper<?> item : search.getItems()) {
-                    if (!(item instanceof PropertySearchItemWrapper)) {
-                        continue;
-                    }
-                    @SuppressWarnings("unchecked") PropertySearchItemWrapper<String> nameItem = (PropertySearchItemWrapper<String>) item;
-                    if (ItemPath.create(ObjectType.F_NAME).equivalent(((PropertySearchItemWrapper) item).getPath())) {
-                        nameItem.setValue(new SearchValue<>(nameSearch));
-                    }
-                }
-            }
+        if (!isNameSearchRequested(search)) {
+            return;
         }
+
+        if (SearchBoxModeType.FULLTEXT.equals(search.getSearchMode())) {
+            search.setFullText(nameSearch);
+            return;
+        }
+
+        PropertySearchItemWrapper<String> nameItem = search.findPropertySearchItem(ObjectType.F_NAME);
+        if (nameItem == null) {
+            return;
+        }
+
+        nameItem.setValue(new SearchValue<>(nameSearch));
+    }
+
+    private boolean isNameSearchRequested(Search<C> search) {
+        return nameSearch != null && !search.searchByNameEquals(nameSearch);
     }
 
     private void initTimestampForAudit(Search<C> search) {
-        if (AuditEventRecordType.class.equals(definition.getTypeClass())) {
-            DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
-            if (timestampItem != null && timestampItem.getSingleDate() == null && timestampItem.getIntervalSecondDate() == null
-                    && !isViewForDashboard && !isPreview) {
-                Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-                timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
-            }
+        if (!(AuditEventRecordType.class.equals(definition.getTypeClass()))) {
+            return;
+        }
+        DateSearchItemWrapper timestampItem = (DateSearchItemWrapper) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
+        if (timestampItem != null && timestampItem.getSingleDate() == null && timestampItem.getIntervalSecondDate() == null
+                && !isViewForDashboard && !isPreview) {
+            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            timestampItem.setSingleDate(MiscUtil.asXMLGregorianCalendar(todayDate));
         }
     }
 
     private SearchBoxConfigurationType getMergedConfiguration() {
         SearchBoxConfigurationType configuredSearchBox = getConfiguredSearchBox();
-
-        //not entirely clear, but at least backup
-//        if (defaultSearchBoxConfig == null) {
-//            this.defaultSearchBoxConfig = SearchBoxConfigurationUtil.getDefaultSearchBoxConfiguration(definition.getTypeClass(), null, modelServiceLocator);
-//        }
         return SearchConfigurationMerger.mergeConfigurations(defaultSearchBoxConfig, configuredSearchBox, modelServiceLocator);
     }
 
@@ -255,10 +251,6 @@ public class SearchFactory<C extends Containerable> {
         if (allowedModes.size() == 1) {
             return allowedModes.get(0);
         }
-//        if (config == null || config.getDefaultMode() == null) {
-//            return SearchBoxModeType.BASIC;
-//        }
-
         return config.getDefaultMode();
     }
 
@@ -310,10 +302,6 @@ public class SearchFactory<C extends Containerable> {
             return true; //todo should be set to false
         }
         return searchBoxConfigurationType.isAllowToConfigureSearchItems();
-    }
-
-    public void addShadowAttributeSearchItemWrapper(ItemPath path, List<? super FilterableSearchItemWrapper> defs) {
-//        addSearchPropertyWrapper(containerDef, path, defs, null, modelServiceLocator);
     }
 
 }

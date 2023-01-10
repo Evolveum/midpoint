@@ -259,7 +259,6 @@ public abstract class ResourceContentPanel extends BasePanel<PrismObject<Resourc
 
             @Override
             protected SearchBoxConfigurationType getDefaultSearchBoxConfiguration(Class<ShadowType> type) {
-//                return super.getDefaultSearchBoxConfiguration(type);
                 return ResourceContentPanel.this.getDefaultSearchBoxConfiguration();
             }
 

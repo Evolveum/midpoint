@@ -118,14 +118,6 @@ public class PropertySearchItemWrapper<T> extends FilterableSearchItemWrapper<T>
         return ""; //todo
     }
 
-//    public ItemDefinition<?> getItemDef() {
-//        return itemDef;
-//    }
-//
-//    public void setItemDef(ItemDefinition<?> itemDef) {
-//        this.itemDef = itemDef;
-//    }
-
     public ItemPath getPath() {
         return path;
     }
