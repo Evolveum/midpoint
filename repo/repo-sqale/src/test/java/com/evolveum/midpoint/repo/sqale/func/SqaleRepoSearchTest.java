@@ -2424,13 +2424,17 @@ public class SqaleRepoSearchTest extends SqaleRepoBaseTest {
     // endregion
 
     // region reference search
-    @Test // TODO disable if not finished
+    @Test // TODO disable if not finished before merging
     public void test800SearchReference() {
-        ObjectFilter objectFilter = prismContext.queryFor(UserType.class)
+        S_FilterEntryOrEmpty userTypeQuery = prismContext.queryFor(UserType.class);
+        ObjectQuery refQuery = userTypeQuery
                 .ref(UserType.F_ROLE_MEMBERSHIP_REF)
                 .item(F_NAME).eq("actual-role-name")
-                .buildFilter(); // buildRefQuery()
-//        SearchResultList<ObjectReferenceType> objectReferenceTypes = repositoryService.searchReference();
+                .maxSize(5)
+                .build();
+        ObjectFilter parentFilter = userTypeQuery.id("user-oid-here").buildFilter();
+        SearchResultList<ObjectReferenceType> objectReferenceTypes =
+                repositoryService.searchReference(UserType.class, refQuery, parentFilter);
     }
     // endregion
 

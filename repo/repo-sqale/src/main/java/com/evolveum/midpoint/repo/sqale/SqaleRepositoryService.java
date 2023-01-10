@@ -1276,16 +1276,22 @@ public class SqaleRepositoryService extends SqaleServiceBase implements Reposito
 
     // TODO what is the return type?
     //  Can be: SearchResultList<ObjectReferenceType> of references extracted from objects selected by ref owners
-    public SearchResultList<ObjectReferenceType> searchReference(
-            Class<ObjectType> ownerType, RefFilter filter) { // does not support pagination
-            //Class<ObjectType> ownerType, RefFilter filter) {
+    public <T extends Containerable> SearchResultList<ObjectReferenceType> searchReference(
+            @NotNull Class<T> ownerType, @NotNull ObjectQuery refQuery, @Nullable ObjectFilter parentFilter) {
+        //Class<ObjectType> ownerType, RefFilter filter) {
         // RefFilter or something different? Probably, extended ref filter could work just fine.
-        ItemPath refPath = filter.getPath();
+        ObjectFilter filter = refQuery.getFilter();
+        if (!(filter instanceof RefFilter)) {
+            throw new RuntimeException("Only RefFilter is supported for reference query"); // TODO proper exception type
+        }
+        System.out.println("ownerType = " + ownerType);
+        System.out.println("refQuery = " + refQuery);
+        System.out.println("parentFilter = " + parentFilter);
+
         // 1. select refs, this can be low-level repo based List<MReference>
         // 2. collect unique owner OIDs
         // 3. select owner objects
         // 4. crawl the object to extract the result references from them
-        ObjectReferenceType ort = null;
         return new SearchResultList<>();
     }
     // endregion
