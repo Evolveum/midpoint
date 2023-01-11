@@ -213,10 +213,11 @@ public class SynchronizationActionExecutor<F extends FocusType> {
                     .futurePointInTime()
                     .allowNotFound()
                     .build();
+            String shadowOid = linkRef.getOid();
             try {
                 ShadowType shadow =
                         provisioningService
-                                .getObject(ShadowType.class, linkRef.getOid(), options, syncCtx.getTask(), result)
+                                .getObject(ShadowType.class, shadowOid, options, syncCtx.getTask(), result)
                                 .asObjectable();
                 ResourceObjectTypeIdentification type = syncCtx.getTypeIdentification();
                 if (ShadowUtil.getResourceOidRequired(shadow).equals(syncCtx.getResourceOid())
@@ -228,10 +229,19 @@ public class SynchronizationActionExecutor<F extends FocusType> {
                     return false;
                 }
             } catch (ObjectNotFoundException e) {
-                LOGGER.trace("Shadow not existing (or disappeared during provisioning get operation): {}", linkRef.getOid());
+                LOGGER.trace("Shadow not existing (or disappeared during provisioning get operation): {}", shadowOid);
+                recordMissingShadowInSynchronizationContext(shadowOid, e);
             }
         }
         LOGGER.trace("No non-dead compatible shadow found, the DELETE reaction will be executed");
         return true;
+    }
+
+    private void recordMissingShadowInSynchronizationContext(String shadowOid, ObjectNotFoundException e) {
+        if (shadowOid.equals(e.getOid())
+            && shadowOid.equals(syncCtx.getShadowOid())) {
+            LOGGER.trace("Marking repo shadow in synchronization context as missing: {} in {}", shadowOid, syncCtx);
+            syncCtx.setShadowExistsInRepo(false);
+        }
     }
 }
