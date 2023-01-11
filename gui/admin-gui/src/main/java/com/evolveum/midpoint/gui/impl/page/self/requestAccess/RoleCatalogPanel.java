@@ -359,6 +359,9 @@ public class RoleCatalogPanel extends WizardStepPanel<RequestAccess> implements 
 
             @Override
             protected ObjectQuery getCustomizeContentQuery() {
+                // make sure menuModel was loaded
+                menuModel.getObject();
+
                 RoleCatalogQuery catalogQuery = queryModel.getObject();
                 ObjectQuery query = catalogQuery.getQuery();
 
