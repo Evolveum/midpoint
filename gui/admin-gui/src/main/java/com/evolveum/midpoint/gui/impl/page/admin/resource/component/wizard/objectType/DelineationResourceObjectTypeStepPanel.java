@@ -27,7 +27,7 @@ import org.apache.wicket.model.IModel;
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.delineation", icon = "fa fa-circle"),
         expanded = true)
 public class DelineationResourceObjectTypeStepPanel
-        extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDelineationType, ResourceType, ResourceDetailsModel> {
+        extends AbstractValueFormResourceWizardStepPanel<ResourceObjectTypeDelineationType, ResourceDetailsModel> {
 
     public static final String PANEL_TYPE = "rw-type-delineation";
     private final IModel<PrismContainerValueWrapper<ResourceObjectTypeDelineationType>> valueModel;

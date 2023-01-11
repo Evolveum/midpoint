@@ -25,7 +25,7 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-public abstract class AbstractConfigurationStepPanel extends AbstractFormWizardStepPanel<ResourceType, ResourceDetailsModel> {
+public abstract class AbstractConfigurationStepPanel extends AbstractFormWizardStepPanel<ResourceDetailsModel> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractConfigurationStepPanel.class);
 
