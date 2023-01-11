@@ -24,7 +24,7 @@ import org.apache.wicket.model.IModel;
         display = @PanelDisplay(label = "PageResource.wizard.step.objectType.focus", icon = "fa fa-circle"),
         expanded = true)
 public class FocusResourceObjectTypeStepPanel
-        extends AbstractValueFormResourceWizardStepPanel<ResourceObjectFocusSpecificationType, ResourceType, ResourceDetailsModel> {
+        extends AbstractValueFormResourceWizardStepPanel<ResourceObjectFocusSpecificationType, ResourceDetailsModel> {
 
     public static final String PANEL_TYPE = "rw-type-focus";
 

@@ -28,7 +28,7 @@ import org.apache.wicket.model.IModel;
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.mainConfiguration", icon = "fa fa-circle"),
         expanded = true)
 public class MainConfigurationStepPanel
-        extends AbstractValueFormResourceWizardStepPanel<ResourceAttributeDefinitionType, ResourceType, ResourceDetailsModel> {
+        extends AbstractValueFormResourceWizardStepPanel<ResourceAttributeDefinitionType, ResourceDetailsModel> {
 
     public static final String PANEL_TYPE = "rw-attribute";
 
