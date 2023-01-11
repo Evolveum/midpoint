@@ -23,6 +23,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.component.result.MessagePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -50,8 +51,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extends ObjectDetailsModels<O>> extends PageBase {
 
@@ -149,6 +148,13 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             protected void initFragmentLayout() {
                 add(initSummaryPanel());
                 MidpointForm form = new MidpointForm(ID_MAIN_FORM);
+                form.add(new FormWrapperValidator(AbstractPageObjectDetails.this) {
+
+                    @Override
+                    protected PrismObjectWrapper getObjectWrapper() {
+                        return getModelWrapperObject();
+                    }
+                });
                 form.setMultiPart(true);
                 add(form);
 

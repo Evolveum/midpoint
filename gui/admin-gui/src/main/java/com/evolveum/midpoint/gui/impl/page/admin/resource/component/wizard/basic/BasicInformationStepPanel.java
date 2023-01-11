@@ -29,7 +29,7 @@ import org.apache.wicket.model.IModel;
         applicableForOperation = OperationTypeType.ADD,
         display = @PanelDisplay(label = "PageResource.wizard.step.basicInformation", icon = "fa fa-wrench"),
         containerPath = "empty")
-public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<ResourceType, ResourceDetailsModel> {
+public class BasicInformationStepPanel extends AbstractFormWizardStepPanel<ResourceDetailsModel> {
 
     private static final String PANEL_TYPE = "rw-basic";
 

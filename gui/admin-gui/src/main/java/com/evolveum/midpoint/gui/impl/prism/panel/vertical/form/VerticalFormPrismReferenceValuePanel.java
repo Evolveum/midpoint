@@ -11,14 +11,6 @@ import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferenceValuePanel;
-
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,17 +18,21 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.validation.INullAcceptingValidator;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferenceValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extends PrismReferenceValuePanel<R> {
 
@@ -97,7 +93,6 @@ public class VerticalFormPrismReferenceValuePanel<R extends Referencable> extend
 
         };
 
-        panel.getBaseFormComponent().add((INullAcceptingValidator) createExpressionValidator());
         return panel;
     }
 

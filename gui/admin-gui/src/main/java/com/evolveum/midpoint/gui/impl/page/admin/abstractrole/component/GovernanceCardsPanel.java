@@ -47,6 +47,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -55,6 +56,7 @@ import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.IResource;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -151,36 +153,9 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         memberContainer.setOutputMarkupPlaceholderTag(true);
         form.add(memberContainer);
 
-        SelectableBeanObjectDataProvider<FocusType> provider = new SelectableBeanObjectDataProvider<>(
-                getPageBase(), searchModel, null) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return getMemberPanelStorage();
-            }
-
-            @Override
-            protected ObjectQuery getCustomizeContentQuery() {
-                return GovernanceCardsPanel.this.getCustomizedQuery(getSearchModel().getObject());
-            }
-
-            @Override
-            public void detach() {
-                preprocessSelectedDataInternal();
-                super.detach();
-            }
-        };
-        provider.setCompiledObjectCollectionView(getCompiledCollectionViewFromPanelConfiguration());
-        provider.setOptions(getSearchOptions());
-        provider.addQueryVariables(ExpressionConstants.VAR_PARENT_OBJECT, ObjectTypeUtil.createObjectRef(getModelObject()));
-
-        TileTablePanel<TemplateTile<SelectableBean<FocusType>>, SelectableBean<FocusType>> tilesTable =
-                new TileTablePanel<>(
+        MultiSelectTileTablePanel<FocusType, FocusType> tilesTable =
+                new MultiSelectTileTablePanel<>(
                         ID_MEMBER_TABLE,
-                        provider,
-                        Collections.emptyList(),
-                        Model.of(ViewToggle.TILE),
                         getTableId(getType())) {
 
                     @Override
@@ -219,30 +194,28 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
 
                     @Override
                     protected TemplateTile<SelectableBean<FocusType>> createTileObject(SelectableBean<FocusType> object) {
-                        FocusType obj = object.getValue();
-                        PrismObject prism = obj != null ? obj.asPrismObject() : null;
-                        String icon = WebComponentUtil.createDefaultColoredIcon(prism.getValue().getTypeName());
-
-                        String description = object.getValue().getDescription();
-                        if (obj instanceof UserType) {
-                            DisplayType displayType = GuiDisplayTypeUtil.getArchetypePolicyDisplayType(obj, getPageBase());
-                            if (displayType != null && displayType.getLabel() != null) {
-                                description = WebComponentUtil.getTranslatedPolyString(displayType.getLabel());
-                            }
-                        }
-
-                        TemplateTile<SelectableBean<FocusType>> t = new TemplateTile<>(
-                                icon, WebComponentUtil.getDisplayNameOrName(prism), object)
-                                .description(description);
-                        t.setSelected(object.isSelected());
-
-                        obj.getAssignment().stream()
+                        TemplateTile<SelectableBean<FocusType>> t = super.createTileObject(object);
+                        object.getValue().getAssignment().stream()
                                 .filter(assignment -> assignment.getTargetRef() != null
                                         && getObjectWrapper().getOid().equals(assignment.getTargetRef().getOid())
                                         && WebComponentUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getCategory().contains(AreaCategoryType.GOVERNANCE))
                                 .forEach(assignment -> t.addTag(WebComponentUtil.getRelationDefinition(assignment.getTargetRef().getRelation()).getDisplay()));
-
                         return t;
+                    }
+
+                    @Override
+                    protected void deselectItem(FocusType entry) {
+                        getProvider().getSelected().remove(entry);
+                    }
+
+                    @Override
+                    protected IModel<String> getItemLabelModel(FocusType entry) {
+                        return Model.of(WebComponentUtil.getDisplayNameOrName(entry.asPrismObject()));
+                    }
+
+                    @Override
+                    protected IModel<List<FocusType>> getSelectedItemsModel() {
+                        return () -> new ArrayList<>(getProvider().getSelected());
                     }
 
                     @Override
@@ -258,6 +231,20 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
                     @Override
                     protected String getTilesFooterCssClasses() {
                         return "card-footer";
+                    }
+
+                    @Override
+                    protected SelectableBeanObjectDataProvider<FocusType> createProvider() {
+                        SelectableBeanObjectDataProvider<FocusType> provider = super.createProvider();
+                        provider.addQueryVariables(
+                                ExpressionConstants.VAR_PARENT_OBJECT,
+                                ObjectTypeUtil.createObjectRef(GovernanceCardsPanel.this.getModelObject()));
+                        return provider;
+                    }
+
+                    @Override
+                    protected PageStorage getPageStorage() {
+                        return getMemberPanelStorage();
                     }
 
                     @Override
@@ -286,7 +273,7 @@ public class GovernanceCardsPanel<AR extends AbstractRoleType> extends AbstractR
         return actions;
     }
 
-    protected Component createTilePanel(String id, IModel<TemplateTile<SelectableBean<FocusType>>> model) {
+    private Component createTilePanel(String id, IModel<TemplateTile<SelectableBean<FocusType>>> model) {
         return new MemberTilePanel<>(id, model) {
 
             @Override
