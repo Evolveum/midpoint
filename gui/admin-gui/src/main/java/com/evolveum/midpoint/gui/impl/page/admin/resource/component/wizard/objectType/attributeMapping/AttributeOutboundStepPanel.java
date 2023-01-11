@@ -29,7 +29,7 @@ import org.apache.wicket.model.IModel;
         display = @PanelDisplay(label = "PageResource.wizard.step.attributes.outbound", icon = "fa fa-circle"),
         expanded = true)
 public class AttributeOutboundStepPanel
-        extends AbstractValueFormResourceWizardStepPanel<MappingType, ResourceType, ResourceDetailsModel> {
+        extends AbstractValueFormResourceWizardStepPanel<MappingType, ResourceDetailsModel> {
 
     public static final String PANEL_TYPE = "rw-attribute-outbound";
 

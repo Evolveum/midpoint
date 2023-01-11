@@ -384,7 +384,13 @@ public final class WebComponentUtil {
         return loadedObjectsList;
     }
 
-    public static ObjectFilter getShadowTypeFilterForAssociation(ConstructionType construction, String operation, PageBase pageBase) {
+    public static ObjectFilter getShadowTypeFilterForAssociation(
+            ConstructionType construction, String operation, PageBase pageBase) {
+        return getShadowTypeFilterForAssociation(construction, null, operation, pageBase);
+    }
+
+    public static ObjectFilter getShadowTypeFilterForAssociation(
+            ConstructionType construction, ItemName association, String operation, PageBase pageBase) {
         PrismContext prismContext = pageBase.getPrismContext();
         if (construction == null) {
             return null;
@@ -404,6 +410,9 @@ public final class WebComponentUtil {
             Collection<ResourceAssociationDefinition> resourceAssociationDefinitions = oc.getAssociationDefinitions();
 
             for (ResourceAssociationDefinition resourceAssociationDefinition : resourceAssociationDefinitions) {
+                if (association != null && !resourceAssociationDefinition.getName().equivalent(association)) {
+                    continue;
+                }
                 S_FilterEntryOrEmpty atomicFilter = prismContext.queryFor(ShadowType.class);
                 List<ObjectFilter> orFilterClauses = new ArrayList<>();
                 resourceAssociationDefinition.getIntents()
@@ -3597,6 +3606,38 @@ public final class WebComponentUtil {
         return new ArrayList<>();
     }
 
+    public static List<ResourceAssociationDefinition> getRefinedAssociationDefinition(ConstructionType construction, PageBase pageBase) {
+        List<ResourceAssociationDefinition> associationDefinitions = new ArrayList<>();
+
+        PrismContext prismContext = pageBase.getPrismContext();
+        if (construction == null) {
+            return associationDefinitions;
+        }
+        PrismObject<ResourceType> resource = WebComponentUtil.getConstructionResource(construction, "load resource", pageBase);
+        if (resource == null) {
+            return associationDefinitions;
+        }
+
+        ObjectQuery query = prismContext.queryFactory().createQuery();
+        try {
+            ResourceSchema schema = ResourceSchemaFactory.getCompleteSchema(resource);
+            ResourceObjectDefinition oc = schema.findDefinitionForConstruction(construction);
+            if (oc == null) {
+                LOGGER.debug("Association for {} not supported by resource {}", construction, resource);
+                return null;
+            }
+            associationDefinitions.addAll(oc.getAssociationDefinitions());
+
+            if (CollectionUtils.isEmpty(associationDefinitions)) {
+                LOGGER.debug("Association for {} not supported by resource {}", construction, resource);
+                return associationDefinitions;
+            }
+        } catch (Exception ex) {
+            LOGGER.error("Association for {} not supported by resource {}: {}", construction, resource, ex.getLocalizedMessage());
+        }
+        return associationDefinitions;
+    }
+
     public static List<ResourceAssociationDefinition> getRefinedAssociationDefinition(ResourceType resource, ShadowKindType kind, String intent) {
         List<ResourceAssociationDefinition> associationDefinitions = new ArrayList<>();
 
@@ -3606,11 +3647,16 @@ public final class WebComponentUtil {
                 return associationDefinitions;
             }
             ResourceSchema refinedResourceSchema = ResourceSchemaFactory.getCompleteSchema(resource.asPrismObject());
-            if (ShadowUtil.isNotKnown(kind) || ShadowUtil.isNotKnown(intent)) {
-                // TODO Is this OK? Please review this.
+            if (ShadowUtil.isNotKnown(kind)) {
                 return associationDefinitions;
             }
-            ResourceObjectDefinition oc = refinedResourceSchema.findObjectDefinition(kind, intent);
+
+            ResourceObjectDefinition oc;
+            if (ShadowUtil.isNotKnown(intent)) {
+                oc = refinedResourceSchema.findDefaultDefinitionForKind(kind);
+            } else {
+                oc = refinedResourceSchema.findObjectDefinition(kind, intent);
+            }
             if (oc == null) {
                 LOGGER.debug("Association for {}/{} not supported by resource {}", kind, intent, resource);
                 return associationDefinitions;

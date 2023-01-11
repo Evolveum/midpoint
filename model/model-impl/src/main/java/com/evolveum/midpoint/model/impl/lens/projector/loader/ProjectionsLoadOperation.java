@@ -250,11 +250,13 @@ public class ProjectionsLoadOperation<F extends FocusType> {
         LOGGER.trace("Initialization of projection contexts from sync delta(s) starting - if there are any");
         for (LensProjectionContext projCtx : context.getProjectionContexts()) {
             if (projCtx.isFresh() && projCtx.getObjectCurrent() != null) {
-                continue; // Already loaded
+                LOGGER.trace("Not considering sync delta in {} as it is already loaded: fresh and has current object", projCtx);
+                continue;
             }
             ObjectDelta<ShadowType> syncDelta = projCtx.getSyncDelta();
             if (syncDelta == null) {
-                continue; // Nothing to apply
+                LOGGER.trace("No sync delta in {}", projCtx);
+                continue;
             }
             LOGGER.trace("Found sync delta in {}: {}", projCtx, syncDelta);
 
@@ -282,6 +284,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                         .noFetch()
                         .doNotDiscovery()
                         .futurePointInTime()
+                        .allowNotFound()
                         //.readOnly() [not yet]
                         .build();
                 try {
@@ -416,6 +419,13 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             }
             try {
                 provisioningService.getObject(ShadowType.class, oid, options, task, result);
+            } catch (ObjectNotFoundException e) {
+                // We will NOT delete the linkRef here. Instead, we will persuade LinkUpdater to do it, by creating a broken
+                // projection context (just as if the link would be regular one). This is the only situation when there is
+                // a projection context created for inactive linkRef.
+                getOrCreateEmptyGoneProjectionContext(oid);
+                result.getLastSubresult()
+                        .muteErrorsRecursively();
             } catch (Exception e) {
                 result.muteLastSubresultError();
                 LOGGER.debug("Couldn't refresh linked shadow {}. Continuing.", oid, e);
@@ -481,13 +491,9 @@ public class ProjectionsLoadOperation<F extends FocusType> {
             try {
                 return provisioningService.getObject(ShadowType.class, oid, options, task, result);
             } catch (ObjectNotFoundException e) {
-                // Broken linkRef. We need to mark it for deletion.
-                LensProjectionContext projectionContext = getOrCreateEmptyGone(oid);
-                projectionContext.setFresh(true);
-                projectionContext.setExists(false);
-                projectionContext.setShadowExistsInRepo(false);
+                getOrCreateEmptyGoneProjectionContext(oid);
                 result.getLastSubresult()
-                        .setErrorsHandled();
+                        .muteErrorsRecursively();
                 return null;
             }
         }
@@ -609,7 +615,7 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                     projectionContext.setShadowExistsInRepo(false);
                     LOGGER.trace("Loaded projection context: {}", projectionContext);
                     OperationResult getObjectSubresult = result.getLastSubresult();
-                    getObjectSubresult.setErrorsHandled();
+                    getObjectSubresult.muteErrorsRecursively();
                 } catch (ObjectNotFoundException ex) {
                     // This is still OK. It means deleting an accountRef that points to non-existing object just log a warning
                     LOGGER.warn("Deleting accountRef of " + focusContext.getObjectCurrent() + " that points to non-existing OID " + oid);
@@ -696,6 +702,14 @@ public class ProjectionsLoadOperation<F extends FocusType> {
                         + "object is not adding the same object as explicit delta " + primaryDelta);
             }
         }
+    }
+
+    private void getOrCreateEmptyGoneProjectionContext(String oid) {
+        LOGGER.trace("Broken linkRef {}. We need to mark it for deletion by ensuring 'gone' projection context.", oid);
+        LensProjectionContext projectionContext = getOrCreateEmptyGone(oid);
+        projectionContext.setFresh(true);
+        projectionContext.setExists(false);
+        projectionContext.setShadowExistsInRepo(false);
     }
 
     /**

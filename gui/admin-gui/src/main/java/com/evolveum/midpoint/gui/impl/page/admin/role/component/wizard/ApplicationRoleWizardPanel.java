@@ -9,34 +9,21 @@ package com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardModel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardPanel;
 import com.evolveum.midpoint.gui.api.component.wizard.WizardStep;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.wizard.AbstractWizardPanel;
 import com.evolveum.midpoint.gui.impl.component.wizard.WizardPanelHelper;
 import com.evolveum.midpoint.gui.impl.page.admin.assignmentholder.FocusDetailsModels;
 
-import com.evolveum.midpoint.gui.impl.page.admin.resource.component.wizard.objectType.PreviewResourceObjectTypeDataWizardPanel;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.BasicConstructionStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionGroupStepPanel;
+import com.evolveum.midpoint.gui.impl.page.admin.role.component.wizard.construction.ConstructionResourceStepPanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.model.ContainerValueWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
-import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +32,6 @@ import java.util.List;
  * @author lskublik
  */
 public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, FocusDetailsModels<RoleType>> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(ApplicationRoleWizardPanel.class);
 
     public ApplicationRoleWizardPanel(String id, WizardPanelHelper<RoleType, FocusDetailsModels<RoleType>> helper) {
         super(id, helper);
@@ -73,41 +58,6 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
         return steps;
     }
 
-//    protected ResourceObjectTypeWizardPanel createObjectTypeWizard(
-//            IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel) {
-//
-//        ResourceWizardPanelHelper<ResourceObjectTypeDefinitionType> helper = new ResourceWizardPanelHelper<>(getAssignmentHolderDetailsModel(), valueModel) {
-//
-//            @Override
-//            public void onExitPerformed(AjaxRequestTarget target) {
-//                showWizardPanel(createTablePanel(), target);
-//            }
-//
-//            @Override
-//            public OperationResult onSaveResourcePerformed(AjaxRequestTarget target) {
-//                return ApplicationRoleWizardPanel.this.onSaveResourcePerformed(target);
-//            }
-//        };
-//        ResourceObjectTypeWizardPanel wizard = new ResourceObjectTypeWizardPanel(ID_WIZARD_PANEL, helper);
-//        wizard.setOutputMarkupId(true);
-//        return wizard;
-//    }
-
-//    protected ResourceObjectTypeTableWizardPanel createTablePanel() {
-//        return new ResourceObjectTypeTableWizardPanel(ID_WIZARD_PANEL, getAssignmentHolderDetailsModel()) {
-//            @Override
-//            protected void onEditValue(IModel<PrismContainerValueWrapper<ResourceObjectTypeDefinitionType>> valueModel, AjaxRequestTarget target) {
-//                showWizardPanel(createObjectTypeWizard(valueModel), target);
-//            }
-//
-//            @Override
-//            protected void onExitPerformed(AjaxRequestTarget target) {
-//                super.onExitPerformed(target);
-//                exitToPreview(target);
-//            }
-//        };
-//    }
-
     private void onFinishBasicWizardPerformed(AjaxRequestTarget target) {
         OperationResult result = onSaveResourcePerformed(target);
         if (!result.isError()) {
@@ -115,16 +65,6 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
             exitToPreview(target);
         }
     }
-
-//    private PreviewResourceDataWizardPanel createPreviewResourceDataWizardPanel() {
-//        return new PreviewResourceDataWizardPanel(ID_WIZARD_PANEL, getAssignmentHolderDetailsModel()) {
-//            @Override
-//            protected void onExitPerformed(AjaxRequestTarget target) {
-//                super.onExitPerformed(target);
-//                exitToPreview(target);
-//            }
-//        };
-//    }
 
     private void exitToPreview(AjaxRequestTarget target) {
         showChoiceFragment(
@@ -134,7 +74,12 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
                     protected void onTileClickPerformed(PreviewTileType value, AjaxRequestTarget target) {
                         switch (value) {
                             case CONFIGURE_CONSTRUCTION:
-//                        showWizardPanel(createPreviewResourceDataWizardPanel(), target);
+                                showWizardFragment(
+                                        target,
+                                        new WizardPanel(
+                                                getIdOfWizardPanel(),
+                                                new WizardModel(createConstructionSteps())
+                                        ));
                                 break;
                             case CONFIGURE_MEMBERS:
                                 showMembersPanel(target);
@@ -145,6 +90,46 @@ public class ApplicationRoleWizardPanel extends AbstractWizardPanel<RoleType, Fo
                         }
                     }
                 });
+    }
+
+    private List<WizardStep> createConstructionSteps() {
+        List<WizardStep> steps = new ArrayList<>();
+
+        ConstructionResourceStepPanel selectResource =
+                new ConstructionResourceStepPanel(getHelper().getDetailsModel()) {
+
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
+                exitToPreview(target);
+            }
+        };
+
+        steps.add(selectResource);
+
+        steps.add(new BasicConstructionStepPanel(getHelper().getDetailsModel(), selectResource.getValueModel()){
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
+                exitToPreview(target);
+            }
+        });
+
+        steps.add(new ConstructionGroupStepPanel(getHelper().getDetailsModel(), selectResource.getValueModel()){
+            @Override
+            protected void onExitPerformed(AjaxRequestTarget target) {
+                super.onExitPerformed(target);
+                exitToPreview(target);
+            }
+
+            @Override
+            protected void onSubmitPerformed(AjaxRequestTarget target) {
+                super.onSubmitPerformed(target);
+                ApplicationRoleWizardPanel.this.onFinishBasicWizardPerformed(target);
+            }
+        });
+
+        return steps;
     }
 
     private void showGovernanceMembersPanel(AjaxRequestTarget target) {

@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -19,12 +16,12 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.component.message.FeedbackLabels;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -37,7 +34,6 @@ import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>> extends BasePanel<VW> {
@@ -161,7 +157,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         panelCtx.setAjaxEventBehavior(createEventBehavior());
         panelCtx.setMandatoryHandler(getMandatoryHandler());
         panelCtx.setVisibleEnableBehaviour(createVisibleEnableBehavior());
-        panelCtx.setExpressionValidator(createExpressionValidator());
         panelCtx.setFeedback(feedback);
 
         Component component;
@@ -257,17 +252,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         }
 
         return settings.getEditabilityHandler();
-    }
-
-    protected ExpressionValidator<T> createExpressionValidator() {
-        return new ExpressionValidator<T>(
-                LambdaModel.of(getModelObject().getParent()::getFormComponentValidator), getPageBase()) {
-
-            @Override
-            protected <O extends ObjectType> O getObjectType() {
-                return getObject();
-            }
-        };
     }
 
     protected abstract <PC extends ItemPanelContext> PC createPanelCtx(IModel<IW> wrapper);
