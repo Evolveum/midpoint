@@ -27,7 +27,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.validation.INullAcceptingValidator;
 
 import javax.xml.namespace.QName;
 import java.util.Arrays;
@@ -108,10 +107,8 @@ public class PrismReferenceValuePanel<R extends Referencable> extends PrismValue
 
         };
 
-        panel.getBaseFormComponent().add((INullAcceptingValidator) createExpressionValidator());
         return panel;
     }
-
 
     private PrismReferenceWrapper<R> getParentWrapper() {
         return getModelObject().getParent();

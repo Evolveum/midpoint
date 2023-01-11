@@ -8,6 +8,8 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.util.ExpressionValidator;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -60,7 +62,10 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
             formComponent.add(panelCtx.getVisibleEnableBehavior());
         }
 
-        panel.getValidatableComponent().add(panelCtx.getExpressionValidator());
+        ExpressionValidator ev = panelCtx.getExpressionValidator();
+        if (ev != null) {
+            panel.getValidatableComponent().add(ev);
+        }
         panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel.getValidatableComponent()));
 
     }

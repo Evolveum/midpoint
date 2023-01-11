@@ -139,6 +139,13 @@ public abstract class AbstractPageObjectDetails<O extends ObjectType, ODM extend
             protected void initFragmentLayout() {
                 add(initSummaryPanel());
                 MidpointForm form = new MidpointForm(ID_MAIN_FORM);
+                form.add(new FormWrapperValidator(AbstractPageObjectDetails.this) {
+
+                    @Override
+                    protected PrismObjectWrapper getObjectWrapper() {
+                        return getModelWrapperObject();
+                    }
+                });
                 form.setMultiPart(true);
                 add(form);
 
