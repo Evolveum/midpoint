@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Context related to evaluation and processing of policy rules.
@@ -143,5 +144,12 @@ public class PolicyRulesContext implements Serializable, DebugDumpable {
         pendingObjectPolicyStateModifications.addAll(other.pendingObjectPolicyStateModifications);
         pendingAssignmentPolicyStateModifications.putAll(other.pendingAssignmentPolicyStateModifications);
         counterMap.putAll(other.counterMap);
+    }
+
+    // TEMPORARY IMPLEMENTATION
+    @NotNull Collection<String> getEventTags() {
+        return objectPolicyRules.stream()
+                .flatMap(rule -> rule.getEventTags().stream())
+                .collect(Collectors.toSet());
     }
 }

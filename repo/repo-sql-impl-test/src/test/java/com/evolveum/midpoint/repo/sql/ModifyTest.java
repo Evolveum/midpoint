@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.displayCollection;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
@@ -21,6 +23,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.test.util.TestUtil;
 
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;

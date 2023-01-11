@@ -5499,4 +5499,12 @@ public final class WebComponentUtil {
 
         return application.getLocalizationService().translate(msg, getCurrentLocale());
     }
+
+    public static ItemPath getPath(GuiObjectColumnType column) {
+        if (column == null) {
+            return null;
+        }
+
+        return column.getPath().getItemPath();
+    }
 }

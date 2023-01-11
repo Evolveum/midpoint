@@ -893,10 +893,18 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
 
         ValueSetDefinitionType rangeSetDefBean = target.getSet();
-        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(rangeSetDefBean, getOutputDefinition(), valueMetadataDefinition,
-                expressionProfile, name, mappingSpecification, "range",
-                "range of " + name + " in " + getMappingContextDescription(), task, result);
-        rangeSetDef.init(ModelCommonBeans.get().expressionFactory);
+        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(
+                rangeSetDefBean,
+                getOutputDefinition(),
+                valueMetadataDefinition,
+                expressionProfile,
+                ModelCommonBeans.get().expressionFactory,
+                name,
+                mappingSpecification,
+                "range",
+                "range of " + name + " in " + getMappingContextDescription(),
+                task, result);
+        rangeSetDef.init();
         rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
             if (rangeSetDef.contains(originalValue)) {
@@ -1306,8 +1314,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         expression = ModelCommonBeans.get().expressionFactory.makeExpression(
                 mappingBean.getExpression(), getOutputDefinition(), expressionProfile,
                 "expression in " + getMappingContextDescription(), task, result);
-        ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
-                "expression in " + getMappingContextDescription(), task);
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(
+                sources, variables, "expression in " + getMappingContextDescription(), task);
         context.setDefaultSource(defaultSource);
         context.setSkipEvaluationMinus(!conditionResultOld);
         context.setSkipEvaluationPlus(!conditionResultNew);

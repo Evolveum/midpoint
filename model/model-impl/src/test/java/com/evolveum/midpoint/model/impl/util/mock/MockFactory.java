@@ -414,6 +414,11 @@ public class MockFactory {
             }
 
             @Override
+            public boolean supports(@NotNull Class<? extends ObjectType> type) {
+                return false;
+            }
+
+            @Override
             public void repositorySelfTest(OperationResult parentResult) {
 
             }

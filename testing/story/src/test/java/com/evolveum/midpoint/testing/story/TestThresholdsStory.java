@@ -214,7 +214,7 @@ public abstract class TestThresholdsStory extends AbstractStoryTest {
 
         assertUsers(getNumberOfInitialUsers());
 
-        addObject(getTaskTestResource().file, task, result,
+        addObject(getTaskTestResource(), task, result,
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_STOP_ON_5TH_USER_CREATION.oid),
                         getWorkerThreadsCustomizer()));
@@ -246,7 +246,7 @@ public abstract class TestThresholdsStory extends AbstractStoryTest {
         assertUsers(getNumberOfInitialUsers() + expectedUsersImported);
 
         taskManager.deleteTaskTree(getTaskOid(), result);
-        addObject(getTaskTestResource().file, task, result,
+        addObject(getTaskTestResource(), task, result,
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_STOP_ON_5TH_USER_CREATION.oid),
                         getWorkerThreadsCustomizer()));
@@ -293,7 +293,7 @@ public abstract class TestThresholdsStory extends AbstractStoryTest {
         openDJController.executeLdifChanges(LDIF_CHANGE_ACTIVATION_FILE);
 
         taskManager.deleteTaskTree(getTaskOid(), result);
-        addObject(getTaskTestResource().file, task, result,
+        addObject(getTaskTestResource(), task, result,
                 aggregateCustomizer(
                         roleAssignmentCustomizer(ROLE_STOP_ON_3RD_STATUS_CHANGE.oid),
                         getWorkerThreadsCustomizer()));

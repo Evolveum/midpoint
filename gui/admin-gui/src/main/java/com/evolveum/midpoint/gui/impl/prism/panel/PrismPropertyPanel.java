@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.*;
@@ -45,6 +46,16 @@ public class  PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<
             @Override
             protected void refreshPanel(AjaxRequestTarget target) {
                 target.add(PrismPropertyPanel.this);
+            }
+
+            @Override
+            protected boolean isRequired() {
+                ItemMandatoryHandler handler = getSettings().getMandatoryHandler();
+                if (handler != null) {
+                    return handler.isMandatory(getModelObject());
+                }
+
+                return super.isRequired();
             }
         };
     }

@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.model.common.util;
 
+import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.FULL_STATE_PREFERRED;
+
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.util.task.*;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
@@ -27,14 +27,15 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SchemaService;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.task.ActivityProgressInformation;
+import com.evolveum.midpoint.schema.util.task.ActivityStateUtil;
+import com.evolveum.midpoint.schema.util.task.TaskTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordCustomColumnPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import static com.evolveum.midpoint.schema.util.task.ActivityProgressInformationBuilder.InformationSource.*;
 
 /**
  * Column related utilities shared by reporting and GUI.
@@ -55,12 +56,12 @@ public class DefaultColumnUtils {
                 .put(AuditEventRecordType.class, Arrays.asList(
                         new ColumnWrapper(AuditEventRecordType.F_TIMESTAMP, true),
                         new ColumnWrapper(AuditEventRecordType.F_INITIATOR_REF),
-                        new ColumnWrapper(AuditEventRecordType.F_EVENT_STAGE),
+                        new ColumnWrapper(AuditEventRecordType.F_EVENT_STAGE, true),
                         new ColumnWrapper(AuditEventRecordType.F_EVENT_TYPE),
                         new ColumnWrapper(AuditEventRecordType.F_TARGET_REF),
-                        new ColumnWrapper(AuditEventRecordType.F_OUTCOME),
-                        new ColumnWrapper(AuditEventRecordType.F_MESSAGE),
-                        new ColumnWrapper(AuditEventRecordType.F_DELTA)))
+                        new ColumnWrapper(AuditEventRecordType.F_TARGET_OWNER_REF),
+                        new ColumnWrapper(AuditEventRecordType.F_CHANNEL, true),
+                        new ColumnWrapper(AuditEventRecordType.F_OUTCOME, true)))
                 .put(ResourceType.class, Arrays.asList(
                         new ColumnWrapper(ResourceType.F_NAME),
                         new ColumnWrapper(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE), "ConnectorType.connectorType"),
@@ -145,7 +146,7 @@ public class DefaultColumnUtils {
             return getDefaultAuditEventsView();
         } else if (MessageTemplateType.class.equals(type)) {
             return getDefaultMessageTemplateView();
-        } else if (ObjectType.class.isAssignableFrom(type)){
+        } else if (ObjectType.class.isAssignableFrom(type)) {
             return getDefaultObjectView();
         }
         return null;
@@ -210,26 +211,27 @@ public class DefaultColumnUtils {
 
     private static <C extends Containerable> void createColumns(GuiObjectListViewType view, Class<? extends C> type) {
         view.createColumnList();
+
         List<GuiObjectColumnType> columns = view.getColumn();
-        List<ColumnWrapper> defaultColumns = getColumnsForType(type);
+
         String previousColumn = null;
-        for (ColumnWrapper defaultColumn : defaultColumns) {
-            String localPathPath = defaultColumn.getPath().lastName().getLocalPart();
+        for (ColumnWrapper columnWrapper : getColumnsForType(type)) {
+            String localPathPath = columnWrapper.getPath().lastName().getLocalPart();
             String columnName = localPathPath + "Column";
             GuiObjectColumnType column = new GuiObjectColumnType();
             column.setName(columnName);
             column.setPreviousColumn(previousColumn);
             ItemPathType itemPathType = new ItemPathType();
-            itemPathType.setItemPath(defaultColumn.getPath());
+            itemPathType.setItemPath(columnWrapper.getPath());
             column.setPath(itemPathType);
-            column.setDisplayValue(defaultColumn.getDisplayValue());
-            if (defaultColumn.isSortable()) {
+            column.setDisplayValue(columnWrapper.getDisplayValue());
+            if (columnWrapper.isSortable()) {
                 column.setSortProperty(localPathPath);
             }
-            if (!StringUtils.isEmpty(defaultColumn.getLabel())) {
+            if (!StringUtils.isEmpty(columnWrapper.getLabel())) {
                 DisplayType display = new DisplayType();
-                PolyStringType label = new PolyStringType(defaultColumn.getLabel());
-                label.setTranslation(new PolyStringTranslationType().key(defaultColumn.getLabel()));
+                PolyStringType label = new PolyStringType(columnWrapper.getLabel());
+                label.setTranslation(new PolyStringTranslationType().key(columnWrapper.getLabel()));
                 display.setLabel(label);
                 column.setDisplay(display);
             }
@@ -286,7 +288,7 @@ public class DefaultColumnUtils {
                 }
             }
         } else if (object instanceof AuditEventRecordType) {
-            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)object).getCustomColumnProperty()) {
+            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType) object).getCustomColumnProperty()) {
                 if (customColumn.getName().equals(itemPath.toString())) {
                     return customColumn.getValue();
                 }
@@ -305,7 +307,7 @@ public class DefaultColumnUtils {
                     || itemPath.equivalent(TaskType.F_PROGRESS)
                     || itemPath.equivalent(TASK_ERRORS);
         } else if (value instanceof AuditEventRecordType) {
-            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType)value).getCustomColumnProperty()) {
+            for (AuditEventRecordCustomColumnPropertyType customColumn : ((AuditEventRecordType) value).getCustomColumnProperty()) {
                 if (customColumn.getName().equals(itemPath.toString())) {
                     return true;
                 }

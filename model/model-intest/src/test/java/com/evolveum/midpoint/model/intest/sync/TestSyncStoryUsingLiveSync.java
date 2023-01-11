@@ -58,11 +58,11 @@ public class TestSyncStoryUsingLiveSync extends AbstractSynchronizationStoryTest
         getDummyResource(RESOURCE_DUMMY_BLUE_NAME).setSyncStyle(DummySyncStyle.SMART);
 
         for (TestTask task : getTaskMap().values()) {
-            task.initialize(this, initTask, initResult);
+            task.init(this, initTask, initResult);
             task.rerun(initResult); // To obtain live sync token
         }
 
-        TASK_SHADOW_CLEANUP_GREEN.initialize(this, initTask, initResult);
+        TASK_SHADOW_CLEANUP_GREEN.init(this, initTask, initResult);
     }
 
     @Override

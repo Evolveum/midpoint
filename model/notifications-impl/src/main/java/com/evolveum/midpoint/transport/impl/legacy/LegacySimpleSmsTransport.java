@@ -347,9 +347,10 @@ public class LegacySimpleSmsTransport implements Transport<GeneralTransportConfi
 
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
+        ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, VariablesMap, shortDesc, task);
+        eeContext.setExpressionFactory(expressionFactory);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult =
-                ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+                ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
 
         if (!multipleValues) {
             if (exprResult.getZeroSet().size() > 1) {

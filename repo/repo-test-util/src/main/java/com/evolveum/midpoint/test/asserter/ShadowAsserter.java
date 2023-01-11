@@ -27,6 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -424,6 +425,18 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType, RA> {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
         }
+    }
+
+    public ShadowAsserter<RA> assertResultingOwner(String expectedOid) {
+        assertThat(getResultingOwnerOid())
+                .as("resulting owner OID")
+                .isEqualTo(expectedOid);
+        return this;
+    }
+
+    private @Nullable String getResultingOwnerOid() {
+        ShadowCorrelationStateType state = getObjectable().getCorrelation();
+        return state != null ? Referencable.getOid(state.getResultingOwner()) : null;
     }
 
     public ShadowAsserter<RA> assertCorrelationCaseOpenTimestampBetween(long start, long end) {

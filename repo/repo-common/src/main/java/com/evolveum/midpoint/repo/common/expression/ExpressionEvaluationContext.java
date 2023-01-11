@@ -120,8 +120,8 @@ public class ExpressionEvaluationContext {
      */
     private TransformationValueMetadataComputer valueMetadataComputer;
 
-    public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
-            VariablesMap variables, String contextDescription, Task task) {
+    public ExpressionEvaluationContext(
+            Collection<Source<?,?>> sources, VariablesMap variables, String contextDescription, Task task) {
         super();
         this.sources = emptyIfNull(sources);
         this.variables = variables;

@@ -152,7 +152,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
         repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult).asObjectable();
 
-        TASK_TRIGGER_SCANNER_ON_DEMAND.initialize(this, initTask, initResult);
+        TASK_TRIGGER_SCANNER_ON_DEMAND.init(this, initTask, initResult);
 
         messages = new MessageSourceAccessor(messageSource);
 

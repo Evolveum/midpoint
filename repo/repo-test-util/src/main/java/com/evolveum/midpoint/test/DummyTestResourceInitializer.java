@@ -15,4 +15,6 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 public interface DummyTestResourceInitializer {
 
     void initAndTestDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception;
+
+    DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result) throws Exception;
 }

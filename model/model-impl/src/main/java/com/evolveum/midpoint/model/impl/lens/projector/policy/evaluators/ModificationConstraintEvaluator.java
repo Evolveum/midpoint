@@ -68,7 +68,7 @@ public abstract class ModificationConstraintEvaluator<T extends ModificationPoli
         T constraint = constraintElement.getValue();
         VariablesMap variables = evaluatorHelper.createVariablesMap(ctx, constraintElement);
         String contextDescription = "expression in modification constraint " + constraint.getName() + " (" + ctx.state + ")";
-        return evaluatorHelper.evaluateBoolean(constraint.getExpression(), variables, contextDescription, ctx.task, result);
+        return evaluatorHelper.evaluateBoolean(constraint.getExpression(), variables, contextDescription, ctx, result);
     }
 
     boolean pathMatchesExactly(

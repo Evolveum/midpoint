@@ -281,20 +281,34 @@ public abstract class AbstractProvisioningIntegrationTest
             throws ObjectNotFoundException, SchemaException, ConfigurationException {
         OperationResult testResult = provisioningService.testResource(resource.oid, task, result);
         assertSuccess(testResult);
-        resource.object = repositoryService.getObject(ResourceType.class, resource.oid, null, result);
+        resource.reload(result);
         return testResult;
     }
 
     /** This method is limited to single-connector resources. */
-    protected DummyResourceContoller initDummyResource(DummyTestResource resource, OperationResult result) throws Exception {
-        DummyResourceContoller controller =
-                initDummyResource(resource.name, resource.file, resource.oid, resource.controllerInitLambda, result);
-        resource.controller = controller;
-        return controller;
+    protected DummyResourceContoller initDummyResource(
+            String name, File resourceFile, String resourceOid,
+            FailableProcessor<DummyResourceContoller> controllerInitLambda, OperationResult result) throws Exception {
+        return initDummyResourceInternal(name, resourceFile, null, resourceOid, controllerInitLambda, result);
     }
 
     /** This method is limited to single-connector resources. */
-    protected DummyResourceContoller initDummyResource(String name, File resourceFile, String resourceOid,
+    protected DummyResourceContoller initDummyResource(DummyTestResource testResource, OperationResult result) throws Exception {
+        DummyResourceContoller controller =
+                initDummyResourceInternal(
+                        testResource.name,
+                        null,
+                        testResource,
+                        testResource.oid,
+                        testResource.controllerInitLambda,
+                        result);
+        testResource.controller = controller;
+        return controller;
+    }
+
+    /** This method is limited to single-connector resources. TODO fix the hack "file vs testResource". */
+    private DummyResourceContoller initDummyResourceInternal(
+            String name, File resourceFile, TestResource<ResourceType> testResource, String resourceOid,
             FailableProcessor<DummyResourceContoller> controllerInitLambda, OperationResult result) throws Exception {
         DummyResourceContoller controller = DummyResourceContoller.create(name);
         if (controllerInitLambda != null) {
@@ -304,6 +318,8 @@ public abstract class AbstractProvisioningIntegrationTest
         }
         if (resourceFile != null) {
             addResourceFromFile(resourceFile, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, result);
+        } else if (testResource != null) {
+            addResource(testResource, IntegrationTestTools.DUMMY_CONNECTOR_TYPE, result);
         }
         if (resourceOid != null) {
             PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, resourceOid, null, result);
@@ -319,5 +335,14 @@ public abstract class AbstractProvisioningIntegrationTest
         assertSuccess(
                 provisioningService.testResource(resource.controller.getResource().getOid(), task, result));
         resource.reload(result); // To have schema, etc
+    }
+
+    /** This method is limited to single-connector resources. */
+    @Override
+    public DummyResourceContoller initDummyResource(DummyTestResource resource, Task task, OperationResult result)
+            throws Exception {
+        initDummyResource(resource, result);
+        resource.reload(result); // To have schema, etc
+        return resource.controller;
     }
 }

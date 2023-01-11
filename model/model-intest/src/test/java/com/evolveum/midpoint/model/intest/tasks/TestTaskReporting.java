@@ -221,7 +221,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .display();
         // @formatter:on
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display();
     }
 
@@ -325,10 +325,10 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .isEqualTo(formatAccountName(IDX_LONG_UID));
         }
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display()
                 .assertHasComplexOperationExecution(TASK_IMPORT.oid, OperationResultStatusType.SUCCESS);
-        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.get())
                 .display()
                 .assertHasComplexOperationExecution(TASK_IMPORT.oid, OperationResultStatusType.FATAL_ERROR);
     }
@@ -377,9 +377,9 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
         }
         // @formatter:on
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display();
-        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.get())
                 .display();
     }
 
@@ -414,9 +414,9 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .assertTransitions(2);
         // @formatter:on
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display();
-        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.get())
                 .display();
     }
 
@@ -498,11 +498,11 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
             // @formatter:on
         }
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display();
-        assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.get())
                 .display();
-        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_PROJECTOR_FATAL_ERROR), RESOURCE_DUMMY_SOURCE.get())
                 .display();
     }
 
@@ -538,10 +538,10 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
                     .display();
         // @formatter:on
 
-        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_GOOD_ACCOUNT), RESOURCE_DUMMY_SOURCE.get())
                 .display()
                 .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.SUCCESS);
-        assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.getResource())
+        assertShadow(formatAccountName(IDX_MALFORMED_SHADOW), RESOURCE_DUMMY_SOURCE.get())
                 .display()
                 .assertHasComplexOperationExecution(TASK_RECONCILIATION_PARTITIONED_MULTINODE.oid, OperationResultStatusType.FATAL_ERROR);
         // MID-7113
@@ -561,7 +561,7 @@ public class TestTaskReporting extends AbstractEmptyModelIntegrationTest {
 
         PrismObject<ShadowType> hacker = createHackerShadow();
         provisioningService.addObject(hacker, null, null, task, result);
-        assertShadow("hacker", RESOURCE_DUMMY_HACKED.getResource())
+        assertShadow("hacker", RESOURCE_DUMMY_HACKED.get())
                 .display();
 
         when();

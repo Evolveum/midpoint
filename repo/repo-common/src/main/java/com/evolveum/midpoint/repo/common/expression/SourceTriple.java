@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author semancik
  */
-public class SourceTriple<V extends PrismValue,D extends ItemDefinition> extends AbstractDelegatedPrismValueDeltaSetTriple<V> {
+public class SourceTriple<V extends PrismValue,D extends ItemDefinition<?>> extends AbstractDelegatedPrismValueDeltaSetTriple<V> {
 
     @NotNull
     private final Source<V,D> source;

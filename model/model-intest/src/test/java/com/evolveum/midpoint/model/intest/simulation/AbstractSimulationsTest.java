@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.intest.simulation;
 
 import com.evolveum.midpoint.model.intest.AbstractEmptyModelIntegrationTest;
+import com.evolveum.midpoint.model.test.CommonInitialObjects;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,6 +27,11 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_
 public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
 
     private static final File SIM_TEST_DIR = new File("src/test/resources/simulation");
+
+    static final TestResource<TagType> TAG_USER_ADD = new TestResource<>(
+            SIM_TEST_DIR, "tag-user-add.xml", "0c31f3a1-a7b1-4fad-8cea-eaafdc15daaf");
+    private static final TestResource<TagType> TAG_USER_DELETE = new TestResource<>(
+            SIM_TEST_DIR, "tag-user-delete.xml", "caa2921a-6cf4-4e70-ad2b-bfed278e29cf");
 
     private static final TestResource<RoleType> ROLE_PERSON = new TestResource<>(
             SIM_TEST_DIR, "role-person.xml", "ba88cf08-06bc-470f-aeaa-511e86d5ea7f");
@@ -77,6 +83,12 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        if (repositoryService.supportsTags()) {
+            CommonInitialObjects.addTags(this, initResult);
+            repoAdd(TAG_USER_ADD, initResult);
+            repoAdd(TAG_USER_DELETE, initResult);
+        }
+
         repoAdd(ROLE_PERSON, initResult);
         repoAdd(ROLE_PERSON_DEV, initResult);
         repoAdd(METAROLE, initResult);
@@ -91,6 +103,11 @@ public class AbstractSimulationsTest extends AbstractEmptyModelIntegrationTest {
         RESOURCE_SIMPLE_DEVELOPMENT_TARGET.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_PRODUCTION_SOURCE.initAndTest(this, initTask, initResult);
         RESOURCE_SIMPLE_DEVELOPMENT_SOURCE.initAndTest(this, initTask, initResult);
+    }
+
+    @Override
+    protected File getSystemConfigurationFile() {
+        return new File(SIM_TEST_DIR, "system-configuration.xml");
     }
 
     private ShadowType createAccount(DummyTestResource target) {

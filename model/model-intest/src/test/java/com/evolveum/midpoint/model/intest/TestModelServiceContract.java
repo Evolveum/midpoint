@@ -6,18 +6,17 @@
  */
 package com.evolveum.midpoint.model.intest;
 
-import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
-
-import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
-import static com.evolveum.midpoint.test.DummyResourceContoller.*;
-
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.processor.ResourceSchemaTestUtil.findObjectTypeDefinitionRequired;
 import static com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.Format.TEXT;
 import static com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter.SortBy.TIME;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_PATH;
+import static com.evolveum.midpoint.test.DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_PATH;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,10 +27,6 @@ import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.processor.ResourceObjectTypeDefinition;
-
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -47,7 +42,10 @@ import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -69,6 +67,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.AbstractStatisticsPrinter;
 import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -3319,6 +3318,60 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayDumpable("Audit", dummyAuditService);
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertCustomColumn("foo", "test");
+    }
+
+    /**
+     * Checks whether broken live `linkRef` value is correctly removed.
+     *
+     * See MID-8361.
+     */
+    @Test
+    public void test420DanglingLiveLinkRefCleanup() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
+
+        String randomShadowOid = "79898dfa-0d84-43be-b15d-2bb2c8333428";
+
+        given("a user with a dangling live `linkRef` exists");
+        UserType user = new UserType()
+                .name("test420")
+                .linkRef(randomShadowOid, ShadowType.COMPLEX_TYPE, SchemaConstants.ORG_DEFAULT);
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        when("the user is recomputed");
+        recomputeUser(user.getOid(), task, result);
+
+        then("there should be no link now");
+        assertUserAfter(user.getOid())
+                .assertLinks(0, 0);
+    }
+
+    /**
+     * Checks whether broken dead `linkRef` value is correctly removed.
+     *
+     * See MID-8361.
+     */
+    @Test
+    public void test430DanglingDeadLinkRefCleanup() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
+
+        String randomShadowOid = "8b61179c-6c7c-4933-ba6a-12a943eb1491";
+
+        given("a user with a dangling dead `linkRef` exists");
+        UserType user = new UserType()
+                .name("test430")
+                .linkRef(randomShadowOid, ShadowType.COMPLEX_TYPE, SchemaConstants.ORG_RELATED);
+        repositoryService.addObject(user.asPrismObject(), null, result);
+
+        when("the user is recomputed");
+        recomputeUser(user.getOid(), task, result);
+
+        then("there should be no link now");
+        assertUserAfter(user.getOid())
+                .assertLinks(0, 0);
     }
 
     /**

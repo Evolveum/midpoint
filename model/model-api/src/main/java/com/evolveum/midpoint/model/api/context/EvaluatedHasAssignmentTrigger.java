@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -26,8 +25,7 @@ public class EvaluatedHasAssignmentTrigger extends EvaluatedPolicyRuleTrigger<Ha
     }
 
     @Override
-    public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options,
-            PrismContext prismContext) {
+    public EvaluatedHasAssignmentTriggerType toEvaluatedPolicyRuleTriggerBean(PolicyRuleExternalizationOptions options) {
         EvaluatedHasAssignmentTriggerType rv = new EvaluatedHasAssignmentTriggerType();
         fillCommonContent(rv);
         return rv;

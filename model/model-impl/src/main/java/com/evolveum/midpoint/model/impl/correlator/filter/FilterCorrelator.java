@@ -323,9 +323,10 @@ class FilterCorrelator extends BaseCorrelator<FilterCorrelatorType> {
 
             // TODO contention for "focus" variable (candidate, pre-focus)
             VariablesMap variables = getVariablesMap(candidate);
-            ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+            ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+            eeContext.setExpressionFactory(beans.expressionFactory);
             PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple =
-                    ExpressionUtil.evaluateExpressionInContext(expression, params, task, result);
+                    ExpressionUtil.evaluateExpressionInContext(expression, eeContext, task, result);
             Set<Boolean> values = ExpressionUtil.getUniqueNonNullRealValues(outputTriple);
             if (values.isEmpty()) {
                 throw new ExpressionEvaluationException("Expression returned no value in " + shortDesc);

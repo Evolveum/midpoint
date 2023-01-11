@@ -227,6 +227,11 @@ public class RepositoryCache implements RepositoryService, Cache {
     //region --- Other methods (delegated directly to repository service) ------------------------------------------
 
     @Override
+    public boolean supports(@NotNull Class<? extends ObjectType> type) {
+        return repositoryService.supports(type);
+    }
+
+    @Override
     public RepositoryDiag getRepositoryDiag() {
         Long startTime = repoOpStart();
         try {

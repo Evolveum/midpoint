@@ -1,0 +1,41 @@
+<!--
+  ~ Copyright (C) 2010-2022 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    oid="00000000-0000-0000-0000-000000000711">
+    <name>Focus disabled</name>
+    <description>Operation that made the focus disabled</description>
+    <documentation>
+        This is an operation that switched the effective status of the focus from (any) enabled state
+        to (any) disabled state.
+    </documentation>
+    <policyRule>
+        <name>focus-disabled</name>
+        <policyConstraints>
+            <modification>
+                <operation>modify</operation>
+            </modification>
+            <transition>
+                <name>$focus-disabled</name>
+                <stateBefore>true</stateBefore>
+                <stateAfter>false</stateAfter>
+                <constraints>
+                    <objectState>
+                        <expression>
+                            <script>
+                                <code>midpoint.isEffectivelyEnabled(focus)</code>
+                            </script>
+                        </expression>
+                    </objectState>
+                </constraints>
+            </transition>
+        </policyConstraints>
+        <focusSelector>
+            <type>FocusType</type>
+        </focusSelector>
+    </policyRule>
+</tag>

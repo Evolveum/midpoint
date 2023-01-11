@@ -34,7 +34,7 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
         super.initSystem(initTask, initResult);
 
         repoAdd(ROLE15, initResult);
-        addAndRecomputeUser(USER_LEAD15.file, initTask, initResult);
+        addAndRecompute(USER_LEAD15, initTask, initResult);
     }
 
     @Override

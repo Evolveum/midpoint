@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEv
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectState;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -38,10 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -84,6 +82,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
      */
     private final EvaluatedAssignmentImpl<?> evaluatedAssignment;
 
+    /** Tries to uniquely identify the policy rule. Used e.g. for threshold counters. */
     @NotNull private final String ruleId;
 
     private int count;
@@ -93,7 +92,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     // computed only when necessary (typically when triggered)
     @NotNull private final List<PolicyActionType> enabledActions = new ArrayList<>();
 
-    public EvaluatedPolicyRuleImpl(@NotNull PolicyRuleType policyRuleBean,
+    public EvaluatedPolicyRuleImpl(
+            @NotNull PolicyRuleType policyRuleBean,
             @NotNull String ruleId,
             @Nullable AssignmentPath assignmentPath,
             @Nullable EvaluatedAssignmentImpl<?> evaluatedAssignment) {
@@ -357,13 +357,19 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         if (getName() != null) {
             sb.append(getName()).append(":");
         }
-        sb.append("(").append(PolicyRuleTypeUtil.toShortString(getPolicyConstraints())).append(")");
+        sb.append("(")
+                .append(PolicyRuleTypeUtil.toShortString(getPolicyConstraints()))
+                .append(")");
         sb.append("->");
-        sb.append("(").append(PolicyRuleTypeUtil.toShortString(getActions(), enabledActionsComputed ? enabledActions : null)).append(")");
+        sb.append("(")
+                .append(PolicyRuleTypeUtil.toShortString(getActions(), enabledActionsComputed ? enabledActions : null))
+                .append(")");
         if (!getTriggers().isEmpty()) {
             sb.append(" # {T:");
-            sb.append(getTriggers().stream().map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
-                    .collect(Collectors.joining(", ")));
+            sb.append(
+                    getTriggers().stream()
+                            .map(EvaluatedPolicyRuleTrigger::toDiagShortcut)
+                            .collect(Collectors.joining(", ")));
             sb.append("}");
         }
         return sb.toString();
@@ -384,8 +390,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
      */
     @Override
     public void addToEvaluatedPolicyRuleBeans(Collection<EvaluatedPolicyRuleType> ruleBeans,
-            PolicyRuleExternalizationOptions options, Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector,
-            PrismContext prismContext) {
+            PolicyRuleExternalizationOptions options, Predicate<EvaluatedPolicyRuleTrigger<?>> triggerSelector) {
         EvaluatedPolicyRuleType bean = new EvaluatedPolicyRuleType();
         bean.setRuleName(getName());
         boolean isFull = options.getTriggeredRulesStorageStrategy() == FULL;
@@ -393,7 +398,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
             bean.setAssignmentPath(assignmentPath.toAssignmentPathType(options.isIncludeAssignmentsContent()));
         }
         if (isFull && directOwner != null) {
-            bean.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner, prismContext));
+            bean.setDirectOwnerRef(ObjectTypeUtil.createObjectRef(directOwner));
             bean.setDirectOwnerDisplayName(ObjectTypeUtil.getDisplayName(directOwner));
         }
         for (EvaluatedPolicyRuleTrigger<?> trigger : triggers) {
@@ -402,10 +407,10 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
             }
             if (trigger instanceof EvaluatedSituationTrigger && trigger.isHidden()) {
                 for (EvaluatedPolicyRule sourceRule : ((EvaluatedSituationTrigger) trigger).getSourceRules()) {
-                    sourceRule.addToEvaluatedPolicyRuleBeans(ruleBeans, options, null, prismContext);
+                    sourceRule.addToEvaluatedPolicyRuleBeans(ruleBeans, options, null);
                 }
             } else {
-                bean.getTrigger().add(trigger.toEvaluatedPolicyRuleTriggerBean(options, prismContext));
+                bean.getTrigger().add(trigger.toEvaluatedPolicyRuleTriggerBean(options));
             }
         }
         if (bean.getTrigger().isEmpty()) {
@@ -491,16 +496,23 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         }
     }
 
-    public <AH extends AssignmentHolderType> void computeEnabledActions(@Nullable PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object,
-            ExpressionFactory expressionFactory, PrismContext prismContext, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <AH extends AssignmentHolderType> void computeEnabledActions(
+            @Nullable PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object, Task task, OperationResult result)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
         LOGGER.trace("Computation of enabled actions starting");
         List<PolicyActionType> allActions = PolicyRuleTypeUtil.getAllActions(policyRuleBean.getPolicyActions());
         LOGGER.trace("Actions defined for policy rule: {}", allActions);
         for (PolicyActionType action : allActions) {
             if (action.getCondition() != null) {
                 VariablesMap variables = createVariablesMap(rctx, object);
-                if (!LensUtil.evaluateBoolean(action.getCondition(), variables, "condition in action " + action.getName() + " (" + action.getClass().getSimpleName() + ")", expressionFactory, prismContext, task, result)) {
+                if (!LensExpressionUtil.evaluateBoolean(
+                        action.getCondition(),
+                        variables,
+                        rctx != null ? rctx.lensContext : null,
+                        "condition in action " + action.getName() + " (" + action.getClass().getSimpleName() + ")",
+                        task,
+                        result)) {
                     LOGGER.trace("Skipping action {} ({}) because the condition evaluated to false", action.getName(), action.getClass().getSimpleName());
                     continue;
                 } else {
@@ -527,5 +539,15 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     @Override
     public void setCount(int value) {
         count = value;
+    }
+
+    @NotNull Collection<String> getEventTags() {
+        if (isTriggered()) {
+            return policyRuleBean.getTagRef().stream()
+                    .map(AbstractReferencable::getOid)
+                    .collect(Collectors.toSet());
+        } else {
+            return Set.of();
+        }
     }
 }

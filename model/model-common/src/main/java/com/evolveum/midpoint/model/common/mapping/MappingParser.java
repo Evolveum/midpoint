@@ -192,10 +192,10 @@ class MappingParser<D extends ItemDefinition<?>, MBT extends AbstractMappingType
         if (domainSetType != null) {
             ValueSetDefinition<IV, ID> setDef = new ValueSetDefinition<>(
                     domainSetType, sourceItemDefinition, m.valueMetadataDefinition,
-                    m.expressionProfile, variableName, null,
+                    m.expressionProfile, ModelCommonBeans.get().expressionFactory, variableName, null,
                     "domain of " + variableName, "domain of " + variableName + " in " + m.getMappingContextDescription(),
                     m.getTask(), result);
-            setDef.init(ModelCommonBeans.get().expressionFactory);
+            setDef.init();
             setDef.setAdditionalVariables(m.variables);
             try {
 

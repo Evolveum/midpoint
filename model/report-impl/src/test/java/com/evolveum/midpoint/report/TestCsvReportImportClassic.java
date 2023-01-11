@@ -87,8 +87,8 @@ public class TestCsvReportImportClassic extends TestCsvReport {
         reportData.setFilePath(IMPORT_USERS_FILE_PATH);
 
         addObject(reportData.asPrismObject());
-        addObject(OBJECT_COLLECTION_ALL_USERS_WITH_VIEW.file);
-        addObject(REPORT_IMPORT_USERS_CLASSIC.file);
+        addObject(OBJECT_COLLECTION_ALL_USERS_WITH_VIEW, task, result);
+        addObject(REPORT_IMPORT_USERS_CLASSIC, task, result);
         runImportTask(REPORT_IMPORT_USERS_CLASSIC, REPORT_DATA_TEST100_OID, result);
 
         when();

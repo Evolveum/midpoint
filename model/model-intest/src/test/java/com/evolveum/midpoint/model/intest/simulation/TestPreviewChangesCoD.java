@@ -92,7 +92,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         RESOURCE_DUMMY.initAndTest(this, initTask, initResult);
 
-        TestResource.read(ORG_CHILD, USER_BOB);
+        TestResource.getAll(ORG_CHILD, USER_BOB);
 
         addObject(OBJECT_TEMPLATE_ORG, initTask, initResult);
         addObject(OBJECT_TEMPLATE_USER, initTask, initResult);
@@ -128,7 +128,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
 
         when("preview for create org, that should search/createOnDemand parent org");
 
-        PrismObject<OrgType> orgChild = ORG_CHILD.getObject().clone();
+        PrismObject<OrgType> orgChild = ORG_CHILD.get().clone();
         ObjectDelta<OrgType> delta = orgChild.createAddDelta();
 
         ModelContext<OrgType> context = modelInteractionService.previewChanges(List.of(delta), null, task, result);
@@ -152,7 +152,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
 
         given("simple orphan ADD delta");
-        ObjectDelta<OrgType> delta = ORG_CHILD.getObject().clone().createAddDelta();
+        ObjectDelta<OrgType> delta = ORG_CHILD.get().clone().createAddDelta();
 
         when("executeChanges is called in simulation mode");
         SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
@@ -201,7 +201,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
     }
 
     private ObjectDelta<OrgType> createAddDeltaForOrgWithRoleAssignment() {
-        PrismObject<OrgType> orgChild = ORG_CHILD.getObject().clone();
+        PrismObject<OrgType> orgChild = ORG_CHILD.get().clone();
         addMetaroleAssignment(orgChild);
         return orgChild.createAddDelta();
     }
@@ -258,7 +258,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
         Map<Class<? extends ObjectType>, Integer> counts = collectCounts(task, result);
 
         given("user bob ADD delta");
-        ObjectDelta<UserType> delta = USER_BOB.getObject().clone().createAddDelta();
+        ObjectDelta<UserType> delta = USER_BOB.get().clone().createAddDelta();
 
         when("executeChanges is called in simulation mode");
         SimulationResult simResult = traced(() -> executeInProductionSimulationMode(List.of(delta), task, result));
@@ -346,7 +346,7 @@ public class TestPreviewChangesCoD extends AbstractConfiguredModelIntegrationTes
             try {
                 login(userAdministrator.clone());
 
-                PrismObject<UserType> bob = USER_BOB.getObject().clone();
+                PrismObject<UserType> bob = USER_BOB.get().clone();
                 UserType userBob = bob.asObjectable();
                 userBob.setName(new PolyStringType("bob" + id));
                 userBob.setDescription("no-provisioning");

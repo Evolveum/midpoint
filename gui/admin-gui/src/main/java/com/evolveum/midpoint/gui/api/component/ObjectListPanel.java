@@ -6,18 +6,12 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
-import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
-import com.evolveum.midpoint.gui.impl.component.search.Search;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.prism.query.ObjectOrdering;
-
-import com.evolveum.midpoint.web.component.util.SerializableFunction;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -29,8 +23,12 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.impl.component.search.Search;
+import com.evolveum.midpoint.gui.impl.component.search.SearchFactory;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -39,8 +37,10 @@ import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.SerializableFunction;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katkav
@@ -77,16 +77,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     @Override
     protected Search createSearch(Class<O> type) {
-//        ContainerTypeSearchItem<O> typeSearchItem = new ContainerTypeSearchItem<>(new SearchValue<>(type, ""));
         String collectionName = isCollectionViewPanelForCompiledView() ?
                 WebComponentUtil.getCollectionNameParameterValue(getPageBase()).toString() : null;
         return SearchFactory.createSearch(type, collectionName, getPageBase());
     }
 
-
     protected final SelectableBeanObjectDataProvider<O> createSelectableBeanObjectDataProvider(SerializableSupplier<ObjectQuery> querySuplier,
             SerializableFunction<SortParam<String>, List<ObjectOrdering>> orderingSuplier) {
-        SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
+        SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<>(
                 getPageBase(), getSearchModel(), null) {
             private static final long serialVersionUID = 1L;
 
@@ -143,17 +141,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
     }
 
     @Override
-    protected boolean notContainsNameColumn(List<IColumn<SelectableBean<O>, String>> columns) {
-        for(IColumn<SelectableBean<O>, String> column : columns) {
-            if (column instanceof ObjectNameColumn) {
-                return false;
-            }
-        }
-        return true;
+    protected boolean notContainsNameColumn(@NotNull List<IColumn<SelectableBean<O>, String>> columns) {
+        return columns.stream().noneMatch(c -> c instanceof ObjectNameColumn);
     }
 
     @Override
-    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ItemPath itemPath, ExpressionType expression) {
+    protected IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> displayModel, GuiObjectColumnType customColumn, ExpressionType expression) {
+        ItemPath itemPath = WebComponentUtil.getPath(customColumn);
+
         return new ObjectNameColumn<>(displayModel == null ? createStringResource("ObjectType.name") : displayModel,
                 itemPath, expression, getPageBase(), itemPath == null) {
             private static final long serialVersionUID = 1L;
@@ -175,7 +170,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
         return true;
     }
 
-    protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
+    protected void objectDetailsPerformed(AjaxRequestTarget target, O object) {
+    }
 
     @Override
     protected O getRowRealValue(SelectableBean<O> rowModelObject) {
@@ -192,6 +188,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends Containerabl
 
     @Override
     public List<O> getSelectedRealObjects() {
-        return getSelectedObjects().stream().map(o -> o.getValue()).collect(Collectors.toList());
+        return getSelectedObjects().stream().map(SelectableBean::getValue).collect(Collectors.toList());
     }
 }

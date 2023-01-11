@@ -94,7 +94,12 @@ public abstract class EmptyReportIntegrationTest extends AbstractModelIntegratio
             "report-dashboard-with-triple-view.xml", "2b87aa2e-dd86-4842-bcf5-76200a9a8533");
     static final TestResource<ReportType> REPORT_DASHBOARD_EMPTY = new TestResource<>(TEST_DIR_REPORTS,
             "report-dashboard-empty.xml", "2b44aa2e-dd86-4842-bcf5-762c8a9a8eee");
-
+    static final TestResource<ReportType> REPORT_SUBREPORT_AS_ROW_USERS = new TestResource<>(TEST_DIR_REPORTS,
+            "report-subreport-as-row-users.xml", "a9934d64-5e6b-4d3e-9526-e334883fff34");
+    static final TestResource<ReportType> REPORT_SUBREPORT_AUDIT = new TestResource<>(TEST_DIR_REPORTS,
+            "report-subreport-audit.xml", "44026fc7-c73d-4210-91c3-e5d10391c02b");
+    static final TestResource<ReportType> REPORT_SUBREPORT_SIMULATION = new TestResource<>(TEST_DIR_REPORTS,
+            "report-subreport-simulation.xml", "729ce99c-8fcb-47d4-9063-19fa850870d2");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_AUDIT_RECORDS = new TestResource<>(TEST_DIR_COMMON,
             "object-collection-all-audit-records.xml", "00000000-0000-0000-0001-000000001234");
     static final TestResource<ObjectCollectionType> OBJECT_COLLECTION_ALL_AUDIT_RECORDS_WITH_VIEW = new TestResource<>(TEST_DIR_COMMON,

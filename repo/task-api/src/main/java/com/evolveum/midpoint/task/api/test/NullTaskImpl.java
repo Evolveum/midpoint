@@ -783,6 +783,7 @@ public class NullTaskImpl implements Task {
             @Nullable O stateBefore,
             @Nullable ObjectDelta<O> executedDelta,
             @Nullable ObjectDelta<O> simulatedDelta,
+            @NotNull Collection<String> eventTags,
             @NotNull OperationResult result) {
     }
 }

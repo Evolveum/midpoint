@@ -66,7 +66,7 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
         embeddedBroker.start();
         embeddedBroker.createQueue(QUEUE_NAME);
 
-        importObjectFromFile(RESOURCE_HR.file, initResult);
+        importObject(RESOURCE_HR, initTask, initResult);
     }
 
     @Override
@@ -87,14 +87,15 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
 
     @Test
     public void test100SmallTaskNoWorkers() throws IOException, TimeoutException, CommonException {
-        OperationResult result = getTestOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         int usersBefore = getObjectCount(UserType.class);
 
         prepareMessages(CHANGE_USER_ADD_FILE, "100-", 10, true);
 
         when();
-        importObjectFromFile(TASK_ASYNC_UPDATE_HR_NO_WORKERS.file, result);
+        importObject(TASK_ASYNC_UPDATE_HR_NO_WORKERS, task, result);
 
         then();
         waitForTaskFinish(TASK_ASYNC_UPDATE_HR_NO_WORKERS.oid, false, 30000);
@@ -113,14 +114,15 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
     // name:HR async update (one worker), oid:e6cc59c5-8404-4a0f-9ad0-2cd5c81d9f6b) to finish. Last result R(run IN_PROGRESS null)
     @Test
     public void test110SmallTaskOneWorker() throws IOException, TimeoutException, CommonException {
-        OperationResult result = getTestOperationResult();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
 
         int usersBefore = getObjectCount(UserType.class);
 
         prepareMessages(CHANGE_USER_ADD_FILE, "110-", 10, true);
 
         when();
-        importObjectFromFile(TASK_ASYNC_UPDATE_HR_ONE_WORKER.file, result);
+        importObject(TASK_ASYNC_UPDATE_HR_ONE_WORKER, task, result);
 
         then();
         waitForTaskFinish(TASK_ASYNC_UPDATE_HR_ONE_WORKER.oid, false, 30000);
@@ -136,6 +138,7 @@ public class TestAsyncUpdateTaskMechanics extends AbstractConfiguredModelIntegra
         assertEquals("Wrong task progress", 10, taskAfter.asObjectable().getProgress().intValue());
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void prepareMessages(File templateFile, String prefix, int howMany, boolean markLast)
             throws IOException, TimeoutException {
         String template = String.join("\n", IOUtils.readLines(new FileReader(templateFile)));

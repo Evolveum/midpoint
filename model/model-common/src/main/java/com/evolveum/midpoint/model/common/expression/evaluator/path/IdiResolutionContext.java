@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.DefinitionResolver;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
@@ -38,11 +39,18 @@ class IdiResolutionContext extends ResolutionContext {
     }
 
     <V extends PrismValue> PrismValueDeltaSetTriple<V> createOutputTriple(PrismContext prismContext) throws SchemaException {
-        //noinspection unchecked
-        return (PrismValueDeltaSetTriple<V>) ItemDeltaUtil.toDeltaSetTriple(
-                (Item) itemDeltaItem.getItemOld(),
-                itemDeltaItem.getDelta(),
-                prismContext);
+        if (itemDeltaItem instanceof ObjectDeltaObject<?>) {
+            //noinspection unchecked,rawtypes
+            return (PrismValueDeltaSetTriple<V>) ItemDeltaUtil.toDeltaSetTriple(
+                    (PrismObject) itemDeltaItem.getItemOld(),
+                    ((ObjectDeltaObject<?>) itemDeltaItem).getObjectDelta());
+
+        } else {
+            //noinspection unchecked,rawtypes
+            return (PrismValueDeltaSetTriple<V>) ItemDeltaUtil.toDeltaSetTriple(
+                    (Item) itemDeltaItem.getItemOld(),
+                    itemDeltaItem.getDelta());
+        }
     }
 
     @Override
@@ -51,9 +59,9 @@ class IdiResolutionContext extends ResolutionContext {
     }
 
     @Override
-    ResolutionContext stepInto(ItemName step, DefinitionResolver defResolver) throws SchemaException {
-        //noinspection unchecked
-        return new IdiResolutionContext(itemDeltaItem.findIdi(step, defResolver));
+    ResolutionContext stepInto(ItemName step, DefinitionResolver<?, ?> defResolver) throws SchemaException {
+        //noinspection unchecked,rawtypes
+        return new IdiResolutionContext(itemDeltaItem.findIdi(step, (DefinitionResolver) defResolver));
     }
 
     @Override
@@ -63,7 +71,7 @@ class IdiResolutionContext extends ResolutionContext {
 
     @Override
     ResolutionContext resolveStructuredProperty(ItemPath pathToResolve,
-            PrismPropertyDefinition outputDefinition, PrismContext prismContext) {
+            PrismPropertyDefinition<?> outputDefinition, PrismContext prismContext) {
         return new IdiResolutionContext(itemDeltaItem.resolveStructuredProperty(pathToResolve,
                 outputDefinition, prismContext));
     }

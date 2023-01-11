@@ -128,7 +128,7 @@ public class AssociationFromLinkExpressionEvaluator
         LOGGER.trace("Candidate shadow OIDs: {}", candidateShadowOidList);
 
         selectMatchingShadows(candidateShadowOidList, output, resourceOid, kind, intent, assocName, context, result);
-        return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        return ItemDeltaUtil.toDeltaSetTriple(output, null);
     }
 
     private AbstractRoleType getRelevantRole(ExpressionEvaluationContext context) throws ExpressionEvaluationException {

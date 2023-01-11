@@ -1,0 +1,111 @@
+/*
+ * Copyright (c) 2018-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
+package com.evolveum.midpoint.model.test.asserter;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import org.testng.AssertJUnit;
+
+import com.evolveum.midpoint.model.api.simulation.ProcessedObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+public class ProcessedObjectFinder<RA> {
+
+    private final ProcessedObjectsAsserter<RA> processedObjectsAsserter;
+    private Class<? extends ObjectType> objectType;
+    private String objectOid;
+    private ChangeType changeType;
+    private Integer index;
+
+    ProcessedObjectFinder(ProcessedObjectsAsserter<RA> processedObjectsAsserter) {
+        this.processedObjectsAsserter = processedObjectsAsserter;
+    }
+
+    public ProcessedObjectFinder<RA> objectType(Class<? extends ObjectType> objectType) {
+        this.objectType = objectType;
+        return this;
+    }
+
+    public ProcessedObjectFinder<RA> objectOid(String objectOid) {
+        this.objectOid = objectOid;
+        return this;
+    }
+
+    public ProcessedObjectFinder<RA> changeType(ChangeType changeType) {
+        this.changeType = changeType;
+        return this;
+    }
+
+    public ProcessedObjectFinder<RA> index(Integer index) {
+        this.index = index;
+        return this;
+    }
+
+    /** Returns to the parent asserter. */
+    public ProcessedObjectsAsserter<RA> assertCount(int expected) {
+        assertThat(select()).as("matching objects").hasSize(expected);
+        return processedObjectsAsserter;
+    }
+
+    private List<ProcessedObject<?>> select() {
+        List<ProcessedObject<?>> selected = new ArrayList<>();
+        int currentIndex = -1;
+        for (ProcessedObject<?> processedObject : processedObjectsAsserter.getProcessedObjects()) {
+            if (objectType != null && !Objects.equals(processedObject.getType(), objectType)) {
+                continue;
+            }
+            if (objectOid != null && !Objects.equals(processedObject.getOid(), objectOid)) {
+                continue;
+            }
+            ObjectDelta<?> delta = processedObject.getDelta();
+            if (changeType != null && delta != null && delta.getChangeType() != changeType) {
+                continue;
+            }
+            if (index != null) {
+                // Searching by values + by index
+                currentIndex++;
+                if (currentIndex == index) {
+                    return List.of(processedObject);
+                }
+            } else {
+                selected.add(processedObject);
+            }
+        }
+        return selected;
+    }
+
+    public <O extends ObjectType> ProcessedObjectAsserter<O, ProcessedObjectsAsserter<RA>> find() {
+        List<ProcessedObject<?>> found = select();
+        if (found.isEmpty()) {
+            fail("Found no object that matches search criteria: " + this);
+        } else if (found.size() > 1) {
+            fail("Found more than one object that matches search criteria: " + this + ": " + found);
+        }
+        //noinspection unchecked
+        return processedObjectsAsserter.spawn((ProcessedObject<O>) found.get(0), "selected delta");
+    }
+
+    protected void fail(String message) {
+        AssertJUnit.fail(message);
+    }
+
+    @Override
+    public String toString() {
+        return "ProcessedObjectFinder{" +
+                "objectType=" + objectType +
+                ", objectOid='" + objectOid + '\'' +
+                ", changeType=" + changeType +
+                ", index=" + index +
+                '}';
+    }
+}

@@ -6,9 +6,6 @@
  */
 package com.evolveum.midpoint.test;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE;
-
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -25,6 +22,8 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.test.PredefinedTestMethodTracing.OFF;
 import static com.evolveum.midpoint.test.util.TestUtil.getAttrQName;
 import static com.evolveum.midpoint.util.MiscUtil.or0;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AdministrativeOperationalStateType.F_ADMINISTRATIVE_AVAILABILITY_STATUS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,13 +54,6 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-
-import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
-
-import com.evolveum.midpoint.test.asserter.prism.DeltaCollectionAsserter;
-
-import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
-
 import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +63,6 @@ import org.opends.server.types.SearchResultEntry;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.web.ServletTestExecutionListener;
 import org.testng.Assert;
@@ -100,6 +91,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryConverter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.query.builder.S_MatchingRuleEntry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -127,6 +119,8 @@ import com.evolveum.midpoint.schema.util.task.work.ActivityDefinitionUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.test.ObjectCreator.RealCreator;
 import com.evolveum.midpoint.test.asserter.*;
+import com.evolveum.midpoint.test.asserter.prism.DeltaCollectionAsserter;
+import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
@@ -175,8 +169,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected static final long DEFAULT_TASK_TREE_SLEEP_TIME = 1000;
 
     // Values used to check if something is unchanged or changed properly
-
-    protected LdapShaPasswordEncoder ldapShaPasswordEncoder = new LdapShaPasswordEncoder();
 
     private final Map<InternalCounters, Long> lastCountMap = new HashMap<>();
 
@@ -250,24 +242,30 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertNotNull(taskManager, "Task manager is not wired properly");
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.setPrismContext(prismContext);
+
         Task initTask = createPlainTask("INIT");
         initTask.setChannel(SchemaConstants.CHANNEL_INIT_URI);
         OperationResult result = initTask.getResult();
+        MidpointTestContextWithTask.create(getClass(), "initSystem", initTask, result);
 
-        InternalMonitor.reset();
-        InternalsConfig.setPrismMonitoring(true);
-        prismContext.setMonitor(new InternalMonitor());
+        try {
+            InternalMonitor.reset();
+            InternalsConfig.setPrismMonitoring(true);
+            prismContext.setMonitor(new InternalMonitor());
 
-        ((LocalizationServiceImpl) localizationService).setOverrideLocale(Locale.US);
+            ((LocalizationServiceImpl) localizationService).setOverrideLocale(Locale.US);
 
-        initSystem(initTask, result);
-        postInitSystem(initTask, result);
+            initSystem(initTask, result);
+            postInitSystem(initTask, result);
 
-        taskManager.registerNodeUp(result);
+            taskManager.registerNodeUp(result);
 
-        result.computeStatus();
-        IntegrationTestTools.display("initSystem result", result);
-        TestUtil.assertSuccessOrWarning("initSystem failed (result)", result, 1);
+            result.computeStatus();
+            IntegrationTestTools.display("initSystem result", result);
+            TestUtil.assertSuccessOrWarning("initSystem failed (result)", result, 1);
+        } finally {
+            MidpointTestContextWithTask.destroy();
+        }
     }
 
     @Override
@@ -476,16 +474,22 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return repoAddObjectFromFile(file, false, parentResult);
     }
 
-    protected <T extends ObjectType> PrismObject<T> repoAdd(com.evolveum.midpoint.test.TestResource<T> resource, OperationResult parentResult)
+    public <T extends ObjectType> PrismObject<T> repoAdd(AbstractTestResource<T> resource, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
-        PrismObject<T> object = repoAddObjectFromFile(resource.file, parentResult);
-        resource.object = object;
+        return repoAdd(resource, null, result);
+    }
+
+    public <T extends ObjectType> PrismObject<T> repoAdd(
+            AbstractTestResource<T> resource, RepoAddOptions options, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException {
+        PrismObject<T> object = resource.getFresh();
+        repoAddObject(object, "from " + resource, options, result);
         return object;
     }
 
-    protected Task taskAdd(com.evolveum.midpoint.test.TestResource<TaskType> resource, OperationResult parentResult)
-            throws SchemaException, ObjectAlreadyExistsException, IOException, EncryptionException, ObjectNotFoundException {
-        PrismObject<TaskType> task = prismContext.parseObject(resource.file);
+    protected Task taskAdd(AbstractTestResource<TaskType> resource, OperationResult parentResult)
+            throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        PrismObject<TaskType> task = resource.getFresh();
         String oid = taskManager.addTask(task, parentResult);
         return taskManager.getTaskPlain(oid, parentResult);
     }
@@ -717,10 +721,22 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return addResourceFromFile(file, connectorType, false, result);
     }
 
+    protected PrismObject<ResourceType> addResource(
+            TestResource<ResourceType> testResource, String connectorType, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+        return addResource(testResource, connectorType, false, result);
+    }
+
     protected PrismObject<ResourceType> addResourceFromFile(
             File file, String connectorType, boolean overwrite, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
         return addResourceFromFile(file, Collections.singletonList(connectorType), overwrite, result);
+    }
+
+    protected PrismObject<ResourceType> addResource(
+            TestResource<ResourceType> testResource, String connectorType, boolean overwrite, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+        return addResource(testResource, List.of(connectorType), overwrite, result);
     }
 
     protected PrismObject<ResourceType> addResourceFromFile(
@@ -731,8 +747,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return addResourceFromObject(resource, connectorTypes, overwrite, result);
     }
 
+    protected PrismObject<ResourceType> addResource(
+            TestResource<ResourceType> testResource, List<String> connectorTypes, boolean overwrite, OperationResult result)
+            throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+        logger.trace("addObjectFromFile: {}, connector types {}", testResource, connectorTypes);
+        return addResourceFromObject(testResource.getFresh(), connectorTypes, overwrite, result);
+    }
+
     @NotNull
-    private PrismObject<ResourceType> addResourceFromObject(PrismObject<ResourceType> resource, List<String> connectorTypes,
+    private PrismObject<ResourceType> addResourceFromObject(
+            PrismObject<ResourceType> resource, List<String> connectorTypes,
             boolean overwrite, OperationResult result)
             throws SchemaException, EncryptionException,
             ObjectAlreadyExistsException {
@@ -3206,6 +3230,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return asserter;
     }
 
+    protected ShadowAsserter<Void> assertShadow(ShadowType shadow, String details) {
+        return assertShadow(shadow.asPrismObject(), details);
+    }
+
     protected ShadowAsserter<Void> assertRepoShadow(String oid) throws ObjectNotFoundException, SchemaException {
         return assertRepoShadow(oid, "repository")
                 .display();
@@ -4362,5 +4390,21 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertThat(attrDef.canRead()).as("readability flag for " + attrName).isEqualTo(expectedRead);
         assertThat(attrDef.canAdd()).as("addition flag for " + attrName).isEqualTo(expectedAdd);
         assertThat(attrDef.canModify()).as("modification flag for " + attrName).isEqualTo(expectedModify);
+    }
+
+    /**
+     * TEMPORARY IMPLEMENTATION! We should use "policyException" or similar persistent structure.
+     * The reason is that, in the future - `policySituation` - even for shadows - may be recomputed at any time.
+     */
+    protected void addShadowPolicySituation(String oid, String situationUri, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        repositoryService.modifyObject(
+                ShadowType.class,
+                oid,
+                prismContext.deltaFor(ShadowType.class)
+                        .item(ShadowType.F_POLICY_SITUATION)
+                        .add(situationUri)
+                        .asItemDeltas(),
+                result);
     }
 }

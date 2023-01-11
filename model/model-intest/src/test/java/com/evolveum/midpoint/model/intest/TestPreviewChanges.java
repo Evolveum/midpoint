@@ -1850,7 +1850,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_ROGERS.file);
+        PrismObject<UserType> user = USER_ROGERS.get();
         addAccountLinkRef(user, ACCOUNT_ROGERS_DUMMY_DEFAULT_FILE);
         addAccountLinkRef(user, ACCOUNT_ROGERS_DUMMY_LEMON_FILE);
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);

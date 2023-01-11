@@ -22,6 +22,8 @@ public enum ObjectTypeGuiDescriptor {
 
     GENERIC_OBJECT(ObjectTypes.GENERIC_OBJECT, "ObjectTypeGuiDescriptor.genericObject", "silk-page_white_code", "silk-page_white_code"),
 
+    TAG(ObjectTypes.TAG, "ObjectTypeGuiDescriptor.tag", "silk-page_white_code", "silk-page_white_code"),
+
     RESOURCE(ObjectTypes.RESOURCE, "ObjectTypeGuiDescriptor.resource", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON),
 
     USER(ObjectTypes.USER, "ObjectTypeGuiDescriptor.user", GuiStyleConstants.CLASS_OBJECT_USER_ICON_COLORED, GuiStyleConstants.CLASS_OBJECT_USER_ICON),

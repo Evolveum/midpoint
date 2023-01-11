@@ -68,7 +68,7 @@ public class TestCorrelationDuringResourceLifecycle extends AbstractInternalMode
         then("the shadow is there, with 'no owner' correlation state and 'unmatched' situation");
         PrismObject<ShadowType> shadow =
                 MiscUtil.requireNonNull(
-                        findShadowByPrismName(accountName, RESOURCE_DUMMY_ACTIVE.getResource(), result),
+                        findShadowByPrismName(accountName, RESOURCE_DUMMY_ACTIVE.get(), result),
                         () -> "no shadow '" + accountName + "' is there");
         String shadowOid = shadow.getOid();
         assertShadowAfter(shadow)
@@ -123,7 +123,7 @@ public class TestCorrelationDuringResourceLifecycle extends AbstractInternalMode
         then("the shadow is there, with 'no owner' correlation state and 'unmatched' situation");
         PrismObject<ShadowType> shadow =
                 MiscUtil.requireNonNull(
-                        findShadowByPrismName(accountName, RESOURCE_DUMMY_PROPOSED.getResource(), result),
+                        findShadowByPrismName(accountName, RESOURCE_DUMMY_PROPOSED.get(), result),
                         () -> "no shadow '" + accountName + "' is there");
         String shadowOid = shadow.getOid();
         assertShadowAfter(shadow)

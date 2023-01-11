@@ -588,6 +588,13 @@ public interface RepositoryService {
         return getRepositoryType().equals("Native");
     }
 
+    /** Returns `true` if the given object type is supported. */
+    boolean supports(@NotNull Class<? extends ObjectType> type);
+
+    default boolean supportsTags() {
+        return supports(TagType.class);
+    }
+
     /**
      * Runs a short, non-destructive repository self test.
      * This methods should never throw a (checked) exception. All the results

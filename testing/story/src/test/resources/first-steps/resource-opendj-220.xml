@@ -87,15 +87,6 @@
                     </evaluationPhases>
                 </inbound>
             </attribute>
-            <attribute>
-                <ref>ri:uid</ref>
-                <inbound>
-                    <strength>strong</strength>
-                    <target>
-                        <path>name</path>
-                    </target>
-                </inbound>
-            </attribute>
             <correlation>
                 <correlators>
                     <items>

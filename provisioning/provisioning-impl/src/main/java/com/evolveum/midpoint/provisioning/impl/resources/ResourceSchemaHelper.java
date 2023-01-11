@@ -266,9 +266,9 @@ class ResourceSchemaHelper {
 
             // TODO: are there other variables that should be populated?
 
-            ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
-            PrismValueDeltaSetTriple<PrismPropertyValue<T>> expressionOutputTriple =
-                    expression.evaluate(expressionContext, result);
+            ExpressionEvaluationContext eeContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+            eeContext.setExpressionFactory(expressionFactory);
+            PrismValueDeltaSetTriple<PrismPropertyValue<T>> expressionOutputTriple = expression.evaluate(eeContext, result);
             Collection<PrismPropertyValue<T>> expressionOutputValues = expressionOutputTriple.getNonNegativeValues();
             if (!expressionOutputValues.isEmpty()) {
                 Iterator<PrismPropertyValue<T>> iterator = expressionOutputValues.iterator();

@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.intest;
 
 import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_ITERATIVE_BULK_ACTION;
 import static com.evolveum.midpoint.model.intest.CommonArchetypes.ARCHETYPE_TASK_SINGLE_BULK_ACTION;
+import static com.evolveum.midpoint.model.test.CommonInitialObjects.*;
 import static com.evolveum.midpoint.model.intest.CommonTasks.TASK_TRIGGER_SCANNER_ON_DEMAND;
 
 import java.io.File;
@@ -79,6 +80,8 @@ public abstract class AbstractEmptyModelIntegrationTest extends AbstractModelInt
 
         modelService.postInit(initResult);
         ManualConnectorInstance.setRandomDelayRange(0);
+
+        repoAdd(STANDARD_FUNCTIONS, initResult);
 
         // Users
         userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
