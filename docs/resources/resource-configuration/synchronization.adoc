@@ -199,8 +199,8 @@ E.g. links account to a user.
 | Unlinks resource object from a focus.
  +
 E.g. unlinks account and user.
-| `linked +
-`deleted``
+| `linked` +
+`deleted`
 | link:http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink[http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink]
 
 
@@ -215,30 +215,30 @@ E.g. creates a new user based on account.
 | *Delete focus*
 | Deletes a focus object. +
 E.g. deletes an user that was linked to an account.
-| ``deleted``
+| `deleted`
 | link:http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteFocus[http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteFocus]
 
 
 | *Inactivate focus*
 | Changes activation of the focus object. +
 E.g. disable user that was linked to an account.
-| ``deleted``
+| `deleted`
 | link:http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateFocus[http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus]
 
 
 | *Delete shadow*
 | Deletes the resource object. +
 E.g. deletes an account that is not linked to a user.
-| `unmatched +
-`unlinked``
+| `unmatched` +
+`unlinked`
 | link:http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteShadow[http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteShadow]
 
 
 | *Inactivate shadow*
 | Changes activation of the resource object. +
 E.g. disable an account for which there is no owner.
-| `unmatched +
-``unlinked```
+| `unmatched` +
+`unlinked`
 | link:http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateShadow[http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateShadow]
 
 

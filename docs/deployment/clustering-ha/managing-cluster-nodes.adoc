@@ -53,7 +53,7 @@ The translation looks like this:
 * if `nodeIdSource`  value contains ':' (e.g. it is `random:number:0:9999`) then it is copied into `nodeId` by wrapping in `${...}`. For example:  `random:number:0:9999`  ${`random:number:0:9999}`
 
 * if `nodeIdSource`  value does not contain ':' (e.g. it is `hostname`) then it is copied into `nodeId`  by wrapping in `${...}` with appended colon at the end.
-For example:  `hostname`` ${hostname:}`
+For example:  `hostname` `${hostname:}`
 
 ====
 

@@ -51,7 +51,8 @@ In the future we may implement a mechanism that closes such a stage automaticall
 See `AccCertResponseComputationHelper.getResponses()`.
 
 . When computing overall case response, _all_ previous stage outcomes are taken into account, irrespective on the iteration during which they were determined - except for `NO_RESPONSE` ones in earlier iterations, which are ignored.
-See ``AccCertResponseComputationHelper`.getOutcomesFromCompletedStages()`. If conflicting stage outcomes are found, an exception is raised, requiring manual correction by midPoint administrator.
+See `AccCertResponseComputationHelper.getOutcomesFromCompletedStages()`.
+If conflicting stage outcomes are found, an exception is raised, requiring manual correction by midPoint administrator.
 
 
 == How it is defined

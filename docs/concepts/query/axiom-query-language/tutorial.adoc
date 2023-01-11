@@ -63,8 +63,8 @@ value::
 [cols=[,a,a]]
 |===
 | Filter Name | Alias | Example
-| equal | `=` | `familyName = "Weasley"``
-| not equal | `!=` | `familyName != "Weasley"``
+| equal | `=` | `familyName = "Weasley"`
+| not equal | `!=` | `familyName != "Weasley"`
 | less | `<` | `activation/validTo < "2022-01-01"`
 | lessOrEqual | `<=` |
 | greater | `>` |
@@ -82,7 +82,7 @@ value::
 === Text Filters
 
 startsWith::
-  Searching for organization units starting with `quiddich` `name startsWith "quiddich"``
+  Searching for organization units starting with `quiddich`: `name startsWith "quiddich"`
 contains::
   Matches string property if it contains specified substring.
 

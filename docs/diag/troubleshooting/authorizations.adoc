@@ -154,7 +154,7 @@ That would be totally inefficient and it will completely ruin paging mechanisms.
 A completely different strategy is needed for search operations.
 
 Search authorizations work the other way around: first the authorizations statements are compiled to a search filter.
-For example if the authorization allows access only to active roles the authorization is compiled to a filter `activation/effectiveStatus``=``enabled`. Then this filter is appended to the normal search filter and the search operation is performed.
+For example if the authorization allows access only to active roles the authorization is compiled to a filter `activation/effectiveStatus=enabled`. Then this filter is appended to the normal search filter and the search operation is performed.
 This approach ensures that the search returns only the objects that the user is authorized to see.
 It also makes the search as efficient as possible and maintains page boundaries.
 But that is not all.

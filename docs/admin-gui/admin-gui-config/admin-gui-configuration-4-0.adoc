@@ -471,7 +471,9 @@ We cannot sort by the output of the expression as that is not stored in the repo
 | `display`
 | `Specification of column display properties.
 This can be used to override the default column +
-label or presentation style.`display attribute can contain:`label ``tooltip (not implemented yet)``help (not implemented yet)``cssStyle (not implemented yet)``cssClass (not implemented yet) `
+label or presentation style.`display attribute can contain:
+`label`, `tooltip` (not implemented yet), `help` (not implemented yet),
+`cssStyle` (not implemented yet), `cssClass` (not implemented yet)
 
 
 | `visibility`

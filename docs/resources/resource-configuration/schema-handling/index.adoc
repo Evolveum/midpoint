@@ -172,9 +172,8 @@ TODO: example
 [TIP]
 .accountType
 ====
-The ``objectType` definition was called `accountType` in previous midPoint versions.
+The `objectType` definition was called `accountType` in previous midPoint versions.
 Version 2.2 standardized the definition for all the resource object _kinds_.`
-
 ====
 
 

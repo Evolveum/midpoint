@@ -171,8 +171,7 @@ There are no other items, because extensions of all the assignments and roles on
 | jack->Pirate
 
 
-| `source`` +
-`
+| `source`
 | jack
 | Pirate
 | Pirate
@@ -264,8 +263,7 @@ There are no other items, because extensions of all the assignments and roles on
 | jack->Pirate
 
 
-| `source`` +
-`
+| `source`
 | Pirate
 | Pirate
 | Sailor

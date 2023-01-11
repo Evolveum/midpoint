@@ -145,7 +145,7 @@ It is usually the identifier that is used by the external system (HR system, pro
 There is no requirement on org identifier uniqueness in midPoint.
 We assume that the identifier uniqueness will be enforced by the external system.
 Also there may be legal need for several orgs with the same identifier, e.g. in case they belong to independent organizational trees.
-| ``0001`, `X4567A``
+| `0001`, `X4567A`
 
 
 | `orgType`

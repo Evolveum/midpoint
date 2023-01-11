@@ -77,7 +77,7 @@ Now copy the configuration from the original midPoint to the new standalone depl
 | `/opt/midpoint-3.7/var`
 | Schema extension
 
-| `/opt/tomcat/midpoint.home/jmxremote.access``/opt/tomcat/midpoint.home/jmxremote.password`
+| `/opt/tomcat/midpoint.home/jmxremote.access`, `/opt/tomcat/midpoint.home/jmxremote.password`
 | `/opt/midpoint-3.7/var`
 | JMX configuration for authentication (only when using cluster)
 

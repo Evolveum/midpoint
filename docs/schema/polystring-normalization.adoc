@@ -35,7 +35,7 @@ The _orig_ form is used for vast majority of purposes: displaying the value, edi
 However, when it comes to searching or uniqueness check then the norm value is used.
 Searching works like this:
 
-. Careless user enters  ``Coup  d`etat  `` into search input field.
+. Careless user enters  ``Coup  d`etat`` into search input field.
 
 . MidPoint normalizes the value.
 The result is `coup detat`.
