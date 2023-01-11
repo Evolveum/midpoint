@@ -297,5 +297,10 @@ public class ConstructionGroupStepPanel
             }
             return this.oid.equals(associationWrapper.oid) && this.associationName.equals(associationWrapper.associationName);
         }
+
+        @Override
+        public int hashCode() {
+            return oid.hashCode() + name.hashCode() + associationName.hashCode() + associationDisplayName.hashCode();
+        }
     }
 }
