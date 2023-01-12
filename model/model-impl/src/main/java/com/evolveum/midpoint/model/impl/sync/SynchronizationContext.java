@@ -267,6 +267,11 @@ public abstract class SynchronizationContext<F extends FocusType>
         return shadowedResourceObject;
     }
 
+    /** Normally should be non-null, but we are not sure enough to mark as NotNull. */
+    public String getShadowOid() {
+        return shadowedResourceObject.getOid();
+    }
+
     public @Nullable ObjectDelta<ShadowType> getResourceObjectDelta() {
         return resourceObjectDelta;
     }
@@ -362,7 +367,7 @@ public abstract class SynchronizationContext<F extends FocusType>
     }
 
     @SuppressWarnings("SameParameterValue")
-    void setShadowExistsInRepo(boolean shadowExistsInRepo) {
+    public void setShadowExistsInRepo(boolean shadowExistsInRepo) {
         this.shadowExistsInRepo = shadowExistsInRepo;
     }
 

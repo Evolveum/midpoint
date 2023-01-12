@@ -49,4 +49,8 @@ public class ChoicesSearchItemWrapper<T> extends PropertySearchItemWrapper {
         return PrismContext.get().queryFor(type)
                 .item(getPath()).eq(getValue().getValue()).buildFilter();
     }
+
+    public boolean allowNull() {
+        return true;
+    }
 }

@@ -38,7 +38,6 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 
@@ -98,7 +97,7 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         add(back);
 
         TileTablePanel<TemplateTile<ResourceTemplate>, TemplateTile<ResourceTemplate>> tileTable
-                = new TileTablePanel<>(ID_TILE_TABLE, createProvider()) {
+                = new TileTablePanel<>(ID_TILE_TABLE) {
 
             @Override
             protected Component createTile(String id, IModel<TemplateTile<ResourceTemplate>> model) {
@@ -118,6 +117,11 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
             @Override
             protected Component createHeader(String id) {
                 return createSearchFragment(id);
+            }
+
+            @Override
+            protected ISortableDataProvider<TemplateTile<ResourceTemplate>, String> createProvider() {
+                return new ResourceTemplateProvider(this, searchModel, templateType);
             }
 
             @Override
@@ -149,10 +153,6 @@ public abstract class CreateResourceTemplatePanel extends BasePanel<PrismObject<
         fragment.add(search);
 
         return fragment;
-    }
-
-    private ISortableDataProvider createProvider() {
-        return new ResourceTemplateProvider(this, searchModel, templateType);
     }
 
     private SearchPanel<AssignmentHolderType> initSearch() {
