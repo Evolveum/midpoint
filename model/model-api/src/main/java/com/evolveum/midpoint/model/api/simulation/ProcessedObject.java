@@ -13,14 +13,7 @@ import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-
-import com.evolveum.midpoint.util.DebugUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.prism.Referencable;
 
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
@@ -31,8 +24,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -97,7 +95,7 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
 
     private static Set<String> getEventTagsOids(SimulationResultProcessedObjectType bean) {
         return bean.getEventTagRef().stream()
-                .map(AbstractReferencable::getOid)
+                .map(ref -> ref.getOid())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
