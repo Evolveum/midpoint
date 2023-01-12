@@ -13,7 +13,8 @@ import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
 import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
@@ -160,7 +161,7 @@ public class PageAttributeVerification extends PageAuthenticationBase {
 
             @Override
             protected void populateItem(ListItem<ItemPathType> item) {
-                Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, Model.of(item.getModelObject().getItemPath()));
+                Label attributeNameLabel = new Label(ID_ATTRIBUTE_NAME, resolveAttributeLabel(item.getModelObject()));
                 item.add(attributeNameLabel);
 
                 RequiredTextField<String> attributeValue = new RequiredTextField<>(ID_ATTRIBUTE_VALUE, Model.of());
@@ -181,6 +182,14 @@ public class PageAttributeVerification extends PageAuthenticationBase {
         form.add(attributesPanel);
     }
 
+    private String resolveAttributeLabel(ItemPathType path) {
+        if (path == null) {
+            return "";
+        }
+        ItemDefinition<?> def = userModel.getObject().asPrismObject().getDefinition().findItemDefinition(path.getItemPath());
+        return WebComponentUtil.getItemDefinitionDisplayName(def);
+    }
+
     private void updateAttributeValue(ItemPathType path, String value) {
         if (attributeValuesMap.containsKey(path)) {
             attributeValuesMap.replace(path, value);
@@ -195,19 +204,6 @@ public class PageAttributeVerification extends PageAuthenticationBase {
 
     private void updateAttributeValuesModel() {
         attrValuesModel.setObject(generateAttributeValuesString());
-    }
-
-    private boolean attributeValueMatches(ItemPathType path) {
-        if (!attributeValuesMap.containsKey(path)) {
-            return false;
-        }
-        UserType user = userModel.getObject();
-
-        PrismProperty<?> property = user.asPrismObject().findProperty(path.getItemPath());
-        if (property == null) {
-            return false;
-        }
-        return attributeValuesMap.get(path).equals(property.getRealValue().toString());
     }
 
     private Component getVerifiedField() {
