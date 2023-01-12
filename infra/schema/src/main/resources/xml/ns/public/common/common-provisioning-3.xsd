@@ -4931,6 +4931,10 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <!-- TODO The OCs mentioned in "auxiliaryObjectClass" are applied automatically to objects of this type.
+                  However, sometimes we need to be able to understand some attributes from aux OCs without enforcing these OCs
+                  on all objects of given type. So we'd need something like "optionalAuxiliaryObjectClass" property.
+                  (Discussed on December 16th, 2022.) -->
             <xsd:element name="baseContext" type="tns:ResourceObjectReferenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
