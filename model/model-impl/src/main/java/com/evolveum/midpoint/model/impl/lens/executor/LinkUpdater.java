@@ -51,7 +51,8 @@ import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Takes care of updating the focus -> shadow links during change execution.
+ * Takes care of updating the focus <-> shadow links during change execution.
+ * (That includes `linkRef` and `synchronizationSituation`.)
  */
 class LinkUpdater<F extends FocusType> {
 

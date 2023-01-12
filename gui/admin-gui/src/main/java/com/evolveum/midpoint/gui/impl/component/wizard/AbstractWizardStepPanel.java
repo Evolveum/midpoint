@@ -15,6 +15,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ContainerPanelConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,7 +25,7 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lskublik
  */
-public abstract class AbstractWizardStepPanel<O extends ObjectType, ODM extends ObjectDetailsModels<O>>
+public abstract class AbstractWizardStepPanel<ODM extends ObjectDetailsModels>
         extends BasicWizardStepPanel {
 
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
@@ -96,6 +97,8 @@ public abstract class AbstractWizardStepPanel<O extends ObjectType, ODM extends 
     }
 
     protected ContainerPanelConfigurationType getContainerConfiguration(String panelType) {
-        return WebComponentUtil.getContainerConfiguration(getDetailsModel().getObjectDetailsPageConfiguration().getObject(), panelType);
+        return WebComponentUtil.getContainerConfiguration(
+                (GuiObjectDetailsPageType) getDetailsModel().getObjectDetailsPageConfiguration().getObject(),
+                panelType);
     }
 }
