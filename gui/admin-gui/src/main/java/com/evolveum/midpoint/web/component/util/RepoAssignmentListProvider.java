@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -247,18 +248,16 @@ public class RepoAssignmentListProvider extends ContainerListDataProvider<Assign
             filter = idFilter;
         }
 
-        if (filter != null) {
-            return getPrismContext().queryFor(AssignmentType.class)
-                .filter(filter)
-                .and()
-                    .ownedBy(objectType, path)
-                    .id(oid)
-                .build();
-        }
-        return getPrismContext().queryFor(AssignmentType.class)
-                .ownedBy(objectType, path)
-                    .id(oid)
-                .build();
+       S_FilterExit builder = getPrismContext().queryFor(AssignmentType.class)
+               .ownedBy(objectType, path)
+               .id(oid);
+
+       if (filter != null) {
+           builder = builder.and()
+                   .filter(filter);
+       }
+
+       return builder.build();
     }
 
     private QName determineTargetRefType() {
