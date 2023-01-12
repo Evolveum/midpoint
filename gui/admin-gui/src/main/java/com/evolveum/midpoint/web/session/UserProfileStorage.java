@@ -133,7 +133,9 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
 
         PAGE_SIMULATION_RESULTS,
 
-        PAGE_SIMULATION_RESULT_TAGS
+        PAGE_SIMULATION_RESULT_TAGS,
+
+        PAGE_SIMULATION_RESULT_PROCESSED_OBJECTS;
     }
 
     private final Map<String, Integer> tables = new HashMap<>();

@@ -185,6 +185,13 @@ public class SearchFactory {
                 ItemPath.create(AuditEventRecordType.F_REFERENCE),
                 ItemPath.create(AuditEventRecordType.F_TASK_IDENTIFIER)
         ));
+
+        SEARCHABLE_OBJECTS.put(SimulationResultProcessedObjectType.class, Arrays.asList(
+                ItemPath.create(SimulationResultProcessedObjectType.F_NAME),
+                ItemPath.create(SimulationResultProcessedObjectType.F_TYPE),
+                ItemPath.create(SimulationResultProcessedObjectType.F_OID),
+                ItemPath.create(SimulationResultProcessedObjectType.F_STATE)
+        ));
     }
 
     private static final Map<Class<?>, List<ItemPath>> FIXED_SEARCH_ITEMS = new HashMap<>();
