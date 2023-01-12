@@ -11,11 +11,15 @@ import com.evolveum.midpoint.authentication.impl.evaluator.AttributeVerification
 import com.evolveum.midpoint.authentication.impl.module.authentication.token.AttributeVerificationToken;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.context.AttributeVerificationAuthenticationContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -23,6 +27,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class AttributeVerificationProvider extends AbstractCredentialProvider<AttributeVerificationAuthenticationContext> {
 
@@ -41,8 +46,37 @@ public class AttributeVerificationProvider extends AbstractCredentialProvider<At
         if (authentication.isAuthenticated() && authentication.getPrincipal() instanceof GuiProfiledPrincipal) {
             return authentication;
         }
-        //todo implement
-        return null;
+        if (!(authentication.getPrincipal() instanceof MidPointPrincipal)) {
+            return authentication;
+        }
+        String enteredUsername = ((MidPointPrincipal) authentication.getPrincipal()).getUsername();
+        LOGGER.trace("Authenticating username '{}'", enteredUsername);
+
+        ConnectionEnvironment connEnv = createEnvironment(channel);
+
+        try {
+            Authentication token;
+            if (authentication instanceof AttributeVerificationToken) {
+                Map<ItemPath, String> attrValuesMap = (Map<ItemPath, String>) authentication.getCredentials();
+                AttributeVerificationAuthenticationContext authContext = new AttributeVerificationAuthenticationContext(enteredUsername,
+                        focusType, attrValuesMap, requireAssignment);
+                if (channel != null) {
+                    authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
+                }
+                token = getEvaluator().authenticate(connEnv, authContext);
+            } else {
+                LOGGER.error("Unsupported authentication {}", authentication);
+                throw new AuthenticationServiceException("web.security.provider.unavailable");
+            }
+
+            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+            LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
+                    authentication.getClass().getSimpleName(), principal.getAuthorities());
+            return token;
+        } catch (AuthenticationException e) {
+            LOGGER.info("Authentication failed for {}: {}", enteredUsername, e.getMessage());
+            throw e;
+        }
     }
 
     @Override

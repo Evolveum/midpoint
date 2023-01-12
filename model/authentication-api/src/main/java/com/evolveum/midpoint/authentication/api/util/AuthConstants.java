@@ -19,4 +19,6 @@ public class AuthConstants {
     public static final String SEC_QUESTION_J_QID = "qid";
     public static final String SEC_QUESTION_J_QANS = "qans";
     public static final String SEC_QUESTION_J_QTXT = "qtxt";
+    public static final String ATTR_VERIFICATION_J_PATH = "path";
+    public static final String ATTR_VERIFICATION_J_VALUE = "value";
 }

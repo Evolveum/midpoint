@@ -16,7 +16,7 @@
             <wicket:message key="PageAttributeVerification.attributeVerificationLabel"/>
         </h4>
         <div wicket:id="csrfField"/>
-        <input type="hidden" wicket:id="verified"/>
+        <input type="hidden" wicket:id="attributeValues"/>
         <div wicket:id="attributes" class="d-flex flex-row my-2">
             <label wicket:id="attributeName"></label>
             <input type="text" class="form-control form-control-sm" wicket:id="attributeValue"/>
@@ -24,8 +24,7 @@
         <div class="pull-right">
             <a class="btn btn-default" wicket:id="back"><wicket:message key="PageBase.button.back"/>
             </a>
-            <a class="btn btn-primary" wicket:id="submit" wicket:message="value:PageBase.button.send">
-            </a>
+            <input type="submit" class="btn btn-primary" wicket:message="value:PageBase.button.send" />
         </div>
     </form>
 </wicket:extend>

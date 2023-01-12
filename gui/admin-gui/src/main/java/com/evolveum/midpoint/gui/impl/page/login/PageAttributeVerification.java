@@ -10,12 +10,12 @@ import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
 import com.evolveum.midpoint.authentication.api.config.MidpointAuthentication;
 import com.evolveum.midpoint.authentication.api.config.ModuleAuthentication;
+import com.evolveum.midpoint.authentication.api.util.AuthConstants;
 import com.evolveum.midpoint.authentication.api.util.AuthUtil;
 import com.evolveum.midpoint.authentication.api.util.AuthenticationModuleNameConstants;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -26,6 +26,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import com.github.openjson.JSONArray;
+import com.github.openjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -55,7 +57,7 @@ public class PageAttributeVerification extends PageAuthenticationBase {
 
 
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_VERIFIED = "verified";
+    private static final String ID_ATTRIBUTE_VALUES = "attributeValues";
     private static final String ID_ATTRIBUTES = "attributes";
     private static final String ID_ATTRIBUTE_NAME = "attributeName";
     private static final String ID_ATTRIBUTE_VALUE = "attributeValue";
@@ -65,14 +67,15 @@ public class PageAttributeVerification extends PageAuthenticationBase {
 
     LoadableDetachableModel<List<ItemPathType>> attributesPathModel;
     private LoadableDetachableModel<UserType> userModel;
-    private HashMap<ItemPathType, String> attributeValuesMap = new HashMap<>();
-    IModel<Boolean> verificationModel = Model.of(false);
+    private final HashMap<ItemPathType, String> attributeValuesMap = new HashMap<>();
+    IModel<String> attrValuesModel;
 
     public PageAttributeVerification() {
     }
 
     @Override
     protected void initModels() {
+        attrValuesModel = Model.of();
         userModel = new LoadableDetachableModel<>() {
             @Override
             protected UserType load() {
@@ -120,7 +123,7 @@ public class PageAttributeVerification extends PageAuthenticationBase {
             getSession().error(getString("User not found"));
             throw new RestartResponseException(PageError.class);
         }
-        SecurityPolicyType securityPolicy = resolveSecurityPolicy(((UserType) user).asPrismObject());
+        SecurityPolicyType securityPolicy = resolveSecurityPolicy(user.asPrismObject());
         if (securityPolicy == null || securityPolicy.getAuthentication() == null) {
             getSession().error(getString("Security policy not found"));
             throw new RestartResponseException(PageError.class);
@@ -141,7 +144,7 @@ public class PageAttributeVerification extends PageAuthenticationBase {
         WebMarkupContainer csrfField = SecurityUtils.createHiddenInputForCsrf(ID_CSRF_FIELD);
         form.add(csrfField);
 
-        HiddenField<Boolean> verified = new HiddenField<>(ID_VERIFIED, verificationModel);
+        HiddenField<String> verified = new HiddenField<>(ID_ATTRIBUTE_VALUES, attrValuesModel);
         verified.setOutputMarkupId(true);
         form.add(verified);
 
@@ -167,6 +170,8 @@ public class PageAttributeVerification extends PageAuthenticationBase {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {
                         updateAttributeValue(item.getModelObject(), attributeValue.getValue());
+                        updateAttributeValuesModel();
+                        target.add(getVerifiedField());
                     }
                 });
                 item.add(attributeValue);
@@ -185,33 +190,11 @@ public class PageAttributeVerification extends PageAuthenticationBase {
     }
 
     private void initButtons(MidpointForm form) {
-        AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT_BUTTON, createStringResource("PageAttributeVerification.verifyAttributeButton")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target) {
-                verifyAttributes(target);
-                target.add(getVerifiedField());
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target) {
-                target.add(getFeedbackPanel());
-            }
-
-        };
-        form.add(submit);
         form.add(createBackButton(ID_BACK_BUTTON));
     }
 
-    private void verifyAttributes(AjaxRequestTarget target) {
-        for (ItemPathType itemPathType : attributesPathModel.getObject()) {
-            if (!attributeValueMatches(itemPathType)) {
-                return;
-            }
-        }
-        verificationModel.setObject(true);
+    private void updateAttributeValuesModel() {
+        attrValuesModel.setObject(generateAttributeValuesString());
     }
 
     private boolean attributeValueMatches(ItemPathType path) {
@@ -228,7 +211,7 @@ public class PageAttributeVerification extends PageAuthenticationBase {
     }
 
     private Component getVerifiedField() {
-        return  get(ID_MAIN_FORM).get(ID_VERIFIED);
+        return  get(ID_MAIN_FORM).get(ID_ATTRIBUTE_VALUES);
     }
 
     @Override
@@ -260,5 +243,18 @@ public class PageAttributeVerification extends PageAuthenticationBase {
         return "/midpoint/spring_security_login";
     }
 
+    private String generateAttributeValuesString() {
+        JSONArray attrValues = new JSONArray();
+        attributeValuesMap.entrySet().forEach(entry -> {
+            JSONObject json  = new JSONObject();
+            json.put(AuthConstants.ATTR_VERIFICATION_J_PATH, entry.getKey());
+            json.put(AuthConstants.ATTR_VERIFICATION_J_VALUE, entry.getValue());
+            attrValues.put(json);
+        });
+        if (attrValues.length() == 0) {
+            return null;
+        }
+        return attrValues.toString();
+    }
 
 }
