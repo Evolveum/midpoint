@@ -779,6 +779,22 @@
                     <collectionRef oid="00000000-0000-0000-0000-000000000171" relation="org:default" type="c:ArchetypeType"/>
                 </collection>
             </objectCollectionView>
+            <objectCollectionView>
+                <identifier>application-role</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <type>RoleType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000328" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
+                <identifier>business-role</identifier>
+                <applicableForOperation>add</applicableForOperation>
+                <type>RoleType</type>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000321" relation="org:default" type="c:ArchetypeType"/>
+                </collection>
+            </objectCollectionView>
         </objectCollectionViews>
         <objectDetails>
             <objectDetailsPage>
