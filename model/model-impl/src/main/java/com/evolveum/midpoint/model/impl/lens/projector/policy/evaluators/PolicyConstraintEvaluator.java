@@ -17,7 +17,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,8 +29,10 @@ import javax.xml.bind.JAXBElement;
  */
 public interface PolicyConstraintEvaluator<T extends AbstractPolicyConstraintType> {
 
-    <AH extends AssignmentHolderType> EvaluatedPolicyRuleTrigger<?> evaluate(@NotNull JAXBElement<T> constraint,
-            @NotNull PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
+    <O extends ObjectType> EvaluatedPolicyRuleTrigger<?> evaluate(
+            @NotNull JAXBElement<T> constraint,
+            @NotNull PolicyRuleEvaluationContext<O> ctx,
+            OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             ConfigurationException, SecurityViolationException;
 }

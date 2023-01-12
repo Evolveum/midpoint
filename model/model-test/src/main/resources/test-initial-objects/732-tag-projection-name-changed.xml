@@ -6,24 +6,21 @@
   -->
 
 <tag xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    oid="00000000-0000-0000-0000-000000000730">
-    <name>Projection enabled</name>
-    <description>Operation that made the projection enabled</description>
+    oid="00000000-0000-0000-0000-000000000732">
+    <name>Projection name changed</name>
+    <description>Operation that made the projection name changed</description>
     <documentation>
-        This is an operation that switched the administrative status of a projection to the enabled state.
+        This is an operation that changed the name (naming attribute) of a projection.
         TODO we may or may not be able to assess the original value
     </documentation>
     <policyRule>
-        <name>projection-enabled</name>
+        <name>projection-name-changed</name>
         <policyConstraints>
-            <custom>
-                <name>$projection-enabled</name>
-                <expression>
-                    <script>
-                        <code>midpoint.isCurrentProjectionBeingEnabled()</code>
-                    </script>
-                </expression>
-            </custom>
+            <modification>
+                <name>$projection-name-changed</name>
+                <operation>modify</operation>
+                <specialItem>resourceObjectNamingAttribute</specialItem>
+            </modification>
         </policyConstraints>
         <evaluationTarget>projection</evaluationTarget>
         <focusSelector>

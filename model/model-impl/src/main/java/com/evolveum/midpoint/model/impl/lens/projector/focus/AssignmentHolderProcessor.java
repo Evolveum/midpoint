@@ -189,7 +189,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
                 // focus deltas so we can properly trigger the rules.
 
                 medic.partialExecute(Components.FOCUS_POLICY_RULES, policyRuleProcessor,
-                        policyRuleProcessor::evaluateObjectPolicyRules,
+                        policyRuleProcessor::evaluateFocusPolicyRules,
                         partialProcessingOptions::getFocusPolicyRules,
                         Projector.class, context, now, task, result);
 

@@ -35,7 +35,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -53,7 +52,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimulationsTest {
 
-    private final ObjectsCounter objectsCounter = new ObjectsCounter(FocusType.class, ShadowType.class);
+    final ObjectsCounter objectsCounter = new ObjectsCounter(FocusType.class, ShadowType.class);
 
     abstract TaskExecutionMode getExecutionMode();
 
@@ -221,6 +220,7 @@ public abstract class AbstractBasicSimulationExecutionTest extends AbstractSimul
                             ICFS_NAME_PATH, // by a mapping
                             ShadowType.F_ITERATION,
                             ShadowType.F_ITERATION_TOKEN,
+                            ShadowType.F_ACTIVATION, // admin status + timestamp (by a mapping) - present only in
                             ShadowType.F_LIFECYCLE_STATE); // "proposed" - hopefully this one will go away one day
         } else {
             assertThat(projectionContext.getSecondaryDelta()).as("projection secondary delta").isNull();

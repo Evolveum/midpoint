@@ -78,6 +78,22 @@ public interface CommonInitialObjects {
             TEST_INITIAL_OBJECTS, "731-tag-projection-disabled.xml",
             SystemObjectsType.TAG_PROJECTION_DISABLED.value());
 
+    AbstractTestResource<TagType> TAG_PROJECTION_NAME_CHANGED = new ClassPathTestResource<>(
+            TEST_INITIAL_OBJECTS, "732-tag-projection-name-changed.xml",
+            SystemObjectsType.TAG_PROJECTION_NAME_CHANGED.value());
+
+    AbstractTestResource<TagType> TAG_PROJECTION_IDENTIFIER_CHANGED = new ClassPathTestResource<>(
+            TEST_INITIAL_OBJECTS, "733-tag-projection-identifier-changed.xml",
+            SystemObjectsType.TAG_PROJECTION_IDENTIFIER_CHANGED.value());
+
+    AbstractTestResource<TagType> TAG_PROJECTION_ENTITLEMENT_CHANGED = new ClassPathTestResource<>(
+            TEST_INITIAL_OBJECTS, "734-tag-projection-entitlement-changed.xml",
+            SystemObjectsType.TAG_PROJECTION_ENTITLEMENT_CHANGED.value());
+
+    AbstractTestResource<TagType> TAG_PROJECTION_PASSWORD_CHANGED = new ClassPathTestResource<>(
+            TEST_INITIAL_OBJECTS, "735-tag-projection-password-changed.xml",
+            SystemObjectsType.TAG_PROJECTION_PASSWORD_CHANGED.value());
+
     /** To be used when needed. */
     static void addTags(AbstractModelIntegrationTest test, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
@@ -92,5 +108,9 @@ public interface CommonInitialObjects {
         test.repoAdd(TAG_FOCUS_ROLE_MEMBERSHIP_CHANGED, result);
         test.repoAdd(TAG_PROJECTION_ENABLED, result);
         test.repoAdd(TAG_PROJECTION_DISABLED, result);
+        test.repoAdd(TAG_PROJECTION_NAME_CHANGED, result);
+        test.repoAdd(TAG_PROJECTION_IDENTIFIER_CHANGED, result);
+        test.repoAdd(TAG_PROJECTION_ENTITLEMENT_CHANGED, result);
+        test.repoAdd(TAG_PROJECTION_PASSWORD_CHANGED, result);
     }
 }

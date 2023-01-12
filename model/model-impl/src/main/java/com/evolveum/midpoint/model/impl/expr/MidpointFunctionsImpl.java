@@ -371,23 +371,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
-    public boolean isProjectionEnabled() {
+    public boolean isCurrentProjectionBeingEnabled() {
         return isProjectionActivationChanged(true);
     }
 
     @Override
-    public boolean isProjectionDisabled() {
+    public boolean isCurrentProjectionBeingDisabled() {
         return isProjectionActivationChanged(false);
     }
 
     private boolean isProjectionActivationChanged(boolean newState) {
-        ModelContext<?> ctx = ModelExpressionThreadLocalHolder.getLensContextRequired();
-        for (ModelProjectionContext projectionContext : ctx.getProjectionContexts()) {
-            if (isProjectionActivationChanged(projectionContext, newState)) {
-                return true;
-            }
-        }
-        return false;
+        return isProjectionActivationChanged(ModelExpressionThreadLocalHolder.getProjectionContextRequired(), newState);
     }
 
     private boolean isProjectionActivationChanged(ModelProjectionContext projectionContext, boolean newState) {

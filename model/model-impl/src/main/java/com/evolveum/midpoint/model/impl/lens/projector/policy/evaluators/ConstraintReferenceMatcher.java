@@ -30,7 +30,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -41,11 +40,11 @@ import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
  * It encapsulates the common state for a single constraint evaluation.
  * Filter - if used - is evaluated lazily and only once.
  */
-public class ConstraintReferenceMatcher<AH extends AssignmentHolderType> {
+class ConstraintReferenceMatcher<O extends ObjectType> {
 
     private final Trace logger;
 
-    private final PolicyRuleEvaluationContext<AH> evalContext;
+    private final PolicyRuleEvaluationContext<O> evalContext;
     private final ExpressionFactory expressionFactory;
     private final OperationResult operationResult;
 
@@ -54,8 +53,8 @@ public class ConstraintReferenceMatcher<AH extends AssignmentHolderType> {
 
     private ObjectFilter filter; // lazily initialized
 
-    public ConstraintReferenceMatcher(
-            @NotNull PolicyRuleEvaluationContext<AH> evalContext,
+    ConstraintReferenceMatcher(
+            @NotNull PolicyRuleEvaluationContext<O> evalContext,
             @Nullable ObjectReferenceType targetReference,
             @NotNull ExpressionFactory expressionFactory,
             @NotNull OperationResult operationResult,
@@ -70,7 +69,7 @@ public class ConstraintReferenceMatcher<AH extends AssignmentHolderType> {
     /**
      * @param object Object we want to match against the reference.
      */
-    public boolean refMatchesTarget(PrismObject<?> object, String context)
+    boolean refMatchesTarget(PrismObject<?> object, String context)
             throws SchemaException {
         if (targetReference == null) {
             // this means we rely on comparing relations (represented by order constraints in exclusion case)

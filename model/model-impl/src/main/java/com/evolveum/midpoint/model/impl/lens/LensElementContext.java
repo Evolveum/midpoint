@@ -877,6 +877,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     /** TODO */
-    abstract @NotNull Collection<String> getEventTags();
+    @NotNull
+    Collection<String> getEventTags() {
+        return policyRulesContext.getEventTags();
+    }
     //endregion
 }

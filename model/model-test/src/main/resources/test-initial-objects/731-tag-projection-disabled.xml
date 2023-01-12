@@ -20,11 +20,12 @@
                 <name>$projection-disabled</name>
                 <expression>
                     <script>
-                        <code>midpoint.isProjectionDisabled()</code>
+                        <code>midpoint.isCurrentProjectionBeingDisabled()</code>
                     </script>
                 </expression>
             </custom>
         </policyConstraints>
+        <evaluationTarget>projection</evaluationTarget>
         <focusSelector>
             <type>FocusType</type>
         </focusSelector>

@@ -1866,9 +1866,4 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public boolean hasResource() {
         return resource != null;
     }
-
-    @Override
-    @NotNull Collection<String> getEventTags() {
-        return Set.of();
-    }
 }

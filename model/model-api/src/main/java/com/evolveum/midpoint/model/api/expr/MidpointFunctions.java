@@ -995,31 +995,33 @@ public interface MidpointFunctions {
 
     OperationResult getCurrentResult(String operationName);
 
-    ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+    ModelContext unwrapModelContext(LensContextType lensContextType)
+            throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException;
 
     LensContextType wrapModelContext(ModelContext<?> lensContext) throws SchemaException;
 
     <F extends ObjectType> boolean hasLinkedAccount(String resourceOid);
 
     /**
-     * Returns `true` if the current clockwork operation causes (any) projection to have `administrativeState` switched to
+     * Returns `true` if the current clockwork operation causes the current projection to have `administrativeState` switched to
      * {@link ActivationStatusType#ENABLED}.
      *
      * Not always precise - the original value may not be known.
      *
      * TODO what about creating projections?
      */
-    boolean isProjectionEnabled();
+    boolean isCurrentProjectionBeingEnabled();
 
     /**
-     * Returns `true` if the current clockwork operation causes (any) projection to have `administrativeState` switched to
+     * Returns `true` if the current clockwork operation causes the current projection to have `administrativeState` switched to
      * a disabled value (e.g. {@link ActivationStatusType#DISABLED} or {@link ActivationStatusType#ARCHIVED}.
      *
      * Not always precise - the original value may not be known.
      *
      * TODO what about deleting projections?
      */
-    boolean isProjectionDisabled();
+    boolean isCurrentProjectionBeingDisabled();
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
 

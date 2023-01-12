@@ -17,7 +17,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -425,8 +424,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         return enabledActions;
     }
 
-    private <AH extends AssignmentHolderType> VariablesMap createVariablesMap(
-            PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object) {
+    private VariablesMap createVariablesMap(PolicyRuleEvaluationContext<?> rctx, PrismObject<?> object) {
         VariablesMap var = new VariablesMap();
         PrismContext prismContext = PrismContext.get();
         PrismObjectDefinition<?> definition = rctx != null ? rctx.getObjectDefinition() :
@@ -435,7 +433,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         var.put(ExpressionConstants.VAR_FOCUS, object, definition);
         var.put(ExpressionConstants.VAR_OBJECT, object, definition);
         if (rctx instanceof AssignmentPolicyRuleEvaluationContext) {
-            AssignmentPolicyRuleEvaluationContext<AH> actx = (AssignmentPolicyRuleEvaluationContext<AH>) rctx;
+            AssignmentPolicyRuleEvaluationContext<?> actx = (AssignmentPolicyRuleEvaluationContext<?>) rctx;
             PrismObject<?> target = actx.evaluatedAssignment.getTarget();
             var.put(ExpressionConstants.VAR_TARGET, target, target != null ? target.getDefinition() : getObjectDefinition());
             var.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, actx.evaluatedAssignment, EvaluatedAssignment.class);
@@ -496,8 +494,8 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         }
     }
 
-    public <AH extends AssignmentHolderType> void computeEnabledActions(
-            @Nullable PolicyRuleEvaluationContext<AH> rctx, PrismObject<AH> object, Task task, OperationResult result)
+    public void computeEnabledActions(
+            @Nullable PolicyRuleEvaluationContext<?> rctx, PrismObject<?> object, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException,
             ConfigurationException, SecurityViolationException {
         LOGGER.trace("Computation of enabled actions starting");
@@ -509,7 +507,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
                 if (!LensExpressionUtil.evaluateBoolean(
                         action.getCondition(),
                         variables,
-                        rctx != null ? rctx.lensContext : null,
+                        rctx != null ? rctx.elementContext : null,
                         "condition in action " + action.getName() + " (" + action.getClass().getSimpleName() + ")",
                         task,
                         result)) {

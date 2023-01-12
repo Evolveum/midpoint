@@ -80,17 +80,38 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      */
     @NotNull private final Collection<AssignedFocusMappingEvaluationRequest> focusMappingEvaluationRequests = new ArrayList<>();
 
+    /** Evaluated focus mappings. (These result from evaluation of {@link #focusMappingEvaluationRequests}.) */
     @NotNull private final Collection<MappingImpl<?,?>> focusMappings = new ArrayList<>();
 
     @NotNull private final Collection<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
-    // rules related to the focal object (typically e.g. "forbid modifications")
+
+    /**
+     * Policy rules assigned to the focus via directly or indirectly through this assignment.
+     * They may or may not be really applicable to the focus. This is not our responsibility.
+     * We only check that the rule was induced to the focus object.
+     *
+     * A typical focus-assigned policy rule is e.g. "forbid focus modifications".
+     * Shadow-related rules can be present here as well.
+     */
     @NotNull private final Collection<EvaluatedPolicyRuleImpl> focusPolicyRules = new ArrayList<>();
-    // rules related to the target of this assignment (typically e.g. "approve the assignment")
+
+    /**
+     * TODO formulate the following more precisely:
+     *
+     * Policy rules assigned to the target of this assignment (typically e.g. "approve the assignment").
+     * They may or may not be really applicable during the current clockwork operation.
+     */
     @NotNull private final Collection<EvaluatedPolicyRuleImpl> thisTargetPolicyRules = new ArrayList<>();
-    // rules related to other targets provided by this assignment (e.g. induced or obtained by delegation)
-    // usually, these rules do not cause direct action (e.g. in the case of approvals);
-    // however, there are situations in which they are used (e.g. for exclusion rules)
+
+    /**
+     * TODO formulate the following more precisely:
+     *
+     * Policy rules assigned to other targets provided by this assignment (e.g. induced or obtained by delegation).
+     * Usually, these rules do not cause direct action (e.g. in the case of approvals);
+     * however, there are situations in which they are used (e.g. for exclusion rules).
+     */
     @NotNull private final Collection<EvaluatedPolicyRuleImpl> otherTargetsPolicyRules = new ArrayList<>();
+
     private String tenantOid;
 
     private PrismObject<?> target;
