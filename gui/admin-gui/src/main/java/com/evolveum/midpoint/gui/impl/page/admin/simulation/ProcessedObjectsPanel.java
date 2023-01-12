@@ -54,11 +54,20 @@ public class ProcessedObjectsPanel extends ContainerableListPanel<SimulationResu
             protected @NotNull String getSimulationResultOid() {
                 return ProcessedObjectsPanel.this.getSimulationResultOid();
             }
+
+            @Override
+            protected String getTagOid() {
+                return ProcessedObjectsPanel.this.getTagOid();
+            }
         };
     }
 
     @NotNull
     protected String getSimulationResultOid() {
+        return null;
+    }
+
+    protected String getTagOid() {
         return null;
     }
 

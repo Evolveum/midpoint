@@ -7,16 +7,15 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.simulation;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.authentication.api.authorization.AuthorizationAction;
 import com.evolveum.midpoint.authentication.api.authorization.PageDescriptor;
 import com.evolveum.midpoint.authentication.api.authorization.Url;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SimulationResultType
                 @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/objects"),
                 @Url(mountUrl = "/admin/simulations/result/${RESULT_OID}/tag/${TAG_OID}")
         },
-        encoder = PageParametersEncoder.class,
         // todo authorizations
         action = {
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_SIMULATIONS_ALL_URL,
@@ -68,7 +66,17 @@ public class PageSimulationResultObjects extends PageAdmin {
             @Override
             protected @NotNull String getSimulationResultOid() {
                 String oid = getPageParameterResultOid();
-                if (StringUtils.isEmpty(oid)) {
+                if (!Utils.isPrismObjectOidValid(oid)) {
+                    throw new RestartResponseException(PageError404.class);
+                }
+
+                return oid;
+            }
+
+            @Override
+            protected String getTagOid() {
+                String oid = getPageParameterTagOid();
+                if (!Utils.isPrismObjectOidValid(oid)) {
                     throw new RestartResponseException(PageError404.class);
                 }
 
@@ -83,12 +91,17 @@ public class PageSimulationResultObjects extends PageAdmin {
         return params.get(PAGE_PARAMETER_RESULT_OID).toString();
     }
 
+    private String getPageParameterTagOid() {
+        PageParameters params = getPageParameters();
+        return params.get(PAGE_PARAMETER_TAG_OID).toString();
+    }
+
     @Override
     protected IModel<String> createPageTitleModel() {
         return () -> {
             String oid = getPageParameterResultOid();
 
-            if (StringUtils.isEmpty(oid)) {
+            if (!Utils.isPrismObjectOidValid(oid)) {
                 throw new RestartResponseException(PageError404.class);
             }
 
