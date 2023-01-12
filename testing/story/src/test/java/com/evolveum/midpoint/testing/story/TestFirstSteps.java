@@ -235,7 +235,7 @@ public class TestFirstSteps extends AbstractStoryTest {
 
     /**
      * Adding a reaction for `UNMATCHED` situation. Trying to import an account.
-     * It should fail (in development simulation mode), because there are no mappings yet.
+     * It should fail (in development simulation mode), because there are no mappings yet, so no user name is provided.
      */
     @Test
     public void test120AddUnmatchedReaction() throws Exception {
@@ -275,7 +275,7 @@ public class TestFirstSteps extends AbstractStoryTest {
     }
 
     /**
-     * Adding a mapping for `empNo`. Trying to import an account.
+     * Adding a mapping for `empNo`. Trying to import an account. It should succeed with simulated user ADD delta.
      */
     @Test
     public void test130AddEmpNoMapping() throws Exception {

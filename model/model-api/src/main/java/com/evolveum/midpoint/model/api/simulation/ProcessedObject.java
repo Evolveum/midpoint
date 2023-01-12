@@ -10,10 +10,12 @@ package com.evolveum.midpoint.model.api.simulation;
 import static com.evolveum.midpoint.prism.polystring.PolyString.getOrig;
 import static com.evolveum.midpoint.util.MiscUtil.argCheck;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.prism.impl.binding.AbstractReferencable;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import com.evolveum.midpoint.util.DebugUtil;
@@ -87,10 +89,17 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
                 (Class<O>) type,
                 bean.getName(),
                 MiscUtil.argNonNull(bean.getState(), () -> "No processing state in " + bean),
-                bean.getMetricIdentifier(),
+                getEventTagsOids(bean),
                 (O) bean.getBefore(),
                 (O) bean.getAfter(),
                 DeltaConvertor.createObjectDeltaNullable(bean.getDelta()));
+    }
+
+    private static Set<String> getEventTagsOids(SimulationResultProcessedObjectType bean) {
+        return bean.getEventTagRef().stream()
+                .map(AbstractReferencable::getOid)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     public static <O extends ObjectType> ProcessedObject<?> create(
@@ -210,7 +219,9 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
                 .before(prepareObjectForStorage(before))
                 .after(prepareObjectForStorage(after))
                 .delta(DeltaConvertor.toObjectDeltaType(delta));
-        processedObject.getMetricIdentifier().addAll(eventTags);
+        List<ObjectReferenceType> eventTagRef = processedObject.getEventTagRef();
+        eventTags.forEach(
+                oid -> eventTagRef.add(ObjectTypeUtil.createObjectRef(oid, ObjectTypes.TAG)));
         return processedObject;
     }
 
@@ -234,7 +245,7 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
         sb.append(" (").append(name).append("): ");
         sb.append(state);
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "tags", getEventTagsInfo(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "tags", getEventTagsDebugDump(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "before", before, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent + 1);
         return sb.toString();
@@ -247,24 +258,24 @@ public class ProcessedObject<O extends ObjectType> implements DebugDumpable {
                 ", type=" + type +
                 ", name=" + name +
                 ", state=" + state +
-                ", eventTags=" + getEventTagsInfo() +
+                ", eventTags=" + getEventTagsDebugDump() +
                 ", before=" + before +
                 ", after=" + after +
                 ", delta=" + delta +
                 '}';
     }
 
-    private Collection<String> getEventTagsInfo() {
+    private Collection<String> getEventTagsDebugDump() {
         if (eventTagsMap != null) {
             return eventTagsMap.entrySet().stream()
-                    .map(e -> getTagInfo(e))
+                    .map(e -> getTagDebugDump(e))
                     .collect(Collectors.toList());
         } else {
             return eventTags;
         }
     }
 
-    private String getTagInfo(Map.Entry<String, TagType> tagEntry) {
+    private String getTagDebugDump(Map.Entry<String, TagType> tagEntry) {
         String tagOid = tagEntry.getKey();
         TagType tag = tagEntry.getValue();
         if (tag != null) {

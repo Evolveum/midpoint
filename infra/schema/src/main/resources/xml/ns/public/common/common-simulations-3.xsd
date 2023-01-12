@@ -145,11 +145,21 @@
           </xsd:appinfo>
       </xsd:annotation>
        <xsd:sequence>
-          <xsd:element name="oid" type="xsd:string" />
-          <xsd:element name="type" type="xsd:QName" />
-          <xsd:element name="name" type="t:PolyStringType" />
-          <xsd:element name="state" type="tns:ObjectProcessingStateType" />
-          <xsd:element name="metricIdentifier" type="xsd:string" maxOccurs="unbounded" />
+          <xsd:element name="oid" type="xsd:string" minOccurs="0"/>
+          <xsd:element name="type" type="xsd:QName" minOccurs="0"/>
+          <xsd:element name="name" type="t:PolyStringType" minOccurs="0"/>
+          <xsd:element name="state" type="tns:ObjectProcessingStateType" minOccurs="0"/>
+          <xsd:element name="eventTagRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+              <xsd:annotation>
+                  <xsd:documentation>
+                      Event tag or tags that apply to this operation.
+                  </xsd:documentation>
+                  <xsd:appinfo>
+                      <a:objectReferenceTargetType>c:TagType</a:objectReferenceTargetType>
+                  </xsd:appinfo>
+              </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="metricIdentifier" type="xsd:string" maxOccurs="unbounded" /> <!-- To be removed -->
 
           <!--  Extra stored state -->
           <xsd:element name="before" type="tns:ObjectType">

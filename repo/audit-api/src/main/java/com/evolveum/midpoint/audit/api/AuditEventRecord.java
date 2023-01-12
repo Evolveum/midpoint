@@ -119,9 +119,14 @@ public class AuditEventRecord implements DebugDumpable, Serializable {
      */
     private String taskOid;
 
-    private String hostIdentifier;        // local node name as obtained from the networking stack
-    private String nodeIdentifier;        // midPoint cluster node identifier (NodeType.nodeIdentifier)
-    private String remoteHostAddress;    // remote host address as obtained from the networking stack
+    /** Local node name as obtained from the networking stack. */
+    private String hostIdentifier;
+
+    /** MidPoint cluster node identifier (NodeType.nodeIdentifier). */
+    private String nodeIdentifier;
+
+    /** Remote host address as obtained from the networking stack. */
+    private String remoteHostAddress;
 
     /**
      * Initiator is the (legal) entity on behalf of whom is the action executed.
