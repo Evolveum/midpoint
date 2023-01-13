@@ -97,6 +97,9 @@ public interface CommonInitialObjects {
     /** To be used when needed. */
     static void addTags(AbstractModelIntegrationTest test, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+        if (!test.areTagsSupported()) {
+            return;
+        }
         test.repoAdd(ARCHETYPE_EVENT_TAG, result);
         test.repoAdd(ARCHETYPE_POLICY_SITUATION, result);
         test.repoAdd(TAG_FOCUS_ENABLED, result);

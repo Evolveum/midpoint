@@ -13,26 +13,29 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static com.evolveum.midpoint.util.MiscUtil.stateCheck;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
-
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.schema.processor.CompositeObjectDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedModificationTrigger;
 import com.evolveum.midpoint.model.impl.lens.LensElementContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.ObjectPolicyRuleEvaluationContext;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluationContext;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAssociationDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -40,6 +43,7 @@ import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -198,7 +202,120 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
             ObjectDelta<?> delta, ObjectPolicyRuleEvaluationContext<?> ctx, SpecialItemSpecificationType specialItem)
             throws SchemaException, ConfigurationException {
         assert delta.isModify();
-        Collection<ItemPath> paths = determineSpecialItemPaths(ctx, specialItem);
+        ResourceObjectDefinition objectDefinition = getObjectDefinition(ctx);
+        if (objectDefinition == null) {
+            LOGGER.trace("No object definition -> no special item {} evaluation", specialItem);
+            return false;
+        }
+        switch (specialItem) {
+            case RESOURCE_OBJECT_IDENTIFIER:
+                return pathBasedSpecialItemMatches(
+                        delta, specialItem, getResourceObjectIdentifierPaths(objectDefinition));
+            case RESOURCE_OBJECT_NAMING_ATTRIBUTE:
+                return pathBasedSpecialItemMatches(
+                        delta, specialItem, getResourceObjectNamingAttributePath(objectDefinition, specialItem));
+            case RESOURCE_OBJECT_ENTITLEMENT:
+                return isEntitlementChange(delta, objectDefinition);
+            default:
+                throw new IllegalStateException("Item specification " + specialItem + " is not supported");
+        }
+    }
+
+    /**
+     * In order to check whether an entitlement was changed, we have to know which associations were changed -> to see
+     * if these are real entitlements, or not. It would be better if the associations were treated just like attributes,
+     * i.e. $shadow/association/ri:xyz, but they are not: specific associations are distinguished by
+     * {@link ShadowAssociationType#F_NAME} field. This may present problems when replace deltas are provided; but,
+     * generally, such deltas should not be allowed at all, as they are hard to execute.
+     */
+    private boolean isEntitlementChange(ObjectDelta<?> delta, ResourceObjectDefinition objectDefinition) {
+        for (ItemDelta<?, ?> modification : delta.getModifications()) {
+            if (!modification.getPath().equivalent(ShadowType.F_ASSOCIATION)) {
+                continue;
+            }
+            Collection<?> valuesToReplace = modification.getValuesToReplace();
+            if (valuesToReplace != null) {
+                // Should not occur
+                if (isEntitlementChange(valuesToReplace, objectDefinition)) {
+                    return true;
+                }
+                Collection<?> estimatedOldValues = modification.getEstimatedOldValues();
+                if (estimatedOldValues != null) {
+                    return isEntitlementChange(estimatedOldValues, objectDefinition);
+                } else {
+                    LOGGER.warn("Replacement delta for association, not knowing old values -> we cannot evaluate whether"
+                            + " there are any entitlement changes. Delta: {}, modification: {}", delta, modification);
+                    return false;
+                }
+            } else {
+                return isEntitlementChange(modification.getValuesToAdd(), objectDefinition)
+                        || isEntitlementChange(modification.getValuesToDelete(), objectDefinition);
+            }
+        }
+        return false;
+    }
+
+    private boolean isEntitlementChange(Collection<?> values, ResourceObjectDefinition objectDefinition) {
+        if (values == null) {
+            return false;
+        }
+        Collection<QName> associationsModified = new HashSet<>();
+        for (Object value : values) {
+            if (!(value instanceof PrismContainerValue<?>)) {
+                continue;
+            }
+            PrismContainerValue<?> pcv = (PrismContainerValue<?>) value;
+            Class<?> compileTimeClass = pcv.getCompileTimeClass();
+            if (compileTimeClass == null || !ShadowAssociationType.class.isAssignableFrom(compileTimeClass)) {
+                continue;
+            }
+            ShadowAssociationType assocValue = (ShadowAssociationType) pcv.asContainerable();
+            associationsModified.add(assocValue.getName());
+        }
+        for (QName associationModified : associationsModified) {
+            if (associationModified != null) {
+                ResourceAssociationDefinition association = objectDefinition.findAssociationDefinition(associationModified);
+                if (association == null) {
+                    LOGGER.warn("Modifying unknown association {} in {}", associationModified, objectDefinition);
+                    continue;
+                }
+                if (association.getKind() == ShadowKindType.ENTITLEMENT) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private ResourceObjectDefinition getObjectDefinition(ObjectPolicyRuleEvaluationContext<?> ctx)
+            throws SchemaException, ConfigurationException {
+        if (ctx.elementContext instanceof LensProjectionContext) {
+            return ((LensProjectionContext) ctx.elementContext).getCompositeObjectDefinition();
+        } else {
+            return null;
+        }
+    }
+
+    private Collection<ItemPath> getResourceObjectIdentifierPaths(
+            ResourceObjectDefinition objectDefinition) {
+        return objectDefinition.getAllIdentifiers().stream()
+                .map(def -> ItemPath.create(ShadowType.F_ATTRIBUTES, def.getItemName()))
+                .collect(Collectors.toList());
+    }
+
+    private Collection<ItemPath> getResourceObjectNamingAttributePath(
+            ResourceObjectDefinition objectDefinition, SpecialItemSpecificationType specialItem) {
+        ResourceAttributeDefinition<?> namingAttributeDef = objectDefinition.getNamingAttribute();
+        if (namingAttributeDef == null) {
+            LOGGER.trace("No naming attribute for {} -> no special item {} evaluation", objectDefinition, specialItem);
+            return null;
+        } else {
+            return List.of(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttributeDef.getItemName()));
+        }
+    }
+
+    private boolean pathBasedSpecialItemMatches(
+            ObjectDelta<?> delta, SpecialItemSpecificationType specialItem, Collection<ItemPath> paths) {
         if (paths == null) {
             LOGGER.trace("Special item {} is not applicable here", specialItem);
             return false;
@@ -209,39 +326,6 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
             }
         }
         return false;
-    }
-
-    private Collection<ItemPath> determineSpecialItemPaths(
-            ObjectPolicyRuleEvaluationContext<?> ctx, SpecialItemSpecificationType specialItem)
-            throws SchemaException, ConfigurationException {
-        if (!(ctx.elementContext instanceof LensProjectionContext)) {
-            return null;
-        }
-        LensProjectionContext projectionContext = (LensProjectionContext) ctx.elementContext;
-        CompositeObjectDefinition objectDefinition = projectionContext.getCompositeObjectDefinition();
-        if (objectDefinition == null) {
-            LOGGER.trace("No object definition -> no special item {} evaluation", specialItem);
-            return null;
-        }
-
-        switch (specialItem) {
-            case RESOURCE_OBJECT_IDENTIFIER:
-                return objectDefinition.getAllIdentifiers().stream()
-                        .map(def -> ItemPath.create(ShadowType.F_ATTRIBUTES, def.getItemName()))
-                        .collect(Collectors.toList());
-            case RESOURCE_OBJECT_ENTITLEMENT:
-                return List.of(ShadowType.F_ASSOCIATION); // for the time being
-            case RESOURCE_OBJECT_NAMING_ATTRIBUTE:
-                ResourceAttributeDefinition<?> namingAttributeDef = objectDefinition.getNamingAttribute();
-                if (namingAttributeDef == null) {
-                    LOGGER.trace("No naming attribute for {} -> no special item {} evaluation", objectDefinition, specialItem);
-                    return null;
-                } else {
-                    return List.of(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttributeDef.getItemName()));
-                }
-            default:
-                throw new IllegalStateException("Item specification " + specialItem + " is not supported");
-        }
     }
 
     private boolean operationMatches(LensElementContext<?> elementContext, List<ChangeTypeType> operations) {

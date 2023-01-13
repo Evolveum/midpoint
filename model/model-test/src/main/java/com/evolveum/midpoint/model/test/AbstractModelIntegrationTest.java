@@ -6209,7 +6209,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> ModelContextAsserter<O, Void> assertPreviewContext(ModelContext<O> previewContext) {
-        ModelContextAsserter<O, Void> asserter = ModelContextAsserter.forContext(previewContext, "preview context");
+        return assertModelContext(previewContext, "preview context");
+    }
+
+    protected <O extends ObjectType> ModelContextAsserter<O, Void> assertModelContext(ModelContext<O> modelContext, String desc) {
+        ModelContextAsserter<O, Void> asserter = ModelContextAsserter.forContext(modelContext, desc);
         initializeAsserter(asserter);
         return asserter;
     }

@@ -4407,4 +4407,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                         .asItemDeltas(),
                 result);
     }
+
+    public boolean areTagsSupported() {
+        return repositoryService.supportsTags();
+    }
 }

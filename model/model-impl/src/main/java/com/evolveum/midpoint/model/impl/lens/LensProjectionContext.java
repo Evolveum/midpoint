@@ -1503,6 +1503,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("auxiliary object class definition"), String.valueOf(auxiliaryObjectClassDefinitions), indent+1);
 
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "Policy rules context", policyRulesContext, indent + 1);
+
         return sb.toString();
     }
 

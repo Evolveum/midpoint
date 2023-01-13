@@ -10,10 +10,12 @@ import static org.testng.AssertJUnit.assertNull;
 
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.test.AbstractTestResource;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TagType;
 
 /**
  * @author semancik
@@ -98,6 +100,12 @@ public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O
 
     public ElementContextAsserter<C, O, RA> display(String message) {
         PrismTestUtil.display(message, elementContext);
+        return this;
+    }
+
+    @SafeVarargs
+    public final ElementContextAsserter<C, O, RA> assertEventTags(AbstractTestResource<TagType>... expectedTags) {
+        assertEventTags(expectedTags, elementContext.getEventTags());
         return this;
     }
 }

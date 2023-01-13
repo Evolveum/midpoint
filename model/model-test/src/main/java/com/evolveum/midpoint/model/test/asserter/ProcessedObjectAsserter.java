@@ -65,15 +65,7 @@ public class ProcessedObjectAsserter<O extends ObjectType, RA> extends AbstractA
 
     @SafeVarargs
     public final ProcessedObjectAsserter<O, RA> assertEventTags(AbstractTestResource<TagType>... expectedTags) {
-        if (!getRepositoryService().supportsTags()) {
-            return this;
-        }
-        Set<String> expectedTagsOids = Arrays.stream(expectedTags)
-                .map(r -> r.oid)
-                .collect(Collectors.toSet());
-        assertThat(processedObject.getEventTags())
-                .as("event tags")
-                .containsExactlyInAnyOrderElementsOf(expectedTagsOids);
+        assertEventTags(expectedTags, processedObject.getEventTags());
         return this;
     }
 

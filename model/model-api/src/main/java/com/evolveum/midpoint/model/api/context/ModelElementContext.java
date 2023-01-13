@@ -165,4 +165,7 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     List<ArchetypeType> getArchetypes();
 
     @NotNull ModelContext<?> getModelContext();
+
+    /** Returns OIDs of event tags determined for this focus/projection context. */
+    @NotNull Collection<String> getEventTags();
 }
