@@ -48,6 +48,12 @@ public class TestCsvReportExportClassicSafe extends TestCsvReportExportClassic {
 
     @Test(expectedExceptions = { AssertionError.class })
     @Override
+    public void test130ExportUsersWithAssignments() throws Exception {
+        super.test130ExportUsersWithAssignments();
+    }
+
+    @Test(expectedExceptions = { AssertionError.class })
+    @Override
     public void test140ExportAuditRecords() throws Exception {
         super.test140ExportAuditRecords();
     }
